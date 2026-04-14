@@ -2,18 +2,21 @@
 
 from __future__ import annotations
 
+import contextlib
 import os
 import tempfile
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import httpx
 
+if TYPE_CHECKING:
+    from datetime import datetime
+
 DEFAULT_API_BASE_URL = "https://api.adp.com"
 DEFAULT_MCP_BASE_URL = "https://mcp.adp.com/mcp"  # placeholder until real URL known
-DEFAULT_TOKEN_URL = "https://accounts.adp.com/auth/oauth/v2/token"
+DEFAULT_TOKEN_URL = "https://accounts.adp.com/auth/oauth/v2/token"  # noqa: S105
 TOKEN_TTL_SECONDS = 55 * 60  # 55 minutes
 
 
@@ -38,19 +41,54 @@ class ADPConnection:
     token_expires_at: datetime | None = None
 
 
-def build_mtls_httpx_client(conn: "ADPConnection", *, timeout: float = 30.0) -> httpx.AsyncClient:
+class _MTLSClient(httpx.AsyncClient):
+    """httpx AsyncClient that unlinks temp PEM files on close.
+
+    Overrides both ``aclose()`` and ``__aexit__()`` so temp files are cleaned up
+    whether the caller closes explicitly or uses the client as an async context
+    manager.
+    """
+
+    def __init__(self, *args, temp_cert_paths: list[Path] | None = None, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._temp_cert_paths: list[Path] = temp_cert_paths or []
+
+    @property
+    def _adp_temp_cert_paths(self) -> list[Path]:
+        """Back-compat alias for tests written against the previous API."""
+        return self._temp_cert_paths
+
+    async def _cleanup_temp_files(self) -> None:
+        for p in self._temp_cert_paths:
+            with contextlib.suppress(OSError):
+                p.unlink(missing_ok=True)
+
+    async def aclose(self) -> None:
+        try:
+            await super().aclose()
+        finally:
+            await self._cleanup_temp_files()
+
+    async def __aexit__(self, exc_type, exc_value, traceback) -> None:
+        try:
+            await super().__aexit__(exc_type, exc_value, traceback)
+        finally:
+            await self._cleanup_temp_files()
+
+
+def build_mtls_httpx_client(conn: ADPConnection, *, timeout: float = 30.0) -> httpx.AsyncClient:
     """Build an httpx.AsyncClient configured with mTLS from an ADPConnection.
 
     For ``cert_source="path"`` the cert/key paths are used directly.
     For ``cert_source="pem"`` the PEM contents are written to temp files (0600)
     and those paths are handed to httpx. Temp files are cleaned up when the
-    returned client is closed.
+    returned client is closed (explicit aclose OR async-context-manager exit).
     """
     if conn.cert_source == "path":
         if not conn.cert_path or not conn.key_path:
             msg = "cert_path and key_path are required when cert_source='path'"
             raise ValueError(msg)
-        cert_tuple = (conn.cert_path, conn.key_path)
+        cert_tuple: tuple[str, str] = (conn.cert_path, conn.key_path)
         temp_paths: list[Path] = []
     elif conn.cert_source == "pem":
         if not conn.cert_pem or not conn.key_pem:
@@ -61,24 +99,7 @@ def build_mtls_httpx_client(conn: "ADPConnection", *, timeout: float = 30.0) -> 
         msg = f"Unknown cert_source: {conn.cert_source!r}"
         raise ValueError(msg)
 
-    client = httpx.AsyncClient(cert=cert_tuple, timeout=timeout)
-    # Attach temp paths for cleanup on close
-    client._adp_temp_cert_paths = temp_paths  # noqa: SLF001 - internal marker
-
-    original_aclose = client.aclose
-
-    async def aclose_with_cleanup() -> None:
-        try:
-            await original_aclose()
-        finally:
-            for p in temp_paths:
-                try:
-                    p.unlink(missing_ok=True)
-                except OSError:
-                    pass
-
-    client.aclose = aclose_with_cleanup  # type: ignore[method-assign]
-    return client
+    return _MTLSClient(cert=cert_tuple, timeout=timeout, temp_cert_paths=temp_paths)
 
 
 def _write_pem_temp_files(cert_pem: str, key_pem: str) -> tuple[tuple[str, str], list[Path]]:
@@ -90,10 +111,15 @@ def _write_pem_temp_files(cert_pem: str, key_pem: str) -> tuple[tuple[str, str],
 
 def _write_secure_tempfile(content: str, *, suffix: str) -> Path:
     fd, name = tempfile.mkstemp(suffix=suffix, prefix="adp-")
+    path = Path(name)
     try:
         os.write(fd, content.encode("utf-8"))
-    finally:
+    except BaseException:
         os.close(fd)
-    path = Path(name)
+        path.unlink(missing_ok=True)
+        raise
+    else:
+        os.close(fd)
+    # mkstemp creates at 0600; chmod is belt-and-suspenders documentation of intent.
     path.chmod(0o600)
     return path
