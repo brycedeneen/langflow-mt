@@ -134,3 +134,51 @@ async def test_mtls_client_cleans_up_on_async_with():
     # After exiting the async context manager, temp files must be gone.
     for p in temp_paths:
         assert not p.exists(), f"Temp file should have been cleaned up: {p}"
+
+
+async def test_build_mtls_client_with_pem_writes_temp_files():
+    cert_pem_bytes, key_pem_bytes = _make_self_signed_cert_and_key()
+    conn = ADPConnection(
+        client_id="c",
+        client_secret="s",  # noqa: S106
+        cert_source="pem",
+        cert_pem=cert_pem_bytes.decode("utf-8"),
+        key_pem=key_pem_bytes.decode("utf-8"),
+    )
+    client = build_mtls_httpx_client(conn)
+    temp_paths = client._adp_temp_cert_paths
+    assert len(temp_paths) == 2
+    for p in temp_paths:
+        assert p.exists()
+        mode = p.stat().st_mode & 0o777
+        assert mode == 0o600
+
+    await client.aclose()
+    for p in temp_paths:
+        assert not p.exists(), f"{p} should have been cleaned up on aclose"
+
+
+def test_build_mtls_client_pem_requires_both():
+    conn = ADPConnection(
+        client_id="c",
+        client_secret="s",  # noqa: S106
+        cert_source="pem",
+        cert_pem="-----BEGIN CERTIFICATE-----\n...\n",
+        key_pem=None,
+    )
+    with pytest.raises(ValueError, match="cert_pem and key_pem"):
+        build_mtls_httpx_client(conn)
+
+
+def test_build_mtls_client_unknown_source():
+    # Bypass the dataclass type hint at runtime to test the defensive branch.
+    conn = ADPConnection(
+        client_id="c",
+        client_secret="s",  # noqa: S106
+        cert_source="path",
+        cert_path="/tmp/x",
+        key_path="/tmp/y",
+    )
+    conn.cert_source = "bogus"  # type: ignore[assignment]
+    with pytest.raises(ValueError, match="Unknown cert_source"):
+        build_mtls_httpx_client(conn)
