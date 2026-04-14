@@ -1,5 +1,6 @@
 import datetime as dt
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from unittest.mock import AsyncMock, patch
 
 import httpx
 import pytest
@@ -7,7 +8,7 @@ from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
-from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client
+from lfx.components.adp._shared import TOKEN_TTL_SECONDS, ADPConnection, build_mtls_httpx_client, fetch_token
 
 
 def _make_self_signed_cert_and_key() -> tuple[bytes, bytes]:
@@ -182,3 +183,91 @@ def test_build_mtls_client_unknown_source():
     conn.cert_source = "bogus"  # type: ignore[assignment]
     with pytest.raises(ValueError, match="Unknown cert_source"):
         build_mtls_httpx_client(conn)
+
+
+# ---------------------------------------------------------------------------
+# fetch_token tests
+# ---------------------------------------------------------------------------
+
+
+def _make_conn(tmp_path) -> ADPConnection:
+    cert_pem, key_pem = _make_self_signed_cert_and_key()
+    cert = tmp_path / "c.pem"
+    key = tmp_path / "k.pem"
+    cert.write_bytes(cert_pem)
+    key.write_bytes(key_pem)
+    return ADPConnection(
+        client_id="my-id",
+        client_secret="my-secret",  # noqa: S106
+        cert_source="path",
+        cert_path=str(cert),
+        key_path=str(key),
+    )
+
+
+async def test_fetch_token_populates_access_token_and_expiry(tmp_path):
+    conn = _make_conn(tmp_path)
+
+    fake_response = httpx.Response(
+        200,
+        json={"access_token": "tok-123", "token_type": "Bearer", "expires_in": 3600},
+    )
+
+    with patch("lfx.components.adp._shared._post_token_request", new=AsyncMock(return_value=fake_response)):
+        await fetch_token(conn)
+
+    assert conn.access_token == "tok-123"  # noqa: S105
+    assert conn.token_expires_at is not None
+    delta = conn.token_expires_at - datetime.now(tz=timezone.utc)
+    assert abs(delta.total_seconds() - TOKEN_TTL_SECONDS) < 5
+
+
+async def test_fetch_token_uses_cache_when_not_expired(tmp_path):
+    conn = _make_conn(tmp_path)
+    conn.access_token = "cached-tok"  # noqa: S105
+    conn.token_expires_at = datetime.now(tz=timezone.utc) + timedelta(minutes=30)
+
+    mock_post = AsyncMock()
+    with patch("lfx.components.adp._shared._post_token_request", new=mock_post):
+        await fetch_token(conn)
+
+    mock_post.assert_not_called()
+    assert conn.access_token == "cached-tok"  # noqa: S105
+
+
+async def test_fetch_token_force_bypasses_cache(tmp_path):
+    conn = _make_conn(tmp_path)
+    conn.access_token = "old-tok"  # noqa: S105
+    conn.token_expires_at = datetime.now(tz=timezone.utc) + timedelta(minutes=30)
+
+    fake_response = httpx.Response(200, json={"access_token": "new-tok", "expires_in": 3600})
+    with patch("lfx.components.adp._shared._post_token_request", new=AsyncMock(return_value=fake_response)):
+        await fetch_token(conn, force=True)
+
+    assert conn.access_token == "new-tok"  # noqa: S105
+
+
+async def test_fetch_token_expired_triggers_refresh(tmp_path):
+    conn = _make_conn(tmp_path)
+    conn.access_token = "old-tok"  # noqa: S105
+    conn.token_expires_at = datetime.now(tz=timezone.utc) - timedelta(seconds=1)
+
+    fake_response = httpx.Response(200, json={"access_token": "fresh-tok", "expires_in": 3600})
+    with patch("lfx.components.adp._shared._post_token_request", new=AsyncMock(return_value=fake_response)):
+        await fetch_token(conn)
+
+    assert conn.access_token == "fresh-tok"  # noqa: S105
+
+
+async def test_fetch_token_surfaces_adp_error_body(tmp_path):
+    conn = _make_conn(tmp_path)
+    fake_response = httpx.Response(
+        401,
+        json={"error": "invalid_client", "error_description": "bad creds"},
+    )
+    mock_post = AsyncMock(return_value=fake_response)
+    with (
+        patch("lfx.components.adp._shared._post_token_request", new=mock_post),
+        pytest.raises(RuntimeError, match="invalid_client"),
+    ):
+        await fetch_token(conn)

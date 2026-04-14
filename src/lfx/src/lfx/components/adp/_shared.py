@@ -6,13 +6,11 @@ import contextlib
 import os
 import tempfile
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import Literal
 
 import httpx
-
-if TYPE_CHECKING:
-    from datetime import datetime
 
 DEFAULT_API_BASE_URL = "https://api.adp.com"
 DEFAULT_MCP_BASE_URL = "https://mcp.adp.com/mcp"  # placeholder until real URL known
@@ -123,3 +121,54 @@ def _write_secure_tempfile(content: str, *, suffix: str) -> Path:
     # mkstemp creates at 0600; chmod is belt-and-suspenders documentation of intent.
     path.chmod(0o600)
     return path
+
+
+async def fetch_token(conn: ADPConnection, *, force: bool = False) -> None:
+    """Ensure ``conn.access_token`` is populated and non-expired.
+
+    Uses the in-memory cache on ``conn``. Sets ``token_expires_at`` to now + 55 min
+    on success (ignoring ADP's ``expires_in`` — 55 min is our explicit contract).
+    On non-2xx responses, raises RuntimeError with the response body attached so
+    callers can surface ADP's OAuth error payload to users.
+    """
+    if not force and _token_is_fresh(conn):
+        return
+
+    async with build_mtls_httpx_client(conn) as client:
+        response = await _post_token_request(client, conn)
+
+    if response.status_code >= 400:  # noqa: PLR2004
+        try:
+            detail = response.json()
+        except ValueError:
+            detail = response.text
+        msg = f"ADP token endpoint returned {response.status_code}: {detail}"
+        raise RuntimeError(msg)
+
+    payload = response.json()
+    access_token = payload.get("access_token")
+    if not access_token:
+        msg = f"ADP token response missing access_token: {payload}"
+        raise RuntimeError(msg)
+
+    conn.access_token = access_token
+    conn.token_expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=TOKEN_TTL_SECONDS)
+
+
+def _token_is_fresh(conn: ADPConnection) -> bool:
+    if not conn.access_token or not conn.token_expires_at:
+        return False
+    return datetime.now(tz=timezone.utc) < conn.token_expires_at
+
+
+async def _post_token_request(client: httpx.AsyncClient, conn: ADPConnection) -> httpx.Response:
+    """Isolated for easy mocking in tests."""
+    return await client.post(
+        conn.token_url,
+        data={
+            "grant_type": "client_credentials",
+            "client_id": conn.client_id,
+            "client_secret": conn.client_secret,
+        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
