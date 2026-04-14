@@ -47,3 +47,75 @@ def test_adp_connection_token_fields_mutable():
     conn.token_expires_at = now
     assert conn.access_token == "abc"
     assert conn.token_expires_at == now
+
+
+import datetime as dt
+
+import httpx
+import pytest
+
+from lfx.components.adp._shared import build_mtls_httpx_client
+
+
+def _make_self_signed_cert_and_key() -> tuple[bytes, bytes]:
+    """Return (cert_pem, key_pem) bytes for a throwaway self-signed certificate."""
+    from cryptography import x509
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    from cryptography.x509.oid import NameOID
+
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test")])
+    now = dt.datetime.now(dt.timezone.utc)
+    cert = (
+        x509.CertificateBuilder()
+        .subject_name(name)
+        .issuer_name(name)
+        .public_key(key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now)
+        .not_valid_after(now + dt.timedelta(days=1))
+        .sign(key, hashes.SHA256())
+    )
+    cert_pem = cert.public_bytes(serialization.Encoding.PEM)
+    key_pem = key.private_bytes(
+        serialization.Encoding.PEM,
+        serialization.PrivateFormat.TraditionalOpenSSL,
+        serialization.NoEncryption(),
+    )
+    return cert_pem, key_pem
+
+
+def test_build_mtls_client_with_paths(tmp_path):
+    cert_pem, key_pem = _make_self_signed_cert_and_key()
+    cert_file = tmp_path / "cert.pem"
+    key_file = tmp_path / "key.pem"
+    cert_file.write_bytes(cert_pem)
+    key_file.write_bytes(key_pem)
+
+    conn = ADPConnection(
+        client_id="c",
+        client_secret="s",
+        cert_source="path",
+        cert_path=str(cert_file),
+        key_path=str(key_file),
+    )
+    client = build_mtls_httpx_client(conn)
+    try:
+        assert isinstance(client, httpx.AsyncClient)
+    finally:
+        pytest.importorskip("anyio")
+        import anyio
+        anyio.run(client.aclose)
+
+
+def test_build_mtls_client_requires_both_paths():
+    conn = ADPConnection(
+        client_id="c",
+        client_secret="s",
+        cert_source="path",
+        cert_path="/tmp/cert.pem",
+        key_path=None,
+    )
+    with pytest.raises(ValueError, match="cert_path and key_path"):
+        build_mtls_httpx_client(conn)
