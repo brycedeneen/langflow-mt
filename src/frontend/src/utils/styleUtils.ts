@@ -327,6 +327,7 @@ export const SIDEBAR_BUNDLES = [
   { display_name: "Agentics", name: "agentics", icon: "Agentics" },
   { display_name: "AgentQL", name: "agentql", icon: "AgentQL" },
   { display_name: "ALTK", name: "altk", icon: "Zap" },
+  { display_name: "ADP", name: "adp", icon: "Building2" },
   {
     display_name: "Language Models",
     name: "languagemodels",
@@ -405,6 +406,7 @@ export const SIDEBAR_BUNDLES = [
   { display_name: "SearchApi", name: "searchapi", icon: "SearchAPI" },
   { display_name: "SerpApi", name: "serpapi", icon: "SerpSearch" },
   { display_name: "Serper", name: "serper", icon: "Serper" },
+  { display_name: "SFTP", name: "sftp", icon: "Server" },
   { display_name: "Supabase", name: "supabase", icon: "Supabase" },
   { display_name: "Tavily", name: "tavily", icon: "TavilyIcon" },
   { display_name: "TwelveLabs", name: "twelvelabs", icon: "TwelveLabs" },

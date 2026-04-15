@@ -62,6 +62,12 @@ class FlowRunBase(SQLModel):
 
 class FlowRun(FlowRunBase, table=True):  # type: ignore[call-arg]
     __tablename__ = "flow_run"
+    __table_args__ = (
+        sa.Index("ix_flow_run_org_status_queued_at", "organization_id", "status", "queued_at"),
+        sa.Index("ix_flow_run_flow_queued_at_desc", "flow_id", "queued_at"),
+        sa.Index("ix_flow_run_status_heartbeat", "status", "heartbeat_at"),
+        sa.Index("ix_flow_run_status_finished", "status", "finished_at"),
+    )
     id: UUID = Field(default_factory=uuid4, primary_key=True)
 
 

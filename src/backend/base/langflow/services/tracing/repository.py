@@ -96,7 +96,7 @@ async def fetch_trace_summary_data(session: AsyncSession, trace_ids: list[UUID])
     if not trace_ids:
         return summary_map
 
-    all_spans_stmt = sa.select(
+    all_spans_stmt = select(
         col(SpanTable.trace_id),
         col(SpanTable.id),
         col(SpanTable.name),
@@ -106,7 +106,7 @@ async def fetch_trace_summary_data(session: AsyncSession, trace_ids: list[UUID])
         col(SpanTable.outputs),
         col(SpanTable.attributes),
     ).where(col(SpanTable.trace_id).in_(trace_ids))
-    rows = (await session.execute(all_spans_stmt)).all()
+    rows = (await session.exec(all_spans_stmt)).all()
 
     parent_ids = {row[3] for row in rows if row[3] is not None}
 
