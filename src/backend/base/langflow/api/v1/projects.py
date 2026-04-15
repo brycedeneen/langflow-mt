@@ -19,6 +19,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 from langflow.api.utils import CurrentActiveUser, DbSession, cascade_delete_flow, custom_params, remove_api_keys
+from langflow.api.utils.core import CurrentOrg
 from langflow.api.utils.mcp.config_utils import validate_mcp_server_for_project
 from langflow.api.v1.auth_helpers import handle_auth_settings_update
 from langflow.api.v1.flows import create_flows
@@ -57,10 +58,12 @@ async def create_project(
     session: DbSession,
     project: FolderCreate,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
 ):
     try:
         new_project = Folder.model_validate(project, from_attributes=True)
         new_project.user_id = current_user.id
+        new_project.organization_id = current_org.id
         # First check if the project.name is unique
         # there might be flows with name like: "MyFlow", "MyFlow (1)", "MyFlow (2)"
         # so we need to check if the name is unique with `like` operator
@@ -218,12 +221,14 @@ async def read_projects(
     *,
     session: DbSession,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
 ):
     try:
         projects = (
             await session.exec(
                 select(Folder).where(
-                    or_(Folder.user_id == current_user.id, Folder.user_id == None)  # noqa: E711
+                    or_(Folder.user_id == current_user.id, Folder.user_id == None),  # noqa: E711
+                    or_(Folder.organization_id == current_org.id, Folder.organization_id == None),  # noqa: E711
                 )
             )
         ).all()
@@ -242,6 +247,7 @@ async def read_project(
     session: DbSession,
     project_id: UUID,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
     params: Annotated[Params | None, Depends(custom_params)],
     page: Annotated[int | None, Query()] = None,
     size: Annotated[int | None, Query()] = None,
@@ -254,7 +260,11 @@ async def read_project(
             await session.exec(
                 select(Folder)
                 .options(selectinload(Folder.flows))
-                .where(Folder.id == project_id, Folder.user_id == current_user.id)
+                .where(
+                    Folder.id == project_id,
+                    Folder.user_id == current_user.id,
+                    or_(Folder.organization_id == current_org.id, Folder.organization_id == None),  # noqa: E711
+                )
             )
         ).first()
     except Exception as e:
@@ -307,11 +317,18 @@ async def update_project(
     project_id: UUID,
     project: FolderUpdate,  # Assuming FolderUpdate is a Pydantic model defining updatable fields
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
     background_tasks: BackgroundTasks,
 ):
     try:
         existing_project = (
-            await session.exec(select(Folder).where(Folder.id == project_id, Folder.user_id == current_user.id))
+            await session.exec(
+                select(Folder).where(
+                    Folder.id == project_id,
+                    Folder.user_id == current_user.id,
+                    or_(Folder.organization_id == current_org.id, Folder.organization_id == None),  # noqa: E711
+                )
+            )
         ).first()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
@@ -495,6 +512,7 @@ async def delete_project(
     session: DbSession,
     project_id: UUID,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
 ):
     try:
         flows = (
@@ -505,7 +523,13 @@ async def delete_project(
                 await cascade_delete_flow(session, flow.id)
 
         project = (
-            await session.exec(select(Folder).where(Folder.id == project_id, Folder.user_id == current_user.id))
+            await session.exec(
+                select(Folder).where(
+                    Folder.id == project_id,
+                    Folder.user_id == current_user.id,
+                    or_(Folder.organization_id == current_org.id, Folder.organization_id == None),  # noqa: E711
+                )
+            )
         ).first()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
@@ -591,10 +615,15 @@ async def download_file(
     session: DbSession,
     project_id: UUID,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
 ):
     """Download all flows from project as a zip file."""
     try:
-        query = select(Folder).where(Folder.id == project_id, Folder.user_id == current_user.id)
+        query = select(Folder).where(
+            Folder.id == project_id,
+            Folder.user_id == current_user.id,
+            or_(Folder.organization_id == current_org.id, Folder.organization_id == None),  # noqa: E711
+        )
         result = await session.exec(query)
         project = result.first()
 
@@ -642,6 +671,7 @@ async def upload_file(
     session: DbSession,
     file: Annotated[UploadFile, File(...)],
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
 ):
     """Upload flows from a file."""
     contents = await file.read()
@@ -659,6 +689,7 @@ async def upload_file(
     new_project = Folder.model_validate(project, from_attributes=True)
     new_project.id = None
     new_project.user_id = current_user.id
+    new_project.organization_id = current_org.id
 
     settings_service = get_settings_service()
 

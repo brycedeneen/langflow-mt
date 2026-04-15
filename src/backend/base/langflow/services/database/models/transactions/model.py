@@ -157,6 +157,7 @@ class TransactionBase(SQLModel):
 class TransactionTable(TransactionBase, table=True):  # type: ignore[call-arg]
     __tablename__ = "transaction"
     id: UUID | None = Field(default_factory=uuid4, primary_key=True)
+    organization_id: UUID | None = Field(default=None, index=True, foreign_key="organization.id", nullable=False)
 
 
 class TransactionReadResponse(TransactionBase):

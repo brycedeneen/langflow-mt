@@ -69,6 +69,7 @@ class VertexBuildBase(SQLModel):
 class VertexBuildTable(VertexBuildBase, table=True):  # type: ignore[call-arg]
     __tablename__ = "vertex_build"
     build_id: UUID | None = Field(default_factory=uuid4, primary_key=True)
+    organization_id: UUID | None = Field(default=None, index=True, foreign_key="organization.id", nullable=False)
 
 
 class VertexBuildMapModel(BaseModel):

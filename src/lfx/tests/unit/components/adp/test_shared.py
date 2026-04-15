@@ -8,7 +8,50 @@ from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
-from lfx.components.adp._shared import TOKEN_TTL_SECONDS, ADPConnection, build_mtls_httpx_client, fetch_token
+from lfx.components.adp._shared import (
+    TOKEN_TTL_SECONDS,
+    ADPConnection,
+    build_mtls_httpx_client,
+    fetch_token,
+    validate_adp_url,
+)
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://api.adp.com",
+        "https://api.adp.com/",
+        "https://accounts.adp.com/auth/oauth/v2/token",
+        "https://mcp.adp.com/mcp",
+        "https://adp.com",
+        "https://api.adp.com:8443/x",
+        "https://API.ADP.COM/x",
+    ],
+)
+def test_validate_adp_url_accepts_adp_hosts(url):
+    assert validate_adp_url(url, field_name="u") == url
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "http://api.adp.com",  # non-https
+        "https://evil.com",
+        "https://evil-adp.com",  # suffix spoof
+        "https://adp.com.attacker.tld",  # suffix spoof
+        "https://api.adp.com@attacker.tld",  # userinfo spoof
+        "https://attacker.tld/?x=https://api.adp.com",
+        "",
+        "not a url",
+        "https:///",
+        "ftp://api.adp.com",
+        "//api.adp.com/x",  # scheme-relative
+    ],
+)
+def test_validate_adp_url_rejects_off_allowlist(url):
+    with pytest.raises(ValueError, match="token_url|https|host|URL"):
+        validate_adp_url(url, field_name="token_url")
 
 
 def _make_self_signed_cert_and_key() -> tuple[bytes, bytes]:

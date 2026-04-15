@@ -34,7 +34,7 @@ async def test_mcp_component_uses_connection_base_url_by_default(adp_connection)
 
 @pytest.mark.asyncio
 async def test_mcp_component_override_url(adp_connection):
-    c = _make_component(adp_connection, mcp_url="https://custom.adp.example/mcp")
+    c = _make_component(adp_connection, mcp_url="https://staging-mcp.adp.com/mcp")
     captured: dict = {}
 
     async def fake_list(url, _headers):
@@ -43,7 +43,16 @@ async def test_mcp_component_override_url(adp_connection):
 
     with patch.object(c, "_list_tools", new=AsyncMock(side_effect=fake_list)):
         await c.build_tools()
-    assert captured["url"] == "https://custom.adp.example/mcp"
+    assert captured["url"] == "https://staging-mcp.adp.com/mcp"
+
+
+@pytest.mark.asyncio
+async def test_mcp_component_rejects_off_allowlist_mcp_url(adp_connection):
+    c = _make_component(adp_connection, mcp_url="https://attacker.example.com/mcp")
+    list_mock = AsyncMock()
+    with patch.object(c, "_list_tools", new=list_mock), pytest.raises(ValueError, match="mcp_url"):
+        await c.build_tools()
+    list_mock.assert_not_awaited()
 
 
 @pytest.mark.asyncio

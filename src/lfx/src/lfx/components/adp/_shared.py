@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -16,6 +17,38 @@ DEFAULT_API_BASE_URL = "https://api.adp.com"
 DEFAULT_MCP_BASE_URL = "https://mcp.adp.com/mcp"  # placeholder until real URL known
 DEFAULT_TOKEN_URL = "https://accounts.adp.com/auth/oauth/v2/token"  # noqa: S105
 TOKEN_TTL_SECONDS = 55 * 60  # 55 minutes
+ALLOWED_ADP_HOST = "adp.com"
+ALLOWED_ADP_HOST_SUFFIX = ".adp.com"
+
+
+def validate_adp_url(url: str, *, field_name: str) -> str:
+    """Require https + host is exactly 'adp.com' or ends in '.adp.com'.
+
+    Rejects off-allowlist hosts, non-https schemes, URLs with userinfo, and
+    missing/malformed hosts. Returns the url unchanged on success.
+    """
+    if not isinstance(url, str) or not url:
+        msg = f"{field_name} must be a non-empty https URL on *.adp.com"
+        raise ValueError(msg)
+    try:
+        parts = urlsplit(url)
+    except ValueError as e:
+        msg = f"{field_name} is not a valid URL: {e}"
+        raise ValueError(msg) from e
+    if parts.scheme != "https":
+        msg = f"{field_name} must use https scheme (got {parts.scheme!r})"
+        raise ValueError(msg)
+    if "@" in (parts.netloc or ""):
+        msg = f"{field_name} must not contain userinfo"
+        raise ValueError(msg)
+    host = (parts.hostname or "").lower()
+    if not host:
+        msg = f"{field_name} is missing a host"
+        raise ValueError(msg)
+    if host != ALLOWED_ADP_HOST and not host.endswith(ALLOWED_ADP_HOST_SUFFIX):
+        msg = f"{field_name} host {host!r} is not on the ADP allowlist (*.adp.com)"
+        raise ValueError(msg)
+    return url
 
 
 @dataclass

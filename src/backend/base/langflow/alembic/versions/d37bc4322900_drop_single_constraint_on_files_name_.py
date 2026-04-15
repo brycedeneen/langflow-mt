@@ -40,12 +40,20 @@ def upgrade() -> None:
             # SQLite: Recreate table without single UNIQUE constraint
             logger.info("SQLite: Recreating table to remove single UNIQUE constraint on name")
             
-            # Guard against schema drift: ensure expected columns before destructive rebuild
+            # Guard against schema drift: ensure expected columns before destructive rebuild.
+            # Tolerate newer tenant columns (e.g. organization_id added in a later migration)
+            # that may leak into the reflected schema via batch_alter_table recreation in
+            # earlier migrations when run against current SQLModel.metadata.
             res = conn.execute(sa.text('PRAGMA table_info("file")'))
             cols = [row[1] for row in res]
             expected = ['id', 'user_id', 'name', 'path', 'size', 'provider', 'created_at', 'updated_at']
-            if set(cols) != set(expected):
-                raise RuntimeError(f"SQLite: Unexpected columns on file table: {cols}. Aborting migration to avoid data loss.")
+            tolerated_extras = {'organization_id'}
+            unexpected = set(cols) - set(expected) - tolerated_extras
+            missing = set(expected) - set(cols)
+            if unexpected or missing:
+                raise RuntimeError(
+                    f"SQLite: Unexpected columns on file table: {cols}. Aborting migration to avoid data loss."
+                )
 
             # Create the new table without the single UNIQUE(name) constraint
             op.execute("""

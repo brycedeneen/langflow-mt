@@ -45,7 +45,12 @@ async def get_api_keys(session: AsyncSession, user_id: UUID) -> list[ApiKeyRead]
     return api_keys
 
 
-async def create_api_key(session: AsyncSession, api_key_create: ApiKeyCreate, user_id: UUID) -> UnmaskedApiKeyRead:
+async def create_api_key(
+    session: AsyncSession,
+    api_key_create: ApiKeyCreate,
+    user_id: UUID,
+    organization_id: UUID | None = None,
+) -> UnmaskedApiKeyRead:
     # Generate a random API key with 32 bytes of randomness
     generated_api_key = f"sk-{secrets.token_urlsafe(32)}"
 
@@ -53,10 +58,16 @@ async def create_api_key(session: AsyncSession, api_key_create: ApiKeyCreate, us
 
     stored_api_key = auth_utils.encrypt_api_key(generated_api_key, settings_service=settings_service)
 
+    if organization_id is None:
+        from langflow.services.database.models.user.helpers import resolve_user_organization_id
+
+        organization_id = await resolve_user_organization_id(session, user_id)
+
     api_key = ApiKey(
         api_key=stored_api_key,
         name=api_key_create.name,
         user_id=user_id,
+        organization_id=organization_id,
         created_at=api_key_create.created_at or datetime.datetime.now(datetime.timezone.utc),
     )
 

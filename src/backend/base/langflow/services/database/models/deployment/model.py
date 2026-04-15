@@ -30,6 +30,7 @@ class Deployment(SQLModel, table=True):  # type: ignore[call-arg]
     user_id: UUIDstr = Field(
         sa_column=Column(sa.Uuid(), ForeignKey("user.id", ondelete="CASCADE"), nullable=False, index=True)
     )
+    organization_id: UUIDstr | None = Field(default=None, index=True, foreign_key="organization.id", nullable=False)
     # "project" is represented by a Folder row in the existing schema.
     project_id: UUIDstr = Field(
         sa_column=Column(sa.Uuid(), ForeignKey("folder.id", ondelete="CASCADE"), nullable=False, index=True)

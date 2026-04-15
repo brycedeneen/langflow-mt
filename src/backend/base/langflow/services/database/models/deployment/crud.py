@@ -33,14 +33,21 @@ async def create_deployment(
     deployment_provider_account_id: UUID,
     resource_key: str,
     name: str,
+    organization_id: UUID | None = None,
 ) -> Deployment:
     # The Deployment model has its own field validators, but pre-checking here
     # gives clearer errors and avoids constructing the object.
     resource_key_s = _strip_or_raise(resource_key, "resource_key")
     name_s = _strip_or_raise(name, "name")
 
+    if organization_id is None:
+        from langflow.services.database.models.user.helpers import resolve_user_organization_id
+
+        organization_id = await resolve_user_organization_id(db, user_id)
+
     row = Deployment(
         user_id=user_id,
+        organization_id=organization_id,
         project_id=project_id,
         deployment_provider_account_id=deployment_provider_account_id,
         resource_key=resource_key_s,

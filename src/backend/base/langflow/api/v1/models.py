@@ -499,12 +499,16 @@ async def _save_model_list_variable(
     except ValueError:
         # Variable not found, create new one if there are models
         if model_set:
+            from langflow.services.database.models.user.helpers import resolve_user_organization_id
+
+            org_id = await resolve_user_organization_id(session, current_user.id)
             await variable_service.create_variable(
                 user_id=current_user.id,
                 name=var_name,
                 value=models_json,
                 type_=GENERIC_TYPE,
                 session=session,
+                organization_id=org_id,
             )
     except HTTPException:
         raise
@@ -800,12 +804,16 @@ async def set_default_model(
         )
     except ValueError:
         # Variable not found, create new one
+        from langflow.services.database.models.user.helpers import resolve_user_organization_id
+
+        org_id = await resolve_user_organization_id(session, current_user.id)
         await variable_service.create_variable(
             user_id=current_user.id,
             name=var_name,
             value=model_json,
             type_=GENERIC_TYPE,
             session=session,
+            organization_id=org_id,
         )
     except HTTPException:
         raise

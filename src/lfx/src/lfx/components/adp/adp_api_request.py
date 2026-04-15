@@ -19,9 +19,8 @@ from lfx.io import (
     TableInput,
 )
 from lfx.schema.data import Data
-from lfx.utils.ssrf_protection import SSRFProtectionError, validate_url_for_ssrf
 
-from ._shared import ADPConnection, build_mtls_httpx_client, fetch_token
+from ._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
 
 # Endpoint catalog: display name → (path template, requires_id)
 # ``{aoid}`` is substituted with resource_id when present; otherwise the
@@ -195,14 +194,9 @@ class ADPAPIRequestComponent(Component):
         url = conn.api_base_url + path
         method = (self.method or "GET").upper()
         base_params = self._build_query_params()
+        validate_adp_url(url, field_name="api_base_url")
         headers = {"Authorization": f"Bearer {conn.access_token}"}
         json_body = self._build_json_body() if method != "GET" else None
-
-        try:
-            validate_url_for_ssrf(url, warn_only=True)
-        except SSRFProtectionError as e:
-            msg = f"SSRF Protection: {e}"
-            raise ValueError(msg) from e
 
         if self.result_mode == "Top 20":
             params = {**base_params, "$top": 20}

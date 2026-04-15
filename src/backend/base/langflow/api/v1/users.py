@@ -12,6 +12,7 @@ from langflow.api.v1.schemas import UsersResponse
 from langflow.initial_setup.setup import get_or_create_default_folder
 from langflow.services.auth.utils import get_current_active_superuser
 from langflow.services.database.models.user.crud import get_user_by_id, update_user
+from langflow.services.database.models.user.helpers import ensure_personal_organization
 from langflow.services.database.models.user.model import User, UserCreate, UserRead, UserUpdate
 from langflow.services.deps import get_auth_service, get_settings_service
 
@@ -37,6 +38,7 @@ async def add_user(
         session.add(new_user)
         await session.flush()
         await session.refresh(new_user)
+        await ensure_personal_organization(session, new_user)
         folder = await get_or_create_default_folder(session, new_user.id)
         if not folder:
             raise HTTPException(status_code=500, detail="Error creating default project")

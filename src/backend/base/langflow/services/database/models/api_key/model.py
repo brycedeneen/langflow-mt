@@ -31,6 +31,7 @@ class ApiKey(ApiKeyBase, table=True):  # type: ignore[call-arg]
     # User relationship
     # Delete API keys when user is deleted
     user_id: UUIDstr = Field(index=True, foreign_key="user.id")
+    organization_id: UUIDstr | None = Field(default=None, index=True, foreign_key="organization.id", nullable=False)
     user: "User" = Relationship(
         back_populates="api_keys",
     )

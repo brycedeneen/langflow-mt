@@ -235,6 +235,9 @@ async def initialize_agentic_global_variables(session: AsyncSession) -> None:
                     try:
                         if var_name not in existing_vars:
                             # Create variable with default value
+                            from langflow.services.database.models.user.helpers import resolve_user_organization_id
+
+                            org_id = await resolve_user_organization_id(session, user.id)
                             await variable_service.create_variable(
                                 user_id=user.id,
                                 name=var_name,
@@ -242,6 +245,7 @@ async def initialize_agentic_global_variables(session: AsyncSession) -> None:
                                 default_fields=[],
                                 type_=GENERIC_TYPE,
                                 session=session,
+                                organization_id=org_id,
                             )
                             variables_created += 1
                             await logger.adebug(f"Created agentic variable {var_name} for user {user.username}")
@@ -330,6 +334,9 @@ async def initialize_agentic_user_variables(user_id: UUID | str, session: AsyncS
             logger.adebug(f"Checking if agentic variable {var_name} exists for user {user_id}")
             if var_name not in existing_vars:
                 try:
+                    from langflow.services.database.models.user.helpers import resolve_user_organization_id
+
+                    org_id = await resolve_user_organization_id(session, user_id)
                     await variable_service.create_variable(
                         user_id=user_id,
                         name=var_name,
@@ -337,6 +344,7 @@ async def initialize_agentic_user_variables(user_id: UUID | str, session: AsyncS
                         default_fields=[],
                         type_=CREDENTIAL_TYPE,
                         session=session,
+                        organization_id=org_id,
                     )
                     await logger.adebug(f"Created agentic variable {var_name} for user {user_id}")
                 except (

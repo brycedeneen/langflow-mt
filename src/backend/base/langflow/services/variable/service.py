@@ -158,6 +158,9 @@ class DatabaseVariableService(VariableService, Service):
                         else:
                             await self.update_variable(user_id, var_name, value, session=session)
                     else:
+                        from langflow.services.database.models.user.helpers import resolve_user_organization_id
+
+                        org_id = await resolve_user_organization_id(session, user_id)
                         await self.create_variable(
                             user_id=user_id,
                             name=var_name,
@@ -165,6 +168,7 @@ class DatabaseVariableService(VariableService, Service):
                             default_fields=default_fields,
                             type_=CREDENTIAL_TYPE,
                             session=session,
+                            organization_id=org_id,
                         )
                     await logger.adebug(f"Processed {var_name} variable from environment.")
                 except Exception as e:  # noqa: BLE001
@@ -388,6 +392,7 @@ class DatabaseVariableService(VariableService, Service):
         default_fields: Sequence[str] = (),
         type_: str = CREDENTIAL_TYPE,
         session: AsyncSession,
+        organization_id: UUID | str | None = None,
     ):
         # Validate that GENERIC variables don't start with Fernet signature
         if type_ == GENERIC_TYPE and value.startswith("gAAAAA"):
@@ -405,7 +410,10 @@ class DatabaseVariableService(VariableService, Service):
             value=encrypted_value,
             default_fields=list(default_fields),
         )
-        variable = Variable.model_validate(variable_base, from_attributes=True, update={"user_id": user_id})
+        update_fields: dict = {"user_id": user_id}
+        if organization_id is not None:
+            update_fields["organization_id"] = organization_id
+        variable = Variable.model_validate(variable_base, from_attributes=True, update=update_fields)
         session.add(variable)
         await session.flush()
         await session.refresh(variable)

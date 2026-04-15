@@ -12,7 +12,7 @@ from lfx.utils.component_utils import set_field_display
 if TYPE_CHECKING:
     from lfx.schema.dotdict import dotdict
 
-from ._shared import DEFAULT_TOKEN_URL, ADPConnection, fetch_token
+from ._shared import DEFAULT_TOKEN_URL, ADPConnection, fetch_token, validate_adp_url
 
 
 class ADPAuthComponent(Component):
@@ -103,6 +103,9 @@ class ADPAuthComponent(Component):
                 msg = "key_pem is required when Cert Source is PEM"
                 raise ValueError(msg)
 
+        token_url = (self.token_url or DEFAULT_TOKEN_URL).strip()
+        validate_adp_url(token_url, field_name="token_url")
+
         conn = ADPConnection(
             client_id=client_id,
             client_secret=client_secret,
@@ -111,7 +114,7 @@ class ADPAuthComponent(Component):
             key_path=self.key_path or None,
             cert_pem=self.cert_pem or None,
             key_pem=self.key_pem or None,
-            token_url=(self.token_url or DEFAULT_TOKEN_URL).strip(),
+            token_url=token_url,
         )
         await fetch_token(conn)
         return conn

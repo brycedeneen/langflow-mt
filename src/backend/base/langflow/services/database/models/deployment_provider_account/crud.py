@@ -80,8 +80,13 @@ async def create_provider_account(
     provider_key: str,
     provider_url: str,
     api_key: str,
+    organization_id: UUID | str | None = None,
 ) -> DeploymentProviderAccount:
     user_uuid = parse_uuid(user_id, field_name="user_id")
+    if organization_id is None:
+        from langflow.services.database.models.user.helpers import resolve_user_organization_id
+
+        organization_id = await resolve_user_organization_id(db, user_uuid)
 
     # The model has its own field validators, but pre-checking here gives
     # clearer errors and avoids constructing the object.
@@ -100,6 +105,7 @@ async def create_provider_account(
         raise
     provider_account = DeploymentProviderAccount(
         user_id=user_uuid,
+        organization_id=organization_id,
         provider_tenant_id=normalize_string_or_none(provider_tenant_id),
         provider_key=provider_key_s,
         provider_url=provider_url_s,

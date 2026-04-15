@@ -8,6 +8,7 @@ from lfx.base.models.unified_models import get_model_provider_variable_mapping, 
 from sqlalchemy.exc import NoResultFound
 
 from langflow.api.utils import CurrentActiveUser, DbSession
+from langflow.api.utils.core import CurrentOrg
 from langflow.api.v1.models import (
     DISABLED_MODELS_VAR,
     ENABLED_MODELS_VAR,
@@ -103,6 +104,7 @@ async def create_variable(
     session: DbSession,
     variable: VariableCreate,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
 ):
     """Create a new variable."""
     variable_service = get_variable_service()
@@ -137,6 +139,7 @@ async def create_variable(
             default_fields=variable.default_fields or [],
             type_=variable.type or CREDENTIAL_TYPE,
             session=session,
+            organization_id=current_org.id,
         )
     except Exception as e:
         if isinstance(e, HTTPException):

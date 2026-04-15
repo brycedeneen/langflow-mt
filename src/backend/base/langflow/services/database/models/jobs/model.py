@@ -67,3 +67,4 @@ class JobBase(SQLModel):
 
 class Job(JobBase, table=True):  # type: ignore[call-arg]
     __tablename__ = "job"
+    organization_id: UUID | None = Field(default=None, index=True, foreign_key="organization.id", nullable=False)

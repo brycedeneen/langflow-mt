@@ -42,6 +42,7 @@ class Variable(VariableBase, table=True):  # type: ignore[call-arg]
     default_fields: list[str] | None = Field(sa_column=Column(JSON))
     # foreign key to user table
     user_id: UUID = Field(description="User ID associated with this variable", foreign_key="user.id")
+    organization_id: UUID | None = Field(default=None, index=True, foreign_key="organization.id", nullable=False)
     user: "User" = Relationship(back_populates="variables")
 
 

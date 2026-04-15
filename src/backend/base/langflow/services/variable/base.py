@@ -94,6 +94,7 @@ class VariableService(Service):
         default_fields: list[str],
         type_: str,
         session: AsyncSession,
+        organization_id: UUID | str | None = None,
     ) -> Variable:
         """Create a variable.
 

@@ -7,7 +7,9 @@ from .flow import Flow
 from .flow_version import FlowVersion
 from .folder import Folder
 from .jobs import Job
+from .membership import Membership, MembershipRole
 from .message import MessageTable
+from .organization import Organization
 from .traces.model import SpanTable, TraceTable
 from .transactions import TransactionTable
 from .user import User
@@ -22,7 +24,10 @@ __all__ = [
     "FlowVersion",
     "Folder",
     "Job",
+    "Membership",
+    "MembershipRole",
     "MessageTable",
+    "Organization",
     "SSOConfig",
     "SSOUserProfile",
     "SpanTable",

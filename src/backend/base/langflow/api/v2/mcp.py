@@ -44,10 +44,18 @@ async def upload_server_config(
     mcp_file = await get_mcp_file(current_user, extension=True)
     upload_file = UploadFile(file=file_obj, filename=mcp_file, size=len(content_str))
 
+    # Resolve org directly rather than threading CurrentOrg through this internal helper.
+    from langflow.services.database.models.organization.model import Organization
+    from langflow.services.database.models.user.helpers import resolve_user_organization_id
+
+    org_id = await resolve_user_organization_id(session, current_user.id)
+    current_org = await session.get(Organization, org_id) if org_id is not None else None
+
     return await upload_user_file(
         file=upload_file,
         session=session,
         current_user=current_user,
+        current_org=current_org,
         storage_service=storage_service,
         settings_service=settings_service,
     )

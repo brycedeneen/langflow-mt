@@ -43,6 +43,14 @@ DbSession = Annotated[AsyncSession, Depends(injectable_session_scope)]
 DbSessionReadOnly = Annotated[AsyncSession, Depends(injectable_session_scope_readonly)]
 
 
+from langflow.api.utils.org_helpers import get_current_membership, get_current_organization  # noqa: E402
+from langflow.services.database.models.membership.model import Membership  # noqa: E402
+from langflow.services.database.models.organization.model import Organization  # noqa: E402
+
+CurrentOrg = Annotated[Organization, Depends(get_current_organization)]
+CurrentMembership = Annotated[Membership, Depends(get_current_membership)]
+
+
 def _get_validated_file_name(file_name: str = Path()) -> str:
     """Validate file_name path parameter to prevent path traversal attacks."""
     if ".." in file_name or "/" in file_name or "\\" in file_name:

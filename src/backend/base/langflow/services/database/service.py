@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import re
 import sqlite3
 import sys
@@ -115,6 +116,16 @@ class DatabaseService(Service):
             self.engine = self._create_engine_with_retry()
         else:
             self.engine = self._create_engine()
+
+        # Install multi-tenant scoping guards on the engine.
+        # - Insert guard is ALWAYS installed: it auto-resolves/populates organization_id
+        #   from the row's user_id and provisions a personal org if none exists.
+        # - Select guard only fires in dev/test to catch missing org filters before they
+        #   reach production.
+        from langflow.services.database.scoping import install_scoping_guards
+
+        _env = os.getenv("LANGFLOW_ENV", "prod").lower()
+        install_scoping_guards(self.engine.sync_engine, enforce_select=_env in {"dev", "test"})
 
         # Create async session maker for efficient session creation
         # This is the recommended SQLAlchemy 2.0+ pattern

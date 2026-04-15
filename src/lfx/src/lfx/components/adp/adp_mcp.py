@@ -9,7 +9,7 @@ import httpx
 from lfx.custom.custom_component.component import Component
 from lfx.io import HandleInput, MessageTextInput, Output
 
-from ._shared import ADPConnection, fetch_token
+from ._shared import ADPConnection, fetch_token, validate_adp_url
 
 
 class ADPMCPComponent(Component):
@@ -47,6 +47,7 @@ class ADPMCPComponent(Component):
         """Fetch tools from the ADP MCP server, applying auth and optional filtering."""
         conn: ADPConnection = self.connection
         url = (self.mcp_url or "").strip() or conn.mcp_base_url
+        validate_adp_url(url, field_name="mcp_url")
         headers = {"Authorization": f"Bearer {conn.access_token}"}
 
         _http_unauthorized = 401

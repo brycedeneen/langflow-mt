@@ -67,6 +67,30 @@ async def test_auth_component_missing_client_id_raises():
         await component.build_connection()
 
 
+async def test_auth_component_rejects_off_allowlist_token_url(tmp_path):
+    cert = tmp_path / "c.pem"
+    key = tmp_path / "k.pem"
+    cert.write_text("c")
+    key.write_text("k")
+    component = ADPAuthComponent(
+        client_id="cid",
+        client_secret="secret",  # noqa: S106
+        cert_source="File Path",
+        cert_path=str(cert),
+        key_path=str(key),
+        cert_pem="",
+        key_pem="",
+        token_url="https://attacker.example.com/token",  # noqa: S106
+    )
+    mock_fetch = AsyncMock()
+    with (
+        patch("lfx.components.adp.adp_auth.fetch_token", new=mock_fetch),
+        pytest.raises(ValueError, match="token_url"),
+    ):
+        await component.build_connection()
+    mock_fetch.assert_not_awaited()
+
+
 async def test_auth_component_path_mode_missing_cert_raises():
     component = ADPAuthComponent(
         client_id="cid",

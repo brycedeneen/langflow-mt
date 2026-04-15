@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 class File(SQLModel, table=True):  # type: ignore[call-arg]
     id: UUIDstr = Field(default_factory=uuid4, primary_key=True)
     user_id: UUID = Field(sa_column=Column(sa.Uuid(), ForeignKey("user.id", ondelete="CASCADE"), nullable=False))
+    organization_id: UUID | None = Field(default=None, index=True, foreign_key="organization.id", nullable=False)
     user: "User" = Relationship(back_populates="files")
     name: str = Field(nullable=False)
     path: str = Field(nullable=False)

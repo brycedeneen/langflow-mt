@@ -150,6 +150,7 @@ class KubernetesSecretService(VariableService, Service):
         default_fields: list[str],
         type_: str,
         session: AsyncSession,
+        organization_id: UUID | str | None = None,  # noqa: ARG002 — kubernetes backend doesn't use orgs
     ) -> Variable:
         secret_name = encode_user_id(user_id)
         secret_key = name

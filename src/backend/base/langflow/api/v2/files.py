@@ -16,6 +16,7 @@ from sqlmodel import col, select
 
 from langflow.api.schemas import UploadFileResponse
 from langflow.api.utils import CurrentActiveUser, DbSession
+from langflow.api.utils.core import CurrentOrg
 from langflow.services.database.models.file.model import File as UserFile
 from langflow.services.deps import get_settings_service, get_storage_service
 from langflow.services.settings.service import SettingsService
@@ -133,6 +134,7 @@ async def upload_user_file(
     file: Annotated[UploadFile, File(...)],
     session: DbSession,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
     storage_service: Annotated[StorageService, Depends(get_storage_service)],
     settings_service: Annotated[SettingsService, Depends(get_settings_service)],
     *,
@@ -250,6 +252,7 @@ async def upload_user_file(
             new_file = UserFile(
                 id=file_id,
                 user_id=current_user.id,
+                organization_id=current_org.id,
                 name=root_filename,
                 path=f"{current_user.id}/{stored_file_name}",
                 size=file_size,

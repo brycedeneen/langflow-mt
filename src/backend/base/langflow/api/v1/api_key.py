@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Response
 
 from langflow.api.utils import CurrentActiveUser, DbSession
+from langflow.api.utils.core import CurrentOrg
 from langflow.api.v1.schemas import ApiKeyCreateRequest, ApiKeysResponse
 from langflow.services.auth import utils as auth_utils
 
@@ -31,11 +32,12 @@ async def get_api_keys_route(
 async def create_api_key_route(
     req: ApiKeyCreate,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
     db: DbSession,
 ) -> UnmaskedApiKeyRead:
     try:
         user_id = current_user.id
-        return await create_api_key(db, req, user_id=user_id)
+        return await create_api_key(db, req, user_id=user_id, organization_id=current_org.id)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 

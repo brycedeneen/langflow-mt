@@ -269,23 +269,11 @@ async def test_make_request_all_stops_on_empty_page(adp_connection):
 
 
 @pytest.mark.asyncio
-async def test_make_request_invokes_ssrf_validation(adp_connection, monkeypatch):
+async def test_make_request_rejects_off_allowlist_api_base_url(adp_connection):
+    adp_connection.api_base_url = "https://attacker.example.com"
     c = _make_component(adp_connection, endpoint="Workers")
-    called: dict = {}
 
-    def fake_validate(url, *, warn_only):
-        called["url"] = url
-        called["warn_only"] = warn_only
-
-    monkeypatch.setattr("lfx.components.adp.adp_api_request.validate_url_for_ssrf", fake_validate)
-
-    @asynccontextmanager
-    async def fake_client(_conn, *, timeout=30):  # noqa: ARG001
-        yield MagicMock()
-
-    with patch("lfx.components.adp.adp_api_request.build_mtls_httpx_client", side_effect=fake_client), \
-         patch.object(c, "_execute_request", new=AsyncMock(return_value=httpx.Response(200, json={"workers": []}))):
+    exec_mock = AsyncMock()
+    with patch.object(c, "_execute_request", new=exec_mock), pytest.raises(ValueError, match="api_base_url"):
         await c.make_api_request()
-
-    assert called["url"].startswith("https://api.adp.com/hr/v2/workers")
-    assert called["warn_only"] is True
+    exec_mock.assert_not_awaited()

@@ -22,6 +22,7 @@ from sqlmodel import and_, col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from langflow.api.utils import CurrentActiveUser, DbSession, cascade_delete_flow, remove_api_keys, validate_is_component
+from langflow.api.utils.core import CurrentOrg
 from langflow.api.v1.schemas import FlowListCreate
 from langflow.helpers.user import get_user_by_flow_id_or_endpoint_name
 from langflow.initial_setup.constants import STARTER_FOLDER_NAME
@@ -166,6 +167,7 @@ async def _new_flow(
     flow: FlowCreate,
     user_id: UUID,
     storage_service: StorageService,
+    organization_id: UUID | None = None,
     flow_id: UUID | None = None,
     fail_on_endpoint_conflict: bool = False,
     validate_folder: bool = False,
@@ -264,6 +266,9 @@ async def _new_flow(
         if flow_id is not None:
             db_flow.id = flow_id
 
+        if organization_id is not None:
+            db_flow.organization_id = organization_id
+
         db_flow.updated_at = datetime.now(timezone.utc)
 
         # Validate folder_id exists, or fall back to default folder
@@ -303,10 +308,17 @@ async def create_flow(
     session: DbSession,
     flow: FlowCreate,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
     storage_service: Annotated[StorageService, Depends(get_storage_service)],
 ):
     try:
-        return await _new_flow(session=session, flow=flow, user_id=current_user.id, storage_service=storage_service)
+        return await _new_flow(
+            session=session,
+            flow=flow,
+            user_id=current_user.id,
+            organization_id=current_org.id,
+            storage_service=storage_service,
+        )
     except Exception as e:
         if "UNIQUE constraint failed" in str(e):
             # Get the name of the column that failed
@@ -328,6 +340,7 @@ async def create_flow(
 async def read_flows(
     *,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
     session: DbSession,
     remove_example_flows: bool = False,
     components_only: bool = False,
@@ -380,6 +393,9 @@ async def read_flows(
             )
         else:
             stmt = select(Flow).where(Flow.user_id == current_user.id)
+        # Multi-tenant scoping: only return flows in the caller's organization,
+        # or legacy flows with no organization assigned yet (backfill edge case).
+        stmt = stmt.where((Flow.organization_id == current_org.id) | (Flow.organization_id == None))  # noqa: E711
 
         if remove_example_flows:
             stmt = stmt.where(Flow.folder_id != starter_folder_id)
@@ -421,10 +437,12 @@ async def _read_flow(
     session: AsyncSession,
     flow_id: UUID,
     user_id: UUID,
+    organization_id: UUID | None = None,
 ):
-    """Read a flow."""
+    """Read a flow, scoped to user_id and (if provided) organization_id."""
     stmt = select(Flow).where(Flow.id == flow_id).where(Flow.user_id == user_id)
-
+    if organization_id is not None:
+        stmt = stmt.where(Flow.organization_id == organization_id)
     return (await session.exec(stmt)).first()
 
 
@@ -434,9 +452,10 @@ async def read_flow(
     session: DbSession,
     flow_id: UUID,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
 ):
     """Read a flow."""
-    if user_flow := await _read_flow(session, flow_id, current_user.id):
+    if user_flow := await _read_flow(session, flow_id, current_user.id, organization_id=current_org.id):
         # Convert to FlowRead while session is still active to avoid detached instance errors
         return FlowRead.model_validate(user_flow, from_attributes=True)
     raise HTTPException(status_code=404, detail="Flow not found")
@@ -464,6 +483,7 @@ async def update_flow(
     flow_id: UUID,
     flow: FlowUpdate,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
     storage_service: Annotated[StorageService, Depends(get_storage_service)],
 ):
     """Update a flow."""
@@ -473,6 +493,7 @@ async def update_flow(
             session=session,
             flow_id=flow_id,
             user_id=current_user.id,
+            organization_id=current_org.id,
         )
 
         if not db_flow:
@@ -547,6 +568,7 @@ async def upsert_flow(
     flow_id: UUID,
     flow: FlowCreate,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
     storage_service: Annotated[StorageService, Depends(get_storage_service)],
 ):
     """Create or update a flow with a specific ID (upsert).
@@ -564,8 +586,11 @@ async def upsert_flow(
         existing_flow = (await session.exec(select(Flow).where(Flow.id == flow_id))).first()
 
         if existing_flow is not None:
-            # Flow exists - check ownership (return 404 to avoid leaking resource existence)
-            if existing_flow.user_id != current_user.id:
+            # Flow exists - check ownership AND org (return 404 to avoid leaking resource existence)
+            if existing_flow.user_id != current_user.id or (
+                existing_flow.organization_id is not None
+                and existing_flow.organization_id != current_org.id
+            ):
                 raise HTTPException(status_code=404, detail="Flow not found")
 
             # UPDATE path
@@ -583,6 +608,7 @@ async def upsert_flow(
                 session=session,
                 flow=flow,
                 user_id=current_user.id,
+                organization_id=current_org.id,
                 storage_service=storage_service,
                 flow_id=flow_id,
                 fail_on_endpoint_conflict=True,
@@ -700,12 +726,14 @@ async def delete_flow(
     session: DbSession,
     flow_id: UUID,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
 ):
     """Delete a flow."""
     flow = await _read_flow(
         session=session,
         flow_id=flow_id,
         user_id=current_user.id,
+        organization_id=current_org.id,
     )
     if not flow:
         raise HTTPException(status_code=404, detail="Flow not found")
@@ -719,12 +747,14 @@ async def create_flows(
     session: DbSession,
     flow_list: FlowListCreate,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
 ):
     """Create multiple new flows."""
     db_flows = []
     for flow in flow_list.flows:
         flow.user_id = current_user.id
         db_flow = Flow.model_validate(flow, from_attributes=True)
+        db_flow.organization_id = current_org.id
         session.add(db_flow)
         db_flows.append(db_flow)
 
@@ -741,6 +771,7 @@ async def upload_file(
     session: DbSession,
     file: Annotated[UploadFile, File(...)],
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
     folder_id: UUID | None = None,
     storage_service: Annotated[StorageService, Depends(get_storage_service)],
 ):
@@ -761,7 +792,11 @@ async def upload_file(
             if folder_id:
                 flow.folder_id = folder_id
             flow_read = await _new_flow(
-                session=session, flow=flow, user_id=current_user.id, storage_service=storage_service
+                session=session,
+                flow=flow,
+                user_id=current_user.id,
+                organization_id=current_org.id,
+                storage_service=storage_service,
             )
             flow_reads.append(flow_read)
     except Exception as e:
@@ -787,6 +822,7 @@ async def upload_file(
 async def delete_multiple_flows(
     flow_ids: list[UUID],
     user: CurrentActiveUser,
+    current_org: CurrentOrg,
     db: DbSession,
 ):
     """Delete multiple flows by their IDs.
@@ -802,7 +838,14 @@ async def delete_multiple_flows(
     """
     try:
         flows_to_delete = (
-            await db.exec(select(Flow).where(col(Flow.id).in_(flow_ids)).where(Flow.user_id == user.id))
+            await db.exec(
+                select(Flow)
+                .where(col(Flow.id).in_(flow_ids))
+                .where(Flow.user_id == user.id)
+                .where(
+                    (Flow.organization_id == current_org.id) | (Flow.organization_id == None)  # noqa: E711
+                )
+            )
         ).all()
         for flow in flows_to_delete:
             await cascade_delete_flow(db, flow.id)
@@ -817,13 +860,21 @@ async def delete_multiple_flows(
 async def download_multiple_file(
     flow_ids: list[UUID],
     user: CurrentActiveUser,
+    current_org: CurrentOrg,
     db: DbSession,
 ):
     """Download all flows as a zip file."""
-    # TODO: Full-version download (include_version parameter) is planned as a follow-up feature.
-    # When implemented, add an include_version: bool = False parameter and embed version
-    # entries in each flow dict using get_flow_version_list and strip_version_data.
-    flows = (await db.exec(select(Flow).where(and_(Flow.user_id == user.id, Flow.id.in_(flow_ids))))).all()  # type: ignore[attr-defined]
+    flows = (
+        await db.exec(
+            select(Flow).where(
+                and_(
+                    Flow.user_id == user.id,
+                    Flow.id.in_(flow_ids),  # type: ignore[attr-defined]
+                    (Flow.organization_id == current_org.id) | (Flow.organization_id == None),  # noqa: E711
+                )
+            )
+        )
+    ).all()
 
     if not flows:
         raise HTTPException(status_code=404, detail="No flows found.")

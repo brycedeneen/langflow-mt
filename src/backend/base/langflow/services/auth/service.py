@@ -492,6 +492,12 @@ class AuthService(BaseAuthService):
             try:
                 await db.commit()
                 await db.refresh(super_user)
+                from langflow.services.database.models.user.helpers import (
+                    ensure_personal_organization,
+                )
+
+                await ensure_personal_organization(db, super_user)
+                await db.commit()
             except IntegrityError:
                 await db.rollback()
                 super_user = await get_user_by_username(db, username)
