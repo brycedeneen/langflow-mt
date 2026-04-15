@@ -20,15 +20,19 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        "user",
-        sa.Column(
-            "is_platform_admin",
-            sa.Boolean(),
-            nullable=False,
-            server_default=sa.false(),
-        ),
-    )
+    bind = op.get_bind()
+    insp = sa.inspect(bind)
+    existing_cols = {c["name"] for c in insp.get_columns("user")}
+    if "is_platform_admin" not in existing_cols:
+        op.add_column(
+            "user",
+            sa.Column(
+                "is_platform_admin",
+                sa.Boolean(),
+                nullable=False,
+                server_default=sa.false(),
+            ),
+        )
     op.execute('UPDATE "user" SET is_platform_admin = TRUE WHERE is_superuser = TRUE')
     with op.batch_alter_table("user") as batch_op:
         batch_op.alter_column("is_platform_admin", server_default=None)
