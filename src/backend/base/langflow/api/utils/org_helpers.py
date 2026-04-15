@@ -33,16 +33,17 @@ async def get_current_organization(
     rows = (await session.exec(select(Membership).where(Membership.user_id == user.id))).all()
     if len(rows) == 0:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "User has no organization membership")
-    if len(rows) > 1:
-        # Slice invariant: one membership per user. If violated, fail loudly.
-        raise HTTPException(
-            status.HTTP_409_CONFLICT,
-            "User has multiple memberships (unsupported in this slice)",
-        )
-    org = await session.get(Organization, rows[0].organization_id)
-    if org is None:
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Membership references missing organization")
-    return org
+
+    org_ids = [r.organization_id for r in rows]
+    orgs = (await session.exec(select(Organization).where(Organization.id.in_(org_ids)))).all()
+    if not orgs:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Memberships reference no organizations")
+
+    # Prefer the user's personal org; else the earliest-created one.
+    personal = next((o for o in orgs if o.is_personal), None)
+    if personal is not None:
+        return personal
+    return min(orgs, key=lambda o: o.created_at)
 
 
 async def get_current_membership(
