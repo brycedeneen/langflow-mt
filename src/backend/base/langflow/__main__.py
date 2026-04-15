@@ -811,6 +811,36 @@ async def _create_superuser(username: str, password: str, auth_token: str | None
             typer.echo("Superuser creation failed.")
 
 
+@app.command(name="set-platform-admin")
+def set_platform_admin(
+    email: str = typer.Argument(
+        ..., help="Username (email) of the user to grant/revoke the platform admin role."
+    ),
+    revoke: bool = typer.Option(
+        False, "--revoke", help="Revoke the role instead of granting it."
+    ),
+) -> None:
+    """Grant or revoke the platform-admin role on an existing user."""
+    asyncio.run(_set_platform_admin(email, revoke=revoke))
+
+
+async def _set_platform_admin(email: str, *, revoke: bool) -> None:
+    """Grant or revoke the platform-admin role on an existing user."""
+    from langflow.services.database.models.user.model import User
+
+    await initialize_services()
+    async with session_scope() as session:
+        user = (await session.exec(select(User).where(User.username == email))).first()
+        if user is None:
+            typer.echo(f"Error: no user found with username '{email}'")
+            raise typer.Exit(code=1)
+        user.is_platform_admin = not revoke
+        session.add(user)
+        await session.commit()
+        verb = "revoked" if revoke else "granted"
+        typer.echo(f"Platform admin role {verb} for {email}")
+
+
 # command to copy the langflow database from the cache to the current directory
 # because now the database is stored per installation
 @app.command()
