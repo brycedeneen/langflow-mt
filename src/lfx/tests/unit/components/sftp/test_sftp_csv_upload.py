@@ -1,14 +1,24 @@
+import base64
+import hashlib
+import time
+
+import pandas as pd
+import pytest
+from lfx.components.sftp.sftp_csv_upload import (
+    _compute_sha256_fingerprint,
+    _normalize_to_dataframe,
+    _render_csv_bytes,
+    _resolve_remote_path,
+    _verify_host_key,
+)
+from lfx.schema import Data, DataFrame
+
+
 def test_component_imports_and_registers():
     from lfx.components.sftp import SFTPCSVUploadComponent
 
     assert SFTPCSVUploadComponent.display_name == "SFTP CSV Upload"
     assert SFTPCSVUploadComponent.name == "SFTPCSVUpload"
-
-
-import pandas as pd
-import pytest
-from lfx.schema import Data, DataFrame
-from lfx.components.sftp.sftp_csv_upload import _normalize_to_dataframe
 
 
 def test_normalize_dataframe_passthrough():
@@ -39,9 +49,6 @@ def test_normalize_unsupported_type_raises():
         _normalize_to_dataframe(42)
 
 
-import time
-from lfx.components.sftp.sftp_csv_upload import _resolve_remote_path
-
 FROZEN = time.struct_time((2026, 4, 15, 14, 30, 22, 0, 0, 0))
 
 
@@ -71,8 +78,6 @@ def test_resolve_path_uses_gmtime_when_now_omitted():
     out = _resolve_remote_path("/exports", "users_{date}.csv")
     assert out.startswith("/exports/users_") and out.endswith(".csv")
 
-
-from lfx.components.sftp.sftp_csv_upload import _render_csv_bytes
 
 DEFAULTS = {
     "delimiter": ",",
@@ -146,11 +151,6 @@ def test_csv_custom_quote_char():
     df = pd.DataFrame([{"a": "has,comma"}])
     out = _render(df, quote_char="'")
     assert b"'has,comma'" in out
-
-
-import base64
-import hashlib
-from lfx.components.sftp.sftp_csv_upload import _compute_sha256_fingerprint, _verify_host_key
 
 
 class _FakeHostKey:
