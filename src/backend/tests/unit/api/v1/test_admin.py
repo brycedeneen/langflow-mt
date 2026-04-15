@@ -435,3 +435,30 @@ async def test_remove_member_from_personal_org_forbidden(
             org = await session.get(Organization, _UUID(personal_id))
             if org:
                 await session.delete(org)
+
+
+# ---------------------------------------------------------------------------
+# /whoami endpoint tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_whoami_includes_is_platform_admin_for_admin(client: AsyncClient, admin_headers):
+    """The /whoami endpoint exposes is_platform_admin so the frontend can gate the Admin UI."""
+    resp = await client.get("/api/v1/users/whoami", headers=admin_headers)
+    assert resp.status_code == status.HTTP_200_OK
+    body = resp.json()
+    assert "is_platform_admin" in body
+    assert body["is_platform_admin"] is True
+
+
+@pytest.mark.asyncio
+async def test_whoami_includes_is_platform_admin_false_for_regular_user(
+    client: AsyncClient, logged_in_headers
+):
+    """Regular (non-admin) users should have is_platform_admin=False in /whoami."""
+    resp = await client.get("/api/v1/users/whoami", headers=logged_in_headers)
+    assert resp.status_code == status.HTTP_200_OK
+    body = resp.json()
+    assert "is_platform_admin" in body
+    assert body["is_platform_admin"] is False
