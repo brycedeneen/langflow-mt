@@ -19,6 +19,7 @@ from lfx.io import (
     TableInput,
 )
 from lfx.schema.data import Data
+from lfx.utils.ssrf_protection import SSRFProtectionError, validate_url_for_ssrf
 
 from ._shared import ADPConnection, build_mtls_httpx_client, fetch_token
 
@@ -69,6 +70,9 @@ class ADPAPIRequestComponent(Component):
             info="Path (e.g. /hr/v2/workers) when Endpoint is 'Other'.",
             show=False,
         ),
+        # TODO(follow-up): add update_build_config to show/hide custom_path when
+        # endpoint == "Other (custom path)". Deferred per
+        # docs/superpowers/plans/2026-04-14-adp-connector.md Task 10.
         MessageTextInput(
             name="resource_id",
             display_name="Resource ID (aoid)",
@@ -116,6 +120,18 @@ class ADPAPIRequestComponent(Component):
     outputs = [
         Output(display_name="API Response", name="data", method="make_api_request"),
     ]
+
+    def _build_json_body(self) -> dict[str, Any] | None:
+        """Build JSON body dict from the `body` TableInput value. Returns None for GET."""
+        rows = self.body or []
+        if not isinstance(rows, list):
+            return None
+        result: dict[str, Any] = {}
+        for row in rows:
+            if not isinstance(row, dict) or "key" not in row or "value" not in row:
+                continue
+            result[row["key"]] = row["value"]
+        return result or None
 
     def _resolve_path(self) -> str:
         endpoint = self.endpoint
@@ -180,12 +196,19 @@ class ADPAPIRequestComponent(Component):
         method = (self.method or "GET").upper()
         base_params = self._build_query_params()
         headers = {"Authorization": f"Bearer {conn.access_token}"}
+        json_body = self._build_json_body() if method != "GET" else None
+
+        try:
+            validate_url_for_ssrf(url, warn_only=True)
+        except SSRFProtectionError as e:
+            msg = f"SSRF Protection: {e}"
+            raise ValueError(msg) from e
 
         if self.result_mode == "Top 20":
             params = {**base_params, "$top": 20}
             async with build_mtls_httpx_client(conn, timeout=self.timeout) as client:
                 response = await self._call_with_401_retry(
-                    client, method=method, url=url, headers=headers, params=params, conn=conn,
+                    client, method=method, url=url, headers=headers, params=params, conn=conn, json_body=json_body,
                 )
                 return self._response_to_data(url, response)
 
@@ -204,7 +227,7 @@ class ADPAPIRequestComponent(Component):
                     params["$skip"] = skip
 
                 response = await self._call_with_401_retry(
-                    client, method=method, url=url, headers=headers, params=params, conn=conn,
+                    client, method=method, url=url, headers=headers, params=params, conn=conn, json_body=json_body,
                 )
                 final_response = response
 
@@ -248,15 +271,22 @@ class ADPAPIRequestComponent(Component):
         headers: dict[str, str],
         params: dict[str, Any],
         conn: ADPConnection,
+        json_body: dict[str, Any] | None = None,
     ) -> httpx.Response:
         response = await self._execute_request(
-            client, method=method, url=url, headers=headers, params=params, json_body=None, timeout=self.timeout,
+            client, method=method, url=url, headers=headers, params=params, json_body=json_body, timeout=self.timeout,
         )
         if response.status_code == HTTP_UNAUTHORIZED:
             await fetch_token(conn, force=True)
             headers["Authorization"] = f"Bearer {conn.access_token}"
             response = await self._execute_request(
-                client, method=method, url=url, headers=headers, params=params, json_body=None, timeout=self.timeout,
+                client,
+                method=method,
+                url=url,
+                headers=headers,
+                params=params,
+                json_body=json_body,
+                timeout=self.timeout,
             )
         return response
 

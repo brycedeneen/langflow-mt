@@ -186,3 +186,106 @@ async def test_make_request_401_twice_still_fails(adp_connection):
 
     assert result.data["status_code"] == 401
     assert mock_exec.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_make_request_post_sends_body(adp_connection):
+    c = _make_component(
+        adp_connection,
+        endpoint="Workers",
+        method="POST",
+        body=[{"key": "name", "value": "Alice"}, {"key": "age", "value": "30"}],
+        result_mode="Top 20",
+    )
+
+    captured: dict = {}
+
+    @asynccontextmanager
+    async def fake_client(_conn, *, timeout=30):  # noqa: ARG001
+        yield MagicMock()
+
+    async def fake_execute(_client, *, method, url, headers, params, json_body, timeout):  # noqa: ARG001
+        captured["method"] = method
+        captured["json_body"] = json_body
+        return httpx.Response(200, json={"ok": True})
+
+    with patch("lfx.components.adp.adp_api_request.build_mtls_httpx_client", side_effect=fake_client), \
+         patch.object(c, "_execute_request", new=AsyncMock(side_effect=fake_execute)):
+        await c.make_api_request()
+
+    assert captured["method"] == "POST"
+    assert captured["json_body"] == {"name": "Alice", "age": "30"}
+
+
+@pytest.mark.asyncio
+async def test_make_request_get_sends_no_body(adp_connection):
+    c = _make_component(
+        adp_connection,
+        endpoint="Workers",
+        method="GET",
+        body=[{"key": "ignored", "value": "x"}],
+        result_mode="Top 20",
+    )
+
+    captured: dict = {}
+
+    @asynccontextmanager
+    async def fake_client(_conn, *, timeout=30):  # noqa: ARG001
+        yield MagicMock()
+
+    async def fake_execute(_client, *, method, url, headers, params, json_body, timeout):  # noqa: ARG001
+        captured["json_body"] = json_body
+        return httpx.Response(200, json={"workers": []})
+
+    with patch("lfx.components.adp.adp_api_request.build_mtls_httpx_client", side_effect=fake_client), \
+         patch.object(c, "_execute_request", new=AsyncMock(side_effect=fake_execute)):
+        await c.make_api_request()
+
+    assert captured["json_body"] is None
+
+
+@pytest.mark.asyncio
+async def test_make_request_all_stops_on_empty_page(adp_connection):
+    c = _make_component(adp_connection, endpoint="Workers", result_mode="All")
+    responses = [
+        httpx.Response(200, json={"workers": [{"id": i} for i in range(100)]}),
+        httpx.Response(200, json={"workers": [{"id": i} for i in range(100, 200)]}),
+        httpx.Response(200, json={"workers": []}),
+    ]
+    mock_exec = AsyncMock(side_effect=responses)
+
+    @asynccontextmanager
+    async def fake_client(_conn, *, timeout=30):  # noqa: ARG001
+        yield MagicMock()
+
+    with patch("lfx.components.adp.adp_api_request.build_mtls_httpx_client", side_effect=fake_client), \
+         patch.object(c, "_execute_request", new=mock_exec):
+        result = await c.make_api_request()
+
+    assert mock_exec.call_count == 3
+    assert len(result.data["result"]["workers"]) == 200
+    skip_values = [call.kwargs["params"].get("$skip", 0) for call in mock_exec.call_args_list]
+    assert skip_values == [0, 100, 200]
+
+
+@pytest.mark.asyncio
+async def test_make_request_invokes_ssrf_validation(adp_connection, monkeypatch):
+    c = _make_component(adp_connection, endpoint="Workers")
+    called: dict = {}
+
+    def fake_validate(url, *, warn_only):
+        called["url"] = url
+        called["warn_only"] = warn_only
+
+    monkeypatch.setattr("lfx.components.adp.adp_api_request.validate_url_for_ssrf", fake_validate)
+
+    @asynccontextmanager
+    async def fake_client(_conn, *, timeout=30):  # noqa: ARG001
+        yield MagicMock()
+
+    with patch("lfx.components.adp.adp_api_request.build_mtls_httpx_client", side_effect=fake_client), \
+         patch.object(c, "_execute_request", new=AsyncMock(return_value=httpx.Response(200, json={"workers": []}))):
+        await c.make_api_request()
+
+    assert called["url"].startswith("https://api.adp.com/hr/v2/workers")
+    assert called["warn_only"] is True
