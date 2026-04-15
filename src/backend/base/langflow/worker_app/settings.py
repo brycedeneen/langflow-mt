@@ -7,13 +7,9 @@ from langflow.services.settings.base import Settings
 from langflow.worker_app.execute import execute_run
 from langflow.worker_app.reaper import reap_lost_runs
 from langflow.worker_app.retention import retention_sweep
+from langflow.worker_app.webhook import deliver_webhook
 
 _settings = Settings(_env_file=None)
-
-
-async def deliver_webhook(ctx, run_id: str, event: str, attempt: int = 0) -> None:
-    # Real body: Task 25
-    raise NotImplementedError
 
 
 class WorkerSettings:
