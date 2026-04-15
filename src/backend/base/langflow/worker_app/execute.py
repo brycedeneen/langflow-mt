@@ -60,6 +60,8 @@ async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
         await session.commit()
 
         org_id_captured = org.id
+        from langflow.services.runs.metrics import ACTIVE_RUNS
+        ACTIVE_RUNS.labels(organization_id=str(org.id)).inc()
         flow_data = flow.data
         flow_id_captured = flow.id
         inputs = run.inputs
@@ -137,6 +139,23 @@ async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
         if error_payload is not None:
             run.error = error_payload
         await session.commit()
+
+        from langflow.services.runs.metrics import ACTIVE_RUNS, RUN_DURATION, RUNS_TOTAL
+        terminal_label = terminal.value if hasattr(terminal, "value") else str(terminal)
+        flow_label = str(flow_id_captured)
+        RUNS_TOTAL.labels(status=terminal_label, flow_id=flow_label).inc()
+        if run.started_at and run.finished_at:
+            # Normalise both timestamps to UTC-aware before subtracting; SQLite may
+            # return naive datetimes even when stored as UTC.
+            started = run.started_at
+            finished = run.finished_at
+            if started.tzinfo is None:
+                started = started.replace(tzinfo=timezone.utc)
+            if finished.tzinfo is None:
+                finished = finished.replace(tzinfo=timezone.utc)
+            duration = (finished - started).total_seconds()
+            RUN_DURATION.labels(status=terminal_label, flow_id=flow_label).observe(duration)
+        ACTIVE_RUNS.labels(organization_id=str(org_id_captured)).dec()
 
     await concurrency.release(org_id_captured)
 

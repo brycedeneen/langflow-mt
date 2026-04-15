@@ -90,6 +90,9 @@ async def deliver_webhook(ctx, run_id: str, event: str, attempt: int = 0) -> Non
         run.webhook_delivery_state = state
         await session.commit()
 
+    from langflow.services.runs.metrics import WEBHOOK_DELIVERY_TOTAL
+    WEBHOOK_DELIVERY_TOTAL.labels(event=event, status=status_label).inc()
+
     if should_retry:
         delay = _BACKOFF_SCHEDULE_SEC[attempt]
         await ctx["arq"].enqueue_job(

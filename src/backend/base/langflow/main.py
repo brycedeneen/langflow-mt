@@ -557,6 +557,10 @@ def create_app():
 
     add_pagination(app)
 
+    from prometheus_client import make_asgi_app as _make_prom_asgi_app
+
+    app.mount("/metrics", _make_prom_asgi_app())
+
     return app
 
 
