@@ -749,6 +749,46 @@ async def webhook_run_flow(
     Raises:
         HTTPException: If the flow is not found or if there is an error processing the request.
     """
+    # --- Distributed execution path ---
+    # When the distributed_execution flag is on, enqueue the webhook run into the
+    # background queue and return immediately with a 202 + run_id.
+    # Schedule and MCP trigger paths are NOT wired here — deferred to follow-up work.
+    _settings = get_settings_service().settings
+    if _settings.distributed_execution:
+        from fastapi.responses import JSONResponse
+        from langflow.services.database.models.flow.model import Flow as _Flow
+        from langflow.services.database.models.flow_run.model import TriggeredBy
+        from langflow.services.deps import session_scope
+        from langflow.services.runs.deps import get_arq_pool
+        from langflow.services.runs.enqueue import RunEnqueuer
+
+        _webhook_user = await get_auth_service().get_webhook_user(flow_id_or_name, request)
+        try:
+            _data = await request.body()
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+        if not _data:
+            raise HTTPException(status_code=400, detail="Request body is empty")
+        _inputs = {"body": _data.decode() if isinstance(_data, bytes) else _data}
+        _arq = await get_arq_pool()
+        async with session_scope() as _session:
+            # FlowRead (returned by the dependency) does not carry organization_id;
+            # re-fetch the ORM model inside this session to get it.
+            _db_flow = await _session.get(_Flow, flow.id)
+            if _db_flow is None or _db_flow.organization_id is None:
+                raise HTTPException(status_code=400, detail="Flow has no associated organization; cannot enqueue.")
+            _enq = RunEnqueuer(db=_session, redis=_arq, settings=_settings)
+            _run = await _enq.enqueue(
+                org_id=_db_flow.organization_id,
+                flow_id=_db_flow.id,
+                triggered_by=TriggeredBy.WEBHOOK,
+                actor_id=_webhook_user.id if _webhook_user else None,
+                inputs=_inputs,
+            )
+        return JSONResponse({"run_id": str(_run.id), "status": "queued"}, status_code=202)
+    # --- End distributed execution path ---
+    # Flag off: fall through to existing in-process execution below.
+
     telemetry_service = get_telemetry_service()
     start_time = time.perf_counter()
     await logger.adebug("Received webhook request")
