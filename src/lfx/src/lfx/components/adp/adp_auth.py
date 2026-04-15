@@ -2,17 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
+from lfx.components.adp._shared import DEFAULT_TOKEN_URL, ADPConnection, fetch_token, validate_adp_url
 from lfx.custom.custom_component.component import Component
 from lfx.inputs.inputs import TabInput
 from lfx.io import MessageTextInput, Output, SecretStrInput
+from lfx.schema.dotdict import dotdict
 from lfx.utils.component_utils import set_field_display
-
-if TYPE_CHECKING:
-    from lfx.schema.dotdict import dotdict
-
-from ._shared import DEFAULT_TOKEN_URL, ADPConnection, fetch_token, validate_adp_url
 
 
 class ADPAuthComponent(Component):

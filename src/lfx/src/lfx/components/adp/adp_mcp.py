@@ -9,7 +9,7 @@ import httpx
 from lfx.custom.custom_component.component import Component
 from lfx.io import HandleInput, MessageTextInput, Output
 
-from ._shared import ADPConnection, fetch_token, validate_adp_url
+from lfx.components.adp._shared import ADPConnection, fetch_token, validate_adp_url
 
 
 class ADPMCPComponent(Component):

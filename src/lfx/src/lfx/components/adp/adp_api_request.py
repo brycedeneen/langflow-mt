@@ -20,7 +20,7 @@ from lfx.io import (
 )
 from lfx.schema.data import Data
 
-from ._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
+from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
 
 # Endpoint catalog: display name → (path template, requires_id)
 # ``{aoid}`` is substituted with resource_id when present; otherwise the

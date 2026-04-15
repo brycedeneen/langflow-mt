@@ -8,7 +8,7 @@ import hashlib
 import io
 import posixpath
 import time as _time
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import asyncssh
 import pandas as pd
@@ -25,10 +25,8 @@ from lfx.io import (
     StrInput,
 )
 from lfx.schema import Data, DataFrame, Message
+from lfx.schema.dotdict import dotdict
 from lfx.utils.component_utils import set_field_display
-
-if TYPE_CHECKING:
-    from lfx.schema.dotdict import dotdict
 
 
 _QUOTING_MAP = {
