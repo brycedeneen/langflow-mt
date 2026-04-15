@@ -1,10 +1,12 @@
 import base64
 import hashlib
 import time
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pandas as pd
 import pytest
 from lfx.components.sftp.sftp_csv_upload import (
+    SFTPCSVUploadComponent,
     _compute_sha256_fingerprint,
     _normalize_to_dataframe,
     _render_csv_bytes,
@@ -190,3 +192,162 @@ def test_verify_host_key_raises_on_mismatch():
     raw = b"ssh-rsa AAAAB3..."
     with pytest.raises(ValueError, match="fingerprint mismatch"):
         _verify_host_key(_FakeHostKey(raw), expected="SHA256:wrongfingerprintxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+
+
+VALID_PASSWORD_KWARGS = dict(
+    host="sftp.example.com",
+    port=22,
+    username="user",
+    auth_method="Password",
+    password="pw",
+    private_key="",
+    private_key_passphrase="",
+    host_key_fingerprint="",
+    data=DataFrame([{"a": 1}]),
+    remote_directory="/exports",
+    filename="users.csv",
+    delimiter=",",
+    include_header=True,
+    encoding="utf-8",
+    quote_char='"',
+    quoting="Minimal",
+    line_terminator="\n",
+    null_representation="",
+)
+
+
+def _make_connect_mock():
+    """Return (connect_patch, sftp_put_mock)."""
+    sftp = MagicMock()
+    sftp.put_data = AsyncMock()
+    sftp_cm = MagicMock()
+    sftp_cm.__aenter__ = AsyncMock(return_value=sftp)
+    sftp_cm.__aexit__ = AsyncMock(return_value=None)
+    conn = MagicMock()
+    conn.start_sftp_client = MagicMock(return_value=sftp_cm)
+    conn_cm = MagicMock()
+    conn_cm.__aenter__ = AsyncMock(return_value=conn)
+    conn_cm.__aexit__ = AsyncMock(return_value=None)
+    connect_mock = MagicMock(return_value=conn_cm)
+    return connect_mock, sftp.put_data
+
+
+async def test_build_upload_password_auth_calls_connect_with_password():
+    component = SFTPCSVUploadComponent(**VALID_PASSWORD_KWARGS)
+    connect_mock, put_mock = _make_connect_mock()
+    with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock):
+        result = await component.build_upload()
+
+    kwargs = connect_mock.call_args.kwargs
+    assert kwargs["password"] == "pw"
+    assert "client_keys" not in kwargs
+    put_mock.assert_awaited_once()
+    args, _ = put_mock.call_args
+    assert args[0] == b"a\n1\n"
+    assert args[1] == "/exports/users.csv"
+    assert "Uploaded users.csv" in result.text
+    assert "1 rows" in result.text
+
+
+async def test_build_upload_ssh_key_auth_passes_client_keys():
+    kwargs = {**VALID_PASSWORD_KWARGS, "auth_method": "SSH Key", "password": "", "private_key": "PEMDATA"}
+    component = SFTPCSVUploadComponent(**kwargs)
+    connect_mock, _ = _make_connect_mock()
+    with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock), patch(
+        "lfx.components.sftp.sftp_csv_upload.asyncssh.import_private_key", return_value="KEYOBJ"
+    ) as import_mock:
+        await component.build_upload()
+    import_mock.assert_called_once_with("PEMDATA", "")
+    assert connect_mock.call_args.kwargs["client_keys"] == ["KEYOBJ"]
+    assert "password" not in connect_mock.call_args.kwargs
+
+
+@pytest.mark.parametrize(
+    "field,blank_value,match",
+    [
+        ("host", "", "host"),
+        ("username", "", "username"),
+        ("remote_directory", "", "remote_directory"),
+        ("filename", "", "filename"),
+    ],
+)
+async def test_build_upload_missing_required_field_raises_before_connect(field, blank_value, match):
+    kwargs = {**VALID_PASSWORD_KWARGS, field: blank_value}
+    component = SFTPCSVUploadComponent(**kwargs)
+    connect_mock, _ = _make_connect_mock()
+    with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock):
+        with pytest.raises(ValueError, match=match):
+            await component.build_upload()
+    connect_mock.assert_not_called()
+
+
+async def test_build_upload_password_mode_missing_password_raises():
+    kwargs = {**VALID_PASSWORD_KWARGS, "password": ""}
+    component = SFTPCSVUploadComponent(**kwargs)
+    connect_mock, _ = _make_connect_mock()
+    with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock):
+        with pytest.raises(ValueError, match="password"):
+            await component.build_upload()
+    connect_mock.assert_not_called()
+
+
+async def test_build_upload_ssh_key_mode_missing_private_key_raises():
+    kwargs = {**VALID_PASSWORD_KWARGS, "auth_method": "SSH Key", "password": "", "private_key": ""}
+    component = SFTPCSVUploadComponent(**kwargs)
+    connect_mock, _ = _make_connect_mock()
+    with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock):
+        with pytest.raises(ValueError, match="private_key"):
+            await component.build_upload()
+    connect_mock.assert_not_called()
+
+
+async def test_build_upload_no_fingerprint_passes_known_hosts_none():
+    component = SFTPCSVUploadComponent(**VALID_PASSWORD_KWARGS)
+    connect_mock, _ = _make_connect_mock()
+    with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock):
+        await component.build_upload()
+    assert connect_mock.call_args.kwargs["known_hosts"] is None
+
+
+async def test_build_upload_with_fingerprint_passes_callable_known_hosts():
+    kwargs = {**VALID_PASSWORD_KWARGS, "host_key_fingerprint": "SHA256:abc123"}
+    component = SFTPCSVUploadComponent(**kwargs)
+    connect_mock, _ = _make_connect_mock()
+    with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock):
+        await component.build_upload()
+    known_hosts = connect_mock.call_args.kwargs["known_hosts"]
+    assert callable(known_hosts)
+
+
+def test_update_build_config_toggles_password_fields():
+    from lfx.schema.dotdict import dotdict
+
+    component = SFTPCSVUploadComponent(**VALID_PASSWORD_KWARGS)
+    config = dotdict(
+        {
+            "password": dotdict({"show": False}),
+            "private_key": dotdict({"show": True}),
+            "private_key_passphrase": dotdict({"show": True}),
+        }
+    )
+    out = component.update_build_config(config, field_value="Password", field_name="auth_method")
+    assert out["password"]["show"] is True
+    assert out["private_key"]["show"] is False
+    assert out["private_key_passphrase"]["show"] is False
+
+
+def test_update_build_config_toggles_ssh_key_fields():
+    from lfx.schema.dotdict import dotdict
+
+    component = SFTPCSVUploadComponent(**VALID_PASSWORD_KWARGS)
+    config = dotdict(
+        {
+            "password": dotdict({"show": True}),
+            "private_key": dotdict({"show": False}),
+            "private_key_passphrase": dotdict({"show": False}),
+        }
+    )
+    out = component.update_build_config(config, field_value="SSH Key", field_name="auth_method")
+    assert out["password"]["show"] is False
+    assert out["private_key"]["show"] is True
+    assert out["private_key_passphrase"]["show"] is True
