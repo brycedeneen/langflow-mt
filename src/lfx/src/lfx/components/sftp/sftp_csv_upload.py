@@ -158,7 +158,7 @@ class SFTPCSVUploadComponent(Component):
         SecretStrInput(
             name="private_key",
             display_name="Private Key (PEM)",
-            info="Paste PEM contents of the SSH private key.",
+            info="Paste full PEM contents of the SSH private key (multi-line; preserve newlines).",
             show=False,
         ),
         SecretStrInput(
@@ -254,6 +254,12 @@ class SFTPCSVUploadComponent(Component):
                 msg = f"{name} is required"
                 raise ValueError(msg)
 
+        # --- Port validation ---
+        port = int(self.port) if self.port is not None else 22
+        if not (1 <= port <= 65535):
+            msg = f"port must be between 1 and 65535; got {port}"
+            raise ValueError(msg)
+
         # --- Auth dispatch ---
         auth_kwargs: dict[str, Any] = {}
         if self.auth_method == "Password":
@@ -271,12 +277,6 @@ class SFTPCSVUploadComponent(Component):
             auth_kwargs["client_keys"] = [asyncssh.import_private_key(pem, passphrase)]
         else:
             msg = f"unknown auth_method: {self.auth_method!r}"
-            raise ValueError(msg)
-
-        # --- Port validation ---
-        port = int(self.port) if self.port is not None else 22
-        if not (1 <= port <= 65535):
-            msg = f"port must be between 1 and 65535; got {port}"
             raise ValueError(msg)
 
         # --- Host key verification ---
