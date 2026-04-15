@@ -173,7 +173,7 @@ async def test_full_roundtrip(client_and_ctx, redis_service):
     worker_ctx["redis"] = redis_service.client
 
     # Deterministic runner — avoids real Graph construction.
-    async def deterministic_runner(flow_data, flow_id, inputs):
+    async def deterministic_runner(flow, triggered_by, inputs, actor_id):
         await asyncio.sleep(0)  # yield to event loop
         return {"ok": True, "echo": inputs}
 

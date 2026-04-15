@@ -130,7 +130,7 @@ def worker_ctx(engine_and_factory, redis_service, mock_storage):
     arq = AsyncMock()
     arq.enqueue_job = AsyncMock(return_value=None)
 
-    async def deterministic_runner(flow_data, flow_id, inputs):
+    async def deterministic_runner(flow, triggered_by, inputs, actor_id):
         await asyncio.sleep(0.05)
         return {"ok": True, "echo": inputs}
 

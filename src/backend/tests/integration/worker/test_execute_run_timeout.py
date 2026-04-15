@@ -7,7 +7,7 @@ from uuid import uuid4
 
 @pytest.fixture
 def timeout_ctx(worker_ctx):
-    async def slow_runner(flow_data, flow_id, inputs):
+    async def slow_runner(flow, triggered_by, inputs, actor_id):
         await asyncio.sleep(5)
         return {"nope": True}
 

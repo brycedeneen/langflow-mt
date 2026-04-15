@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
+from lfx.log.logger import logger
+
 from langflow.services.database.models.flow.model import Flow
 from langflow.services.database.models.flow_run.model import FlowRun, RunStatus
 from langflow.services.database.models.organization.model import Organization
@@ -35,21 +37,36 @@ async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
     arq = ctx["arq"]
     graph_runner = ctx.get("graph_runner")  # injection hook for tests
 
+    logger.info(f"[run={run_id}] worker picked up job (worker_id={WORKER_ID})")
+
     offloader = PayloadOffloader(storage, inline_max_bytes=settings.run_payload_inline_max_bytes)
     concurrency = OrgConcurrency(redis)
 
     async with session_factory() as session:
         run = await session.get(FlowRun, run_uuid)
-        if run is None or _status_str(run.status) != "queued":
+        if run is None:
+            logger.warning(f"[run={run_id}] FlowRun not found; dropping job")
+            return
+        if _status_str(run.status) != "queued":
+            logger.warning(
+                f"[run={run_id}] status={_status_str(run.status)} is not 'queued'; dropping job (duplicate delivery?)"
+            )
             return
         org = await session.get(Organization, run.organization_id)
         flow = await session.get(Flow, run.flow_id)
         if org is None or flow is None:
+            logger.error(
+                f"[run={run_id}] missing org={run.organization_id} or flow={run.flow_id}; dropping job"
+            )
             return
 
         acquired = await concurrency.try_acquire(org.id, limit=org.runs_max_concurrent)
         if not acquired:
             queue = getattr(settings, _TIER_TO_QUEUE_ATTR[org.runs_priority_tier])
+            logger.info(
+                f"[run={run_id}] org={org.id} at concurrency cap "
+                f"(limit={org.runs_max_concurrent}); requeueing to {queue} in {REQUEUE_DELAY}s"
+            )
             await arq.enqueue_job("execute_run", run_id, _queue_name=queue, _defer_by=REQUEUE_DELAY)
             return
 
@@ -58,15 +75,21 @@ async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
         run.started_at = datetime.now(timezone.utc)
         run.heartbeat_at = run.started_at
         await session.commit()
+        logger.info(
+            f"[run={run_id}] RUNNING flow={flow.id} ({flow.name!r}) org={org.id} "
+            f"trigger={_status_str(run.triggered_by)} attempt={run.attempt}"
+        )
 
         org_id_captured = org.id
         from langflow.services.runs.metrics import ACTIVE_RUNS
         ACTIVE_RUNS.labels(organization_id=str(org.id)).inc()
-        flow_data = flow.data
-        flow_id_captured = flow.id
+        flow_captured = flow
+        triggered_by_captured = _status_str(run.triggered_by)
+        actor_id_captured = run.actor_id
         inputs = run.inputs
         inputs_ref = run.inputs_ref
         timeout_s = run.timeout_seconds
+        session.expunge(flow_captured)
 
     if inputs_ref:
         inputs = await offloader.load(inputs_ref)
@@ -87,7 +110,7 @@ async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
 
     try:
         runner = graph_runner or _default_runner
-        execution = asyncio.create_task(runner(flow_data, flow_id_captured, inputs))
+        execution = asyncio.create_task(runner(flow_captured, triggered_by_captured, inputs, actor_id_captured))
         cancel_waiter = asyncio.create_task(cancel_event.wait())
 
         try:
@@ -102,15 +125,18 @@ async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
             with _suppress():
                 await execution
             terminal = RunStatus.CANCELLED
+            logger.info(f"[run={run_id}] CANCELLED by user request")
         elif execution in done:
             result_payload = execution.result()
             terminal = RunStatus.SUCCEEDED
+            logger.info(f"[run={run_id}] SUCCEEDED")
         else:
             execution.cancel()
             with _suppress():
                 await execution
             terminal = RunStatus.TIMED_OUT
             error_payload = {"type": "timeout", "message": f"exceeded {timeout_s}s"}
+            logger.warning(f"[run={run_id}] TIMED_OUT after {timeout_s}s")
 
     except asyncio.CancelledError:
         raise
@@ -121,6 +147,10 @@ async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
             "message": str(exc),
             "traceback": traceback.format_exc(limit=20),
         }
+        logger.exception(
+            f"[run={run_id}] FAILED flow={flow_captured.id} trigger={triggered_by_captured}: "
+            f"{type(exc).__name__}: {exc}"
+        )
     finally:
         stop_event.set()
         for t in (hb_task, cancel_task):
@@ -142,7 +172,7 @@ async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
 
         from langflow.services.runs.metrics import ACTIVE_RUNS, RUN_DURATION, RUNS_TOTAL
         terminal_label = terminal.value if hasattr(terminal, "value") else str(terminal)
-        flow_label = str(flow_id_captured)
+        flow_label = str(flow_captured.id)
         RUNS_TOTAL.labels(status=terminal_label, flow_id=flow_label).inc()
         if run.started_at and run.finished_at:
             # Normalise both timestamps to UTC-aware before subtracting; SQLite may
@@ -184,24 +214,77 @@ async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
                 org = await session.get(Organization, run.organization_id)
                 queue = getattr(settings, _TIER_TO_QUEUE_ATTR[org.runs_priority_tier])
                 await arq.enqueue_job("execute_run", run_id, _queue_name=queue, _defer_by=backoff)
+                logger.info(
+                    f"[run={run_id}] auto-retry attempt={run.attempt}/{run.max_retries} "
+                    f"requeued to {queue} in {backoff}s"
+                )
 
 
-async def _default_runner(flow_data: dict, flow_id: UUID, inputs: Any):
-    """Execute a real Langflow Graph. Tests may pass their own runner via ctx['graph_runner']."""
-    from langflow.processing.process import run_graph_internal
-    from lfx.graph.graph.base import Graph
+_SIMPLE_API_REQUEST_FIELDS = {"input_value", "input_type", "output_type", "output_component", "tweaks", "session_id"}
 
-    graph = Graph.from_payload(flow_data)
-    results, _session = await run_graph_internal(
-        graph=graph,
-        flow_id=str(flow_id),
-        stream=False,
-        session_id=None,
-        inputs=inputs or [],
-        outputs=None,
-        event_manager=None,
+
+def _build_input_request(triggered_by: str, inputs: Any, flow: Flow):
+    """Translate a FlowRun.inputs payload into a SimplifiedAPIRequest.
+
+    All trigger types converge on `simple_run_flow`. Each trigger has its own input
+    shape; this function normalises them.
+
+    - webhook: inputs is `{"body": <raw webhook body>}`. The body is broadcast to every
+      Webhook component in the flow as a tweak `{"data": body}`; input_value is empty.
+    - api / schedule / mcp: inputs is a dict with SimplifiedAPIRequest-compatible keys
+      (input_value, input_type, output_type, tweaks, session_id, output_component).
+      Unknown keys are ignored; missing keys fall back to defaults. `None` is accepted.
+    """
+    from langflow.api.v1.schemas import SimplifiedAPIRequest
+    from langflow.services.database.models.flow.utils import get_all_webhook_components_in_flow
+
+    if triggered_by == "webhook":
+        body = None
+        if isinstance(inputs, dict):
+            body = inputs.get("body")
+        tweaks: dict[str, Any] = {}
+        for component in get_all_webhook_components_in_flow(flow.data):
+            tweaks[component["id"]] = {"data": body}
+        return SimplifiedAPIRequest(
+            input_value="",
+            input_type="chat",
+            output_type="chat",
+            tweaks=tweaks,
+            session_id=None,
+        )
+
+    # api / schedule / mcp — accept a SimplifiedAPIRequest-shaped dict with defaults.
+    payload = inputs if isinstance(inputs, dict) else {}
+    filtered = {k: v for k, v in payload.items() if k in _SIMPLE_API_REQUEST_FIELDS}
+    return SimplifiedAPIRequest(**filtered)
+
+
+async def _default_runner(flow: Flow, triggered_by: str, inputs: Any, actor_id: UUID | None):
+    """Execute a Langflow flow for a queued run via `simple_run_flow`.
+
+    All trigger types go through the same shared code path as the in-process webhook/API
+    handlers, so distributed and in-process behaviour cannot drift.
+    """
+    from langflow.api.v1.endpoints import simple_run_flow
+
+    input_request = _build_input_request(triggered_by, inputs, flow)
+    api_key_user = _ActorStub(actor_id) if actor_id else None
+    logger.debug(
+        f"[flow={flow.id}] dispatching trigger={triggered_by} "
+        f"input_value={'<set>' if input_request.input_value else '<empty>'} "
+        f"tweaks={len(input_request.tweaks or {})}"
     )
-    return results
+    response = await simple_run_flow(flow=flow, input_request=input_request, api_key_user=api_key_user)
+    return response.model_dump()
+
+
+class _ActorStub:
+    """Minimal user-like object carrying only `.id`, for simple_run_flow."""
+
+    __slots__ = ("id",)
+
+    def __init__(self, user_id: UUID) -> None:
+        self.id = user_id
 
 
 async def _heartbeat(session_factory, run_id: UUID, stop: asyncio.Event) -> None:

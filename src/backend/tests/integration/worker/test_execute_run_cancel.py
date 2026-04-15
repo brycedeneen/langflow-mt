@@ -6,7 +6,7 @@ import pytest
 
 @pytest.fixture
 def slow_worker_ctx(worker_ctx, redis_service):
-    async def slow_runner(flow_data, flow_id, inputs):
+    async def slow_runner(flow, triggered_by, inputs, actor_id):
         await asyncio.sleep(30)  # long enough to be cancelled
         return {"should_not_reach": True}
 
