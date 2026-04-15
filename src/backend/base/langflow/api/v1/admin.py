@@ -212,3 +212,100 @@ async def delete_organization(
     await session.delete(org)
     deleted["organization"] = 1
     return OrgDeleteResult(deleted=deleted)
+
+
+class MemberAdd(BaseModel):
+    user_id: UUID
+    role: str = "owner"
+
+
+class MembersResponse(BaseModel):
+    items: list[MemberRow]
+
+
+@router.get("/organizations/{org_id}/members", response_model=MembersResponse)
+async def list_members(
+    org_id: UUID,
+    _admin: PlatformAdmin,
+    session: DbSession,
+) -> MembersResponse:
+    from langflow.services.database.models.user.model import User
+
+    if await session.get(Organization, org_id) is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Organization not found")
+    rows = (await session.exec(
+        select(Membership, User)
+        .join(User, Membership.user_id == User.id)
+        .where(Membership.organization_id == org_id)
+    )).all()
+    return MembersResponse(items=[
+        MemberRow(user_id=u.id, username=u.username, role=m.role.value) for (m, u) in rows
+    ])
+
+
+@router.post(
+    "/organizations/{org_id}/members",
+    response_model=MemberRow,
+    status_code=status.HTTP_201_CREATED,
+)
+async def add_member(
+    org_id: UUID,
+    body: MemberAdd,
+    _admin: PlatformAdmin,
+    session: DbSession,
+) -> MemberRow:
+    from langflow.services.database.models.membership.model import MembershipRole
+    from langflow.services.database.models.user.model import User
+
+    org = await session.get(Organization, org_id)
+    if org is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Organization not found")
+    user = await session.get(User, body.user_id)
+    if user is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+    try:
+        role = MembershipRole(body.role)
+    except ValueError as e:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Invalid role: {body.role}") from e
+
+    existing = (await session.exec(
+        select(Membership).where(
+            Membership.user_id == user.id, Membership.organization_id == org.id
+        )
+    )).first()
+    if existing is not None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "User already a member")
+    m = Membership(user_id=user.id, organization_id=org.id, role=role)
+    session.add(m)
+    await session.flush()
+    return MemberRow(user_id=user.id, username=user.username, role=role.value)
+
+
+@router.delete(
+    "/organizations/{org_id}/members/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def remove_member(
+    org_id: UUID,
+    user_id: UUID,
+    _admin: PlatformAdmin,
+    session: DbSession,
+) -> None:
+    org = await session.get(Organization, org_id)
+    if org is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Organization not found")
+    if org.is_personal:
+        # Never orphan a user from their personal workspace.
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            "Cannot remove a user from their personal organization",
+        )
+    m = (await session.exec(
+        select(Membership).where(
+            Membership.user_id == user_id, Membership.organization_id == org_id
+        )
+    )).first()
+    if m is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Membership not found")
+    await session.delete(m)
+    await session.flush()

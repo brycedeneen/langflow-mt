@@ -247,3 +247,175 @@ async def test_delete_personal_org_forbidden(client: AsyncClient, admin_headers)
             org = await session.get(Organization, _UUID(personal_id))
             if org:
                 await session.delete(org)
+
+
+# ---------------------------------------------------------------------------
+# Membership tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+async def regular_user(client: AsyncClient):  # noqa: ARG001
+    """Create a plain (non-admin) user for membership tests."""
+    uid = uuid4()
+    async with session_scope() as session:
+        user = User(
+            id=uid,
+            username=f"regular_user_{uid}",
+            password=get_auth_service().get_password_hash("password123"),
+            is_active=True,
+            is_superuser=False,
+            is_platform_admin=False,
+        )
+        session.add(user)
+        await session.flush()
+        await session.refresh(user)
+        username = user.username
+
+    yield {"id": str(uid), "username": username}
+
+    async with session_scope() as session:
+        db_user = await session.get(User, uid)
+        if db_user:
+            await session.delete(db_user)
+
+
+async def test_member_add_remove_happy(client: AsyncClient, admin_headers, regular_user):
+    """Add a member to a non-personal org → 201; duplicate → 409; remove → 204."""
+    from uuid import UUID as _UUID
+
+    # Create a non-personal org via the admin endpoint
+    slug = f"members-org-{uuid4().hex[:8]}"
+    create_resp = await client.post(
+        "api/v1/admin/organizations",
+        json={"name": "Members Org", "slug": slug},
+        headers=admin_headers,
+    )
+    assert create_resp.status_code == status.HTTP_201_CREATED
+    org_id = create_resp.json()["id"]
+    user_id = regular_user["id"]
+
+    # POST → 201
+    add_resp = await client.post(
+        f"api/v1/admin/organizations/{org_id}/members",
+        json={"user_id": user_id, "role": "owner"},
+        headers=admin_headers,
+    )
+    assert add_resp.status_code == status.HTTP_201_CREATED
+    data = add_resp.json()
+    assert data["user_id"] == user_id
+    assert data["username"] == regular_user["username"]
+    assert data["role"] == "owner"
+
+    # Verify it appears in the list
+    list_resp = await client.get(
+        f"api/v1/admin/organizations/{org_id}/members",
+        headers=admin_headers,
+    )
+    assert list_resp.status_code == status.HTTP_200_OK
+    items = list_resp.json()["items"]
+    assert any(m["user_id"] == user_id for m in items)
+
+    # POST again → 409
+    dupe_resp = await client.post(
+        f"api/v1/admin/organizations/{org_id}/members",
+        json={"user_id": user_id, "role": "owner"},
+        headers=admin_headers,
+    )
+    assert dupe_resp.status_code == status.HTTP_409_CONFLICT
+
+    # DELETE → 204
+    del_resp = await client.request(
+        "DELETE",
+        f"api/v1/admin/organizations/{org_id}/members/{user_id}",
+        headers=admin_headers,
+    )
+    assert del_resp.status_code == status.HTTP_204_NO_CONTENT
+
+    # Clean up org
+    async with session_scope() as session:
+        org = await session.get(Organization, _UUID(org_id))
+        if org:
+            await session.delete(org)
+
+
+async def test_add_member_unknown_user(client: AsyncClient, admin_headers):
+    """Adding a non-existent user → 404."""
+    from uuid import UUID as _UUID
+
+    slug = f"no-user-org-{uuid4().hex[:8]}"
+    create_resp = await client.post(
+        "api/v1/admin/organizations",
+        json={"name": "No User Org", "slug": slug},
+        headers=admin_headers,
+    )
+    assert create_resp.status_code == status.HTTP_201_CREATED
+    org_id = create_resp.json()["id"]
+
+    ghost_user_id = str(uuid4())
+    resp = await client.post(
+        f"api/v1/admin/organizations/{org_id}/members",
+        json={"user_id": ghost_user_id, "role": "owner"},
+        headers=admin_headers,
+    )
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+    # Clean up org
+    async with session_scope() as session:
+        org = await session.get(Organization, _UUID(org_id))
+        if org:
+            await session.delete(org)
+
+
+async def test_remove_member_from_personal_org_forbidden(
+    client: AsyncClient, admin_headers, regular_user
+):
+    """Attempting to remove a member from a personal org → 403."""
+    from uuid import UUID as _UUID
+
+    from langflow.services.database.models.membership.model import Membership, MembershipRole
+
+    personal_id: str | None = None
+    user_uuid = _UUID(regular_user["id"])
+
+    async with session_scope() as session:
+        personal = Organization(
+            name="Personal Org",
+            slug=f"personal-{uuid4().hex[:8]}",
+            is_personal=True,
+        )
+        session.add(personal)
+        await session.flush()
+        await session.refresh(personal)
+        personal_id = str(personal.id)
+
+        membership = Membership(
+            user_id=user_uuid,
+            organization_id=personal.id,
+            role=MembershipRole.OWNER,
+        )
+        session.add(membership)
+        await session.flush()
+
+    try:
+        del_resp = await client.request(
+            "DELETE",
+            f"api/v1/admin/organizations/{personal_id}/members/{regular_user['id']}",
+            headers=admin_headers,
+        )
+        assert del_resp.status_code == status.HTTP_403_FORBIDDEN
+    finally:
+        async with session_scope() as session:
+            # Delete membership then org
+            from sqlmodel import select as _select
+            m = (await session.exec(
+                _select(Membership).where(
+                    Membership.user_id == user_uuid,
+                    Membership.organization_id == _UUID(personal_id),
+                )
+            )).first()
+            if m:
+                await session.delete(m)
+            org = await session.get(Organization, _UUID(personal_id))
+            if org:
+                await session.delete(org)
