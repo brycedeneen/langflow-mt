@@ -38,6 +38,7 @@ ENDPOINT_CATALOG: dict[str, tuple[str, bool]] = {
 MAX_PAGINATION_ITERATIONS = 1000
 PAGE_SIZE_FOR_ALL = 100
 HTTP_UNAUTHORIZED = 401
+HTTP_CLIENT_ERROR_MIN = 400
 
 
 class ADPAPIRequestComponent(Component):
@@ -178,47 +179,103 @@ class ADPAPIRequestComponent(Component):
         url = conn.api_base_url + path
         method = (self.method or "GET").upper()
         base_params = self._build_query_params()
+        headers = {"Authorization": f"Bearer {conn.access_token}"}
 
         if self.result_mode == "Top 20":
             params = {**base_params, "$top": 20}
-        else:
-            params = {**base_params, "$top": PAGE_SIZE_FOR_ALL}
+            async with build_mtls_httpx_client(conn, timeout=self.timeout) as client:
+                response = await self._call_with_401_retry(
+                    client, method=method, url=url, headers=headers, params=params, conn=conn,
+                )
+                return self._response_to_data(url, response)
 
-        headers = {"Authorization": f"Bearer {conn.access_token}"}
+        # "All" mode — auto-paginate
+        combined: dict[str, Any] = {}
+        collection_key: str | None = None
+        skip = 0
+        iterations = 0
+        final_response: httpx.Response | None = None
 
         async with build_mtls_httpx_client(conn, timeout=self.timeout) as client:
-            response = await self._execute_request(
-                client,
-                method=method,
-                url=url,
-                headers=headers,
-                params=params,
-                json_body=None,
-                timeout=self.timeout,
-            )
+            while iterations < MAX_PAGINATION_ITERATIONS:
+                iterations += 1
+                params = {**base_params, "$top": PAGE_SIZE_FOR_ALL}
+                if skip:
+                    params["$skip"] = skip
 
-            if response.status_code == HTTP_UNAUTHORIZED:
-                await fetch_token(conn, force=True)
-                headers["Authorization"] = f"Bearer {conn.access_token}"
-                response = await self._execute_request(
-                    client,
-                    method=method,
-                    url=url,
-                    headers=headers,
-                    params=params,
-                    json_body=None,
-                    timeout=self.timeout,
+                response = await self._call_with_401_retry(
+                    client, method=method, url=url, headers=headers, params=params, conn=conn,
                 )
+                final_response = response
 
-            try:
-                body = response.json()
-            except ValueError:
-                body = response.text
+                if response.status_code >= HTTP_CLIENT_ERROR_MIN:
+                    return self._response_to_data(url, response)
+
+                try:
+                    page = response.json()
+                except ValueError:
+                    return self._response_to_data(url, response)
+
+                if collection_key is None:
+                    collection_key = self._detect_collection_key(page)
+                    combined = {collection_key: []} if collection_key else {}
+
+                if not collection_key:
+                    # Not a paginated collection — return single page
+                    return self._response_to_data(url, response)
+
+                items = page.get(collection_key, [])
+                combined[collection_key].extend(items)
+
+                if len(items) < PAGE_SIZE_FOR_ALL:
+                    break
+                skip += PAGE_SIZE_FOR_ALL
 
         return Data(
             data={
                 "source": url,
-                "status_code": response.status_code,
-                "result": body,
+                "status_code": final_response.status_code if final_response else 200,
+                "result": combined,
             }
         )
+
+    async def _call_with_401_retry(
+        self,
+        client: httpx.AsyncClient,
+        *,
+        method: str,
+        url: str,
+        headers: dict[str, str],
+        params: dict[str, Any],
+        conn: ADPConnection,
+    ) -> httpx.Response:
+        response = await self._execute_request(
+            client, method=method, url=url, headers=headers, params=params, json_body=None, timeout=self.timeout,
+        )
+        if response.status_code == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            response = await self._execute_request(
+                client, method=method, url=url, headers=headers, params=params, json_body=None, timeout=self.timeout,
+            )
+        return response
+
+    @staticmethod
+    def _detect_collection_key(page: Any) -> str | None:
+        """ADP list responses wrap items in a top-level key (e.g. 'workers', 'items', 'payStatements').
+
+        Heuristic: first key whose value is a list.
+        """
+        if not isinstance(page, dict):
+            return None
+        for k, v in page.items():
+            if isinstance(v, list):
+                return k
+        return None
+
+    def _response_to_data(self, url: str, response: httpx.Response) -> Data:
+        try:
+            body = response.json()
+        except ValueError:
+            body = response.text
+        return Data(data={"source": url, "status_code": response.status_code, "result": body})

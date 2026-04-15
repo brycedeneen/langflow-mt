@@ -85,3 +85,104 @@ async def test_make_request_top_20_single_call(adp_connection):
     assert "$skip" not in call_kwargs["params"]
     assert result.data["result"]["workers"] == [{"id": 1}, {"id": 2}]
     assert result.data["status_code"] == 200
+
+
+@pytest.mark.asyncio
+async def test_make_request_all_paginates_until_short_page(adp_connection):
+    c = _make_component(adp_connection, endpoint="Workers", result_mode="All")
+
+    responses = [
+        httpx.Response(200, json={"workers": [{"id": i} for i in range(100)]}),
+        httpx.Response(200, json={"workers": [{"id": i} for i in range(100, 150)]}),
+    ]
+    mock_exec = AsyncMock(side_effect=responses)
+    mock_client = MagicMock()
+
+    @asynccontextmanager
+    async def fake_build_client(_conn, *, timeout=30):  # noqa: ARG001
+        yield mock_client
+
+    with patch("lfx.components.adp.adp_api_request.build_mtls_httpx_client", new=fake_build_client), \
+         patch.object(c, "_execute_request", new=mock_exec):
+        result = await c.make_api_request()
+
+    assert mock_exec.call_count == 2
+    assert len(result.data["result"]["workers"]) == 150
+    # Verify $top / $skip progression
+    skip_values = [call.kwargs["params"].get("$skip", 0) for call in mock_exec.call_args_list]
+    assert skip_values == [0, 100]
+
+
+@pytest.mark.asyncio
+async def test_make_request_all_stops_on_short_page(adp_connection):
+    c = _make_component(adp_connection, endpoint="Workers", result_mode="All")
+    responses = [
+        httpx.Response(200, json={"workers": [{"id": i} for i in range(50)]}),  # less than 100 → stop
+    ]
+    mock_exec = AsyncMock(side_effect=responses)
+    mock_client = MagicMock()
+
+    @asynccontextmanager
+    async def fake_build_client(_conn, *, timeout=30):  # noqa: ARG001
+        yield mock_client
+
+    with patch("lfx.components.adp.adp_api_request.build_mtls_httpx_client", new=fake_build_client), \
+         patch.object(c, "_execute_request", new=mock_exec):
+        result = await c.make_api_request()
+    assert mock_exec.call_count == 1
+    assert len(result.data["result"]["workers"]) == 50
+
+
+@pytest.mark.asyncio
+async def test_make_request_401_triggers_force_refresh_and_retry(adp_connection):
+    c = _make_component(adp_connection, endpoint="Workers", result_mode="Top 20")
+
+    responses = [
+        httpx.Response(401, json={"error": "expired"}),
+        httpx.Response(200, json={"workers": [{"id": 1}]}),
+    ]
+    mock_exec = AsyncMock(side_effect=responses)
+    mock_client = MagicMock()
+
+    @asynccontextmanager
+    async def fake_build_client(_conn, *, timeout=30):  # noqa: ARG001
+        yield mock_client
+
+    async def fake_force_refresh(conn, *, force=False):
+        assert force is True
+        conn.access_token = "new-token"  # noqa: S105
+
+    with patch("lfx.components.adp.adp_api_request.build_mtls_httpx_client", new=fake_build_client), \
+         patch.object(c, "_execute_request", new=mock_exec), \
+         patch("lfx.components.adp.adp_api_request.fetch_token", new=AsyncMock(side_effect=fake_force_refresh)):
+        result = await c.make_api_request()
+
+    assert mock_exec.call_count == 2
+    # Second call must use the refreshed token
+    second_call_headers = mock_exec.call_args_list[1].kwargs["headers"]
+    assert second_call_headers["Authorization"] == "Bearer new-token"
+    assert result.data["status_code"] == 200
+
+
+@pytest.mark.asyncio
+async def test_make_request_401_twice_still_fails(adp_connection):
+    c = _make_component(adp_connection, endpoint="Workers", result_mode="Top 20")
+
+    responses = [
+        httpx.Response(401, json={"error": "expired"}),
+        httpx.Response(401, json={"error": "still-bad"}),
+    ]
+    mock_exec = AsyncMock(side_effect=responses)
+    mock_client = MagicMock()
+
+    @asynccontextmanager
+    async def fake_build_client(_conn, *, timeout=30):  # noqa: ARG001
+        yield mock_client
+
+    with patch("lfx.components.adp.adp_api_request.build_mtls_httpx_client", new=fake_build_client), \
+         patch.object(c, "_execute_request", new=mock_exec), \
+         patch("lfx.components.adp.adp_api_request.fetch_token", new=AsyncMock()):
+        result = await c.make_api_request()
+
+    assert result.data["status_code"] == 401
+    assert mock_exec.call_count == 2
