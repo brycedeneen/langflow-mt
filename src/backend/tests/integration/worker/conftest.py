@@ -125,6 +125,7 @@ def worker_ctx(engine_and_factory, redis_service, mock_storage):
     settings.arq_default_queue = "runs:default"
     settings.arq_low_queue = "runs:low"
     settings.arq_webhooks_queue = "webhooks"
+    settings.run_retention_hours = 24
 
     arq = AsyncMock()
     arq.enqueue_job = AsyncMock(return_value=None)
