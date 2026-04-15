@@ -832,3 +832,14 @@ async def get_starter_project(client, active_user):  # noqa: ARG001
         yield new_flow_dict
         # Clean up
         await session.delete(new_flow)
+
+
+@pytest.fixture
+async def redis_service():
+    from langflow.services.redis.service import RedisService
+
+    svc = RedisService(url="redis://localhost:6379/15")
+    await svc.start()
+    yield svc
+    await svc.client.flushdb()
+    await svc.stop()

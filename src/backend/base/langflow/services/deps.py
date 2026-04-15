@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from langflow.services.store.service import StoreService
     from langflow.services.task.service import TaskService
     from langflow.services.tracing.service import TracingService
+    from langflow.services.redis.service import RedisService
     from langflow.services.variable.service import VariableService
 
 # These imports MUST be outside TYPE_CHECKING because FastAPI uses eval_str=True
@@ -263,3 +264,14 @@ def get_job_service():
     from langflow.services.jobs.factory import JobServiceFactory
 
     return get_service(ServiceType.JOB_SERVICE, JobServiceFactory())
+
+
+def get_redis_service() -> "RedisService":
+    """Retrieves the RedisService instance from the service manager.
+
+    Returns:
+        RedisService: The RedisService instance.
+    """
+    from langflow.services.redis.factory import RedisServiceFactory
+
+    return get_service(ServiceType.REDIS_SERVICE, RedisServiceFactory())
