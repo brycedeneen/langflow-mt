@@ -53,7 +53,8 @@ async def enqueue_run(
         )
     except ValueError as e:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(e)) from e
-    return EnqueueRunResponse(run_id=run.id, status=run.status.value, queued_at=run.queued_at)
+    run_status = run.status.value if hasattr(run.status, "value") else run.status
+    return EnqueueRunResponse(run_id=run.id, status=run_status, queued_at=run.queued_at)
 
 
 class RunsListResponse(BaseModel):
