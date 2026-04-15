@@ -146,3 +146,47 @@ def test_csv_custom_quote_char():
     df = pd.DataFrame([{"a": "has,comma"}])
     out = _render(df, quote_char="'")
     assert b"'has,comma'" in out
+
+
+import base64
+import hashlib
+from lfx.components.sftp.sftp_csv_upload import _compute_sha256_fingerprint, _verify_host_key
+
+
+class _FakeHostKey:
+    def __init__(self, raw: bytes):
+        self._raw = raw
+
+    def export_public_key(self, fmt: str) -> bytes:  # noqa: ARG002
+        return self._raw
+
+
+def _expected_fp(raw: bytes) -> str:
+    return base64.b64encode(hashlib.sha256(raw).digest()).decode().rstrip("=")
+
+
+def test_compute_fingerprint_matches_known_value():
+    raw = b"ssh-rsa AAAAB3..."
+    fp = _compute_sha256_fingerprint(_FakeHostKey(raw))
+    assert fp == _expected_fp(raw)
+
+
+def test_verify_host_key_accepts_match_with_prefix():
+    raw = b"ssh-rsa AAAAB3..."
+    _verify_host_key(_FakeHostKey(raw), expected=f"SHA256:{_expected_fp(raw)}")
+
+
+def test_verify_host_key_accepts_match_without_prefix():
+    raw = b"ssh-rsa AAAAB3..."
+    _verify_host_key(_FakeHostKey(raw), expected=_expected_fp(raw))
+
+
+def test_verify_host_key_is_case_insensitive_on_prefix():
+    raw = b"ssh-rsa AAAAB3..."
+    _verify_host_key(_FakeHostKey(raw), expected=f"sha256:{_expected_fp(raw)}")
+
+
+def test_verify_host_key_raises_on_mismatch():
+    raw = b"ssh-rsa AAAAB3..."
+    with pytest.raises(ValueError, match="fingerprint mismatch"):
+        _verify_host_key(_FakeHostKey(raw), expected="SHA256:wrongfingerprintxxxxxxxxxxxxxxxxxxxxxxxxxxx")

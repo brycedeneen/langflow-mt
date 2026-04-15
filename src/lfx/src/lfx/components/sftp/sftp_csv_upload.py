@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import base64
 import csv
+import hashlib
 import io
 import posixpath
 import time as _time
@@ -87,6 +89,27 @@ def _render_csv_bytes(
         na_rep=null_representation,
     )
     return buf.getvalue().encode(encoding)
+
+
+def _compute_sha256_fingerprint(host_key) -> str:  # asyncssh.SSHKey
+    """Return the openssh-style SHA256 fingerprint (base64, no padding, no prefix)."""
+    raw = host_key.export_public_key("openssh")
+    digest = hashlib.sha256(raw).digest()
+    return base64.b64encode(digest).decode().rstrip("=")
+
+
+def _verify_host_key(host_key, *, expected: str) -> None:
+    """Raise ValueError if the host key's SHA-256 fingerprint does not match expected.
+
+    Accepts both ``SHA256:<base64>`` and bare ``<base64>`` forms (case-insensitive prefix).
+    """
+    normalized_expected = expected.strip()
+    if normalized_expected.lower().startswith("sha256:"):
+        normalized_expected = normalized_expected.split(":", 1)[1]
+    actual = _compute_sha256_fingerprint(host_key)
+    if actual != normalized_expected:
+        msg = f"host key fingerprint mismatch: expected SHA256:{normalized_expected}, got SHA256:{actual}"
+        raise ValueError(msg)
 
 
 class SFTPCSVUploadComponent(Component):
