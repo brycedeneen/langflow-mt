@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 
 import asyncssh
 import pytest
 from lfx.components.sftp.sftp_csv_upload import SFTPCSVUploadComponent
 from lfx.schema import DataFrame
-
-pytestmark = pytest.mark.integration
 
 
 class _AcceptAllSSHServer(asyncssh.SSHServer):
@@ -72,7 +71,7 @@ async def test_happy_path_uploads_csv_with_correct_bytes(tmp_path):
     server, port = await _start_server(tmp_path)
     try:
         component = _make_component(tmp_path, port)
-        result = await component.build_upload()
+        result = await asyncio.wait_for(component.build_upload(), timeout=30.0)
     finally:
         server.close()
         await server.wait_closed()
@@ -88,7 +87,7 @@ async def test_bad_password_raises_permission_denied(tmp_path):
     try:
         component = _make_component(tmp_path, port, password="wrongpw")
         with pytest.raises(asyncssh.PermissionDenied):
-            await component.build_upload()
+            await asyncio.wait_for(component.build_upload(), timeout=30.0)
     finally:
         server.close()
         await server.wait_closed()
