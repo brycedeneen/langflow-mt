@@ -4,6 +4,7 @@ from .deployment import Deployment
 from .deployment_provider_account import DeploymentProviderAccount
 from .file import File
 from .flow import Flow
+from .flow_run import FlowRun
 from .flow_version import FlowVersion
 from .folder import Folder
 from .jobs import Job
@@ -21,6 +22,7 @@ __all__ = [
     "DeploymentProviderAccount",
     "File",
     "Flow",
+    "FlowRun",
     "FlowVersion",
     "Folder",
     "Job",
