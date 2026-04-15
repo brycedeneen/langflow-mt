@@ -42,6 +42,13 @@ import ViewPage from "./pages/ViewPage";
 
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const LoginAdminPage = lazy(() => import("./pages/AdminPage/LoginPage"));
+const UsersPage = lazy(() => import("./pages/AdminPage/UsersPage"));
+const OrganizationsListPage = lazy(
+  () => import("./pages/AdminPage/organizations/OrganizationsListPage"),
+);
+const CreateOrganizationDrawer = lazy(
+  () => import("./pages/AdminPage/organizations/CreateOrganizationDrawer"),
+);
 const DeleteAccountPage = lazy(() => import("./pages/DeleteAccountPage"));
 
 const PlaygroundPage = lazy(() => import("./pages/Playground"));
@@ -177,7 +184,17 @@ const router = createBrowserRouter(
                       <AdminPage />
                     </ProtectedAdminRoute>
                   }
-                />
+                >
+                  <Route index element={<UsersPage />} />
+                  <Route
+                    path="organizations"
+                    element={<OrganizationsListPage />}
+                  />
+                  <Route
+                    path="organizations/new"
+                    element={<CreateOrganizationDrawer />}
+                  />
+                </Route>
               </Route>
               <Route path="flow/:id/">
                 <Route path="" element={<CustomDashboardWrapperPage />}>

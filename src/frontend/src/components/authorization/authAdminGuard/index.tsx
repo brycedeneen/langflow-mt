@@ -10,9 +10,11 @@ export const ProtectedAdminRoute = ({ children }) => {
   const autoLogin = useAuthStore((state) => state.autoLogin);
   const isAdmin = useAuthStore((state) => state.isAdmin);
 
+  const isPlatformAdmin = userData?.is_platform_admin === true;
+
   if (!isAuthenticated) {
     return <LoadingPage />;
-  } else if ((userData && !isAdmin) || autoLogin) {
+  } else if ((userData && !isAdmin && !isPlatformAdmin) || autoLogin) {
     return <CustomNavigate to="/" replace />;
   } else {
     return children;
