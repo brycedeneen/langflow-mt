@@ -66,11 +66,10 @@ services:
         # to disable www redirection remove the section: ${STACK_NAME?Variable not set}-www-redirect,
         - traefik.http.routers.${STACK_NAME?Variable not set}-proxy-http.middlewares=${STACK_NAME?Variable not set}-www-redirect,${STACK_NAME?Variable not set}-https-redirect
 
-  backend: &backend
+  backend:
     image: "langflowai/langflow-backend:latest"
     depends_on:
       - db
-      - broker
       - result_backend
     env_file:
       - .env
@@ -130,39 +129,53 @@ services:
     healthcheck:
       test: "exit 0"
 
-  celeryworker:
-    <<: *backend
+  langflow-worker:
+    image: "langflowai/langflow-backend:latest"
+    command: ["langflow", "worker", "--queue", "runs:default", "--concurrency", "8"]
     env_file:
       - .env
-    command: /bin/sh -c "python -m celery -A langflow.worker.celery_app worker --loglevel=INFO --concurrency=1 -n lf-worker@%h -P eventlet"
+    environment:
+      - LANGFLOW_DISTRIBUTED_EXECUTION=true
+      - LANGFLOW_REDIS_URL=redis://result_backend:6379/0
+    depends_on:
+      - db
+      - result_backend
     healthcheck:
       test: "exit 0"
     deploy:
       replicas: 1
 
-  flower:
-    <<: *backend
+  langflow-worker-high:
+    image: "langflowai/langflow-backend:latest"
+    command: ["langflow", "worker", "--queue", "runs:high", "--concurrency", "4"]
     env_file:
       - .env
-    networks:
-      - default
     environment:
-      - FLOWER_PORT=5555
-
-    command: /bin/sh -c "python -m celery -A langflow.worker.celery_app --broker=${BROKER_URL?Variable not set} flower --port=5555"
+      - LANGFLOW_DISTRIBUTED_EXECUTION=true
+      - LANGFLOW_REDIS_URL=redis://result_backend:6379/0
+    depends_on:
+      - db
+      - result_backend
+    healthcheck:
+      test: "exit 0"
     deploy:
-      labels:
-        - traefik.enable=true
-        - traefik.docker.network=${TRAEFIK_PUBLIC_NETWORK?Variable not set}
-        - traefik.constraint-label=${TRAEFIK_PUBLIC_TAG?Variable not set}
-        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-http.rule=Host(`flower.${DOMAIN?Variable not set}`)
-        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-http.entrypoints=http
-        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-http.middlewares=${STACK_NAME?Variable not set}-https-redirect
-        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-https.rule=Host(`flower.${DOMAIN?Variable not set}`)
-        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-https.entrypoints=https
-        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-https.tls=true
-        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-https.tls.certresolver=le
-        - traefik.http.services.${STACK_NAME?Variable not set}-flower.loadbalancer.server.port=5555
+      replicas: 1
+
+  langflow-worker-webhooks:
+    image: "langflowai/langflow-backend:latest"
+    command: ["langflow", "worker", "--queue", "webhooks", "--concurrency", "16"]
+    env_file:
+      - .env
+    environment:
+      - LANGFLOW_DISTRIBUTED_EXECUTION=true
+      - LANGFLOW_REDIS_URL=redis://result_backend:6379/0
+    depends_on:
+      - db
+      - result_backend
+    healthcheck:
+      test: "exit 0"
+    deploy:
+      replicas: 1
 
   frontend:
     image: "langflowai/langflow-frontend:latest"
@@ -175,20 +188,6 @@ services:
         - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
         - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-http.rule=PathPrefix(`/`)
         - traefik.http.services.${STACK_NAME?Variable not set}-frontend.loadbalancer.server.port=80
-
-  broker:
-    # RabbitMQ management console
-    image: rabbitmq:3-management
-    environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER:-admin}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS:-admin}
-    volumes:
-      - rabbitmq_data:/etc/rabbitmq/
-      - rabbitmq_data:/var/lib/rabbitmq/
-      - rabbitmq_log:/var/log/rabbitmq/
-    ports:
-      - 5672:5672
-      - 15672:15672
 
   prometheus:
     image: prom/prometheus:v2.37.9
@@ -227,8 +226,6 @@ services:
 volumes:
   grafana_data:
   app-db-data:
-  rabbitmq_data:
-  rabbitmq_log:
   pgadmin-data:
 
 networks:
