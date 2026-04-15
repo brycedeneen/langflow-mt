@@ -4,13 +4,9 @@ from arq import cron
 from arq.connections import RedisSettings
 
 from langflow.services.settings.base import Settings
+from langflow.worker_app.execute import execute_run
 
 _settings = Settings(_env_file=None)
-
-
-async def execute_run(ctx, run_id: str) -> None:
-    # Real body: Task 17
-    raise NotImplementedError
 
 
 async def deliver_webhook(ctx, run_id: str, event: str, attempt: int = 0) -> None:
