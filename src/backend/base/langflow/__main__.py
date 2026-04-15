@@ -59,6 +59,11 @@ except ImportError:
     # LFX not available, skip adding the sub-app
     pass
 
+# Register the distributed worker subcommand
+from langflow.cli.worker_cmd import worker_cmd  # noqa: E402
+
+app.command(name="worker", help="Run a distributed flow-execution worker")(worker_cmd)
+
 
 class ProcessManager:
     """Manages the lifecycle of the backend process."""
