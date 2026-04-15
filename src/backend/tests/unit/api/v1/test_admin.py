@@ -169,3 +169,81 @@ async def test_get_org_detail_not_found(client: AsyncClient, admin_headers):
     missing_id = str(uuid4())
     resp = await client.get(f"api/v1/admin/organizations/{missing_id}", headers=admin_headers)
     assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_delete_org_happy(client: AsyncClient, admin_headers):
+    """Create an org, DELETE it with matching confirm_name, verify 200 and subsequent 404."""
+    slug = f"del-org-{uuid4().hex[:8]}"
+    create_resp = await client.post(
+        "api/v1/admin/organizations",
+        json={"name": "Delete Me", "slug": slug},
+        headers=admin_headers,
+    )
+    assert create_resp.status_code == status.HTTP_201_CREATED
+    org_id = create_resp.json()["id"]
+
+    del_resp = await client.request(
+        "DELETE",
+        f"api/v1/admin/organizations/{org_id}",
+        json={"confirm_name": "Delete Me"},
+        headers=admin_headers,
+    )
+    assert del_resp.status_code == status.HTTP_200_OK
+    data = del_resp.json()
+    assert "deleted" in data
+    assert data["deleted"].get("organization") == 1
+
+    # GET the org now returns 404
+    get_resp = await client.get(f"api/v1/admin/organizations/{org_id}", headers=admin_headers)
+    assert get_resp.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_delete_org_wrong_confirm_name(client: AsyncClient, admin_headers):
+    """DELETE with wrong confirm_name → 400."""
+    slug = f"del-org-wrong-{uuid4().hex[:8]}"
+    create_resp = await client.post(
+        "api/v1/admin/organizations",
+        json={"name": "Keep Me", "slug": slug},
+        headers=admin_headers,
+    )
+    assert create_resp.status_code == status.HTTP_201_CREATED
+    org_id = create_resp.json()["id"]
+
+    del_resp = await client.request(
+        "DELETE",
+        f"api/v1/admin/organizations/{org_id}",
+        json={"confirm_name": "wrong name"},
+        headers=admin_headers,
+    )
+    assert del_resp.status_code == status.HTTP_400_BAD_REQUEST
+
+
+async def test_delete_personal_org_forbidden(client: AsyncClient, admin_headers):
+    """DELETE a personal org → 403."""
+    personal_id = None
+    async with session_scope() as session:
+        personal = Organization(
+            name="Personal",
+            slug=f"user-{uuid4()}",
+            is_personal=True,
+        )
+        session.add(personal)
+        await session.flush()
+        await session.refresh(personal)
+        personal_id = str(personal.id)
+
+    try:
+        del_resp = await client.request(
+            "DELETE",
+            f"api/v1/admin/organizations/{personal_id}",
+            json={"confirm_name": "Personal"},
+            headers=admin_headers,
+        )
+        assert del_resp.status_code == status.HTTP_403_FORBIDDEN
+    finally:
+        # Clean up the personal org
+        from uuid import UUID as _UUID
+        async with session_scope() as session:
+            org = await session.get(Organization, _UUID(personal_id))
+            if org:
+                await session.delete(org)

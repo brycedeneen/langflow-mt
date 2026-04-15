@@ -11,6 +11,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel, Field
+from sqlalchemy import delete as sa_delete
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import func, select
 
@@ -148,3 +149,66 @@ async def create_organization(
         created_at=org.created_at.isoformat(),
         updated_at=org.updated_at.isoformat(),
     )
+
+
+class OrgDeleteBody(BaseModel):
+    confirm_name: str
+
+
+class OrgDeleteResult(BaseModel):
+    deleted: dict[str, int]
+
+
+@router.delete("/organizations/{org_id}", response_model=OrgDeleteResult)
+async def delete_organization(
+    org_id: UUID,
+    body: OrgDeleteBody,
+    _admin: PlatformAdmin,
+    session: DbSession,
+) -> OrgDeleteResult:
+    org = await session.get(Organization, org_id)
+    if org is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Organization not found")
+    if org.is_personal:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Cannot delete a personal organization")
+    if body.confirm_name != org.name:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "confirm_name does not match organization name")
+
+    # Explicit cascade — SQLite doesn't enforce FK cascades by default.
+    from langflow.services.database.models.api_key.model import ApiKey
+    from langflow.services.database.models.deployment.model import Deployment
+    from langflow.services.database.models.deployment_provider_account.model import DeploymentProviderAccount
+    from langflow.services.database.models.file.model import File
+    from langflow.services.database.models.flow.model import Flow
+    from langflow.services.database.models.flow_version.model import FlowVersion
+    from langflow.services.database.models.folder.model import Folder
+    from langflow.services.database.models.jobs.model import Job
+    from langflow.services.database.models.message.model import MessageTable
+    from langflow.services.database.models.transactions.model import TransactionTable
+    from langflow.services.database.models.variable.model import Variable
+    from langflow.services.database.models.vertex_builds.model import VertexBuildTable
+
+    tables = [
+        ("message", MessageTable),
+        ("transaction", TransactionTable),
+        ("vertex_build", VertexBuildTable),
+        ("flow_version", FlowVersion),
+        ("flow", Flow),
+        ("file", File),
+        ("variable", Variable),
+        ("deployment", Deployment),
+        ("deployment_provider_account", DeploymentProviderAccount),
+        ("job", Job),
+        ("folder", Folder),
+        ("api_key", ApiKey),
+        ("membership", Membership),
+    ]
+    deleted: dict[str, int] = {}
+    for label, model in tables:
+        if not hasattr(model, "organization_id"):
+            continue
+        result = await session.exec(sa_delete(model).where(model.organization_id == org_id))
+        deleted[label] = int(result.rowcount or 0)
+    await session.delete(org)
+    deleted["organization"] = 1
+    return OrgDeleteResult(deleted=deleted)
