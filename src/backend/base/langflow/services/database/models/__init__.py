@@ -5,6 +5,7 @@ from .deployment_provider_account import DeploymentProviderAccount
 from .file import File
 from .flow import Flow
 from .flow_run import FlowRun
+from .flow_run_log import FlowRunLog, LogLevel
 from .flow_version import FlowVersion
 from .folder import Folder
 from .jobs import Job
@@ -23,6 +24,8 @@ __all__ = [
     "File",
     "Flow",
     "FlowRun",
+    "FlowRunLog",
+    "LogLevel",
     "FlowVersion",
     "Folder",
     "Job",
