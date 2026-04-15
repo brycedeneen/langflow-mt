@@ -11,7 +11,8 @@ from sqlmodel import select
 
 from langflow.api.utils.core import CurrentActiveUser, CurrentOrg, DbSession
 from langflow.services.database.models.flow_run.model import FlowRun, RunStatus, TriggeredBy
-from langflow.services.deps import get_settings_service
+from langflow.services.deps import get_settings_service, get_redis_service
+from langflow.services.runs.cancel import request_cancel
 from langflow.services.runs.deps import get_arq_pool
 from langflow.services.runs.enqueue import RunEnqueuer
 
@@ -110,3 +111,22 @@ async def get_run(run_id: UUID, session: DbSession, org: CurrentOrg):
     if run is None or run.organization_id != org.id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found")
     return _serialize(run)
+
+
+@router.post("/{run_id}/cancel")
+async def cancel_run(
+    run_id: UUID,
+    session: DbSession,
+    org: CurrentOrg,
+    redis=Depends(get_redis_service),
+):
+    run = await session.get(FlowRun, run_id)
+    if run is None or run.organization_id != org.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found")
+    status_value = run.status.value if hasattr(run.status, "value") else run.status
+    if status_value in {"succeeded", "failed", "cancelled", "timed_out"}:
+        return {"status": status_value}
+    run.cancel_requested = True
+    await session.commit()
+    await request_cancel(redis.client, run_id)
+    return {"status": status_value}
