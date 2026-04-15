@@ -2,11 +2,31 @@
 
 from __future__ import annotations
 
+import posixpath
+import time as _time
+
 import pandas as pd
 
 from lfx.custom.custom_component.component import Component
 from lfx.io import BoolInput, DropdownInput, HandleInput, IntInput, MessageTextInput, Output, SecretStrInput, StrInput  # noqa: F401
 from lfx.schema import Data, DataFrame
+
+
+def _resolve_remote_path(
+    remote_directory: str, filename: str, *, now: _time.struct_time | None = None
+) -> str:
+    """Substitute time tokens in filename and join with remote_directory.
+
+    Tokens (UTC): {timestamp} -> YYYYMMDD_HHMMSS, {date} -> YYYYMMDD.
+    Filenames may not contain '/' after substitution.
+    """
+    when = now if now is not None else _time.gmtime()
+    rendered = filename.replace("{timestamp}", _time.strftime("%Y%m%d_%H%M%S", when))
+    rendered = rendered.replace("{date}", _time.strftime("%Y%m%d", when))
+    if "/" in rendered:
+        msg = "filename must not contain path separator '/'; use remote_directory"
+        raise ValueError(msg)
+    return posixpath.join(remote_directory, rendered)
 
 
 def _normalize_to_dataframe(value: object) -> pd.DataFrame:
