@@ -177,7 +177,8 @@ class Settings(BaseSettings):
     redis_host: str = "localhost"
     redis_port: int = 6379
     redis_db: int = 0
-    redis_url: str | None = None
+    redis_url: str = "redis://localhost:6379/0"
+    """Redis connection URL used by Arq (broker) and concurrency/cancel signals."""
     redis_cache_expire: int = 3600
 
     # Sentry
@@ -360,6 +361,35 @@ class Settings(BaseSettings):
 
     Note: This setting only takes effect when ssrf_protection_enabled is True.
     When protection is disabled, all hosts are allowed regardless of this setting."""
+
+    # ---------------------------------------------------------------------
+    # Distributed flow execution (Arq)
+    # ---------------------------------------------------------------------
+    distributed_execution: bool = False
+    """Enable dispatching webhook/schedule/MCP-triggered flow runs to Arq workers. When False, the legacy in-process path is used."""
+
+    arq_high_queue: str = "runs:high"
+    arq_default_queue: str = "runs:default"
+    arq_low_queue: str = "runs:low"
+    arq_webhooks_queue: str = "webhooks"
+
+    worker_concurrency: int = 8
+    """Max in-flight flow runs per worker process."""
+
+    run_default_timeout_seconds: int = 600
+    """Default per-run timeout when a flow does not specify one."""
+
+    run_retention_hours: int = 24
+    """Hours to retain finished flow_runs rows before the retention job deletes them."""
+
+    run_payload_inline_max_bytes: int = 1 * 1024 * 1024
+    """Inputs/result larger than this are offloaded to object storage."""
+
+    run_logs_max_bytes: int = 10 * 1024 * 1024
+    """Per-run cap on captured execution logs (bytes)."""
+
+    org_default_max_concurrent_runs: int = 5
+    """Default per-organization concurrent run cap when not overridden."""
 
     @field_validator("runtime_port", mode="before")
     @classmethod
