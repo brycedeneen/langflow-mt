@@ -6,6 +6,8 @@ from enum import Enum
 from typing import TYPE_CHECKING, Optional
 from uuid import UUID, uuid4
 
+import sqlalchemy as sa
+
 import emoji
 from emoji import purely_emoji
 from fastapi import HTTPException, status
@@ -66,6 +68,11 @@ class FlowBase(SQLModel):
             server_default=text("'PRIVATE'"),
         ),
     )
+    webhook_url: str | None = Field(default=None, description="URL to POST webhook events to")
+    webhook_secret: str | None = Field(default=None, description="HMAC secret; auto-generated when webhook_url first set")
+    auto_retry: bool = Field(default=False, sa_column_kwargs={"server_default": sa.false()})
+    max_retries: int = Field(default=3, sa_column_kwargs={"server_default": "3"})
+    timeout_seconds: int = Field(default=600, sa_column_kwargs={"server_default": "600"})
 
     @field_validator("endpoint_name")
     @classmethod
