@@ -217,9 +217,18 @@ VALID_PASSWORD_KWARGS = dict(
 
 
 def _make_connect_mock():
-    """Return (connect_patch, sftp_put_mock)."""
+    """Return (connect_patch, sftp_open_mock, sftp_write_mock).
+
+    sftp_open_mock is the MagicMock for sftp.open(path, mode).
+    sftp_write_mock is the AsyncMock for the remote file's write(bytes).
+    """
+    remote_file = MagicMock()
+    remote_file.write = AsyncMock()
+    open_cm = MagicMock()
+    open_cm.__aenter__ = AsyncMock(return_value=remote_file)
+    open_cm.__aexit__ = AsyncMock(return_value=None)
     sftp = MagicMock()
-    sftp.put_data = AsyncMock()
+    sftp.open = MagicMock(return_value=open_cm)
     sftp_cm = MagicMock()
     sftp_cm.__aenter__ = AsyncMock(return_value=sftp)
     sftp_cm.__aexit__ = AsyncMock(return_value=None)
@@ -229,22 +238,20 @@ def _make_connect_mock():
     conn_cm.__aenter__ = AsyncMock(return_value=conn)
     conn_cm.__aexit__ = AsyncMock(return_value=None)
     connect_mock = MagicMock(return_value=conn_cm)
-    return connect_mock, sftp.put_data
+    return connect_mock, sftp.open, remote_file.write
 
 
 async def test_build_upload_password_auth_calls_connect_with_password():
     component = SFTPCSVUploadComponent(**VALID_PASSWORD_KWARGS)
-    connect_mock, put_mock = _make_connect_mock()
+    connect_mock, open_mock, write_mock = _make_connect_mock()
     with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock):
         result = await component.build_upload()
 
     kwargs = connect_mock.call_args.kwargs
     assert kwargs["password"] == "pw"
     assert "client_keys" not in kwargs
-    put_mock.assert_awaited_once()
-    args, _ = put_mock.call_args
-    assert args[0] == b"a\n1\n"
-    assert args[1] == "/exports/users.csv"
+    open_mock.assert_called_once_with("/exports/users.csv", "wb")
+    write_mock.assert_awaited_once_with(b"a\n1\n")
     assert "Uploaded users.csv" in result.text
     assert "1 rows" in result.text
 
@@ -252,7 +259,7 @@ async def test_build_upload_password_auth_calls_connect_with_password():
 async def test_build_upload_ssh_key_auth_passes_client_keys():
     kwargs = {**VALID_PASSWORD_KWARGS, "auth_method": "SSH Key", "password": "", "private_key": "PEMDATA"}
     component = SFTPCSVUploadComponent(**kwargs)
-    connect_mock, _ = _make_connect_mock()
+    connect_mock, _, _ = _make_connect_mock()
     with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock), patch(
         "lfx.components.sftp.sftp_csv_upload.asyncssh.import_private_key", return_value="KEYOBJ"
     ) as import_mock:
@@ -274,7 +281,7 @@ async def test_build_upload_ssh_key_auth_passes_client_keys():
 async def test_build_upload_missing_required_field_raises_before_connect(field, blank_value, match):
     kwargs = {**VALID_PASSWORD_KWARGS, field: blank_value}
     component = SFTPCSVUploadComponent(**kwargs)
-    connect_mock, _ = _make_connect_mock()
+    connect_mock, _, _ = _make_connect_mock()
     with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock):
         with pytest.raises(ValueError, match=match):
             await component.build_upload()
@@ -284,7 +291,7 @@ async def test_build_upload_missing_required_field_raises_before_connect(field, 
 async def test_build_upload_password_mode_missing_password_raises():
     kwargs = {**VALID_PASSWORD_KWARGS, "password": ""}
     component = SFTPCSVUploadComponent(**kwargs)
-    connect_mock, _ = _make_connect_mock()
+    connect_mock, _, _ = _make_connect_mock()
     with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock):
         with pytest.raises(ValueError, match="password"):
             await component.build_upload()
@@ -294,7 +301,7 @@ async def test_build_upload_password_mode_missing_password_raises():
 async def test_build_upload_ssh_key_mode_missing_private_key_raises():
     kwargs = {**VALID_PASSWORD_KWARGS, "auth_method": "SSH Key", "password": "", "private_key": ""}
     component = SFTPCSVUploadComponent(**kwargs)
-    connect_mock, _ = _make_connect_mock()
+    connect_mock, _, _ = _make_connect_mock()
     with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock):
         with pytest.raises(ValueError, match="private_key"):
             await component.build_upload()
@@ -303,7 +310,7 @@ async def test_build_upload_ssh_key_mode_missing_private_key_raises():
 
 async def test_build_upload_no_fingerprint_passes_known_hosts_none():
     component = SFTPCSVUploadComponent(**VALID_PASSWORD_KWARGS)
-    connect_mock, _ = _make_connect_mock()
+    connect_mock, _, _ = _make_connect_mock()
     with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock):
         await component.build_upload()
     assert connect_mock.call_args.kwargs["known_hosts"] is None
@@ -312,7 +319,7 @@ async def test_build_upload_no_fingerprint_passes_known_hosts_none():
 async def test_build_upload_with_fingerprint_passes_callable_known_hosts():
     kwargs = {**VALID_PASSWORD_KWARGS, "host_key_fingerprint": "SHA256:abc123"}
     component = SFTPCSVUploadComponent(**kwargs)
-    connect_mock, _ = _make_connect_mock()
+    connect_mock, _, _ = _make_connect_mock()
     with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock):
         await component.build_upload()
     known_hosts = connect_mock.call_args.kwargs["known_hosts"]
@@ -339,7 +346,7 @@ def test_update_build_config_toggles_password_fields():
 async def test_build_upload_port_zero_raises():
     kwargs = {**VALID_PASSWORD_KWARGS, "port": 0}
     component = SFTPCSVUploadComponent(**kwargs)
-    connect_mock, _ = _make_connect_mock()
+    connect_mock, _, _ = _make_connect_mock()
     with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock):
         with pytest.raises(ValueError, match="port"):
             await component.build_upload()
@@ -349,7 +356,7 @@ async def test_build_upload_port_zero_raises():
 async def test_build_upload_port_too_large_raises():
     kwargs = {**VALID_PASSWORD_KWARGS, "port": 70000}
     component = SFTPCSVUploadComponent(**kwargs)
-    connect_mock, _ = _make_connect_mock()
+    connect_mock, _, _ = _make_connect_mock()
     with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock):
         with pytest.raises(ValueError, match="port"):
             await component.build_upload()

@@ -309,7 +309,8 @@ class SFTPCSVUploadComponent(Component):
             **auth_kwargs,
         ) as conn:
             async with conn.start_sftp_client() as sftp:
-                await sftp.put_data(csv_bytes, remote_path)
+                async with sftp.open(remote_path, "wb") as remote_file:
+                    await remote_file.write(csv_bytes)
 
         rendered_filename = posixpath.basename(remote_path)
         text = (
