@@ -11,6 +11,7 @@ from sqlmodel import select
 
 from langflow.api.utils.core import CurrentActiveUser, CurrentOrg, DbSession
 from langflow.services.database.models.flow_run.model import FlowRun, RunStatus, TriggeredBy
+from langflow.services.database.models.flow_run_log.model import FlowRunLog
 from langflow.services.deps import get_settings_service, get_redis_service
 from langflow.services.runs.cancel import request_cancel
 from langflow.services.runs.deps import get_arq_pool
@@ -130,3 +131,38 @@ async def cancel_run(
     await session.commit()
     await request_cancel(redis.client, run_id)
     return {"status": status_value}
+
+
+@router.get("/{run_id}/logs")
+async def get_run_logs(
+    run_id: UUID,
+    session: DbSession,
+    org: CurrentOrg,
+    limit: int = 100,
+    cursor: int | None = None,
+):
+    run = await session.get(FlowRun, run_id)
+    if run is None or run.organization_id != org.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found")
+    limit = max(1, min(limit, 500))
+    stmt = select(FlowRunLog).where(FlowRunLog.run_id == run_id)
+    if cursor is not None:
+        stmt = stmt.where(FlowRunLog.id > cursor)
+    stmt = stmt.order_by(FlowRunLog.id.asc()).limit(limit + 1)
+    rows = (await session.exec(stmt)).all()
+    has_more = len(rows) > limit
+    rows = list(rows[:limit])
+    return {
+        "items": [
+            {
+                "id": r.id,
+                "ts": r.ts.isoformat(),
+                "level": r.level.value if hasattr(r.level, "value") else r.level,
+                "node_id": r.node_id,
+                "message": r.message,
+                "extra": r.extra,
+            }
+            for r in rows
+        ],
+        "next_cursor": rows[-1].id if has_more and rows else None,
+    }
