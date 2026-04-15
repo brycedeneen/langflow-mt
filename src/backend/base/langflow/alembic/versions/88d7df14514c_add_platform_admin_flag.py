@@ -1,7 +1,7 @@
 """add platform admin flag
 
 Revision ID: 88d7df14514c
-Revises: 0e6138e7a0c2
+Revises: 6d926936ec2d
 Create Date: 2026-04-15 08:49:58.090998
 
 """
@@ -14,7 +14,7 @@ import sqlmodel
 
 # revision identifiers, used by Alembic.
 revision: str = '88d7df14514c'
-down_revision: Union[str, None] = '0e6138e7a0c2'
+down_revision: Union[str, None] = '6d926936ec2d'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
