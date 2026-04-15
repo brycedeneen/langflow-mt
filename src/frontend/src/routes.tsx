@@ -49,6 +49,9 @@ const OrganizationsListPage = lazy(
 const CreateOrganizationDrawer = lazy(
   () => import("./pages/AdminPage/organizations/CreateOrganizationDrawer"),
 );
+const OrganizationDetailPage = lazy(
+  () => import("./pages/AdminPage/organizations/OrganizationDetailPage"),
+);
 const DeleteAccountPage = lazy(() => import("./pages/DeleteAccountPage"));
 
 const PlaygroundPage = lazy(() => import("./pages/Playground"));
@@ -193,6 +196,10 @@ const router = createBrowserRouter(
                   <Route
                     path="organizations/new"
                     element={<CreateOrganizationDrawer />}
+                  />
+                  <Route
+                    path="organizations/:orgId"
+                    element={<OrganizationDetailPage />}
                   />
                 </Route>
               </Route>
