@@ -309,3 +309,59 @@ async def remove_member(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Membership not found")
     await session.delete(m)
     await session.flush()
+
+
+class UserOrgRow(BaseModel):
+    organization_id: UUID
+    organization_name: str
+    role: str
+
+
+class UserRow(BaseModel):
+    id: UUID
+    username: str
+    is_platform_admin: bool
+    memberships: list[UserOrgRow]
+
+
+class UserSearchResponse(BaseModel):
+    items: list[UserRow]
+
+
+@router.get("/users", response_model=UserSearchResponse)
+async def search_users(
+    _admin: PlatformAdmin,
+    session: DbSession,
+    q: Annotated[str | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+) -> UserSearchResponse:
+    from langflow.services.database.models.user.model import User
+
+    stmt = select(User)
+    if q:
+        stmt = stmt.where(User.username.ilike(f"%{q}%"))
+    stmt = stmt.order_by(User.username).limit(limit)
+    users = (await session.exec(stmt)).all()
+    items: list[UserRow] = []
+    for u in users:
+        rows = (await session.exec(
+            select(Membership, Organization)
+            .join(Organization, Membership.organization_id == Organization.id)
+            .where(Membership.user_id == u.id)
+        )).all()
+        items.append(
+            UserRow(
+                id=u.id,
+                username=u.username,
+                is_platform_admin=u.is_platform_admin,
+                memberships=[
+                    UserOrgRow(
+                        organization_id=o.id,
+                        organization_name=o.name,
+                        role=m.role.value,
+                    )
+                    for (m, o) in rows
+                ],
+            )
+        )
+    return UserSearchResponse(items=items)

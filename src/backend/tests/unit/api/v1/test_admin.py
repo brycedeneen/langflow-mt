@@ -367,6 +367,22 @@ async def test_add_member_unknown_user(client: AsyncClient, admin_headers):
             await session.delete(org)
 
 
+@pytest.mark.asyncio
+async def test_user_search_filters_by_username(client: AsyncClient, admin_headers):
+    from langflow.services.database.models.user.model import User
+
+    async with session_scope() as session:
+        session.add(User(username=f"alpha-{uuid4().hex[:6]}", password="x", is_active=True))
+        session.add(User(username=f"gamma-{uuid4().hex[:6]}", password="x", is_active=True))
+        await session.flush()
+
+    resp = await client.get("/api/v1/admin/users?q=alpha", headers=admin_headers)
+    assert resp.status_code == 200
+    names = [u["username"] for u in resp.json()["items"]]
+    assert any(n.startswith("alpha-") for n in names)
+    assert not any(n.startswith("gamma-") for n in names)
+
+
 async def test_remove_member_from_personal_org_forbidden(
     client: AsyncClient, admin_headers, regular_user
 ):
