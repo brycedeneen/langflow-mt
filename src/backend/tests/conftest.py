@@ -255,61 +255,10 @@ async def async_session():
         await engine.dispose()
 
 
-class Config:
-    broker_url = "redis://localhost:6379/0"
-    result_backend = "redis://localhost:6379/0"
-
-
 @pytest.fixture(name="load_flows_dir")
 def load_flows_dir():
     with tempfile.TemporaryDirectory() as tempdir:
         yield tempdir
-
-
-@pytest.fixture(name="distributed_env")
-def _setup_env(monkeypatch):
-    monkeypatch.setenv("LANGFLOW_CACHE_TYPE", "redis")
-    monkeypatch.setenv("LANGFLOW_REDIS_HOST", "result_backend")
-    monkeypatch.setenv("LANGFLOW_REDIS_PORT", "6379")
-    monkeypatch.setenv("LANGFLOW_REDIS_DB", "0")
-    monkeypatch.setenv("LANGFLOW_REDIS_EXPIRE", "3600")
-    monkeypatch.setenv("LANGFLOW_REDIS_PASSWORD", "")
-    monkeypatch.setenv("FLOWER_UNAUTHENTICATED_API", "True")
-    monkeypatch.setenv("BROKER_URL", "redis://result_backend:6379/0")
-    monkeypatch.setenv("RESULT_BACKEND", "redis://result_backend:6379/0")
-    monkeypatch.setenv("C_FORCE_ROOT", "true")
-
-
-@pytest.fixture(name="distributed_client")
-def distributed_client_fixture(
-    session: Session,  # noqa: ARG001
-    monkeypatch,
-    distributed_env,  # noqa: ARG001
-):
-    # Here we load the .env from ../deploy/.env
-    from langflow.core import celery_app
-
-    db_dir = tempfile.mkdtemp()
-    try:
-        db_path = Path(db_dir) / "test.db"
-        monkeypatch.setenv("LANGFLOW_DATABASE_URL", f"sqlite:///{db_path}")
-        monkeypatch.setenv("LANGFLOW_AUTO_LOGIN", "false")
-        # monkeypatch langflow.services.task.manager.USE_CELERY to True
-        # monkeypatch.setattr(manager, "USE_CELERY", True)
-        monkeypatch.setattr(celery_app, "celery_app", celery_app.make_celery("langflow", Config))
-
-        # def get_session_override():
-        #     return session
-
-        app = create_app()
-
-        # app.dependency_overrides[get_session] = get_session_override
-        with TestClient(app) as client:
-            yield client
-    finally:
-        shutil.rmtree(db_dir)  # Clean up the temporary directory
-    app.dependency_overrides.clear()
-    monkeypatch.undo()
 
 
 def get_graph(type_="basic"):

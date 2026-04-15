@@ -200,8 +200,6 @@ class Settings(BaseSettings):
     object_storage_tags: dict[str, str] | None = None
     """Object storage tags for file storage."""
 
-    celery_enabled: bool = False
-
     fallback_to_env_var: bool = True
     """If set to True, Global Variables set in the UI will fallback to a environment variable
     with the same name in case Langflow fails to retrieve the variable value."""

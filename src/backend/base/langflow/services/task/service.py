@@ -9,7 +9,6 @@ from langflow.exceptions.api import WorkflowResourceError, WorkflowServiceUnavai
 from langflow.services.base import Service
 from langflow.services.deps import get_queue_service
 from langflow.services.task.backends.anyio import AnyIOBackend
-from langflow.services.task.backends.celery import CeleryBackend
 
 if TYPE_CHECKING:
     from lfx.services.settings.service import SettingsService
@@ -22,7 +21,6 @@ class TaskService(Service):
 
     def __init__(self, settings_service: SettingsService):
         self.settings_service = settings_service
-        self.use_celery = self.settings_service.settings.celery_enabled
         self.backend = self.get_backend()
 
     @property
@@ -30,19 +28,14 @@ class TaskService(Service):
         return self.backend.name
 
     def get_backend(self) -> TaskBackend:
-        if self.use_celery:
-            return CeleryBackend()
         return AnyIOBackend()
 
     async def fire_and_forget_task(self, task_func: Callable[..., Any], *args: Any, **kwargs: Any) -> str:
         """Launch a task in the background and forget about it.
 
         Note: This is required since the local AnyIOBackend does not support background tasks
-        natively in a non-blocking way for the API.
-
-        This method abstracts the background execution. If Celery is enabled,
-        it uses the distributed queue. Otherwise, it uses the JobQueueService
-        to manage and track the asynchronous task locally.
+        natively in a non-blocking way for the API. Uses the JobQueueService to manage and
+        track the asynchronous task locally.
 
         Args:
             task_func: The task function to launch.
@@ -52,10 +45,6 @@ class TaskService(Service):
         Returns:
             str: A task_id that can be used to track or cancel the task via JobQueueService.
         """
-        if self.use_celery:
-            task_id, _ = self.backend.launch_task(task_func, *args, **kwargs)
-            return task_id
-
         graph = kwargs.get("graph")
         task_id = graph.run_id if graph and hasattr(graph, "run_id") else str(uuid4())
         # Create a job queue for the task and track the job execution using the
@@ -91,9 +80,6 @@ class TaskService(Service):
         return await task if isinstance(task, Coroutine) else task
 
     async def revoke_task(self, task_id: UUID | str) -> bool:
-        if self.use_celery:
-            return await self.backend.revoke_task(str(task_id))
-
         job_queue_service = get_queue_service()
         try:
             await job_queue_service.cleanup_job(str(task_id))
