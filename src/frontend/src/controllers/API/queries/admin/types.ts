@@ -3,6 +3,7 @@ export interface OrgSummary {
   name: string;
   slug: string;
   member_count: number;
+  is_personal: boolean;
   created_at: string;
   updated_at: string;
 }
