@@ -141,3 +141,31 @@ async def test_create_org_validates_slug(client: AsyncClient, admin_headers):
         assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY, (
             f"Expected 422 for slug {bad_slug!r}, got {resp.status_code}"
         )
+
+
+async def test_get_org_detail(client: AsyncClient, admin_headers):
+    """Create an org via admin endpoint, then GET it — id matches and members is empty."""
+    slug = f"detail-org-{uuid4().hex[:8]}"
+    create_resp = await client.post(
+        "api/v1/admin/organizations",
+        json={"name": "Detail Org", "slug": slug},
+        headers=admin_headers,
+    )
+    assert create_resp.status_code == status.HTTP_201_CREATED
+    org_id = create_resp.json()["id"]
+
+    get_resp = await client.get(f"api/v1/admin/organizations/{org_id}", headers=admin_headers)
+    assert get_resp.status_code == status.HTTP_200_OK
+    data = get_resp.json()
+    assert data["id"] == org_id
+    assert data["slug"] == slug
+    assert data["name"] == "Detail Org"
+    assert data["is_personal"] is False
+    assert data["members"] == []
+
+
+async def test_get_org_detail_not_found(client: AsyncClient, admin_headers):
+    """GET a non-existent org UUID → 404."""
+    missing_id = str(uuid4())
+    resp = await client.get(f"api/v1/admin/organizations/{missing_id}", headers=admin_headers)
+    assert resp.status_code == status.HTTP_404_NOT_FOUND

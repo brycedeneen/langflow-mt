@@ -80,6 +80,53 @@ async def list_organizations(
     return OrgListResponse(items=items, total=int(total))
 
 
+class MemberRow(BaseModel):
+    user_id: UUID
+    username: str
+    role: str
+
+
+class OrgDetail(BaseModel):
+    id: UUID
+    name: str
+    slug: str
+    is_personal: bool
+    created_at: str
+    updated_at: str
+    members: list[MemberRow]
+
+
+@router.get("/organizations/{org_id}", response_model=OrgDetail)
+async def get_organization(
+    org_id: UUID,
+    _admin: PlatformAdmin,
+    session: DbSession,
+) -> OrgDetail:
+    from langflow.services.database.models.user.model import User
+
+    org = await session.get(Organization, org_id)
+    if org is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Organization not found")
+    rows = (await session.exec(
+        select(Membership, User)
+        .join(User, Membership.user_id == User.id)
+        .where(Membership.organization_id == org_id)
+    )).all()
+    members = [
+        MemberRow(user_id=u.id, username=u.username, role=m.role.value)
+        for (m, u) in rows
+    ]
+    return OrgDetail(
+        id=org.id,
+        name=org.name,
+        slug=org.slug,
+        is_personal=org.is_personal,
+        created_at=org.created_at.isoformat(),
+        updated_at=org.updated_at.isoformat(),
+        members=members,
+    )
+
+
 @router.post("/organizations", response_model=OrgSummary, status_code=status.HTTP_201_CREATED)
 async def create_organization(
     body: OrgCreate,
