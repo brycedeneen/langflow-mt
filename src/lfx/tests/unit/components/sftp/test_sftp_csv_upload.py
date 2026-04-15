@@ -336,6 +336,26 @@ def test_update_build_config_toggles_password_fields():
     assert out["private_key_passphrase"]["show"] is False
 
 
+async def test_build_upload_port_zero_raises():
+    kwargs = {**VALID_PASSWORD_KWARGS, "port": 0}
+    component = SFTPCSVUploadComponent(**kwargs)
+    connect_mock, _ = _make_connect_mock()
+    with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock):
+        with pytest.raises(ValueError, match="port"):
+            await component.build_upload()
+    connect_mock.assert_not_called()
+
+
+async def test_build_upload_port_too_large_raises():
+    kwargs = {**VALID_PASSWORD_KWARGS, "port": 70000}
+    component = SFTPCSVUploadComponent(**kwargs)
+    connect_mock, _ = _make_connect_mock()
+    with patch("lfx.components.sftp.sftp_csv_upload.asyncssh.connect", connect_mock):
+        with pytest.raises(ValueError, match="port"):
+            await component.build_upload()
+    connect_mock.assert_not_called()
+
+
 def test_update_build_config_toggles_ssh_key_fields():
     from lfx.schema.dotdict import dotdict
 

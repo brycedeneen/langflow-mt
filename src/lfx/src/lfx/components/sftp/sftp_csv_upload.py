@@ -273,6 +273,12 @@ class SFTPCSVUploadComponent(Component):
             msg = f"unknown auth_method: {self.auth_method!r}"
             raise ValueError(msg)
 
+        # --- Port validation ---
+        port = int(self.port) if self.port is not None else 22
+        if not (1 <= port <= 65535):
+            msg = f"port must be between 1 and 65535; got {port}"
+            raise ValueError(msg)
+
         # --- Host key verification ---
         fingerprint = (self.host_key_fingerprint or "").strip()
         known_hosts = _make_known_hosts_callback(fingerprint) if fingerprint else None
@@ -296,7 +302,7 @@ class SFTPCSVUploadComponent(Component):
         # --- Upload ---
         async with asyncssh.connect(
             host,
-            port=int(self.port or 22),
+            port=port,
             username=username,
             connect_timeout=_CONNECT_TIMEOUT_SECONDS,
             known_hosts=known_hosts,
@@ -308,6 +314,6 @@ class SFTPCSVUploadComponent(Component):
         rendered_filename = posixpath.basename(remote_path)
         text = (
             f"Uploaded {rendered_filename} ({len(df)} rows, {len(csv_bytes)} bytes) "
-            f"to sftp://{host}:{int(self.port or 22)}{remote_path}"
+            f"to sftp://{host}:{port}{remote_path}"
         )
         return Message(text=text)
