@@ -29,9 +29,10 @@ export const AccountMenu = () => {
   const navigate = useCustomNavigate();
   const { mutate: mutationLogout } = useLogout();
 
-  const { isAdmin, autoLogin } = useAuthStore((state) => ({
+  const { isAdmin, autoLogin, userData } = useAuthStore((state) => ({
     isAdmin: state.isAdmin,
     autoLogin: state.autoLogin,
+    userData: state.userData,
   }));
 
   const handleLogout = () => {
@@ -109,6 +110,22 @@ export const AccountMenu = () => {
                     id="menu_admin_page_button"
                   >
                     Admin Page
+                  </span>
+                </HeaderMenuItemButton>
+              </div>
+            )}
+            {userData?.is_platform_admin && (
+              <div>
+                <HeaderMenuItemButton
+                  onClick={() => {
+                    navigate("/admin/organizations");
+                  }}
+                >
+                  <span
+                    data-testid="menu_platform_admin_button"
+                    id="menu_platform_admin_button"
+                  >
+                    Admin
                   </span>
                 </HeaderMenuItemButton>
               </div>
