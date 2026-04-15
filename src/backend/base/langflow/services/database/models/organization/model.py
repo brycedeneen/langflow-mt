@@ -19,3 +19,5 @@ class Organization(SQLModel, table=True):  # type: ignore[call-arg]
     is_personal: bool = Field(default=False)
     created_at: datetime = Field(default_factory=_utc_now)
     updated_at: datetime = Field(default_factory=_utc_now)
+    runs_max_concurrent: int = Field(default=5, sa_column_kwargs={"server_default": "5"})
+    runs_priority_tier: str = Field(default="default", sa_column_kwargs={"server_default": "default"})
