@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import csv
+import io
 import posixpath
 import time as _time
 
@@ -48,6 +50,43 @@ def _normalize_to_dataframe(value: object) -> pd.DataFrame:
         return pd.DataFrame.from_records(records)
     msg = f"data must be DataFrame, Data, or list of Data/dicts; got {type(value).__name__}"
     raise TypeError(msg)
+
+
+_QUOTING_MAP = {
+    "Minimal": csv.QUOTE_MINIMAL,
+    "All": csv.QUOTE_ALL,
+    "Non-numeric": csv.QUOTE_NONNUMERIC,
+    "None": csv.QUOTE_NONE,
+}
+
+
+def _render_csv_bytes(
+    df: pd.DataFrame,
+    *,
+    delimiter: str,
+    include_header: bool,
+    encoding: str,
+    quote_char: str,
+    quoting: str,
+    line_terminator: str,
+    null_representation: str,
+) -> bytes:
+    """Serialize a DataFrame to CSV bytes with the given options."""
+    if quoting not in _QUOTING_MAP:
+        msg = f"quoting must be one of {sorted(_QUOTING_MAP)}; got {quoting!r}"
+        raise ValueError(msg)
+    buf = io.StringIO()
+    df.to_csv(
+        buf,
+        index=False,
+        sep=delimiter,
+        header=include_header,
+        quotechar=quote_char,
+        quoting=_QUOTING_MAP[quoting],
+        lineterminator=line_terminator,
+        na_rep=null_representation,
+    )
+    return buf.getvalue().encode(encoding)
 
 
 class SFTPCSVUploadComponent(Component):
