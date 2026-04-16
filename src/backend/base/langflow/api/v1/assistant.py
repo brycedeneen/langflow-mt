@@ -401,7 +401,7 @@ async def send_message(
             tb = traceback.format_exc()
             logger.error("Assistant SSE error for flow %s: %s\n%s", flow_id, exc, tb)
             print(f"[ASSISTANT ERROR] {exc}\n{tb}", flush=True)
-            yield {"event": "error", "data": json.dumps({"error": str(exc)})}
+            yield {"data": json.dumps({"type": "error", "error": str(exc)})}
 
     return EventSourceResponse(event_generator())
 

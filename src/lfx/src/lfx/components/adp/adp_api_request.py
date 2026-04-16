@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
+
+import httpx
 
 from lfx.custom.custom_component.component import Component
-
-if TYPE_CHECKING:
-    import httpx
 from lfx.io import (
     DataInput,
     DropdownInput,

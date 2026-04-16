@@ -84,7 +84,7 @@ MUTATION_TOOLS = [
     },
     {
         "name": "set_field_value",
-        "description": "Set a field value on an existing node in the flow.",
+        "description": "Set a field value on an existing node in the flow. The field_name must match a template field name exactly (e.g. 'url_input' not 'url'). Check the node's template keys from the flow data if unsure.",
         "parameters": {
             "type": "object",
             "properties": {

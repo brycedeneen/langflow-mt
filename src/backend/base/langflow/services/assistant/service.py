@@ -22,7 +22,7 @@ from langflow.services.assistant.tools.registry import get_tools_for_anthropic, 
 
 RESERVED_TOKENS = 16_000
 MAX_OUTPUT_TOKENS = 4_096
-MAX_TOOL_ROUNDS = 10
+MAX_TOOL_ROUNDS = 30
 
 MODEL_CONTEXT_WINDOWS: dict[str, int] = {
     "gpt-4o": 128_000,
@@ -46,6 +46,9 @@ and understand their Langflow flows.
 - Explain what you are doing as you modify the flow.
 - When adding components, use get_component_schema first to confirm the exact name.
 - Position new nodes using "auto" unless the user specifies coordinates.
+- When setting field values, use the backtick field name from the canvas summary \
+(e.g. `url_input`), NOT the display name (e.g. "URL"). Field names and display \
+names often differ.
 """
 
 # ---------------------------------------------------------------------------
@@ -97,6 +100,17 @@ class AssistantService:
     # Canvas summary
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _summarize_value(value: Any) -> str:
+        """Return a short string representation of a field value."""
+        if value is None or value == "" or value == []:
+            return "(empty)"
+        if isinstance(value, str) and len(value) > 60:
+            return f'"{value[:57]}..."'
+        if isinstance(value, str):
+            return f'"{value}"'
+        return str(value)
+
     def _build_canvas_summary(self) -> str:
         nodes = self.flow_data.get("nodes", [])
         edges = self.flow_data.get("edges", [])
@@ -104,12 +118,29 @@ class AssistantService:
             return "The canvas is empty."
         lines: list[str] = []
         for n in nodes:
-            ntype = n.get("data", {}).get("type", "unknown")
+            data = n.get("data", {})
+            ntype = data.get("type", "unknown")
             nid = n.get("id", "?")
-            lines.append(f"- {ntype} ({nid})")
+            display_name = data.get("node", {}).get("display_name", ntype)
+            lines.append(f"### {display_name} ({nid})")
+            template = data.get("node", {}).get("template", {})
+            for field_name, field_def in template.items():
+                if field_name.startswith("_") or field_name == "code":
+                    continue
+                if not isinstance(field_def, dict):
+                    continue
+                field_display = field_def.get("display_name", field_name)
+                value = field_def.get("value")
+                val_str = self._summarize_value(value)
+                lines.append(f"  - field `{field_name}` (\"{field_display}\"): {val_str}")
+            outputs = data.get("node", {}).get("outputs", [])
+            if outputs:
+                out_names = [o.get("name", "?") for o in outputs if isinstance(o, dict)]
+                lines.append(f"  - outputs: {out_names}")
         if edges:
+            lines.append("\n### Edges")
             for e in edges:
-                lines.append(f"- edge: {e.get('source', '?')} -> {e.get('target', '?')}")
+                lines.append(f"  - {e.get('source', '?')} -> {e.get('target', '?')}")
         return "\n".join(lines)
 
     # ------------------------------------------------------------------
@@ -125,7 +156,10 @@ class AssistantService:
                 return {"result": result}
             elif is_mutation_tool(name):
                 method = getattr(self.mutation_tools, name)
+                import asyncio
                 result = method(**args)
+                if asyncio.iscoroutine(result):
+                    result = await result
                 return {"result": result}
             else:
                 return {"error": f"Unknown tool: {name}"}

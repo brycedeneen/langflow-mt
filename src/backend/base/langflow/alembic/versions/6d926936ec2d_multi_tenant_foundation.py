@@ -35,6 +35,14 @@ TENANT_TABLES = [
 ]
 
 
+def _normalize_uuid_columns(bind, table: str, columns: list[str]) -> None:
+    """Strip dashes from UUID columns so they match SQLAlchemy's CHAR(32) hex format."""
+    for col in columns:
+        bind.execute(
+            sa.text(f'UPDATE "{table}" SET "{col}" = REPLACE("{col}", \'-\', \'\') WHERE "{col}" LIKE \'%-%\'')
+        )
+
+
 def upgrade() -> None:
     bind = op.get_bind()
     insp = sa.inspect(bind)
@@ -76,7 +84,7 @@ def upgrade() -> None:
     if default_org_row is not None:
         default_org_id = str(default_org_row[0])
     else:
-        default_org_id = str(uuid4())
+        default_org_id = uuid4().hex
         bind.execute(
             sa.text(
                 "INSERT INTO organization (id, name, slug, is_personal, created_at, updated_at) "
@@ -104,7 +112,7 @@ def upgrade() -> None:
                 "INSERT INTO membership (id, user_id, organization_id, role, created_at) "
                 "VALUES (:id, :uid, :org, 'owner', CURRENT_TIMESTAMP)"
             ),
-            {"id": str(uuid4()), "uid": uid_str, "org": default_org_id},
+            {"id": uuid4().hex, "uid": uid_str, "org": default_org_id},
         )
 
     # 5. Add organization_id columns to tenant tables, backfill, then FK + index
@@ -130,7 +138,14 @@ def upgrade() -> None:
             if f"ix_{table}_organization_id" not in existing_indexes:
                 batch.create_index(f"ix_{table}_organization_id", ["organization_id"])
 
-    # 6. Sanity check — no NULL org_id rows remain
+    # 6. Normalize UUIDs: strip dashes so SQLAlchemy's Uuid type (CHAR(32) hex on
+    #    SQLite) can match values inserted by raw SQL.
+    _normalize_uuid_columns(bind, "organization", ["id"])
+    _normalize_uuid_columns(bind, "membership", ["id", "user_id", "organization_id"])
+    for table in TENANT_TABLES:
+        _normalize_uuid_columns(bind, table, ["organization_id"])
+
+    # 7. Sanity check — no NULL org_id rows remain
     for table in TENANT_TABLES:
         nulls = bind.execute(
             sa.text(f'SELECT COUNT(*) FROM "{table}" WHERE organization_id IS NULL')

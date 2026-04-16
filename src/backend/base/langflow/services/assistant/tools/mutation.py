@@ -11,8 +11,11 @@ writing the updated ``flow_data`` back to the database.
 
 from __future__ import annotations
 
+import copy
 from typing import Any
 from uuid import uuid4
+
+from langflow.agentic.utils.component_search import get_component_by_name
 
 
 def _empty_patch() -> dict[str, list]:
@@ -46,6 +49,41 @@ class FlowMutationTools:
                 return node
         return None
 
+    @staticmethod
+    def _encode_handle(obj: dict) -> str:
+        """Encode a handle dict as an œ-delimited JSON string (frontend convention)."""
+        import json
+
+        return json.dumps(obj, separators=(",", ":")).replace('"', "\u0153")
+
+    def _build_source_handle(self, node: dict, output_name: str) -> str:
+        data = node.get("data", {})
+        output_def = self._get_output_def(node, output_name)
+        return self._encode_handle({
+            "dataType": data.get("type", ""),
+            "id": node["id"],
+            "name": output_name,
+            "output_types": output_def.get("types", []),
+        })
+
+    def _build_target_handle(self, node: dict, field_name: str) -> str:
+        data = node.get("data", {})
+        field = data.get("node", {}).get("template", {}).get(field_name, {})
+        return self._encode_handle({
+            "fieldName": field_name,
+            "id": node["id"],
+            "inputTypes": field.get("input_types", []),
+            "type": field.get("type", "other"),
+        })
+
+    @staticmethod
+    def _get_output_def(node: dict, output_name: str) -> dict:
+        outputs = node.get("data", {}).get("node", {}).get("outputs", [])
+        for o in outputs:
+            if isinstance(o, dict) and o.get("name") == output_name:
+                return o
+        return {}
+
     def _auto_position(self) -> dict[str, float]:
         """Compute an automatic position for a new node."""
         nodes = self.flow_data["nodes"]
@@ -59,13 +97,17 @@ class FlowMutationTools:
     # Public API
     # ------------------------------------------------------------------
 
-    def add_component(
+    async def add_component(
         self,
         component_type: str,
         position: dict | str | None = "auto",
         initial_fields: dict | None = None,
     ) -> dict[str, Any]:
         """Add a generic component node to the flow.
+
+        Looks up the full component schema from the catalog so the node
+        has all required metadata (display_name, template, outputs, etc.)
+        that the frontend needs to render it.
 
         Args:
             component_type: The component type name (e.g. ``"Prompt"``).
@@ -82,25 +124,56 @@ class FlowMutationTools:
         else:
             pos = dict(position)  # type: ignore[arg-type]
 
-        template: dict[str, Any] = {}
-        if initial_fields:
-            for field_name, value in initial_fields.items():
-                template[field_name] = {"type": "str", "value": value}
+        schema = await get_component_by_name(component_type, fields=None)
 
-        node: dict[str, Any] = {
-            "id": node_id,
-            "type": "genericNode",
-            "position": pos,
-            "data": {
-                "type": component_type,
+        if schema is not None:
+            node_data = copy.deepcopy(schema)
+            template = node_data.pop("template", {})
+            outputs = node_data.pop("outputs", [])
+            output_types = node_data.pop("output_types", [])
+            node_data.pop("name", None)
+            node_data.pop("type", None)
+            if initial_fields:
+                for field_name, value in initial_fields.items():
+                    if field_name in template:
+                        template[field_name]["value"] = value
+                    else:
+                        template[field_name] = {"type": "str", "value": value}
+            node: dict[str, Any] = {
                 "id": node_id,
-                "node": {
-                    "template": template,
-                    "outputs": [],
+                "type": "genericNode",
+                "position": pos,
+                "data": {
+                    "type": component_type,
+                    "id": node_id,
+                    "node": {
+                        **node_data,
+                        "template": template,
+                        "outputs": outputs,
+                    },
+                    "output_types": output_types,
                 },
-                "output_types": [],
-            },
-        }
+            }
+        else:
+            template: dict[str, Any] = {}
+            if initial_fields:
+                for field_name, value in initial_fields.items():
+                    template[field_name] = {"type": "str", "value": value}
+            node = {
+                "id": node_id,
+                "type": "genericNode",
+                "position": pos,
+                "data": {
+                    "type": component_type,
+                    "id": node_id,
+                    "node": {
+                        "display_name": component_type,
+                        "template": template,
+                        "outputs": [],
+                    },
+                    "output_types": [],
+                },
+            }
 
         self.flow_data["nodes"].append(node)
 
@@ -117,24 +190,54 @@ class FlowMutationTools:
     ) -> dict[str, Any]:
         """Create an edge between two existing nodes.
 
+        Builds properly encoded handle objects that the frontend expects
+        (œ-delimited JSON), using node metadata from the flow data.
+
         Raises:
             ValueError: If either node does not exist.
         """
-        if self._find_node(source_node_id) is None:
+        source_node = self._find_node(source_node_id)
+        if source_node is None:
             msg = f"Source node not found: {source_node_id}"
             raise ValueError(msg)
-        if self._find_node(target_node_id) is None:
+        target_node = self._find_node(target_node_id)
+        if target_node is None:
             msg = f"Target node not found: {target_node_id}"
             raise ValueError(msg)
 
-        edge_id = f"reactflow__edge-{source_node_id}{source_output}-{target_node_id}{target_input}"
+        source_handle = self._build_source_handle(source_node, source_output)
+        target_handle = self._build_target_handle(target_node, target_input)
+
+        edge_id = f"reactflow__edge-{source_node_id}{source_handle}-{target_node_id}{target_handle}"
+
+        source_data = source_node.get("data", {})
+        target_data = target_node.get("data", {})
+        source_output_def = self._get_output_def(source_node, source_output)
+        target_field = target_data.get("node", {}).get("template", {}).get(target_input, {})
 
         edge: dict[str, Any] = {
             "id": edge_id,
             "source": source_node_id,
             "target": target_node_id,
-            "sourceHandle": source_output,
-            "targetHandle": target_input,
+            "sourceHandle": source_handle,
+            "targetHandle": target_handle,
+            "data": {
+                "sourceHandle": {
+                    "dataType": source_data.get("type", ""),
+                    "id": source_node_id,
+                    "name": source_output,
+                    "output_types": source_output_def.get("types", []),
+                },
+                "targetHandle": {
+                    "fieldName": target_input,
+                    "id": target_node_id,
+                    "inputTypes": target_field.get("input_types", []),
+                    "type": target_field.get("type", "other"),
+                },
+            },
+            "animated": False,
+            "className": "",
+            "selected": False,
         }
 
         self.flow_data["edges"].append(edge)
@@ -160,10 +263,11 @@ class FlowMutationTools:
             raise ValueError(msg)
 
         template = node["data"]["node"]["template"]
-        if field_name in template:
-            template[field_name]["value"] = value
-        else:
-            template[field_name] = {"type": "str", "value": value}
+        if field_name not in template:
+            available = [k for k in template if not k.startswith("_") and k != "code"]
+            msg = f"Field '{field_name}' not found on node {node_id}. Available fields: {available}"
+            raise ValueError(msg)
+        template[field_name]["value"] = value
 
         patch = _empty_patch()
         patch["updated_nodes"].append(node)

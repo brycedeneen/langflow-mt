@@ -111,49 +111,59 @@ class AnthropicProviderClient(ProviderClient):
         json_acc: str = ""
         stop_reason: str | None = None
 
-        async with client.messages.stream(**kwargs) as stream:
-            async for event in stream:
-                event_type = event.type
+        try:
+            async with client.messages.stream(**kwargs) as stream:
+                async for event in stream:
+                    event_type = event.type
 
-                if event_type == "content_block_start":
-                    block = event.content_block
-                    if block.type == "tool_use":
-                        current_tool_id = block.id
-                        current_tool_name = block.name
-                        json_acc = ""
+                    if event_type == "content_block_start":
+                        block = event.content_block
+                        if block.type == "tool_use":
+                            current_tool_id = block.id
+                            current_tool_name = block.name
+                            json_acc = ""
 
-                elif event_type == "content_block_delta":
-                    delta = event.delta
-                    if delta.type == "text_delta":
-                        yield StreamEvent(type="token", text=delta.text)
-                    elif delta.type == "input_json_delta":
-                        json_acc += delta.partial_json
+                    elif event_type == "content_block_delta":
+                        delta = event.delta
+                        if delta.type == "text_delta":
+                            yield StreamEvent(type="token", text=delta.text)
+                        elif delta.type == "input_json_delta":
+                            json_acc += delta.partial_json
 
-                elif event_type == "content_block_stop":
-                    # If we were accumulating a tool_use block, emit it now
-                    if current_tool_id is not None:
-                        try:
-                            args = json.loads(json_acc) if json_acc else {}
-                        except json.JSONDecodeError:
-                            args = {}
-                        yield StreamEvent(
-                            type="tool_call",
-                            tool_call_id=current_tool_id,
-                            tool_name=current_tool_name,
-                            tool_args=args,
-                        )
-                        current_tool_id = None
-                        current_tool_name = None
-                        json_acc = ""
+                    elif event_type == "content_block_stop":
+                        if current_tool_id is not None:
+                            try:
+                                args = json.loads(json_acc) if json_acc else {}
+                            except json.JSONDecodeError:
+                                args = {}
+                            yield StreamEvent(
+                                type="tool_call",
+                                tool_call_id=current_tool_id,
+                                tool_name=current_tool_name,
+                                tool_args=args,
+                            )
+                            current_tool_id = None
+                            current_tool_name = None
+                            json_acc = ""
 
-                elif event_type == "message_delta":
-                    stop_reason = getattr(event.delta, "stop_reason", None)
+                    elif event_type == "message_delta":
+                        stop_reason = getattr(event.delta, "stop_reason", None)
 
-                elif event_type == "message_stop":
-                    # Only emit message_complete when the model stopped
-                    # naturally, not when it stopped to call tools.
-                    if stop_reason != "tool_use":
-                        yield StreamEvent(type="message_complete")
+                    elif event_type == "message_stop":
+                        if stop_reason != "tool_use":
+                            yield StreamEvent(type="message_complete")
+        except Exception as exc:
+            from anthropic import APIError, AuthenticationError, RateLimitError
+
+            if isinstance(exc, RateLimitError):
+                msg = "Rate limit exceeded. Please wait a moment and try again."
+            elif isinstance(exc, AuthenticationError):
+                msg = "Invalid API key. Please check your Anthropic API key configuration."
+            elif isinstance(exc, APIError):
+                msg = f"Anthropic API error: {exc}"
+            else:
+                raise
+            yield StreamEvent(type="error", error_message=msg)
 
     async def stream_with_tools(
         self,

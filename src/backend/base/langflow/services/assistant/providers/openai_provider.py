@@ -91,57 +91,70 @@ class OpenAIProviderClient(ProviderClient):
         if tools:
             kwargs["tools"] = tools
 
-        stream = await client.chat.completions.create(**kwargs)
+        try:
+            stream = await client.chat.completions.create(**kwargs)
 
-        # Accumulate tool call deltas by index
-        tool_calls_acc: dict[int, dict[str, Any]] = {}
+            # Accumulate tool call deltas by index
+            tool_calls_acc: dict[int, dict[str, Any]] = {}
 
-        async for chunk in stream:
-            choice = chunk.choices[0] if chunk.choices else None
-            if choice is None:
-                continue
+            async for chunk in stream:
+                choice = chunk.choices[0] if chunk.choices else None
+                if choice is None:
+                    continue
 
-            delta = choice.delta
+                delta = choice.delta
 
-            # Content tokens
-            if delta and delta.content:
-                yield StreamEvent(type="token", text=delta.content)
+                # Content tokens
+                if delta and delta.content:
+                    yield StreamEvent(type="token", text=delta.content)
 
-            # Tool call deltas
-            if delta and delta.tool_calls:
-                for tc_delta in delta.tool_calls:
-                    idx = tc_delta.index
-                    if idx not in tool_calls_acc:
-                        tool_calls_acc[idx] = {
-                            "id": tc_delta.id or "",
-                            "name": "",
-                            "arguments": "",
-                        }
-                    if tc_delta.id:
-                        tool_calls_acc[idx]["id"] = tc_delta.id
-                    if tc_delta.function:
-                        if tc_delta.function.name:
-                            tool_calls_acc[idx]["name"] += tc_delta.function.name
-                        if tc_delta.function.arguments:
-                            tool_calls_acc[idx]["arguments"] += tc_delta.function.arguments
+                # Tool call deltas
+                if delta and delta.tool_calls:
+                    for tc_delta in delta.tool_calls:
+                        idx = tc_delta.index
+                        if idx not in tool_calls_acc:
+                            tool_calls_acc[idx] = {
+                                "id": tc_delta.id or "",
+                                "name": "",
+                                "arguments": "",
+                            }
+                        if tc_delta.id:
+                            tool_calls_acc[idx]["id"] = tc_delta.id
+                        if tc_delta.function:
+                            if tc_delta.function.name:
+                                tool_calls_acc[idx]["name"] += tc_delta.function.name
+                            if tc_delta.function.arguments:
+                                tool_calls_acc[idx]["arguments"] += tc_delta.function.arguments
 
-            # Finish reasons
-            if choice.finish_reason == "tool_calls":
-                for idx in sorted(tool_calls_acc.keys()):
-                    tc = tool_calls_acc[idx]
-                    try:
-                        args = json.loads(tc["arguments"]) if tc["arguments"] else {}
-                    except json.JSONDecodeError:
-                        args = {}
-                    yield StreamEvent(
-                        type="tool_call",
-                        tool_call_id=tc["id"],
-                        tool_name=tc["name"],
-                        tool_args=args,
-                    )
-                tool_calls_acc.clear()
-            elif choice.finish_reason == "stop":
-                yield StreamEvent(type="message_complete")
+                # Finish reasons
+                if choice.finish_reason == "tool_calls":
+                    for idx in sorted(tool_calls_acc.keys()):
+                        tc = tool_calls_acc[idx]
+                        try:
+                            args = json.loads(tc["arguments"]) if tc["arguments"] else {}
+                        except json.JSONDecodeError:
+                            args = {}
+                        yield StreamEvent(
+                            type="tool_call",
+                            tool_call_id=tc["id"],
+                            tool_name=tc["name"],
+                            tool_args=args,
+                        )
+                    tool_calls_acc.clear()
+                elif choice.finish_reason == "stop":
+                    yield StreamEvent(type="message_complete")
+        except Exception as exc:
+            from openai import APIError, AuthenticationError, RateLimitError
+
+            if isinstance(exc, RateLimitError):
+                msg = "Rate limit exceeded. Please wait a moment and try again."
+            elif isinstance(exc, AuthenticationError):
+                msg = "Invalid API key. Please check your OpenAI API key configuration."
+            elif isinstance(exc, APIError):
+                msg = f"OpenAI API error: {exc}"
+            else:
+                raise
+            yield StreamEvent(type="error", error_message=msg)
 
     async def stream_with_tools(
         self,

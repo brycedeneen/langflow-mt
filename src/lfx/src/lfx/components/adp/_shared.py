@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+import re
 import tempfile
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -130,13 +131,56 @@ def build_mtls_httpx_client(conn: ADPConnection, *, timeout: float = 30.0) -> ht
         msg = f"Unknown cert_source: {conn.cert_source!r}"
         raise ValueError(msg)
 
-    return _MTLSClient(cert=cert_tuple, timeout=timeout, temp_cert_paths=temp_paths)
+    try:
+        return _MTLSClient(cert=cert_tuple, timeout=timeout, temp_cert_paths=temp_paths)
+    except Exception as exc:
+        for p in temp_paths:
+            with contextlib.suppress(OSError):
+                p.unlink(missing_ok=True)
+        if "PEM" in str(exc) or "ssl" in str(exc).lower():
+            msg = (
+                "Failed to load SSL certificate/key. Ensure you pasted the full PEM content "
+                "including the -----BEGIN/END----- lines. "
+                "If using a PKCS#12/PFX file, convert it first with: "
+                "openssl pkcs12 -in file.pfx -out cert.pem -clcerts -nokeys && "
+                "openssl pkcs12 -in file.pfx -out key.pem -nocerts -nodes"
+            )
+            raise ValueError(msg) from exc
+        raise
+
+
+def _normalize_pem(pem: str) -> str:
+    """Fix common PEM formatting issues from pasting into text fields.
+
+    Handles: missing newlines around headers, \\n literals, extra whitespace.
+    """
+    pem = pem.strip()
+    pem = pem.replace("\\n", "\n")
+    pem = pem.replace("\r\n", "\n").replace("\r", "\n")
+
+    def _reformat_block(match: re.Match) -> str:
+        header = match.group(1)
+        body = match.group(2)
+        footer = match.group(3)
+        body_clean = re.sub(r"\s+", "", body)
+        lines = [body_clean[i : i + 64] for i in range(0, len(body_clean), 64)]
+        return header + "\n" + "\n".join(lines) + "\n" + footer
+
+    pem = re.sub(
+        r"(-----BEGIN [A-Z0-9 ]+-----)\s*(.*?)\s*(-----END [A-Z0-9 ]+-----)",
+        _reformat_block,
+        pem,
+        flags=re.DOTALL,
+    )
+    if not pem.endswith("\n"):
+        pem += "\n"
+    return pem
 
 
 def _write_pem_temp_files(cert_pem: str, key_pem: str) -> tuple[tuple[str, str], list[Path]]:
     """Write cert/key PEM strings to 0600 temp files; return (cert,key) paths + cleanup list."""
-    cert_path = _write_secure_tempfile(cert_pem, suffix=".pem")
-    key_path = _write_secure_tempfile(key_pem, suffix=".pem")
+    cert_path = _write_secure_tempfile(_normalize_pem(cert_pem), suffix=".pem")
+    key_path = _write_secure_tempfile(_normalize_pem(key_pem), suffix=".pem")
     return (str(cert_path), str(key_path)), [cert_path, key_path]
 
 

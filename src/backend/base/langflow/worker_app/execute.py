@@ -272,7 +272,7 @@ async def _default_runner(flow: Flow, triggered_by: str, inputs: Any, actor_id: 
     logger.debug(
         f"[flow={flow.id}] dispatching trigger={triggered_by} "
         f"input_value={'<set>' if input_request.input_value else '<empty>'} "
-        f"tweaks={len(input_request.tweaks or {})}"
+        f"tweaks={len(input_request.tweaks.root if input_request.tweaks else {})}"
     )
     response = await simple_run_flow(flow=flow, input_request=input_request, api_key_user=api_key_user)
     return response.model_dump()
