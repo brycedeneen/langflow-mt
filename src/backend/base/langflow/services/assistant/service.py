@@ -14,7 +14,7 @@ from langflow.services.assistant.context_window import pack_messages
 from langflow.services.assistant.providers.base import ProviderClient, StreamEvent, ToolResult
 from langflow.services.assistant.tools import catalog
 from langflow.services.assistant.tools.mutation import FlowMutationTools
-from langflow.services.assistant.tools.registry import get_tools_for_openai, is_catalog_tool, is_mutation_tool
+from langflow.services.assistant.tools.registry import get_tools_for_anthropic, get_tools_for_openai, is_catalog_tool, is_mutation_tool
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -153,8 +153,12 @@ class AssistantService:
         context_window = MODEL_CONTEXT_WINDOWS.get(self.model_name, DEFAULT_CONTEXT_WINDOW)
         budget = context_window - RESERVED_TOKENS - MAX_OUTPUT_TOKENS
 
-        # 5. Get tool definitions
-        tools = get_tools_for_openai()
+        # 5. Get tool definitions in the provider's native format
+        from langflow.services.assistant.providers.anthropic_provider import AnthropicProviderClient
+        if isinstance(self.provider_client, AnthropicProviderClient):
+            tools = get_tools_for_anthropic()
+        else:
+            tools = get_tools_for_openai()
 
         # 6. Tool loop
         pending_tool_results: list[ToolResult] | None = None
