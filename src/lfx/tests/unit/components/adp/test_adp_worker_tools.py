@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from lfx.components.adp.adp_worker_tools import ADPWorkerToolsComponent
+from lfx.components.adp.adp_worker_tools import ADPWorkerToolsComponent, extract_name, extract_addresses, extract_contact_information
 
 SAMPLE_WORKER_RESPONSE = {
     "workers": [
@@ -81,6 +81,65 @@ def _make_component(connection, **overrides) -> ADPWorkerToolsComponent:
     }
     defaults.update(overrides)
     return ADPWorkerToolsComponent(**defaults)
+
+
+def test_extract_name(adp_connection):
+    worker = SAMPLE_WORKER_RESPONSE["workers"][0]
+    result = extract_name(worker)
+    assert result == {
+        "legalName": {"firstName": "Jane", "middleName": "Marie", "lastName": "Doe"},
+        "preferredName": {"firstName": "Janie", "lastName": "Doe"},
+    }
+
+
+def test_extract_name_missing_preferred(adp_connection):
+    worker = {
+        "person": {
+            "legalName": {"givenName": "Jane", "familyName1": "Doe"},
+        },
+    }
+    result = extract_name(worker)
+    assert result == {
+        "legalName": {"firstName": "Jane", "middleName": None, "lastName": "Doe"},
+        "preferredName": None,
+    }
+
+
+def test_extract_addresses(adp_connection):
+    worker = SAMPLE_WORKER_RESPONSE["workers"][0]
+    result = extract_addresses(worker)
+    assert result == {
+        "legalAddress": {
+            "lineOne": "123 Main St",
+            "lineTwo": "Apt 4",
+            "cityName": "Springfield",
+            "countrySubdivisionLevel1": "IL",
+            "postalCode": "62704",
+            "countryCode": "US",
+        },
+    }
+
+
+def test_extract_addresses_missing(adp_connection):
+    worker = {"person": {}}
+    result = extract_addresses(worker)
+    assert result == {"legalAddress": None}
+
+
+def test_extract_contact_information(adp_connection):
+    worker = SAMPLE_WORKER_RESPONSE["workers"][0]
+    result = extract_contact_information(worker)
+    assert result == {
+        "emails": [{"emailUri": "jane@example.com", "nameCode": {"codeValue": "Work"}}],
+        "landlines": [{"formattedNumber": "555-0100", "nameCode": {"codeValue": "Work"}}],
+        "mobiles": [{"formattedNumber": "555-0199", "nameCode": {"codeValue": "Personal"}}],
+    }
+
+
+def test_extract_contact_information_missing(adp_connection):
+    worker = {"person": {}}
+    result = extract_contact_information(worker)
+    assert result == {"emails": [], "landlines": [], "mobiles": []}
 
 
 @pytest.mark.asyncio

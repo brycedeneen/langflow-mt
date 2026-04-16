@@ -15,6 +15,55 @@ from lfx.io import HandleInput, Output
 HTTP_UNAUTHORIZED = 401
 
 
+def extract_name(worker: dict[str, Any]) -> dict[str, Any]:
+    person = worker.get("person", {})
+    legal = person.get("legalName")
+    preferred = person.get("preferredName")
+    return {
+        "legalName": {
+            "firstName": legal.get("givenName") if legal else None,
+            "middleName": legal.get("middleName") if legal else None,
+            "lastName": legal.get("familyName1") if legal else None,
+        }
+        if legal
+        else None,
+        "preferredName": {
+            "firstName": preferred.get("givenName") if preferred else None,
+            "lastName": preferred.get("familyName1") if preferred else None,
+        }
+        if preferred
+        else None,
+    }
+
+
+def extract_addresses(worker: dict[str, Any]) -> dict[str, Any]:
+    person = worker.get("person", {})
+    addr = person.get("legalAddress")
+    if not addr:
+        return {"legalAddress": None}
+    subdivision = addr.get("countrySubdivisionLevel1")
+    return {
+        "legalAddress": {
+            "lineOne": addr.get("lineOne"),
+            "lineTwo": addr.get("lineTwo"),
+            "cityName": addr.get("cityName"),
+            "countrySubdivisionLevel1": subdivision.get("codeValue") if isinstance(subdivision, dict) else subdivision,
+            "postalCode": addr.get("postalCode"),
+            "countryCode": addr.get("countryCode"),
+        },
+    }
+
+
+def extract_contact_information(worker: dict[str, Any]) -> dict[str, Any]:
+    person = worker.get("person", {})
+    comm = person.get("communication", {})
+    return {
+        "emails": comm.get("emails", []),
+        "landlines": comm.get("landlines", []),
+        "mobiles": comm.get("mobiles", []),
+    }
+
+
 class WorkerToolInput(BaseModel):
     associate_oid: str = Field(description="The ADP associate OID (unique employee identifier)")
 
