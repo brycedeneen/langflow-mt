@@ -89,6 +89,16 @@ export default function SettingsPage(): JSX.Element {
         />
       ),
     },
+    {
+      title: "Flow Assistant",
+      href: "/settings/assistant",
+      icon: (
+        <ForwardedIconComponent
+          name="Bot"
+          className="w-4 flex-shrink-0 justify-start stroke-[1.5]"
+        />
+      ),
+    },
   );
 
   // TODO: Remove this on cleanup
