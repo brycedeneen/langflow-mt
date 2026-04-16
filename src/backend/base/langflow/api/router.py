@@ -3,6 +3,7 @@ from fastapi import APIRouter
 
 from langflow.api.v1 import (
     api_key_router,
+    assistant_router,
     chat_router,
     deployment_router,
     endpoints_router,
@@ -42,6 +43,7 @@ router_v2 = APIRouter(
     prefix="/v2",
 )
 
+router_v1.include_router(assistant_router)
 router_v1.include_router(chat_router)
 router_v1.include_router(endpoints_router)
 router_v1.include_router(validate_router)
