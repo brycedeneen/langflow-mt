@@ -45,4 +45,4 @@ class AssistantMessage(SQLModel, table=True):  # type: ignore[call-arg]
         sa_column=Column(DateTime(timezone=True), server_default=func.now(), nullable=True),
     )
 
-    conversation: AssistantConversation | None = Relationship(back_populates="messages")
+    conversation: AssistantConversation = Relationship(back_populates="messages")
