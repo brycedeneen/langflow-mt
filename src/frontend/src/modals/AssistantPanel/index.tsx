@@ -1,5 +1,10 @@
-import { useCallback } from "react";
-import { deleteConversation } from "@/controllers/API/queries/assistant/assistant-api";
+import { useCallback, useEffect, useRef, useState } from "react";
+import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Button } from "@/components/ui/button";
+import {
+  deleteConversation,
+  getConversation,
+} from "@/controllers/API/queries/assistant/assistant-api";
 import useAssistantStore from "@/stores/assistantStore";
 import { useAssistantConversation } from "./hooks/use-assistant-conversation";
 import { useAssistantStream } from "./hooks/use-assistant-stream";
@@ -19,6 +24,7 @@ export default function AssistantPanel({ flowId }: AssistantPanelProps) {
     (state) => state.settingsConfigured,
   );
   const clearMessages = useAssistantStore((state) => state.clearMessages);
+  const setMessages = useAssistantStore((state) => state.setMessages);
   const setPanelOpen = useAssistantStore((state) => state.setPanelOpen);
   const setConversationId = useAssistantStore(
     (state) => state.setConversationId,
@@ -26,6 +32,57 @@ export default function AssistantPanel({ flowId }: AssistantPanelProps) {
 
   useAssistantConversation(flowId);
   const { sendMessage } = useAssistantStream(flowId);
+
+  // Stale history polling
+  const lastSeenRef = useRef<string | null>(null);
+  const [stale, setStale] = useState(false);
+
+  // Track the latest message ID we've seen
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMsg = messages[messages.length - 1];
+      lastSeenRef.current = lastMsg.id ?? null;
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (!panelOpen || !flowId || !settingsConfigured) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const data = await getConversation(flowId);
+        if (data?.messages?.length) {
+          const remoteLastId = data.messages[data.messages.length - 1].id;
+          if (
+            lastSeenRef.current &&
+            remoteLastId &&
+            remoteLastId !== lastSeenRef.current
+          ) {
+            setStale(true);
+          }
+        }
+      } catch {
+        // Ignore polling errors
+      }
+    }, 30_000);
+
+    return () => clearInterval(interval);
+  }, [panelOpen, flowId, settingsConfigured]);
+
+  const handleRefresh = useCallback(async () => {
+    try {
+      const data = await getConversation(flowId);
+      if (data?.messages) {
+        setMessages(data.messages);
+      }
+      if (data?.conversation_id) {
+        setConversationId(data.conversation_id);
+      }
+    } catch {
+      // Ignore
+    }
+    setStale(false);
+  }, [flowId, setMessages, setConversationId]);
 
   const handleClear = useCallback(async () => {
     try {
@@ -35,6 +92,7 @@ export default function AssistantPanel({ flowId }: AssistantPanelProps) {
     }
     clearMessages();
     setConversationId(null);
+    setStale(false);
   }, [flowId, clearMessages, setConversationId]);
 
   const handleClose = useCallback(() => {
@@ -49,6 +107,20 @@ export default function AssistantPanel({ flowId }: AssistantPanelProps) {
       style={{ width: 400, minWidth: 300 }}
     >
       <PanelHeader onClear={handleClear} onClose={handleClose} />
+      {stale && (
+        <div className="flex items-center gap-2 border-b bg-yellow-50 px-4 py-2 text-xs text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
+          <ForwardedIconComponent name="AlertTriangle" className="h-4 w-4 shrink-0" />
+          <span className="flex-1">New messages from a teammate</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRefresh}
+            className="h-6 px-2 text-xs"
+          >
+            Refresh
+          </Button>
+        </div>
+      )}
       {!settingsConfigured ? (
         <SettingsRequired />
       ) : (
