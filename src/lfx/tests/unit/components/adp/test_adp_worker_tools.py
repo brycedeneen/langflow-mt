@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from lfx.components.adp.adp_worker_tools import ADPWorkerToolsComponent, extract_name, extract_addresses, extract_contact_information
+from lfx.components.adp.adp_worker_tools import ADPWorkerToolsComponent, extract_name, extract_addresses, extract_contact_information, extract_job, extract_compensation
 
 SAMPLE_WORKER_RESPONSE = {
     "workers": [
@@ -140,6 +140,57 @@ def test_extract_contact_information_missing(adp_connection):
     worker = {"person": {}}
     result = extract_contact_information(worker)
     assert result == {"emails": [], "landlines": [], "mobiles": []}
+
+
+def test_extract_job(adp_connection):
+    worker = SAMPLE_WORKER_RESPONSE["workers"][0]
+    result = extract_job(worker)
+    assert result == {
+        "jobTitle": "Software Engineer",
+        "departmentName": "Engineering",
+        "locationName": "Remote",
+        "workerStatus": "Active",
+        "managementPosition": False,
+        "reportsTo": {"associateOID": "G3XYZ", "workerName": "Bob Smith"},
+    }
+
+
+def test_extract_job_missing_assignment(adp_connection):
+    worker = {"workAssignments": [], "workerStatus": {"statusCode": {"codeValue": "Active"}}}
+    result = extract_job(worker)
+    assert result == {
+        "jobTitle": None,
+        "departmentName": None,
+        "locationName": None,
+        "workerStatus": "Active",
+        "managementPosition": None,
+        "reportsTo": None,
+    }
+
+
+def test_extract_compensation(adp_connection):
+    worker = SAMPLE_WORKER_RESPONSE["workers"][0]
+    result = extract_compensation(worker)
+    assert result == {
+        "baseRemuneration": {
+            "payPeriodAmount": 5000.00,
+            "annualAmount": 120000.00,
+            "currencyCode": "USD",
+            "effectiveDate": "2025-01-01",
+        },
+        "additionalRemunerations": [
+            {"nameCode": "Bonus", "amount": 10000.00, "currencyCode": "USD"},
+        ],
+    }
+
+
+def test_extract_compensation_missing_assignment(adp_connection):
+    worker = {"workAssignments": []}
+    result = extract_compensation(worker)
+    assert result == {
+        "baseRemuneration": None,
+        "additionalRemunerations": [],
+    }
 
 
 @pytest.mark.asyncio

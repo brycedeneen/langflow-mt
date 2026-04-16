@@ -64,6 +64,89 @@ def extract_contact_information(worker: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def extract_job(worker: dict[str, Any]) -> dict[str, Any]:
+    assignments = worker.get("workAssignments", [])
+    status_obj = worker.get("workerStatus", {})
+    worker_status = status_obj.get("statusCode", {}).get("codeValue") if status_obj else None
+
+    if not assignments:
+        return {
+            "jobTitle": None,
+            "departmentName": None,
+            "locationName": None,
+            "workerStatus": worker_status,
+            "managementPosition": None,
+            "reportsTo": None,
+        }
+
+    assignment = assignments[0]
+
+    dept_name = None
+    for unit in assignment.get("homeOrganizationalUnits", []):
+        if unit.get("typeCode", {}).get("codeValue") == "Department":
+            dept_name = unit.get("nameCode", {}).get("codeValue")
+            break
+
+    location = assignment.get("homeWorkLocation", {})
+    location_name = location.get("nameCode", {}).get("codeValue") if location else None
+
+    mgmt = assignment.get("managementPosition", {})
+    mgmt_indicator = mgmt.get("indicatorCode", {}).get("codeValue") if mgmt else None
+    mgmt_bool = mgmt_indicator.lower() == "true" if mgmt_indicator else None
+
+    reports_list = assignment.get("reportsTo", [])
+    reports_to = None
+    if reports_list:
+        r = reports_list[0]
+        reports_to = {
+            "associateOID": r.get("associateOID"),
+            "workerName": r.get("reportsToWorkerName", {}).get("formattedName"),
+        }
+
+    return {
+        "jobTitle": assignment.get("jobTitle"),
+        "departmentName": dept_name,
+        "locationName": location_name,
+        "workerStatus": worker_status,
+        "managementPosition": mgmt_bool,
+        "reportsTo": reports_to,
+    }
+
+
+def extract_compensation(worker: dict[str, Any]) -> dict[str, Any]:
+    assignments = worker.get("workAssignments", [])
+    if not assignments:
+        return {"baseRemuneration": None, "additionalRemunerations": []}
+
+    assignment = assignments[0]
+    base = assignment.get("baseRemuneration")
+
+    base_result = None
+    if base:
+        pay_period = base.get("payPeriodRateAmount", {})
+        annual = base.get("annualRateAmount", {})
+        base_result = {
+            "payPeriodAmount": pay_period.get("amountValue"),
+            "annualAmount": annual.get("amountValue"),
+            "currencyCode": annual.get("currencyCode") or pay_period.get("currencyCode"),
+            "effectiveDate": base.get("effectiveDate"),
+        }
+
+    additional = []
+    for rem in assignment.get("additionalRemunerations", []):
+        rate = rem.get("rate", {}).get("rateAmount", {})
+        additional.append({
+            "nameCode": rem.get("nameCode", {}).get("codeValue"),
+            "amount": rate.get("amountValue"),
+            "currencyCode": rate.get("currencyCode"),
+        })
+
+    return {
+        "baseRemuneration": base_result,
+        "additionalRemunerations": additional,
+    }
+
+
 class WorkerToolInput(BaseModel):
     associate_oid: str = Field(description="The ADP associate OID (unique employee identifier)")
 
