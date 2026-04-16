@@ -288,3 +288,49 @@ async def test_fetch_worker_empty_workers_returns_not_found(adp_connection):
 
     assert result["error"] == "No worker found"
     assert result["status_code"] == 404
+
+
+@pytest.mark.asyncio
+async def test_build_tools_returns_five_tools(adp_connection):
+    c = _make_component(adp_connection)
+    tools = await c.build_tools()
+
+    assert len(tools) == 5
+    names = {t.name for t in tools}
+    assert names == {
+        "get_employee_name",
+        "get_employee_addresses",
+        "get_employee_contact_information",
+        "get_employee_job",
+        "get_employee_compensation",
+    }
+    for tool in tools:
+        assert tool.description
+        assert tool.args_schema is not None
+
+
+@pytest.mark.asyncio
+async def test_tool_invocation_calls_fetch_and_extracts(adp_connection):
+    c = _make_component(adp_connection)
+    worker = SAMPLE_WORKER_RESPONSE["workers"][0]
+
+    with patch.object(c, "_fetch_worker", new=AsyncMock(return_value=worker)):
+        tools = await c.build_tools()
+        name_tool = next(t for t in tools if t.name == "get_employee_name")
+        result = await name_tool.ainvoke({"associate_oid": "G3ABC"})
+
+    assert result["legalName"]["firstName"] == "Jane"
+
+
+@pytest.mark.asyncio
+async def test_tool_invocation_propagates_error_dict(adp_connection):
+    c = _make_component(adp_connection)
+    error_result = {"error": "internal", "status_code": 500}
+
+    with patch.object(c, "_fetch_worker", new=AsyncMock(return_value=error_result)):
+        tools = await c.build_tools()
+        name_tool = next(t for t in tools if t.name == "get_employee_name")
+        result = await name_tool.ainvoke({"associate_oid": "BAD"})
+
+    assert result["error"] == "internal"
+    assert result["status_code"] == 500

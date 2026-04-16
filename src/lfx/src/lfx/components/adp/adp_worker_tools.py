@@ -217,4 +217,70 @@ class ADPWorkerToolsComponent(Component):
         return workers[0]
 
     async def build_tools(self) -> list[Any]:
-        return []
+        conn: ADPConnection = self.connection
+        component = self
+
+        async def _get_employee_name(associate_oid: str) -> dict[str, Any]:
+            worker = await component._fetch_worker(conn, associate_oid)
+            if "error" in worker:
+                return worker
+            return extract_name(worker)
+
+        async def _get_employee_addresses(associate_oid: str) -> dict[str, Any]:
+            worker = await component._fetch_worker(conn, associate_oid)
+            if "error" in worker:
+                return worker
+            return extract_addresses(worker)
+
+        async def _get_employee_contact_information(associate_oid: str) -> dict[str, Any]:
+            worker = await component._fetch_worker(conn, associate_oid)
+            if "error" in worker:
+                return worker
+            return extract_contact_information(worker)
+
+        async def _get_employee_job(associate_oid: str) -> dict[str, Any]:
+            worker = await component._fetch_worker(conn, associate_oid)
+            if "error" in worker:
+                return worker
+            return extract_job(worker)
+
+        async def _get_employee_compensation(associate_oid: str) -> dict[str, Any]:
+            worker = await component._fetch_worker(conn, associate_oid)
+            if "error" in worker:
+                return worker
+            return extract_compensation(worker)
+
+        tools = [
+            StructuredTool.from_function(
+                name="get_employee_name",
+                description="Get an employee's legal and preferred name by their ADP associate OID.",
+                coroutine=_get_employee_name,
+                args_schema=WorkerToolInput,
+            ),
+            StructuredTool.from_function(
+                name="get_employee_addresses",
+                description="Get an employee's legal address by their ADP associate OID.",
+                coroutine=_get_employee_addresses,
+                args_schema=WorkerToolInput,
+            ),
+            StructuredTool.from_function(
+                name="get_employee_contact_information",
+                description="Get an employee's contact information (emails, phone numbers) by their ADP associate OID.",
+                coroutine=_get_employee_contact_information,
+                args_schema=WorkerToolInput,
+            ),
+            StructuredTool.from_function(
+                name="get_employee_job",
+                description="Get an employee's job details (title, department, location, manager) by their ADP associate OID.",
+                coroutine=_get_employee_job,
+                args_schema=WorkerToolInput,
+            ),
+            StructuredTool.from_function(
+                name="get_employee_compensation",
+                description="Get an employee's compensation details (base pay, additional remunerations) by their ADP associate OID.",
+                coroutine=_get_employee_compensation,
+                args_schema=WorkerToolInput,
+            ),
+        ]
+
+        return tools
