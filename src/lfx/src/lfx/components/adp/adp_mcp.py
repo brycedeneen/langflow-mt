@@ -7,6 +7,8 @@ from typing import Any
 import httpx
 from langchain_core.tools import StructuredTool
 
+from lfx.field_typing import Tool
+
 from lfx.custom.custom_component.component import Component
 from lfx.io import HandleInput, MessageTextInput, Output
 
@@ -44,7 +46,7 @@ class ADPMCPComponent(Component):
         Output(display_name="Tools", name="tools", method="build_tools"),
     ]
 
-    async def build_tools(self) -> list[Any]:
+    async def build_tools(self) -> list[Tool]:
         """Fetch tools from the ADP MCP server, applying auth and optional filtering."""
         conn: ADPConnection = self.connection
         url = (self.mcp_url or "").strip() or conn.mcp_base_url

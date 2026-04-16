@@ -6,6 +6,8 @@ from typing import Any
 
 import httpx
 from langchain_core.tools import StructuredTool
+
+from lfx.field_typing import Tool
 from pydantic import BaseModel, Field
 
 from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
@@ -216,7 +218,7 @@ class ADPWorkerToolsComponent(Component):
             return {"error": "No worker found", "status_code": 404}
         return workers[0]
 
-    async def build_tools(self) -> list[Any]:
+    async def build_tools(self) -> list[Tool]:
         conn: ADPConnection = self.connection
         component = self
 
