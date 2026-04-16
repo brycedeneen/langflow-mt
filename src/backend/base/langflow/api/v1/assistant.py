@@ -6,9 +6,10 @@ import json
 from typing import Any
 from uuid import UUID
 
+import asyncio
+
 from fastapi import APIRouter, HTTPException
 from lfx.log import logger
-from lfx.services.deps import session_scope
 from pydantic import BaseModel
 from sqlmodel import select
 from sse_starlette.sse import EventSourceResponse
@@ -194,6 +195,70 @@ async def get_conversation(
 
 
 # ---------------------------------------------------------------------------
+# Background persistence (runs outside SSE generator context)
+# ---------------------------------------------------------------------------
+
+
+async def _persist_assistant_turn(
+    *,
+    conversation_id,
+    user_id,
+    user_content: str,
+    accumulated_text: str,
+    tool_calls_list: list,
+    tool_messages: list,
+    flow_patches: list,
+    flow_id,
+    final_flow_data: dict | None,
+) -> None:
+    """Persist the assistant turn to the database.
+
+    Runs as a background asyncio task so it has access to the normal
+    event-loop greenlet context that SQLAlchemy's async sessions require
+    (which is not available inside sse_starlette's generator).
+    """
+    from langflow.services.deps import session_scope
+
+    try:
+        async with session_scope() as db:
+            user_msg = AssistantMessage(
+                conversation_id=conversation_id,
+                user_id=user_id,
+                role="user",
+                content=user_content,
+            )
+            db.add(user_msg)
+
+            assistant_msg = AssistantMessage(
+                conversation_id=conversation_id,
+                user_id=None,
+                role="assistant",
+                content=accumulated_text or None,
+                tool_calls=tool_calls_list if tool_calls_list else None,
+            )
+            db.add(assistant_msg)
+
+            for tm in tool_messages:
+                tool_msg = AssistantMessage(
+                    conversation_id=conversation_id,
+                    user_id=None,
+                    role="tool",
+                    tool_call_id=tm["tool_call_id"],
+                    content=json.dumps(tm["result"]) if tm["result"] else None,
+                    tool_result=tm["result"],
+                )
+                db.add(tool_msg)
+
+            if flow_patches and final_flow_data is not None:
+                db_flow = await db.get(Flow, flow_id)
+                if db_flow is not None:
+                    db_flow.data = final_flow_data
+                    db.add(db_flow)
+    except Exception:
+        logger.exception("Failed to persist assistant turn for flow %s", flow_id)
+
+
+# ---------------------------------------------------------------------------
 # POST /flows/{flow_id}/messages  (SSE stream)
 # ---------------------------------------------------------------------------
 
@@ -238,10 +303,17 @@ async def send_message(
     model_name = settings["model"]
     user_content = body.content
 
-    # --- SSE generator (uses its own session_scope) ---
+    # Shared state between generator and persistence task
+    persist_data: dict[str, Any] = {
+        "accumulated_text": "",
+        "tool_calls_list": [],
+        "tool_messages": [],
+        "flow_patches": [],
+        "final_flow_data": None,
+    }
+
     async def event_generator():
         try:
-            # Build service
             service = AssistantService(
                 provider_client=provider_client,
                 flow_data=flow_data,
@@ -252,21 +324,15 @@ async def send_message(
             )
             service.set_conversation_history(history_dicts)
 
-            # Collect messages to persist
-            accumulated_text = ""
-            tool_calls_list: list[dict[str, Any]] = []
-            tool_messages: list[dict[str, Any]] = []
-            flow_patches: list[dict[str, Any]] = []
-
             async for event in service.send_message(user_content):
                 event_type = event.get("type", "unknown")
 
                 if event_type == "token":
-                    accumulated_text += event.get("text", "")
+                    persist_data["accumulated_text"] += event.get("text", "")
                     yield {"event": "token", "data": json.dumps({"text": event.get("text", "")})}
 
                 elif event_type == "tool_call":
-                    tool_calls_list.append({
+                    persist_data["tool_calls_list"].append({
                         "id": event.get("tool_call_id"),
                         "name": event.get("tool_name"),
                         "args": event.get("tool_args"),
@@ -278,7 +344,7 @@ async def send_message(
                     })}
 
                 elif event_type == "tool_result":
-                    tool_messages.append({
+                    persist_data["tool_messages"].append({
                         "tool_call_id": event.get("tool_call_id"),
                         "tool_name": event.get("tool_name"),
                         "result": event.get("result"),
@@ -291,7 +357,7 @@ async def send_message(
 
                 elif event_type == "flow_patch":
                     patch = event.get("patch")
-                    flow_patches.append(patch)
+                    persist_data["flow_patches"].append(patch)
                     yield {"event": "flow_patch", "data": json.dumps({"patch": patch})}
 
                 elif event_type == "message_complete":
@@ -300,45 +366,23 @@ async def send_message(
                 elif event_type == "error":
                     yield {"event": "error", "data": json.dumps({"error": event.get("error", "Unknown error")})}
 
-            # --- Persist to DB using a fresh session ---
-            async with session_scope() as db:
-                # Persist user message
-                user_msg = AssistantMessage(
-                    conversation_id=conversation_id,
-                    user_id=user_id,
-                    role="user",
-                    content=user_content,
-                )
-                db.add(user_msg)
+            persist_data["final_flow_data"] = service.mutation_tools.flow_data
 
-                # Persist assistant message
-                assistant_msg = AssistantMessage(
-                    conversation_id=conversation_id,
-                    user_id=None,
-                    role="assistant",
-                    content=accumulated_text or None,
-                    tool_calls=tool_calls_list if tool_calls_list else None,
-                )
-                db.add(assistant_msg)
-
-                # Persist tool result messages
-                for tm in tool_messages:
-                    tool_msg = AssistantMessage(
-                        conversation_id=conversation_id,
-                        user_id=None,
-                        role="tool",
-                        tool_call_id=tm["tool_call_id"],
-                        content=json.dumps(tm["result"]) if tm["result"] else None,
-                        tool_result=tm["result"],
-                    )
-                    db.add(tool_msg)
-
-                # Update flow data if patches were applied
-                if flow_patches:
-                    db_flow = await db.get(Flow, flow_id)
-                    if db_flow is not None:
-                        db_flow.data = service.mutation_tools.flow_data
-                        db.add(db_flow)
+            # Fire-and-forget persistence in a background task.
+            # session_scope requires the ASGI greenlet context which isn't
+            # available inside sse_starlette's generator. We schedule it as a
+            # separate asyncio task so it runs in the main event-loop context.
+            asyncio.create_task(_persist_assistant_turn(
+                conversation_id=conversation_id,
+                user_id=user_id,
+                user_content=user_content,
+                accumulated_text=persist_data["accumulated_text"],
+                tool_calls_list=persist_data["tool_calls_list"],
+                tool_messages=persist_data["tool_messages"],
+                flow_patches=persist_data["flow_patches"],
+                flow_id=flow_id,
+                final_flow_data=persist_data["final_flow_data"],
+            ))
 
         except Exception as exc:
             logger.exception("Assistant SSE error for flow %s", flow_id)
