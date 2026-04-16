@@ -395,7 +395,10 @@ async def send_message(
             ))
 
         except Exception as exc:
-            logger.exception("Assistant SSE error for flow %s", flow_id)
+            import traceback
+            tb = traceback.format_exc()
+            logger.error("Assistant SSE error for flow %s: %s\n%s", flow_id, exc, tb)
+            print(f"[ASSISTANT ERROR] {exc}\n{tb}", flush=True)
             yield {"event": "error", "data": json.dumps({"error": str(exc)})}
 
     return EventSourceResponse(event_generator())
