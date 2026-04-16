@@ -1,6 +1,7 @@
 import useFlowStore from "@/stores/flowStore";
 import PublishDropdown from "./deploy-dropdown";
 import PlaygroundButton from "./playground-button";
+import AssistantToggleButton from "./assistant-toggle-button";
 
 type FlowToolbarOptionsProps = {
   openApiModal: boolean;
@@ -14,6 +15,7 @@ const FlowToolbarOptions = ({
 
   return (
     <div className="flex items-center gap-1">
+      <AssistantToggleButton />
       <PlaygroundButton hasIO={hasIO} />
       <PublishDropdown
         openApiModal={openApiModal}

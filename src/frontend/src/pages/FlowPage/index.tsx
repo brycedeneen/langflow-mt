@@ -14,8 +14,10 @@ import useApplyFlowToCanvas from "@/hooks/flows/use-apply-flow-to-canvas";
 import useSaveFlow from "@/hooks/flows/use-save-flow";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useWebhookEvents } from "@/hooks/use-webhook-events";
+import AssistantPanel from "@/modals/AssistantPanel";
 import { SaveChangesModal } from "@/modals/saveChangesModal";
 import useAlertStore from "@/stores/alertStore";
+import useAssistantStore from "@/stores/assistantStore";
 import { usePlaygroundStore } from "@/stores/playgroundStore";
 import { useTypesStore } from "@/stores/typesStore";
 import { customStringify } from "@/utils/reactflowUtils";
@@ -306,6 +308,7 @@ export default function FlowPage({ view }: { view?: boolean }): JSX.Element {
                   setIsFullscreen={setIsFullscreen}
                 />
               </SimpleSidebar>
+              {id && <AssistantPanel flowId={id} />}
             </div>
           )}
         </div>
