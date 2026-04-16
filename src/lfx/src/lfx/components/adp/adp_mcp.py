@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import httpx
+from langchain_core.tools import StructuredTool
 
 from lfx.custom.custom_component.component import Component
 from lfx.io import HandleInput, MessageTextInput, Output
@@ -52,20 +53,20 @@ class ADPMCPComponent(Component):
 
         _http_unauthorized = 401
         try:
-            tools = await self._list_tools(url, headers)
+            raw_tools, client = await self._list_tools(url, headers)
         except httpx.HTTPStatusError as e:
             if e.response.status_code != _http_unauthorized:
                 raise
             await fetch_token(conn, force=True)
             headers["Authorization"] = f"Bearer {conn.access_token}"
-            tools = await self._list_tools(url, headers)
+            raw_tools, client = await self._list_tools(url, headers)
 
         filter_value = (self.tool_filter or "").strip()
         if filter_value:
             wanted = {t.strip() for t in filter_value.split(",") if t.strip()}
-            tools = [t for t in tools if self._tool_name(t) in wanted]
+            raw_tools = [t for t in raw_tools if self._tool_name(t) in wanted]
 
-        return tools
+        return self._convert_to_structured_tools(raw_tools, client)
 
     @staticmethod
     def _tool_name(tool: Any) -> str:
@@ -74,26 +75,49 @@ class ADPMCPComponent(Component):
             return tool.get("name", "")
         return getattr(tool, "name", "")
 
-    async def _list_tools(self, url: str, headers: dict[str, str]) -> list[Any]:
-        """Connect to the ADP MCP server and return its tool list.
+    @staticmethod
+    def _convert_to_structured_tools(raw_tools: list[Any], client: Any) -> list[StructuredTool]:
+        """Convert raw MCP tool objects to langchain StructuredTool instances.
 
-        This is a thin wrapper around ``MCPStreamableHttpClient._connect_to_server``
-        so that tests can patch it cleanly. The public signature
-        ``(url, headers) -> list[Any]`` is the stable contract; internals may change.
+        Builds schema + coroutine inline to avoid importing lfx.base.mcp.util
+        at the module level (which pulls in the ``mcp`` SDK).
+        """
+        from lfx.schema.json_schema import create_input_schema_from_json_schema
 
-        Real wiring notes:
-        - ``MCPStreamableHttpClient._connect_to_server(url, headers, ...)`` accepts a
-          ``headers`` dict directly, which is how we pass the Bearer token.
-        - mTLS is NOT currently plumbed through ``MCPStreamableHttpClient``: the base
-          client does not accept a custom ``httpx.AsyncClient`` or SSL context. For v1
-          the Bearer token alone is sent over HTTPS — this is acceptable per ADP bundle
-          design. A follow-up task should extend ``MCPStreamableHttpClient`` to accept
-          an ``ssl_context`` or ``httpx_client`` parameter so that full mTLS can be
-          wired through ``build_mtls_httpx_client(conn)``.
+        tools: list[StructuredTool] = []
+        for tool in raw_tools:
+            if not tool or not hasattr(tool, "name"):
+                continue
+            args_schema = create_input_schema_from_json_schema(tool.inputSchema)
+            if not args_schema:
+                continue
+
+            tool_name = tool.name
+
+            def _make_coroutine(name, schema, c):
+                async def _coroutine(**kwargs):
+                    validated = schema.model_validate(kwargs)
+                    return await c.run_tool(name, arguments=validated.model_dump())
+                return _coroutine
+
+            tools.append(
+                StructuredTool.from_function(
+                    name=tool_name,
+                    description=tool.description or "",
+                    args_schema=args_schema,
+                    coroutine=_make_coroutine(tool_name, args_schema, client),
+                )
+            )
+        return tools
+
+    async def _list_tools(self, url: str, headers: dict[str, str]) -> tuple[list[Any], Any]:
+        """Connect to the ADP MCP server and return (raw_tools, client).
+
+        Returns the client alongside the tools so callers can pass it to
+        ``_convert_to_structured_tools`` for building tool executors.
         """
         from lfx.base.mcp.util import MCPStreamableHttpClient
 
         client = MCPStreamableHttpClient()
-        # _connect_to_server manages its own session; no explicit aclose needed for
-        # the one-shot list-tools call (sessions are cached in MCPSessionManager).
-        return await client._connect_to_server(url=url, headers=headers)  # noqa: SLF001
+        raw_tools = await client._connect_to_server(url=url, headers=headers)  # noqa: SLF001
+        return raw_tools, client

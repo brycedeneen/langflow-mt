@@ -1,8 +1,11 @@
 """Tests for ADPMCPComponent."""
 
-from unittest.mock import AsyncMock, patch
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from langchain_core.tools import StructuredTool
+
 from lfx.components.adp.adp_mcp import ADPMCPComponent
 
 
@@ -16,20 +19,34 @@ def _make_component(connection, **overrides):
     return ADPMCPComponent(**defaults)
 
 
+def _make_raw_mcp_tool(name: str) -> SimpleNamespace:
+    """Create a fake raw MCP tool object matching the MCP SDK shape."""
+    return SimpleNamespace(
+        name=name,
+        description=f"Tool: {name}",
+        inputSchema={"type": "object", "properties": {"id": {"type": "string"}}, "required": ["id"]},
+    )
+
+
+_FAKE_CLIENT = MagicMock()
+
+
 @pytest.mark.asyncio
 async def test_mcp_component_uses_connection_base_url_by_default(adp_connection):
     c = _make_component(adp_connection)
-    fake_tools = [{"name": "list_workers"}, {"name": "get_worker"}]
+    raw_tools = [_make_raw_mcp_tool("list_workers"), _make_raw_mcp_tool("get_worker")]
 
     async def fake_list(url, headers):
         assert url == adp_connection.mcp_base_url
         assert headers["Authorization"] == f"Bearer {adp_connection.access_token}"
-        return fake_tools
+        return raw_tools, _FAKE_CLIENT
 
     with patch.object(c, "_list_tools", new=AsyncMock(side_effect=fake_list)):
         tools = await c.build_tools()
 
-    assert [t["name"] for t in tools] == ["list_workers", "get_worker"]
+    assert len(tools) == 2
+    assert all(isinstance(t, StructuredTool) for t in tools)
+    assert [t.name for t in tools] == ["list_workers", "get_worker"]
 
 
 @pytest.mark.asyncio
@@ -39,7 +56,7 @@ async def test_mcp_component_override_url(adp_connection):
 
     async def fake_list(url, _headers):
         captured["url"] = url
-        return []
+        return [], _FAKE_CLIENT
 
     with patch.object(c, "_list_tools", new=AsyncMock(side_effect=fake_list)):
         await c.build_tools()
@@ -58,14 +75,14 @@ async def test_mcp_component_rejects_off_allowlist_mcp_url(adp_connection):
 @pytest.mark.asyncio
 async def test_mcp_component_tool_filter(adp_connection):
     c = _make_component(adp_connection, tool_filter="list_workers, get_worker")
-    fake_tools = [
-        {"name": "list_workers"},
-        {"name": "get_worker"},
-        {"name": "list_pay_statements"},
+    raw_tools = [
+        _make_raw_mcp_tool("list_workers"),
+        _make_raw_mcp_tool("get_worker"),
+        _make_raw_mcp_tool("list_pay_statements"),
     ]
-    with patch.object(c, "_list_tools", new=AsyncMock(return_value=fake_tools)):
+    with patch.object(c, "_list_tools", new=AsyncMock(return_value=(raw_tools, _FAKE_CLIENT))):
         tools = await c.build_tools()
-    assert [t["name"] for t in tools] == ["list_workers", "get_worker"]
+    assert [t.name for t in tools] == ["list_workers", "get_worker"]
 
 
 @pytest.mark.asyncio
@@ -83,7 +100,7 @@ async def test_mcp_component_401_triggers_force_refresh(adp_connection):
             resp = Response(401, request=req)
             msg = "unauthorized"
             raise HTTPStatusError(msg, request=req, response=resp)
-        return [{"name": "list_workers"}]
+        return [_make_raw_mcp_tool("list_workers")], _FAKE_CLIENT
 
     async def fake_force(conn, *, force=False):
         assert force is True
@@ -95,4 +112,4 @@ async def test_mcp_component_401_triggers_force_refresh(adp_connection):
         tools = await c.build_tools()
 
     assert call_count["n"] == 2
-    assert tools[0]["name"] == "list_workers"
+    assert tools[0].name == "list_workers"
