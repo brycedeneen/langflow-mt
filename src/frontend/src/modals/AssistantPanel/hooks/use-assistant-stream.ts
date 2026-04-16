@@ -98,17 +98,19 @@ export function useAssistantStream(flowId: string) {
 
               switch (event.type) {
                 case "token":
-                  assistantStore.appendToLastAssistant(event.content ?? "");
+                  assistantStore.appendToLastAssistant(event.text ?? "");
                   break;
 
                 case "tool_call":
                   assistantStore.addMessage({
                     role: "tool",
-                    content: event.content ?? null,
-                    tool_calls: event.tool_calls,
+                    content: `Calling ${event.tool_name ?? "tool"}...`,
                     tool_call_id: event.tool_call_id,
-                    tool_result: event.tool_result,
                   });
+                  break;
+
+                case "tool_result":
+                  // Tool result received — could update the tool message
                   break;
 
                 case "flow_patch":
@@ -120,7 +122,7 @@ export function useAssistantStream(flowId: string) {
 
                 case "error":
                   assistantStore.appendToLastAssistant(
-                    `\n[Error] ${event.content ?? "Unknown error"}`,
+                    `\n[Error] ${event.error ?? "Unknown error"}`,
                   );
                   break;
 

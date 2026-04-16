@@ -339,7 +339,7 @@ async def send_message(
 
                 if event_type == "token":
                     persist_data["accumulated_text"] += event.get("text", "")
-                    yield {"event": "token", "data": json.dumps({"text": event.get("text", "")})}
+                    yield {"data": json.dumps({"type": "token", "text": event.get("text", "")})}
 
                 elif event_type == "tool_call":
                     persist_data["tool_calls_list"].append({
@@ -347,7 +347,8 @@ async def send_message(
                         "name": event.get("tool_name"),
                         "args": event.get("tool_args"),
                     })
-                    yield {"event": "tool_call", "data": json.dumps({
+                    yield {"data": json.dumps({
+                        "type": "tool_call",
                         "tool_call_id": event.get("tool_call_id"),
                         "tool_name": event.get("tool_name"),
                         "tool_args": event.get("tool_args"),
@@ -359,7 +360,8 @@ async def send_message(
                         "tool_name": event.get("tool_name"),
                         "result": event.get("result"),
                     })
-                    yield {"event": "tool_result", "data": json.dumps({
+                    yield {"data": json.dumps({
+                        "type": "tool_result",
                         "tool_call_id": event.get("tool_call_id"),
                         "tool_name": event.get("tool_name"),
                         "result": event.get("result"),
@@ -368,13 +370,13 @@ async def send_message(
                 elif event_type == "flow_patch":
                     patch = event.get("patch")
                     persist_data["flow_patches"].append(patch)
-                    yield {"event": "flow_patch", "data": json.dumps({"patch": patch})}
+                    yield {"data": json.dumps({"type": "flow_patch", "patch": patch})}
 
                 elif event_type == "message_complete":
-                    yield {"event": "message_complete", "data": json.dumps({})}
+                    yield {"data": json.dumps({"type": "message_complete"})}
 
                 elif event_type == "error":
-                    yield {"event": "error", "data": json.dumps({"error": event.get("error", "Unknown error")})}
+                    yield {"data": json.dumps({"type": "error", "error": event.get("error", "Unknown error")})}
 
             persist_data["final_flow_data"] = service.mutation_tools.flow_data
 
