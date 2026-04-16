@@ -174,6 +174,12 @@ async def get_conversation(
             settings_configured=settings_configured,
         )
 
+    msg_stmt = (
+        select(AssistantMessage)
+        .where(AssistantMessage.conversation_id == conversation.id)
+        .order_by(AssistantMessage.created_at)
+    )
+    msg_rows = (await session.exec(msg_stmt)).all()
     messages = [
         MessageResponse(
             id=str(m.id),
@@ -184,7 +190,7 @@ async def get_conversation(
             tool_result=m.tool_result,
             created_at=m.created_at.isoformat() if m.created_at else None,
         )
-        for m in sorted(conversation.messages, key=lambda m: m.created_at or m.id)
+        for m in msg_rows
     ]
 
     return ConversationResponse(
@@ -292,10 +298,14 @@ async def send_message(
 
     conversation_id = conversation.id
 
-    # Load conversation history
-    history_dicts: list[dict[str, Any]] = []
-    for m in sorted(conversation.messages, key=lambda m: m.created_at or m.id):
-        history_dicts.append(_db_message_to_dict(m))
+    # Load conversation history via explicit query (avoid relationship lazy-load greenlet issues)
+    history_stmt = (
+        select(AssistantMessage)
+        .where(AssistantMessage.conversation_id == conversation_id)
+        .order_by(AssistantMessage.created_at)
+    )
+    history_rows = (await session.exec(history_stmt)).all()
+    history_dicts: list[dict[str, Any]] = [_db_message_to_dict(m) for m in history_rows]
 
     # Capture IDs we'll need in the SSE generator (avoid referencing ORM objects)
     org_id = org.id
