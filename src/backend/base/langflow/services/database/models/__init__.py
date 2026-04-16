@@ -1,4 +1,5 @@
 from .api_key import ApiKey
+from .assistant import AssistantConversation, AssistantMessage
 from .auth import SSOConfig, SSOUserProfile
 from .deployment import Deployment
 from .deployment_provider_account import DeploymentProviderAccount
@@ -19,6 +20,8 @@ from .variable import Variable
 
 __all__ = [
     "ApiKey",
+    "AssistantConversation",
+    "AssistantMessage",
     "Deployment",
     "DeploymentProviderAccount",
     "File",
