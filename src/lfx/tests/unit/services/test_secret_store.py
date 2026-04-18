@@ -175,3 +175,27 @@ class TestVaultSecretStore:
         ):
             result = await store.list("nonexistent/")
             assert result == []
+
+
+from lfx.services.secret_store.factory import get_secret_store, InMemorySecretStore
+
+
+class TestSecretStoreFactory:
+    def test_vault_backend(self):
+        settings = SecretStoreSettings(
+            SECRET_STORE_BACKEND="vault",
+            VAULT_ADDR="http://localhost:8200",
+            VAULT_TOKEN="myroot",
+        )
+        store = get_secret_store(settings)
+        assert isinstance(store, VaultSecretStore)
+
+    def test_memory_backend(self):
+        settings = SecretStoreSettings(SECRET_STORE_BACKEND="memory")
+        store = get_secret_store(settings)
+        assert isinstance(store, InMemorySecretStore)
+
+    def test_unknown_backend_raises(self):
+        settings = SecretStoreSettings(SECRET_STORE_BACKEND="unknown_backend")
+        with pytest.raises(ValueError, match="Unknown secret store backend"):
+            get_secret_store(settings)
