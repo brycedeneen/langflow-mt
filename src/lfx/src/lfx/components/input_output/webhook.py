@@ -33,6 +33,14 @@ class WebhookComponent(Component):
             copy_field=True,
             input_types=[],
         ),
+        MultilineInput(
+            name="api_key",
+            display_name="API Key",
+            info="Auto-generated API key required for webhook authentication. Include as x-api-key header.",
+            advanced=False,
+            copy_field=True,
+            input_types=[],
+        ),
     ]
     outputs = [
         Output(display_name="JSON", name="output_data", method="build_data"),
