@@ -35,7 +35,8 @@ from langflow.services.database.models.flow.model import (
     FlowRead,
     FlowUpdate,
 )
-from langflow.services.database.models.flow.utils import get_webhook_component_in_flow
+from langflow.services.database.models.flow.utils import generate_webhook_api_key, get_webhook_component_in_flow
+from lfx.services.secret_store import get_secret_store
 
 # TODO: Full-version import/export is planned as a follow-up feature. When implemented,
 # re-add imports for create_flow_version_entry, get_flow_version_list, strip_version_data,
@@ -161,6 +162,33 @@ async def _save_flow_to_fs(flow: Flow, user_id: UUID, storage_service: StorageSe
         raise HTTPException(status_code=500, detail=f"Failed to write flow to filesystem: {e}") from e
 
 
+async def _provision_webhook_api_key(
+    org_id: str,
+    flow_id: str,
+    has_webhook: bool,
+) -> str | None:
+    """Provision a webhook API key for a flow if it has a webhook component.
+
+    Returns the API key (existing or newly generated), or None if no webhook.
+    """
+    if not has_webhook:
+        return None
+
+    store = get_secret_store()
+    path = f"{org_id}/webhooks/{flow_id}"
+
+    existing = await store.get(path)
+    if existing and "api_key" in existing:
+        return existing["api_key"]
+
+    key = generate_webhook_api_key()
+    await store.put(path, {
+        "api_key": key,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    return key
+
+
 async def _new_flow(
     *,
     session: AsyncSession,
@@ -270,6 +298,16 @@ async def _new_flow(
             db_flow.organization_id = organization_id
 
         db_flow.updated_at = datetime.now(timezone.utc)
+
+        # Provision webhook API key if flow has a webhook component
+        webhook_component = get_webhook_component_in_flow(db_flow.data or {})
+        db_flow.webhook = webhook_component is not None
+        if db_flow.webhook and organization_id:
+            await _provision_webhook_api_key(
+                org_id=str(organization_id),
+                flow_id=str(db_flow.id),
+                has_webhook=True,
+            )
 
         # Validate folder_id exists, or fall back to default folder
         if db_flow.folder_id is not None:
@@ -517,6 +555,12 @@ async def update_flow(
 
         webhook_component = get_webhook_component_in_flow(db_flow.data)
         db_flow.webhook = webhook_component is not None
+        if db_flow.webhook and db_flow.organization_id:
+            await _provision_webhook_api_key(
+                org_id=str(db_flow.organization_id),
+                flow_id=str(db_flow.id),
+                has_webhook=True,
+            )
         db_flow.updated_at = datetime.now(timezone.utc)
 
         # Validate folder_id exists, or fall back to default folder
