@@ -24,6 +24,7 @@ import useDescriptionModal from "../../hooks/use-description-modal";
 import { useGetTemplateStyle } from "../../utils/get-template-style";
 import { timeElapsed } from "../../utils/time-elapse";
 import DropdownComponent from "../dropdown";
+import { AdpAssistButton } from "./adp-assist-button";
 
 const ListComponent = ({
   flowData,
@@ -178,6 +179,10 @@ const ListComponent = ({
         </div>
 
         <div className="ml-5 flex items-center gap-2">
+          <AdpAssistButton
+            flowId={flowData.id}
+            builtWithAssist={!!flowData.built_with_assist}
+          />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

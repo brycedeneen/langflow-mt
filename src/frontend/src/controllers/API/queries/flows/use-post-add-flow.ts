@@ -18,6 +18,7 @@ interface IPostAddFlow {
   tags: string[] | undefined;
   locked?: boolean | null;
   mcp_enabled: boolean | undefined;
+  built_with_assist?: boolean;
 }
 
 export const usePostAddFlow: useMutationFunctionType<
@@ -40,6 +41,7 @@ export const usePostAddFlow: useMutationFunctionType<
       tags: payload.tags || null,
       locked: payload.locked ?? null,
       mcp_enabled: payload.mcp_enabled || null,
+      built_with_assist: payload.built_with_assist ?? false,
     });
     return response.data;
   };

@@ -38,6 +38,8 @@ export interface TemplateCardComponentProps {
     gradient?: string;
   };
   onClick: () => void;
+  selected?: boolean;
+  onSelect?: () => void;
 }
 
 export interface NavProps {

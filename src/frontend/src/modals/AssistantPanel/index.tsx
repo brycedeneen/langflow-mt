@@ -12,6 +12,8 @@ import Composer from "./components/composer";
 import MessageList from "./components/message-list";
 import PanelHeader from "./components/panel-header";
 import SettingsRequired from "./components/settings-required";
+import { FullscreenShell } from "./fullscreen-shell";
+import { TestShell } from "./test-shell";
 
 interface AssistantPanelProps {
   flowId: string;
@@ -19,6 +21,7 @@ interface AssistantPanelProps {
 
 export default function AssistantPanel({ flowId }: AssistantPanelProps) {
   const panelOpen = useAssistantStore((state) => state.panelOpen);
+  const layoutMode = useAssistantStore((s) => s.layoutMode);
   const messages = useAssistantStore((state) => state.messages);
   const settingsConfigured = useAssistantStore(
     (state) => state.settingsConfigured,
@@ -100,6 +103,13 @@ export default function AssistantPanel({ flowId }: AssistantPanelProps) {
   }, [setPanelOpen]);
 
   if (!panelOpen) return null;
+
+  if (layoutMode === "fullscreen") {
+    return <FullscreenShell flowId={flowId} onSend={sendMessage} />;
+  }
+  if (layoutMode === "test") {
+    return <TestShell flowId={flowId} onSend={sendMessage} />;
+  }
 
   return (
     <div

@@ -1,5 +1,6 @@
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { Button } from "@/components/ui/button";
+import { ModeToggleButton } from "../mode-toggle-button";
 
 interface PanelHeaderProps {
   onClear: () => void;
@@ -32,6 +33,7 @@ export default function PanelHeader({ onClear, onClose }: PanelHeaderProps) {
         >
           <ForwardedIconComponent name="Trash2" className="h-4 w-4" />
         </Button>
+        <ModeToggleButton />
         <Button
           variant="ghost"
           size="icon"

@@ -9,16 +9,21 @@ import memoryChatbotHorizontal from "../../../../assets/temp-pat-m-1.png";
 import vectorRagHorizontal from "../../../../assets/temp-pat-m-2.png";
 import multiAgentHorizontal from "../../../../assets/temp-pat-m-3.png";
 
+import { BlankFlowCardComponent } from "../BlankFlowCardComponent";
 import TemplateGetStartedCardComponent from "../TemplateGetStartedCardComponent";
 
 interface GetStartedComponentProps {
   loading: boolean;
   onFlowCreating: (loading: boolean) => void;
+  selectedTemplate: string | null;
+  onSelectTemplate: (id: string | null) => void;
 }
 
 export default function GetStartedComponent({
   loading,
   onFlowCreating,
+  selectedTemplate,
+  onSelectTemplate,
 }: GetStartedComponentProps) {
   const examples = useFlowsManagerStore((state) => state.examples);
 
@@ -61,12 +66,18 @@ export default function GetStartedComponent({
         Get started
       </BaseModal.Header>
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-3">
+        <BlankFlowCardComponent
+          selected={selectedTemplate === "blank"}
+          onSelect={() => onSelectTemplate("blank")}
+        />
         {cardData.map((card, index) => (
           <TemplateGetStartedCardComponent
             key={index}
             {...card}
             loading={loading}
             onFlowCreating={onFlowCreating}
+            selected={selectedTemplate === card.flow?.id}
+            onSelect={() => onSelectTemplate(card.flow?.id ?? null)}
           />
         ))}
       </div>

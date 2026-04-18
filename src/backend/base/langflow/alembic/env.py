@@ -25,6 +25,17 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+# Override database URL from environment variable if set
+database_url = os.getenv("LANGFLOW_DATABASE_URL")
+if database_url:
+    # Convert sync postgresql:// to async postgresql+psycopg:// if needed
+    if database_url.startswith("postgresql://") and "+" not in database_url.split("://")[1].split(":")[0]:
+        database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    # Convert sync sqlite:// to async sqlite+aiosqlite:// if needed
+    if database_url.startswith("sqlite://") and "+aiosqlite" not in database_url:
+        database_url = database_url.replace("sqlite://", "sqlite+aiosqlite://", 1)
+    config.set_main_option("sqlalchemy.url", database_url)
+
 NAMING_CONVENTION = {
     "ix": "ix_%(column_0_label)s",
     "uq": "uq_%(table_name)s_%(column_0_name)s",

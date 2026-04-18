@@ -1,21 +1,17 @@
 import Fuse from "fuse.js";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
 import { ENABLE_KNOWLEDGE_BASES } from "@/customization/feature-flags";
-import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
-import { track } from "@/customization/utils/analytics";
-import useAddFlow from "@/hooks/flows/use-add-flow";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import { ForwardedIconComponent } from "../../../../components/common/genericIconComponent";
 import { Input } from "../../../../components/ui/input";
-import { useFolderStore } from "../../../../stores/foldersStore";
 import type { TemplateContentProps } from "../../../../types/templates/types";
-import { updateIds } from "../../../../utils/reactflowUtils";
 import { TemplateCategoryComponent } from "../TemplateCategoryComponent";
 
 interface TemplateContentComponentProps extends TemplateContentProps {
   loading: boolean;
   onFlowCreating: (loading: boolean) => void;
+  selectedTemplate: string | null;
+  onSelectTemplate: (id: string | null) => void;
 }
 
 export default function TemplateContentComponent({
@@ -23,6 +19,8 @@ export default function TemplateContentComponent({
   categories,
   loading,
   onFlowCreating,
+  selectedTemplate,
+  onSelectTemplate,
 }: TemplateContentComponentProps) {
   const allExamples = useFlowsManagerStore((state) => state.examples);
 
@@ -43,13 +41,7 @@ export default function TemplateContentComponent({
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredExamples, setFilteredExamples] = useState(examples);
-  const addFlow = useAddFlow();
-  const navigate = useCustomNavigate();
-  const { folderId } = useParams();
-  const myCollectionId = useFolderStore((state) => state.myCollectionId);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const folderIdUrl = folderId ?? myCollectionId;
 
   const fuse = useMemo(
     () => new Fuse(examples, { keys: ["name", "description"] }),
@@ -73,20 +65,6 @@ export default function TemplateContentComponent({
       scrollContainerRef.current.scrollTop = 0;
     }
   }, [searchQuery, currentTab, examples, fuse]);
-
-  const handleCardClick = (example) => {
-    if (loading) return;
-    onFlowCreating(true);
-    updateIds(example.data);
-    addFlow({ flow: example })
-      .then((id) => {
-        navigate(`/flow/${id}/folder/${folderIdUrl}`);
-      })
-      .finally(() => {
-        onFlowCreating(false);
-      });
-    track("New Flow Created", { template: `${example.name} Template` });
-  };
 
   const handleClearSearch = () => {
     setSearchQuery("");
@@ -124,8 +102,10 @@ export default function TemplateContentComponent({
         {currentTabItem && filteredExamples.length > 0 ? (
           <TemplateCategoryComponent
             examples={filteredExamples}
-            onCardClick={handleCardClick}
+            onCardClick={() => {}}
             loading={loading}
+            selectedTemplate={selectedTemplate}
+            onSelectTemplate={onSelectTemplate}
           />
         ) : (
           <div className="flex flex-col items-center justify-center px-4 py-12 text-center">

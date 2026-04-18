@@ -3,12 +3,16 @@ import TemplateExampleCard from "../TemplateCardComponent";
 
 interface TemplateCategoryComponentProps extends TemplateCategoryProps {
   loading: boolean;
+  selectedTemplate?: string | null;
+  onSelectTemplate?: (id: string | null) => void;
 }
 
 export function TemplateCategoryComponent({
   examples,
   onCardClick,
   loading,
+  selectedTemplate,
+  onSelectTemplate,
 }: TemplateCategoryComponentProps) {
   return (
     <>
@@ -19,6 +23,8 @@ export function TemplateCategoryComponent({
             example={example}
             onClick={() => onCardClick(example)}
             disabled={loading}
+            selected={selectedTemplate === example.id}
+            onSelect={() => onSelectTemplate?.(example.id)}
           />
         ))}
       </div>

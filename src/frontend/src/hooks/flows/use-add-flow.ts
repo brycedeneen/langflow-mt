@@ -58,6 +58,7 @@ const useAddFlow = () => {
     flow?: FlowType;
     override?: boolean;
     new_blank?: boolean;
+    built_with_assist?: boolean;
   }): Promise<string> => {
     const flow = cloneDeep(params?.flow) ?? undefined;
     const flowData = flow
@@ -103,10 +104,15 @@ const useAddFlow = () => {
     const flowsToCheckNames = flows?.filter(
       (f) => f.folder_id === myCollectionId,
     );
-    const newFlow = createNewFlow(flowData!, folder_id, flow);
-    const newName = addVersionToDuplicates(newFlow, flowsToCheckNames ?? []);
-    newFlow.name = newName;
-    newFlow.folder_id = folder_id;
+    const baseFlow = createNewFlow(flowData!, folder_id, flow);
+    const newName = addVersionToDuplicates(baseFlow, flowsToCheckNames ?? []);
+    const newFlow = {
+      ...baseFlow,
+      name: newName,
+      folder_id: folder_id,
+      built_with_assist:
+        params?.built_with_assist ?? flow?.built_with_assist ?? false,
+    };
 
     return new Promise<string>((resolve, reject) => {
       postAddFlow(newFlow, {

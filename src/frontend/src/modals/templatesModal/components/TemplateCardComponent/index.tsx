@@ -15,6 +15,8 @@ export default function TemplateCardComponent({
   example,
   onClick,
   disabled = false,
+  selected = false,
+  onSelect,
 }: TemplateCardComponentExtendedProps) {
   const swatchIndex =
     (example.gradient && !isNaN(parseInt(example.gradient))
@@ -25,8 +27,7 @@ export default function TemplateCardComponent({
   const handleKeyDown = (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      onClick();
-      if (!disabled) onClick();
+      if (!disabled) onSelect?.();
     }
   };
 
@@ -34,13 +35,21 @@ export default function TemplateCardComponent({
     <div
       data-testid={`template-${convertTestName(example.name)}`}
       className={cn(
-        "group flex gap-3 overflow-hidden rounded-md p-3 hover:bg-muted focus-visible:bg-muted",
+        "group relative flex gap-3 overflow-hidden rounded-md p-3 hover:bg-muted focus-visible:bg-muted",
         disabled ? "cursor-default opacity-80" : "cursor-pointer",
+        selected && "border-2 border-primary",
       )}
       tabIndex={disabled ? -1 : 0}
       onKeyDown={handleKeyDown}
-      onClick={() => !disabled && onClick()}
+      onClick={() => !disabled && onSelect?.()}
     >
+      <div
+        className={cn(
+          "absolute right-3 top-3 h-4 w-4 rounded-full border-2 z-10",
+          selected ? "border-primary bg-primary" : "border-muted-foreground",
+        )}
+        aria-hidden
+      />
       <div
         className={cn(
           "relative h-20 w-20 shrink-0 overflow-hidden rounded-md p-4 outline-none ring-ring",

@@ -44,6 +44,11 @@ class FlowBase(SQLModel):
     is_component: bool | None = Field(default=False, nullable=True)
     updated_at: datetime | None = Field(default_factory=lambda: datetime.now(timezone.utc), nullable=True)
     webhook: bool | None = Field(default=False, nullable=True, description="Can be used on the webhook endpoint")
+    built_with_assist: bool | None = Field(
+        default=False,
+        nullable=True,
+        description="Set to True when the flow was created via the ADP Assist template-modal entry point",
+    )
     endpoint_name: str | None = Field(default=None, nullable=True, index=True)
     tags: list[str] | None = None
     locked: bool | None = Field(default=False, nullable=True)

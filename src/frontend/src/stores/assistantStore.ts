@@ -36,6 +36,10 @@ type AssistantStoreState = {
   pendingPatches: FlowPatch[];
   addPendingPatch: (patch: FlowPatch) => void;
   clearPendingPatches: () => void;
+  layoutMode: "panel" | "fullscreen" | "test";
+  setLayoutMode: (mode: "panel" | "fullscreen" | "test") => void;
+  selectedTestComponent: string | null;
+  setSelectedTestComponent: (id: string | null) => void;
 };
 
 const useAssistantStore = create<AssistantStoreState>((set, get) => ({
@@ -75,6 +79,11 @@ const useAssistantStore = create<AssistantStoreState>((set, get) => ({
   addPendingPatch: (patch) =>
     set({ pendingPatches: [...get().pendingPatches, patch] }),
   clearPendingPatches: () => set({ pendingPatches: [] }),
+
+  layoutMode: "panel",
+  setLayoutMode: (mode) => set({ layoutMode: mode }),
+  selectedTestComponent: null,
+  setSelectedTestComponent: (id) => set({ selectedTestComponent: id }),
 }));
 
 export default useAssistantStore;

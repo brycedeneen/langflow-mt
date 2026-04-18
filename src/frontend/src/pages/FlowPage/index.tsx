@@ -70,6 +70,10 @@ export default function FlowPage({ view }: { view?: boolean }): JSX.Element {
   const currentFlow = useFlowStore((state) => state.currentFlow);
   const currentSavedFlow = useFlowsManagerStore((state) => state.currentFlow);
   const setSuccessData = useAlertStore((state) => state.setSuccessData);
+  const assistantPanelOpen = useAssistantStore((s) => s.panelOpen);
+  const assistantLayoutMode = useAssistantStore((s) => s.layoutMode);
+  const isAssistantOverlay =
+    assistantPanelOpen && assistantLayoutMode !== "panel";
   const [isLoading, setIsLoading] = useState(false);
 
   const changesNotSaved =
@@ -286,11 +290,13 @@ export default function FlowPage({ view }: { view?: boolean }): JSX.Element {
                 <FlowSearchProvider>
                   {!view && <FlowSidebarComponent isLoading={isLoading} />}
                   <main
+                    aria-hidden={isAssistantOverlay}
                     className={cn(
                       "flex flex-1 min-w-0 overflow-hidden transition-all duration-300",
                       isSlidingContainerOpen &&
                         !isFullscreen &&
                         "rounded-xl m-2 mr-0",
+                      isAssistantOverlay && "pointer-events-none",
                     )}
                   >
                     <div className="h-full w-full">
