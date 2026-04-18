@@ -40,7 +40,9 @@ def get_secret_store(settings: SecretStoreSettings | None = None) -> SecretStore
     """
     global _instance  # noqa: PLW0603
 
-    if _instance is not None and settings is None:
+    caller_provided_settings = settings is not None
+
+    if _instance is not None and not caller_provided_settings:
         return _instance
 
     if settings is None:
@@ -67,7 +69,7 @@ def get_secret_store(settings: SecretStoreSettings | None = None) -> SecretStore
         msg = f"Unknown secret store backend: {backend!r}. Supported: 'vault', 'memory'."
         raise ValueError(msg)
 
-    if settings is None:
+    if not caller_provided_settings:
         _instance = store
 
     return store
