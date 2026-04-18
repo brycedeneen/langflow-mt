@@ -167,3 +167,28 @@ class TestWebhookEndpointAuth:
                 provided_key=None,
             )
         assert exc_info.value.status_code == 401
+
+
+class TestWebhookKeyCleanup:
+    @pytest.mark.asyncio
+    async def test_cleanup_deletes_key_from_store(self):
+        mock_store = AsyncMock()
+        mock_store.delete = AsyncMock()
+
+        with patch("langflow.api.v1.flows.get_secret_store", return_value=mock_store):
+            from langflow.api.v1.flows import _cleanup_webhook_api_key
+
+            await _cleanup_webhook_api_key(org_id="org-123", flow_id="flow-456")
+
+        mock_store.delete.assert_called_once_with("org-123/webhooks/flow-456")
+
+    @pytest.mark.asyncio
+    async def test_cleanup_tolerates_store_errors(self):
+        mock_store = AsyncMock()
+        mock_store.delete = AsyncMock(side_effect=Exception("Vault down"))
+
+        with patch("langflow.api.v1.flows.get_secret_store", return_value=mock_store):
+            from langflow.api.v1.flows import _cleanup_webhook_api_key
+
+            # Should not raise — best-effort cleanup
+            await _cleanup_webhook_api_key(org_id="org-123", flow_id="flow-456")

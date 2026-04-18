@@ -189,6 +189,15 @@ async def _provision_webhook_api_key(
     return key
 
 
+async def _cleanup_webhook_api_key(org_id: str, flow_id: str) -> None:
+    """Best-effort delete of a flow's webhook API key from the secret store."""
+    try:
+        store = get_secret_store()
+        await store.delete(f"{org_id}/webhooks/{flow_id}")
+    except Exception:
+        logger.warning(f"Failed to clean up webhook API key for flow {flow_id}")
+
+
 async def _new_flow(
     *,
     session: AsyncSession,
@@ -781,6 +790,12 @@ async def delete_flow(
     )
     if not flow:
         raise HTTPException(status_code=404, detail="Flow not found")
+    # Clean up webhook API key from secret store
+    if flow.webhook and flow.organization_id:
+        await _cleanup_webhook_api_key(
+            org_id=str(flow.organization_id),
+            flow_id=str(flow.id),
+        )
     await cascade_delete_flow(session, flow.id)
     return {"message": "Flow deleted successfully"}
 
