@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hmac
 import json
 import time
 from collections.abc import AsyncGenerator
@@ -24,6 +25,7 @@ from lfx.graph.graph.base import Graph
 from lfx.graph.schema import RunOutputs
 from lfx.log.logger import logger
 from lfx.schema.schema import InputValueRequest
+from lfx.services.secret_store import get_secret_store
 from lfx.services.settings.service import SettingsService
 from sqlmodel import select
 
@@ -730,6 +732,34 @@ async def webhook_events_stream(
     )
 
 
+async def _validate_webhook_api_key(
+    org_id: str,
+    flow_id: str,
+    provided_key: str | None,
+) -> None:
+    """Validate a per-flow webhook API key against the secret store.
+
+    Raises:
+        HTTPException 401: If no key provided or no key provisioned for the flow.
+        HTTPException 403: If the key is invalid.
+        HTTPException 503: If the secret store is unreachable.
+    """
+    if not provided_key:
+        raise HTTPException(status_code=401, detail="x-api-key header is required for webhook requests")
+
+    try:
+        store = get_secret_store()
+        stored = await store.get(f"{org_id}/webhooks/{flow_id}")
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="Secret store unavailable") from exc
+
+    if not stored or "api_key" not in stored:
+        raise HTTPException(status_code=401, detail="No API key provisioned for this webhook")
+
+    if not hmac.compare_digest(provided_key, stored["api_key"]):
+        raise HTTPException(status_code=403, detail="Invalid API key")
+
+
 @router.post("/webhook/{flow_id_or_name}", response_model=dict, status_code=HTTPStatus.ACCEPTED)  # noqa: RUF100, FAST003
 async def webhook_run_flow(
     flow_id_or_name: str,
@@ -749,6 +779,24 @@ async def webhook_run_flow(
     Raises:
         HTTPException: If the flow is not found or if there is an error processing the request.
     """
+    # --- Per-flow API key validation ---
+    provided_api_key = request.headers.get("x-api-key")
+    from langflow.services.database.models.flow.model import Flow as _FlowModel
+    from langflow.services.deps import session_scope as _session_scope
+
+    async with _session_scope() as _auth_session:
+        _flow_record = await _auth_session.get(_FlowModel, flow.id)
+        if _flow_record is None or _flow_record.organization_id is None:
+            raise HTTPException(status_code=400, detail="Flow has no associated organization")
+        _org_id = str(_flow_record.organization_id)
+
+    await _validate_webhook_api_key(
+        org_id=_org_id,
+        flow_id=str(flow.id),
+        provided_key=provided_api_key,
+    )
+    # --- End per-flow API key validation ---
+
     # --- Distributed execution path ---
     # When the distributed_execution flag is on, enqueue the webhook run into the
     # background queue and return immediately with a 202 + run_id.

@@ -100,3 +100,70 @@ class TestWebhookKeyProvisioning:
         assert key is None
         mock_store.get.assert_not_called()
         mock_store.put.assert_not_called()
+
+
+class TestWebhookEndpointAuth:
+    @pytest.mark.asyncio
+    async def test_validate_webhook_api_key_success(self):
+        from langflow.api.v1.endpoints import _validate_webhook_api_key
+
+        mock_store = AsyncMock()
+        mock_store.get = AsyncMock(return_value={"api_key": "ADP-APICPRO-validkey123"})
+
+        with patch("langflow.api.v1.endpoints.get_secret_store", return_value=mock_store):
+            # Should not raise
+            await _validate_webhook_api_key(
+                org_id="org-123",
+                flow_id="flow-456",
+                provided_key="ADP-APICPRO-validkey123",
+            )
+
+    @pytest.mark.asyncio
+    async def test_validate_webhook_api_key_invalid(self):
+        from fastapi import HTTPException
+
+        from langflow.api.v1.endpoints import _validate_webhook_api_key
+
+        mock_store = AsyncMock()
+        mock_store.get = AsyncMock(return_value={"api_key": "ADP-APICPRO-validkey123"})
+
+        with patch("langflow.api.v1.endpoints.get_secret_store", return_value=mock_store):
+            with pytest.raises(HTTPException) as exc_info:
+                await _validate_webhook_api_key(
+                    org_id="org-123",
+                    flow_id="flow-456",
+                    provided_key="ADP-APICPRO-wrongkey",
+                )
+            assert exc_info.value.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_validate_webhook_api_key_missing_from_store(self):
+        from fastapi import HTTPException
+
+        from langflow.api.v1.endpoints import _validate_webhook_api_key
+
+        mock_store = AsyncMock()
+        mock_store.get = AsyncMock(return_value=None)
+
+        with patch("langflow.api.v1.endpoints.get_secret_store", return_value=mock_store):
+            with pytest.raises(HTTPException) as exc_info:
+                await _validate_webhook_api_key(
+                    org_id="org-123",
+                    flow_id="flow-456",
+                    provided_key="ADP-APICPRO-anykey",
+                )
+            assert exc_info.value.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_validate_webhook_api_key_no_key_provided(self):
+        from fastapi import HTTPException
+
+        from langflow.api.v1.endpoints import _validate_webhook_api_key
+
+        with pytest.raises(HTTPException) as exc_info:
+            await _validate_webhook_api_key(
+                org_id="org-123",
+                flow_id="flow-456",
+                provided_key=None,
+            )
+        assert exc_info.value.status_code == 401
