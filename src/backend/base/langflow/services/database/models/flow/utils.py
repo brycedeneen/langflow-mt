@@ -1,3 +1,5 @@
+import secrets
+
 from langflow.utils.version import get_version_info
 
 from .model import Flow
@@ -40,3 +42,12 @@ def get_outdated_components(flow: Flow):
         if value != lf_version:
             outdated_components.append(key)
     return outdated_components
+
+
+def generate_webhook_api_key() -> str:
+    """Generate a per-flow webhook API key.
+
+    Format: ADP-APICPRO-{48 URL-safe base64 characters}
+    Provides ~256 bits of entropy.
+    """
+    return f"ADP-APICPRO-{secrets.token_urlsafe(36)}"
