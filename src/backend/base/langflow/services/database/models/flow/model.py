@@ -14,7 +14,7 @@ from fastapi import HTTPException, status
 from lfx.log.logger import logger
 from pydantic import BaseModel, ValidationInfo, field_serializer, field_validator
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import Text, UniqueConstraint, text
+from sqlalchemy import ForeignKey, Text, UniqueConstraint, Uuid, text
 from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
 from langflow.schema.data import Data
@@ -48,6 +48,18 @@ class FlowBase(SQLModel):
         default=False,
         nullable=True,
         description="Set to True when the flow was created via the ADP Assist template-modal entry point",
+    )
+    based_on_template_flow_id: UUID | None = Field(
+        default=None,
+        sa_column=Column(
+            Uuid(),
+            ForeignKey("flow.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
+        description=(
+            "For flows cloned from a template via ADP Assist: the template "
+            "flow's id, used to resolve TemplateMetadata for conversation context"
+        ),
     )
     endpoint_name: str | None = Field(default=None, nullable=True, index=True)
     tags: list[str] | None = None

@@ -36,3 +36,38 @@ Deferred items surfaced during implementation of prior plans. Pick up when revis
 ## Possible Plan 6: MCP ext-apps integration
 
 - [ ] **Revisit after Plan 4 lands.** `@modelcontextprotocol/ext-apps` (https://www.npmjs.com/package/@modelcontextprotocol/ext-apps) lets MCP servers declare rich UI widgets that the assistant chat can render inline. Clear fit for structured-input moments: ADP auth config (client_id / client_secret / mTLS cert / key), credential pickers, component configurators. Defer to post-Plan 4 because: (1) Plan 4 will surface the actual friction points, (2) the package is new and likely still stabilizing, (3) text-only credential collection in Plan 4 is a swap, not a refactor — easy to upgrade later. Trigger to prioritize: if Plan 4's conversational credential flow feels clunky, pause Plan 4 at a natural boundary and slot this in as Plan 6.
+
+## Possible Plan 7: Template management system
+
+- [ ] **Deferred from Plan 4 brainstorm (2026-04-18).** Three bundled capabilities that would replace the current "starter projects seeded from JSON fixtures" model with a DB-backed admin-managed template catalog:
+  - **"Save as template" UI** — super-admin action on any flow that promotes it into the template catalog. Removes the need to hand-edit JSON fixtures.
+  - **Field-level persistence rules** — per-component-input knowledge of which values carry forward when saved as a template (URLs, prompts) versus which get blanked out (credentials, API keys, mTLS material). Implementation options: add a `sensitive: true` flag on the component's Input classes, or admin override UI at save-time, or both.
+  - **Template versioning** — immutable snapshots so existing user flows point to the version they were cloned from. Admin edits create a new version without retroactively affecting prior-version users. Enables an "LLM reviews template changes" feature: the assistant can diff the current version against a user's cloned version and flag "this template was updated, here's what changed, would you like to incorporate any of it?"
+  - **Migration path for Plan 4's `Flow.based_on_template_flow_id`** — today it points at the template's flow id; when versioning lands, it evolves to point at a `template_version_id` (new entity). Small migration.
+
+  Defer because: (1) Plan 4 (conversational experience) works with today's simpler template-as-starter-project model; (2) the LLM-diff feature is speculative; (3) proper data model deserves dedicated design time. Candidate trigger: concrete request from a super admin to self-author a template, or pain around re-seeding starter projects.
+
+## Possible Plan 8: "Request Professional Services" feature
+
+- [ ] **Deferred from Plan 4 brainstorm (2026-04-18).** Lets a client, mid-conversation with ADP Assist, request a human implementor with an auto-generated proposal of effort. Surfaces cleanly whenever the assistant can't fully close a flow, or the client wants a quote before signing up for services.
+
+  **Moving parts:**
+  - Two new columns on `ComponentMetadata`: `integration_hours_low: int | null` + `integration_hours_high: int | null`, edited from the existing "Component Management" admin UI.
+  - New assistant tool `generate_services_proposal(flow_id)` that walks the flow's nodes, pulls hour estimates from each component's metadata, sums the ranges, and writes a natural-language summary (what the flow does, what components are involved, where uncertainty is highest).
+  - Frontend: "Request Professional Services" action — either a header button in fullscreen mode or a suggested-action card in the assistant chat. Opens a proposal modal (components list + hours range + narrative summary + Submit).
+  - **Ticket creation integration** — the longest pole. Varies per deployment: Zendesk, Salesforce, email, custom PS intake. Needs concrete decision before build.
+  - New `ProposalRecord` DB table: snapshot of what the client saw + when + who submitted, so the PS team arrives with context.
+
+  Defer because: (1) the ticket-integration target is unknown and shapes most of the work; (2) all the pieces are additive — no Plan 4 rework required when we add them later; (3) worth waiting until real users show us the "I need a human" moments, so the trigger surface is grounded in actual usage patterns.
+
+## Plan 4 (Full-Screen Assistant Experience — 2026-04-18)
+
+### Bugs surfaced during Plan 4 manual verification
+
+- [ ] **`connect_edge` tool creates 0 edges even when called successfully** (pre-existing; Plan 2026-04-15 assistant infrastructure). Observed on flow `f18b737f-dd4c-4cee-89b7-349fc211b037` during Plan 4 verification: LLM called `connect_edge` multiple times for a 5-node flow, all nodes persisted in `flow.data.nodes`, but `flow.data.edges` stayed empty. The `connect_edge` in `src/backend/base/langflow/services/assistant/tools/mutation.py` appends to an in-memory `self.flow_data["edges"]` list and emits the edge as an SSE patch — frontend-side application or persistence path is likely dropping the edge. Hypotheses: (a) handle string format from `_build_source_handle` / `_build_target_handle` doesn't match what the frontend's patch-applier expects; (b) the handle's inner `data.sourceHandle` object needs the exact `dataType` / `output_types` keys the frontend validates against; (c) frontend receives the patch but silently rejects malformed edges. Needs a focused debugging session: log what the frontend receives over SSE, inspect React Flow's edge-add validation, and verify the persisted flow data after save.
+
+- [ ] **Backend `'Depends' object has no attribute 'exec'` warning during token auth.** Appears intermittently in the backend logs ("Unexpected error during token authentication"). Not triggered by our Plan 4 changes but worth investigating — may be a FastAPI dependency-resolution bug in an auth middleware that's leaking a `Depends(...)` placeholder instead of the resolved session.
+
+### UX polish deferred by user
+
+- [ ] **Break long assistant messages into multiple turns.** Today the assistant writes one long wall of text spanning all of its intermediate reasoning. Better: emit each distinct step as its own chat bubble ("Let me search for the Slack component…" → tool call → "Got it, now I'll add it…" → tool call → etc.). Requires either (a) prompting the LLM to split, (b) rendering tool-call intervals as implicit message boundaries, or (c) streaming-level frontend splitting on sentence boundaries. User deferred during Plan 4 verification.

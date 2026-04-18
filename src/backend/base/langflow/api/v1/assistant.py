@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
 import asyncio
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from lfx.log import logger
 from pydantic import BaseModel
 from sqlmodel import select
@@ -60,6 +61,16 @@ class SettingsResponse(BaseModel):
     provider: str | None = None
     model: str | None = None
     has_key: bool = False
+
+
+class AssistantMessageRead(BaseModel):
+    id: UUID
+    conversation_id: UUID
+    role: str
+    content: str | None = None
+    created_at: datetime | None = None
+
+    model_config = {"from_attributes": True}
 
 
 # ---------------------------------------------------------------------------
@@ -331,6 +342,7 @@ async def send_message(
                 org_id=org_id,
                 user_id=user_id,
                 model_name=model_name,
+                based_on_template_flow_id=flow.based_on_template_flow_id,
             )
             service.set_conversation_history(history_dicts)
 
@@ -482,3 +494,86 @@ async def update_settings(
             )).first()
         ),
     )
+
+
+# ---------------------------------------------------------------------------
+# POST /flows/{flow_id}/greet
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/flows/{flow_id}/greet",
+    status_code=status.HTTP_201_CREATED,
+    response_model=AssistantMessageRead,
+)
+async def greet_conversation(
+    flow_id: UUID,
+    current_user: CurrentActiveUser,
+    org: CurrentOrg,
+    session: DbSession,
+) -> AssistantMessage:
+    """Produce and persist the first assistant message for an empty conversation.
+
+    Called by the fullscreen ADP Assist frontend when a flow is opened with no
+    prior conversation. Idempotent: returns 409 if the conversation already
+    has any assistant message.
+    """
+    # 1. Load flow with org check
+    flow = await _get_flow_with_org_check(session, flow_id, org.id)
+
+    # 2. Load assistant settings
+    settings = await _load_assistant_settings(session, org.id, current_user.id)
+    if not settings.get("provider") or not settings.get("model") or not settings.get("api_key"):
+        raise HTTPException(status_code=400, detail={"settings_required": True})
+
+    # 3. Load or create conversation
+    stmt = select(AssistantConversation).where(AssistantConversation.flow_id == flow_id)
+    conversation = (await session.exec(stmt)).first()
+    if conversation is None:
+        conversation = AssistantConversation(flow_id=flow_id, org_id=org.id)
+        session.add(conversation)
+        await session.flush()
+
+    # 4. Guard: 409 if any assistant message already exists
+    existing_asst = (
+        await session.exec(
+            select(AssistantMessage)
+            .where(AssistantMessage.conversation_id == conversation.id)
+            .where(AssistantMessage.role == "assistant")
+            .limit(1)
+        )
+    ).first()
+    if existing_asst is not None:
+        raise HTTPException(status_code=409, detail="Conversation already greeted")
+
+    # 5. Build provider client + service (match /messages handler pattern)
+    provider_client = _create_provider_client(settings["provider"], settings["model"], settings["api_key"])
+    service = AssistantService(
+        provider_client=provider_client,
+        flow_data=flow.data or {},
+        flow_id=flow.id,
+        org_id=org.id,
+        user_id=current_user.id,
+        model_name=settings["model"],
+        based_on_template_flow_id=flow.based_on_template_flow_id,
+    )
+
+    # 6. Non-streaming one-shot LLM call with the __greet__ sentinel
+    try:
+        greeting_text = await service.generate_once(user_content="__greet__")
+    except Exception as exc:
+        logger.exception("Greeting LLM call failed for flow %s: %s", flow_id, exc)
+        raise HTTPException(status_code=500, detail="Greeting generation failed") from exc
+
+    # 7. Persist the assistant message (user turn intentionally NOT persisted)
+    msg = AssistantMessage(
+        conversation_id=conversation.id,
+        user_id=None,
+        role="assistant",
+        content=greeting_text,
+    )
+    session.add(msg)
+    await session.commit()
+    await session.refresh(msg)
+
+    return msg

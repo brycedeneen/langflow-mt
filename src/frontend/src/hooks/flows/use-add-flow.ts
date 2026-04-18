@@ -59,6 +59,7 @@ const useAddFlow = () => {
     override?: boolean;
     new_blank?: boolean;
     built_with_assist?: boolean;
+    based_on_template_flow_id?: string | null;
   }): Promise<string> => {
     const flow = cloneDeep(params?.flow) ?? undefined;
     const flowData = flow
@@ -112,6 +113,12 @@ const useAddFlow = () => {
       folder_id: folder_id,
       built_with_assist:
         params?.built_with_assist ?? flow?.built_with_assist ?? false,
+      based_on_template_flow_id:
+        params?.based_on_template_flow_id ??
+        // When cloning from a template (params.flow is the source template),
+        // preserve the template's flow.id so the backend can resolve
+        // TemplateMetadata for conversation context.
+        (params?.flow?.id ?? null),
     };
 
     return new Promise<string>((resolve, reject) => {

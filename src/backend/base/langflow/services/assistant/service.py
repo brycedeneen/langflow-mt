@@ -15,8 +15,10 @@ from langflow.services.assistant.providers.base import ProviderClient, StreamEve
 from langflow.services.assistant.tools import catalog
 from langflow.services.assistant.tools.mutation import FlowMutationTools
 from langflow.services.assistant.tools.registry import get_tools_for_anthropic, get_tools_for_openai, is_catalog_tool, is_mutation_tool
+from langflow.services.assistant.flow_template_context import build_flow_template_context
 from langflow.services.assistant.template_prompt import build_available_templates_block
 from langflow.services.assistant.tools.template_metadata import get_template_instructions
+from langflow.services.assistant.tools.template_apply import apply_template
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -43,6 +45,7 @@ and understand their Langflow flows.
 ## Current Canvas
 {canvas_summary}
 
+{flow_template_context}
 {available_templates}
 ## Guidelines
 - Use tools to search for components before adding them.
@@ -58,6 +61,29 @@ component knowledge.
 - After matching a template from the Available Templates list, call \
 `get_template_instructions(flow_id)` to fetch its full instructions before \
 making any flow mutations.
+- When the user's most recent message is exactly `__greet__`, you are opening \
+the conversation. Do not treat it as a question. Respond with a short, friendly \
+greeting appropriate to the Current Flow Template (if present) or invite the \
+user to describe what they want to build (if no template is present). One or \
+two sentences.
+- When adding components, make an opinionated choice and narrate it — e.g., \
+"I've added a Slack node — which channel should it post to?" Do not ask "which \
+component should I use?" unless the user's intent is genuinely ambiguous. Offer \
+alternatives inline: "I'm using a Slack node; say 'use Discord' if you'd rather."
+- Frame configuration in the user's terms, not the product's. Ask "which Slack \
+channel?" not "what's the value for the `channel_id` field on the SlackNotifier \
+component?". Avoid referencing internal node ids, field names, or component \
+class names in your messages unless the user asks for that level of detail.
+- When you believe the flow is fully assembled and configured, invite the user \
+to test it by saying something like: "Your flow is ready — click the Test \
+button in the header to run each component and check the connections." Do not \
+trigger the mode switch yourself; the user clicks the header Test button.
+- Before starting a complex multi-component build, set expectations: tell the \
+user it may take a few minutes because you'll be searching for components, \
+inspecting schemas, wiring them together, and configuring defaults. Invite \
+them to stay with you or check back shortly. Example: "This will take a few \
+minutes — I'll be picking components, checking their schemas, and wiring them \
+up. You can watch along or come back in a few minutes."
 """
 
 # ---------------------------------------------------------------------------
@@ -70,6 +96,7 @@ CATALOG_DISPATCH: dict[str, Any] = {
     "get_component_schema": catalog.get_component_schema,
     "list_compatible_outputs": catalog.list_compatible_outputs,
     "get_template_instructions": get_template_instructions,
+    "apply_template": apply_template,
 }
 
 # ---------------------------------------------------------------------------
@@ -88,6 +115,7 @@ class AssistantService:
         org_id: UUID,
         user_id: UUID,
         model_name: str,
+        based_on_template_flow_id: UUID | None = None,
     ) -> None:
         self.provider_client = provider_client
         self.flow_data = flow_data
@@ -95,6 +123,7 @@ class AssistantService:
         self.org_id = org_id
         self.user_id = user_id
         self.model_name = model_name
+        self.based_on_template_flow_id = based_on_template_flow_id
         self.mutation_tools = FlowMutationTools(flow_data)
         self._conversation_messages: list[dict[str, Any]] = []
 
@@ -192,8 +221,12 @@ class AssistantService:
         # 2. Build system prompt
         canvas_summary = self._build_canvas_summary()
         available_templates = await build_available_templates_block()
+        flow_template_context = await build_flow_template_context(
+            self.based_on_template_flow_id
+        )
         system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
             canvas_summary=canvas_summary,
+            flow_template_context=flow_template_context,
             available_templates=available_templates,
         )
 
@@ -308,3 +341,35 @@ class AssistantService:
 
         # Max rounds exceeded
         yield {"type": "error", "error": "Maximum tool-calling rounds exceeded"}
+
+    # ------------------------------------------------------------------
+    # Non-streaming one-shot helper
+    # ------------------------------------------------------------------
+
+    async def generate_once(self, user_content: str) -> str:
+        """Non-streaming one-shot: one user turn in, one assistant text out. No tool calls.
+
+        Used by the /greet endpoint for proactive greetings. Builds the full system
+        prompt (same as send_message), sends a single user message, sinks the stream,
+        and returns the concatenated assistant text.
+        """
+        canvas_summary = self._build_canvas_summary()
+        available_templates = await build_available_templates_block()
+        flow_template_context = await build_flow_template_context(
+            self.based_on_template_flow_id
+        )
+        system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
+            canvas_summary=canvas_summary,
+            flow_template_context=flow_template_context,
+            available_templates=available_templates,
+        )
+        messages = [{"role": "user", "content": user_content}]
+        parts: list[str] = []
+        async for event in self.provider_client.stream_with_tools(messages, system_prompt, []):
+            if event.type == "token":
+                parts.append(event.text or "")
+            elif event.type == "message_complete":
+                break
+            elif event.type == "error":
+                raise RuntimeError(event.error_message or "Provider error during generate_once")
+        return "".join(parts).strip()

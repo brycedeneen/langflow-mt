@@ -31,6 +31,7 @@ export type FlowType = {
   folder_id?: string;
   webhook?: boolean;
   built_with_assist?: boolean;
+  based_on_template_flow_id?: string | null;
   locked?: boolean | null;
   public?: boolean;
   access_type?: "PUBLIC" | "PRIVATE" | "PROTECTED";

@@ -54,8 +54,14 @@ export default function Composer({ onSend }: ComposerProps) {
         onClick={handleSend}
         disabled={isStreaming || !value.trim()}
         className="h-9 w-9 shrink-0"
+        aria-label={isStreaming ? "Assistant is working" : "Send message"}
       >
-        <ForwardedIconComponent name="Send" className="h-4 w-4" />
+        <ForwardedIconComponent
+          name={isStreaming ? "Loader2" : "Send"}
+          className={
+            isStreaming ? "h-4 w-4 animate-spin" : "h-4 w-4"
+          }
+        />
       </Button>
     </div>
   );
