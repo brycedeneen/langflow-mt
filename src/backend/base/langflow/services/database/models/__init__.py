@@ -1,6 +1,7 @@
 from .api_key import ApiKey
 from .assistant import AssistantConversation, AssistantMessage
 from .auth import SSOConfig, SSOUserProfile
+from .component_metadata import ComponentMetadata
 from .deployment import Deployment
 from .deployment_provider_account import DeploymentProviderAccount
 from .file import File
@@ -13,6 +14,7 @@ from .jobs import Job
 from .membership import Membership, MembershipRole
 from .message import MessageTable
 from .organization import Organization
+from .template_metadata import TemplateMetadata
 from .traces.model import SpanTable, TraceTable
 from .transactions import TransactionTable
 from .user import User
@@ -22,6 +24,7 @@ __all__ = [
     "ApiKey",
     "AssistantConversation",
     "AssistantMessage",
+    "ComponentMetadata",
     "Deployment",
     "DeploymentProviderAccount",
     "File",
@@ -39,6 +42,7 @@ __all__ = [
     "SSOConfig",
     "SSOUserProfile",
     "SpanTable",
+    "TemplateMetadata",
     "TraceTable",
     "TransactionTable",
     "User",

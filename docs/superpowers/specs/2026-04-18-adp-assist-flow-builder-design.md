@@ -174,14 +174,18 @@ A new Python component extending the webhook pattern.
 
 `event_types` — multi-select dropdown with friendly names mapped to ADP event identifiers:
 
-| Friendly name | ADP event identifier(s) |
-|---------------|------------------------|
+| Friendly name | ADP subscription topic(s) |
+|---------------|----------------------------|
 | New Hire | `worker.hire.eventNotify` |
 | Rehire | `worker.rehire.eventNotify`, `worker.rehire.eventNotify.subscribe` |
 | Retirement | `worker.workAssignment.retire.eventNotify.subscribe` |
 | Leave | `worker.onLeave.eventNotify.subscribe` |
 | Hire Date Change | `worker.workerOriginalHireDate.change.eventNotify.subscribe` |
 | Deceased | `worker.deceased.eventNotify.subscribe` |
+
+**Note on payload-level event IDs:** The identifiers above are ADP's **subscription topic names**. Inside the actual webhook body (`events[0].eventNameCode.codeValue`), ADP typically sends the **base form** (e.g., `worker.hire`) — not the `.eventNotify` variant. The trigger component accepts both the base and suffixed forms for each friendly name, so the filter works regardless of which variant the tenant sends.
+
+**Payload shape observed from ADP:** worker data lives at `events[0].data.output.worker` (not `data.eventContext.worker`), and the effective date is at the event level (`events[0].effectiveDateTime`). The trigger tolerates both shapes for forward compatibility.
 
 Inherits the webhook's `data` input for receiving the raw payload.
 

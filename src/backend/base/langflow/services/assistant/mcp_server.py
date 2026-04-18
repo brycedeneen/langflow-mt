@@ -17,6 +17,9 @@ from langflow.services.assistant.tools.catalog import (
     list_compatible_outputs,
     search_components,
 )
+from langflow.services.assistant.tools.template_metadata import (
+    get_template_instructions,
+)
 
 server = Server("langflow-components-catalog")
 
@@ -41,7 +44,8 @@ async def handle_list_tools() -> list[types.Tool]:
             name="search_components",
             description=(
                 "Search for Langflow components by name or description, optionally "
-                "filtered by category. Returns summary info: name, display_name, type, description."
+                "filtered by category. Returns summary info: name, display_name, type, description, "
+                "and (when admin-authored) agent_summary."
             ),
             inputSchema={
                 "type": "object",
@@ -62,7 +66,7 @@ async def handle_list_tools() -> list[types.Tool]:
             name="get_component_schema",
             description=(
                 "Get the full schema for a specific component including all inputs, "
-                "outputs, and type information."
+                "outputs, type information, and (when admin-authored) agent_usage_notes."
             ),
             inputSchema={
                 "type": "object",
@@ -73,6 +77,23 @@ async def handle_list_tools() -> list[types.Tool]:
                     },
                 },
                 "required": ["component_name"],
+            },
+        ),
+        types.Tool(
+            name="get_template_instructions",
+            description=(
+                "Fetch the admin-authored usage notes for a starter-project template, "
+                "keyed by flow_id. Returns {flow_id, flow_name, agent_usage_notes}."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "flow_id": {
+                        "type": "string",
+                        "description": "UUID of the template's flow.",
+                    },
+                },
+                "required": ["flow_id"],
             },
         ),
         types.Tool(
@@ -119,6 +140,13 @@ async def handle_call_tool(name: str, arguments: dict | None) -> list[types.Text
         if not input_type:
             return [types.TextContent(type="text", text=json.dumps({"error": "input_type is required"}))]
         result = await list_compatible_outputs(input_type=input_type)
+    elif name == "get_template_instructions":
+        flow_id = arguments.get("flow_id")
+        if not flow_id:
+            return [types.TextContent(type="text", text=json.dumps({"error": "flow_id is required"}))]
+        result = await get_template_instructions(flow_id=flow_id)
+        if result is None:
+            result = {"error": f"Template with flow_id '{flow_id}' not found"}
     else:
         result = {"error": f"Unknown tool: {name}"}
 

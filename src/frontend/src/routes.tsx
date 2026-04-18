@@ -37,7 +37,9 @@ import GlobalVariablesPage from "./pages/SettingsPage/pages/GlobalVariablesPage"
 import MCPServersPage from "./pages/SettingsPage/pages/MCPServersPage";
 import ModelProvidersPage from "./pages/SettingsPage/pages/ModelProvidersPage";
 import AssistantSettingsPage from "./pages/SettingsPage/pages/AssistantSettingsPage";
+import MetadataPage from "./pages/SettingsPage/pages/MetadataPage";
 import MessagesPage from "./pages/SettingsPage/pages/messagesPage";
+import { ProtectedSuperuserRoute } from "./components/authorization/authSuperuserGuard";
 import ShortcutsPage from "./pages/SettingsPage/pages/ShortcutsPage";
 import ViewPage from "./pages/ViewPage";
 
@@ -178,6 +180,14 @@ const router = createBrowserRouter(
                   <Route
                     path="assistant"
                     element={<AssistantSettingsPage />}
+                  />
+                  <Route
+                    path="metadata"
+                    element={
+                      <ProtectedSuperuserRoute>
+                        <MetadataPage />
+                      </ProtectedSuperuserRoute>
+                    }
                   />
                   {CustomRoutesStore()}
                 </Route>

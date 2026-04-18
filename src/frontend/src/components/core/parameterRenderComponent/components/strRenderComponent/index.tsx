@@ -1,3 +1,4 @@
+import { isWebhookLikeNodeType } from "@/utils/webhookNodeTypes";
 import type { InputProps, StrRenderComponentType } from "../../types";
 import CopyFieldAreaComponent from "../copyFieldAreaComponent";
 import DropdownComponent from "../dropdownComponent";
@@ -22,7 +23,7 @@ export function StrRenderComponent({
   const isMultiline = templateData.multiline;
   const copyField = templateData.copy_field;
   const hasOptions = !!templateData.options;
-  const isWebhook = nodeInformationMetadata?.nodeType === "webhook";
+  const isWebhook = isWebhookLikeNodeType(nodeInformationMetadata?.nodeType);
 
   if (noOptions) {
     if (isMultiline) {

@@ -19,7 +19,7 @@ from langflow.api.utils.core import DbSession, PlatformAdmin
 from langflow.services.database.models.membership.model import Membership
 from langflow.services.database.models.organization.model import Organization
 
-router = APIRouter(prefix="/admin", tags=["Admin"])
+router = APIRouter(tags=["Admin"])
 
 
 class OrgCreate(BaseModel):

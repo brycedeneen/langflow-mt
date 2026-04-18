@@ -15,6 +15,10 @@ from langflow.agentic.utils.component_search import (
     get_components_count,
     list_all_components,
 )
+from langflow.services.assistant.tools.metadata_lookup import (
+    fetch_component_summaries,
+    fetch_component_usage_notes,
+)
 
 # Fields returned by the "summary" endpoints (search / list).
 SUMMARY_FIELDS: list[str] = ["name", "display_name", "type", "description"]
@@ -60,11 +64,15 @@ async def search_components(
     Returns:
         List of dicts with keys from :data:`SUMMARY_FIELDS`.
     """
-    return await list_all_components(
+    results = await list_all_components(
         query=query,
         component_type=component_type,
         fields=SUMMARY_FIELDS,
     )
+    summaries = await fetch_component_summaries([r["name"] for r in results])
+    for r in results:
+        r["agent_summary"] = summaries.get(r["name"])
+    return results
 
 
 async def get_component_schema(component_name: str) -> dict[str, Any] | None:
@@ -78,10 +86,13 @@ async def get_component_schema(component_name: str) -> dict[str, Any] | None:
         Dict with keys from :data:`SCHEMA_FIELDS`, or ``None`` when the
         component is not found.
     """
-    return await get_component_by_name(
+    schema = await get_component_by_name(
         component_name=component_name,
         fields=SCHEMA_FIELDS,
     )
+    if schema is not None:
+        schema["agent_usage_notes"] = await fetch_component_usage_notes(component_name)
+    return schema
 
 
 async def list_compatible_outputs(input_type: str) -> list[dict[str, Any]]:

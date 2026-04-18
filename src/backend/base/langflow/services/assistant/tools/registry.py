@@ -42,6 +42,25 @@ CATALOG_TOOLS = [
             "required": ["input_type"],
         },
     },
+    {
+        "name": "get_template_instructions",
+        "description": (
+            "Fetch the full admin-authored usage notes for a starter-project "
+            "template, keyed by flow_id. Call this after matching a template "
+            "from the Available Templates list in the system prompt, before "
+            "mutating the flow. Returns {flow_id, flow_name, agent_usage_notes}."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "flow_id": {
+                    "type": "string",
+                    "description": "UUID of the template's flow.",
+                },
+            },
+            "required": ["flow_id"],
+        },
+    },
 ]
 
 MUTATION_TOOLS = [

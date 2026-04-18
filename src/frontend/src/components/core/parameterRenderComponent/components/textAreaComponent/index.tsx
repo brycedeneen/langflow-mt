@@ -4,6 +4,7 @@ import { customGetHostProtocol } from "@/customization/utils/custom-get-host-pro
 import { getCurlWebhookCode } from "@/modals/apiModal/utils/get-curl-code";
 import ComponentTextModal from "@/modals/textAreaModal";
 import { useUtilityStore } from "@/stores/utilityStore";
+import { isWebhookLikeNodeType } from "@/utils/webhookNodeTypes";
 import { cn } from "../../../../../utils/utils";
 import IconComponent from "../../../../common/genericIconComponent";
 import { Input } from "../../../../ui/input";
@@ -80,7 +81,7 @@ export default function TextAreaComponent({
   const [cursor, setCursor] = useState<number | null>(null);
 
   const isWebhook = useMemo(
-    () => nodeInformationMetadata?.nodeType === "webhook",
+    () => isWebhookLikeNodeType(nodeInformationMetadata?.nodeType),
     [nodeInformationMetadata?.nodeType],
   );
 

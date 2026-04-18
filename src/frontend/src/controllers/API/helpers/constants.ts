@@ -40,6 +40,8 @@ export const URLs = {
   REGISTRATION: `registration`,
   ADMIN_ORGS: `admin/organizations`,
   ADMIN_USERS: `admin/users`,
+  METADATA_COMPONENTS: `admin/metadata/components`,
+  METADATA_TEMPLATES: `admin/metadata/templates`,
 } as const;
 
 // IMPORTANT: FOLDERS endpoint now points to 'projects' for backward compatibility

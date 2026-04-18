@@ -13,6 +13,8 @@ import ForwardedIconComponent from "../../components/common/genericIconComponent
 import PageLayout from "../../components/common/pageLayout";
 export default function SettingsPage(): JSX.Element {
   const autoLogin = useAuthStore((state) => state.autoLogin);
+  const userData = useAuthStore((state) => state.userData);
+  const isAdmin = useAuthStore((state) => state.isAdmin);
   const hasStore = useStoreStore((state) => state.hasStore);
 
   // Hides the General settings if there is nothing to show
@@ -100,6 +102,19 @@ export default function SettingsPage(): JSX.Element {
       ),
     },
   );
+
+  if (isAdmin || userData?.is_superuser) {
+    sidebarNavItems.push({
+      title: "Flow and Component Management",
+      href: "/settings/metadata",
+      icon: (
+        <ForwardedIconComponent
+          name="Database"
+          className="w-4 flex-shrink-0 justify-start stroke-[1.5]"
+        />
+      ),
+    });
+  }
 
   // TODO: Remove this on cleanup
   if (!ENABLE_DATASTAX_LANGFLOW) {

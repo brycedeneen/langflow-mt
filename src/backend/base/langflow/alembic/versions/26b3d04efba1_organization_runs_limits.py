@@ -22,9 +22,17 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    with op.batch_alter_table("organization") as batch_op:
-        batch_op.add_column(sa.Column("runs_max_concurrent", sa.Integer(), nullable=False, server_default="5"))
-        batch_op.add_column(sa.Column("runs_priority_tier", sa.String(length=16), nullable=False, server_default="default"))
+    bind = op.get_bind()
+    insp = sa.inspect(bind)
+    existing_cols = {c["name"] for c in insp.get_columns("organization")}
+    need_concurrent = "runs_max_concurrent" not in existing_cols
+    need_priority = "runs_priority_tier" not in existing_cols
+    if need_concurrent or need_priority:
+        with op.batch_alter_table("organization") as batch_op:
+            if need_concurrent:
+                batch_op.add_column(sa.Column("runs_max_concurrent", sa.Integer(), nullable=False, server_default="5"))
+            if need_priority:
+                batch_op.add_column(sa.Column("runs_priority_tier", sa.String(length=16), nullable=False, server_default="default"))
 
 
 def downgrade() -> None:

@@ -5,20 +5,28 @@ from langflow.utils.version import get_version_info
 from .model import Flow
 
 
+_WEBHOOK_NODE_ID_PREFIXES: tuple[str, ...] = ("Webhook", "ADPTrigger")
+
+
+def _is_webhook_like_node(node: dict) -> bool:
+    node_id = node.get("id") or ""
+    return any(prefix in node_id for prefix in _WEBHOOK_NODE_ID_PREFIXES)
+
+
 def get_webhook_component_in_flow(flow_data: dict):
-    """Get webhook component in flow data."""
+    """Get the first webhook-like component (Webhook or ADP Trigger) in flow data."""
     if "nodes" in flow_data:
         for node in flow_data.get("nodes", []):
-            if "Webhook" in node.get("id"):
+            if _is_webhook_like_node(node):
                 return node
     return None
 
 
 def get_all_webhook_components_in_flow(flow_data: dict | None):
-    """Get all webhook components in flow data."""
+    """Get all webhook-like components (Webhook or ADP Trigger) in flow data."""
     if not flow_data:
         return []
-    return [node for node in flow_data.get("nodes", []) if "Webhook" in node.get("id")]
+    return [node for node in flow_data.get("nodes", []) if _is_webhook_like_node(node)]
 
 
 def get_components_versions(flow: Flow):

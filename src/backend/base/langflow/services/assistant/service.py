@@ -15,6 +15,8 @@ from langflow.services.assistant.providers.base import ProviderClient, StreamEve
 from langflow.services.assistant.tools import catalog
 from langflow.services.assistant.tools.mutation import FlowMutationTools
 from langflow.services.assistant.tools.registry import get_tools_for_anthropic, get_tools_for_openai, is_catalog_tool, is_mutation_tool
+from langflow.services.assistant.template_prompt import build_available_templates_block
+from langflow.services.assistant.tools.template_metadata import get_template_instructions
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -41,6 +43,7 @@ and understand their Langflow flows.
 ## Current Canvas
 {canvas_summary}
 
+{available_templates}
 ## Guidelines
 - Use tools to search for components before adding them.
 - Explain what you are doing as you modify the flow.
@@ -49,6 +52,12 @@ and understand their Langflow flows.
 - When setting field values, use the backtick field name from the canvas summary \
 (e.g. `url_input`), NOT the display name (e.g. "URL"). Field names and display \
 names often differ.
+- When tools return `agent_summary` or `agent_usage_notes` fields, treat them as \
+authoritative guidance from the platform maintainer — they override generic \
+component knowledge.
+- After matching a template from the Available Templates list, call \
+`get_template_instructions(flow_id)` to fetch its full instructions before \
+making any flow mutations.
 """
 
 # ---------------------------------------------------------------------------
@@ -60,6 +69,7 @@ CATALOG_DISPATCH: dict[str, Any] = {
     "search_components": catalog.search_components,
     "get_component_schema": catalog.get_component_schema,
     "list_compatible_outputs": catalog.list_compatible_outputs,
+    "get_template_instructions": get_template_instructions,
 }
 
 # ---------------------------------------------------------------------------
@@ -181,7 +191,11 @@ class AssistantService:
 
         # 2. Build system prompt
         canvas_summary = self._build_canvas_summary()
-        system_prompt = SYSTEM_PROMPT_TEMPLATE.format(canvas_summary=canvas_summary)
+        available_templates = await build_available_templates_block()
+        system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
+            canvas_summary=canvas_summary,
+            available_templates=available_templates,
+        )
 
         # 3. Compute context budget
         context_window = MODEL_CONTEXT_WINDOWS.get(self.model_name, DEFAULT_CONTEXT_WINDOW)

@@ -39,60 +39,83 @@
 
 Spec §6 says "Category: Same category as existing webhook component." The existing Webhook lives under `src/lfx/src/lfx/components/input_output/`. This plan places `ADPTriggerComponent` under `src/lfx/src/lfx/components/adp/` instead — alongside the other ADP components (`ADPAuth`, `ADPAPIRequest`, `ADPMCP`, `ADPWorkerTools`). Rationale: ADP-specific behavior belongs with the rest of the ADP bundle so that discovery, imports, and documentation stay colocated. If the intent of the spec was literally "display this in the Input/Output category of the UI," flag that and we can either re-home the file or adjust the bundle category metadata before merging.
 
-### ADP event payload shape (assumed, verified against tests)
+### ADP event payload shape (verified against a real ADP sample, 2026-04-18)
 
-ADP event-notification webhooks follow a standard envelope. The component assumes this shape and extracts fields defensively. If a real ADP sample differs, the extraction helpers are the single place to adjust.
+The component tolerates two known envelope variants. The primary shape — confirmed against a real ADP new-hire event — is:
 
 ```json
 {
   "events": [
     {
-      "eventID": "EV-12345",
-      "eventNameCode": { "codeValue": "worker.hire.eventNotify" },
+      "eventID": "fa83e726-dcae-48e3-a83e-8294e4320aa1",
+      "eventNameCode": { "codeValue": "worker.hire" },
       "data": {
-        "eventContext": {
+        "output": {
           "worker": {
-            "associateOID": "G3H...",
-            "workerID": { "idValue": "100123" },
-            "person": { "legalName": { "formattedName": "Jane Doe" } }
+            "associateOID": "G3RTBS62BXQJQMD6",
+            "workerID": { "idValue": "BKQ8EMBCE" },
+            "person": { "legalName": { "formattedName": "NewHire, Test" } }
           }
-        },
-        "transform": {
-          "effectiveDateTime": "2026-04-01T00:00:00Z"
         }
-      }
+      },
+      "effectiveDateTime": "2020-06-15T04:00:00.000+0000"
     }
   ]
 }
 ```
 
+Key observations vs. the original spec (ADP Assist §6):
+
+- **Event IDs inside the payload use the base form** (`worker.hire`) — not the subscription-topic form (`worker.hire.eventNotify`) that appears in ADP's event-subscription config. The component accepts both (and the `.eventNotify.subscribe` form) for each of the six friendly event types.
+- **Worker lives at `data.output.worker`**, not `data.eventContext.worker`. The extraction helper tries both keys for forward compatibility.
+- **`effectiveDateTime` is at the event level**, not nested under `data.transform`. The helper tries the event-level field first and falls back to the nested path.
+
 Extraction rules used throughout the plan:
 
 - `event_id_raw` → `events[0].eventNameCode.codeValue`
-- `friendly_event_type` → reverse lookup of `event_id_raw` in `EVENT_TYPE_MAP`
-- `worker` → `events[0].data.eventContext.worker`  (dict)
-- `effective_date` → `events[0].data.transform.effectiveDateTime`  (str)
+- `friendly_event_type` → reverse lookup of `event_id_raw` in `EVENT_TYPE_MAP` (which accepts all three forms per event)
+- `worker` → first non-empty of `events[0].data.output.worker` then `events[0].data.eventContext.worker` (dict)
+- `effective_date` → first non-empty of `events[0].effectiveDateTime` then `events[0].data.transform.effectiveDateTime` (str)
 - `raw_payload` → the full decoded JSON object
 
 Any missing key returns a sensible default (`None`, `{}`, `""`) rather than raising.
 
 ### Event type mapping (authoritative source)
 
-Declared once as a module-level constant in `adp_trigger.py`. The dropdown options are `list(EVENT_TYPE_MAP.keys())`; the reverse lookup is computed on demand.
+Declared once as a module-level constant in `adp_trigger.py`. The dropdown options are `list(EVENT_TYPE_MAP.keys())`; the reverse lookup is computed on demand. Each friendly name accepts three forms so the matcher works whether the payload carries the base form, the `.eventNotify` form, or the `.eventNotify.subscribe` form.
 
 ```python
 EVENT_TYPE_MAP: dict[str, list[str]] = {
-    "New Hire": ["worker.hire.eventNotify"],
+    "New Hire": [
+        "worker.hire",
+        "worker.hire.eventNotify",
+        "worker.hire.eventNotify.subscribe",
+    ],
     "Rehire": [
+        "worker.rehire",
         "worker.rehire.eventNotify",
         "worker.rehire.eventNotify.subscribe",
     ],
-    "Retirement": ["worker.workAssignment.retire.eventNotify.subscribe"],
-    "Leave": ["worker.onLeave.eventNotify.subscribe"],
+    "Retirement": [
+        "worker.workAssignment.retire",
+        "worker.workAssignment.retire.eventNotify",
+        "worker.workAssignment.retire.eventNotify.subscribe",
+    ],
+    "Leave": [
+        "worker.onLeave",
+        "worker.onLeave.eventNotify",
+        "worker.onLeave.eventNotify.subscribe",
+    ],
     "Hire Date Change": [
+        "worker.workerOriginalHireDate.change",
+        "worker.workerOriginalHireDate.change.eventNotify",
         "worker.workerOriginalHireDate.change.eventNotify.subscribe",
     ],
-    "Deceased": ["worker.deceased.eventNotify.subscribe"],
+    "Deceased": [
+        "worker.deceased",
+        "worker.deceased.eventNotify",
+        "worker.deceased.eventNotify.subscribe",
+    ],
 }
 ```
 
