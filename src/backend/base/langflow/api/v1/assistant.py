@@ -334,18 +334,25 @@ async def send_message(
     }
 
     async def event_generator():
-        try:
-            service = AssistantService(
-                provider_client=provider_client,
-                flow_data=flow_data,
-                flow_id=flow_id,
-                org_id=org_id,
-                user_id=user_id,
-                model_name=model_name,
-                based_on_template_flow_id=flow.based_on_template_flow_id,
-            )
-            service.set_conversation_history(history_dicts)
+        # Service is constructed OUTSIDE the try so `finally` can still read
+        # service.mutation_tools.flow_data even if send_message raises.
+        # This is load-bearing: if we only persist on the success path, any
+        # mid-stream exception (rate limit, network drop, provider timeout)
+        # throws away in-memory mutations — nodes/edges the tools already
+        # added silently fail to reach the DB. See commit message + followup
+        # for the full symptom (connect_edge "succeeds" but edges vanish).
+        service = AssistantService(
+            provider_client=provider_client,
+            flow_data=flow_data,
+            flow_id=flow_id,
+            org_id=org_id,
+            user_id=user_id,
+            model_name=model_name,
+            based_on_template_flow_id=flow.based_on_template_flow_id,
+        )
+        service.set_conversation_history(history_dicts)
 
+        try:
             async for event in service.send_message(user_content):
                 event_type = event.get("type", "unknown")
 
@@ -390,6 +397,16 @@ async def send_message(
                 elif event_type == "error":
                     yield {"data": json.dumps({"type": "error", "error": event.get("error", "Unknown error")})}
 
+        except Exception as exc:
+            import traceback
+            tb = traceback.format_exc()
+            logger.error("Assistant SSE error for flow %s: %s\n%s", flow_id, exc, tb)
+            print(f"[ASSISTANT ERROR] {exc}\n{tb}", flush=True)
+            yield {"data": json.dumps({"type": "error", "error": str(exc)})}
+        finally:
+            # ALWAYS capture and schedule persistence — even on mid-stream
+            # errors. This keeps partial mutations (nodes/edges the tools
+            # already applied) from being lost.
             persist_data["final_flow_data"] = service.mutation_tools.flow_data
 
             # Fire-and-forget persistence in a background task.
@@ -407,13 +424,6 @@ async def send_message(
                 flow_id=flow_id,
                 final_flow_data=persist_data["final_flow_data"],
             ))
-
-        except Exception as exc:
-            import traceback
-            tb = traceback.format_exc()
-            logger.error("Assistant SSE error for flow %s: %s\n%s", flow_id, exc, tb)
-            print(f"[ASSISTANT ERROR] {exc}\n{tb}", flush=True)
-            yield {"data": json.dumps({"type": "error", "error": str(exc)})}
 
     return EventSourceResponse(event_generator())
 
