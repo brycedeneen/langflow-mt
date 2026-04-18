@@ -15,6 +15,7 @@ from pydantic_settings import BaseSettings, EnvSettingsSource, PydanticBaseSetti
 from typing_extensions import override
 
 from lfx.constants import BASE_COMPONENTS_PATH
+from lfx.services.secret_store.settings import SecretStoreSettings
 from lfx.log.logger import logger
 from lfx.serialization.constants import MAX_ITEMS_LENGTH, MAX_TEXT_LENGTH
 from lfx.services.settings.constants import AGENTIC_VARIABLES, VARIABLES_TO_GET_FROM_ENVIRONMENT
@@ -388,6 +389,8 @@ class Settings(BaseSettings):
 
     org_default_max_concurrent_runs: int = 5
     """Default per-organization concurrent run cap when not overridden."""
+
+    secret_store: SecretStoreSettings = Field(default_factory=SecretStoreSettings)
 
     @field_validator("runtime_port", mode="before")
     @classmethod

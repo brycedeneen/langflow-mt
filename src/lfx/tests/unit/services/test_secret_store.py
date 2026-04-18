@@ -69,3 +69,22 @@ class TestSecretStoreABC:
     def test_cannot_instantiate_abc_directly(self):
         with pytest.raises(TypeError):
             SecretStore()  # type: ignore[abstract]
+
+
+from lfx.services.secret_store.settings import SecretStoreSettings
+
+
+class TestSecretStoreSettings:
+    def test_default_values(self):
+        settings = SecretStoreSettings()
+        assert settings.SECRET_STORE_BACKEND == "vault"
+        assert settings.VAULT_ADDR == "http://localhost:8200"
+        assert settings.VAULT_MOUNT_POINT == "secret"
+
+    def test_vault_token_required_string(self):
+        settings = SecretStoreSettings(VAULT_TOKEN="myroot")
+        assert settings.VAULT_TOKEN.get_secret_value() == "myroot"
+
+    def test_override_backend(self):
+        settings = SecretStoreSettings(SECRET_STORE_BACKEND="memory")
+        assert settings.SECRET_STORE_BACKEND == "memory"
