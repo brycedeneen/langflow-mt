@@ -29,10 +29,10 @@ export default function ContentDisplay({
     case "text":
       contentData = (
         <div className="ml-1 pr-20">
+          <div className="markdown prose max-w-full text-sm font-normal dark:prose-invert">
           <Markdown
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeMathjax]}
-            className="markdown prose max-w-full text-sm font-normal dark:prose-invert"
             components={{
               a: ({ node, ...props }) => (
                 <a {...props} target="_blank" rel="noopener noreferrer">
@@ -85,6 +85,7 @@ export default function ContentDisplay({
           >
             {String(content.text)}
           </Markdown>
+          </div>
         </div>
       );
       break;
@@ -133,10 +134,10 @@ export default function ContentDisplay({
         // If it's a string, render as markdown
         if (typeof output === "string") {
           return (
+            <div className="markdown prose max-w-full text-sm font-normal dark:prose-invert">
             <Markdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeMathjax]}
-              className="markdown prose max-w-full text-sm font-normal dark:prose-invert"
               components={{
                 pre({ node, ...props }) {
                   return <>{props.children}</>;
@@ -167,6 +168,7 @@ export default function ContentDisplay({
             >
               {output}
             </Markdown>
+            </div>
           );
         }
 
@@ -185,38 +187,41 @@ export default function ContentDisplay({
 
       contentData = (
         <div className="flex flex-col gap-2">
-          <Markdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeMathjax]}
-            className="markdown prose max-w-full text-sm font-normal dark:prose-invert"
-          >
-            **Input:**
-          </Markdown>
+          <div className="markdown prose max-w-full text-sm font-normal dark:prose-invert">
+            <Markdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeMathjax]}
+            >
+              **Input:**
+            </Markdown>
+          </div>
           <SimplifiedCodeTabComponent
             language="json"
             code={JSON.stringify(content.tool_input, null, 2)}
           />
           {content.output !== undefined && (
             <>
-              <Markdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeMathjax]}
-                className="markdown prose max-w-full text-sm font-normal dark:prose-invert"
-              >
-                **Output:**
-              </Markdown>
+              <div className="markdown prose max-w-full text-sm font-normal dark:prose-invert">
+                <Markdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeMathjax]}
+                >
+                  **Output:**
+                </Markdown>
+              </div>
               <div className="mt-1">{formatToolOutput(content.output)}</div>
             </>
           )}
           {content.error != null && (
             <div className="text-destructive">
-              <Markdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeMathjax]}
-                className="markdown prose max-w-full text-sm font-normal dark:prose-invert"
-              >
-                **Error:**
-              </Markdown>
+              <div className="markdown prose max-w-full text-sm font-normal dark:prose-invert">
+                <Markdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeMathjax]}
+                >
+                  **Error:**
+                </Markdown>
+              </div>
               <SimplifiedCodeTabComponent
                 language="json"
                 code={JSON.stringify(content.error, null, 2)}

@@ -30,13 +30,15 @@ export const MarkdownField = ({
 
   return (
     <div className="w-full items-baseline gap-2">
-      <Markdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeMathjax, rehypeRaw]}
+      <div
         className={cn(
           "markdown prose flex w-full max-w-full flex-col items-baseline text-sm font-normal word-break-break-word dark:prose-invert",
           isEmpty ? "text-muted-foreground" : "text-primary",
         )}
+      >
+      <Markdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeMathjax, rehypeRaw]}
         components={{
           p({ node, ...props }) {
             return (
@@ -110,6 +112,7 @@ export const MarkdownField = ({
           ? EMPTY_OUTPUT_SEND_MESSAGE
           : processedChatMessage}
       </Markdown>
+      </div>
       {editedFlag}
     </div>
   );

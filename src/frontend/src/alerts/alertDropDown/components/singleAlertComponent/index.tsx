@@ -29,9 +29,9 @@ export default function SingleAlert({
             <ul className="list-disc space-y-1 pl-5 align-top">
               {dropItem.list.map((item, idx) => (
                 <li className="word-break-break-word" key={idx}>
+                  <div className="align-text-top">
                   <Markdown
                     remarkPlugins={[remarkGfm]}
-                    className="align-text-top"
                     components={{
                       a: ({ node, ...props }) => (
                         <a
@@ -54,6 +54,7 @@ export default function SingleAlert({
                   >
                     {Array.isArray(item) ? item.join("\n") : item}
                   </Markdown>
+                  </div>
                 </li>
               ))}
             </ul>
