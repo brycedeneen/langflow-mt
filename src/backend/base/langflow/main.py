@@ -33,6 +33,7 @@ from langflow.api.v1.mcp_projects import init_mcp_servers
 from langflow.initial_setup.setup import (
     copy_profile_pictures,
     create_or_update_starter_projects,
+    create_or_update_template_metadata,
     initialize_auto_login_default_superuser,
     load_bundles_from_urls,
     load_flows_from_directory,
@@ -218,6 +219,7 @@ def get_lifespan(*, fix_migration=False, version=None):
             try:
                 with lock:
                     await create_or_update_starter_projects(all_types_dict)
+                    await create_or_update_template_metadata()
                     await logger.adebug(
                         f"Starter projects created/updated in {asyncio.get_event_loop().time() - current_time:.2f}s"
                     )
