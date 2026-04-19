@@ -61,6 +61,24 @@ def test_adp_trigger_event_types_default(template):
     assert "Deceased" in event_types
 
 
+def test_adp_trigger_event_types_marked_as_list(template):
+    """The frontend dispatcher routes to MultiselectComponent only when
+    `templateData.list === true`. Without this key the field renders as a
+    single-select DropdownComponent, which can't hold the array value and
+    drops it during template→flow clone. Both observed bugs (value strip
+    + single-select dropdown) trace back to this missing serialization.
+    Hand-built MultiselectInput templates must include `list: true`.
+    """
+    trigger = _node_by_type(template, "ADPTrigger")
+    event_types = trigger["data"]["node"]["template"]["event_types"]
+    assert event_types.get("list") is True, (
+        "MultiselectInput template must serialize `list: true` so the "
+        "frontend renders MultiselectComponent (multi-select with chips). "
+        "If absent, the dispatcher falls through to DropdownComponent "
+        "(single-select) and the array value is stripped on clone."
+    )
+
+
 def test_type_convert_emits_message(template):
     converter = _node_by_type(template, "TypeConverterComponent")
     output_type = converter["data"]["node"]["template"]["output_type"]["value"]
