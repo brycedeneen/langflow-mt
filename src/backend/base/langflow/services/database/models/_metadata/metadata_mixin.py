@@ -24,7 +24,7 @@ class AgentMetadataMixin(SQLModel):
 
     agent_usage_notes: str | None = Field(default=None, sa_type=Text)
     agent_summary: str | None = Field(default=None, sa_type=Text)
-    updated_by: UUID = Field(foreign_key="user.id")
+    updated_by: UUID | None = Field(default=None, foreign_key="user.id", nullable=True)
     updated_at: datetime = Field(
         default_factory=_utcnow,
         sa_column_kwargs={"onupdate": _utcnow},

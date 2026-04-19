@@ -21,7 +21,7 @@ class ComponentMetadata(AgentMetadataMixin, table=True):
 class ComponentMetadataRead(BaseModel):
     agent_usage_notes: str | None
     agent_summary: str | None
-    updated_by: UUID
+    updated_by: UUID | None
     updated_at: datetime
 
 
