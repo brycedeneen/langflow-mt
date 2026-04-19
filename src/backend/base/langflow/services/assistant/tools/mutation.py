@@ -203,10 +203,10 @@ class FlowMutationTools:
         look up — not literals — so the assistant must register the
         secret here and then write the variable name into the field.
 
-        Returns ``{"variable_name": <name>}`` on success or
-        ``{"error": ...}`` on failure (missing user context, duplicate
-        name, etc.). The underlying ``VariableService`` encrypts the
-        value at rest for ``CREDENTIAL_TYPE`` (the default).
+        Returns a dict with ``variable_name`` and a ``next_step`` string
+        spelling out the required follow-up call. Errors return
+        ``{"error": ...}``. The underlying ``VariableService`` encrypts
+        the value at rest for ``CREDENTIAL_TYPE`` (the default).
         """
         if self.user_id is None:
             return {"error": "cannot create secret variable: missing user context"}
@@ -222,7 +222,16 @@ class FlowMutationTools:
                 )
         except Exception as e:  # noqa: BLE001
             return {"error": f"failed to create secret variable: {e}"}
-        return {"variable_name": name}
+        return {
+            "variable_name": name,
+            "next_step": (
+                f"You MUST now call set_field_value(node_id, '<password_field_name>', '{name}') "
+                "to wire this variable into the component. The variable is created but the "
+                "component's field is still empty until you do this. Use the same node_id you "
+                f"got from add_component, the field name from the schema (e.g. 'password'), and "
+                f"'{name}' as the value."
+            ),
+        }
 
     def connect_edge(
         self,

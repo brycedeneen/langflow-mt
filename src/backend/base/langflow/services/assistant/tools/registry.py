@@ -230,6 +230,20 @@ INSPECTION_TOOLS = [
         ),
         "parameters": {"type": "object", "properties": {}, "required": []},
     },
+    {
+        "name": "list_user_variables",
+        "description": (
+            "Return the names of secret variables already stored for the "
+            "current user. Call this BEFORE asking the user for credentials "
+            "(API keys, passwords, certificates) — they may have already "
+            "configured them in a previous conversation. If a relevant name "
+            "exists (e.g. 'adp_client_id'), reference it directly via "
+            "set_field_value(node_id, '<field>', '<variable_name>') instead "
+            "of re-asking. Returns {variable_names: [...]} with names only "
+            "(never values)."
+        ),
+        "parameters": {"type": "object", "properties": {}, "required": []},
+    },
 ]
 
 

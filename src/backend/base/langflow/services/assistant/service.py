@@ -167,13 +167,40 @@ field. Each row is a dict: `{{"name": "<field>", "description": "<short>", \
   - job → workAssignments[0].jobTitle
   - compensation → call the get_employee_compensation tool
 
-- Secret/password fields (e.g. SFTP `password`, API keys) — DO NOT pass the \
-literal value via `set_field_value`. The runtime treats those fields as \
-variable lookups. Instead:
+- Secret/password fields (e.g. SFTP `password`, API keys, certificates) — \
+DO NOT pass the literal value via `set_field_value`. The runtime treats \
+those fields as variable lookups. The pattern is TWO steps and you MUST \
+do both in the same turn:
   1. Call `create_secret_variable(name=<descriptive>, value=<secret>)`. \
-Choose a name like "sftp_password_<short>" so the user can recognize it.
-  2. Call `set_field_value(node_id, <field>, <variable_name>)` with the \
-variable name returned in step 1.
+Choose a name like "sftp_password_<short>" so the user can recognize it. \
+The tool returns a `next_step` string spelling out step 2.
+  2. Immediately call `set_field_value(node_id, <field>, <variable_name>)` \
+with the variable name from step 1. Without step 2 the field stays empty \
+and the component fails at runtime — step 1 alone does NOT wire anything.
+
+- BEFORE asking the user for credentials, call `list_user_variables`. \
+They may already have configured the credential in a previous \
+conversation. If a relevant name exists (e.g. `adp_client_id`, \
+`sftp_password_<flow>`), reference it directly via \
+`set_field_value(node_id, <field>, '<existing_variable_name>')` instead \
+of re-asking for the secret.
+
+- ADP credentials specifically (`client_id`, `client_secret`, \
+`client_certificate`, `client_key`) are user/org-scoped, not per-flow. \
+Before adding ADP Auth or any component that depends on it: (a) call \
+`list_user_variables` to see what's already configured; (b) if the \
+required ADP creds aren't there, ask the user for them and create \
+variables named `adp_client_id`, `adp_client_secret`, \
+`adp_client_certificate`, `adp_client_key`; (c) then point the ADP Auth \
+component's fields at those variable names via `set_field_value`.
+
+- BEFORE finishing a build, walk the components you added and confirm \
+their required fields are set. For each added node, call \
+`get_component_schema` and identify required fields. For each required \
+field that's still empty: set a sensible default, ask the user, or \
+reference an existing variable from `list_user_variables`. Don't leave \
+required fields empty — the flow won't run at test time and the user \
+will hit a confusing error.
 
 - After all three nodes are wired AND the flow is persisted (this happens \
 automatically at end of turn), call `get_webhook_credentials` (no args). \
@@ -231,6 +258,7 @@ class AssistantService:
             flow_data,
             flow_id=flow_id,
             org_id=org_id,
+            user_id=user_id,
             base_url=base_url,
         )
         self._conversation_messages: list[dict[str, Any]] = []

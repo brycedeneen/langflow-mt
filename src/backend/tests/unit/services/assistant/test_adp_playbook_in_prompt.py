@@ -57,3 +57,37 @@ def test_secret_field_routing_via_create_secret_variable():
     assert "create_secret_variable" in SYSTEM_PROMPT_TEMPLATE
     text = SYSTEM_PROMPT_TEMPLATE.lower()
     assert "password" in text
+
+
+def test_secret_routing_emphasizes_two_step_pattern():
+    # Step 1 alone (create_secret_variable) doesn't wire the field. The
+    # prompt must emphasize that step 2 (set_field_value) is required.
+    text = SYSTEM_PROMPT_TEMPLATE.lower()
+    assert "two steps" in text or "two-step" in text or "both" in text
+    assert "set_field_value" in SYSTEM_PROMPT_TEMPLATE
+    # The "stays empty" phrase explicitly warns about the failure mode.
+    assert "stays empty" in text
+
+
+def test_check_existing_variables_before_asking():
+    # The assistant should check list_user_variables before re-asking
+    # for credentials the user may already have configured.
+    assert "list_user_variables" in SYSTEM_PROMPT_TEMPLATE
+
+
+def test_adp_credentials_treated_as_user_scoped_variables():
+    # ADP creds are user/org-scoped, not per-flow. The playbook must
+    # name the canonical variable names so the assistant uses them
+    # consistently across flows.
+    text = SYSTEM_PROMPT_TEMPLATE.lower()
+    assert "adp_client_id" in text
+    assert "adp_client_secret" in text
+    assert "adp_client_certificate" in text
+    assert "adp_client_key" in text
+
+
+def test_check_required_fields_before_finishing():
+    # Generic guideline: don't leave required fields empty at end of build.
+    text = SYSTEM_PROMPT_TEMPLATE.lower()
+    assert "required field" in text
+    assert "get_component_schema" in SYSTEM_PROMPT_TEMPLATE

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from langflow.services.deps import get_variable_service, session_scope
 from lfx.services.secret_store import get_secret_store
 
 
@@ -20,11 +21,13 @@ class FlowInspectionTools:
         *,
         flow_id: Any | None = None,
         org_id: Any | None = None,
+        user_id: Any | None = None,
         base_url: str | None = None,
     ) -> None:
         self.flow_data = flow_data
         self.flow_id = flow_id
         self.org_id = org_id
+        self.user_id = user_id
         self.base_url = base_url
 
     def get_node_field_value(self, node_id: str, field_name: str) -> str:
@@ -71,3 +74,25 @@ class FlowInspectionTools:
             "endpoint": f"{base}/api/v1/webhook/{self.flow_id}",
             "api_key": entry["api_key"],
         }
+
+    async def list_user_variables(self) -> dict[str, Any]:
+        """Return the names of secret variables already stored for the user.
+
+        Use this BEFORE asking the user for credentials — they may have
+        already configured them in a previous conversation. If a name
+        like ``adp_client_id`` already exists, reference it directly via
+        ``set_field_value(node_id, '<field>', 'adp_client_id')`` instead
+        of asking the user to re-enter the secret.
+
+        Returns ``{"variable_names": [...]}`` (names only, never values)
+        or ``{"error": ...}`` when user context is missing.
+        """
+        if self.user_id is None:
+            return {"error": "cannot list variables: missing user context"}
+        try:
+            service = get_variable_service()
+            async with session_scope() as session:
+                names = await service.list_variables(user_id=self.user_id, session=session)
+        except Exception as e:  # noqa: BLE001
+            return {"error": f"failed to list variables: {e}"}
+        return {"variable_names": [n for n in names if n is not None]}

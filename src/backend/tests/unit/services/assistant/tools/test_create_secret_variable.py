@@ -55,7 +55,9 @@ async def test_create_secret_variable_writes_to_variable_store(monkeypatch):
     )
     result = await tools.create_secret_variable(name="sftp_password_abc", value="P@ssword1!")
 
-    assert result == {"variable_name": "sftp_password_abc"}
+    assert result["variable_name"] == "sftp_password_abc"
+    assert "set_field_value" in result["next_step"]
+    assert "sftp_password_abc" in result["next_step"]
     assert captured == [
         {
             "user_id": user_id,
@@ -94,7 +96,8 @@ async def test_create_secret_variable_works_without_org_id(monkeypatch):
     tools = FlowMutationTools({"nodes": [], "edges": []}, user_id=user_id)
     result = await tools.create_secret_variable(name="api_key_xyz", value="secret")
 
-    assert result == {"variable_name": "api_key_xyz"}
+    assert result["variable_name"] == "api_key_xyz"
+    assert "next_step" in result
     assert captured == [{"user_id": user_id, "name": "api_key_xyz", "organization_id": None}]
 
 
