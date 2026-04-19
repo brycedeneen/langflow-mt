@@ -66,6 +66,15 @@ def test_resolve_path_substitutes_date():
     assert _resolve_remote_path("/exports", "users_{date}.csv", now=FROZEN) == "/exports/users_20260415.csv"
 
 
+def test_resolve_remote_path_replaces_datestamp_alias_with_full_timestamp():
+    import time as _time
+    from lfx.components.sftp.sftp_csv_upload import _resolve_remote_path
+
+    fixed = _time.strptime("2026-04-19 14:30:52", "%Y-%m-%d %H:%M:%S")
+    result = _resolve_remote_path("/uploads", "test-{datestamp}.csv", now=fixed)
+    assert result == "/uploads/test-20260419_143052.csv"
+
+
 def test_resolve_path_rejects_slash_in_filename():
     with pytest.raises(ValueError, match="path separator"):
         _resolve_remote_path("/exports", "sub/users.csv", now=FROZEN)
