@@ -594,6 +594,7 @@ class MCPSessionManager:
                 or "Connection failed" in error_str
                 or "Transport closed" in error_str
                 or "Stream closed" in error_str
+                or "Session terminated" in error_str
             ):
                 await logger.adebug(f"Session connectivity test failed (MCP connection error): {e}")
                 return False
