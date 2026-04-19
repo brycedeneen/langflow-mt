@@ -120,9 +120,14 @@ class TestVaultSecretStore:
         mock_response = {"data": {"data": {"api_key": "ADP-APICPRO-abc123"}}}
         with patch.object(
             store._client.secrets.kv.v2, "read_secret_version", return_value=mock_response
-        ):
+        ) as mock_read:
             result = await store.get("org1/webhooks/flow1")
             assert result == {"api_key": "ADP-APICPRO-abc123"}
+            mock_read.assert_called_once_with(
+                path="org1/webhooks/flow1",
+                mount_point="secret",
+                raise_on_deleted_version=False,
+            )
 
     @pytest.mark.asyncio
     async def test_get_nonexistent_returns_none(self):
@@ -133,6 +138,21 @@ class TestVaultSecretStore:
             store._client.secrets.kv.v2, "read_secret_version", side_effect=InvalidPath()
         ):
             result = await store.get("nonexistent")
+            assert result is None
+
+    @pytest.mark.asyncio
+    async def test_get_soft_deleted_version_returns_none(self):
+        store = self._make_store()
+        mock_response = {
+            "data": {
+                "data": None,
+                "metadata": {"deletion_time": "2026-04-19T00:00:00Z"},
+            }
+        }
+        with patch.object(
+            store._client.secrets.kv.v2, "read_secret_version", return_value=mock_response
+        ):
+            result = await store.get("org1/webhooks/flow1")
             assert result is None
 
     @pytest.mark.asyncio

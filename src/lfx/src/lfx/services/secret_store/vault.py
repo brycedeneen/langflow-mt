@@ -26,10 +26,11 @@ class VaultSecretStore(SecretStore):
                 self._client.secrets.kv.v2.read_secret_version,
                 path=path,
                 mount_point=self._mount_point,
+                raise_on_deleted_version=False,
             )
-            return response["data"]["data"]
         except InvalidPath:
             return None
+        return (response.get("data") or {}).get("data")
 
     async def put(self, path: str, data: dict) -> None:
         await asyncio.to_thread(
