@@ -33,9 +33,13 @@ Deferred items surfaced during implementation of prior plans. Pick up when revis
 
 - [ ] **`alembic/env.py` modified twice** to add URL-scheme normalization: (a) `postgresql://` → `postgresql+psycopg://` (Plan 2 Task 4), and (b) `sqlite://` → `sqlite+aiosqlite://` (Plan 3 Task 15). Both were added so `LANGFLOW_DATABASE_URL` env-var works with the async alembic driver. Needed for `make alembic-upgrade` to target the real dev DB (instead of only SQLite in-memory). Confirm the long-term shape you want — e.g., lift into a dedicated URL-sanitizer util.
 
-## Possible Plan 6: MCP ext-apps integration
+## Cancelled Plan 6: MCP ext-apps integration — 2026-04-18
 
-- [ ] **Revisit after Plan 4 lands.** `@modelcontextprotocol/ext-apps` (https://www.npmjs.com/package/@modelcontextprotocol/ext-apps) lets MCP servers declare rich UI widgets that the assistant chat can render inline. Clear fit for structured-input moments: ADP auth config (client_id / client_secret / mTLS cert / key), credential pickers, component configurators. Defer to post-Plan 4 because: (1) Plan 4 will surface the actual friction points, (2) the package is new and likely still stabilizing, (3) text-only credential collection in Plan 4 is a swap, not a refactor — easy to upgrade later. Trigger to prioritize: if Plan 4's conversational credential flow feels clunky, pause Plan 4 at a natural boundary and slot this in as Plan 6.
+- **Cancelled during brainstorming (2026-04-18).** Inline widgets via the MCP Apps protocol or a native widget system would be a significant rendering subsystem (sandboxed iframes, `postMessage` bridge, submit endpoints) to solve a problem that text-only conversation already handles. The assistant's existing `set_field` mutation tools already update component values from chat. The only real security concern was "secrets leak into LLM context when users type them in chat" — acceptable for current threat model.
+
+### Future consideration: "Open config panel" deep links (possible Plan 6')
+
+- [ ] **Deep-link from chat to existing component config panel.** For completely non-technical users who shouldn't touch the canvas, the assistant chat should render a button like `"Configure ADP credentials [Open Panel]"` that opens Langflow's existing component config UI. User fills fields there (secrets go to secret service via existing `SecretStrInput` mechanism), closes the panel, returns to chat. Zero new rendering infrastructure — just link-out moments + a way to detect completion. Trigger to prioritize: when the product adds a no-canvas user persona or UX testing shows non-technical users struggling with chat-only data entry.
 
 ## Possible Plan 7: Template management system
 
