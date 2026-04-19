@@ -36,7 +36,9 @@ TENANT_TABLES = [
 
 
 def _normalize_uuid_columns(bind, table: str, columns: list[str]) -> None:
-    """Strip dashes from UUID columns so they match SQLAlchemy's CHAR(32) hex format."""
+    """Strip dashes from UUID columns so they match SQLAlchemy's CHAR(32) hex format on SQLite."""
+    if bind.dialect.name != "sqlite":
+        return
     for col in columns:
         bind.execute(
             sa.text(f'UPDATE "{table}" SET "{col}" = REPLACE("{col}", \'-\', \'\') WHERE "{col}" LIKE \'%-%\'')
