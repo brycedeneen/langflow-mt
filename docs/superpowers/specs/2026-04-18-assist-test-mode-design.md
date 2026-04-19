@@ -55,22 +55,24 @@ Data flow:
   [click Test/Test All]
       │
       ▼
-  runTestForComponent(flowId, nodeId)
-   or runTestForAll(flowId)
+  runTestForComponent(nodeId)
+   or runTestForAll()
       │
       ▼
-  POST /api/v1/build/{flow_id}/flow   (existing)
-   body: { stop_component_id: nodeId? }
+  buildFlowVerticesWithFallback({ stopNodeId?, onBuild* callbacks })
+   └─ POST /api/v1/build/{flow_id}/flow?stop_component_id=nodeId
+       ?event_delivery=streaming
       │
       ▼
-  Backend queues job; SSE events stream via
-  existing /api/v1/webhook-events/{flowId}:
+  Backend queues job; events stream back via the build endpoint's
+  SSE response (or a GET /api/v1/build/{job_id}/events fallback):
     vertices_sorted → build_start → [end_vertex]* → end
       │
       ▼
-  useWebhookEvents handlers (existing)
-   update flowStore.flowBuildStatus[nodeId]
-   append result to flowStore.flowPool[nodeId]
+  test-runs.ts's onBuildStart / onBuildUpdate / onBuildError callbacks
+   call updateBuildStatus and addDataToFlowPool
+   → flowStore.flowBuildStatus[nodeId]
+   → flowStore.flowPool[nodeId]
       │
       ▼
   FlowPipelineView re-renders on store change:
@@ -101,11 +103,11 @@ Failure path:
 
 No new DB columns, no migrations, no Pydantic additions, no new SSE event types.
 
-### Frontend state (reused from existing `flowStore`)
+### Frontend state (reused from existing stores)
 
-- `flowBuildStatus: Record<nodeId, BuildStatus>` — values `TO_BUILD | BUILDING | BUILT | ERROR | INACTIVE`. Updated by existing `useWebhookEvents` handlers on every build-related SSE event.
-- `flowPool: Record<nodeId, VertexBuildTypeAPI[]>` — per-vertex build history. The latest entry for each node carries output data, error message, and timing.
-- `selectedTestComponent: string | null` — added in Plan 3, unused until now. Plan 5 writes the clicked node's id here on each test trigger.
+- `flowStore.flowBuildStatus: Record<nodeId, { status: BuildStatus; timestamp?: string }>` — `BuildStatus` values `TO_BUILD | BUILDING | BUILT | ERROR | INACTIVE`. Updated by the existing `flowStore.buildFlow` action's `onBuildStart` / `onBuildUpdate` / `onBuildError` callbacks as the build's event stream arrives.
+- `flowStore.flowPool: Record<nodeId, VertexBuildTypeAPI[]>` — per-vertex build history. The latest entry for each node carries output data, error message, and timing. Written by the same `buildFlow` callbacks.
+- `assistantStore.selectedTestComponent: string | null` — added in Plan 3, unused until now. Plan 5 writes the clicked node's id here on each single-component test trigger (Test All leaves it null).
 
 ### New derived accessors on `flowStore`
 
@@ -126,48 +128,78 @@ That's the entire data model change.
 
 ## Section 2: Backend Integration — Zero New Code
 
-Plan 5 calls the existing backend; it writes no new endpoint, SSE type, or handler.
+Plan 5 calls the existing backend; it writes no new endpoint, SSE type, or handler. It also writes no new SSE handling on the frontend — the existing `flowStore.buildFlow` action already consumes the build event stream and updates `flowBuildStatus` / `flowPool`.
 
 ### New frontend utility: `test-runs.ts`
 
-`src/frontend/src/utils/test-runs.ts`:
+`src/frontend/src/utils/test-runs.ts` calls `buildFlowVerticesWithFallback` directly rather than `flowStore.buildFlow`. Reason: `buildFlow` resets `flowBuildStatus = {}` at start, which would erase prior per-card status on every single-node test. The wrapper wires minimal callbacks that call `updateBuildStatus` / `addDataToFlowPool` for only the nodes the event stream touches.
 
 ```ts
-import { api } from "@/controllers/API/api";
+import { BuildStatus } from "@/constants/enums";
+import { EventDeliveryType } from "@/constants/enums";
+import useAlertStore from "@/stores/alertStore";
+import useAssistantStore from "@/stores/assistantStore";
+import useFlowStore from "@/stores/flowStore";
+import useFlowsManagerStore from "@/stores/flowsManagerStore";
+import { buildFlowVerticesWithFallback } from "@/utils/buildUtils";
 
-/** Build every vertex up to and including `nodeId`. Fire-and-forget —
- * SSE events already subscribed by useWebhookEvents will drive state
- * updates in flowStore.flowBuildStatus / flowPool.
- */
-export async function runTestForComponent(flowId: string, nodeId: string): Promise<void> {
-  await api.post(`/api/v1/build/${flowId}/flow`, {
-    stop_component_id: nodeId,
+async function runBuild(stopNodeId?: string): Promise<void> {
+  const flowId = useFlowsManagerStore.getState().currentFlow?.id;
+  if (!flowId) return;
+  await buildFlowVerticesWithFallback({
+    flowId,
+    stopNodeId: stopNodeId ?? null,
+    eventDelivery: EventDeliveryType.STREAMING,
+    onBuildStart: (elementList) => {
+      const ids = elementList.map((e) => e.id);
+      useFlowStore.getState().updateBuildStatus(ids, BuildStatus.BUILDING);
+    },
+    onBuildUpdate: (vertexBuildData, status, runId) => {
+      useFlowStore.getState().addDataToFlowPool(
+        { ...vertexBuildData, run_id: runId },
+        vertexBuildData.id,
+      );
+      useFlowStore.getState().updateBuildStatus([vertexBuildData.id], status);
+    },
+    onBuildComplete: () => {},
+    onBuildError: (title, list, elementList) => {
+      const ids = (elementList?.map((e) => e.id).filter(Boolean) as string[]) ?? [];
+      if (ids.length > 0) {
+        useFlowStore.getState().updateBuildStatus(ids, BuildStatus.ERROR);
+      }
+      useAlertStore.getState().addNotificationToHistory({ title, type: "error", list });
+    },
   });
 }
 
-/** Build the whole flow. Same fire-and-forget SSE-driven pattern. */
-export async function runTestForAll(flowId: string): Promise<void> {
-  await api.post(`/api/v1/build/${flowId}/flow`, {});
+export async function runTestForComponent(nodeId: string): Promise<void> {
+  useAssistantStore.getState().setSelectedTestComponent(nodeId);
+  await runBuild(nodeId);
+}
+
+export async function runTestForAll(): Promise<void> {
+  useAssistantStore.getState().setSelectedTestComponent(null);
+  await runBuild();
 }
 ```
 
-Both set `flowStore.selectedTestComponent` at their call sites (the card click handler and the Test All button handler). Neither hook handles SSE directly — `useWebhookEvents` remains the single subscription.
+Neither helper subscribes to SSE directly; `buildFlowVerticesWithFallback` owns the event stream and invokes the callbacks.
 
-### Existing SSE pipeline (unchanged)
+### Existing build-event pipeline (unchanged)
 
-- Subscription: `/api/v1/webhook-events/{flowId}` via `useWebhookEvents(flowId)`.
-- Event handlers: existing `handleVerticesSorted`, `handleBuildStart`, `handleEndVertex`, `handleEnd`, `handleError` already write to `flowBuildStatus` / `flowPool`.
-- Mount location: the hook is already mounted on every flow page; fullscreen test mode inherits it for free.
+- Transport: `buildFlowVerticesWithFallback` in `src/frontend/src/utils/buildUtils.ts` POSTs to `/api/v1/build/{flow_id}/flow` with `stop_component_id` as a **query parameter** (not a body field). Events arrive either as an inline SSE response (`event_delivery=DIRECT`) or via a follow-up GET to `/api/v1/build/{job_id}/events`.
+- Event → store wiring: `flowStore.buildFlow` passes `onBuildStart`, `onBuildUpdate`, `onBuildComplete`, `onBuildError` callbacks that already call `updateBuildStatus`, `addDataToFlowPool`, `setBuildInfo`. Plan 5 adds zero new SSE handling.
+- Note: `useWebhookEvents` is unrelated to this pipeline. It subscribes to `/api/v1/webhook-events/{flowId}` only when the flow contains a Webhook component, and listens for events emitted by *external* webhook invocations — not user-triggered builds.
 
 ### Concurrency
 
-- **Single test click:** fire POST; events stream in; flowStore updates.
-- **Rapid clicks or Test All while single test is running:** both jobs run independently. `flowBuildStatus` is last-writer-wins per vertex. Acceptable for v1; if rapid-clicking becomes a real workflow, add a client-side debounce and a Stop button.
-- **Status-badge conflicts:** the existing SSE handlers are already idempotent on `(vertex_id, status)` pairs, so out-of-order events don't corrupt state beyond last-writer-wins.
+- **Single test click:** `buildFlowVerticesWithFallback` streams events; callbacks write to flowStore; awaited promise resolves on completion.
+- **Rapid clicks or Test All while a single test is running:** both calls run in parallel. `updateBuildStatus` / `addDataToFlowPool` are idempotent per vertex, so out-of-order events settle to last-writer-wins — acceptable for v1. If rapid-clicking becomes a real workflow, add a client-side debounce and a Stop button.
+- **Status-badge conflicts:** because this helper never resets `flowBuildStatus`, a node's last-known status persists across other-branch test runs until that node itself is retested.
 
 ### Error payload
 
-The SSE `end_vertex` event already emits `{ build_data: { id, valid, data: ResultDataResponse } }`. When `valid: false`, `data` carries the error details. Pipeline view reads the latest `flowPool[nodeId]` entry for the error message; the `[View full output →]` expander shows the full `ResultDataResponse` as a collapsible `<pre>` block.
+The `end_vertex` event already emits `{ build_data: { id, valid, data: ResultDataResponse } }`. When `valid: false`, `data` carries the error details. `flowStore.addDataToFlowPool` stores each entry; the pipeline view reads the latest `flowPool[nodeId]` entry for the error message. The `[View full output →]` expander shows the full `ResultDataResponse` as a collapsible `<pre>` block.
 
 ## Section 3: Pipeline View — Layout Algorithm, Cards, Interactions
 
@@ -240,7 +272,7 @@ Header: icon + `data.display_name || node.data.type` on the left, `<StatusBadge>
 - `passed`: `[↻ Re-test]` (outline) + `[View full output →]` (ghost)
 - `failed`: `[↻ Re-test]` (outline) + `[Ask assistant]` (primary, destructive accent) + `[View full output →]` (ghost)
 
-Click `[Test]` / `[Re-test]`: sets `selectedTestComponent = node.id` in flowStore, calls `runTestForComponent(flowId, node.id)`. Badge flips to `testing` as soon as `build_start` SSE arrives.
+Click `[Test]` / `[Re-test]`: calls `runTestForComponent(node.id)` (which writes `assistantStore.selectedTestComponent` internally). Badge flips to `testing` as soon as the `build_start` event arrives and `updateBuildStatus([id], BuildStatus.BUILDING)` fires.
 
 `[View full output →]` toggles `<RawOutput>`, which renders the latest `flowPool[nodeId]` result as a collapsible `<pre>` — JSON if the existing project has a JSON syntax highlighter helper, plain `<pre>` otherwise.
 
@@ -384,7 +416,7 @@ Unit test (pattern from Plan 4): `test_test_failure_guideline_in_prompt.py` asse
 
 - **Depends on** `2026-04-18-assist-layout-and-entry-points-design.md` (Plan 3): fullscreen + test shell, `layoutMode: "test"`, `selectedTestComponent` state.
 - **Depends on** `2026-04-18-assist-fullscreen-experience-design.md` (Plan 4): the assistant conversation the test mode inserts `[TEST_FAILURE]` messages into, the system prompt template that gains the new guideline.
-- **Depends on** pre-Plan-ADP infrastructure: `POST /api/v1/build/{flow_id}/flow` + `vertices_sorted` / `end_vertex` / `error` SSE events, `flowStore.flowBuildStatus`, `flowStore.flowPool`, `useWebhookEvents` hook.
+- **Depends on** pre-Plan-ADP infrastructure: `flowStore.buildFlow` action → `buildFlowVerticesWithFallback` → `POST /api/v1/build/{flow_id}/flow` + `vertices_sorted` / `end_vertex` / `error` build events, `flowStore.flowBuildStatus`, `flowStore.flowPool`.
 - **Supersedes** §5 and the test-execution portion of §7 in `2026-04-18-adp-assist-flow-builder-design.md`.
 
 ## Open Items Flagged During Implementation
