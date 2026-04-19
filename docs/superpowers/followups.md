@@ -71,3 +71,9 @@ Deferred items surfaced during implementation of prior plans. Pick up when revis
 ### UX polish deferred by user
 
 - [ ] **Break long assistant messages into multiple turns.** Today the assistant writes one long wall of text spanning all of its intermediate reasoning. Better: emit each distinct step as its own chat bubble ("Let me search for the Slack component…" → tool call → "Got it, now I'll add it…" → tool call → etc.). Requires either (a) prompting the LLM to split, (b) rendering tool-call intervals as implicit message boundaries, or (c) streaming-level frontend splitting on sentence boundaries. User deferred during Plan 4 verification.
+
+## Plan 5 (ADP Assist Test Mode — 2026-04-18)
+
+### UX polish
+
+- [ ] **PipelineCard tool sub-item styling.** Grouped tools render as plain `Tool: <name>` rows indented under the parent card header. Works functionally but looks thin compared to the card's own chrome. Consider: small tool icon, a left-border accent matching the agent card, or a subtle chip background. See `src/frontend/src/modals/AssistantPanel/FlowPipelineView/pipeline-card.tsx`.

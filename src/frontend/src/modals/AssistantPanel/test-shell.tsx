@@ -2,6 +2,7 @@ import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { Button } from "@/components/ui/button";
 import useAssistantStore from "@/stores/assistantStore";
 import Composer from "./components/composer";
+import { FlowPipelineView } from "./FlowPipelineView";
 import MessageList from "./components/message-list";
 
 type Props = {
@@ -9,10 +10,7 @@ type Props = {
   onSend: (text: string) => void;
 };
 
-/** Split-view test shell: pipeline placeholder on the left, chat on the right.
- *
- * The pipeline placeholder will be replaced by <FlowPipelineView /> in Plan 5.
- */
+/** Split-view test shell: FlowPipelineView on the left, chat on the right. */
 export function TestShell({ flowId, onSend }: Props) {
   const messages = useAssistantStore((s) => s.messages);
   const setLayoutMode = useAssistantStore((s) => s.setLayoutMode);
@@ -61,14 +59,8 @@ export function TestShell({ flowId, onSend }: Props) {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <div className="flex w-1/2 flex-col items-center justify-center border-r text-muted-foreground">
-          <ForwardedIconComponent
-            name="GitBranch"
-            className="mb-2 h-8 w-8 opacity-50"
-          />
-          <div className="text-sm">
-            Pipeline view will appear here (Plan 5).
-          </div>
+        <div className="flex w-1/2 flex-col border-r overflow-auto">
+          <FlowPipelineView onSend={onSend} />
         </div>
         <div className="flex w-1/2 flex-col">
           <MessageList messages={messages} />

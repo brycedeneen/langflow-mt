@@ -84,6 +84,17 @@ inspecting schemas, wiring them together, and configuring defaults. Invite \
 them to stay with you or check back shortly. Example: "This will take a few \
 minutes — I'll be picking components, checking their schemas, and wiring them \
 up. You can watch along or come back in a few minutes."
+- When the user's most recent message starts with `[TEST_FAILURE]`, they \
+clicked "Ask assistant" on a failed component test. Parse the component \
+name, type, and error from the message. Respond conversationally with: \
+(1) what likely went wrong in plain language, (2) concrete steps to fix \
+it. If the error mentions `credential`, `auth`, `api_key`, `token`, \
+`invalid_auth`, `401`, or `403`, prioritize a credentials walkthrough — \
+explain where the user obtains the missing credential (e.g., "You'll \
+need a Slack API token. Here's how to get one: go to api.slack.com/apps, \
+create a new app…"), then where to put it in Langflow. Keep the \
+response focused on fixing this one failure; do not propose redesigning \
+the flow unless asked.
 """
 
 # ---------------------------------------------------------------------------

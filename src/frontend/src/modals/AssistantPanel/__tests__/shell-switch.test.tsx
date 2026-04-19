@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import AssistantPanel from "../index";
 import useAssistantStore from "@/stores/assistantStore";
+import useFlowStore from "@/stores/flowStore";
 
 // Mock hooks so tests don't make network/SSE calls
 jest.mock("../hooks/use-assistant-conversation", () => ({
@@ -38,6 +39,12 @@ describe("AssistantPanel shell switch", () => {
       settingsConfigured: true,
       messages: [],
     });
+    useFlowStore.setState({
+      nodes: [],
+      edges: [],
+      flowBuildStatus: {},
+      flowPool: {},
+    } as any);
   });
 
   it("renders the panel shell when layoutMode is 'panel'", () => {
@@ -59,6 +66,7 @@ describe("AssistantPanel shell switch", () => {
     useAssistantStore.setState({ layoutMode: "test" });
     render(<AssistantPanel flowId="flow-1" />);
     expect(screen.getByTestId("adp-assist-back-to-chat-btn")).toBeInTheDocument();
+    expect(screen.getByText(/No components yet/i)).toBeInTheDocument();
   });
 
   it("renders nothing when panelOpen is false", () => {
