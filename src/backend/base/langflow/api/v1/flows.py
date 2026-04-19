@@ -773,6 +773,40 @@ async def _update_existing_flow(
     return FlowRead.model_validate(existing_flow, from_attributes=True)
 
 
+@router.post("/{flow_id}/webhook-api-key", status_code=200)
+async def generate_or_reset_webhook_api_key(
+    *,
+    session: DbSession,
+    flow_id: UUID,
+    current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
+):
+    """Generate or reset the webhook API key for a flow.
+
+    Returns the new API key. The key is only shown once — if the user loses it,
+    they must generate a new one (which invalidates the previous key).
+    """
+    flow = await _read_flow(session, flow_id, current_user.id, organization_id=current_org.id)
+    if not flow:
+        raise HTTPException(status_code=404, detail="Flow not found")
+    if not flow.webhook:
+        raise HTTPException(status_code=400, detail="Flow does not have a webhook component")
+    if not flow.organization_id:
+        raise HTTPException(status_code=400, detail="Flow has no organization")
+
+    store = get_secret_store()
+    path = f"{flow.organization_id}/webhooks/{flow_id}"
+
+    # Always generate a new key (reset behavior)
+    key = generate_webhook_api_key()
+    await store.put(path, {
+        "api_key": key,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+    return {"api_key": key}
+
+
 @router.delete("/{flow_id}", status_code=200)
 async def delete_flow(
     *,
