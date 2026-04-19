@@ -9,7 +9,7 @@ from uuid import UUID
 
 import asyncio
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 from lfx.log import logger
 from pydantic import BaseModel
 from sqlmodel import select
@@ -270,6 +270,23 @@ async def _persist_assistant_turn(
                 db_flow = await db.get(Flow, flow_id)
                 if db_flow is not None:
                     db_flow.data = final_flow_data
+                    # Mirror update_flow in api/v1/flows.py: re-detect webhook
+                    # presence and provision a per-flow API key if needed.
+                    # Imported lazily to avoid an import cycle with flows.py
+                    # (which imports api/v1/schemas, which we don't need here).
+                    from langflow.api.v1.flows import _provision_webhook_api_key
+                    from langflow.services.database.models.flow.utils import (
+                        get_webhook_component_in_flow,
+                    )
+
+                    webhook_component = get_webhook_component_in_flow(final_flow_data)
+                    db_flow.webhook = webhook_component is not None
+                    if db_flow.webhook and db_flow.organization_id:
+                        await _provision_webhook_api_key(
+                            org_id=str(db_flow.organization_id),
+                            flow_id=str(db_flow.id),
+                            has_webhook=True,
+                        )
                     db.add(db_flow)
     except Exception:
         logger.exception("Failed to persist assistant turn for flow %s", flow_id)
@@ -284,6 +301,7 @@ async def _persist_assistant_turn(
 async def send_message(
     flow_id: UUID,
     body: SendMessageRequest,
+    request: Request,
     current_user: CurrentActiveUser,
     org: CurrentOrg,
     session: DbSession,
@@ -323,6 +341,11 @@ async def send_message(
     user_id = current_user.id
     model_name = settings["model"]
     user_content = body.content
+    # Capture the externally-reachable base URL from the incoming request.
+    # Used by inspection tools (e.g. get_webhook_credentials) to render the
+    # webhook endpoint URL the user should actually hit. Strip trailing slash;
+    # the tool re-adds the path. Falls back to None — tools degrade gracefully.
+    base_url = str(request.base_url).rstrip("/") if request is not None else None
 
     # Shared state between generator and persistence task
     persist_data: dict[str, Any] = {
@@ -349,6 +372,7 @@ async def send_message(
             user_id=user_id,
             model_name=model_name,
             based_on_template_flow_id=flow.based_on_template_flow_id,
+            base_url=base_url,
         )
         service.set_conversation_history(history_dicts)
 
