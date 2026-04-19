@@ -20,6 +20,8 @@ export function FullscreenShell({ flowId, onSend }: Props) {
   const settingsConfigured = useAssistantStore((s) => s.settingsConfigured);
   const setLayoutMode = useAssistantStore((s) => s.setLayoutMode);
   const setPanelOpen = useAssistantStore((s) => s.setPanelOpen);
+  const showToolCalls = useAssistantStore((s) => s.showToolCalls);
+  const toggleShowToolCalls = useAssistantStore((s) => s.toggleShowToolCalls);
 
   return (
     // Offsets: top = app header (h-[48px]); left = flow-builder SidebarProvider width (17.5rem) on md+
@@ -30,6 +32,17 @@ export function FullscreenShell({ flowId, onSend }: Props) {
           <span className="text-lg font-semibold">ADP Assist</span>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant={showToolCalls ? "secondary" : "ghost"}
+            onClick={toggleShowToolCalls}
+            title={showToolCalls ? "Hide tool calls" : "Show tool calls"}
+            aria-pressed={showToolCalls}
+            data-testid="adp-assist-toggle-tool-calls-btn"
+          >
+            <ForwardedIconComponent name="Wrench" className="mr-1 h-4 w-4" />
+            {showToolCalls ? "Hide tools" : "Show tools"}
+          </Button>
           <Button
             size="sm"
             variant="outline"

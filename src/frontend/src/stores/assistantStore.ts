@@ -40,6 +40,9 @@ type AssistantStoreState = {
   setLayoutMode: (mode: "panel" | "fullscreen" | "test") => void;
   selectedTestComponent: string | null;
   setSelectedTestComponent: (id: string | null) => void;
+  showToolCalls: boolean;
+  setShowToolCalls: (show: boolean) => void;
+  toggleShowToolCalls: () => void;
 };
 
 const useAssistantStore = create<AssistantStoreState>((set, get) => ({
@@ -84,6 +87,10 @@ const useAssistantStore = create<AssistantStoreState>((set, get) => ({
   setLayoutMode: (mode) => set({ layoutMode: mode }),
   selectedTestComponent: null,
   setSelectedTestComponent: (id) => set({ selectedTestComponent: id }),
+
+  showToolCalls: false,
+  setShowToolCalls: (show) => set({ showToolCalls: show }),
+  toggleShowToolCalls: () => set({ showToolCalls: !get().showToolCalls }),
 }));
 
 export default useAssistantStore;

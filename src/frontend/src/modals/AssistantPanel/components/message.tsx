@@ -4,11 +4,12 @@ import ToolCallCard from "./tool-call-card";
 
 interface MessageProps {
   message: AssistantMessageType;
+  resolvedToolName?: string;
 }
 
-export default function Message({ message }: MessageProps) {
+export default function Message({ message, resolvedToolName }: MessageProps) {
   if (message.role === "tool") {
-    return <ToolCallCard message={message} />;
+    return <ToolCallCard message={message} resolvedToolName={resolvedToolName} />;
   }
 
   const isUser = message.role === "user";

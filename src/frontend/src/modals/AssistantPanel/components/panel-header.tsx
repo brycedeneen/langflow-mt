@@ -1,5 +1,6 @@
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { Button } from "@/components/ui/button";
+import useAssistantStore from "@/stores/assistantStore";
 import { ModeToggleButton } from "../mode-toggle-button";
 
 interface PanelHeaderProps {
@@ -8,6 +9,9 @@ interface PanelHeaderProps {
 }
 
 export default function PanelHeader({ onClear, onClose }: PanelHeaderProps) {
+  const showToolCalls = useAssistantStore((s) => s.showToolCalls);
+  const toggleShowToolCalls = useAssistantStore((s) => s.toggleShowToolCalls);
+
   const handleClear = () => {
     if (window.confirm("Clear the conversation history?")) {
       onClear();
@@ -24,6 +28,16 @@ export default function PanelHeader({ onClear, onClose }: PanelHeaderProps) {
         <h3 className="text-sm font-semibold">Flow Assistant</h3>
       </div>
       <div className="flex items-center gap-1">
+        <Button
+          variant={showToolCalls ? "secondary" : "ghost"}
+          size="icon"
+          onClick={toggleShowToolCalls}
+          className="h-7 w-7"
+          title={showToolCalls ? "Hide tool calls" : "Show tool calls"}
+          aria-pressed={showToolCalls}
+        >
+          <ForwardedIconComponent name="Wrench" className="h-4 w-4" />
+        </Button>
         <Button
           variant="ghost"
           size="icon"

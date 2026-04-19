@@ -4,13 +4,17 @@ import type { AssistantMessageType } from "@/stores/assistantStore";
 
 interface ToolCallCardProps {
   message: AssistantMessageType;
+  resolvedToolName?: string;
 }
 
-export default function ToolCallCard({ message }: ToolCallCardProps) {
+export default function ToolCallCard({ message, resolvedToolName }: ToolCallCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const toolName =
-    message.tool_calls?.[0]?.name ?? message.tool_call_id ?? "Tool Call";
+    message.tool_calls?.[0]?.name ??
+    resolvedToolName ??
+    message.tool_call_id ??
+    "Tool Call";
 
   return (
     <div className="my-1 max-w-[90%] rounded-md border bg-muted/50">
