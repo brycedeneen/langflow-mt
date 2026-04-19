@@ -417,13 +417,29 @@ class DatabaseService(Service):
             await conn.run_sync(self._check_schema_health)
 
     @staticmethod
-    def init_alembic(alembic_cfg) -> None:
+    def init_alembic(alembic_cfg, *, schema_pre_exists: bool = False) -> None:
+        """Initialize alembic on a DB without a current revision.
+
+        When ``schema_pre_exists`` is True (the typical first-Postgres-boot
+        case where ``SQLModel.create_all`` already built the schema before
+        alembic ever ran), we stamp at head instead of upgrading from base.
+        Stamping marks the DB as fully migrated without re-running migrations
+        against an already-populated schema. The subsequent ``command.check``
+        catches any genuine drift loudly. Without this, ``command.upgrade``
+        from base would try to recreate every existing table and the errors
+        would be silently swallowed by ``initialize_database``'s outer
+        ``"already exists"`` filter — leaving alembic_version permanently
+        empty and every future migration silently failing to apply.
+        """
         logger.info("Initializing alembic")
         command.ensure_version(alembic_cfg)
-        # alembic_cfg.attributes["connection"].commit()
-        command.upgrade(alembic_cfg, "head")
+        if schema_pre_exists:
+            logger.info("Schema already exists; stamping alembic at head instead of upgrading from base")
+            command.stamp(alembic_cfg, "head")
+        else:
+            command.upgrade(alembic_cfg, "head")
 
-    def _run_migrations(self, should_initialize_alembic, fix) -> None:
+    def _run_migrations(self, should_initialize_alembic, fix, *, schema_pre_exists: bool = False) -> None:
         # First we need to check if alembic has been initialized
         # If not, we need to initialize it
         # if not self.script_location.exists(): # this is not the correct way to check if alembic has been initialized
@@ -444,7 +460,7 @@ class DatabaseService(Service):
 
             if should_initialize_alembic:
                 try:
-                    self.init_alembic(alembic_cfg)
+                    self.init_alembic(alembic_cfg, schema_pre_exists=schema_pre_exists)
                 except Exception as exc:
                     msg = f"Error initializing alembic: {exc}"
                     logger.exception(msg)
@@ -475,15 +491,34 @@ class DatabaseService(Service):
 
     async def run_migrations(self, *, fix=False) -> None:
         should_initialize_alembic = False
+        schema_pre_exists = False
         async with session_scope() as session:
-            # If the table does not exist it throws an error
-            # so we need to catch it
+            # alembic_version may be missing entirely OR present-but-empty
+            # (the latter is a known broken state on first-Postgres-boot
+            # where init_alembic's upgrade-from-base failed silently).
+            # Treat both as "needs initialization."
             try:
-                await session.exec(text("SELECT * FROM alembic_version"))
+                result = await session.exec(text("SELECT version_num FROM alembic_version LIMIT 1"))
+                if result.first() is None:
+                    await logger.adebug("Alembic version table empty")
+                    should_initialize_alembic = True
             except Exception:  # noqa: BLE001
                 await logger.adebug("Alembic not initialized")
                 should_initialize_alembic = True
-        await asyncio.to_thread(self._run_migrations, should_initialize_alembic, fix)
+
+            # If we're about to initialize, detect whether the schema was
+            # already built externally (e.g., by SQLModel.create_all in
+            # create_db_and_tables). If yes, init_alembic will stamp at
+            # head instead of trying to upgrade from base.
+            if should_initialize_alembic:
+                try:
+                    await session.exec(text("SELECT 1 FROM flow LIMIT 1"))
+                    schema_pre_exists = True
+                except Exception:  # noqa: BLE001
+                    schema_pre_exists = False
+        await asyncio.to_thread(
+            self._run_migrations, should_initialize_alembic, fix, schema_pre_exists=schema_pre_exists
+        )
 
     @staticmethod
     def try_downgrade_upgrade_until_success(alembic_cfg, retries=5) -> None:
