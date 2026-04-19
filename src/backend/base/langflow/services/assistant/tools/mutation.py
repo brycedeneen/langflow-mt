@@ -13,9 +13,10 @@ from __future__ import annotations
 
 import copy
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from langflow.agentic.utils.component_search import get_component_by_name
+from langflow.services.deps import get_variable_service, session_scope
 
 
 def _empty_patch() -> dict[str, list]:
@@ -34,10 +35,22 @@ class FlowMutationTools:
     Args:
         flow_data: The flow's ``data`` JSON containing ``nodes``,
             ``edges``, and ``viewport``.
+        user_id: Optional user UUID. Required for tools that touch
+            user-scoped state (e.g. ``create_secret_variable``).
+        org_id: Optional organization UUID for multi-tenant scoping.
+            Forwarded to the variable service when present.
     """
 
-    def __init__(self, flow_data: dict[str, Any]) -> None:
+    def __init__(
+        self,
+        flow_data: dict[str, Any],
+        *,
+        user_id: UUID | str | None = None,
+        org_id: UUID | str | None = None,
+    ) -> None:
         self.flow_data = flow_data
+        self.user_id = user_id
+        self.org_id = org_id
 
     # ------------------------------------------------------------------
     # Helpers
@@ -180,6 +193,36 @@ class FlowMutationTools:
         patch = _empty_patch()
         patch["added_nodes"].append(node)
         return {"node_id": node_id, "applied_patch": patch}
+
+    async def create_secret_variable(self, name: str, value: str) -> dict[str, Any]:
+        """Create a user-scoped secret variable in the variable store.
+
+        Use this BEFORE ``set_field_value`` when the target field is a
+        ``SecretStrInput`` (password, api_key, token). At runtime the
+        framework treats those stored strings as variable *names* to
+        look up — not literals — so the assistant must register the
+        secret here and then write the variable name into the field.
+
+        Returns ``{"variable_name": <name>}`` on success or
+        ``{"error": ...}`` on failure (missing user context, duplicate
+        name, etc.). The underlying ``VariableService`` encrypts the
+        value at rest for ``CREDENTIAL_TYPE`` (the default).
+        """
+        if self.user_id is None:
+            return {"error": "cannot create secret variable: missing user context"}
+        try:
+            service = get_variable_service()
+            async with session_scope() as session:
+                await service.create_variable(
+                    user_id=self.user_id,
+                    name=name,
+                    value=value,
+                    session=session,
+                    organization_id=self.org_id,
+                )
+        except Exception as e:  # noqa: BLE001
+            return {"error": f"failed to create secret variable: {e}"}
+        return {"variable_name": name}
 
     def connect_edge(
         self,

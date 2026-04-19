@@ -13,8 +13,15 @@ from uuid import UUID
 from langflow.services.assistant.context_window import pack_messages
 from langflow.services.assistant.providers.base import ProviderClient, StreamEvent, ToolResult
 from langflow.services.assistant.tools import catalog
+from langflow.services.assistant.tools.inspection import FlowInspectionTools
 from langflow.services.assistant.tools.mutation import FlowMutationTools
-from langflow.services.assistant.tools.registry import get_tools_for_anthropic, get_tools_for_openai, is_catalog_tool, is_mutation_tool
+from langflow.services.assistant.tools.registry import (
+    get_tools_for_anthropic,
+    get_tools_for_openai,
+    is_catalog_tool,
+    is_inspection_tool,
+    is_mutation_tool,
+)
 from langflow.services.assistant.flow_template_context import build_flow_template_context
 from langflow.services.assistant.template_prompt import build_available_templates_block
 from langflow.services.assistant.tools.template_metadata import get_template_instructions
@@ -95,6 +102,88 @@ need a Slack API token. Here's how to get one: go to api.slack.com/apps, \
 create a new app…"), then where to put it in Langflow. Keep the \
 response focused on fixing this one failure; do not propose redesigning \
 the flow unless asked.
+
+## Conversation pacing
+- When the user gives information upfront, do not re-ask for it. Acknowledge \
+what was provided, state your plan in one sentence, and proceed.
+- When information is missing, ask one question at a time. Wait for the \
+answer before asking the next.
+- Use friendly, non-technical language. Ask "what should we name the files?" \
+not "set the SFTP filename pattern".
+- Confirm scope in one sentence before the first question. Example: "Got it \
+— I'll set up an ADP webhook on hire and termination events that uploads \
+worker data to an SFTP server. Let me ask a few questions:".
+- Propose sensible defaults; only ask when the choice matters. Don't ask \
+about SFTP port if 22 is fine — use it and mention it.
+- After building, narrate what you did and surface anything the user must \
+act on (for example, the webhook URL and API key the upstream system needs).
+
+## ADP integration playbook
+Use this playbook when the user wants to react to ADP events (hire, \
+termination, leave, etc.) by sending data to an external system.
+
+- Template override: if a template's `agent_instructions` are present in \
+this conversation's context, those instructions take precedence over this \
+playbook. Use them as your starting point; fall back to the playbook only \
+for anything the template does not specify.
+
+- Canonical wiring: `ADP Trigger → Agent (bridge) → Sink component`.
+
+- Event groupings to recognize:
+  - "hire" / "onboarding" / "new employee" → New Hire (optionally also \
+Rehire — confirm with the user).
+  - "termination" / "leaving" / "offboarding" → Retirement + Deceased \
+(confirm with the user before applying).
+  - "leave" / "out of office" → Leave.
+
+- Bridge Agent configuration:
+  - Default to a fast, cheap model (Haiku class).
+  - Attach ADP Worker Tools so the agent can fetch additional worker data \
+if the trigger payload is sparse. Tool-attach via `connect_edge` with \
+`source_output: "component_as_tool"` on the tools component and \
+`target_input: "tools"` on the agent.
+  - System prompt template: "You receive an ADP worker event. Extract the \
+following fields from the payload and return a single JSON object: \
+<user's field list>. If a field is missing from the payload, use the \
+tools to fetch it."
+  - Set `output_schema` (the Agent's TableInput) to one row per requested \
+field. Each row is a dict: `{{"name": "<field>", "description": "<short>", \
+"type": "str", "multiple": false}}`. Example for the SFTP scenario:
+    ```
+    [
+      {{"name": "name",    "description": "Employee full name",          "type": "str", "multiple": false}},
+      {{"name": "address", "description": "Employee legal address",      "type": "str", "multiple": false}},
+      {{"name": "phone",   "description": "Employee mobile or landline", "type": "str", "multiple": false}},
+      {{"name": "email",   "description": "Employee primary email",      "type": "str", "multiple": false}},
+      {{"name": "job",     "description": "Employee job title",          "type": "str", "multiple": false}}
+    ]
+    ```
+
+- Friendly field-name → ADP payload hints to put inside the agent's prompt:
+  - name → person.legalName.formattedName
+  - address → person.legalAddress
+  - phone → person.communication.mobiles[0] (or landlines[0])
+  - email → person.communication.emails[0].emailUri
+  - job → workAssignments[0].jobTitle
+  - compensation → call the get_employee_compensation tool
+
+- Secret/password fields (e.g. SFTP `password`, API keys) — DO NOT pass the \
+literal value via `set_field_value`. The runtime treats those fields as \
+variable lookups. Instead:
+  1. Call `create_secret_variable(name=<descriptive>, value=<secret>)`. \
+Choose a name like "sftp_password_<short>" so the user can recognize it.
+  2. Call `set_field_value(node_id, <field>, <variable_name>)` with the \
+variable name returned in step 1.
+
+- After all three nodes are wired AND the flow is persisted (this happens \
+automatically at end of turn), call `get_webhook_credentials` (no args). \
+Present the returned `endpoint` and `api_key` in chat with: "Give this URL \
+to ADP under Event Notification subscriptions; include the API key as the \
+`x-api-key` header." Then suggest running Test mode.
+
+- For SFTP filename patterns, prefer `{{datestamp}}` (full date+time, \
+collision-safe) by default. Offer `{{date}}` only if the user explicitly \
+wants one file per day and accepts the overwrite trade-off.
 """
 
 # ---------------------------------------------------------------------------
@@ -127,6 +216,7 @@ class AssistantService:
         user_id: UUID,
         model_name: str,
         based_on_template_flow_id: UUID | None = None,
+        base_url: str | None = None,
     ) -> None:
         self.provider_client = provider_client
         self.flow_data = flow_data
@@ -135,7 +225,14 @@ class AssistantService:
         self.user_id = user_id
         self.model_name = model_name
         self.based_on_template_flow_id = based_on_template_flow_id
-        self.mutation_tools = FlowMutationTools(flow_data)
+        self.base_url = base_url
+        self.mutation_tools = FlowMutationTools(flow_data, user_id=user_id, org_id=org_id)
+        self.inspection_tools = FlowInspectionTools(
+            flow_data,
+            flow_id=flow_id,
+            org_id=org_id,
+            base_url=base_url,
+        )
         self._conversation_messages: list[dict[str, Any]] = []
 
     # ------------------------------------------------------------------
@@ -207,6 +304,13 @@ class AssistantService:
             elif is_mutation_tool(name):
                 method = getattr(self.mutation_tools, name)
                 import asyncio
+                result = method(**args)
+                if asyncio.iscoroutine(result):
+                    result = await result
+                return {"result": result}
+            elif is_inspection_tool(name):
+                import asyncio
+                method = getattr(self.inspection_tools, name)
                 result = method(**args)
                 if asyncio.iscoroutine(result):
                     result = await result

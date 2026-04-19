@@ -152,6 +152,32 @@ MUTATION_TOOLS = [
         },
     },
     {
+        "name": "create_secret_variable",
+        "description": (
+            "Create a user-scoped secret variable in the variable store and "
+            "return its name. Use BEFORE set_field_value when the target "
+            "field is a secret/password (e.g. SFTP password, an API token). "
+            "After this call, pass the returned variable_name to "
+            "set_field_value — the runtime substitutes the real value at "
+            "execution time. Choose a descriptive name like "
+            "'sftp_password_<flow_short>' so the user can recognize it later."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The variable name (will appear in the variable store).",
+                },
+                "value": {
+                    "type": "string",
+                    "description": "The secret value (will be encrypted at rest).",
+                },
+            },
+            "required": ["name", "value"],
+        },
+    },
+    {
         "name": "add_sticky_note",
         "description": "Add a sticky note to the flow canvas.",
         "parameters": {
@@ -171,7 +197,47 @@ MUTATION_TOOLS = [
     },
 ]
 
-ALL_TOOLS = CATALOG_TOOLS + MUTATION_TOOLS
+INSPECTION_TOOLS = [
+    {
+        "name": "get_node_field_value",
+        "description": (
+            "Read the current value of one field on one node in the active flow. "
+            "Use for surfacing values like an endpoint URL a component computed. "
+            "For webhook API keys use get_webhook_credentials instead — those "
+            "live in the secret store, not the node template. Returns the value "
+            "as a string, or an error string starting with 'node not found:' or "
+            "'field not found on node:'."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "node_id": {"type": "string", "description": "The node's id from the canvas summary."},
+                "field_name": {
+                    "type": "string",
+                    "description": "Template field name (backtick-style, e.g. 'endpoint'). Not the display name.",
+                },
+            },
+            "required": ["node_id", "field_name"],
+        },
+    },
+    {
+        "name": "get_webhook_credentials",
+        "description": (
+            "Return the webhook URL and API key for the active flow as "
+            "{endpoint, api_key}. Use after adding a webhook-like component "
+            "(ADP Trigger or Webhook) and confirming persistence. Returns "
+            "{error: ...} if no key has been provisioned yet."
+        ),
+        "parameters": {"type": "object", "properties": {}, "required": []},
+    },
+]
+
+
+def is_inspection_tool(name: str) -> bool:
+    return any(t["name"] == name for t in INSPECTION_TOOLS)
+
+
+ALL_TOOLS = CATALOG_TOOLS + MUTATION_TOOLS + INSPECTION_TOOLS
 
 
 def get_tools_for_openai() -> list[dict[str, Any]]:
