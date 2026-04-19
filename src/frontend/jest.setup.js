@@ -1,5 +1,12 @@
 // Jest setup file to mock globals and Vite-specific syntax
 
+// Polyfill TextEncoder/TextDecoder for jsdom (react-router-dom v7 reads them at module load)
+if (typeof global.TextEncoder === "undefined") {
+  const { TextEncoder, TextDecoder } = require("util");
+  global.TextEncoder = TextEncoder;
+  global.TextDecoder = TextDecoder;
+}
+
 // Mock import.meta
 global.import = {
   meta: {
