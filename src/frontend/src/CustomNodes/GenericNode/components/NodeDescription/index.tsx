@@ -75,7 +75,7 @@ export default function NodeDescription({
       return emptyPlaceholder;
     }
     return (
-      <MemoizedMarkdown
+      <div
         className={cn(
           "markdown prose flex w-full flex-col leading-5 word-break-break-word [&_pre]:whitespace-break-spaces [&_pre]:!bg-code-description-background [&_pre_code]:!bg-code-description-background",
           stickyNote
@@ -83,16 +83,19 @@ export default function NodeDescription({
             : "text-xs",
           mdClassName,
         )}
-        components={{
-          a: ({ node, ...props }) => (
-            <a {...props} target="_blank" rel="noopener noreferrer">
-              {props.children}
-            </a>
-          ),
-        }}
       >
-        {String(description)}
-      </MemoizedMarkdown>
+        <MemoizedMarkdown
+          components={{
+            a: ({ node, ...props }) => (
+              <a {...props} target="_blank" rel="noopener noreferrer">
+                {props.children}
+              </a>
+            ),
+          }}
+        >
+          {String(description)}
+        </MemoizedMarkdown>
+      </div>
     );
   }, [description, emptyPlaceholder, mdClassName]);
 

@@ -59,10 +59,9 @@ export default function ErrorAlert({
                 <ul className="list-disc space-y-1 pl-5 align-top">
                   {list.map((item, index) => (
                     <li key={index} className="word-break-break-word">
-                      <span className="">
+                      <span className="align-text-top">
                         <Markdown
                           remarkPlugins={[remarkGfm]}
-                          className="align-text-top"
                           components={{
                             a: ({ node, ...props }) => (
                               <a

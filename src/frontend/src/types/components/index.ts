@@ -790,11 +790,8 @@ export type codeTabsPropsType = {
 };
 
 export type crashComponentPropsType = {
-  error: {
-    message: string;
-    stack: string;
-  };
-  resetErrorBoundary: (args) => void;
+  error: unknown;
+  resetErrorBoundary: (...args: unknown[]) => void;
 };
 
 export type Log = {

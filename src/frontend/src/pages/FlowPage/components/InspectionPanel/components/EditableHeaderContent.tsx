@@ -163,11 +163,12 @@ export default function EditableHeaderContent({
       return "";
     }
     return (
-      <div className="mt-1">
+      <div
+        className={cn(
+          "mt-1 markdown prose !text-muted-foreground flex w-full flex-col text-xs leading-5 word-break-break-word [&_pre]:whitespace-break-spaces [&_pre]:!bg-code-description-background [&_pre_code]:!bg-code-description-background dark:prose-invert",
+        )}
+      >
         <MemoizedMarkdown
-          className={cn(
-            "markdown prose !text-muted-foreground flex w-full flex-col text-xs leading-5 word-break-break-word [&_pre]:whitespace-break-spaces [&_pre]:!bg-code-description-background [&_pre_code]:!bg-code-description-background dark:prose-invert",
-          )}
           components={{
             a: ({ node, ...props }) => (
               <a {...props} target="_blank" rel="noopener noreferrer">

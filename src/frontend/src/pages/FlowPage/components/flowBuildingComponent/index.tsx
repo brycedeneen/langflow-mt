@@ -251,31 +251,32 @@ export default function FlowBuildingComponent() {
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <Markdown
-                          remarkPlugins={[remarkGfm]}
-                          className="my-1.5 align-text-top truncate-doubleline"
-                          components={{
-                            a: ({ node, ...props }) => (
-                              <a
-                                {...props}
-                                target="_blank"
-                                className="underline"
-                                rel="noopener noreferrer"
-                              >
-                                {props.children}
-                              </a>
-                            ),
-                            p({ node, ...props }) {
-                              return (
-                                <span className="inline-block w-fit max-w-full align-text-top truncate-doubleline">
+                        <div className="my-1.5 align-text-top truncate-doubleline">
+                          <Markdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              a: ({ node, ...props }) => (
+                                <a
+                                  {...props}
+                                  target="_blank"
+                                  className="underline"
+                                  rel="noopener noreferrer"
+                                >
                                   {props.children}
-                                </span>
-                              );
-                            },
-                          }}
-                        >
-                          {buildInfo?.error?.join("\n")}
-                        </Markdown>
+                                </a>
+                              ),
+                              p({ node, ...props }) {
+                                return (
+                                  <span className="inline-block w-fit max-w-full align-text-top truncate-doubleline">
+                                    {props.children}
+                                  </span>
+                                );
+                              },
+                            }}
+                          >
+                            {buildInfo?.error?.join("\n")}
+                          </Markdown>
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
