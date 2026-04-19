@@ -18,10 +18,14 @@ module.exports = {
   testPathIgnorePatterns: ["/node_modules/", "test-utils.tsx"],
   transform: {
     "^.+\\.(ts|tsx)$": "<rootDir>/transform-import-meta.js",
+    "node_modules/react-hotkeys-hook/.+\\.(js|mjs)$":
+      "<rootDir>/transform-import-meta.js",
   },
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
   // Ignore node_modules except for packages that need transformation
-  transformIgnorePatterns: ["node_modules/(?!(.*\\.mjs$|@testing-library))"],
+  transformIgnorePatterns: [
+    "node_modules/(?!(.*\\.mjs$|@testing-library|react-hotkeys-hook))",
+  ],
 
   // Coverage configuration
   collectCoverageFrom: [
