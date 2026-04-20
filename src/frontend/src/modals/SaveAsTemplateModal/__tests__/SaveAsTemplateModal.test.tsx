@@ -15,7 +15,7 @@ jest.mock(
   () => ({
     useCreateTemplate: () => ({
       mutate: mutateMock,
-      isLoading: false,
+      isPending: false,
     }),
   }),
 );

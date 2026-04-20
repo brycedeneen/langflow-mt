@@ -55,7 +55,7 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
   const canSubmit = name.trim().length > 0;
 
   const createTemplate = useCreateTemplate();
-  const submitting = createTemplate.isLoading;
+  const submitting = createTemplate.isPending;
   const setSuccessData = useAlertStore((s) => s.setSuccessData);
   const setErrorData = useAlertStore((s) => s.setErrorData);
 

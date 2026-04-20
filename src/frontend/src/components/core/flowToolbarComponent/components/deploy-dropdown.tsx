@@ -22,6 +22,7 @@ import { customMcpOpen } from "@/customization/utils/custom-mcp-open";
 import ApiModal from "@/modals/apiModal";
 import EmbedModal from "@/modals/EmbedModal/embed-modal";
 import ExportModal from "@/modals/exportModal";
+import SaveAsTemplateModal from "@/modals/SaveAsTemplateModal";
 import useAlertStore from "@/stores/alertStore";
 import useAuthStore from "@/stores/authStore";
 import useFlowStore from "@/stores/flowStore";
@@ -54,7 +55,10 @@ export default function PublishDropdown({
   const isPublished = currentFlow?.access_type === "PUBLIC";
   const hasIO = useFlowStore((state) => state.hasIO);
   const isAuth = useAuthStore((state) => !!state.autoLogin);
+  const isSuperuser =
+    useAuthStore((state) => state.userData?.is_superuser) === true;
   const [openExportModal, setOpenExportModal] = useState(false);
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
 
   const handlePublishedSwitch = async (checked: boolean) => {
     mutateAsync(
@@ -127,6 +131,15 @@ export default function PublishDropdown({
             <IconComponent name="Download" className={`icon-size mr-2`} />
             <span>Export</span>
           </DropdownMenuItem>
+          {isSuperuser && (
+            <DropdownMenuItem
+              className="deploy-dropdown-item group"
+              onClick={() => setSaveTemplateOpen(true)}
+            >
+              <IconComponent name="FileText" className={`icon-size mr-2`} />
+              <span>Save as Template</span>
+            </DropdownMenuItem>
+          )}
           <CustomLink
             className={cn("flex-1")}
             to={`/mcp/folder/${folderId}`}
@@ -229,6 +242,18 @@ export default function PublishDropdown({
         activeTweaks={false}
       ></EmbedModal>
       <ExportModal open={openExportModal} setOpen={setOpenExportModal} />
+      <SaveAsTemplateModal
+        open={saveTemplateOpen}
+        onClose={() => setSaveTemplateOpen(false)}
+        flow={{
+          id: currentFlow?.id,
+          description: currentFlow?.description,
+          data: {
+            nodes: currentFlow?.data?.nodes ?? [],
+            edges: currentFlow?.data?.edges ?? [],
+          },
+        }}
+      />
     </>
   );
 }
