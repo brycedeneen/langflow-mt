@@ -4,6 +4,11 @@ from unittest.mock import patch
 import pytest
 import structlog
 
+# --- pandas 3.0 migration: enable Copy-on-Write opt-in on pandas 2.3 ---
+import pandas as _pd_cow
+_pd_cow.options.mode.copy_on_write = True
+# ---------------------------------------------------------------------
+
 
 @pytest.fixture(autouse=True, scope="session")
 def setup_structlog():

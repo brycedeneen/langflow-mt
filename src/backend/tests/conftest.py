@@ -38,6 +38,14 @@ from typer.testing import CliRunner
 
 from tests.api_keys import get_openai_api_key
 
+# --- pandas 3.0 migration: enable Copy-on-Write opt-in on pandas 2.3 ---
+# Must be set at conftest import time (not inside a fixture) so every
+# test-imported module sees CoW active from the first line. Remains a
+# no-op after pandas 3.0 bump (CoW is default in 3.0) but kept for intent.
+import pandas as _pd_cow  # noqa: E402
+_pd_cow.options.mode.copy_on_write = True
+# ---------------------------------------------------------------------
+
 load_dotenv()
 
 
