@@ -31,7 +31,7 @@ export function CustomParameterComponent({
   templateData: Partial<InputFieldType>;
   templateValue: any;
   showParameter: boolean;
-  inspectionPanel: boolean;
+  inspectionPanel?: boolean;
   editNode: boolean;
   handleNodeClass: (value: any, code?: string, type?: string) => void;
   nodeClass: APIClassType;

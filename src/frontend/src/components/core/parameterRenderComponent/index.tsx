@@ -35,7 +35,7 @@ export function ParameterRenderComponent({
   templateData,
   templateValue,
   editNode,
-  showParameter,
+  showParameter = true,
   inspectionPanel = false,
   handleNodeClass,
   nodeClass,
@@ -52,8 +52,8 @@ export function ParameterRenderComponent({
   templateData: Partial<InputFieldType>;
   templateValue: any;
   editNode: boolean;
-  showParameter: boolean;
-  inspectionPanel: boolean;
+  showParameter?: boolean;
+  inspectionPanel?: boolean;
   handleNodeClass: (value: any, code?: string, type?: string) => void;
   nodeClass: APIClassType;
   disabled: boolean;
