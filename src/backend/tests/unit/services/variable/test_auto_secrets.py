@@ -285,3 +285,39 @@ async def test_delete_autosecrets_for_flow_removes_all_for_that_flow():
     )
 
     assert svc.delete_variable.await_count == 2
+
+
+from langflow.services.variable.auto_secrets import blank_autosecrets_for_export
+
+
+def test_blank_autosecrets_blanks_textfilesecret_refs():
+    ref = autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem")
+    flow_data = _flow_data(
+        {
+            "_input_type": "TextFileSecretInput",
+            "value": ref,
+            "load_from_db": True,
+        }
+    )
+
+    out = blank_autosecrets_for_export(flow_data)
+
+    field = out["nodes"][0]["data"]["node"]["template"]["cert_pem"]
+    assert field["value"] == ""
+    assert field["load_from_db"] is True
+
+
+def test_blank_autosecrets_ignores_non_autosecret_variables():
+    # A user-managed Variable referenced via load_from_db should NOT be blanked.
+    flow_data = _flow_data(
+        {
+            "_input_type": "TextFileSecretInput",
+            "value": "my_global_variable",
+            "load_from_db": True,
+        }
+    )
+
+    out = blank_autosecrets_for_export(flow_data)
+
+    field = out["nodes"][0]["data"]["node"]["template"]["cert_pem"]
+    assert field["value"] == "my_global_variable"

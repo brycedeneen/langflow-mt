@@ -167,3 +167,20 @@ async def delete_autosecrets_for_flow(
             user_id=user_id,
             session=session,
         )
+
+
+def blank_autosecrets_for_export(flow_data: dict) -> dict:
+    """Blank the value of every TextFileSecretInput field whose value looks
+    like an auto-Variable reference. User-managed Variables (without the
+    auto prefix) are left untouched so exports still carry those refs.
+
+    The returned dict may share structure with the input; callers that need
+    to preserve the original should deepcopy before calling.
+    """
+    for _node_id, _field_name, field in _iter_textfilesecret_fields(flow_data):
+        value = field.get("value") or ""
+        if isinstance(value, str) and value.startswith(AUTOSECRET_PREFIX):
+            field["value"] = ""
+            # Keep load_from_db=True so the importer knows this field expects
+            # a secret to be supplied.
+    return flow_data
