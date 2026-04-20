@@ -110,7 +110,7 @@ export const test = base.extend({
               return;
             }
 
-            responseBody = bodyResult;
+            responseBody = bodyResult as string;
           } catch (bodyReadErr) {
             if (timeoutId) {
               clearTimeout(timeoutId);

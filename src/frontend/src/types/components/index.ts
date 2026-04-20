@@ -556,6 +556,7 @@ export type ChatInputType = {
     current: any;
   };
   noInput: boolean;
+  playgroundPage?: boolean;
   sendMessage: ({
     repeat,
     files,

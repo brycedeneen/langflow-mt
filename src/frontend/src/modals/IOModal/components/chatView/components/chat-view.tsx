@@ -90,7 +90,7 @@ export default function ChatView({
           message: message.text,
           sender_name: message.sender_name,
           files: files,
-          id: message.id,
+          id: message.id ?? "",
           timestamp: message.timestamp,
           session: message.session_id,
           edit: message.edit,

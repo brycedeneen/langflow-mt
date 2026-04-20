@@ -10,7 +10,7 @@ export const FormKeyRender = ({
 }: {
   modalProps: any;
   apiKeyName: string;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
   setApiKeyName: (value: string) => void;
 }) => {
   return (

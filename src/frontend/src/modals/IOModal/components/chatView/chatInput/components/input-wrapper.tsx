@@ -22,12 +22,12 @@ interface InputWrapperProps {
   files: FilePreviewType[];
   isDragging: boolean;
   handleDeleteFile: (file: FilePreviewType) => void;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleButtonClick: () => void;
   setShowAudioInput: (value: boolean) => void;
   currentFlowId: string;
-  playgroundPage: boolean;
+  playgroundPage?: boolean;
 }
 
 const InputWrapper: React.FC<InputWrapperProps> = ({
