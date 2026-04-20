@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2020",
     "ignoreDeprecations": "6.0",
     "rootDir": ".",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -20,10 +20,9 @@
     "jsx": "react-jsx",
     "noImplicitAny": false,
     "paths": {
-      "@/*": ["*"],
-      "@queries/*": ["controllers/API/queries/*"]
-    },
-    "baseUrl": "src"
+      "@/*": ["./src/*"],
+      "@queries/*": ["./src/controllers/API/queries/*"]
+    }
   },
   "include": [
     "src",

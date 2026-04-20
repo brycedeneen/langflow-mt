@@ -6,15 +6,24 @@ jest.mock("@/customization/feature-flags", () => ({
   ENABLE_LANGFLOW_STORE: true,
 }));
 
-// Mock the API controllers - simplified without complex async operations
-const mockCheckHasStore = jest.fn();
-const mockCheckHasApiKey = jest.fn();
-
+// Mock the API controllers. Mock fns are created inside the factory so the
+// hoisted jest.mock call doesn't hit a TDZ on const declarations under
+// target=es2020+ (es5 target previously transpiled these consts to vars,
+// which masked the issue).
 jest.mock("../../controllers/API", () => ({
   __esModule: true,
-  checkHasStore: mockCheckHasStore,
-  checkHasApiKey: mockCheckHasApiKey,
+  checkHasStore: jest.fn(),
+  checkHasApiKey: jest.fn(),
 }));
+
+// Grab references to the mocks after the module is mocked, for per-test
+// setup in beforeEach.
+const api = jest.requireMock("../../controllers/API") as {
+  checkHasStore: jest.Mock;
+  checkHasApiKey: jest.Mock;
+};
+const mockCheckHasStore = api.checkHasStore;
+const mockCheckHasApiKey = api.checkHasApiKey;
 
 describe("useStoreStore", () => {
   beforeEach(() => {
