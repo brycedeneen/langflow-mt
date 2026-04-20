@@ -84,21 +84,14 @@ class ADPAuthComponent(Component):
             msg = "client_secret is required"
             raise ValueError(msg)
 
-        source = "path" if self.cert_source == "File Path" else "pem"
-        if source == "path":
-            if not (self.cert_path or "").strip():
-                msg = "cert_path is required when Cert Source is File Path"
-                raise ValueError(msg)
-            if not (self.key_path or "").strip():
-                msg = "key_path is required when Cert Source is File Path"
-                raise ValueError(msg)
-        else:
-            if not (self.cert_pem or "").strip():
-                msg = "cert_pem is required when Cert Source is PEM"
-                raise ValueError(msg)
-            if not (self.key_pem or "").strip():
-                msg = "key_pem is required when Cert Source is PEM"
-                raise ValueError(msg)
+        cert_pem = (self.cert_pem or "").strip()
+        key_pem = (self.key_pem or "").strip()
+        if not cert_pem:
+            msg = "cert_pem is required"
+            raise ValueError(msg)
+        if not key_pem:
+            msg = "key_pem is required"
+            raise ValueError(msg)
 
         token_url = (self.token_url or DEFAULT_TOKEN_URL).strip()
         validate_adp_url(token_url, field_name="token_url")
@@ -106,11 +99,8 @@ class ADPAuthComponent(Component):
         conn = ADPConnection(
             client_id=client_id,
             client_secret=client_secret,
-            cert_source=source,
-            cert_path=self.cert_path or None,
-            key_path=self.key_path or None,
-            cert_pem=self.cert_pem or None,
-            key_pem=self.key_pem or None,
+            cert_pem=cert_pem,
+            key_pem=key_pem,
             token_url=token_url,
         )
         await fetch_token(conn)
