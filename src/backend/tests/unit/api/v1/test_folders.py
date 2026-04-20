@@ -29,15 +29,6 @@ async def test_create_folder(client: AsyncClient, logged_in_headers, basic_case)
     assert "parent_id" in result, "The dictionary must contain a key called 'parent_id'"
 
 
-@pytest.mark.xfail(
-    reason=(
-        "Multi-tenant WIP: auto-provisioning in scoping.py _insert_guard can assign a newly "
-        "created user two personal orgs (one per early tenant-scoped insert), so the default "
-        "folder's organization_id and get_current_organization's pick can disagree. Fix "
-        "belongs in the membership-provisioning path, not the test."
-    ),
-    strict=False,
-)
 async def test_read_folders(client: AsyncClient, logged_in_headers):
     # Configure client to follow redirects
     client.follow_redirects = True

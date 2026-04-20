@@ -188,7 +188,7 @@ def install_scoping_guards(engine, *, enforce_select: bool) -> None:
         if flow_id is not None:
             row = connection.execute(
                 text("SELECT organization_id FROM flow WHERE id = :fid"),
-                {"fid": str(flow_id)},
+                {"fid": _as_hex(flow_id)},
             ).first()
             if row is not None and row[0] is not None:
                 target.organization_id = _to_uuid(row[0])
@@ -199,7 +199,7 @@ def install_scoping_guards(engine, *, enforce_select: bool) -> None:
         if folder_id is not None:
             row = connection.execute(
                 text("SELECT organization_id FROM folder WHERE id = :fid"),
-                {"fid": str(folder_id)},
+                {"fid": _as_hex(folder_id)},
             ).first()
             if row is not None and row[0] is not None:
                 target.organization_id = _to_uuid(row[0])
@@ -207,7 +207,7 @@ def install_scoping_guards(engine, *, enforce_select: bool) -> None:
 
         user_id = getattr(target, "user_id", None)
         if user_id is not None:
-            uid_str = str(user_id)
+            uid_str = _as_hex(user_id)
             row = connection.execute(
                 text("SELECT organization_id FROM membership WHERE user_id = :uid LIMIT 1"),
                 {"uid": uid_str},

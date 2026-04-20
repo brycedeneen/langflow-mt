@@ -39,10 +39,12 @@ async def get_current_organization(
     if not orgs:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Memberships reference no organizations")
 
-    # Prefer the user's personal org; else the earliest-created one.
-    personal = next((o for o in orgs if o.is_personal), None)
-    if personal is not None:
-        return personal
+    # Prefer the user's personal org; if multiple (legacy duplicate state),
+    # pick the earliest-created so the choice is deterministic. Otherwise
+    # fall back to the earliest-created org overall.
+    personal_orgs = [o for o in orgs if o.is_personal]
+    if personal_orgs:
+        return min(personal_orgs, key=lambda o: o.created_at)
     return min(orgs, key=lambda o: o.created_at)
 
 

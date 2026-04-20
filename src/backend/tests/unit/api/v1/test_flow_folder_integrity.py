@@ -235,14 +235,6 @@ async def test_upload_flow_with_nonexistent_folder_id_assigns_default(
         assert folder.user_id == active_user.id
 
 
-@pytest.mark.xfail(
-    reason=(
-        "Multi-tenant WIP: same auto-provisioning issue as test_read_folders/test_read_projects — "
-        "the created flow's folder and get_current_organization can land in different auto-provisioned "
-        "orgs, so the /folders/{id} listing comes back without the flow."
-    ),
-    strict=False,
-)
 async def test_flow_created_is_retrievable_in_folder(client: AsyncClient, logged_in_headers):
     """Test that a created flow can be retrieved by listing flows in its folder.
 
