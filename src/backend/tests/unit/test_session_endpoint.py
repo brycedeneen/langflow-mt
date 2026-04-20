@@ -3,18 +3,30 @@ from uuid import uuid4
 import pytest
 from httpx import AsyncClient
 from langflow.memory import aadd_messagetables
+from langflow.services.database.models.flow.model import Flow
 from langflow.services.database.models.message.model import MessageTable
 from langflow.services.deps import session_scope
 
 
 @pytest.fixture
-async def messages_with_flow_ids(session):  # noqa: ARG001
-    """Create messages with different session_ids and flow_ids for testing sessions endpoint."""
-    async with session_scope() as _session:
-        flow_id_1 = uuid4()
-        flow_id_2 = uuid4()
+async def messages_with_flow_ids(session, active_user):  # noqa: ARG001
+    """Create messages with different session_ids and flow_ids for testing sessions endpoint.
 
-        # Create MessageTable objects directly since MessageCreate doesn't have flow_id field
+    The /messages/sessions endpoint inner-joins Flow and scopes by
+    Flow.user_id == current_user.id, so flow_ids must reference real flows
+    owned by the logged-in user (active_user) — otherwise nothing matches.
+    Messages with flow_id=None are still inserted but correctly drop out of
+    the join and so are absent from the expected result sets.
+    """
+    async with session_scope() as _session:
+        flow_1 = Flow(name="sess-flow-1", user_id=active_user.id, data={})
+        flow_2 = Flow(name="sess-flow-2", user_id=active_user.id, data={})
+        _session.add(flow_1)
+        _session.add(flow_2)
+        await _session.flush()
+        flow_id_1 = flow_1.id
+        flow_id_2 = flow_2.id
+
         messagetables = [
             MessageTable(
                 text="Message 1", sender="User", sender_name="User", session_id="session_A", flow_id=flow_id_1
@@ -32,7 +44,7 @@ async def messages_with_flow_ids(session):  # noqa: ARG001
                 sender="User",
                 sender_name="User",
                 session_id="session_E",
-                flow_id=None,  # No flow_id
+                flow_id=None,  # No flow_id — will be filtered out by the endpoint's Flow join.
             ),
         ]
         created_messages = await aadd_messagetables(messagetables, _session)
@@ -43,7 +55,7 @@ async def messages_with_flow_ids(session):  # noqa: ARG001
             "flow_id_2": flow_id_2,
             "expected_sessions_flow_1": {"session_A", "session_B"},
             "expected_sessions_flow_2": {"session_C", "session_D"},
-            "expected_all_sessions": {"session_A", "session_B", "session_C", "session_D", "session_E"},
+            "expected_all_sessions": {"session_A", "session_B", "session_C", "session_D"},
         }
 
 

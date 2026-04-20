@@ -10,6 +10,18 @@ from langflow.services.database.service import SQLModel
 from sqlalchemy import create_engine, inspect
 
 
+@pytest.fixture(autouse=True)
+def _isolate_database_url(monkeypatch):
+    """Prevent env.py from overriding the test's sqlite URL.
+
+    `src/backend/base/langflow/alembic/env.py` reads `LANGFLOW_DATABASE_URL`
+    from the environment and overwrites the URL set on the alembic Config.
+    The local dev .env points that at Postgres, which would route migrations
+    to the running dev DB and leave the test's temp sqlite file empty.
+    """
+    monkeypatch.delenv("LANGFLOW_DATABASE_URL", raising=False)
+
+
 def _get_alembic_cfg(db_path: str) -> Config:
     """Create an Alembic Config pointing at the project's migration scripts."""
     alembic_cfg = Config()
