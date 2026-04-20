@@ -45,7 +45,10 @@ from langflow.services.database.models.folder.constants import DEFAULT_FOLDER_NA
 from langflow.services.database.models.folder.model import Folder
 from langflow.services.database.models.folder.utils import get_default_folder_id
 from langflow.services.deps import get_settings_service, get_storage_service, get_variable_service
-from langflow.services.variable.auto_secrets import promote_plaintext_secrets_to_variables
+from langflow.services.variable.auto_secrets import (
+    cleanup_orphaned_autosecrets,
+    promote_plaintext_secrets_to_variables,
+)
 from langflow.services.storage.service import StorageService
 from langflow.utils.compression import compress_response
 
@@ -567,6 +570,23 @@ async def update_flow(
 
         if settings_service.settings.remove_api_keys:
             update_data = remove_api_keys(update_data)
+
+        if "data" in update_data and update_data["data"] is not None:
+            var_svc = get_variable_service()
+            update_data["data"] = await promote_plaintext_secrets_to_variables(
+                flow_data=update_data["data"],
+                flow_id=db_flow.id,
+                user_id=current_user.id,
+                variable_service=var_svc,
+                session=session,
+            )
+            await cleanup_orphaned_autosecrets(
+                flow_data=update_data["data"],
+                flow_id=db_flow.id,
+                user_id=current_user.id,
+                variable_service=var_svc,
+                session=session,
+            )
 
         for key, value in update_data.items():
             setattr(db_flow, key, value)
