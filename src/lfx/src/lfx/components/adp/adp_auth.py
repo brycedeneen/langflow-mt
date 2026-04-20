@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import ClassVar
 
 from lfx.components.adp._shared import DEFAULT_TOKEN_URL, ADPConnection, fetch_token, validate_adp_url
+from lfx.custom.custom_component.changelog import ChangelogEntry
 from lfx.custom.custom_component.component import Component
-from lfx.inputs.inputs import TabInput
+from lfx.inputs.inputs import TextFileSecretInput
 from lfx.io import MessageTextInput, Output, SecretStrInput
-from lfx.schema.dotdict import dotdict
-from lfx.utils.component_utils import set_field_display
 
 
 class ADPAuthComponent(Component):
@@ -17,6 +16,30 @@ class ADPAuthComponent(Component):
     description = "Authenticate to ADP via OAuth 2.0 client_credentials over mTLS."
     icon = "Key"
     name = "ADPAuth"
+    version: int = 2
+    changelog: ClassVar[list[ChangelogEntry]] = [
+        ChangelogEntry(
+            version=2,
+            changes=(
+                "- Replaced the `cert_source` File Path / PEM toggle with "
+                "**paste-or-upload** TextFileSecretInput fields for cert_pem "
+                "and key_pem.\n"
+                "- `cert_path` and `key_path` inputs removed.\n"
+                "- client_id, client_secret, cert_pem, and key_pem are now "
+                "Fernet-encrypted at rest via hidden auto-Variables (not "
+                "stored plaintext in the flow JSON)."
+            ),
+            notes=(
+                "Saved flows with cert_source='File Path' drop the cert_path "
+                "and key_path values on load. Paste the certificate and key "
+                "PEMs (or upload the .pem/.crt/.key files) into the new "
+                "fields to restore the connection. client_id and "
+                "client_secret typed inline are now silently encrypted on "
+                "save; exported flow JSON will show empty values where it "
+                "previously showed plaintext — re-enter credentials on import."
+            ),
+        ),
+    ]
 
     inputs = [
         SecretStrInput(
@@ -31,35 +54,25 @@ class ADPAuthComponent(Component):
             info="ADP developer client secret.",
             required=True,
         ),
-        TabInput(
-            name="cert_source",
-            display_name="Cert Source",
-            options=["File Path", "PEM"],
-            value="File Path",
-            info="How to supply the mTLS client certificate and key.",
-            real_time_refresh=True,
-        ),
-        MessageTextInput(
-            name="cert_path",
-            display_name="Client Certificate Path",
-            info="Absolute path to the client certificate (PEM).",
-        ),
-        MessageTextInput(
-            name="key_path",
-            display_name="Client Key Path",
-            info="Absolute path to the client private key (PEM).",
-        ),
-        SecretStrInput(
+        TextFileSecretInput(
             name="cert_pem",
             display_name="Client Certificate (PEM)",
-            info="Paste the client certificate contents.",
-            show=False,
+            info=(
+                "Client certificate for mTLS. Paste the PEM contents or upload a "
+                ".pem/.crt file. Stored Fernet-encrypted at rest."
+            ),
+            file_types=["pem", "crt"],
+            required=True,
         ),
-        SecretStrInput(
+        TextFileSecretInput(
             name="key_pem",
             display_name="Client Key (PEM)",
-            info="Paste the client private key contents.",
-            show=False,
+            info=(
+                "Client private key for mTLS. Paste the PEM contents or upload a "
+                ".pem/.key file. Stored Fernet-encrypted at rest."
+            ),
+            file_types=["pem", "key"],
+            required=True,
         ),
         MessageTextInput(
             name="token_url",
@@ -105,12 +118,3 @@ class ADPAuthComponent(Component):
         )
         await fetch_token(conn)
         return conn
-
-    def update_build_config(self, build_config: dotdict, field_value: Any, field_name: str | None = None) -> dotdict:
-        if field_name == "cert_source":
-            is_path = field_value == "File Path"
-            set_field_display(build_config, "cert_path", value=is_path)
-            set_field_display(build_config, "key_path", value=is_path)
-            set_field_display(build_config, "cert_pem", value=not is_path)
-            set_field_display(build_config, "key_pem", value=not is_path)
-        return build_config
