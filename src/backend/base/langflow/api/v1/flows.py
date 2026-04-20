@@ -47,6 +47,7 @@ from langflow.services.database.models.folder.utils import get_default_folder_id
 from langflow.services.deps import get_settings_service, get_storage_service, get_variable_service
 from langflow.services.variable.auto_secrets import (
     cleanup_orphaned_autosecrets,
+    delete_autosecrets_for_flow,
     promote_plaintext_secrets_to_variables,
 )
 from langflow.services.storage.service import StorageService
@@ -863,6 +864,12 @@ async def delete_flow(
             org_id=str(flow.organization_id),
             flow_id=str(flow.id),
         )
+    await delete_autosecrets_for_flow(
+        flow_id=flow.id,
+        user_id=current_user.id,
+        variable_service=get_variable_service(),
+        session=session,
+    )
     await cascade_delete_flow(session, flow.id)
     return {"message": "Flow deleted successfully"}
 
