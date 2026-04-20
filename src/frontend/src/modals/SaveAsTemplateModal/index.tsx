@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useCreateTemplate } from "@/controllers/API/queries/templates";
 import BaseModal from "@/modals/baseModal";
+import useAlertStore from "@/stores/alertStore";
+import type { BlankedField } from "@/types/template";
 import GradientPickerField from "./GradientPickerField";
 import IconPickerField from "./IconPickerField";
 import {
@@ -50,6 +53,50 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
   }, [flow.data?.nodes]);
 
   const canSubmit = name.trim().length > 0;
+
+  const createTemplate = useCreateTemplate();
+  const submitting = createTemplate.isLoading;
+  const setSuccessData = useAlertStore((s) => s.setSuccessData);
+  const setErrorData = useAlertStore((s) => s.setErrorData);
+
+  function handleSubmit() {
+    if (!canSubmit) return;
+    if (!flow.id) return;
+
+    const blanked_fields: BlankedField[] = blankableFields.map((f) => ({
+      node_id: f.node_id,
+      field_name: f.field_name,
+    }));
+
+    createTemplate.mutate(
+      {
+        source_flow_id: flow.id,
+        name: name.trim(),
+        description: description.trim() || null,
+        icon,
+        gradient,
+        blanked_fields,
+      },
+      {
+        onSuccess: () => {
+          setSuccessData({ title: `Template "${name.trim()}" saved` });
+          onClose();
+        },
+        onError: (err: any) => {
+          if (err?.response?.status === 409) {
+            setNameError(
+              "A template with that name already exists — pick a different one.",
+            );
+          } else {
+            setErrorData({
+              title: "Failed to save template",
+              list: [err?.response?.data?.detail ?? "Please try again."],
+            });
+          }
+        },
+      },
+    );
+  }
 
   return (
     <BaseModal
@@ -142,8 +189,12 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
           <Button variant="outline" type="button" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="button" disabled={!canSubmit}>
-            Save as Template
+          <Button
+            type="button"
+            disabled={!canSubmit || submitting}
+            onClick={handleSubmit}
+          >
+            {submitting ? "Saving…" : "Save as Template"}
           </Button>
         </div>
       </BaseModal.Footer>
