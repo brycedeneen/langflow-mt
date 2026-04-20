@@ -4,82 +4,139 @@ import pytest
 from lfx.components.adp._shared import ADPConnection
 from lfx.components.adp.adp_auth import ADPAuthComponent
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
-async def test_auth_component_returns_connection_with_token(tmp_path):
-    cert = tmp_path / "c.pem"
-    key = tmp_path / "k.pem"
-    cert.write_text("c")
-    key.write_text("k")
+VALID_CERT = "-----BEGIN CERTIFICATE-----\nAAA\n-----END CERTIFICATE-----\n"
+VALID_KEY = "-----BEGIN PRIVATE KEY-----\nAAA\n-----END PRIVATE KEY-----\n"  # noqa: S105
+VALID_TOKEN_URL = "https://accounts.adp.com/auth/oauth/v2/token"
 
-    component = ADPAuthComponent(
+
+async def _make_component_and_call(**overrides):
+    defaults = dict(
         client_id="cid",
         client_secret="secret",  # noqa: S106
-        cert_source="File Path",
-        cert_path=str(cert),
-        key_path=str(key),
-        cert_pem="",
-        key_pem="",
-        token_url="https://accounts.adp.com/auth/oauth/v2/token",  # noqa: S106
+        cert_pem=VALID_CERT,
+        key_pem=VALID_KEY,
+        token_url=VALID_TOKEN_URL,
     )
+    defaults.update(overrides)
+    component = ADPAuthComponent(**defaults)
 
     async def fake_fetch(conn, *, force=False):  # noqa: ARG001
         conn.access_token = "abc"  # noqa: S105
 
     with patch("lfx.components.adp.adp_auth.fetch_token", new=AsyncMock(side_effect=fake_fetch)):
-        result = await component.build_connection()
+        return await component.build_connection()
 
+
+# ---------------------------------------------------------------------------
+# Shape / metadata tests
+# ---------------------------------------------------------------------------
+
+
+def test_adp_auth_has_five_inputs():
+    """ADPAuthComponent after v2 migration has exactly 5 inputs, no cert_source."""
+    component = ADPAuthComponent()
+    names = [inp.name for inp in component.inputs]
+    assert names == ["client_id", "client_secret", "cert_pem", "key_pem", "token_url"]
+
+
+def test_adp_auth_cert_pem_and_key_pem_are_text_file_secret_input():
+    from lfx.inputs.inputs import TextFileSecretInput
+
+    component = ADPAuthComponent()
+    by_name = {inp.name: inp for inp in component.inputs}
+    assert isinstance(by_name["cert_pem"], TextFileSecretInput)
+    assert isinstance(by_name["key_pem"], TextFileSecretInput)
+    assert by_name["cert_pem"].file_types == ["pem", "crt"]
+    assert by_name["key_pem"].file_types == ["pem", "key"]
+
+
+def test_adp_auth_version_and_changelog():
+    assert ADPAuthComponent.version == 2
+    assert len(ADPAuthComponent.changelog) == 1
+    assert ADPAuthComponent.changelog[0].version == 2
+    assert ADPAuthComponent.changelog[0].notes is not None
+
+
+# ---------------------------------------------------------------------------
+# build_connection — happy path
+# ---------------------------------------------------------------------------
+
+
+async def test_build_connection_happy_path():
+    result = await _make_component_and_call()
     assert isinstance(result, ADPConnection)
     assert result.client_id == "cid"
-    assert result.cert_source == "path"
-    assert result.cert_path == str(cert)
     assert result.access_token == "abc"  # noqa: S105
 
 
-async def test_auth_component_pem_mode():
-    component = ADPAuthComponent(
-        client_id="cid",
-        client_secret="secret",  # noqa: S106
-        cert_source="PEM",
-        cert_path="",
-        key_path="",
-        cert_pem="-----BEGIN CERTIFICATE-----\nabc\n",
-        key_pem="-----BEGIN PRIVATE KEY-----\nxyz\n",
-        token_url="https://accounts.adp.com/auth/oauth/v2/token",  # noqa: S106
-    )
-    with patch("lfx.components.adp.adp_auth.fetch_token", new=AsyncMock()):
-        result = await component.build_connection()
-    assert result.cert_source == "pem"
-    assert "BEGIN CERTIFICATE" in result.cert_pem
+# ---------------------------------------------------------------------------
+# build_connection — required-field validation
+# ---------------------------------------------------------------------------
 
 
 async def test_auth_component_missing_client_id_raises():
     component = ADPAuthComponent(
         client_id="",
         client_secret="secret",  # noqa: S106
-        cert_source="File Path",
-        cert_path="/tmp/c.pem",
-        key_path="/tmp/k.pem",
-        cert_pem="",
-        key_pem="",
-        token_url="https://accounts.adp.com/auth/oauth/v2/token",  # noqa: S106
+        cert_pem=VALID_CERT,
+        key_pem=VALID_KEY,
+        token_url=VALID_TOKEN_URL,
     )
     with pytest.raises(ValueError, match="client_id"):
         await component.build_connection()
 
 
-async def test_auth_component_rejects_off_allowlist_token_url(tmp_path):
-    cert = tmp_path / "c.pem"
-    key = tmp_path / "k.pem"
-    cert.write_text("c")
-    key.write_text("k")
+async def test_auth_component_missing_client_secret_raises():
+    component = ADPAuthComponent(
+        client_id="cid",
+        client_secret="",  # noqa: S106
+        cert_pem=VALID_CERT,
+        key_pem=VALID_KEY,
+        token_url=VALID_TOKEN_URL,
+    )
+    with pytest.raises(ValueError, match="client_secret"):
+        await component.build_connection()
+
+
+async def test_auth_component_missing_cert_pem_raises():
     component = ADPAuthComponent(
         client_id="cid",
         client_secret="secret",  # noqa: S106
-        cert_source="File Path",
-        cert_path=str(cert),
-        key_path=str(key),
         cert_pem="",
+        key_pem=VALID_KEY,
+        token_url=VALID_TOKEN_URL,
+    )
+    with pytest.raises(ValueError, match="cert_pem is required"):
+        await component.build_connection()
+
+
+async def test_auth_component_missing_key_pem_raises():
+    component = ADPAuthComponent(
+        client_id="cid",
+        client_secret="secret",  # noqa: S106
+        cert_pem=VALID_CERT,
         key_pem="",
+        token_url=VALID_TOKEN_URL,
+    )
+    with pytest.raises(ValueError, match="key_pem is required"):
+        await component.build_connection()
+
+
+# ---------------------------------------------------------------------------
+# build_connection — token_url allowlist
+# ---------------------------------------------------------------------------
+
+
+async def test_auth_component_rejects_off_allowlist_token_url():
+    component = ADPAuthComponent(
+        client_id="cid",
+        client_secret="secret",  # noqa: S106
+        cert_pem=VALID_CERT,
+        key_pem=VALID_KEY,
         token_url="https://attacker.example.com/token",  # noqa: S106
     )
     mock_fetch = AsyncMock()
@@ -89,18 +146,3 @@ async def test_auth_component_rejects_off_allowlist_token_url(tmp_path):
     ):
         await component.build_connection()
     mock_fetch.assert_not_awaited()
-
-
-async def test_auth_component_path_mode_missing_cert_raises():
-    component = ADPAuthComponent(
-        client_id="cid",
-        client_secret="secret",  # noqa: S106
-        cert_source="File Path",
-        cert_path="",
-        key_path="/tmp/k.pem",
-        cert_pem="",
-        key_pem="",
-        token_url="https://accounts.adp.com/auth/oauth/v2/token",  # noqa: S106
-    )
-    with pytest.raises(ValueError, match="cert_path"):
-        await component.build_connection()
