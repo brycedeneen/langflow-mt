@@ -37,6 +37,13 @@ def get_openai_api_key() -> str:
         pytest.skip("OPENAI_API_KEY is not set")
 
 
+def get_anthropic_api_key() -> str:
+    try:
+        return get_required_env_var("ANTHROPIC_API_KEY")
+    except ValueError:
+        pytest.skip("ANTHROPIC_API_KEY is not set")
+
+
 def get_astradb_application_token() -> str:
     return get_required_env_var("ASTRA_DB_APPLICATION_TOKEN")
 

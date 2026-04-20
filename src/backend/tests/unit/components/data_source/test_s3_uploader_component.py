@@ -78,6 +78,11 @@ class TestS3UploaderComponent(ComponentTestBaseWithoutClient):
     @pytest.fixture
     def s3_bucket(self) -> str:
         """Generate a unique bucket name (AWS requires globally unique names)."""
+        # Skip when no real AWS credentials are configured — the fixture hits
+        # real S3 (not a mock) and would otherwise fail in local/CI runs.
+        if not (os.getenv("AWS_ACCESS_KEY_ID") and os.getenv("AWS_SECRET_ACCESS_KEY")):
+            pytest.skip("AWS credentials not configured — skipping real-S3 test")
+
         bucket_name = f"graphrag-test-bucket-{uuid.uuid4().hex[:8]}"
 
         # Initialize S3 client using environment variables for credentials

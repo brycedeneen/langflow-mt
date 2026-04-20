@@ -1,7 +1,19 @@
 from lfx.services.settings.base import Settings
 
 
-def test_runs_settings_defaults():
+def test_runs_settings_defaults(monkeypatch):
+    # pydantic-settings reads LANGFLOW_* env vars even when _env_file=None.
+    # The local dev .env (loaded in conftest) sets DISTRIBUTED_EXECUTION=true,
+    # so unset the relevant vars to actually exercise the documented defaults.
+    for var in (
+        "LANGFLOW_DISTRIBUTED_EXECUTION",
+        "LANGFLOW_REDIS_URL",
+        "LANGFLOW_REDIS_HOST",
+        "LANGFLOW_REDIS_PORT",
+        "LANGFLOW_REDIS_DB",
+    ):
+        monkeypatch.delenv(var, raising=False)
+
     s = Settings(_env_file=None)
     assert s.distributed_execution is False
     assert s.redis_url == "redis://localhost:6379/0"

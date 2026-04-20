@@ -726,7 +726,9 @@ class TestAgentComponentWithClient(ComponentTestBaseWithClient):
     @pytest.mark.no_blockbuster
     async def test_agent_component_with_all_anthropic_models(self):
         # Mock inputs
-        api_key = os.getenv("ANTHROPIC_API_KEY")
+        from tests.api_keys import get_anthropic_api_key
+
+        api_key = get_anthropic_api_key()
         input_value = "What is 2 + 2?"
 
         # Iterate over all Anthropic models
@@ -799,7 +801,9 @@ class TestAgentComponentWithClient(ComponentTestBaseWithClient):
     @pytest.mark.no_blockbuster
     async def test_agent_handles_empty_input_with_openai(self):
         """Test that Agent component handles empty input value without errors with OpenAI."""
-        api_key = os.getenv("OPENAI_API_KEY")
+        from tests.api_keys import get_openai_api_key
+
+        api_key = get_openai_api_key()
         tools = [CalculatorToolComponent().build_tool()]
 
         # Test with empty string input
@@ -832,7 +836,9 @@ class TestAgentComponentWithClient(ComponentTestBaseWithClient):
     @pytest.mark.no_blockbuster
     async def test_agent_handles_whitespace_input_with_openai(self):
         """Test that Agent component handles whitespace-only input without errors with OpenAI."""
-        api_key = os.getenv("OPENAI_API_KEY")
+        from tests.api_keys import get_openai_api_key
+
+        api_key = get_openai_api_key()
         tools = [CalculatorToolComponent().build_tool()]
 
         # Test with whitespace-only input
@@ -870,7 +876,9 @@ class TestAgentComponentWithClient(ComponentTestBaseWithClient):
         content='hi how are you' additional_kwargs={} response_metadata={}
         instead of just the string 'hi how are you'.
         """
-        api_key = os.getenv("OPENAI_API_KEY")
+        from tests.api_keys import get_openai_api_key
+
+        api_key = get_openai_api_key()
         from lfx.schema.message import Message
 
         # Create a Message object as input (simulating ChatInput component output)
@@ -896,7 +904,9 @@ class TestAgentComponentWithClient(ComponentTestBaseWithClient):
     @pytest.mark.no_blockbuster
     async def test_agent_receives_string_from_message_object_with_anthropic(self):
         """Test that agent receives string input from Message object with actual Anthropic call."""
-        api_key = os.getenv("ANTHROPIC_API_KEY")
+        from tests.api_keys import get_anthropic_api_key
+
+        api_key = get_anthropic_api_key()
         from lfx.base.models.anthropic_constants import ANTHROPIC_MODELS_DETAILED
         from lfx.schema.message import Message
 
@@ -926,7 +936,9 @@ class TestAgentComponentWithClient(ComponentTestBaseWithClient):
         This test specifically addresses the issue:
         'messages.2: all messages must have non-empty content'
         """
-        api_key = os.getenv("ANTHROPIC_API_KEY")
+        from tests.api_keys import get_anthropic_api_key
+
+        api_key = get_anthropic_api_key()
         tools = [CalculatorToolComponent().build_tool()]
 
         # Test with empty string input - this previously caused the error
@@ -968,7 +980,9 @@ class TestAgentComponentWithClient(ComponentTestBaseWithClient):
     @pytest.mark.no_blockbuster
     async def test_agent_handles_whitespace_input_with_anthropic(self):
         """Test that Agent component handles whitespace-only input without errors with Anthropic."""
-        api_key = os.getenv("ANTHROPIC_API_KEY")
+        from tests.api_keys import get_anthropic_api_key
+
+        api_key = get_anthropic_api_key()
         tools = [CalculatorToolComponent().build_tool()]
         from lfx.base.models.anthropic_constants import ANTHROPIC_MODELS_DETAILED
 

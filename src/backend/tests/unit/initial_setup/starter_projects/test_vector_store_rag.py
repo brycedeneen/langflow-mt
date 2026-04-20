@@ -96,7 +96,15 @@ def rag_graph():
     return Graph(start=chat_input, end=chat_output)
 
 
+@pytest.mark.api_key_required
 async def test_vector_store_rag(ingestion_graph, rag_graph):
+    # The RAG graph wires OpenAI Embeddings + OpenAI chat components that build
+    # real OpenAI clients at vertex-build time; without a real key the graph
+    # fails to construct. Skip when OPENAI_API_KEY is absent rather than
+    # asserting against a dummy key.
+    from tests.api_keys import get_openai_api_key
+
+    get_openai_api_key()  # skips if not set
     assert ingestion_graph is not None
     ingestion_ids = [
         "file-123",

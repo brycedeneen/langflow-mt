@@ -538,23 +538,37 @@ async def test_download_file(
             FlowCreate(name=flow_2_unique_name, description="description", data=data),
         ]
     )
+    # Look up the user's personal org so the flows match the download endpoint's
+    # WHERE (Flow.organization_id == current_org.id OR Flow.organization_id IS NULL) clause.
+    from langflow.services.database.models.membership.model import Membership
+    from langflow.services.database.models.organization.model import Organization
+    from sqlmodel import select
+
     db_manager = get_db_service()
     async with session_getter(db_manager) as _session:
+        membership = (
+            await _session.exec(select(Membership).where(Membership.user_id == active_user.id))
+        ).first()
+        assert membership is not None, "active_user has no membership"
+        org_id = membership.organization_id
         saved_flows = []
         for flow in flow_list.flows:
             flow.user_id = active_user.id
             db_flow = Flow.model_validate(flow, from_attributes=True)
+            db_flow.organization_id = org_id
             _session.add(db_flow)
             saved_flows.append(db_flow)
         await _session.commit()
-        # Make request to endpoint inside the session context
-        flow_ids = [str(db_flow.id) for db_flow in saved_flows]  # Convert UUIDs to strings
-        flow_ids_json = json.dumps(flow_ids)
-        response = await client.post(
-            "api/v1/flows/download/",
-            data=flow_ids_json,
-            headers={**logged_in_headers, "Content-Type": "application/json"},
-        )
+        flow_ids = [str(db_flow.id) for db_flow in saved_flows]
+
+    # Fire the request OUTSIDE the session context so the test commit is visible
+    # to the app's DB connection.
+    flow_ids_json = json.dumps(flow_ids)
+    response = await client.post(
+        "api/v1/flows/download/",
+        data=flow_ids_json,
+        headers={**logged_in_headers, "Content-Type": "application/json"},
+    )
     # Check response status code
     assert response.status_code == 200, response.json()
     # Check response data
