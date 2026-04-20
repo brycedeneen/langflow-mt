@@ -11,15 +11,15 @@ import aiofiles.os as aiofiles_os
 import httpx
 import validators
 
+from lfx.base.api_request.mtls import mtls_temp_files
 from lfx.base.curl.parse import parse_context
 from lfx.custom.custom_component.changelog import ChangelogEntry
 from lfx.custom.custom_component.component import Component
-from lfx.inputs.inputs import TabInput
+from lfx.inputs.inputs import TabInput, TextFileSecretInput
 from lfx.io import (
     BoolInput,
     DataInput,
     DropdownInput,
-    FileInput,
     IntInput,
     MessageTextInput,
     MultilineInput,
@@ -214,20 +214,26 @@ class APIRequestComponent(Component):
             advanced=True,
             real_time_refresh=True,
         ),
-        FileInput(
-            name="client_cert_file",
-            display_name="Client Certificate",
+        TextFileSecretInput(
+            name="cert_pem",
+            display_name="Client Certificate (PEM)",
+            info=(
+                "Client certificate for mTLS. Paste the PEM contents or upload a .pem/.crt file. "
+                "Stored encrypted at rest."
+            ),
             file_types=["pem", "crt"],
-            info="Client certificate file for mTLS authentication (.pem or .crt).",
             advanced=True,
             show=False,
             required=False,
         ),
-        FileInput(
-            name="client_key_file",
-            display_name="Client Key",
+        TextFileSecretInput(
+            name="key_pem",
+            display_name="Client Key (PEM)",
+            info=(
+                "Client private key for mTLS. Paste the PEM contents or upload a .pem/.key file. "
+                "Stored encrypted at rest."
+            ),
             file_types=["pem", "key"],
-            info="Client private key file for mTLS authentication (.pem or .key).",
             advanced=True,
             show=False,
             required=False,
@@ -239,6 +245,7 @@ class APIRequestComponent(Component):
             advanced=True,
             show=False,
             required=False,
+            load_from_db=True,
         ),
     ]
 
@@ -551,33 +558,35 @@ class APIRequestComponent(Component):
         body = self._process_body(body)
         url = self.add_query_params(url, query_params)
 
-        # Build mTLS cert parameter if enabled
-        cert = None
+        cert_pem = getattr(self, "cert_pem", None) or None
+        key_pem = getattr(self, "key_pem", None) or None
+        key_password = getattr(self, "client_key_password", None) or None
+
         if getattr(self, "enable_mtls", False):
-            cert_path = getattr(self, "client_cert_file", None)
-            key_path = getattr(self, "client_key_file", None)
-            key_password = getattr(self, "client_key_password", None)
+            if not (cert_pem and key_pem):
+                msg = (
+                    "Enable mTLS is on but cert_pem or key_pem is empty. "
+                    "Paste the PEM contents or upload a .pem file."
+                )
+                raise ValueError(msg)
+            ctx = mtls_temp_files(cert_pem, key_pem, key_password)
+        else:
+            ctx = mtls_temp_files(None, None, None)  # yields None
 
-            if cert_path and key_path:
-                resolved_cert = self.resolve_path(cert_path)
-                resolved_key = self.resolve_path(key_path)
-                cert = (resolved_cert, resolved_key, key_password) if key_password else (resolved_cert, resolved_key)
-            elif cert_path or key_path:
-                self.log("mTLS requires both a client certificate and a client key file.")
-
-        async with httpx.AsyncClient(cert=cert) as client:
-            result = await self.make_request(
-                client,
-                method,
-                url,
-                headers,
-                body,
-                timeout,
-                follow_redirects=follow_redirects,
-                save_to_file=save_to_file,
-                include_httpx_metadata=include_httpx_metadata,
-                use_form_urlencoded=self.use_form_urlencoded,
-            )
+        async with ctx as cert_tuple:
+            async with httpx.AsyncClient(cert=cert_tuple) as client:
+                result = await self.make_request(
+                    client,
+                    method,
+                    url,
+                    headers,
+                    body,
+                    timeout,
+                    follow_redirects=follow_redirects,
+                    save_to_file=save_to_file,
+                    include_httpx_metadata=include_httpx_metadata,
+                    use_form_urlencoded=self.use_form_urlencoded,
+                )
         self.status = result
         return result
 
@@ -585,8 +594,8 @@ class APIRequestComponent(Component):
         """Update the build config based on the selected mode."""
         if field_name == "enable_mtls":
             show_mtls = bool(field_value)
-            set_field_display(build_config, "client_cert_file", value=show_mtls)
-            set_field_display(build_config, "client_key_file", value=show_mtls)
+            set_field_display(build_config, "cert_pem", value=show_mtls)
+            set_field_display(build_config, "key_pem", value=show_mtls)
             set_field_display(build_config, "client_key_password", value=show_mtls)
             return build_config
 
