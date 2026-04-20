@@ -134,6 +134,17 @@ def test_password_helpers_roundtrip(auth_service: AuthService):
     assert auth_service.verify_password(password, hashed)
 
 
+def test_verify_legacy_passlib_hash(auth_service: AuthService):
+    """Locks backward-compat: passlib 1.7.4 bcrypt hashes must still verify.
+
+    After the passlib→direct-bcrypt swap, the hash literal below (produced by
+    passlib.context.CryptContext(schemes=["bcrypt"])) must remain verifiable.
+    """
+    legacy_hash = "$2b$12$59zWuSrdgXLXBk4Ptr5YbuLq1GxvPc2tahv7AF6F9c5urd75WHDTa"  # pragma: allowlist secret
+    assert auth_service.verify_password("correct-horse", legacy_hash) is True
+    assert auth_service.verify_password("wrong-password", legacy_hash) is False
+
+
 # =============================================================================
 # Token Creation Tests
 # =============================================================================
