@@ -24,6 +24,7 @@ import PromptAreaComponent from "./components/promptComponent";
 import QueryComponent from "./components/queryComponent";
 import SortableListComponent from "./components/sortableListComponent";
 import { StrRenderComponent } from "./components/strRenderComponent";
+import TextFileSecretComponent from "./components/textFileSecretComponent";
 import ToolsComponent from "./components/ToolsComponent";
 import ToggleShadComponent from "./components/toggleShadComponent";
 import type { InputProps, NodeInfoType } from "./types";
@@ -335,6 +336,13 @@ export function ParameterRenderComponent({
             options={templateData?.options || []}
             placeholder={templateData?.placeholder}
             externalOptions={templateData?.external_options}
+          />
+        );
+      case "TextFileSecretInput":
+        return (
+          <TextFileSecretComponent
+            {...baseInputProps}
+            file_types={templateData.file_types}
           />
         );
       default:

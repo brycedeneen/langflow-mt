@@ -115,6 +115,8 @@ export type InputFieldType = {
   text?: string;
   temp_file?: boolean;
   separator?: string;
+  /** TextFileSecretInput: accepted file extensions (e.g. ["pem", "crt"]) */
+  file_types?: string[];
 };
 
 export type OutputFieldProxyType = {
