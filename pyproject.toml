@@ -101,9 +101,9 @@ Documentation = "https://docs.langflow.org"
 
 [project.optional-dependencies]
 docling = [
-    "langchain-docling>=1.1.0",
+    "langchain-docling>=1.1,<2.0",
     "tesserocr>=2.8.0",
-    "rapidocr-onnxruntime>=1.4.4",
+    "rapidocr>=3.8,<4.0",
     "ocrmac>=1.0.0; sys_platform == 'darwin'",
     # CPU-only PyTorch required for docling features
     # Loose version ranges intentionally used to avoid conflicts with transitive dependencies (e.g., altk)
@@ -152,11 +152,15 @@ override-dependencies = [
     "python-pptx>=1.0.2",
     # Force pandas 3.0+ despite these consumers pinning lower:
     #   - ibm-watsonx-ai (<2.4)      — deploy target doesn't include watsonx; see project memory
-    #   - docling (<3.0)             — ecosystem bump parked (2026-04-20-docling-ecosystem-bump-design.md)
     #   - cleanlab-tlm (==2.*)       — upstream hasn't released a pandas-3 compatible cut
     # Each has a smoke probe in tests/unit/integration_smoke/test_pandas_3_overrides.py
     # to catch runtime breakage.
     "pandas>=3.0,<4.0",
+    # Force tree-sitter 0.25+ required by docling-core>=2.65[chunking] (pulled in by docling 2.90);
+    # astra-assistants 2.5.5 pins tree-sitter<0.24 but uses the modern Language()/Parser() API
+    # that works under 0.25. Smoke probe at
+    # tests/unit/integration_smoke/test_tree_sitter_override_astra_assistants.py.
+    "tree-sitter>=0.25,<0.27",
 ]
 
 [project.scripts]
