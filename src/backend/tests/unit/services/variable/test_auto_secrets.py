@@ -53,6 +53,7 @@ async def test_promote_creates_variable_for_plaintext_textfilesecret():
     flow_data = _flow_data(
         {
             "_input_type": "TextFileSecretInput",
+            "auto_promote": True,
             "value": "-----BEGIN CERTIFICATE-----\nAAA\n-----END CERTIFICATE-----\n",
             "load_from_db": False,
         }
@@ -84,10 +85,12 @@ async def test_promote_creates_variable_for_plaintext_textfilesecret():
 
 
 @pytest.mark.asyncio
-async def test_promote_skips_non_textfilesecret_fields():
+async def test_promote_skips_non_promotable_fields():
+    """SecretStrInput with auto_promote=False (or absent) is not promoted."""
     flow_data = _flow_data(
         {
             "_input_type": "SecretStrInput",
+            "auto_promote": False,
             "value": "whatever",
             "load_from_db": False,
         }
@@ -114,6 +117,7 @@ async def test_promote_skips_empty_plaintext():
     flow_data = _flow_data(
         {
             "_input_type": "TextFileSecretInput",
+            "auto_promote": True,
             "value": "",
             "load_from_db": False,
         }
@@ -141,6 +145,7 @@ async def test_promote_skips_already_promoted_reference():
     flow_data = _flow_data(
         {
             "_input_type": "TextFileSecretInput",
+            "auto_promote": True,
             "value": existing_name,
             "load_from_db": True,
         }
@@ -173,6 +178,7 @@ async def test_promote_upserts_when_value_changed():
     flow_data = _flow_data(
         {
             "_input_type": "TextFileSecretInput",
+            "auto_promote": True,
             "value": new_value,
             "load_from_db": False,
         }
@@ -210,6 +216,7 @@ async def test_cleanup_deletes_autosecrets_for_removed_nodes():
     flow_data = _flow_data(
         {
             "_input_type": "TextFileSecretInput",
+            "auto_promote": True,
             "value": autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem"),
             "load_from_db": True,
         }
@@ -240,6 +247,7 @@ async def test_cleanup_no_op_when_no_orphans():
     flow_data = _flow_data(
         {
             "_input_type": "TextFileSecretInput",
+            "auto_promote": True,
             "value": autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem"),
             "load_from_db": True,
         }
@@ -295,6 +303,7 @@ def test_blank_autosecrets_blanks_textfilesecret_refs():
     flow_data = _flow_data(
         {
             "_input_type": "TextFileSecretInput",
+            "auto_promote": True,
             "value": ref,
             "load_from_db": True,
         }
@@ -312,6 +321,7 @@ def test_blank_autosecrets_ignores_non_autosecret_variables():
     flow_data = _flow_data(
         {
             "_input_type": "TextFileSecretInput",
+            "auto_promote": True,
             "value": "my_global_variable",
             "load_from_db": True,
         }
@@ -321,3 +331,55 @@ def test_blank_autosecrets_ignores_non_autosecret_variables():
 
     field = out["nodes"][0]["data"]["node"]["template"]["cert_pem"]
     assert field["value"] == "my_global_variable"
+
+
+from langflow.services.variable.auto_secrets import _iter_promotable_fields
+
+
+def test_iter_promotable_fields_yields_secret_str_with_auto_promote_true():
+    flow_data = _flow_data(
+        {
+            "_input_type": "SecretStrInput",
+            "auto_promote": True,
+            "value": "sk-secret",
+            "load_from_db": False,
+        }
+    )
+    yielded = list(_iter_promotable_fields(flow_data))
+    assert len(yielded) == 1
+    assert yielded[0][1] == "cert_pem"  # field name is `cert_pem` per _flow_data
+
+
+def test_iter_promotable_fields_skips_secret_str_with_auto_promote_false():
+    flow_data = _flow_data(
+        {
+            "_input_type": "SecretStrInput",
+            "auto_promote": False,
+            "value": "sk-secret",
+        }
+    )
+    assert list(_iter_promotable_fields(flow_data)) == []
+
+
+def test_iter_promotable_fields_yields_text_file_secret_input_with_auto_promote_true():
+    flow_data = _flow_data(
+        {
+            "_input_type": "TextFileSecretInput",
+            "auto_promote": True,
+            "value": "-----BEGIN CERTIFICATE-----\nAAA\n-----END CERTIFICATE-----\n",
+        }
+    )
+    yielded = list(_iter_promotable_fields(flow_data))
+    assert len(yielded) == 1
+
+
+def test_iter_promotable_fields_ignores_missing_auto_promote_key():
+    """Legacy flows saved before the feature landed have no auto_promote key.
+    They must be treated as non-promotable."""
+    flow_data = _flow_data(
+        {
+            "_input_type": "SecretStrInput",
+            "value": "sk-legacy",
+        }
+    )
+    assert list(_iter_promotable_fields(flow_data)) == []

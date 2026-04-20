@@ -37,8 +37,15 @@ def autosecret_name(flow_id: UUID, node_id: str, field_name: str) -> str:
     return f"{autosecret_flow_prefix(flow_id)}{node_id}_{field_name}"
 
 
-def _iter_textfilesecret_fields(flow_data: dict) -> list[tuple[str, str, dict]]:
-    """Yield (node_id, field_name, field_dict) for every TextFileSecretInput field."""
+def _iter_promotable_fields(flow_data: dict) -> list[tuple[str, str, dict]]:
+    """Yield (node_id, field_name, field_dict) for every field marked auto_promote=True.
+
+    Replaces the earlier _iter_textfilesecret_fields which matched on
+    _input_type name. The new predicate consults the per-field auto_promote
+    flag, which SecretStrInput and its subclasses (including
+    TextFileSecretInput) set to True by default. Component authors can opt
+    out per field with auto_promote=False.
+    """
     out: list[tuple[str, str, dict]] = []
     for node in flow_data.get("nodes", []) or []:
         if not isinstance(node, dict):
@@ -50,7 +57,7 @@ def _iter_textfilesecret_fields(flow_data: dict) -> list[tuple[str, str, dict]]:
         for field_name, field in template.items():
             if not isinstance(field, dict):
                 continue
-            if field.get("_input_type") == "TextFileSecretInput":
+            if field.get("auto_promote") is True:
                 out.append((node_id, field_name, field))
     return out
 
@@ -78,7 +85,7 @@ async def promote_plaintext_secrets_to_variables(
         )
     )
 
-    for node_id, field_name, field in _iter_textfilesecret_fields(flow_data):
+    for node_id, field_name, field in _iter_promotable_fields(flow_data):
         expected_name = autosecret_name(flow_id, node_id, field_name)
         value = field.get("value") or ""
 
@@ -132,7 +139,7 @@ async def cleanup_orphaned_autosecrets(
     """
     current_names = {
         autosecret_name(flow_id, node_id, field_name)
-        for node_id, field_name, _ in _iter_textfilesecret_fields(flow_data)
+        for node_id, field_name, _ in _iter_promotable_fields(flow_data)
     }
     existing = await variable_service.list_autosecret_names_for_flow(
         flow_id=flow_id,
@@ -177,7 +184,7 @@ def blank_autosecrets_for_export(flow_data: dict) -> dict:
     The returned dict may share structure with the input; callers that need
     to preserve the original should deepcopy before calling.
     """
-    for _node_id, _field_name, field in _iter_textfilesecret_fields(flow_data):
+    for _node_id, _field_name, field in _iter_promotable_fields(flow_data):
         value = field.get("value") or ""
         if isinstance(value, str) and value.startswith(AUTOSECRET_PREFIX):
             field["value"] = ""
