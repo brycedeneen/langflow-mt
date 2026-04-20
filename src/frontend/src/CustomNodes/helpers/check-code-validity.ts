@@ -1,5 +1,5 @@
 import { componentsToIgnoreUpdate } from "@/constants/constants";
-import type { OutputFieldType } from "@/types/api";
+import type { ChangelogEntry, OutputFieldType } from "@/types/api";
 import type { NodeDataType } from "../../types/flow";
 
 // Returns true if the code is outdated (code string changed and not ignored)
@@ -73,10 +73,20 @@ export const checkCodeValidity = (
       )
     : false;
 
+  const userVersion: number = data.node?.version ?? 0;
+  const latestVersion: number = templates[data.type]?.version ?? 0;
+  const rawEntries: ChangelogEntry[] = templates[data.type]?.changelog ?? [];
+  const changelogEntries: ChangelogEntry[] = rawEntries
+    .filter((e) => e.version > userVersion && e.version <= latestVersion)
+    .sort((a, b) => b.version - a.version);
+
   return {
     outdated: isOutdated,
     breakingChange: hasBreakingChange,
     userEdited: data.node?.edited ?? false,
+    userVersion,
+    latestVersion,
+    changelogEntries,
   };
 };
 

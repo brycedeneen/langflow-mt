@@ -106,6 +106,9 @@ const useFlowStore = create<FlowStoreType>((set, get) => ({
             outdated: codeValidity.outdated,
             breakingChange: codeValidity.breakingChange,
             userEdited: codeValidity.userEdited,
+            userVersion: codeValidity.userVersion,
+            latestVersion: codeValidity.latestVersion,
+            changelogEntries: codeValidity.changelogEntries,
           });
       }
     });

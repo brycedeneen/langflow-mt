@@ -241,6 +241,9 @@ describe("useFlowStore", () => {
           outdated: true,
           breakingChange: false,
           userEdited: true,
+          userVersion: 0,
+          latestVersion: 0,
+          changelogEntries: [],
         },
       ];
 
@@ -261,6 +264,9 @@ describe("useFlowStore", () => {
           outdated: true,
           breakingChange: false,
           userEdited: true,
+          userVersion: 0,
+          latestVersion: 0,
+          changelogEntries: [],
         },
       ];
 
@@ -280,6 +286,9 @@ describe("useFlowStore", () => {
             outdated: false,
             breakingChange: true,
             userEdited: false,
+            userVersion: 0,
+            latestVersion: 0,
+            changelogEntries: [],
           },
         ]);
       });
