@@ -110,3 +110,39 @@ class TestValidateChangelog:
         with caplog.at_level(logging.WARNING):
             validate_changelog(cls)
         assert not caplog.records
+
+
+from typing import ClassVar
+
+from lfx.custom.custom_component.component import Component
+
+
+class TestComponentVersionAttrs:
+    def test_defaults(self):
+        class Plain(Component):
+            display_name = "Plain"
+
+        assert Plain.version == 0
+        assert Plain.changelog == []
+
+    def test_subclass_can_override(self):
+        class Versioned(Component):
+            display_name = "Versioned"
+            version: int = 2
+            changelog: ClassVar[list[ChangelogEntry]] = [
+                ChangelogEntry(version=1, changes="Initial"),
+                ChangelogEntry(version=2, changes="Second"),
+            ]
+
+        assert Versioned.version == 2
+        assert len(Versioned.changelog) == 2
+
+    def test_subclass_triggers_validation_warning(self, caplog):
+        with caplog.at_level(logging.WARNING):
+            class Bad(Component):
+                display_name = "Bad"
+                version: int = 1
+                changelog: ClassVar[list[ChangelogEntry]] = [
+                    ChangelogEntry(version=5, changes="x"),
+                ]
+        assert any("exceeds class version" in r.message for r in caplog.records)

@@ -42,6 +42,7 @@ from lfx.template.frontend_node.custom_components import ComponentFrontendNode
 from lfx.utils.async_helpers import run_until_complete
 from lfx.utils.util import find_closest_match
 
+from .changelog import ChangelogEntry, validate_changelog
 from .custom_component import CustomComponent
 
 if TYPE_CHECKING:
@@ -114,6 +115,14 @@ class Component(CustomComponent):
     outputs: list[Output] = []
     selected_output: str | None = None
     code_class_base_inheritance: ClassVar[str] = "Component"
+
+    # Authoring-opt-in: see docs/superpowers/specs/2026-04-20-component-versioning-and-changelog-design.md
+    version: int = 0
+    changelog: ClassVar[list[ChangelogEntry]] = []
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+        validate_changelog(cls)
 
     def __init__(self, **kwargs) -> None:
         # Initialize instance-specific attributes first
