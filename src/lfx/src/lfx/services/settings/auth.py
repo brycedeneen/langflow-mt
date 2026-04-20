@@ -3,7 +3,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Literal
 
-from passlib.context import CryptContext
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -130,8 +129,6 @@ class AuthSettings(BaseSettings):
         description="Path to SSO configuration file (YAML format). Required when SSO_ENABLED=true.",
     )
     """Path to YAML configuration file for SSO settings. Contains provider-specific configuration."""
-
-    pwd_context: CryptContext = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     model_config = SettingsConfigDict(validate_assignment=True, extra="ignore", env_prefix="LANGFLOW_")
 
