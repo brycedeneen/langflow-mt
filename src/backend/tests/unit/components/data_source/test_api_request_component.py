@@ -37,8 +37,8 @@ class TestAPIRequestComponent(ComponentTestBaseWithoutClient):
             "curl_input": "",
             "query_params": {},
             "enable_mtls": False,
-            "client_cert_file": "",
-            "client_key_file": "",
+            "cert_pem": "",
+            "key_pem": "",
             "client_key_password": "",
             "use_form_urlencoded": False,
             "bearer_token": "",
@@ -372,8 +372,8 @@ class TestAPIRequestComponent(ComponentTestBaseWithoutClient):
         build_config = dotdict(
             {
                 "enable_mtls": {"value": False, "advanced": True, "show": True},
-                "client_cert_file": {"value": "", "advanced": True, "show": False},
-                "client_key_file": {"value": "", "advanced": True, "show": False},
+                "cert_pem": {"value": "", "advanced": True, "show": False},
+                "key_pem": {"value": "", "advanced": True, "show": False},
                 "client_key_password": {"value": "", "advanced": True, "show": False},
                 "method": {"value": "GET", "advanced": False},
                 "url_input": {"value": "", "advanced": False},
@@ -391,81 +391,88 @@ class TestAPIRequestComponent(ComponentTestBaseWithoutClient):
 
         # Enable mTLS - fields should become visible
         updated = component.update_build_config(build_config.copy(), field_value=True, field_name="enable_mtls")
-        assert updated["client_cert_file"]["show"] is True
-        assert updated["client_key_file"]["show"] is True
+        assert updated["cert_pem"]["show"] is True
+        assert updated["key_pem"]["show"] is True
         assert updated["client_key_password"]["show"] is True
 
         # Disable mTLS - fields should be hidden
         updated = component.update_build_config(build_config.copy(), field_value=False, field_name="enable_mtls")
-        assert updated["client_cert_file"]["show"] is False
-        assert updated["client_key_file"]["show"] is False
+        assert updated["cert_pem"]["show"] is False
+        assert updated["key_pem"]["show"] is False
         assert updated["client_key_password"]["show"] is False
 
     @respx.mock
-    async def test_mtls_cert_passed_to_client(self, component, tmp_path):
-        """Test that mTLS cert/key are passed to httpx.AsyncClient when enabled."""
-        cert_file = tmp_path / "client.pem"
-        key_file = tmp_path / "client.key"
-        cert_file.write_text("FAKE CERT")
-        key_file.write_text("FAKE KEY")
+    async def test_mtls_cert_passed_to_client(self, component):
+        """mTLS cert + key PEM strings are written to temp files and passed to httpx
+        via a 2-tuple. The temp files are unlinked after the request completes."""
+        from tests.unit.components.data_source._mtls_fixtures import (
+            VALID_CERT_PEM,
+            VALID_KEY_PEM,
+        )
 
         component.enable_mtls = True
-        component.client_cert_file = str(cert_file)
-        component.client_key_file = str(key_file)
+        component.cert_pem = VALID_CERT_PEM
+        component.key_pem = VALID_KEY_PEM
         component.client_key_password = ""
 
         url = "https://example.com/api/test"
         respx.get(url).mock(return_value=Response(200, json={"ok": True}))
+        component.url_input = url
+        component.method = "GET"
 
+        captured: dict = {}
         original_init = httpx.AsyncClient.__init__
-        captured_kwargs = {}
 
-        def patched_init(self_client, *args, **kwargs):
-            captured_kwargs.update(kwargs)
-            # Remove cert before calling original to avoid SSL errors with fake files
-            kwargs.pop("cert", None)
-            original_init(self_client, *args, **kwargs)
+        class _SpyClient(httpx.AsyncClient):
+            def __init__(self_inner, **kwargs):
+                captured.update(kwargs)
+                # Remove cert before calling original to avoid SSL errors with fake PEM data
+                kwargs.pop("cert", None)
+                original_init(self_inner, **kwargs)
 
-        with (
-            patch.object(httpx.AsyncClient, "__init__", patched_init),
-            patch.object(type(component), "resolve_path", staticmethod(lambda p: p)),
-        ):
+        with patch("lfx.components.data_source.api_request.httpx.AsyncClient", _SpyClient):
             result = await component.make_api_request()
 
-        assert captured_kwargs.get("cert") == (str(cert_file), str(key_file))
+        cert_arg = captured.get("cert")
+        assert isinstance(cert_arg, tuple)
+        assert len(cert_arg) == 2
+        # httpx was passed paths to real temp files during the request; after the
+        # request completes the mtls_temp_files context manager unlinks them.
+        assert not Path(cert_arg[0]).exists()
+        assert not Path(cert_arg[1]).exists()
         assert isinstance(result, Data)
 
     @respx.mock
-    async def test_mtls_cert_with_password(self, component, tmp_path):
-        """Test that key password is included in cert tuple when provided."""
-        cert_file = tmp_path / "client.pem"
-        key_file = tmp_path / "client.key"
-        cert_file.write_text("FAKE CERT")
-        key_file.write_text("FAKE KEY")
+    async def test_mtls_cert_with_password(self, component):
+        """Key password is included in the cert tuple when provided (3-tuple)."""
+        from tests.unit.components.data_source._mtls_fixtures import VALID_CERT_PEM, VALID_KEY_PEM
 
         component.enable_mtls = True
-        component.client_cert_file = str(cert_file)
-        component.client_key_file = str(key_file)
+        component.cert_pem = VALID_CERT_PEM
+        component.key_pem = VALID_KEY_PEM
         component.client_key_password = "s3cret"  # noqa: S105
 
         url = "https://example.com/api/test"
         respx.get(url).mock(return_value=Response(200, json={"ok": True}))
+        component.url_input = url
+        component.method = "GET"
 
+        captured: dict = {}
         original_init = httpx.AsyncClient.__init__
-        captured_kwargs = {}
 
-        def patched_init(self_client, *args, **kwargs):
-            captured_kwargs.update(kwargs)
-            kwargs.pop("cert", None)
-            original_init(self_client, *args, **kwargs)
+        class _SpyClient(httpx.AsyncClient):
+            def __init__(self_inner, **kwargs):
+                captured.update(kwargs)
+                kwargs.pop("cert", None)
+                original_init(self_inner, **kwargs)
 
-        with (
-            patch.object(httpx.AsyncClient, "__init__", patched_init),
-            patch.object(type(component), "resolve_path", staticmethod(lambda p: p)),
-        ):
+        with patch("lfx.components.data_source.api_request.httpx.AsyncClient", _SpyClient):
             result = await component.make_api_request()
 
-        assert captured_kwargs.get("cert") == (str(cert_file), str(key_file), "s3cret")
+        cert_arg = captured.get("cert")
+        assert isinstance(cert_arg, tuple)
+        assert len(cert_arg) == 3
+        assert cert_arg[2] == "s3cret"  # noqa: S105
         assert isinstance(result, Data)
 
     @respx.mock
@@ -487,37 +494,30 @@ class TestAPIRequestComponent(ComponentTestBaseWithoutClient):
 
         assert captured_kwargs.get("cert") is None
 
-    @respx.mock
-    async def test_mtls_missing_key_logs_warning(self, component, tmp_path):
-        """Test that enabling mTLS with only cert (no key) logs a warning and passes no cert."""
-        cert_file = tmp_path / "client.pem"
-        cert_file.write_text("FAKE CERT")
+    async def test_mtls_missing_key_raises(self, component):
+        """Enabling mTLS with cert_pem but no key_pem raises a clear ValueError."""
+        from tests.unit.components.data_source._mtls_fixtures import VALID_CERT_PEM
 
         component.enable_mtls = True
-        component.client_cert_file = str(cert_file)
-        component.client_key_file = ""
+        component.cert_pem = VALID_CERT_PEM
+        component.key_pem = ""
         component.client_key_password = ""
-        component.log = MagicMock()
+        component.url_input = "https://example.com/api/test"
+        component.method = "GET"
 
-        url = "https://example.com/api/test"
-        respx.get(url).mock(return_value=Response(200, json={"ok": True}))
-
-        original_init = httpx.AsyncClient.__init__
-        captured_kwargs = {}
-
-        def patched_init(self_client, *args, **kwargs):
-            captured_kwargs.update(kwargs)
-            kwargs.pop("cert", None)
-            original_init(self_client, *args, **kwargs)
-
-        with (
-            patch.object(httpx.AsyncClient, "__init__", patched_init),
-            patch.object(type(component), "resolve_path", staticmethod(lambda p: p)),
-        ):
+        with pytest.raises(ValueError, match="cert_pem or key_pem is empty"):
             await component.make_api_request()
 
-        assert captured_kwargs.get("cert") is None
-        component.log.assert_any_call("mTLS requires both a client certificate and a client key file.")
+    async def test_enable_mtls_without_cert_pem_raises(self, component):
+        """Enabling mTLS with empty cert/key PEMs surfaces a clear ValueError."""
+        component.enable_mtls = True
+        component.cert_pem = ""
+        component.key_pem = ""
+        component.url_input = "https://example.com/api/test"
+        component.method = "GET"
+
+        with pytest.raises(ValueError, match="cert_pem or key_pem is empty"):
+            await component.make_api_request()
 
     @respx.mock
     async def test_form_urlencoded_body(self, component):
@@ -625,8 +625,8 @@ class TestAPIRequestSSRFProtection:
             "curl_input": "",
             "query_params": {},
             "enable_mtls": False,
-            "client_cert_file": "",
-            "client_key_file": "",
+            "cert_pem": "",
+            "key_pem": "",
             "client_key_password": "",
             "use_form_urlencoded": False,
             "bearer_token": "",
