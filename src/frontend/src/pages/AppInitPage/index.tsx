@@ -16,6 +16,7 @@ import { useCustomPrimaryLoading } from "@/customization/hooks/use-custom-primar
 import useAuthStore from "@/stores/authStore";
 import { useDarkStore } from "@/stores/darkStore";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
+import type { Users } from "@/types/api";
 import { LoadingPage } from "../LoadingPage";
 
 export function AppInitPage() {
@@ -57,8 +58,10 @@ export function AppInitPage() {
   // Update auth state when session data is available
   useEffect(() => {
     if (sessionData?.authenticated && sessionData.user) {
-      setUserData(sessionData.user);
-      setUserDataInStore(sessionData.user);
+      // Session payload has a subset of the Users type; trust backend to fill the rest.
+      const sessionUser = sessionData.user as unknown as Users;
+      setUserData(sessionUser);
+      setUserDataInStore(sessionUser);
       setIsAuthenticated(true);
       setIsAdmin(sessionData.user.is_superuser || false);
       if (sessionData.store_api_key) {
