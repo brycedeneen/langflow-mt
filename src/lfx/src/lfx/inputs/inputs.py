@@ -424,6 +424,12 @@ class SecretStrInput(BaseInputMixin, DatabaseLoadMixin):
     load_from_db: CoalesceBool = True
     track_in_telemetry: CoalesceBool = False  # Never track passwords
 
+    auto_promote: bool = True
+    """Whether typed-in plaintext values are automatically promoted to hidden
+    auto-Variables (Fernet-encrypted in the DB) on flow save. Default True.
+    Set False for fields whose value needs plaintext round-trip through flow
+    JSON (rare)."""
+
     @field_validator("value")
     @classmethod
     def validate_value(cls, v: Any, info):
