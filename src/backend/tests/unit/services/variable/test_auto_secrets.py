@@ -61,6 +61,7 @@ async def test_promote_creates_variable_for_plaintext_textfilesecret():
     svc = AsyncMock()
     svc.create_variable = AsyncMock()
     svc.list_autosecret_names_for_flow = AsyncMock(return_value=[])
+    svc.has_user_managed_variable = AsyncMock(return_value=False)
 
     session = AsyncMock()
 
@@ -125,6 +126,7 @@ async def test_promote_skips_empty_plaintext():
     svc = AsyncMock()
     svc.create_variable = AsyncMock()
     svc.list_autosecret_names_for_flow = AsyncMock(return_value=[])
+    svc.has_user_managed_variable = AsyncMock(return_value=False)
     session = AsyncMock()
 
     out = await promote_plaintext_secrets_to_variables(
@@ -187,6 +189,7 @@ async def test_promote_upserts_when_value_changed():
     svc.create_variable = AsyncMock()
     svc.update_variable_value = AsyncMock()
     svc.list_autosecret_names_for_flow = AsyncMock(return_value=[existing_name])
+    svc.has_user_managed_variable = AsyncMock(return_value=False)
     session = AsyncMock()
 
     out = await promote_plaintext_secrets_to_variables(
@@ -383,3 +386,102 @@ def test_iter_promotable_fields_ignores_missing_auto_promote_key():
         }
     )
     assert list(_iter_promotable_fields(flow_data)) == []
+
+
+@pytest.mark.asyncio
+async def test_promote_preserves_user_managed_variable_reference():
+    """If the field value matches an existing user-managed Variable name,
+    the field is preserved as a reference (not overwritten with an autosecret)."""
+    flow_data = _flow_data(
+        {
+            "_input_type": "SecretStrInput",
+            "auto_promote": True,
+            "value": "my_company_api_key",  # user-managed Variable name
+            "load_from_db": True,
+        }
+    )
+    svc = AsyncMock()
+    svc.list_autosecret_names_for_flow = AsyncMock(return_value=[])
+    svc.has_user_managed_variable = AsyncMock(return_value=True)  # yes, it's user-managed
+    svc.create_variable = AsyncMock()
+    svc.update_variable_value = AsyncMock()
+    session = AsyncMock()
+
+    out = await promote_plaintext_secrets_to_variables(
+        flow_data=flow_data,
+        flow_id=FLOW_ID,
+        user_id=USER_ID,
+        variable_service=svc,
+        session=session,
+    )
+
+    svc.has_user_managed_variable.assert_awaited_once()
+    svc.create_variable.assert_not_called()
+    svc.update_variable_value.assert_not_called()
+
+    field = out["nodes"][0]["data"]["node"]["template"]["cert_pem"]
+    assert field["value"] == "my_company_api_key"
+    assert field["load_from_db"] is True
+
+
+@pytest.mark.asyncio
+async def test_promote_promotes_when_value_does_not_match_any_variable():
+    """Typed plaintext with no matching user-managed Variable gets promoted."""
+    flow_data = _flow_data(
+        {
+            "_input_type": "SecretStrInput",
+            "auto_promote": True,
+            "value": "sk-typed-plaintext-secret",
+            "load_from_db": False,
+        }
+    )
+    svc = AsyncMock()
+    svc.list_autosecret_names_for_flow = AsyncMock(return_value=[])
+    svc.has_user_managed_variable = AsyncMock(return_value=False)
+    svc.create_variable = AsyncMock()
+    session = AsyncMock()
+
+    out = await promote_plaintext_secrets_to_variables(
+        flow_data=flow_data,
+        flow_id=FLOW_ID,
+        user_id=USER_ID,
+        variable_service=svc,
+        session=session,
+    )
+
+    svc.create_variable.assert_awaited_once()
+    field = out["nodes"][0]["data"]["node"]["template"]["cert_pem"]
+    assert field["value"].startswith(AUTOSECRET_PREFIX)
+
+
+@pytest.mark.asyncio
+async def test_promote_preserves_foreign_autosecret_prefix():
+    """Values starting with AUTOSECRET_PREFIX (even for a different flow)
+    are preserved as-is to avoid re-wrapping."""
+    foreign_autosecret = f"{AUTOSECRET_PREFIX}other-flow-id_OtherNode_cert_pem"
+    flow_data = _flow_data(
+        {
+            "_input_type": "SecretStrInput",
+            "auto_promote": True,
+            "value": foreign_autosecret,
+            "load_from_db": True,
+        }
+    )
+    svc = AsyncMock()
+    svc.list_autosecret_names_for_flow = AsyncMock(return_value=[])
+    svc.has_user_managed_variable = AsyncMock(return_value=False)
+    svc.create_variable = AsyncMock()
+    session = AsyncMock()
+
+    out = await promote_plaintext_secrets_to_variables(
+        flow_data=flow_data,
+        flow_id=FLOW_ID,
+        user_id=USER_ID,
+        variable_service=svc,
+        session=session,
+    )
+
+    svc.create_variable.assert_not_called()
+    svc.has_user_managed_variable.assert_not_called()  # short-circuited earlier
+    field = out["nodes"][0]["data"]["node"]["template"]["cert_pem"]
+    assert field["value"] == foreign_autosecret

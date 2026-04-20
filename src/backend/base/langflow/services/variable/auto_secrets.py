@@ -70,10 +70,12 @@ async def promote_plaintext_secrets_to_variables(
     variable_service: VariableService,
     session: AsyncSession,
 ) -> dict:
-    """Upsert a hidden Variable for every TextFileSecretInput field whose value
-    is plaintext; rewrite the field to reference the Variable by name.
+    """Upsert a hidden Variable for every promotable field whose value is
+    typed-in plaintext; rewrite the field to reference the Variable by name.
 
-    Idempotent: no-ops if the field already references its expected auto-name.
+    Preserves values that are:
+    - already autosecret references (any flow_id), idempotent.
+    - the name of an existing user-managed Variable (picked, not typed).
 
     Returns the (possibly-mutated) flow_data dict.
     """
@@ -89,19 +91,28 @@ async def promote_plaintext_secrets_to_variables(
         expected_name = autosecret_name(flow_id, node_id, field_name)
         value = field.get("value") or ""
 
-        # Already a reference to its expected auto-Variable — skip.
-        if field.get("load_from_db") and value == expected_name and expected_name in existing_names:
-            continue
-
-        # Empty plaintext: nothing to store. Clear the ref here so the field
-        # saves as a clean empty. Cleanup of any prior Variable is handled by
-        # cleanup_orphaned_autosecrets (Task 5).
+        # Empty plaintext: clear any stale reference so the save is clean.
+        # Orphaned autosecret Variables are garbage-collected by
+        # cleanup_orphaned_autosecrets, which runs separately.
         if not value:
             field["value"] = ""
             field["load_from_db"] = False
             continue
 
-        # A plaintext value is present. Upsert the Variable.
+        # Any autosecret reference (our flow_id's or a foreign one) is
+        # preserved. Foreign refs (e.g. copied from another flow on import)
+        # can't resolve at runtime, but the export blanker will zero them
+        # out on next export — we don't re-wrap them.
+        if isinstance(value, str) and value.startswith(AUTOSECRET_PREFIX):
+            continue
+
+        # User picked an existing user-managed Variable by name. Preserve.
+        if await variable_service.has_user_managed_variable(
+            name=value, user_id=user_id, session=session
+        ):
+            continue
+
+        # Typed-in plaintext: upsert the autosecret Variable in place.
         if expected_name in existing_names:
             await variable_service.update_variable_value(
                 name=expected_name,
