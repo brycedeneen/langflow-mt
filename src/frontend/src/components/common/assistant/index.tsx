@@ -52,7 +52,7 @@ export const AssistantButton: React.FC<AssistantButtonProps> = ({
           hover:text-primary
           hover:bg-muted/70
           transition-colors duration-150
-          focus-visible:outline-none
+          focus-visible:outline-hidden
           focus-visible:ring-1
           focus-visible:ring-ring
           focus-visible:ring-offset-1

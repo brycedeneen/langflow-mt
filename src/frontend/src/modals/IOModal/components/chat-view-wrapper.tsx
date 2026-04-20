@@ -54,7 +54,7 @@ export const ChatViewWrapper = ({
           <div
             className={cn(
               "truncate text-center font-semibold",
-              playgroundPage ? "" : "mr-12 flex-grow lg:mr-0",
+              playgroundPage ? "" : "mr-12 grow lg:mr-0",
               sidebarOpen ? "blur-sm lg:blur-0" : "",
             )}
           >
@@ -66,7 +66,7 @@ export const ChatViewWrapper = ({
         <div
           className={cn(
             sidebarOpen ? "pointer-events-none opacity-0" : "",
-            "flex items-center justify-center rounded-sm ring-offset-background transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            "flex items-center justify-center rounded-sm ring-offset-background transition-opacity focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             playgroundPage ? "right-2 top-4" : "absolute right-12 top-2 h-8",
           )}
         >

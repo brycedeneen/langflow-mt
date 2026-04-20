@@ -39,7 +39,7 @@ const ModelTrigger = ({
     return selectedModel?.icon ? (
       <ForwardedIconComponent
         name={selectedModel.icon || "Bot"}
-        className="h-4 w-4 flex-shrink-0"
+        className="h-4 w-4 shrink-0"
       />
     ) : null;
   };

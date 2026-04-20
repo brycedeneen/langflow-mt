@@ -358,7 +358,7 @@ export default function IOModal({
           <div className="flex-max-width h-full">
             <div
               className={cn(
-                "flex h-full flex-shrink-0 flex-col justify-start overflow-hidden transition-all duration-300",
+                "flex h-full shrink-0 flex-col justify-start overflow-hidden transition-all duration-300",
                 sidebarOpen
                   ? "absolute z-50 lg:relative lg:w-1/5 lg:max-w-[280px]"
                   : "w-0",
@@ -453,7 +453,7 @@ export default function IOModal({
                 </ShadTooltip>
               </div>
             )}
-            <div className="flex h-full min-w-96 flex-grow bg-background">
+            <div className="flex h-full min-w-96 grow bg-background">
               {selectedViewField && !sessionsLoading && (
                 <SelectedViewField
                   selectedViewField={selectedViewField}

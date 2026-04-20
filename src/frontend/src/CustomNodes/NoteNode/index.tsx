@@ -166,7 +166,7 @@ function NoteNode({
           "relative flex h-full w-full flex-col gap-3 rounded-xl p-3",
           "duration-200 ease-in-out",
           "transition-transform",
-          hasVisibleBg && `border ${!selected && "-z-50 shadow-sm"}`,
+          hasVisibleBg && `border ${!selected && "-z-50 shadow-xs"}`,
         )}
       >
         {toolbar}

@@ -598,7 +598,7 @@ export default function AccordionPromptComponent({
               id={id}
               data-testid={id}
               className={cn(
-                "relative min-h-10 overflow-y-auto rounded-md border bg-background px-3 py-2 pr-8 text-sm outline-none break-words whitespace-pre-wrap",
+                "relative min-h-10 overflow-y-auto rounded-md border bg-background px-3 py-2 pr-8 text-sm outline-hidden break-words whitespace-pre-wrap",
                 "focus:border-primary hover:border-muted-foreground",
                 "before:content-[''] before:pointer-events-none before:absolute before:left-3 before:top-2 before:text-muted-foreground",
                 "empty:before:content-[attr(data-placeholder)]",

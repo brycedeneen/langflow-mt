@@ -118,7 +118,7 @@ const NoteToolbarComponent = memo(function NoteToolbarComponent({
 
   return (
     <div className="noflow nowheel nopan nodelete nodrag h-10 w-26">
-      <span className="isolate inline-flex rounded-md shadow-sm">
+      <span className="isolate inline-flex rounded-md shadow-xs">
         {/* Color picker popover */}
         <Popover>
           <ShadTooltip content="Pick Color">

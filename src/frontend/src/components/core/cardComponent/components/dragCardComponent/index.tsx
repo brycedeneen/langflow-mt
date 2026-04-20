@@ -19,10 +19,10 @@ export default function DragCardComponent({ data }: { data: FlowType }) {
               <CardTitle className="flex w-full items-start justify-between gap-3 text-xl">
                 <ForwardedIconComponent
                   className={cn(
-                    "visible flex-shrink-0",
+                    "visible shrink-0",
                     data.is_component
                       ? "mx-0.5 h-6 w-6 text-component-icon"
-                      : "h-7 w-7 flex-shrink-0 text-flow-icon",
+                      : "h-7 w-7 shrink-0 text-flow-icon",
                   )}
                   name={data.is_component ? "ToyBrick" : "Group"}
                 />

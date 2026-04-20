@@ -111,7 +111,7 @@ const InputWrapper = ({
 
         {/* Buttons row */}
         <div className="flex items-center justify-between w-full pt-3">
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <UploadFileButton
               isBuilding={isBuilding}
               fileInputRef={fileInputRef}
@@ -120,7 +120,7 @@ const InputWrapper = ({
             />
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <AudioButton
               isBuilding={isBuilding}
               recordingState={audioRecordingState}

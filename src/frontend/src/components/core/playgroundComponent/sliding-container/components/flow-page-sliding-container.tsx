@@ -187,7 +187,7 @@ export function FlowPageSlidingContainerContent({
             </StickToBottom>
 
             <div
-              className={`flex-shrink-0 p-4 ${isFullscreen ? "flex justify-center" : ""}`}
+              className={`shrink-0 p-4 ${isFullscreen ? "flex justify-center" : ""}`}
             >
               <div
                 className={`${isFullscreen ? "w-full max-w-[744px]" : "w-full"} p-0`}

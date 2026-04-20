@@ -49,7 +49,7 @@ export const Messages = ({
   );
 
   const messagesContent = (
-    <div className="flex flex-col flex-grow place-self-center w-full relative overflow-x-hidden">
+    <div className="flex flex-col grow place-self-center w-full relative overflow-x-hidden">
       {chatHistory && (isBuilding || chatHistory.length > 0) && (
         <>
           {chatHistory.map((chat: ChatMessageType, index) => {

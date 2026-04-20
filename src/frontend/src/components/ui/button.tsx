@@ -5,7 +5,7 @@ import { cn } from "../../utils/utils";
 import ForwardedIconComponent from "../common/genericIconComponent";
 
 const buttonVariants = cva(
-  "noflow nopan nodelete nodrag inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-70 disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "noflow nopan nodelete nodrag inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-70 disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -17,9 +17,9 @@ const buttonVariants = cva(
         outlineAmber:
           "border border-accent-amber-foreground hover:bg-accent-amber",
         primary:
-          "border bg-background text-secondary-foreground hover:bg-muted hover:shadow-sm",
+          "border bg-background text-secondary-foreground hover:bg-muted hover:shadow-xs",
         warning:
-          "bg-warning-foreground text-warning-text hover:bg-warning-foreground/90 hover:shadow-sm",
+          "bg-warning-foreground text-warning-text hover:bg-warning-foreground/90 hover:shadow-xs",
         secondary:
           "border border-muted bg-muted text-secondary-foreground hover:bg-secondary-foreground/5",
         ghost:

@@ -34,7 +34,7 @@ const ProviderListItem = ({
         <ForwardedIconComponent
           name={provider.icon || "Bot"}
           className={cn(
-            "h-5 w-5 flex-shrink-0 transition-all",
+            "h-5 w-5 shrink-0 transition-all",
             !isActive && "opacity-50 grayscale",
           )}
         />

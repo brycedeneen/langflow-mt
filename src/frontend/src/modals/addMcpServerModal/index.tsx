@@ -294,7 +294,7 @@ export default function AddMcpServerModal({
       setOpen={setOpen}
       size="x-small-h-full"
       onSubmit={submitForm}
-      className="!p-0 min-h-[250px] flex-grow"
+      className="!p-0 min-h-[250px] grow"
     >
       <BaseModal.Trigger>{children}</BaseModal.Trigger>
       <BaseModal.Content className="flex flex-1 flex-col overflow-hidden min-h-0">

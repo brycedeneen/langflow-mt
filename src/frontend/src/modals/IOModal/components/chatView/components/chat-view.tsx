@@ -178,7 +178,7 @@ export default function ChatView({
       initial="instant"
     >
       <StickToBottom.Content className="flex flex-col min-h-full ">
-        <div className="flex flex-col flex-grow place-self-center w-5/6 max-w-[768px]">
+        <div className="flex flex-col grow place-self-center w-5/6 max-w-[768px]">
           {chatHistory &&
             (isBuilding || chatHistory?.length > 0 ? (
               chatHistory?.map((chat, index) => (
@@ -192,7 +192,7 @@ export default function ChatView({
                 />
               ))
             ) : (
-              <div className="flex flex-grow w-full flex-col items-center justify-center">
+              <div className="flex grow w-full flex-col items-center justify-center">
                 <div className="flex flex-col items-center justify-center gap-4 p-8">
                   <LangflowLogo
                     title="Langflow logo"

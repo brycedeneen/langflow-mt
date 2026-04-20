@@ -59,7 +59,7 @@ export function PipelineCard({
   }, [displayName, typeName, errorMessage, latestResult, onSend]);
 
   return (
-    <div className="rounded-md border bg-background p-3 shadow-sm">
+    <div className="rounded-md border bg-background p-3 shadow-xs">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="truncate text-sm font-medium">{displayName}</div>

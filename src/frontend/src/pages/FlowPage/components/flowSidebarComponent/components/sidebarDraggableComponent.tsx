@@ -131,7 +131,7 @@ export const SidebarDraggableComponent = forwardRef(
             data-tooltip-id={itemName}
             tabIndex={0}
             onKeyDown={handleKeyDown}
-            className="rounded-md outline-none ring-ring focus-visible:ring-1"
+            className="rounded-md outline-hidden ring-ring focus-visible:ring-1"
             data-testid={`${sectionName.toLowerCase()}_${display_name.toLowerCase()}_draggable`}
           >
             <div
