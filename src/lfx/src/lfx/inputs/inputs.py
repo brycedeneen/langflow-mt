@@ -466,6 +466,24 @@ class SecretStrInput(BaseInputMixin, DatabaseLoadMixin):
         return value
 
 
+class TextFileSecretInput(SecretStrInput):
+    """Secret input that accepts text content via paste or client-side file read.
+
+    Frontend renders a tab toggle: "Paste" shows the standard masked textarea;
+    "Upload File" shows a file picker that reads the chosen file with
+    FileReader.readAsText() and drops the string into the same backing value.
+    The raw file never leaves the browser.
+
+    At rest, values are promoted to hidden auto-Variables on flow save so they
+    are Fernet-encrypted in the DB (see services/variable/auto_secrets.py).
+
+    Use for PEM certs/keys, SSH keys, service-account JSON, JWT files, and any
+    other text-readable credential file.
+    """
+
+    file_types: list[str] = []
+
+
 class IntInput(BaseInputMixin, ListableInputMixin, RangeMixin, MetadataTraceMixin, ToolModeMixin):
     """Represents an integer field.
 
