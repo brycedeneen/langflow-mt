@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import checkCodeValidity from "../check-code-validity";
 
 const fakeNode = (nodeOverrides: Record<string, unknown> = {}) => ({
