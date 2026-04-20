@@ -114,3 +114,35 @@ async def promote_plaintext_secrets_to_variables(
         field["load_from_db"] = True
 
     return flow_data
+
+
+async def cleanup_orphaned_autosecrets(
+    *,
+    flow_data: dict,
+    flow_id: UUID,
+    user_id: UUID,
+    variable_service: VariableService,
+    session: AsyncSession,
+) -> None:
+    """Delete auto-Variables whose (node_id, field_name) is no longer present
+    in the flow's current template.
+
+    Called after a save to garbage-collect Variables left behind by node or
+    field removals.
+    """
+    current_names = {
+        autosecret_name(flow_id, node_id, field_name)
+        for node_id, field_name, _ in _iter_textfilesecret_fields(flow_data)
+    }
+    existing = await variable_service.list_autosecret_names_for_flow(
+        flow_id=flow_id,
+        user_id=user_id,
+        session=session,
+    )
+    for name in existing:
+        if name not in current_names:
+            await variable_service.delete_variable(
+                name=name,
+                user_id=user_id,
+                session=session,
+            )

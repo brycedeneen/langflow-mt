@@ -198,3 +198,65 @@ async def test_promote_upserts_when_value_changed():
     assert call_kwargs["value"] == new_value
     assert out["nodes"][0]["data"]["node"]["template"]["cert_pem"]["value"] == existing_name
     assert out["nodes"][0]["data"]["node"]["template"]["cert_pem"]["load_from_db"] is True
+
+
+from langflow.services.variable.auto_secrets import cleanup_orphaned_autosecrets
+
+
+@pytest.mark.asyncio
+async def test_cleanup_deletes_autosecrets_for_removed_nodes():
+    # Flow currently has one APIRequest node; DB has two autosecrets,
+    # one of which references a node that no longer exists.
+    flow_data = _flow_data(
+        {
+            "_input_type": "TextFileSecretInput",
+            "value": autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem"),
+            "load_from_db": True,
+        }
+    )
+    current_name = autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem")
+    orphan_name = autosecret_name(FLOW_ID, "APIRequest-old999", "cert_pem")
+
+    svc = AsyncMock()
+    svc.list_autosecret_names_for_flow = AsyncMock(return_value=[current_name, orphan_name])
+    svc.delete_variable = AsyncMock()
+    session = AsyncMock()
+
+    await cleanup_orphaned_autosecrets(
+        flow_data=flow_data,
+        flow_id=FLOW_ID,
+        user_id=USER_ID,
+        variable_service=svc,
+        session=session,
+    )
+
+    svc.delete_variable.assert_awaited_once()
+    call_kwargs = svc.delete_variable.await_args.kwargs
+    assert call_kwargs["name"] == orphan_name
+
+
+@pytest.mark.asyncio
+async def test_cleanup_no_op_when_no_orphans():
+    flow_data = _flow_data(
+        {
+            "_input_type": "TextFileSecretInput",
+            "value": autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem"),
+            "load_from_db": True,
+        }
+    )
+    svc = AsyncMock()
+    svc.list_autosecret_names_for_flow = AsyncMock(
+        return_value=[autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem")]
+    )
+    svc.delete_variable = AsyncMock()
+    session = AsyncMock()
+
+    await cleanup_orphaned_autosecrets(
+        flow_data=flow_data,
+        flow_id=FLOW_ID,
+        user_id=USER_ID,
+        variable_service=svc,
+        session=session,
+    )
+
+    svc.delete_variable.assert_not_called()
