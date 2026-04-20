@@ -14,6 +14,11 @@ from urllib.parse import urlsplit
 
 import httpx
 
+# Re-export: these helpers now live in lfx.base.api_request.mtls so APIRequest
+# and ADP components share one implementation. Keep them importable from here
+# for any in-repo callers that used the old names.
+from lfx.base.api_request.mtls import _normalize_pem, _write_secure_tempfile  # noqa: F401
+
 DEFAULT_API_BASE_URL = "https://api.adp.com"
 DEFAULT_MCP_BASE_URL = "https://mcp.adp.com/mcp"  # placeholder until real URL known
 DEFAULT_TOKEN_URL = "https://accounts.adp.com/auth/oauth/v2/token"  # noqa: S105
@@ -149,55 +154,11 @@ def build_mtls_httpx_client(conn: ADPConnection, *, timeout: float = 30.0) -> ht
         raise
 
 
-def _normalize_pem(pem: str) -> str:
-    """Fix common PEM formatting issues from pasting into text fields.
-
-    Handles: missing newlines around headers, \\n literals, extra whitespace.
-    """
-    pem = pem.strip()
-    pem = pem.replace("\\n", "\n")
-    pem = pem.replace("\r\n", "\n").replace("\r", "\n")
-
-    def _reformat_block(match: re.Match) -> str:
-        header = match.group(1)
-        body = match.group(2)
-        footer = match.group(3)
-        body_clean = re.sub(r"\s+", "", body)
-        lines = [body_clean[i : i + 64] for i in range(0, len(body_clean), 64)]
-        return header + "\n" + "\n".join(lines) + "\n" + footer
-
-    pem = re.sub(
-        r"(-----BEGIN [A-Z0-9 ]+-----)\s*(.*?)\s*(-----END [A-Z0-9 ]+-----)",
-        _reformat_block,
-        pem,
-        flags=re.DOTALL,
-    )
-    if not pem.endswith("\n"):
-        pem += "\n"
-    return pem
-
-
 def _write_pem_temp_files(cert_pem: str, key_pem: str) -> tuple[tuple[str, str], list[Path]]:
     """Write cert/key PEM strings to 0600 temp files; return (cert,key) paths + cleanup list."""
     cert_path = _write_secure_tempfile(_normalize_pem(cert_pem), suffix=".pem")
     key_path = _write_secure_tempfile(_normalize_pem(key_pem), suffix=".pem")
     return (str(cert_path), str(key_path)), [cert_path, key_path]
-
-
-def _write_secure_tempfile(content: str, *, suffix: str) -> Path:
-    fd, name = tempfile.mkstemp(suffix=suffix, prefix="adp-")
-    path = Path(name)
-    try:
-        os.write(fd, content.encode("utf-8"))
-    except BaseException:
-        os.close(fd)
-        path.unlink(missing_ok=True)
-        raise
-    else:
-        os.close(fd)
-    # mkstemp creates at 0600; chmod is belt-and-suspenders documentation of intent.
-    path.chmod(0o600)
-    return path
 
 
 async def fetch_token(conn: ADPConnection, *, force: bool = False) -> None:
