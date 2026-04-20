@@ -3,7 +3,7 @@ import re
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import aiofiles
@@ -12,6 +12,7 @@ import httpx
 import validators
 
 from lfx.base.curl.parse import parse_context
+from lfx.custom.custom_component.changelog import ChangelogEntry
 from lfx.custom.custom_component.component import Component
 from lfx.inputs.inputs import TabInput
 from lfx.io import (
@@ -50,6 +51,24 @@ class APIRequestComponent(Component):
     documentation: str = "https://docs.langflow.org/api-request"
     icon = "Globe"
     name = "APIRequest"
+
+    version: int = 1
+    changelog: ClassVar[list[ChangelogEntry]] = [
+        ChangelogEntry(
+            version=1,
+            changes=(
+                "- Added **Bearer token** authentication option\n"
+                "- Added **mTLS** authentication (client certificate + key)\n"
+                "- Added **form-urlencoded** body support"
+            ),
+            notes=(
+                "Existing flows keep their current behavior — the new auth modes "
+                "are opt-in under the Authentication field. If you previously "
+                "worked around the missing Bearer/mTLS options with custom headers, "
+                "you can switch to the native fields."
+            ),
+        ),
+    ]
 
     inputs = [
         MessageTextInput(
