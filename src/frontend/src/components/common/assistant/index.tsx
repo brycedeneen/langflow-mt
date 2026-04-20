@@ -121,7 +121,7 @@ export const AssistantButton: React.FC<AssistantButtonProps> = ({
         setClicked(true);
         // we use result instead of data because data is undefined on first call
         const result = await refetch();
-        handleOnNewValue({
+        handleOnNewValue?.({
           value:
             (result.data as { data?: { outputs?: Array<{ outputs?: Array<{ outputs?: { message?: { message?: unknown } } }> }> } } | undefined)?.data
               ?.outputs?.[0]?.outputs?.[0]?.outputs?.message?.message,
