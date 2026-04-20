@@ -2,7 +2,7 @@
 name = "langflow"
 version = "1.8.4"
 description = "A Python package with a built-in web application"
-requires-python = ">=3.10,<3.14"
+requires-python = ">=3.11,<3.14"
 license = "MIT"
 keywords = ["nlp", "langchain", "openai", "gpt", "gui"]
 readme = "README.md"
@@ -33,7 +33,7 @@ dev = [
     "types-requests>=2.32.0",
     "requests>=2.32.0",
     "pytest-cov>=5.0.0",
-    "pandas-stubs>=2.3",
+    "pandas-stubs>=3.0",
     "types-pillow>=10.2.0.20240213",
     "types-pyyaml>=6.0.12.8",
     "types-python-jose>=3.3.4.8",
@@ -150,10 +150,13 @@ postgresql = [
 override-dependencies = [
     # temporary force a newer python-pptx
     "python-pptx>=1.0.2",
-    # Force pandas 2.3+ despite ibm-watsonx-ai pinning pandas<2.3.
-    # TODO: remove ibm-watsonx-ai entirely — deploy target does not include watsonx.
-    # When that cleanup happens, drop this override.
-    "pandas>=2.3,<3.0",
+    # Force pandas 3.0+ despite these consumers pinning lower:
+    #   - ibm-watsonx-ai (<2.4)      — deploy target doesn't include watsonx; see project memory
+    #   - docling (<3.0)             — ecosystem bump parked (2026-04-20-docling-ecosystem-bump-design.md)
+    #   - cleanlab-tlm (==2.*)       — upstream hasn't released a pandas-3 compatible cut
+    # Each has a smoke probe in tests/unit/integration_smoke/test_pandas_3_overrides.py
+    # to catch runtime breakage.
+    "pandas>=3.0,<4.0",
 ]
 
 [project.scripts]
