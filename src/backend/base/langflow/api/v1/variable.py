@@ -17,6 +17,7 @@ from langflow.api.v1.models import (
 )
 from langflow.services.database.models.variable.model import VariableCreate, VariableRead, VariableUpdate
 from langflow.services.deps import get_variable_service
+from langflow.services.variable.auto_secrets import AUTOSECRET_PREFIX
 from langflow.services.variable.constants import CREDENTIAL_TYPE, GENERIC_TYPE
 from langflow.services.variable.service import DatabaseVariableService
 
@@ -168,8 +169,12 @@ async def read_variables(
         all_variables = await variable_service.get_all(user_id=current_user.id, session=session)
 
         # Filter out internal variables (those starting and ending with __)
+        # and auto-secret variables (those starting with AUTOSECRET_PREFIX)
         filtered_variables = [
-            var for var in all_variables if not (var.name and var.name.startswith("__") and var.name.endswith("__"))
+            var
+            for var in all_variables
+            if not (var.name and var.name.startswith("__") and var.name.endswith("__"))
+            and not (var.name or "").startswith(AUTOSECRET_PREFIX)
         ]
 
         # Mark model provider credentials - validation status is based on existence
