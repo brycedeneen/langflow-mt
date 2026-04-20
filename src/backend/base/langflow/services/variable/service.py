@@ -441,6 +441,35 @@ class DatabaseVariableService(VariableService, Service):
         result = await session.exec(stmt)
         return list(result.all())
 
+    async def has_user_managed_variable(
+        self,
+        *,
+        name: str,
+        user_id: UUID,
+        session: AsyncSession,
+    ) -> bool:
+        """Return True if a user-managed (non-autosecret) Variable with this name
+        exists for the user. Used by auto_secrets.promote_* to avoid overwriting
+        a user-picked Variable reference when the field is also marked
+        auto_promote=True.
+        """
+        from sqlmodel import select
+
+        from langflow.services.database.models.variable.model import Variable
+        from langflow.services.variable.auto_secrets import AUTOSECRET_PREFIX
+
+        stmt = (
+            select(Variable.id)
+            .where(
+                Variable.user_id == user_id,
+                Variable.name == name,
+                ~Variable.name.like(f"{AUTOSECRET_PREFIX}%"),
+            )
+            .limit(1)
+        )
+        result = await session.exec(stmt)
+        return result.first() is not None
+
     async def update_variable_value(
         self,
         *,
@@ -463,3 +492,4 @@ class DatabaseVariableService(VariableService, Service):
         session.add(variable)
         await session.flush()
         await session.refresh(variable)
+
