@@ -7,7 +7,7 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path as StdlibPath
 from typing import Annotated
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import orjson
 from aiofile import async_open
@@ -44,7 +44,8 @@ from lfx.services.secret_store import get_secret_store
 from langflow.services.database.models.folder.constants import DEFAULT_FOLDER_NAME
 from langflow.services.database.models.folder.model import Folder
 from langflow.services.database.models.folder.utils import get_default_folder_id
-from langflow.services.deps import get_settings_service, get_storage_service
+from langflow.services.deps import get_settings_service, get_storage_service, get_variable_service
+from langflow.services.variable.auto_secrets import promote_plaintext_secrets_to_variables
 from langflow.services.storage.service import StorageService
 from langflow.utils.compression import compress_response
 
@@ -359,12 +360,24 @@ async def create_flow(
     storage_service: Annotated[StorageService, Depends(get_storage_service)],
 ):
     try:
+        flow_id = uuid4()
+
+        if flow.data is not None:
+            flow.data = await promote_plaintext_secrets_to_variables(
+                flow_data=flow.data,
+                flow_id=flow_id,
+                user_id=current_user.id,
+                variable_service=get_variable_service(),
+                session=session,
+            )
+
         return await _new_flow(
             session=session,
             flow=flow,
             user_id=current_user.id,
             organization_id=current_org.id,
             storage_service=storage_service,
+            flow_id=flow_id,
         )
     except Exception as e:
         if "UNIQUE constraint failed" in str(e):
