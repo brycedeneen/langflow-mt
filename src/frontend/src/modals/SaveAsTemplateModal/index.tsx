@@ -102,7 +102,7 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
     <BaseModal
       open={open}
       setOpen={(o: boolean) => (!o ? onClose() : undefined)}
-      size="medium"
+      size="medium-tall"
     >
       <BaseModal.Header description="Save the current flow as a reusable platform template.">
         Save as Template
