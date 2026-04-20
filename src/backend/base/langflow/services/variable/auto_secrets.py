@@ -146,3 +146,24 @@ async def cleanup_orphaned_autosecrets(
                 user_id=user_id,
                 session=session,
             )
+
+
+async def delete_autosecrets_for_flow(
+    *,
+    flow_id: UUID,
+    user_id: UUID,
+    variable_service: VariableService,
+    session: AsyncSession,
+) -> None:
+    """Delete every auto-Variable owned by this flow. Call on flow delete."""
+    names = await variable_service.list_autosecret_names_for_flow(
+        flow_id=flow_id,
+        user_id=user_id,
+        session=session,
+    )
+    for name in names:
+        await variable_service.delete_variable(
+            name=name,
+            user_id=user_id,
+            session=session,
+        )

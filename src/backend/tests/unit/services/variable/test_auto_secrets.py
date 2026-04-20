@@ -260,3 +260,28 @@ async def test_cleanup_no_op_when_no_orphans():
     )
 
     svc.delete_variable.assert_not_called()
+
+
+from langflow.services.variable.auto_secrets import delete_autosecrets_for_flow
+
+
+@pytest.mark.asyncio
+async def test_delete_autosecrets_for_flow_removes_all_for_that_flow():
+    svc = AsyncMock()
+    svc.list_autosecret_names_for_flow = AsyncMock(
+        return_value=[
+            autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem"),
+            autosecret_name(FLOW_ID, "APIRequest-abc123", "key_pem"),
+        ]
+    )
+    svc.delete_variable = AsyncMock()
+    session = AsyncMock()
+
+    await delete_autosecrets_for_flow(
+        flow_id=FLOW_ID,
+        user_id=USER_ID,
+        variable_service=svc,
+        session=session,
+    )
+
+    assert svc.delete_variable.await_count == 2
