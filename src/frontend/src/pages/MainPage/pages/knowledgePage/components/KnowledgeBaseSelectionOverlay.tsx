@@ -1,4 +1,5 @@
 import type { AxiosError } from "axios";
+import { useShallow } from "zustand/react/shallow";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { Button } from "@/components/ui/button";
 import { useDeleteKnowledgeBase } from "@/controllers/API/queries/knowledge-bases/use-delete-knowledge-base";
@@ -20,10 +21,12 @@ const KnowledgeBaseSelectionOverlay = ({
   onDelete,
   onClearSelection,
 }: KnowledgeBaseSelectionOverlayProps) => {
-  const { setSuccessData, setErrorData } = useAlertStore((state) => ({
-    setSuccessData: state.setSuccessData,
-    setErrorData: state.setErrorData,
-  }));
+  const { setSuccessData, setErrorData } = useAlertStore(
+    useShallow((state) => ({
+      setSuccessData: state.setSuccessData,
+      setErrorData: state.setErrorData,
+    })),
+  );
 
   const deleteMutation = useDeleteKnowledgeBase({
     onSuccess: (data) => {

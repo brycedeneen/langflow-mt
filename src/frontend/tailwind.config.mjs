@@ -39,7 +39,7 @@ const config = {
     },
     extend: {
       screens: {
-        mdd: "45rem",
+        mdd: "720px",
         xl: "1200px",
         "2xl": "1400px",
         "3xl": "1500px",

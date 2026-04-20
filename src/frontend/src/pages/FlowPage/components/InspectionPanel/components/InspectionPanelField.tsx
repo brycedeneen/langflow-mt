@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { useShallow } from "zustand/react/shallow";
 import NodeInputInfo from "@/CustomNodes/GenericNode/components/NodeInputInfo";
 import useHandleOnNewValue from "@/CustomNodes/hooks/use-handle-new-value";
 import useHandleNodeClass from "@/CustomNodes/hooks/use-handle-node-class";
@@ -51,10 +52,12 @@ export default function InspectionPanelField({
   const isAutoLogin = useIsAutoLogin();
   const shouldDisplayApiKey = isAuthenticated && !isAutoLogin;
 
-  const { currentFlowId, currentFlowName } = useFlowStore((state) => ({
-    currentFlowId: state.currentFlow?.id,
-    currentFlowName: state.currentFlow?.name,
-  }));
+  const { currentFlowId, currentFlowName } = useFlowStore(
+    useShallow((state) => ({
+      currentFlowId: state.currentFlow?.id,
+      currentFlowName: state.currentFlow?.name,
+    })),
+  );
 
   const { handleNodeClass } = useHandleNodeClass(data.id);
 

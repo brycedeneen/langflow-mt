@@ -259,7 +259,7 @@
                 "dependencies": [
                   {
                     "name": "orjson",
-                    "version": "3.10.15"
+                    "version": "3.11.8"
                   },
                   {
                     "name": "fastapi",
@@ -540,7 +540,7 @@
                 "dependencies": [
                   {
                     "name": "chromadb",
-                    "version": "1.5.5"
+                    "version": "1.5.8"
                   },
                   {
                     "name": "cryptography",
@@ -556,7 +556,7 @@
                   },
                   {
                     "name": "pydantic",
-                    "version": "2.11.10"
+                    "version": "2.13.2"
                   },
                   {
                     "name": "lfx",

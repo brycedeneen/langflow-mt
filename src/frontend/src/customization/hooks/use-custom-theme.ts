@@ -5,10 +5,8 @@ import { useDarkStore } from "@/stores/darkStore";
 
 const useTheme = () => {
   const [systemTheme, setSystemTheme] = useState(false);
-  const { setDark, dark } = useDarkStore((state) => ({
-    setDark: state.setDark,
-    dark: state.dark,
-  }));
+  const setDark = useDarkStore((state) => state.setDark);
+  const dark = useDarkStore((state) => state.dark);
 
   const handleSystemTheme = () => {
     if (typeof window !== "undefined") {

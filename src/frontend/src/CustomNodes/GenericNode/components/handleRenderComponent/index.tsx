@@ -194,17 +194,14 @@ const HandleRenderComponent = memo(function HandleRenderComponent({
     filterType,
     onConnect,
   } = useFlowStore(
-    useCallback(
-      (state) => ({
-        setHandleDragging: state.setHandleDragging,
-        setFilterType: state.setFilterType,
-        setFilterComponent: state.setFilterComponent,
-        handleDragging: state.handleDragging,
-        filterType: state.filterType,
-        onConnect: state.onConnect,
-      }),
-      [],
-    ),
+    useShallow((state) => ({
+      setHandleDragging: state.setHandleDragging,
+      setFilterType: state.setFilterType,
+      setFilterComponent: state.setFilterComponent,
+      handleDragging: state.handleDragging,
+      filterType: state.filterType,
+      onConnect: state.onConnect,
+    })),
   );
 
   const dark = useDarkStore((state) => state.dark);

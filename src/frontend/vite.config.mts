@@ -3,7 +3,6 @@ import * as dotenv from "dotenv";
 import path from "path";
 import { defineConfig, loadEnv } from "vite";
 import svgr from "vite-plugin-svgr";
-import tsconfigPaths from "vite-tsconfig-paths";
 import {
   API_ROUTES,
   BASENAME,
@@ -57,7 +56,10 @@ export default defineConfig(({ mode }) => {
         envLangflow.LANGFLOW_MCP_COMPOSER_ENABLED ?? "true",
       ),
     },
-    plugins: [react(), svgr(), tsconfigPaths()],
+    plugins: [react(), svgr()],
+    resolve: {
+      tsconfigPaths: true,
+    },
     server: {
       port: port,
       proxy: {

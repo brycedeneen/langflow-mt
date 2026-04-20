@@ -2,6 +2,7 @@ import type { RowClickedEvent, SelectionChangedEvent } from "ag-grid-community";
 import type { AgGridReact } from "ag-grid-react";
 import { useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useShallow } from "zustand/react/shallow";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import TableComponent from "@/components/core/parameterRenderComponent/components/tableComponent";
 import { Button } from "@/components/ui/button";
@@ -38,10 +39,12 @@ const KnowledgeBasesTab = ({
   onRowClick,
 }: KnowledgeBasesTabProps) => {
   const tableRef = useRef<AgGridReact<unknown>>(null);
-  const { setErrorData, setSuccessData } = useAlertStore((state) => ({
-    setErrorData: state.setErrorData,
-    setSuccessData: state.setSuccessData,
-  }));
+  const { setErrorData, setSuccessData } = useAlertStore(
+    useShallow((state) => ({
+      setErrorData: state.setErrorData,
+      setSuccessData: state.setSuccessData,
+    })),
+  );
 
   const examples = useFlowsManagerStore((state) => state.examples);
   const addFlow = useAddFlow();

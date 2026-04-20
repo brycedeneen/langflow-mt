@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { useCancelIngestion } from "@/controllers/API/queries/knowledge-bases/use-cancel-ingestion";
 import { useDeleteKnowledgeBase } from "@/controllers/API/queries/knowledge-bases/use-delete-knowledge-base";
 import type { KnowledgeBaseInfo } from "@/controllers/API/queries/knowledge-bases/use-get-knowledge-bases";
@@ -19,10 +20,12 @@ export const useKnowledgeBaseActions = ({
   clearSelection,
 }: UseKnowledgeBaseActionsOptions) => {
   const queryClient = useQueryClient();
-  const { setErrorData, setSuccessData } = useAlertStore((state) => ({
-    setErrorData: state.setErrorData,
-    setSuccessData: state.setSuccessData,
-  }));
+  const { setErrorData, setSuccessData } = useAlertStore(
+    useShallow((state) => ({
+      setErrorData: state.setErrorData,
+      setSuccessData: state.setSuccessData,
+    })),
+  );
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [knowledgeBaseToDelete, setKnowledgeBaseToDelete] =

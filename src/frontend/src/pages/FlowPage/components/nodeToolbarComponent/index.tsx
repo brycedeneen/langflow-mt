@@ -1,6 +1,7 @@
 import { useUpdateNodeInternals } from "@xyflow/react";
 import _, { cloneDeep } from "lodash";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { mutateTemplate } from "@/CustomNodes/helpers/mutate-template";
 import useHandleOnNewValue from "@/CustomNodes/hooks/use-handle-new-value";
 import useHandleNodeClass from "@/CustomNodes/hooks/use-handle-node-class";
@@ -69,11 +70,13 @@ const NodeToolbarComponent = memo(
     const updateFreezeStatus = useFlowStore(
       (state) => state.updateFreezeStatus,
     );
-    const { hasStore, hasApiKey, validApiKey } = useStoreStore((state) => ({
-      hasStore: state.hasStore,
-      hasApiKey: state.hasApiKey,
-      validApiKey: state.validApiKey,
-    }));
+    const { hasStore, hasApiKey, validApiKey } = useStoreStore(
+      useShallow((state) => ({
+        hasStore: state.hasStore,
+        hasApiKey: state.hasApiKey,
+        validApiKey: state.validApiKey,
+      })),
+    );
     const shortcuts = useShortcutsStore((state) => state.shortcuts);
     const currentFlowId = useFlowsManagerStore((state) => state.currentFlowId);
     const [openModal, setOpenModal] = useState(false);

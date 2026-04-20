@@ -886,7 +886,7 @@
                 "dependencies": [
                   {
                     "name": "orjson",
-                    "version": "3.10.15"
+                    "version": "3.11.8"
                   },
                   {
                     "name": "fastapi",
@@ -1178,7 +1178,7 @@
                 "dependencies": [
                   {
                     "name": "pydantic",
-                    "version": "2.11.10"
+                    "version": "2.13.2"
                   },
                   {
                     "name": "lfx",
@@ -1757,7 +1757,7 @@
                 "dependencies": [
                   {
                     "name": "orjson",
-                    "version": "3.10.15"
+                    "version": "3.11.8"
                   },
                   {
                     "name": "pandas",
@@ -1781,7 +1781,7 @@
                   },
                   {
                     "name": "googleapiclient",
-                    "version": "2.154.0"
+                    "version": "2.194.0"
                   }
                 ],
                 "total_dependencies": 7

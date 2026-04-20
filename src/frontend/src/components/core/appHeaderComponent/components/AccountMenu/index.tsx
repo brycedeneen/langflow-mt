@@ -1,4 +1,5 @@
 import { FaDiscord, FaGithub } from "react-icons/fa";
+import { useShallow } from "zustand/react/shallow";
 import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
 import {
   DATASTAX_DOCS_URL,
@@ -29,11 +30,13 @@ export const AccountMenu = () => {
   const navigate = useCustomNavigate();
   const { mutate: mutationLogout } = useLogout();
 
-  const { isAdmin, autoLogin, userData } = useAuthStore((state) => ({
-    isAdmin: state.isAdmin,
-    autoLogin: state.autoLogin,
-    userData: state.userData,
-  }));
+  const { isAdmin, autoLogin, userData } = useAuthStore(
+    useShallow((state) => ({
+      isAdmin: state.isAdmin,
+      autoLogin: state.autoLogin,
+      userData: state.userData,
+    })),
+  );
 
   const handleLogout = () => {
     mutationLogout();
