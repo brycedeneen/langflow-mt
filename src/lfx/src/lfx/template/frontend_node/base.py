@@ -65,6 +65,10 @@ class FrontendNode(BaseModel):
     """Metadata for the component node."""
     tool_mode: bool = False
     """Whether the frontend node is in tool mode."""
+    version: int = 0
+    """Author-declared version of this component. Defaults to 0."""
+    changelog: list[dict] = []
+    """Per-version changelog entries (dumped `ChangelogEntry` dicts). Newest last."""
 
     def set_documentation(self, documentation: str) -> None:
         """Sets the documentation of the frontend node."""
