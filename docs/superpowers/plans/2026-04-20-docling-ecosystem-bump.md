@@ -17,7 +17,7 @@
 Read these before starting any task.
 
 - **Branch:** Per project memory, `platform-multi-tenant` is the effective main; however the spec calls for a dedicated worktree. Create a new worktree branched off `platform-multi-tenant` (see Task 0). No upstream push. No PRs to langflow-ai/langflow.
-- **Prerequisite:** The pandas 2.3 upgrade must be committed on `platform-multi-tenant` before this plan starts. Check `docs/superpowers/specs/2026-04-20-pandas-2.3-upgrade-report.md` — it is marked "ready to commit". If the pin changes it describes are still uncommitted on `platform-multi-tenant` HEAD, **stop and tell the user** — do not start this plan on an uncommitted baseline.
+- **Prerequisite:** pandas 3.0 is already committed on `platform-multi-tenant` (commit `6c295a70dc`, report at `docs/superpowers/specs/2026-04-20-pandas-3.0-upgrade-report.md`). Docling sits behind a `pandas>=3.0,<4.0` override — this plan removes that override's docling entry since docling 2.90 natively supports pandas <4.0. The comparison baseline for unit-suite regressions is the pandas-3.0 report's known-failure list, not the 2.3 one.
 - **Commit policy:** User requires explicit permission before every `git commit`. Every commit task in this plan says "pause and ask user to commit" — follow that literally. If the user declines, continue the next task with the change left uncommitted. Never commit silently.
 - **lfx tests:** Require `LFX_TEST_ALLOW_LANGFLOW=1` when run from the repo-level venv (see `reference_lfx_test_env.md` in user memory).
 - **Transitive conflict policy:** If `uv lock` fails because a non-docling transitive dep caps one of the target versions, **stop and report** per the pandas-upgrade precedent. Do not patch upstream packages or add silent workarounds.
@@ -57,10 +57,10 @@ If Phase 1 finds "no changes needed" for a file, it stays untouched.
 ## Task 0: Create the worktree and verify prerequisite
 
 **Files:**
-- Read: `docs/superpowers/specs/2026-04-20-pandas-2.3-upgrade-report.md`
+- Read: `docs/superpowers/specs/2026-04-20-pandas-3.0-upgrade-report.md`
 - No edits in this task.
 
-- [ ] **Step 1: Verify pandas 2.3 baseline is committed**
+- [ ] **Step 1: Verify pandas 3.0 baseline is committed**
 
 Run from repo root:
 
@@ -68,9 +68,9 @@ Run from repo root:
 git -C /Users/brycedeneen/dev/langflow log --oneline -n 30 platform-multi-tenant -- src/backend/base/pyproject.toml src/lfx/pyproject.toml pyproject.toml uv.lock
 ```
 
-Expected: a recent commit on `platform-multi-tenant` bumping pandas to `>=2.3,<3.0` (matches the table in `pandas-2.3-upgrade-report.md`).
+Expected: commit `6c295a70dc` ("bump pandas 2.3 -> 3.0, raise Python floor to 3.11, add dep smoke probes") reachable from `platform-multi-tenant`.
 
-If no such commit exists, **stop and ask the user** whether to proceed on uncommitted baseline.
+If that commit is not present, **stop and ask the user**.
 
 - [ ] **Step 2: Create dedicated worktree**
 
@@ -719,7 +719,7 @@ With:
 docling = [
     "langchain-docling>=1.1,<2.0",
     "tesserocr>=2.8.0",
-    "rapidocr>=3.7,<4.0",
+    "rapidocr>=3.8,<4.0",
     "ocrmac>=1.0.0; sys_platform == 'darwin'",
     # CPU-only PyTorch required for docling features
     # Loose version ranges intentionally used to avoid conflicts with transitive dependencies (e.g., altk)
@@ -728,7 +728,7 @@ docling = [
 ]
 ```
 
-Changes: `langchain-docling` gets a `<2.0` cap, `rapidocr-onnxruntime>=1.4.4` becomes `rapidocr>=3.7,<4.0`.
+Changes: `langchain-docling` gets a `<2.0` cap, `rapidocr-onnxruntime>=1.4.4` becomes `rapidocr>=3.8,<4.0`.
 
 - [ ] **Step 2: Update the override-dependencies comment**
 
@@ -771,7 +771,7 @@ Rationale: docling 2.90 declares `pandas>=2.1.4,<4.0.0`, which already allows pa
 
 Grep `pyproject.toml` for `docling|rapidocr|pandas` and confirm:
   - `rapidocr-onnxruntime` is no longer present
-  - `rapidocr>=3.7,<4.0` is present
+  - `rapidocr>=3.8,<4.0` is present
   - `langchain-docling>=1.1,<2.0` is present
   - The `docling (<3.0)` line inside the pandas override comment is gone
   - The `"pandas>=3.0,<4.0"` override itself remains (still needed for watsonx + cleanlab-tlm)
@@ -903,7 +903,7 @@ Expected: all tests PASS.
 cd /Users/brycedeneen/dev/langflow-docling-bump && uv run --all-extras pytest src/backend/tests/unit -x --timeout 300 2>&1 | tail -80
 ```
 
-Expected: pass, or the same set of pre-existing failures already documented in the pandas-2.3 upgrade report (`docs/superpowers/specs/2026-04-20-pandas-2.3-upgrade-report.md`). Anything new outside that list is docling-induced and must be investigated.
+Expected: pass, or the same set of pre-existing failures already documented in the pandas-3.0 upgrade report (`docs/superpowers/specs/2026-04-20-pandas-3.0-upgrade-report.md`). Anything new outside that list is docling-induced and must be investigated.
 
 - [ ] **Step 2: lfx unit suite**
 
@@ -911,11 +911,11 @@ Expected: pass, or the same set of pre-existing failures already documented in t
 cd /Users/brycedeneen/dev/langflow-docling-bump && LFX_TEST_ALLOW_LANGFLOW=1 uv run --all-extras pytest src/lfx/tests/unit -x --timeout 300 2>&1 | tail -80
 ```
 
-Expected: same rule — no new failures beyond baseline.
+Expected: same rule — no new failures beyond the pandas-3.0 baseline.
 
 - [ ] **Step 3: Record deltas**
 
-If any tests fail that were green on the pandas-2.3 baseline, write them to `docs/superpowers/specs/2026-04-20-docling-ecosystem-bump-report.md` under a "New failures" heading with one-line diagnosis per test.
+If any tests fail that were green on the pandas-3.0 baseline, write them to `docs/superpowers/specs/2026-04-20-docling-ecosystem-bump-report.md` under a "New failures" heading with one-line diagnosis per test.
 
 ---
 
@@ -953,7 +953,7 @@ Write to `docs/superpowers/specs/2026-04-20-docling-ecosystem-bump-report.md`:
 | `src/backend/base/pyproject.toml` | `docling-core>=2.36.1,<3.0.0` → `docling-core>=2.74,<3.0.0` |
 | `src/backend/base/pyproject.toml` | `docling>=2.36.1,<3.0.0; ...` → `docling>=2.90,<3.0.0; ...` |
 | `pyproject.toml` | `langchain-docling>=1.1.0` → `langchain-docling>=1.1,<2.0` |
-| `pyproject.toml` | `rapidocr-onnxruntime>=1.4.4` → `rapidocr>=3.7,<4.0` |
+| `pyproject.toml` | `rapidocr-onnxruntime>=1.4.4` → `rapidocr>=3.8,<4.0` |
 | `pyproject.toml` override comment | removed `docling (<3.0)` line |
 | `uv.lock` | regenerated |
 
