@@ -51,11 +51,11 @@ export const useDuplicateFileV2: useMutationFunctionType<
     ["useDuplicateFileV2"],
     duplicateFileFn,
     {
-      onSettled: (data, error, variables, context) => {
+      onSettled: (data, error, variables, context, ...rest) => {
         queryClient.invalidateQueries({
           queryKey: ["useGetFilesV2"],
         });
-        options?.onSettled?.(data, error, variables, context);
+        options?.onSettled?.(data, error, variables, context, ...rest);
       },
       ...options,
     },
