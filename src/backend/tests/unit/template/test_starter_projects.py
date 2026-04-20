@@ -29,8 +29,12 @@ def get_starter_projects_path() -> Path:
 
 
 def get_template_files():
-    """Get all template files for parameterization."""
-    return list(get_starter_projects_path().glob("*.json"))
+    """Get all template files for parameterization.
+
+    Excludes `*.metadata.json` sidecars, which are out-of-band assistant
+    instructions attached to a template — not templates themselves.
+    """
+    return [p for p in get_starter_projects_path().glob("*.json") if not p.name.endswith(".metadata.json")]
 
 
 def get_basic_template_files():

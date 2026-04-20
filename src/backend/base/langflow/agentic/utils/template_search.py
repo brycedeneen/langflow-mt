@@ -8,6 +8,14 @@ import orjson
 from lfx.log.logger import logger
 
 
+def _iter_template_files(starter_projects_dir: Path):
+    """Yield JSON template files, skipping `*.metadata.json` assistant sidecars."""
+    for template_file in starter_projects_dir.glob("*.json"):
+        if template_file.name.endswith(".metadata.json"):
+            continue
+        yield template_file
+
+
 def list_templates(
     query: str | None = None,
     fields: list[str] | None = None,
@@ -58,8 +66,7 @@ def list_templates(
 
     results = []
 
-    # Iterate through all JSON files in the directory
-    for template_file in starter_projects_dir.glob("*.json"):
+    for template_file in _iter_template_files(starter_projects_dir):
         try:
             # Load the template
             with Path(template_file).open(encoding="utf-8") as f:
@@ -126,7 +133,7 @@ def get_template_by_id(
     else:
         starter_projects_dir = Path(__file__).parent.parent.parent / "initial_setup" / "starter_projects"
 
-    for template_file in starter_projects_dir.glob("*.json"):
+    for template_file in _iter_template_files(starter_projects_dir):
         try:
             with Path(template_file).open(encoding="utf-8") as f:
                 template_data = json.load(f)
@@ -162,7 +169,7 @@ def get_all_tags(starter_projects_path: str | Path | None = None) -> list[str]:
         starter_projects_dir = Path(__file__).parent.parent.parent / "initial_setup" / "starter_projects"
     all_tags = set()
 
-    for template_file in starter_projects_dir.glob("*.json"):
+    for template_file in _iter_template_files(starter_projects_dir):
         try:
             template_data = orjson.loads(Path(template_file).read_text(encoding="utf-8"))
 
@@ -189,4 +196,4 @@ def get_templates_count(starter_projects_path: str | Path | None = None) -> int:
         starter_projects_dir = Path(starter_projects_path)
     else:
         starter_projects_dir = Path(__file__).parent.parent.parent / "initial_setup" / "starter_projects"
-    return len(list(starter_projects_dir.glob("*.json")))
+    return sum(1 for _ in _iter_template_files(starter_projects_dir))

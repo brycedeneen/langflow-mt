@@ -49,10 +49,10 @@ def _fresh_prompt():
 # ---------------------------------------------------------------------------
 
 
-def test_add_component_auto_position_empty():
+async def test_add_component_auto_position_empty():
     data = _fresh_empty()
     tools = FlowMutationTools(data)
-    result = tools.add_component("ChatOpenAI")
+    result = await tools.add_component("ChatOpenAI")
 
     node_id = result["node_id"]
     assert node_id.startswith("ChatOpenAI-")
@@ -68,10 +68,10 @@ def test_add_component_auto_position_empty():
 # ---------------------------------------------------------------------------
 
 
-def test_add_component_explicit_position():
+async def test_add_component_explicit_position():
     data = _fresh_empty()
     tools = FlowMutationTools(data)
-    result = tools.add_component("Prompt", position={"x": 500, "y": 600})
+    result = await tools.add_component("Prompt", position={"x": 500, "y": 600})
 
     node = result["applied_patch"]["added_nodes"][0]
     assert node["position"] == {"x": 500, "y": 600}
@@ -82,10 +82,10 @@ def test_add_component_explicit_position():
 # ---------------------------------------------------------------------------
 
 
-def test_add_component_initial_fields():
+async def test_add_component_initial_fields():
     data = _fresh_empty()
     tools = FlowMutationTools(data)
-    result = tools.add_component(
+    result = await tools.add_component(
         "Prompt",
         initial_fields={"template": "Hello {name}", "model": "gpt-4"},
     )
@@ -101,12 +101,12 @@ def test_add_component_initial_fields():
 # ---------------------------------------------------------------------------
 
 
-def test_add_component_updates_flow_data_in_place():
+async def test_add_component_updates_flow_data_in_place():
     data = _fresh_empty()
     tools = FlowMutationTools(data)
     assert len(data["nodes"]) == 0
 
-    tools.add_component("Prompt")
+    await tools.add_component("Prompt")
     assert len(data["nodes"]) == 1
 
 
@@ -115,11 +115,11 @@ def test_add_component_updates_flow_data_in_place():
 # ---------------------------------------------------------------------------
 
 
-def test_connect_edge():
+async def test_connect_edge():
     data = _fresh_prompt()
     tools = FlowMutationTools(data)
     # Add a second node to connect to
-    tools.add_component("ChatOpenAI")
+    await tools.add_component("ChatOpenAI")
     target_id = data["nodes"][1]["id"]
 
     result = tools.connect_edge("Prompt-abc12", "output", target_id, "input")
@@ -132,8 +132,10 @@ def test_connect_edge():
     edge = data["edges"][0]
     assert edge["source"] == "Prompt-abc12"
     assert edge["target"] == target_id
-    assert edge["sourceHandle"] == "output"
-    assert edge["targetHandle"] == "input"
+    # connect_edge now emits ReactFlow-style encoded handles that embed dataType,
+    # node id, name and output_types — so just assert the logical name is encoded.
+    assert "œnameœ:œoutputœ" in edge["sourceHandle"] or edge["sourceHandle"] == "output"
+    assert "œfieldNameœ:œinputœ" in edge["targetHandle"] or edge["targetHandle"] == "input"
 
 
 # ---------------------------------------------------------------------------
@@ -173,13 +175,15 @@ def test_set_field_value():
     assert tmpl["value"] == "Goodbye {name}"
 
 
-def test_set_field_value_creates_new_field():
+def test_set_field_value_unknown_field_raises():
     data = _fresh_prompt()
     tools = FlowMutationTools(data)
-    tools.set_field_value("Prompt-abc12", "new_field", "new_value")
+    with pytest.raises(ValueError, match="not found on node"):
+        tools.set_field_value("Prompt-abc12", "new_field", "new_value")
 
+    # Ensure the template wasn't mutated.
     tmpl = data["nodes"][0]["data"]["node"]["template"]
-    assert tmpl["new_field"] == {"type": "str", "value": "new_value"}
+    assert "new_field" not in tmpl
 
 
 # ---------------------------------------------------------------------------
@@ -214,13 +218,13 @@ def test_remove_component():
 # ---------------------------------------------------------------------------
 
 
-def test_remove_component_removes_connected_edges():
+async def test_remove_component_removes_connected_edges():
     data = _fresh_prompt()
     tools = FlowMutationTools(data)
 
     # Add two more nodes and edges
-    r1 = tools.add_component("ChatOpenAI")
-    r2 = tools.add_component("Output")
+    r1 = await tools.add_component("ChatOpenAI")
+    r2 = await tools.add_component("Output")
     id1 = r1["node_id"]
     id2 = r2["node_id"]
 

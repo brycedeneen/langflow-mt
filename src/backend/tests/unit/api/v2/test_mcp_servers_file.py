@@ -92,6 +92,11 @@ def current_user():
 
 
 @pytest.fixture
+def current_org():
+    return SimpleNamespace(id=uuid.uuid4())
+
+
+@pytest.fixture
 def storage_service():
     return FakeStorageService()
 
@@ -107,7 +112,7 @@ def session():
 
 
 @pytest.mark.asyncio
-async def test_mcp_servers_upload_replace(session, storage_service, settings_service, current_user):
+async def test_mcp_servers_upload_replace(session, storage_service, settings_service, current_user, current_org):
     """Uploading _mcp_servers.json twice should keep single DB record and no rename."""
     content1 = b'{"mcpServers": {}}'
 
@@ -122,6 +127,7 @@ async def test_mcp_servers_upload_replace(session, storage_service, settings_ser
         file=file1,
         session=session,
         current_user=current_user,
+        current_org=current_org,
         storage_service=storage_service,
         settings_service=settings_service,
     )
@@ -138,6 +144,7 @@ async def test_mcp_servers_upload_replace(session, storage_service, settings_ser
         file=file2,
         session=session,
         current_user=current_user,
+        current_org=current_org,
         storage_service=storage_service,
         settings_service=settings_service,
     )
@@ -165,6 +172,7 @@ async def test_mcp_servers_upload_replace(session, storage_service, settings_ser
         file=file3,
         session=session,
         current_user=current_user,
+        current_org=current_org,
         storage_service=storage_service,
         settings_service=settings_service,
     )

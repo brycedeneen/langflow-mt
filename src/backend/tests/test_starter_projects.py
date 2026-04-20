@@ -14,12 +14,18 @@ STARTER_PROJECTS_DIR = Path(__file__).parent.parent / "base" / "langflow" / "ini
 
 
 def get_starter_project_files() -> list[Path]:
-    """Get all starter project JSON files."""
+    """Get all starter project JSON files.
+
+    Excludes `*.metadata.json` sidecars, which are out-of-band assistant
+    instructions attached to a template — not templates themselves.
+    """
     if not STARTER_PROJECTS_DIR.exists():
         msg = f"Starter projects directory not found: {STARTER_PROJECTS_DIR}"
         raise FileNotFoundError(msg) from None
 
-    json_files = sorted(STARTER_PROJECTS_DIR.glob("*.json"))
+    json_files = sorted(
+        p for p in STARTER_PROJECTS_DIR.glob("*.json") if not p.name.endswith(".metadata.json")
+    )
     if not json_files:
         msg = f"No JSON files found in {STARTER_PROJECTS_DIR}"
         raise FileNotFoundError(msg) from None

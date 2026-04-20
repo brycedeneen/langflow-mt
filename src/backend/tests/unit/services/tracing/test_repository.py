@@ -113,20 +113,19 @@ class TestPaginationMath:
 
 
 def _make_session(rows: list) -> MagicMock:
-    """Build a mock AsyncSession where ``session.execute(stmt).all()`` returns ``rows``.
+    """Build a mock AsyncSession where ``(await session.exec(stmt)).all()`` returns ``rows``.
 
-    The production code does: ``rows = (await session.execute(stmt)).all()``
-    AsyncSession.execute is a coroutine, so we use an async function as the side_effect
-    so that ``await session.execute(stmt)`` returns a MagicMock whose ``.all()`` is set.
+    The production code uses sqlmodel's AsyncSession.exec (not SQLAlchemy's .execute),
+    so wire the coroutine on ``.exec``.
     """
     result_mock = MagicMock()
     result_mock.all.return_value = rows
 
-    async def _execute(_stmt):
+    async def _exec(_stmt):
         return result_mock
 
     session = MagicMock()
-    session.execute = _execute
+    session.exec = _exec
     return session
 
 
