@@ -46,6 +46,7 @@ from langflow.services.database.models.folder.model import Folder
 from langflow.services.database.models.folder.utils import get_default_folder_id
 from langflow.services.deps import get_settings_service, get_storage_service, get_variable_service
 from langflow.services.variable.auto_secrets import (
+    blank_autosecrets_for_export,
     cleanup_orphaned_autosecrets,
     delete_autosecrets_for_flow,
     promote_plaintext_secrets_to_variables,
@@ -1012,7 +1013,12 @@ async def download_multiple_file(
     if not flows:
         raise HTTPException(status_code=404, detail="No flows found.")
 
-    flows_without_api_keys = [remove_api_keys(flow.model_dump()) for flow in flows]
+    flows_without_api_keys = []
+    for flow in flows:
+        flow_dict = flow.model_dump()
+        if flow_dict.get("data"):
+            flow_dict["data"] = blank_autosecrets_for_export(flow_dict["data"])
+        flows_without_api_keys.append(remove_api_keys(flow_dict))
 
     if len(flows_without_api_keys) > 1:
         # Create a byte stream to hold the ZIP file
