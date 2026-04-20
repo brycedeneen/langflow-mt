@@ -40,9 +40,10 @@ export function UseRequestProcessor(): {
     return useMutation({
       mutationKey,
       mutationFn,
-      onSettled: (data, error, variables, context) => {
+      onSettled: (data, error, variables, context, ...rest) => {
         queryClient.invalidateQueries({ queryKey: mutationKey });
-        options.onSettled && options.onSettled(data, error, variables, context);
+        options.onSettled &&
+          options.onSettled(data, error, variables, context, ...rest);
       },
       ...options,
       retry: options.retry ?? 3,

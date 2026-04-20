@@ -25,6 +25,8 @@ import type {
   SelectedModel,
 } from "./types";
 
+export type { ModelOption, SelectedModel } from "./types";
+
 export default function ModelInputComponent({
   id,
   value,

@@ -87,7 +87,7 @@ export default function Page({
   setIsLoading,
 }: {
   view?: boolean;
-  setIsLoading: (isLoading: boolean) => void;
+  setIsLoading?: (isLoading: boolean) => void;
 }): JSX.Element {
   const uploadFlow = useUploadFlow();
   const autoSaveFlow = useAutoSaveFlow();
@@ -213,7 +213,7 @@ export default function Page({
     !isFetching;
 
   useEffect(() => {
-    setIsLoading(!showCanvas);
+    setIsLoading?.(!showCanvas);
   }, [showCanvas]);
 
   useEffect(() => {

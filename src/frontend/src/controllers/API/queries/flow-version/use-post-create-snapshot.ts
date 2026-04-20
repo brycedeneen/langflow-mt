@@ -31,8 +31,9 @@ export const usePostCreateSnapshot: useMutationFunctionType<
     mutate(["usePostCreateSnapshot"], createSnapshotFn, {
       ...options,
       onSettled: (_, __, variables) => {
+        const vars = variables as ICreateSnapshot | undefined;
         queryClient.refetchQueries({
-          queryKey: ["useGetFlowVersions", { flowId: variables?.flowId }],
+          queryKey: ["useGetFlowVersions", { flowId: vars?.flowId }],
         });
       },
     });

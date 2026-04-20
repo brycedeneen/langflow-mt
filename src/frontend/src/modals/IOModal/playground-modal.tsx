@@ -136,7 +136,8 @@ export default function IOModal({
           // Remove all messages for this session from local state
           const messageIdsToRemove = messages
             .filter((msg) => msg.session_id === session_id)
-            .map((msg) => msg.id);
+            .map((msg) => msg.id)
+            .filter((id): id is string => id !== null);
 
           if (messageIdsToRemove.length > 0) {
             removeMessages(messageIdsToRemove);

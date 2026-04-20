@@ -31,11 +31,11 @@ export const useAddMember: useMutationFunctionType<
 
   const mutation = mutate(["useAddMember"], addMemberFn, {
     ...options,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, context, ...rest) => {
       queryClient.invalidateQueries({
-        queryKey: ["admin", "organizations", variables.orgId],
+        queryKey: ["admin", "organizations", (variables as unknown as AddMemberParams).orgId],
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, context, ...rest);
     },
   });
 

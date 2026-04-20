@@ -13,6 +13,7 @@ import useFlowStore from "@/stores/flowStore";
 import TableComponent from "../../../components/core/parameterRenderComponent/components/tableComponent";
 import useAlertStore from "../../../stores/alertStore";
 import { useMessagesStore } from "../../../stores/messagesStore";
+import type { Message } from "../../../types/messages";
 import { extractColumnsFromRows, messagesSorter } from "../../../utils/utils";
 
 export default function SessionView({
@@ -56,7 +57,7 @@ export default function SessionView({
     if (queryData && typeof queryData === "object" && "rows" in queryData) {
       const rowsData = queryData.rows as { data?: unknown[] } | undefined;
       if (rowsData && typeof rowsData === "object" && "data" in rowsData) {
-        const fetchedMessages = rowsData.data || [];
+        const fetchedMessages = (rowsData.data || []) as Message[];
         setMessages(fetchedMessages);
       }
     }
@@ -103,7 +104,7 @@ export default function SessionView({
       { message: data },
       {
         onSuccess: () => {
-          updateMessage(data);
+          updateMessage(data as Message);
           // Set success message
           setSuccessData({
             title: "Messages updated successfully.",

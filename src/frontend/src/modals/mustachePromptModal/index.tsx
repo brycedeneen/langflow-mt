@@ -28,12 +28,15 @@ import varHighlightHTML from "../promptModal/utils/var-highlight-html";
 // Simple regex to extract mustache variables - only matches valid {{variable_name}} patterns
 const SIMPLE_VARIABLE_PATTERN = /\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}/g;
 
-// Type for non-standard caretPositionFromPoint API (not supported in Safari)
-interface CaretPosition {
+// Type for non-standard caretPositionFromPoint API (not supported in Safari).
+// Declared as a standalone type (not an extension of Document) because
+// lib.dom's own definition of `caretPositionFromPoint` uses a different
+// signature and extending Document would produce TS2430.
+interface CaretPositionResult {
   offset: number;
 }
-interface DocumentWithCaretPosition extends Document {
-  caretPositionFromPoint(x: number, y: number): CaretPosition | null;
+interface DocumentWithCaretPosition {
+  caretPositionFromPoint(x: number, y: number): CaretPositionResult | null;
 }
 
 export default function MustachePromptModal({
@@ -184,7 +187,7 @@ export default function MustachePromptModal({
 
       // Use caretPositionFromPoint to get the closest text position. Does not work on Safari.
       if ("caretPositionFromPoint" in document) {
-        const docWithCaret = document as DocumentWithCaretPosition;
+        const docWithCaret = document as unknown as DocumentWithCaretPosition;
         const range = docWithCaret.caretPositionFromPoint(x, y)?.offset ?? 0;
         if (range) {
           const position = range;

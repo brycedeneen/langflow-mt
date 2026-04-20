@@ -1,6 +1,21 @@
 import type { ReactNode } from "react";
 import { cn } from "@/utils/utils";
-import { BorderBeam } from "../../../components/ui/border-beams";
+
+// NOTE: The `../../../components/ui/border-beams` module does not exist in
+// this codebase and `EnhancedBeamEffect` is currently not referenced
+// anywhere in production. The local `BorderBeam` stub below keeps this file
+// type-clean until the real component is restored.
+function BorderBeam(_props: {
+  duration?: number;
+  size?: number;
+  className?: string;
+  colorFrom?: string;
+  colorTo?: string;
+  anchor?: number;
+  borderWidth?: number;
+}) {
+  return null;
+}
 
 interface EnhancedBeamEffectProps {
   children: ReactNode;

@@ -63,7 +63,12 @@ export function isImageFile(
  * @returns The file name
  */
 export function getFileDisplayName(
-  file: File | { name: string } | { path: string; name: string } | string,
+  file:
+    | File
+    | { name: string }
+    | { path: string; name: string }
+    | { path: string }
+    | string,
 ): string {
   if (file instanceof File) {
     return file.name;

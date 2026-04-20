@@ -5,7 +5,10 @@ import {
   ENABLE_VOICE_ASSISTANT,
 } from "@/customization/feature-flags";
 import type { FilePreviewType } from "@/types/components";
-import { CHAT_INPUT_PLACEHOLDER } from "../../../../../../constants/constants";
+import {
+  CHAT_INPUT_PLACEHOLDER,
+  CHAT_INPUT_PLACEHOLDER_SEND,
+} from "../../../../../../constants/constants";
 import FilePreview from "../../fileComponent/components/file-preview";
 import ButtonSendWrapper from "./button-send-wrapper";
 import TextAreaWrapper from "./text-area-wrapper";
@@ -22,12 +25,12 @@ interface InputWrapperProps {
   files: FilePreviewType[];
   isDragging: boolean;
   handleDeleteFile: (file: FilePreviewType) => void;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleButtonClick: () => void;
   setShowAudioInput: (value: boolean) => void;
   currentFlowId: string;
-  playgroundPage: boolean;
+  playgroundPage?: boolean;
 }
 
 const InputWrapper: React.FC<InputWrapperProps> = ({
@@ -89,6 +92,7 @@ const InputWrapper: React.FC<InputWrapperProps> = ({
           noInput={noInput}
           chatValue={chatValue}
           CHAT_INPUT_PLACEHOLDER={CHAT_INPUT_PLACEHOLDER}
+          CHAT_INPUT_PLACEHOLDER_SEND={CHAT_INPUT_PLACEHOLDER_SEND}
           inputRef={inputRef}
           files={files}
           isDragging={isDragging}

@@ -26,11 +26,11 @@ export const useRemoveMember: useMutationFunctionType<
 
   const mutation = mutate(["useRemoveMember"], removeMemberFn, {
     ...options,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, context, ...rest) => {
       queryClient.invalidateQueries({
-        queryKey: ["admin", "organizations", variables.orgId],
+        queryKey: ["admin", "organizations", (variables as unknown as RemoveMemberParams).orgId],
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, context, ...rest);
     },
   });
 

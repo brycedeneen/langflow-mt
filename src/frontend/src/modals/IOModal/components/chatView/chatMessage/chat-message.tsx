@@ -78,7 +78,7 @@ export default function ChatMessage({
             list: [JSON.parse(event.data)?.error],
           });
         }
-        updateChat(chat, chatMessageRef.current);
+        updateChat?.(chat, chatMessageRef.current);
         reject(new Error("Streaming failed"));
       };
       eventSource.current.addEventListener("close", (event) => {
@@ -144,7 +144,7 @@ export default function ChatMessage({
       },
       {
         onSuccess: () => {
-          updateChat(chat, message);
+          updateChat?.(chat, message);
           setEditMessage(false);
         },
         onError: () => {

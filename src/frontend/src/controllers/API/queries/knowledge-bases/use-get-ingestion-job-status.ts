@@ -33,7 +33,7 @@ export const useGetIngestionJobStatus: useQueryFunctionType<
     {
       enabled: !!params?.job_id,
       refetchInterval: (query) => {
-        const data = query.state.data;
+        const data = query.state.data as IngestionJobStatusResponse | undefined;
         if (
           data?.status === "completed" ||
           data?.status === "failed" ||

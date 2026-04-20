@@ -17,6 +17,7 @@ import {
 import useAlertStore from "@/stores/alertStore";
 import useFlowStore from "@/stores/flowStore";
 import useVersionPreviewStore from "@/stores/versionPreviewStore";
+import type { AllNodeType, EdgeType } from "@/types/flow";
 import type { FlowVersionEntry } from "@/types/flow/version";
 import {
   downloadFlow,
@@ -55,8 +56,8 @@ export function useFlowVersionSidebar(flowId: string) {
   // in an effect) so the values are available before the preview layoutEffect.
   // Falls back to empty arrays if the store is not yet initialized to prevent
   // setting `undefined` into the store on cleanup.
-  const originalDraftNodesRef = useRef<any[] | null>(null);
-  const originalDraftEdgesRef = useRef<any[] | null>(null);
+  const originalDraftNodesRef = useRef<AllNodeType[] | null>(null);
+  const originalDraftEdgesRef = useRef<EdgeType[] | null>(null);
   if (originalDraftNodesRef.current === null) {
     originalDraftNodesRef.current =
       cloneDeep(useFlowStore.getState().nodes) ?? [];
@@ -127,8 +128,8 @@ export function useFlowVersionSidebar(flowId: string) {
       });
     } else if (selectedId === CURRENT_DRAFT_ID || processedPreview?.error) {
       useFlowStore.setState({
-        nodes: cloneDeep(originalDraftNodesRef.current),
-        edges: cloneDeep(originalDraftEdgesRef.current),
+        nodes: cloneDeep(originalDraftNodesRef.current) ?? undefined,
+        edges: cloneDeep(originalDraftEdgesRef.current) ?? undefined,
       });
     }
     // Fit the canvas to the new nodes after ReactFlow processes the state update.
@@ -163,8 +164,8 @@ export function useFlowVersionSidebar(flowId: string) {
       );
     } else if (selectedId === CURRENT_DRAFT_ID || processedPreview?.error) {
       setPreview(
-        cloneDeep(originalDraftNodesRef.current),
-        cloneDeep(originalDraftEdgesRef.current),
+        cloneDeep(originalDraftNodesRef.current) ?? [],
+        cloneDeep(originalDraftEdgesRef.current) ?? [],
         "Current Draft",
         null,
       );
@@ -203,8 +204,8 @@ export function useFlowVersionSidebar(flowId: string) {
         const wasRestored = useVersionPreviewStore.getState().didRestore;
         if (!wasRestored) {
           useFlowStore.setState({
-            nodes: cloneDeep(originalDraftNodesRef.current),
-            edges: cloneDeep(originalDraftEdgesRef.current),
+            nodes: cloneDeep(originalDraftNodesRef.current) ?? undefined,
+            edges: cloneDeep(originalDraftEdgesRef.current) ?? undefined,
           });
         }
       } catch (err) {
