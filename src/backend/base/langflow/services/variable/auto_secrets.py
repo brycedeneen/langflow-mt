@@ -1,0 +1,116 @@
+"""Auto-Variable lifecycle helpers for TextFileSecretInput fields.
+
+Hidden Variables are created per-flow-per-node-per-field so that secret content
+(PEMs, API keys, service-account JSON, etc.) is encrypted at rest via Fernet
+in the Variable service, not stored plaintext in the flow's `data` column.
+
+These helpers are invoked from the flow save/delete/download endpoints.
+"""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+from uuid import UUID
+
+from langflow.services.variable.constants import CREDENTIAL_TYPE
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from langflow.services.variable.service import VariableService
+
+
+AUTOSECRET_PREFIX = "__autosecret_"
+
+
+def autosecret_flow_prefix(flow_id: UUID) -> str:
+    """Name prefix shared by all auto-Variables for a given flow.
+
+    Single source of truth for both constructing a full auto-name (via
+    ``autosecret_name``) and querying by LIKE-prefix in the service layer.
+    """
+    return f"{AUTOSECRET_PREFIX}{flow_id}_"
+
+
+def autosecret_name(flow_id: UUID, node_id: str, field_name: str) -> str:
+    """Deterministic name for a per-field hidden Variable."""
+    return f"{autosecret_flow_prefix(flow_id)}{node_id}_{field_name}"
+
+
+def _iter_textfilesecret_fields(flow_data: dict) -> list[tuple[str, str, dict]]:
+    """Yield (node_id, field_name, field_dict) for every TextFileSecretInput field."""
+    out: list[tuple[str, str, dict]] = []
+    for node in flow_data.get("nodes", []) or []:
+        if not isinstance(node, dict):
+            continue
+        node_id = node.get("id")
+        template = node.get("data", {}).get("node", {}).get("template", {})
+        if not node_id or not isinstance(template, dict):
+            continue
+        for field_name, field in template.items():
+            if not isinstance(field, dict):
+                continue
+            if field.get("_input_type") == "TextFileSecretInput":
+                out.append((node_id, field_name, field))
+    return out
+
+
+async def promote_plaintext_secrets_to_variables(
+    *,
+    flow_data: dict,
+    flow_id: UUID,
+    user_id: UUID,
+    variable_service: VariableService,
+    session: AsyncSession,
+) -> dict:
+    """Upsert a hidden Variable for every TextFileSecretInput field whose value
+    is plaintext; rewrite the field to reference the Variable by name.
+
+    Idempotent: no-ops if the field already references its expected auto-name.
+
+    Returns the (possibly-mutated) flow_data dict.
+    """
+    existing_names = set(
+        await variable_service.list_autosecret_names_for_flow(
+            flow_id=flow_id,
+            user_id=user_id,
+            session=session,
+        )
+    )
+
+    for node_id, field_name, field in _iter_textfilesecret_fields(flow_data):
+        expected_name = autosecret_name(flow_id, node_id, field_name)
+        value = field.get("value") or ""
+
+        # Already a reference to its expected auto-Variable — skip.
+        if field.get("load_from_db") and value == expected_name and expected_name in existing_names:
+            continue
+
+        # Empty plaintext: nothing to store. Clear the ref here so the field
+        # saves as a clean empty. Cleanup of any prior Variable is handled by
+        # cleanup_orphaned_autosecrets (Task 5).
+        if not value:
+            field["value"] = ""
+            field["load_from_db"] = False
+            continue
+
+        # A plaintext value is present. Upsert the Variable.
+        if expected_name in existing_names:
+            await variable_service.update_variable_value(
+                name=expected_name,
+                value=value,
+                user_id=user_id,
+                session=session,
+            )
+        else:
+            await variable_service.create_variable(
+                name=expected_name,
+                value=value,
+                user_id=user_id,
+                type_=CREDENTIAL_TYPE,
+                session=session,
+            )
+        field["value"] = expected_name
+        field["load_from_db"] = True
+
+    return flow_data

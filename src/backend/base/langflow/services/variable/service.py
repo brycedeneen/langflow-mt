@@ -418,3 +418,48 @@ class DatabaseVariableService(VariableService, Service):
         await session.flush()
         await session.refresh(variable)
         return variable
+
+    async def list_autosecret_names_for_flow(
+        self,
+        *,
+        flow_id: UUID,
+        user_id: UUID,
+        session: AsyncSession,
+    ) -> list[str]:
+        """Return all auto-Variable names that belong to a given flow+user.
+
+        Used by auto_secrets module for promote / cleanup flows. Bypasses the
+        standard list filter that hides these from users.
+        """
+        from langflow.services.variable.auto_secrets import autosecret_flow_prefix
+
+        prefix = autosecret_flow_prefix(flow_id)
+        stmt = select(Variable.name).where(
+            Variable.user_id == user_id,
+            Variable.name.like(f"{prefix}%"),
+        )
+        result = await session.exec(stmt)
+        return list(result.all())
+
+    async def update_variable_value(
+        self,
+        *,
+        name: str,
+        value: str,
+        user_id: UUID,
+        session: AsyncSession,
+    ) -> None:
+        """Update the encrypted value of an existing Variable in place.
+
+        Raises ValueError if no matching Variable exists for this user.
+        """
+        stmt = select(Variable).where(Variable.user_id == user_id, Variable.name == name)
+        variable = (await session.exec(stmt)).first()
+        if not variable:
+            msg = f"{name} variable not found."
+            raise ValueError(msg)
+        variable.value = auth_utils.encrypt_api_key(value, settings_service=self.settings_service)
+        variable.updated_at = datetime.now(timezone.utc)
+        session.add(variable)
+        await session.flush()
+        await session.refresh(variable)
