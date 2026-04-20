@@ -14,6 +14,7 @@ from .jobs import Job
 from .membership import Membership, MembershipRole
 from .message import MessageTable
 from .organization import Organization
+from .template import Template
 from .template_metadata import TemplateMetadata
 from .traces.model import SpanTable, TraceTable
 from .transactions import TransactionTable
@@ -42,6 +43,7 @@ __all__ = [
     "SSOConfig",
     "SSOUserProfile",
     "SpanTable",
+    "Template",
     "TemplateMetadata",
     "TraceTable",
     "TransactionTable",
