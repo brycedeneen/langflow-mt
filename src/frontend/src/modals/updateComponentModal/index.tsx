@@ -1,14 +1,12 @@
-import type { ColDef } from "ag-grid-community";
-import type { AgGridReact } from "ag-grid-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import TableComponent from "@/components/core/parameterRenderComponent/components/tableComponent";
 import { Checkbox } from "@/components/ui/checkbox";
 import useDuplicateFlows from "@/pages/MainPage/hooks/use-handle-duplicate";
 import useFlowStore from "@/stores/flowStore";
 import type { ComponentsToUpdateType } from "@/types/zustand/flow";
 import { cn } from "@/utils/utils";
 import BaseModal from "../baseModal";
+import ChangelogPanel from "./changelogPanel";
 
 export default function UpdateComponentModal({
   open,
@@ -30,7 +28,9 @@ export default function UpdateComponentModal({
   const [selectedComponents, setSelectedComponents] = useState<Set<string>>(
     new Set(components.filter((c) => !c.breakingChange).map((c) => c.id)),
   );
-  const agGrid = useRef<AgGridReact>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(
+    new Set(components.filter((c) => c.breakingChange).map((c) => c.id)),
+  );
   const currentFlow = useFlowStore((state) => state.currentFlow);
 
   const { handleDuplicate } = useDuplicateFlows({
@@ -58,69 +58,17 @@ export default function UpdateComponentModal({
     }
   };
 
-  const columnDefs: ColDef[] = [
-    { field: "id", hide: true },
-    {
-      headerName: "Component",
-      field: "display_name",
-      headerClass: "!text-mmd !font-normal",
-      flex: 1,
-      headerCheckboxSelection: true,
-      checkboxSelection: true,
-      resizable: false,
-      cellRenderer: (params) => {
-        return (
-          <div className="flex items-center gap-3">
-            {params.data.icon && (
-              <ForwardedIconComponent
-                name={params.data.icon}
-                className="h-4 w-4"
-              />
-            )}
-            {params.value}
-          </div>
-        );
-      },
-    },
-    {
-      headerName: "Update Type",
-      field: "breakingChange",
-      headerClass: "!text-mmd !font-normal",
-      resizable: false,
-      flex: 1,
-      cellClass: "text-muted-foreground",
-      cellRenderer: (params) => {
-        return params.value ? (
-          <span className="font-semibold text-accent-amber-foreground">
-            Breaking
-          </span>
-        ) : (
-          <span>Standard</span>
-        );
-      },
-    },
-  ];
-
   useEffect(() => {
     if (open) {
       setBackupFlow(true);
       setSelectedComponents(
         new Set(components.filter((c) => !c.breakingChange).map((c) => c.id)),
       );
+      setExpandedRows(
+        new Set(components.filter((c) => c.breakingChange).map((c) => c.id)),
+      );
     }
   }, [open]);
-
-  useEffect(() => {
-    if (agGrid.current) {
-      agGrid.current?.api?.forEachNode((node) => {
-        if (selectedComponents.has(node.data.id)) {
-          node.setSelected(true);
-        } else {
-          node.setSelected(false);
-        }
-      });
-    }
-  }, [agGrid.current, selectedComponents, open]);
 
   return (
     <BaseModal
@@ -168,29 +116,114 @@ export default function UpdateComponentModal({
               </>
             )}
           </div>
+          {!isMultiple &&
+            components[0]?.outdated &&
+            components[0].changelogEntries.length > 0 && (
+              <ChangelogPanel
+                userVersion={components[0].userVersion}
+                latestVersion={components[0].latestVersion}
+                entries={components[0].changelogEntries}
+                breaking={components[0].breakingChange}
+              />
+            )}
           {isMultiple && (
-            <div className="max-h-[200px] overflow-y-auto overflow-x-hidden">
-              <div className="-mx-4">
-                <TableComponent
-                  columnDefs={columnDefs}
-                  ref={agGrid}
-                  domLayout="autoHeight"
-                  rowData={components}
-                  rowSelection="multiple"
-                  className="ag-tool-mode ag-no-selection"
-                  rowHeight={30}
-                  headerHeight={30}
-                  suppressRowClickSelection={false}
-                  onSelectionChanged={(event) => {
-                    const selectedIds = event.api
-                      .getSelectedRows()
-                      .map((row) => row.id);
-                    setSelectedComponents(new Set(selectedIds));
+            <div className="-mx-4 max-h-[320px] overflow-y-auto">
+              <div className="grid grid-cols-[28px_28px_1fr_100px] items-center gap-2 border-b px-4 py-1 text-[11px] text-muted-foreground">
+                <span />
+                <Checkbox
+                  checked={
+                    components.length > 0 &&
+                    selectedComponents.size === components.length
+                  }
+                  onCheckedChange={(checked) => {
+                    if (checked === true) {
+                      setSelectedComponents(
+                        new Set(components.map((c) => c.id)),
+                      );
+                    } else {
+                      setSelectedComponents(new Set());
+                    }
                   }}
-                  suppressRowHoverHighlight={true}
-                  tableOptions={{ hide_options: true }}
+                  aria-label="Select all"
                 />
+                <span>Component</span>
+                <span>Update Type</span>
               </div>
+
+              {components.map((c) => {
+                const isSelected = selectedComponents.has(c.id);
+                const isOpen = expandedRows.has(c.id);
+                return (
+                  <div
+                    key={c.id}
+                    className="border-b px-4 py-2 last:border-b-0"
+                  >
+                    <div className="grid grid-cols-[28px_28px_1fr_100px] items-center gap-2">
+                      <button
+                        type="button"
+                        aria-label={isOpen ? "Collapse" : "Expand"}
+                        className="text-muted-foreground"
+                        onClick={() =>
+                          setExpandedRows((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(c.id)) next.delete(c.id);
+                            else next.add(c.id);
+                            return next;
+                          })
+                        }
+                      >
+                        <ForwardedIconComponent
+                          name={isOpen ? "ChevronDown" : "ChevronRight"}
+                          className="h-4 w-4"
+                        />
+                      </button>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={(checked) => {
+                          setSelectedComponents((prev) => {
+                            const next = new Set(prev);
+                            if (checked === true) next.add(c.id);
+                            else next.delete(c.id);
+                            return next;
+                          });
+                        }}
+                        aria-label={`Select ${c.display_name}`}
+                      />
+                      <div className="flex items-center gap-2">
+                        {c.icon && (
+                          <ForwardedIconComponent
+                            name={c.icon}
+                            className="h-4 w-4"
+                          />
+                        )}
+                        <span>{c.display_name}</span>
+                      </div>
+                      <span
+                        className={cn(
+                          "text-mmd",
+                          c.breakingChange
+                            ? "font-semibold text-accent-amber-foreground"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {c.breakingChange ? "Breaking" : "Standard"}
+                      </span>
+                    </div>
+
+                    {isOpen && c.outdated && (
+                      <div className="ml-14 mt-2">
+                        <ChangelogPanel
+                          userVersion={c.userVersion}
+                          latestVersion={c.latestVersion}
+                          entries={c.changelogEntries}
+                          breaking={c.breakingChange}
+                          showEmptyFallback
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
           <div
