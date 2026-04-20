@@ -9,10 +9,10 @@
 ## Headline
 
 - **Backend:** 73 failed + 7 errors across ~17 files (5695 passed)
-- **lfx non-CLI:** 19 failed across 5 files (1602 passed)
+- **lfx non-CLI:** ~~19 failed across 5 files~~ **0 failed** (1600 passed in isolated env — see Tier 4 update). The 19 items in the original snapshot were escape-hatch-env artifacts, not real failures.
 - **lfx CLI:** not re-run; 2.3 report already noted pre-existing drift there; treat as separate effort
 
-None of the 99 failing items has a pandas fingerprint. All are branch drift from the multi-tenant work + newer test files added since the 2.3 upgrade.
+None of the remaining 80 failing items has a pandas fingerprint. All are branch drift from the multi-tenant work + newer test files added since the 2.3 upgrade.
 
 ---
 
@@ -62,19 +62,26 @@ Each a single test (or adjacent handful) without a broader pattern. Cheap indivi
 
 **Recommendation:** for agent tests, consider gating behind a `skipif(not os.getenv("...API_KEY"))` marker — they shouldn't fail a local CI run by default. The rest are one-off bugs that someone can batch on a rainy afternoon.
 
-### Tier 4 — lfx component-loading + memory drift
+### Tier 4 — lfx component-loading + memory drift ~~(19 failures)~~ **RESOLVED 2026-04-20: false positive**
 
-The lfx failures split cleanly into four roots:
+**Update (2026-04-20):** All 19 lfx failures are artifacts of running with `LFX_TEST_ALLOW_LANGFLOW=1` from the repo-level venv. The isolated env — how these tests were designed to run — is fully green.
 
-| Cluster | File | Count | Symptom |
-|---|---|---|---|
-| **Dynamic import harness** | `custom/component/test_dynamic_imports.py` | **7** | `DID NOT RAISE <AttributeError>` and `DID NOT RAISE <ModuleNotFoundError>`. Tests expect failures that no longer happen (maybe the imports got fixed, so the tests need updating). |
-| **Helper module detection** | `helpers/test_flow.py::TestDynamicImport` | **8** | `is_helper_module(...)` returns False where True is expected. `_LFX_HELPER_MODULE_FLOW` constant mismatch, or the detection heuristic needs updating after module reshuffles. |
-| **Memory adapter signatures** | `memory/test_memory.py` | **3** | `aadd_messagetables()` is `missing 1 required positional argument: 'session'` — the real function added a `session` param; tests call the old signature. Also one UUID-format test (`test_memory_functions_preserve_message_properties`). |
-| **Component event streaming** | `custom/custom_component/test_component_events.py` | **1** | `test_component_streaming_message` — message-lookup-by-id fails. Likely in-memory store scope issue. |
-| **Import utils** | `test_import_utils.py::TestImportAttr::test_return_value_types` | **1** | `DID NOT RAISE` a `(ImportError, ModuleNotFoundError)` pytest.raises. Same pattern as the dynamic_imports cluster. |
+**Repro (isolated, the canonical way):**
+```bash
+cd src/lfx
+uv sync
+uv run --no-sync pytest tests/unit --ignore=tests/unit/cli
+# → 1600 passed, 13 skipped, 2 xfailed, 0 failed
+```
 
-**Recommendation:** Tier 4 is the easiest to close — most are "test hasn't been updated to match the code's new reality." Probably one afternoon for someone familiar with the lfx component-loader rework.
+**Why the snapshot showed 19 failures:** the pandas-3 phase-3 logs were produced with the escape-hatch env. In that env langflow is installed alongside lfx, which inverts every invariant these tests assert:
+
+- `helpers/test_flow.py::TestDynamicImport` (8) — `test_langflow_available` literally calls `pytest.fail("Langflow implementation is available")` when `has_langflow_memory()` is True. Siblings assert `module.__module__ == "lfx.helpers.flow"`, but under the escape hatch they resolve to `langflow.helpers.flow`. Working as designed.
+- `test_dynamic_imports.py` + `test_import_utils.py` (8) — every `DID NOT RAISE` expects `ModuleNotFoundError`/`AttributeError` because langchain-openai / -nvidia / -chroma are absent in the isolated env. The escape-hatch venv has them (langflow deps), so imports succeed and the raises never fire.
+- `memory/test_memory.py` (3) — lfx's stub `aadd_messagetables(messages)` and langflow's `aadd_messagetables(messages, session, retry_count=0)` are unrelated functions that happen to share a name; tests were written against the stub. The UUID case (`test_memory_functions_preserve_message_properties`) hits `MessageTable.from_message` UUID validation only on the langflow path.
+- `custom/custom_component/test_component_events.py::test_component_streaming_message` (1) — under langflow, `_update_stored_message` looks up messages via the real DB; under lfx, `use_noop_database` autouse-fixture in the isolated conftest makes the lookup a no-op.
+
+**Action:** none. The triage authoring step used the wrong venv; no code change is appropriate. Escape-hatch users running the full suite should expect this noise, or pass `--deselect` on those 19.
 
 ---
 
@@ -82,8 +89,8 @@ The lfx failures split cleanly into four roots:
 
 Assuming someone wants to drive the failure count down without reshuffling everything:
 
-1. **Tier 4 (lfx)** first. High density of "test lags code" fixes; each is a small change. Closing all 19 gets lfx unit fully green.
-2. **Tier 1 webhook + user + flow-runner** next. Each cluster is internally consistent (one root cause per cluster), so one investigation yields many fixes.
+1. ~~**Tier 4 (lfx)** first.~~ Already green in the isolated env. No work needed — see Tier 4 update above.
+2. **Tier 1 webhook + user + flow-runner** first. Each cluster is internally consistent (one root cause per cluster), so one investigation yields many fixes.
 3. **Tier 1 alembic + session endpoint** after Tier 1 webhook/user — these probably depend on the same multi-tenant schema state.
 4. **Tier 3 `test_agent_component.py` + `test_altk_agent.py`** — add the API-key gate or add the missing credentials to CI. Don't fix the tests individually; fix the environment.
 5. **Tier 2** last — in parallel with owner triage. Each cluster is a feature owner's call.

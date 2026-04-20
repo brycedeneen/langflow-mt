@@ -612,18 +612,69 @@ async def added_vector_store(client, json_vector_store, logged_in_headers):
 
 
 @pytest.fixture
-async def added_webhook_test(client, json_webhook_test, logged_in_headers):
-    webhook_test = orjson.loads(json_webhook_test)
-    data = webhook_test["data"]
-    webhook_test = FlowCreate(
-        name="Webhook Test", description="description", data=data, endpoint_name=webhook_test["endpoint_name"]
+def in_memory_secret_store(monkeypatch):
+    """Swap the secret store singleton with a fresh InMemorySecretStore.
+
+    Webhook tests create flows via the API, which triggers
+    ``_provision_webhook_api_key`` to write a per-flow key to the secret store.
+    Without this swap, the provisioning would hit the real (vault) backend
+    configured in .env.
+    """
+    from lfx.services.secret_store import factory as secret_store_factory
+
+    store = secret_store_factory.InMemorySecretStore()
+    monkeypatch.setattr(secret_store_factory, "_instance", store, raising=False)
+    return store
+
+
+@pytest.fixture
+async def added_webhook_test(client, json_webhook_test, logged_in_headers, in_memory_secret_store):  # noqa: ARG001
+    # Webhook integration tests exercise the legacy in-process execution path
+    # (response: {"message": ..., "status": "in progress"}). The distributed
+    # enqueue path has its own dedicated test in test_webhook_distributed.py.
+    # Force the flag off for the duration of the fixture so local .env overrides
+    # (LANGFLOW_DISTRIBUTED_EXECUTION=true) don't reroute these tests.
+    from langflow.services.deps import get_settings_service
+
+    settings = get_settings_service().settings
+    original_distributed = settings.distributed_execution
+    settings.distributed_execution = False
+
+    try:
+        webhook_test = orjson.loads(json_webhook_test)
+        data = webhook_test["data"]
+        webhook_test = FlowCreate(
+            name="Webhook Test", description="description", data=data, endpoint_name=webhook_test["endpoint_name"]
+        )
+        response = await client.post("api/v1/flows/", json=webhook_test.model_dump(), headers=logged_in_headers)
+        assert response.status_code == 201
+        assert response.json()["name"] == webhook_test.name
+        assert response.json()["data"] == webhook_test.data
+        yield response.json()
+        await client.delete(f"api/v1/flows/{response.json()['id']}", headers=logged_in_headers)
+    finally:
+        settings.distributed_execution = original_distributed
+
+
+@pytest.fixture
+async def webhook_api_key(added_webhook_test, in_memory_secret_store):
+    """Return the per-flow webhook API key provisioned when the flow was created.
+
+    ``_provision_webhook_api_key`` runs on flow create and writes the key to
+    ``{org_id}/webhooks/{flow_id}`` in the secret store. This fixture reads it
+    back so integration tests can send the correct ``x-api-key`` header.
+    """
+    flow_id = UUID(added_webhook_test["id"])
+    async with session_scope() as session:
+        flow = (await session.exec(select(Flow).where(Flow.id == flow_id))).one()
+        org_id = flow.organization_id
+    assert org_id is not None, "webhook_api_key fixture requires the flow to have an organization_id"
+    entry = await in_memory_secret_store.get(f"{org_id}/webhooks/{flow_id}")
+    assert entry is not None, (
+        f"No webhook API key provisioned at {org_id}/webhooks/{flow_id}; "
+        "expected _provision_webhook_api_key to run during flow create."
     )
-    response = await client.post("api/v1/flows/", json=webhook_test.model_dump(), headers=logged_in_headers)
-    assert response.status_code == 201
-    assert response.json()["name"] == webhook_test.name
-    assert response.json()["data"] == webhook_test.data
-    yield response.json()
-    await client.delete(f"api/v1/flows/{response.json()['id']}", headers=logged_in_headers)
+    return entry["api_key"]
 
 
 @pytest.fixture

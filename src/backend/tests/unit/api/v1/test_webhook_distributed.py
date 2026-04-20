@@ -94,8 +94,20 @@ def test_webhook_enqueues_when_distributed_on(webhook_client, monkeypatch):
 
     monkeypatch.setattr("langflow.services.runs.enqueue.RunEnqueuer.enqueue", fake_enqueue)
 
+    # Per-flow API key validation runs before the distributed branch. This test
+    # focuses on the enqueue path, so stub the validator. Dedicated auth
+    # coverage lives in tests/services/database/models/flow/test_webhook_auth.py.
+    async def fake_validate(org_id, flow_id, provided_key):  # noqa: ARG001
+        return None
+
+    monkeypatch.setattr("langflow.api.v1.endpoints._validate_webhook_api_key", fake_validate)
+
     try:
-        resp = client.post(f"/api/v1/webhook/{flow_id}", json={"hello": "world"})
+        resp = client.post(
+            f"/api/v1/webhook/{flow_id}",
+            json={"hello": "world"},
+            headers={"x-api-key": "ADP-APICPRO-stub"},
+        )
         assert resp.status_code == 202, resp.text
         body = resp.json()
         assert "run_id" in body, f"Expected run_id in response, got: {body}"

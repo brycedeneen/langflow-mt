@@ -17,71 +17,47 @@ def _check_openai_api_key_in_environment_variables():
 # =============================================================================
 
 
-async def test_webhook_endpoint_returns_202_accepted(client, added_webhook_test, created_api_key):
+async def test_webhook_endpoint_returns_202_accepted(client, added_webhook_test, webhook_api_key):
     """Test that webhook endpoint returns 202 Accepted on valid request."""
     endpoint_name = added_webhook_test["endpoint_name"]
     endpoint = f"api/v1/webhook/{endpoint_name}"
 
     payload = {"test_key": "test_value"}
-    response = await client.post(endpoint, headers={"x-api-key": created_api_key.api_key}, json=payload)
+    response = await client.post(endpoint, headers={"x-api-key": webhook_api_key}, json=payload)
 
     assert response.status_code == 202
     assert response.json()["message"] == "Task started in the background"
     assert response.json()["status"] == "in progress"
 
 
-async def test_webhook_endpoint_by_flow_id(client, added_webhook_test, created_api_key):
+async def test_webhook_endpoint_by_flow_id(client, added_webhook_test, webhook_api_key):
     """Test that webhook can be accessed by flow ID."""
     flow_id = added_webhook_test["id"]
     endpoint = f"api/v1/webhook/{flow_id}"
 
     payload = {"data": "test"}
-    response = await client.post(endpoint, headers={"x-api-key": created_api_key.api_key}, json=payload)
+    response = await client.post(endpoint, headers={"x-api-key": webhook_api_key}, json=payload)
 
     assert response.status_code == 202
 
 
-async def test_webhook_with_json_payload(client, added_webhook_test, created_api_key):
+async def test_webhook_with_json_payload(client, added_webhook_test, webhook_api_key):
     """Test webhook with various JSON payload types."""
     endpoint_name = added_webhook_test["endpoint_name"]
     endpoint = f"api/v1/webhook/{endpoint_name}"
 
     # Test with nested JSON
     payload = {"nested": {"key": "value", "array": [1, 2, 3]}}
-    response = await client.post(endpoint, headers={"x-api-key": created_api_key.api_key}, json=payload)
+    response = await client.post(endpoint, headers={"x-api-key": webhook_api_key}, json=payload)
     assert response.status_code == 202
 
     # Test with array payload
     payload = [{"item": 1}, {"item": 2}]
-    response = await client.post(endpoint, headers={"x-api-key": created_api_key.api_key}, json=payload)
+    response = await client.post(endpoint, headers={"x-api-key": webhook_api_key}, json=payload)
     assert response.status_code == 202
 
 
-async def test_webhook_endpoint_requires_api_key_when_auto_login_false(client, added_webhook_test):
-    """Test that webhook endpoint requires API key when WEBHOOK_AUTH_ENABLE=true."""
-    # Modify the auth_settings.WEBHOOK_AUTH_ENABLE on the real settings service
-    from langflow.services.deps import get_settings_service
-
-    settings_service = get_settings_service()
-    original_webhook_auth_enable = settings_service.auth_settings.WEBHOOK_AUTH_ENABLE
-
-    try:
-        settings_service.auth_settings.WEBHOOK_AUTH_ENABLE = True
-
-        endpoint_name = added_webhook_test["endpoint_name"]
-        endpoint = f"api/v1/webhook/{endpoint_name}"
-
-        payload = {"path": "/tmp/test_file.txt"}  # noqa: S108
-
-        # Should fail without API key when webhook auth is enabled
-        response = await client.post(endpoint, json=payload)
-        assert response.status_code == 403
-        assert "API key required when webhook authentication is enabled" in response.json()["detail"]
-    finally:
-        settings_service.auth_settings.WEBHOOK_AUTH_ENABLE = original_webhook_auth_enable
-
-
-async def test_webhook_endpoint_with_valid_api_key(client, added_webhook_test, created_api_key):
+async def test_webhook_endpoint_with_valid_api_key(client, added_webhook_test, webhook_api_key):
     """Test that webhook works when valid API key is provided."""
     endpoint_name = added_webhook_test["endpoint_name"]
     endpoint = f"api/v1/webhook/{endpoint_name}"
@@ -92,7 +68,7 @@ async def test_webhook_endpoint_with_valid_api_key(client, added_webhook_test, c
         payload = {"path": str(file_path)}
 
         # Should work with valid API key
-        response = await client.post(endpoint, headers={"x-api-key": created_api_key.api_key}, json=payload)
+        response = await client.post(endpoint, headers={"x-api-key": webhook_api_key}, json=payload)
         assert response.status_code == 202
 
         # Wait for background task to complete (webhook returns 202 immediately)
@@ -103,38 +79,10 @@ async def test_webhook_endpoint_with_valid_api_key(client, added_webhook_test, c
     assert file_does_not_exist, f"File {file_path} still exists"
 
 
-async def test_webhook_endpoint_unauthorized_user_flow(client, added_webhook_test):
-    """Test that webhook fails when user doesn't own the flow."""
-    # Modify the auth_settings.WEBHOOK_AUTH_ENABLE on the real settings service
-    from langflow.services.deps import get_settings_service
-
-    settings_service = get_settings_service()
-    original_webhook_auth_enable = settings_service.auth_settings.WEBHOOK_AUTH_ENABLE
-
-    try:
-        settings_service.auth_settings.WEBHOOK_AUTH_ENABLE = True
-
-        # This test would need a different user's API key to test authorization
-        # For now, we'll use an invalid API key to simulate this
-        endpoint_name = added_webhook_test["endpoint_name"]
-        endpoint = f"api/v1/webhook/{endpoint_name}"
-
-        payload = {"path": "/tmp/test_file.txt"}  # noqa: S108
-
-        # Should fail with invalid API key
-        response = await client.post(endpoint, headers={"x-api-key": "invalid_key"}, json=payload)
-        assert response.status_code == 403
-        # Error message may be "Invalid API key" or "API key authentication failed" depending on implementation
-        assert "api key" in response.json()["detail"].lower()
-    finally:
-        settings_service.auth_settings.WEBHOOK_AUTH_ENABLE = original_webhook_auth_enable
-
-
 async def test_webhook_flow_on_run_endpoint(client, added_webhook_test, created_api_key):
     endpoint_name = added_webhook_test["endpoint_name"]
     endpoint = f"api/v1/run/{endpoint_name}?stream=false"
-    # Just test that "Random Payload" returns 202
-    # returns 202
+    # The /run/ endpoint uses the user API key (not the per-flow webhook key).
     payload = {
         "output_type": "any",
     }
@@ -142,58 +90,23 @@ async def test_webhook_flow_on_run_endpoint(client, added_webhook_test, created_
     assert response.status_code == 200, response.json()
 
 
-async def test_webhook_with_auto_login_enabled(client, added_webhook_test):
-    """Test webhook behavior when WEBHOOK_AUTH_ENABLE=false - should work without API key."""
-    # Modify the auth_settings.WEBHOOK_AUTH_ENABLE on the real settings service
-    from langflow.services.deps import get_settings_service
+async def test_webhook_rejects_missing_and_wrong_api_key(client, added_webhook_test, webhook_api_key):
+    """Webhook auth is always required: no key → 401, wrong key → 403, correct key → 202."""
+    endpoint_name = added_webhook_test["endpoint_name"]
+    endpoint = f"api/v1/webhook/{endpoint_name}"
+    payload = {"any": "payload"}
 
-    settings_service = get_settings_service()
-    original_webhook_auth_enable = settings_service.auth_settings.WEBHOOK_AUTH_ENABLE
+    # Missing header → 401
+    missing = await client.post(endpoint, json=payload)
+    assert missing.status_code == 401, missing.text
 
-    try:
-        settings_service.auth_settings.WEBHOOK_AUTH_ENABLE = False
+    # Wrong key → 403
+    wrong = await client.post(endpoint, headers={"x-api-key": "ADP-APICPRO-wrongkey"}, json=payload)
+    assert wrong.status_code == 403, wrong.text
 
-        endpoint_name = added_webhook_test["endpoint_name"]
-        endpoint = f"api/v1/webhook/{endpoint_name}"
-
-        payload = {"path": "/tmp/test_auto_login.txt"}  # noqa: S108
-
-        # Should work without API key when webhook auth is disabled
-        response = await client.post(endpoint, json=payload)
-        assert response.status_code == 202
-    finally:
-        settings_service.auth_settings.WEBHOOK_AUTH_ENABLE = original_webhook_auth_enable
-
-
-async def test_webhook_with_random_payload_requires_auth(client, added_webhook_test, created_api_key):
-    """Test that webhook with random payload still requires authentication."""
-    # Modify the auth_settings.WEBHOOK_AUTH_ENABLE on the real settings service
-    from langflow.services.deps import get_settings_service
-
-    settings_service = get_settings_service()
-
-    # Ensure we're modifying the same settings service used by the application
-    original_webhook_auth_enable = settings_service.auth_settings.WEBHOOK_AUTH_ENABLE
-
-    try:
-        settings_service.auth_settings.WEBHOOK_AUTH_ENABLE = True
-
-        endpoint_name = added_webhook_test["endpoint_name"]
-        endpoint = f"api/v1/webhook/{endpoint_name}"
-
-        # Should fail without API key
-        response = await client.post(endpoint, json="Random Payload")
-        assert response.status_code == 403
-
-        # Should work with API key (even with random payload)
-        response = await client.post(
-            endpoint,
-            headers={"x-api-key": created_api_key.api_key},
-            json="Random Payload",
-        )
-        assert response.status_code == 202, f"Expected 202, got {response.status_code}: {response.json()}"
-    finally:
-        settings_service.auth_settings.WEBHOOK_AUTH_ENABLE = original_webhook_auth_enable
+    # Correct per-flow key → 202
+    ok = await client.post(endpoint, headers={"x-api-key": webhook_api_key}, json=payload)
+    assert ok.status_code == 202, ok.text
 
 
 # =============================================================================
@@ -219,64 +132,15 @@ async def test_webhook_not_found_invalid_endpoint(client, created_api_key):
 #     assert response.status_code == 404
 
 
-async def test_webhook_invalid_api_key(client, added_webhook_test):
-    """Test that webhook returns 403 for invalid API key when auth is enabled."""
-    from unittest.mock import AsyncMock, MagicMock
+async def test_webhook_invalid_api_key(client, added_webhook_test, webhook_api_key):  # noqa: ARG001
+    """Wrong per-flow API key → 403 Invalid API key."""
+    endpoint_name = added_webhook_test["endpoint_name"]
+    endpoint = f"api/v1/webhook/{endpoint_name}"
+    payload = {"test": "data"}
 
-    from fastapi import HTTPException
-    from langflow.services.auth.service import AuthService
-
-    # Create a mock settings service with WEBHOOK_AUTH_ENABLE=True
-    mock_auth_settings = MagicMock()
-    mock_auth_settings.WEBHOOK_AUTH_ENABLE = True
-
-    mock_settings_service = MagicMock()
-    mock_settings_service.auth_settings = mock_auth_settings
-
-    # Create a mock auth service
-    mock_auth_service = MagicMock(spec=AuthService)
-    mock_auth_service.settings_service = mock_settings_service
-    mock_auth_service.get_webhook_user = AsyncMock(side_effect=HTTPException(status_code=403, detail="Invalid API key"))
-
-    with patch("langflow.api.v1.endpoints.get_auth_service", return_value=mock_auth_service):
-        endpoint_name = added_webhook_test["endpoint_name"]
-        endpoint = f"api/v1/webhook/{endpoint_name}"
-        payload = {"test": "data"}
-
-        response = await client.post(endpoint, headers={"x-api-key": "invalid-api-key"}, json=payload)
-        assert response.status_code == 403
-        assert "api key" in response.json()["detail"].lower()
-
-
-async def test_webhook_missing_api_key_when_required(client, added_webhook_test):
-    """Test that webhook returns 403 when API key is missing and auth is enabled."""
-    from unittest.mock import AsyncMock, MagicMock
-
-    from fastapi import HTTPException
-    from langflow.services.auth.service import AuthService
-
-    # Create a mock settings service with WEBHOOK_AUTH_ENABLE=True
-    mock_auth_settings = MagicMock()
-    mock_auth_settings.WEBHOOK_AUTH_ENABLE = True
-
-    mock_settings_service = MagicMock()
-    mock_settings_service.auth_settings = mock_auth_settings
-
-    # Create a mock auth service
-    mock_auth_service = MagicMock(spec=AuthService)
-    mock_auth_service.settings_service = mock_settings_service
-    mock_auth_service.get_webhook_user = AsyncMock(
-        side_effect=HTTPException(status_code=403, detail="API key required when webhook authentication is enabled")
-    )
-
-    with patch("langflow.api.v1.endpoints.get_auth_service", return_value=mock_auth_service):
-        endpoint_name = added_webhook_test["endpoint_name"]
-        endpoint = f"api/v1/webhook/{endpoint_name}"
-        payload = {"test": "data"}
-
-        response = await client.post(endpoint, json=payload)
-        assert response.status_code == 403
-        assert "API key required" in response.json()["detail"]
+    response = await client.post(endpoint, headers={"x-api-key": "invalid-api-key"}, json=payload)
+    assert response.status_code == 403
+    assert "api key" in response.json()["detail"].lower()
 
 
 # =============================================================================
@@ -284,46 +148,46 @@ async def test_webhook_missing_api_key_when_required(client, added_webhook_test)
 # =============================================================================
 
 
-async def test_webhook_with_empty_payload(client, added_webhook_test, created_api_key):
+async def test_webhook_with_empty_payload(client, added_webhook_test, webhook_api_key):
     """Test webhook with empty JSON payload."""
     endpoint_name = added_webhook_test["endpoint_name"]
     endpoint = f"api/v1/webhook/{endpoint_name}"
 
-    response = await client.post(endpoint, headers={"x-api-key": created_api_key.api_key}, json={})
+    response = await client.post(endpoint, headers={"x-api-key": webhook_api_key}, json={})
     assert response.status_code == 202
 
 
-async def test_webhook_with_string_payload(client, added_webhook_test, created_api_key):
+async def test_webhook_with_string_payload(client, added_webhook_test, webhook_api_key):
     """Test webhook with string payload instead of JSON object."""
     endpoint_name = added_webhook_test["endpoint_name"]
     endpoint = f"api/v1/webhook/{endpoint_name}"
 
-    response = await client.post(endpoint, headers={"x-api-key": created_api_key.api_key}, json="plain string")
+    response = await client.post(endpoint, headers={"x-api-key": webhook_api_key}, json="plain string")
     assert response.status_code == 202
 
 
-async def test_webhook_with_null_payload_returns_bad_request(client, added_webhook_test, created_api_key):
+async def test_webhook_with_null_payload_returns_bad_request(client, added_webhook_test, webhook_api_key):
     """Test webhook with null payload returns 400 Bad Request."""
     endpoint_name = added_webhook_test["endpoint_name"]
     endpoint = f"api/v1/webhook/{endpoint_name}"
 
-    response = await client.post(endpoint, headers={"x-api-key": created_api_key.api_key}, json=None)
+    response = await client.post(endpoint, headers={"x-api-key": webhook_api_key}, json=None)
     # Null payload is not valid JSON body, returns 400
     assert response.status_code == 400
 
 
-async def test_webhook_with_large_payload(client, added_webhook_test, created_api_key):
+async def test_webhook_with_large_payload(client, added_webhook_test, webhook_api_key):
     """Test webhook with large payload."""
     endpoint_name = added_webhook_test["endpoint_name"]
     endpoint = f"api/v1/webhook/{endpoint_name}"
 
     # Create a large payload
     large_payload = {"data": "x" * 10000, "items": list(range(1000))}
-    response = await client.post(endpoint, headers={"x-api-key": created_api_key.api_key}, json=large_payload)
+    response = await client.post(endpoint, headers={"x-api-key": webhook_api_key}, json=large_payload)
     assert response.status_code == 202
 
 
-async def test_webhook_with_special_characters_in_payload(client, added_webhook_test, created_api_key):
+async def test_webhook_with_special_characters_in_payload(client, added_webhook_test, webhook_api_key):
     """Test webhook with special characters in payload."""
     endpoint_name = added_webhook_test["endpoint_name"]
     endpoint = f"api/v1/webhook/{endpoint_name}"
@@ -334,7 +198,7 @@ async def test_webhook_with_special_characters_in_payload(client, added_webhook_
         "quotes": 'He said "hello"',
         "newlines": "line1\nline2\rline3",
     }
-    response = await client.post(endpoint, headers={"x-api-key": created_api_key.api_key}, json=payload)
+    response = await client.post(endpoint, headers={"x-api-key": webhook_api_key}, json=payload)
     assert response.status_code == 202
 
 
@@ -343,21 +207,21 @@ async def test_webhook_with_special_characters_in_payload(client, added_webhook_
 # =============================================================================
 
 
-async def test_webhook_creates_vertex_builds(client, added_webhook_test, created_api_key):
+async def test_webhook_creates_vertex_builds(client, added_webhook_test, webhook_api_key, created_api_key):
     """Test that webhook execution creates vertex builds in the database."""
     flow_id = added_webhook_test["id"]
     endpoint_name = added_webhook_test["endpoint_name"]
     endpoint = f"api/v1/webhook/{endpoint_name}"
 
-    # Execute the webhook
+    # Execute the webhook (per-flow webhook key)
     payload = {"test": "vertex_build_test"}
-    response = await client.post(endpoint, headers={"x-api-key": created_api_key.api_key}, json=payload)
+    response = await client.post(endpoint, headers={"x-api-key": webhook_api_key}, json=payload)
     assert response.status_code == 202
 
     # Wait for background task to complete
     await asyncio.sleep(2)
 
-    # Check vertex builds were created
+    # Check vertex builds were created (user API key for monitor endpoint)
     builds_endpoint = f"api/v1/monitor/builds?flow_id={flow_id}"
     builds_response = await client.get(builds_endpoint, headers={"x-api-key": created_api_key.api_key})
 
@@ -368,21 +232,21 @@ async def test_webhook_creates_vertex_builds(client, added_webhook_test, created
     assert len(builds_data["vertex_builds"]) > 0
 
 
-async def test_webhook_vertex_builds_contain_expected_data(client, added_webhook_test, created_api_key):
+async def test_webhook_vertex_builds_contain_expected_data(client, added_webhook_test, webhook_api_key, created_api_key):
     """Test that vertex builds contain expected structure and data."""
     flow_id = added_webhook_test["id"]
     endpoint_name = added_webhook_test["endpoint_name"]
     endpoint = f"api/v1/webhook/{endpoint_name}"
 
-    # Execute the webhook
+    # Execute the webhook (per-flow webhook key)
     payload = {"verify": "structure"}
-    response = await client.post(endpoint, headers={"x-api-key": created_api_key.api_key}, json=payload)
+    response = await client.post(endpoint, headers={"x-api-key": webhook_api_key}, json=payload)
     assert response.status_code == 202
 
     # Wait for background task to complete
     await asyncio.sleep(2)
 
-    # Check vertex builds
+    # Check vertex builds (user API key for monitor endpoint)
     builds_endpoint = f"api/v1/monitor/builds?flow_id={flow_id}"
     builds_response = await client.get(builds_endpoint, headers={"x-api-key": created_api_key.api_key})
 
@@ -400,22 +264,24 @@ async def test_webhook_vertex_builds_contain_expected_data(client, added_webhook
             assert str(build["flow_id"]) == flow_id
 
 
-async def test_webhook_multiple_executions_create_multiple_builds(client, added_webhook_test, created_api_key):
+async def test_webhook_multiple_executions_create_multiple_builds(
+    client, added_webhook_test, webhook_api_key, created_api_key
+):
     """Test that multiple webhook executions create multiple vertex builds."""
     flow_id = added_webhook_test["id"]
     endpoint_name = added_webhook_test["endpoint_name"]
     endpoint = f"api/v1/webhook/{endpoint_name}"
 
-    # Execute webhook multiple times
+    # Execute webhook multiple times (per-flow webhook key)
     for i in range(3):
         payload = {"execution": i}
-        response = await client.post(endpoint, headers={"x-api-key": created_api_key.api_key}, json=payload)
+        response = await client.post(endpoint, headers={"x-api-key": webhook_api_key}, json=payload)
         assert response.status_code == 202
 
     # Wait for all background tasks to complete
     await asyncio.sleep(5)
 
-    # Check vertex builds
+    # Check vertex builds (user API key for monitor endpoint)
     builds_endpoint = f"api/v1/monitor/builds?flow_id={flow_id}"
     builds_response = await client.get(builds_endpoint, headers={"x-api-key": created_api_key.api_key})
 

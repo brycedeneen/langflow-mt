@@ -80,7 +80,28 @@ async def test_run_with_different_input_types(flow_runner, sample_flow_dict):
 
 @pytest.mark.asyncio
 async def test_initialize_database(flow_runner):
-    """Test database initialization."""
+    """init_db_if_needed should run initialize_database and clear the flag when the
+    DB does not yet exist; it should be a no-op when the DB is already set up.
+    """
+    from unittest.mock import AsyncMock, patch
+
     flow_runner.should_initialize_db = True
-    await flow_runner.init_db_if_needed()
+
+    # DB missing → init runs and flag clears.
+    with (
+        patch.object(flow_runner, "database_exists_check", AsyncMock(return_value=False)),
+        patch("langflow.services.flow.flow_runner.initialize_database", AsyncMock()) as mock_init,
+    ):
+        await flow_runner.init_db_if_needed()
+    mock_init.assert_awaited_once_with(fix_migration=True)
     assert not flow_runner.should_initialize_db
+
+    # DB present → init is skipped; flag stays as-is.
+    flow_runner.should_initialize_db = True
+    with (
+        patch.object(flow_runner, "database_exists_check", AsyncMock(return_value=True)),
+        patch("langflow.services.flow.flow_runner.initialize_database", AsyncMock()) as mock_init,
+    ):
+        await flow_runner.init_db_if_needed()
+    mock_init.assert_not_awaited()
+    assert flow_runner.should_initialize_db
