@@ -31,3 +31,82 @@ class TestChangelogEntry:
         entry = ChangelogEntry(version=1, changes="x")
         dumped = entry.model_dump()
         assert dumped == {"version": 1, "changes": "x", "notes": None}
+
+
+import logging
+
+from lfx.custom.custom_component.changelog import validate_changelog
+
+
+class _Holder:
+    """Stand-in for a Component subclass during validation tests."""
+
+    __name__ = "StubComponent"
+    version = 0
+    changelog: list[ChangelogEntry] = []
+
+
+class TestValidateChangelog:
+    def test_happy_path_no_warnings(self, caplog):
+        cls = type(
+            "C",
+            (_Holder,),
+            {
+                "version": 2,
+                "changelog": [
+                    ChangelogEntry(version=1, changes="x"),
+                    ChangelogEntry(version=2, changes="y"),
+                ],
+            },
+        )
+        with caplog.at_level(logging.WARNING):
+            validate_changelog(cls)
+        assert not caplog.records
+
+    def test_warns_when_entry_version_exceeds_class_version(self, caplog):
+        cls = type(
+            "C",
+            (_Holder,),
+            {
+                "version": 1,
+                "changelog": [ChangelogEntry(version=3, changes="x")],
+            },
+        )
+        with caplog.at_level(logging.WARNING):
+            validate_changelog(cls)
+        assert any("exceeds class version" in r.message for r in caplog.records)
+
+    def test_warns_on_duplicate_versions(self, caplog):
+        cls = type(
+            "C",
+            (_Holder,),
+            {
+                "version": 2,
+                "changelog": [
+                    ChangelogEntry(version=1, changes="x"),
+                    ChangelogEntry(version=1, changes="y"),
+                ],
+            },
+        )
+        with caplog.at_level(logging.WARNING):
+            validate_changelog(cls)
+        assert any("duplicate version" in r.message for r in caplog.records)
+
+    def test_warns_on_non_positive_entry_version(self, caplog):
+        cls = type(
+            "C",
+            (_Holder,),
+            {
+                "version": 1,
+                "changelog": [ChangelogEntry(version=0, changes="x")],
+            },
+        )
+        with caplog.at_level(logging.WARNING):
+            validate_changelog(cls)
+        assert any("must be >= 1" in r.message for r in caplog.records)
+
+    def test_skips_when_changelog_empty(self, caplog):
+        cls = _Holder
+        with caplog.at_level(logging.WARNING):
+            validate_changelog(cls)
+        assert not caplog.records
