@@ -6,8 +6,6 @@
 
 @source inline("bg-status-{blue,green,red,yellow}");
 
-/* TODO: Confirm that all colors here are found in tailwind config */
-
 @theme {
   /* Scalar colors with literal values */
   --color-frozen-blue: rgba(128, 190, 219, 0.86);

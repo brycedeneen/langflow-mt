@@ -112,7 +112,7 @@ export const AccountMenu = () => {
                     data-testid="menu_admin_page_button"
                     id="menu_admin_page_button"
                   >
-                    Admin Page
+                    User Admin
                   </span>
                 </HeaderMenuItemButton>
               </div>
@@ -128,7 +128,7 @@ export const AccountMenu = () => {
                     data-testid="menu_platform_admin_button"
                     id="menu_platform_admin_button"
                   >
-                    Admin
+                    Org Admin
                   </span>
                 </HeaderMenuItemButton>
               </div>

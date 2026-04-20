@@ -1,5 +1,8 @@
+import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 import ReactDOM from "react-dom/client";
 import reportWebVitals from "./reportWebVitals";
+
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 import "./style/classes.css";
 // @ts-ignore
