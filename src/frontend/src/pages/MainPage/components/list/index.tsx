@@ -159,7 +159,7 @@ const ListComponent = ({
           <div className="flex min-w-0 flex-col justify-start">
             <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
               <div
-                className="flex min-w-0 flex-shrink truncate text-sm font-semibold"
+                className="flex min-w-0 shrink truncate text-sm font-semibold"
                 data-testid={`flow-name-div`}
               >
                 <span
@@ -169,7 +169,7 @@ const ListComponent = ({
                   {flowData.name}
                 </span>
               </div>
-              <div className="flex min-w-0 flex-shrink text-xs text-muted-foreground">
+              <div className="flex min-w-0 shrink text-xs text-muted-foreground">
                 <span className="truncate">
                   Edited {timeElapsed(flowData.updated_at)} ago
                 </span>

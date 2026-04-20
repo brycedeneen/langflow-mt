@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@reference "./index.css";
+@import "tw-animate-css";
 
 @layer base {
   * {
@@ -64,6 +63,85 @@
   }
 }
 
+@utility primary-input {
+  @apply form-input block w-full rounded-md border border-border bg-background px-3 text-left text-sm placeholder:text-muted-foreground hover:border-muted-foreground focus:border-foreground focus:placeholder-transparent focus:ring-0 focus:ring-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 placeholder:disabled:text-muted-foreground;
+}
+
+@utility flex-max-width {
+  @apply flex w-full;
+}
+
+@utility side-bar-button-size {
+  @apply h-5 w-5;
+  &:hover {
+    @apply hover:text-accent-foreground;
+  }
+}
+
+@utility message-button-position {
+  @apply fixed right-4 top-20;
+}
+
+@utility generic-node-status {
+  @apply animate-wiggle opacity-100;
+}
+
+@utility alert-icon {
+  @apply h-5 w-5;
+}
+
+@utility alert-font-size {
+  @apply text-sm font-medium;
+}
+
+@utility error-build-text {
+  @apply text-error-foreground word-break-break-word;
+}
+
+@utility unused-side-bar-icon {
+  @apply mr-3 h-6 w-6 shrink-0;
+}
+
+@utility dropdown-component-options {
+  @apply z-10 mt-1 max-h-60 overflow-auto rounded-md bg-background py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-hidden sm:text-sm;
+}
+
+@utility dropdown-component-option {
+  @apply relative cursor-default select-none;
+}
+
+@utility header-github-link-box {
+  @apply inline-flex h-8 items-center justify-center rounded-md border border-input px-2 pr-0;
+}
+
+@utility input-component-button {
+  @apply absolute inset-y-0 right-0 items-center text-muted-foreground;
+}
+
+@utility chat-message-modal-thought-cursor {
+  @apply cursor-pointer overflow-scroll scrollbar-hide;
+}
+
+@utility form-modal-chat-img-box {
+  @apply relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-md p-5 text-2xl;
+}
+
+@utility form-modal-chat-thought-border {
+  @apply rounded-md border border-ring/60;
+}
+
+@utility form-modal-chat-thought-size {
+  @apply h-full w-[95%];
+}
+
+@utility input-edit-node {
+  @apply primary-input w-full pb-0.5 pt-0.5 text-left;
+}
+
+@utility unused-side-bar-link {
+  @apply flex-max-width items-center rounded-md py-2 pl-2 text-sm font-medium;
+}
+
 @layer components {
   .round-buttons-position {
     @apply fixed right-4;
@@ -97,12 +175,6 @@
   }
   .extra-side-bar-save-disable {
     @apply text-muted-foreground;
-  }
-  .side-bar-button-size {
-    @apply h-5 w-5;
-  }
-  .side-bar-button-size:hover {
-    @apply hover:text-accent-foreground;
   }
   .side-bar-buttons-arrangement {
     @apply mb-2 mt-2 flex w-full items-center justify-between gap-2 px-2;
@@ -160,7 +232,7 @@
     @apply relative inline-flex w-full items-center justify-center rounded-md bg-background px-2 py-2 text-foreground transition-all duration-500 ease-in-out;
   }
   .header-menubar-item {
-    @apply relative flex cursor-default cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50;
+    @apply relative flex cursor-default cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50;
   }
   .extra-side-bar-buttons:hover {
     @apply hover:bg-muted;
@@ -174,13 +246,9 @@
   }
 
   .playground-slide-icon {
-    @apply h-4 w-4 transition-all flex-shrink-0;
+    @apply h-4 w-4 transition-all shrink-0;
     stroke-width: 1.5;
   }
-  .primary-input {
-    @apply form-input block w-full rounded-md border border-border bg-background px-3 text-left text-sm placeholder:text-muted-foreground hover:border-muted-foreground focus:border-foreground focus:placeholder-transparent focus:ring-0 focus:ring-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 placeholder:disabled:text-muted-foreground;
-  }
-
   .skeleton-card {
     @apply flex h-48 flex-col gap-6 rounded-lg border bg-background p-4;
   }
@@ -198,9 +266,6 @@
     @apply form-input block w-full rounded-md border border-border bg-background px-3 text-left text-sm placeholder:text-muted-foreground hover:border-muted-foreground focus:border-foreground focus:placeholder-transparent focus:ring-0 focus:ring-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 placeholder:disabled:text-muted-foreground;
   }
 
-  .input-edit-node {
-    @apply primary-input w-full pb-0.5 pt-0.5 text-left;
-  }
   .input-search {
     @apply primary-input mx-2 pr-7;
   }
@@ -222,9 +287,6 @@
   }
   .build-trigger-icon {
     @apply w-6 fill-build-trigger stroke-build-trigger stroke-1;
-  }
-  .message-button-position {
-    @apply fixed right-4 top-20;
   }
   .message-button-icon {
     @apply fill-medium-indigo stroke-medium-indigo stroke-1;
@@ -257,10 +319,6 @@
 
   .langflow-page-icon:hover {
     @apply hover:h-12;
-  }
-
-  .flex-max-width {
-    @apply flex w-full;
   }
 
   .loading-page-panel {
@@ -336,9 +394,6 @@
   .generic-node-status-animation {
     @apply hidden h-4 w-4 animate-spin rounded-full bg-ring opacity-0;
   }
-  .generic-node-status {
-    @apply animate-wiggle opacity-100;
-  }
   .green-status {
     @apply generic-node-status text-status-green;
   }
@@ -384,21 +439,11 @@
     @apply w-full text-sm text-muted-foreground;
   }
 
-  .alert-icon {
-    @apply h-5 w-5;
-  }
-  .alert-font-size {
-    @apply text-sm font-medium;
-  }
-
   .error-build-message {
     @apply mt-6 w-96 rounded-md bg-error-background p-4 shadow-xl;
   }
   .error-build-message-circle {
     @apply alert-icon text-status-red;
-  }
-  .error-build-text {
-    @apply text-error-foreground word-break-break-word;
   }
   .error-build-foreground {
     @apply error-build-text alert-font-size;
@@ -421,28 +466,22 @@
   }
 
   .unused-side-bar-aside {
-    @apply flex flex-shrink-0 flex-col overflow-hidden border-r transition-all duration-500;
+    @apply flex shrink-0 flex-col overflow-hidden border-r transition-all duration-500;
   }
   .unused-side-bar-arrangement {
     @apply flex h-full w-52 flex-col items-start overflow-y-auto border bg-background scrollbar-hide;
   }
   .unused-side-bar-division {
-    @apply flex-max-width flex-grow flex-col;
+    @apply flex-max-width grow flex-col;
   }
   .unused-side-bar-nav {
     @apply flex-1 space-y-1;
-  }
-  .unused-side-bar-link {
-    @apply flex-max-width items-center rounded-md py-2 pl-2 text-sm font-medium;
   }
   .unused-side-bar-link-colors-true {
     @apply bg-muted text-foreground;
   }
   .unused-side-bar-link-colors-false {
     @apply bg-background text-muted-foreground hover:bg-muted hover:text-foreground;
-  }
-  .unused-side-bar-icon {
-    @apply mr-3 h-6 w-6 flex-shrink-0;
   }
   .unused-side-bar-icon-false {
     @apply text-ring group-hover:text-accent-foreground;
@@ -451,7 +490,7 @@
     @apply unused-side-bar-link pr-1 text-left;
   }
   .unused-side-bar-disclosure:focus {
-    @apply focus:outline-none focus:ring-1 focus:ring-ring;
+    @apply focus:outline-hidden focus:ring-1 focus:ring-ring;
   }
   .unused-side-bar-disclosure-icon {
     @apply unused-side-bar-icon text-ring group-hover:text-accent-foreground;
@@ -460,7 +499,7 @@
     @apply rotate-90 text-ring;
   }
   .unused-side-bar-svg {
-    @apply ml-3 h-5 w-5 flex-shrink-0 duration-150 ease-in-out group-hover:text-accent-foreground;
+    @apply ml-3 h-5 w-5 shrink-0 duration-150 ease-in-out group-hover:text-accent-foreground;
   }
   .unused-side-bar-disclosure-panel {
     @apply flex w-full items-center rounded-md py-2 pl-11 pr-2 text-sm font-medium;
@@ -502,17 +541,11 @@
   .dropdown-component-arrow-color-disable {
     @apply h-5 w-5 text-muted-foreground;
   }
-  .dropdown-component-options {
-    @apply z-10 mt-1 max-h-60 overflow-auto rounded-md bg-background py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm;
-  }
   .dropdown-component-true-options {
     @apply dropdown-component-options lg:w-[32%];
   }
   .dropdown-component-false-options {
     @apply dropdown-component-options w-full;
-  }
-  .dropdown-component-option {
-    @apply relative cursor-default select-none;
   }
   .dropdown-component-false-option {
     @apply dropdown-component-option py-0.5 pl-3 pr-12;
@@ -573,12 +606,8 @@
   .header-end-display {
     @apply ml-auto mr-2 flex items-center gap-5;
   }
-  .header-github-link-box {
-    @apply inline-flex h-8 items-center justify-center rounded-md border border-input px-2 pr-0;
-  }
-
   .header-waitlist-link-box {
-    @apply inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md border border-input px-2 text-sm font-medium text-muted-foreground shadow-sm ring-offset-background disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md border border-input px-2 text-sm font-medium text-muted-foreground shadow-xs ring-offset-background disabled:pointer-events-none disabled:opacity-50;
   }
   .header-waitlist-link-box:hover {
     @apply hover:bg-accent hover:text-accent-foreground;
@@ -587,7 +616,7 @@
     @apply header-github-link-box text-sm font-medium text-muted-foreground ring-offset-background disabled:pointer-events-none disabled:opacity-50;
   }
   .header-github-link:focus-visible {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
   }
   .header-github-link:hover {
     @apply hover:bg-accent hover:text-accent-foreground;
@@ -600,9 +629,6 @@
   }
   .input-component-div {
     @apply pointer-events-none relative cursor-not-allowed;
-  }
-  .input-component-button {
-    @apply absolute inset-y-0 right-0 items-center text-muted-foreground;
   }
   .input-component-true-button {
     @apply input-component-button pr-2;
@@ -622,10 +648,10 @@
   }
 
   .toggle-component-switch {
-    @apply relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out;
+    @apply relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out;
   }
   .toggle-component-switch:focus {
-    @apply focus:outline-none focus:ring-1 focus:ring-primary focus:ring-offset-1;
+    @apply focus:outline-hidden focus:ring-1 focus:ring-primary focus:ring-offset-1;
   }
   .toggle-component-span {
     @apply pointer-events-none relative h-5 w-5 transform rounded-full shadow ring-0 transition duration-200 ease-in-out;
@@ -682,9 +708,6 @@
   .chat-message-modal-thought {
     @apply chat-message-modal-thought-cursor ml-3 h-full w-[95%] rounded-md border border-ring bg-muted px-2 pb-3 pt-3 text-start text-muted-foreground;
   }
-  .chat-message-modal-thought-cursor {
-    @apply cursor-pointer overflow-scroll scrollbar-hide;
-  }
   .chat-message-modal-markdown {
     @apply w-full px-4 pb-3 pr-8 pt-3;
   }
@@ -718,7 +741,7 @@
   }
 
   .send-message-modal-transition {
-    @apply fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm transition-opacity;
+    @apply fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity;
   }
   .chat-modal-box {
     @apply fixed inset-0 z-10 overflow-y-auto;
@@ -751,7 +774,7 @@
     @apply flex-max-width flex-col items-center justify-between border-t bg-background p-3;
   }
   .chat-modal-input {
-    @apply relative mt-1 w-full rounded-md shadow-sm;
+    @apply relative mt-1 w-full rounded-md shadow-xs;
   }
   .code-area-modal-editor-div {
     @apply flex-max-width mt-2 h-full;
@@ -793,7 +816,7 @@
     @apply absolute left-0 top-2 z-50 hidden pl-4 pt-4 sm:block;
   }
   .dialog-header-modal-button {
-    @apply rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+    @apply rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2;
   }
 
   .dialog-modal-examples-div {
@@ -809,7 +832,7 @@
     @apply flex-max-width h-full items-center justify-evenly;
   }
   .document-icon {
-    @apply h-10 w-10 flex-shrink-0;
+    @apply h-10 w-10 shrink-0;
   }
   .loading-component-div {
     @apply flex items-center justify-center align-middle;
@@ -822,7 +845,7 @@
   }
 
   .node-modal-div {
-    @apply fixed inset-0 bg-ring bg-opacity-75 transition-opacity;
+    @apply fixed inset-0 bg-ring/75 transition-opacity;
   }
   .node-modal-dialog-arrangement {
     @apply fixed inset-0 z-10 overflow-y-auto;
@@ -843,7 +866,7 @@
     @apply flex-max-width h-full flex-col items-center justify-center;
   }
   .node-modal-icon-arrangement {
-    @apply flex-max-width z-10 justify-center pb-4 shadow-sm;
+    @apply flex-max-width z-10 justify-center pb-4 shadow-xs;
   }
   .node-modal-icon {
     @apply mt-4 h-10 w-10 rounded p-1;
@@ -870,14 +893,14 @@
     @apply font-semibold text-foreground;
   }
   .node-modal-button {
-    @apply inline-flex w-full justify-center rounded-md border border-transparent bg-status-red px-4 py-2 text-base font-medium text-background shadow-sm hover:bg-ring sm:ml-3 sm:w-auto sm:text-sm;
+    @apply inline-flex w-full justify-center rounded-md border border-transparent bg-status-red px-4 py-2 text-base font-medium text-background shadow-xs hover:bg-ring sm:ml-3 sm:w-auto sm:text-sm;
   }
   .node-modal-button:focus {
-    @apply focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-1;
+    @apply focus:outline-hidden focus:ring-1 focus:ring-ring focus:ring-offset-1;
   }
 
   .prompt-modal-icon-box {
-    @apply mx-auto mt-4 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-almost-light-blue sm:mx-0 sm:h-10 sm:w-10;
+    @apply mx-auto mt-4 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-almost-light-blue sm:mx-0 sm:h-10 sm:w-10;
   }
   .prompt-modal-icon {
     @apply h-6 w-6 text-primary;
@@ -965,9 +988,6 @@
   .form-modal-chat-image {
     @apply flex flex-col items-center gap-1;
   }
-  .form-modal-chat-img-box {
-    @apply relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-md p-5 text-2xl;
-  }
   .form-modal-chat-bot-icon {
     @apply form-modal-chat-img-box bg-chat-bot-icon;
   }
@@ -989,12 +1009,6 @@
   .form-modal-chat-icon {
     @apply h-4 w-4 animate-bounce;
   }
-  .form-modal-chat-thought-border {
-    @apply rounded-md border border-ring/60;
-  }
-  .form-modal-chat-thought-size {
-    @apply h-full w-[95%];
-  }
   .form-modal-chat-thought {
     @apply form-modal-chat-thought-border form-modal-chat-thought-size cursor-pointer overflow-scroll bg-background px-2 py-2 text-start text-primary scrollbar-hide;
   }
@@ -1002,7 +1016,7 @@
     @apply mt-1 animate-pulse cursor-default;
   }
   .form-modal-initial-prompt-btn {
-    @apply mb-2 flex items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-semibold shadow-sm;
+    @apply mb-2 flex items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-semibold shadow-xs;
   }
   .form-modal-iv-size {
     @apply mr-6 flex h-full w-2/6 flex-col justify-start overflow-auto scrollbar-hide;
@@ -1068,7 +1082,7 @@
     @apply flex-max-width flex-col items-center justify-between px-8 pb-3;
   }
   .langflow-chat-input {
-    @apply relative w-full rounded-md shadow-sm;
+    @apply relative w-full rounded-md shadow-xs;
   }
 
   .tooltip-fixed-width {
@@ -1212,7 +1226,7 @@
     @apply top-[-23px];
   }
   .popover-input {
-    @apply h-fit w-fit flex-1 border-none bg-transparent p-0 shadow-none outline-none ring-0 ring-offset-0 placeholder:text-muted-foreground focus:border-foreground focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply h-fit w-fit flex-1 border-none bg-transparent p-0 shadow-none outline-hidden ring-0 ring-offset-0 placeholder:text-muted-foreground focus:border-foreground focus:outline-hidden focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .beta-badge {
@@ -1240,7 +1254,7 @@
   }
 
   .toolbar-wrapper {
-    @apply flex h-10 items-center gap-1 rounded-xl border border-border bg-background p-1 shadow-sm;
+    @apply flex h-10 items-center gap-1 rounded-xl border border-border bg-background p-1 shadow-xs;
   }
 
   .playground-btn-flow-toolbar {
@@ -1268,7 +1282,7 @@
   }
 
   .no-focus-visible {
-    @apply focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0;
+    @apply focus-visible:outline-hidden focus-visible:ring-0 focus-visible:ring-offset-0;
     --tw-ring-offset-width: none !important;
     --tw-ring-shadow: none !important;
     --tw-ring-offset-shadow: none !important;

@@ -47,7 +47,7 @@ export default function Composer({ onSend }: ComposerProps) {
         placeholder="Ask the assistant..."
         disabled={isStreaming}
         rows={1}
-        className="flex-1 resize-none rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+        className="flex-1 resize-none rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
       />
       <Button
         size="icon"

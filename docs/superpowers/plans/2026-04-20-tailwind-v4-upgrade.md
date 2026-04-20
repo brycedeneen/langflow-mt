@@ -47,74 +47,77 @@ If different, STOP and alert the user.
 
 ---
 
-### Task 2: Run the `@tailwindcss/upgrade` codemod
+### Task 2: Install v4 + swap CSS directives manually
+
+**Why manual, not codemod:** the `@tailwindcss/upgrade` codemod failed three times against this project's JS config — v4's plugin-loader validator rejects rules that were fine under v3 (`:focus-visible` masquerading as utility, descendant-combinator selectors in `addUtilities`, the `e()` plugin-API helper used by the dynamic truncate generator). We migrate manually, which is also the path you'd end up on for any project with heavy custom plugins.
+
+**Prep already done on this branch** (part of the Phase C commit in Task 8):
+- `src/frontend/src/App.css`, `src/frontend/src/style/applies.css`, `src/frontend/src/style/index.css` each have a `@config "<relative-path>";` directive added above the `@tailwind` directives.
+- `src/frontend/tailwind.config.mjs` had three non-class rules removed from the `addUtilities` plugin — `:focus-visible`, `.dark .theme-attribution ...`, `.dark .theme-attribution ... a` — and the identical styles added as plain CSS at the bottom of `src/frontend/src/style/index.css` (outside any `@layer`).
 
 **Files:**
-- Codemod will edit: `src/frontend/package.json`, `src/frontend/src/style/index.css`, `src/frontend/src/**/*.{ts,tsx,html}`, possibly `src/frontend/tailwind.config.mjs`
+- Modify: `src/frontend/package.json` (via npm)
+- Modify: `src/frontend/src/App.css`, `src/frontend/src/style/applies.css`, `src/frontend/src/style/index.css`
 
-- [ ] **Step 1: Run the codemod**
+- [ ] **Step 1: Install Tailwind v4**
 
-Run from the frontend directory:
 ```bash
-cd src/frontend && npx @tailwindcss/upgrade@latest
+cd src/frontend && npm install --save-dev tailwindcss@^4
 ```
 
-Expected: the tool prints a summary of changes — dependency upgrades, CSS directive rewrites, utility class renames (e.g., `shadow-sm` → `shadow-xs`, `outline-none` → `outline-hidden`, `bg-opacity-X` → `bg-*/X`, explicit `border-gray-200` insertions where v4's `currentColor` default would change behavior).
+- [ ] **Step 2: Replace `@tailwind` directives in all three CSS entry files**
 
-If the tool refuses to run (uncommitted changes, wrong Node version), STOP and alert the user rather than forcing it.
+Three CSS files are imported as entry points in `src/index.tsx`. Each has its own `@tailwind base; @tailwind components; @tailwind utilities;` block that must be replaced with a single `@import "tailwindcss";`.
 
-- [ ] **Step 2: Review the codemod diff at a high level**
-
-Run: `git diff --stat src/frontend/`
-Expected: dozens to hundreds of files changed across `src/frontend/src/`. Sanity-check by spot-reading 3-5 representative file diffs, e.g.:
-```bash
-git diff src/frontend/src/components/core/buttonComponent/index.tsx
-git diff src/frontend/src/style/index.css
-git diff src/frontend/package.json
+For each file, replace this exact three-line block:
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 ```
-The engineer should confirm the changes match v4 migration patterns. If any diff looks like the tool hallucinated a semantic change (deleted working code, rewrote business logic), STOP and alert the user.
+with:
+```css
+@import "tailwindcss";
+```
 
-- [ ] **Step 3: Do NOT commit yet**
+Files:
+- `src/frontend/src/App.css` — `@import "./style/custom-ace-overrides.css";` and `@config "../tailwind.config.mjs";` stay at top.
+- `src/frontend/src/style/applies.css` — `@config "../../tailwind.config.mjs";` stays at top.
+- `src/frontend/src/style/index.css` — `@config "../../tailwind.config.mjs";` stays at top.
 
-Leave everything staged in the working tree. Further manual adjustments follow in the next tasks and will be combined into the Phase C checkpoint commit.
+**Ordering in v4:** `@import "tailwindcss";` must come BEFORE `@config` for the config to be picked up. After this step the top of each file should look like:
+```css
+@import "tailwindcss";
+@config "<relative-path>";
+```
+If `@config` was above `@tailwind` in the current file (the controller's prep put it there), swap so `@import` is first.
+
+- [ ] **Step 3: Do NOT commit yet.**
 
 ---
 
-### Task 3: Verify/adjust build integration
+### Task 3: Install and register the `@tailwindcss/vite` plugin
 
-v4's codemod typically swaps the PostCSS plugin from `tailwindcss` to `@tailwindcss/postcss`. We want to go further — delete `postcss.config.js` entirely and switch to the Vite plugin, which is simpler and faster.
+v4 uses a first-class Vite plugin instead of PostCSS. Simpler and faster than keeping PostCSS around.
 
 **Files:**
 - Modify: `src/frontend/vite.config.mts`
 - Delete: `src/frontend/postcss.config.js`
-- Modify: `src/frontend/src/style/index.css`
-- Modify: `src/frontend/package.json` (add `@tailwindcss/vite`, remove `@tailwindcss/postcss` if the codemod added it)
+- Modify: `src/frontend/package.json` (via npm)
 
 - [ ] **Step 1: Install the Vite plugin**
 
-Run:
 ```bash
 cd src/frontend && npm install --save-dev @tailwindcss/vite@^4
 ```
 
 Expected: adds `"@tailwindcss/vite": "^4.x.x"` to `devDependencies`.
 
-- [ ] **Step 2: If codemod added `@tailwindcss/postcss`, remove it**
+- [ ] **Step 2: Register the Vite plugin**
 
-Run:
-```bash
-cd src/frontend && npm ls @tailwindcss/postcss 2>/dev/null
-```
-If present, remove:
-```bash
-cd src/frontend && npm uninstall @tailwindcss/postcss
-```
+Edit `src/frontend/vite.config.mts`. Add the import and register in the `plugins` array.
 
-- [ ] **Step 3: Register the Vite plugin**
-
-Edit `src/frontend/vite.config.mts`. Add the import at the top and register the plugin in the `plugins` array.
-
-Change this region:
+Change the import block from:
 ```ts
 import react from "@vitejs/plugin-react-swc";
 import * as dotenv from "dotenv";
@@ -134,9 +137,8 @@ import svgr from "vite-plugin-svgr";
 
 Change `plugins: [react(), svgr()]` to `plugins: [tailwindcss(), react(), svgr()]`.
 
-- [ ] **Step 4: Delete `postcss.config.js`**
+- [ ] **Step 3: Delete `postcss.config.js`**
 
-Run:
 ```bash
 rm src/frontend/postcss.config.js
 ```
@@ -146,32 +148,6 @@ Verify nothing else in the frontend references it:
 grep -r "postcss.config" src/frontend --exclude-dir=node_modules --exclude-dir=build 2>/dev/null
 ```
 Expected: no matches (or only matches in lockfiles/comments — human-verify).
-
-- [ ] **Step 5: Update `src/style/index.css` directive**
-
-The codemod likely rewrote `@tailwind base; @tailwind components; @tailwind utilities;` to `@import "tailwindcss";`. Confirm by reading lines 1-10 of `src/frontend/src/style/index.css`.
-
-If the first non-comment line is `@import "tailwindcss";`, good. If the codemod left the old `@tailwind` directives, replace them manually:
-
-Old (if present):
-```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-```
-New:
-```css
-@import "tailwindcss";
-```
-
-- [ ] **Step 6: Add the `@config` directive**
-
-Immediately after `@import "tailwindcss";` in `src/frontend/src/style/index.css`, add:
-```css
-@config "../../tailwind.config.mjs";
-```
-
-Note the path: `src/style/index.css` → `../../tailwind.config.mjs` resolves to `src/frontend/tailwind.config.mjs`.
 
 ---
 
@@ -281,28 +257,86 @@ In the `plugins` array, delete `tailwindcssContainerQueries,`.
 
 ---
 
-### Task 7: Verify the build
+### Task 7: Build, rename deprecated classes, smoke test
+
+Without the codemod, we do the deprecated-class renames ourselves. Some renames are mandatory (v4 removed the old names) and will break the build until fixed. Others are visual-parity renames (v4 shifted default scales) and only show up in smoke testing.
 
 **Files:**
-- None (read-only verification)
+- Modify: files across `src/frontend/src/` identified by targeted greps
 
-- [ ] **Step 1: Run `npm run build`**
+- [ ] **Step 1: First build to flush out hard errors**
 
-Run: `cd src/frontend && npm run build`
+```bash
+cd src/frontend && npm run build 2>&1 | tee /tmp/tw-build.log
+```
 
-Expected: build completes with no errors. Warnings from Tailwind about unknown utilities or unresolved `@config` are FAILURES — if any appear, STOP and alert the user.
+If the build succeeds outright, go to Step 3. If it fails with "unknown utility" errors, go to Step 2.
 
-- [ ] **Step 2: Run `npm run type-check`**
+- [ ] **Step 2: Rename deprecated utility classes (only those that v4 strictly removed)**
 
-Run: `cd src/frontend && npm run type-check`
+Run these targeted greps from the repo root (worktree root). Each finds usages of a class name that changed in v4:
 
-Expected: exits 0. This also launches `vite`; press Ctrl-C once TypeScript says no errors and Vite has started (the script chains them).
+| v3 class | v4 class | Rationale |
+|---|---|---|
+| `bg-opacity-X` | `bg-*/X` | Opacity modifiers moved to slash syntax |
+| `text-opacity-X` | `text-*/X` | same |
+| `border-opacity-X` | `border-*/X` | same |
+| `flex-grow` | `grow` | renamed |
+| `flex-shrink` | `shrink` | renamed |
+| `overflow-ellipsis` | `text-ellipsis` | renamed |
+| `decoration-slice` | `box-decoration-slice` | renamed |
+| `decoration-clone` | `box-decoration-clone` | renamed |
 
-- [ ] **Step 3: Start the dev server and smoke-test**
+For each entry, run:
+```bash
+grep -rn "\\b<v3-class>\\b" src/frontend/src/ --include='*.ts' --include='*.tsx' --include='*.html' 2>/dev/null
+```
+If hits found, Edit each file to replace.
 
-Run: `cd src/frontend && npm start`
+Rerun `npm run build`. If more "unknown utility" errors appear, address them one-by-one (grep + Edit + re-build).
 
-Then open the app in a browser (default http://localhost:3000 or per VITE_PORT). Walk through this checklist:
+- [ ] **Step 3: Rename visual-parity classes (shadows, outlines)**
+
+v4 shifted the shadow scale and changed `outline-none`. Without these renames the app builds but looks subtly wrong.
+
+Shadow scale (v3 → v4 equivalent to preserve visual appearance):
+- `shadow-sm` → `shadow-xs`
+- `shadow` (no suffix) → `shadow-sm`
+- `shadow-md` → (unchanged, still `shadow-md`)
+- `shadow-lg` → (unchanged)
+
+Outline:
+- `outline-none` → `outline-hidden` (v4's `outline-none` now means `outline-style: none`; `outline-hidden` preserves the old behavior of a transparent outline for accessibility)
+
+For each rename:
+```bash
+grep -rn "\\b<v3-class>\\b" src/frontend/src/ --include='*.ts' --include='*.tsx' --include='*.html' 2>/dev/null | wc -l
+```
+Then Edit each file. Be careful with `shadow` (the no-suffix form) — use word-boundary grep and inspect each hit before replacing since "shadow" may appear in unrelated contexts.
+
+- [ ] **Step 4: Border default color change**
+
+v4 defaults `border-*` utilities with no explicit color to `currentColor` instead of `gray-200`. Places that relied on the implicit default will now inherit text color (often black), visually darker/jarring. To identify at-risk sites:
+```bash
+grep -rn "\\bborder\\b\\|\\bborder-[trbl]\\b\\|\\bborder-x\\b\\|\\bborder-y\\b" src/frontend/src/ --include='*.ts' --include='*.tsx' 2>/dev/null | grep -v "border-" | head -30
+```
+For visual parity, add `border-border` (Tailwind-friendly shorthand for `hsl(var(--border))`) to any element that previously relied on the gray-200 default. This step is fix-as-you-see — do it during smoke testing, not up front, unless the build complains.
+
+- [ ] **Step 5: Rebuild and type-check**
+
+```bash
+cd src/frontend && npm run build
+cd src/frontend && npm run type-check
+```
+Both must exit 0.
+
+- [ ] **Step 6: Start the dev server and smoke-test**
+
+```bash
+cd src/frontend && npm start
+```
+
+Open the app (default http://localhost:3000). Walk through this checklist:
 
 1. Landing/home view renders without broken layout.
 2. Open the flow builder / canvas. Create a new flow. The canvas dot background renders (uses `canvas` / `canvas-dot` colors).
@@ -313,12 +347,14 @@ Then open the app in a browser (default http://localhost:3000 or per VITE_PORT).
 7. Navigate to Admin → Organizations (if membership allows). List renders.
 8. Open the embed modal. Styled correctly.
 9. Toggle dark mode; repeat spot-checks.
+10. Numeric input spinners (intComponent, floatComponent) — hover states change color correctly.
+11. `truncate-background`, `truncate-muted`, `truncate-canvas`, `truncate-secondary-hover` utilities still work (inputListComponent, session-selector).
 
-Any visible regression (broken layout, missing colors, collapsed shadows, wrong font) is a FAIL. STOP and alert the user, describing exactly what looks wrong.
+Any visible regression is a FAIL. Note it, then either fix inline (obvious: missing border-gray-200, collapsed shadow) or STOP and alert the user for non-obvious cases.
 
-- [ ] **Step 4: Stop the dev server**
+- [ ] **Step 7: Stop the dev server**
 
-Ctrl-C the process.
+Ctrl-C.
 
 ---
 
@@ -335,7 +371,7 @@ git status
 git diff --stat src/frontend/
 ```
 
-Expected: changes to `src/frontend/package.json`, `src/frontend/package-lock.json`, `src/frontend/vite.config.mts`, `src/frontend/tailwind.config.mjs`, `src/frontend/src/style/index.css`, codemod-driven class renames across `src/frontend/src/`, and deletion of `src/frontend/postcss.config.js`.
+Expected: changes to `src/frontend/package.json`, `src/frontend/package-lock.json`, `src/frontend/vite.config.mts`, `src/frontend/tailwind.config.mjs`, `src/frontend/src/App.css`, `src/frontend/src/style/applies.css`, `src/frontend/src/style/index.css`, manual class renames across `src/frontend/src/`, and deletion of `src/frontend/postcss.config.js`. Also includes the plan file (`docs/superpowers/plans/2026-04-20-tailwind-v4-upgrade.md`) if updated during execution.
 
 - [ ] **Step 2: Ask the user before committing**
 
@@ -357,13 +393,20 @@ Commit:
 git commit -m "$(cat <<'EOF'
 build(frontend): upgrade tailwind to v4 (compat mode)
 
-Run @tailwindcss/upgrade codemod, switch to @tailwindcss/vite plugin,
-drop postcss.config.js and autoprefixer (built into v4), remove unused
-@tailwindcss/container-queries (built in) and dead line-clamp/dotted-
-background plugins, swap tailwindcss-animate for tw-animate-css.
+Manual v4 migration (the @tailwindcss/upgrade codemod rejects this
+project's plugin config). Install @tailwindcss/vite plugin, swap
+@tailwind directives for @import "tailwindcss" in App.css, applies.css,
+and style/index.css, and keep tailwind.config.mjs via @config directive.
 
-Existing tailwind.config.mjs kept and loaded via @config directive as
-a compat checkpoint. CSS-first refactor follows in phase B.
+Also: drop postcss.config.js + autoprefixer (v4 auto-prefixes), remove
+unused @tailwindcss/container-queries (built in), @tailwindcss/line-
+clamp (built in, unused), and tailwindcss-dotted-background (unused).
+Swap tailwindcss-animate for tw-animate-css. Extract three non-class
+rules out of the addUtilities plugin and into plain CSS so v4's
+stricter validator accepts the config. Rename deprecated utilities
+that v4 removed.
+
+CSS-first refactor follows in phase B.
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 EOF

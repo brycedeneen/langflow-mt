@@ -317,7 +317,7 @@ const SimpleSidebarResizeHandle = React.forwardRef<
       ref={ref}
       type="button"
       className={cn(
-        "absolute top-0 bottom-0 z-50 w-1 cursor-col-resize transition-colors hover:bg-border focus:bg-border focus:outline-none border-0 bg-transparent p-0",
+        "absolute top-0 bottom-0 z-50 w-1 cursor-col-resize transition-colors hover:bg-border focus:bg-border focus:outline-hidden border-0 bg-transparent p-0",
         side === "left" ? "right-0" : "left-0",
         isResizing && "bg-border",
         className,

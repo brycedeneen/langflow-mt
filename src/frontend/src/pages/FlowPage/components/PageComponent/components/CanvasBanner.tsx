@@ -9,7 +9,7 @@ export function CanvasBannerButton(props: ButtonProps) {
 
 const canvasBadgeVariants = {
   readme:
-    "pointer-events-auto absolute left-4 top-4 flex items-center gap-2 whitespace-nowrap rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground shadow-sm",
+    "pointer-events-auto absolute left-4 top-4 flex items-center gap-2 whitespace-nowrap rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground shadow-xs",
 } as const;
 
 type CanvasBadgeVariant = keyof typeof canvasBadgeVariants;

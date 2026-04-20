@@ -92,7 +92,7 @@ function ErrorLoadingState() {
       exit={{ opacity: 0 }}
       className="flex w-full gap-4 rounded-md p-2"
     >
-      <div className="relative hidden h-6 w-6 flex-shrink-0 items-center justify-center overflow-hidden rounded bg-white text-2xl @[45rem]/chat-panel:!flex border-0">
+      <div className="relative hidden h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded bg-white text-2xl @[45rem]/chat-panel:!flex border-0">
         <div className="flex h-5 w-5 items-center justify-center">
           <ForwardedIconComponent
             name="Indicator"

@@ -1,3 +1,4 @@
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react-swc";
 import * as dotenv from "dotenv";
 import path from "path";
@@ -56,7 +57,7 @@ export default defineConfig(({ mode }) => {
         envLangflow.LANGFLOW_MCP_COMPOSER_ENABLED ?? "true",
       ),
     },
-    plugins: [react(), svgr()],
+    plugins: [tailwindcss(), react(), svgr()],
     resolve: {
       tsconfigPaths: true,
     },

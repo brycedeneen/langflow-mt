@@ -62,7 +62,7 @@ export const SessionRename: React.FC<SessionRenameProps> = ({
       ref={inputRef}
       value={value}
       onChange={(e) => setValue(e.target.value)}
-      className="h-8 text-sm border border-border p-2 w-full bg-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
+      className="h-8 text-sm border border-border p-2 w-full bg-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden"
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
     />

@@ -105,7 +105,7 @@ export default function AssistantSettingsPage() {
             id="provider"
             value={provider}
             onChange={(e) => setProvider(e.target.value as Provider)}
-            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
           >
             {PROVIDER_OPTIONS.map((p) => (
               <option key={p} value={p}>
@@ -121,7 +121,7 @@ export default function AssistantSettingsPage() {
             id="model"
             value={model}
             onChange={(e) => setModel(e.target.value)}
-            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
           >
             {MODEL_MAP[provider].map((m) => (
               <option key={m} value={m}>

@@ -139,7 +139,7 @@ export const UserMessage = memo(
 
             {/* Content */}
             <div className="flex w-[94%] flex-col gap-2">
-              <div className="form-modal-chat-text-position flex-grow">
+              <div className="form-modal-chat-text-position grow">
                 <div className="flex w-full flex-col">
                   {editMessage ? (
                     <EditMessageField
