@@ -27,6 +27,7 @@ SAMPLE_KEY = (  # noqa: S105
 def _textfilesecret_field(value: str) -> dict:
     return {
         "_input_type": "TextFileSecretInput",
+        "auto_promote": True,
         "value": value,
         "load_from_db": False,
         "type": "str",
@@ -200,3 +201,97 @@ async def test_export_blanks_autosecret_values(
     assert "CertDataOnly" not in r_dl.text, (
         "Exported flow must not contain plaintext PEM content"
     )
+
+
+def _secretstr_field(value: str, *, auto_promote: bool = True) -> dict:
+    """Flow-template dict for a bare SecretStrInput carrying a plaintext secret."""
+    return {
+        "_input_type": "SecretStrInput",
+        "auto_promote": auto_promote,
+        "value": value,
+        "load_from_db": auto_promote,
+        "type": "str",
+        "password": True,
+    }
+
+
+def _flow_with_secret_str(value: str) -> dict:
+    """Minimal flow with a single custom node that has a bare SecretStrInput."""
+    return {
+        "name": "SecretStrInput auto-promote test",
+        "data": {
+            "nodes": [
+                {
+                    "id": "CustomComponent-int1",
+                    "data": {
+                        "type": "CustomComponent",
+                        "id": "CustomComponent-int1",
+                        "node": {
+                            "template": {
+                                "api_key": _secretstr_field(value),
+                            },
+                        },
+                    },
+                }
+            ],
+            "edges": [],
+        },
+    }
+
+
+@pytest.mark.usefixtures("active_user")
+async def test_create_flow_promotes_bare_secret_str_input(
+    client: AsyncClient, logged_in_headers
+):
+    """POSTing a flow whose node has a bare SecretStrInput with typed plaintext
+    promotes the value to an autosecret Variable even though the input type
+    is not TextFileSecretInput. Proves the generalized walker+predicate."""
+    payload = _flow_with_secret_str("sk-typed-plaintext-api-key-12345")
+
+    r = await client.post("api/v1/flows/", json=payload, headers=logged_in_headers)
+    assert r.status_code == 201, r.text
+    flow = r.json()
+    flow_id = flow["id"]
+
+    node = flow["data"]["nodes"][0]
+    api_key_field = node["data"]["node"]["template"]["api_key"]
+    assert api_key_field["value"].startswith(
+        f"{AUTOSECRET_PREFIX}{flow_id}_CustomComponent-int1_api_key"
+    ), f"expected autosecret ref, got {api_key_field['value']!r}"
+    assert api_key_field["load_from_db"] is True
+
+
+@pytest.mark.usefixtures("active_user")
+async def test_create_flow_preserves_user_managed_variable_reference(
+    client: AsyncClient, logged_in_headers
+):
+    """POSTing a flow whose SecretStrInput value is the name of a pre-existing
+    user-managed Variable preserves the reference — the promote helper does
+    not overwrite it."""
+    # Pre-create a user-managed Variable by name.
+    user_var_name = "my_shared_api_key"
+    r = await client.post(
+        "api/v1/variables/",
+        json={
+            "name": user_var_name,
+            "value": "sk-actual-value-never-exposed",
+            "type": "CREDENTIAL",
+            "default_fields": [],
+        },
+        headers=logged_in_headers,
+    )
+    assert r.status_code == 201, r.text
+
+    # Now POST a flow whose SecretStrInput field value equals that Variable's name.
+    payload = _flow_with_secret_str(user_var_name)
+
+    r = await client.post("api/v1/flows/", json=payload, headers=logged_in_headers)
+    assert r.status_code == 201, r.text
+    flow = r.json()
+
+    api_key_field = flow["data"]["nodes"][0]["data"]["node"]["template"]["api_key"]
+    # Reference preserved — NOT rewritten as an autosecret.
+    assert api_key_field["value"] == user_var_name, (
+        f"user-picked Variable reference must be preserved, got {api_key_field['value']!r}"
+    )
+    assert api_key_field["load_from_db"] is True
