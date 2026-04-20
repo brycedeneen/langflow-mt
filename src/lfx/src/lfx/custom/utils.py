@@ -461,6 +461,22 @@ def get_module_name_from_display_name(display_name: str):
     return re.sub(r"[^a-z0-9_]", "", module_name)
 
 
+def apply_component_versioning(frontend_node, custom_component) -> None:
+    """Copy opt-in `version` and `changelog` from a Component onto its FrontendNode.
+
+    Safe on CustomComponent subclasses that don't declare either attr — both
+    default to `0` and `[]` respectively.
+    """
+    raw_version = getattr(custom_component, "version", 0)
+    frontend_node.version = raw_version if isinstance(raw_version, int) else 0
+    raw_entries = getattr(custom_component, "changelog", None)
+    entries = raw_entries if isinstance(raw_entries, list) else []
+    frontend_node.changelog = [
+        entry.model_dump() if hasattr(entry, "model_dump") else entry
+        for entry in entries
+    ]
+
+
 def build_custom_component_template_from_inputs(
     custom_component: Component | CustomComponent, user_id: str | UUID | None = None, module_name: str | None = None
 ):
@@ -500,6 +516,7 @@ def build_custom_component_template_from_inputs(
     frontend_node.set_base_classes_from_outputs()
     reorder_fields(frontend_node, cc_instance._get_field_order())
     frontend_node = build_component_metadata(frontend_node, cc_instance, module_name, ctype_name)
+    apply_component_versioning(frontend_node, cc_instance)
 
     return frontend_node.to_dict(keep_name=False), cc_instance
 
@@ -592,6 +609,7 @@ def build_custom_component_template(
         add_output_types(frontend_node, custom_component._get_function_entrypoint_return_type)
 
         reorder_fields(frontend_node, custom_instance._get_field_order())
+        apply_component_versioning(frontend_node, custom_instance)
 
         if module_name:
             frontend_node = build_component_metadata(

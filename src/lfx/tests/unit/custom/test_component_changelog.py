@@ -146,3 +146,60 @@ class TestComponentVersionAttrs:
                     ChangelogEntry(version=5, changes="x"),
                 ]
         assert any("exceeds class version" in r.message for r in caplog.records)
+
+
+from lfx.custom.utils import build_custom_component_template
+
+_VC_CODE = """
+from langflow.custom import Component
+
+class VC(Component):
+    display_name = "VC"
+
+    def build(self):
+        return "ok"
+"""
+
+_PLAIN_CODE = """
+from langflow.custom import Component
+
+class Plain(Component):
+    display_name = "Plain"
+
+    def build(self):
+        return "ok"
+"""
+
+
+class TestBuilderPropagation:
+    def test_version_and_changelog_emitted(self):
+        class VC(Component):
+            display_name = "VC"
+            version: int = 2
+            changelog: ClassVar[list[ChangelogEntry]] = [
+                ChangelogEntry(version=1, changes="a"),
+                ChangelogEntry(version=2, changes="b", notes="do X"),
+            ]
+
+            def build(self):
+                return "ok"
+
+        instance = VC(_code=_VC_CODE)
+        frontend_dict, _ = build_custom_component_template(instance)
+        assert frontend_dict["version"] == 2
+        assert frontend_dict["changelog"] == [
+            {"version": 1, "changes": "a", "notes": None},
+            {"version": 2, "changes": "b", "notes": "do X"},
+        ]
+
+    def test_defaults_when_unset(self):
+        class Plain(Component):
+            display_name = "Plain"
+
+            def build(self):
+                return "ok"
+
+        instance = Plain(_code=_PLAIN_CODE)
+        frontend_dict, _ = build_custom_component_template(instance)
+        assert frontend_dict["version"] == 0
+        assert frontend_dict["changelog"] == []
