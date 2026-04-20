@@ -400,7 +400,7 @@
                   },
                   {
                     "name": "fastapi",
-                    "version": "0.135.1"
+                    "version": "0.136.0"
                   },
                   {
                     "name": "lfx",
@@ -773,7 +773,7 @@
                 "dependencies": [
                   {
                     "name": "aiofiles",
-                    "version": "24.1.0"
+                    "version": "25.1.0"
                   },
                   {
                     "name": "httpx",

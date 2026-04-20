@@ -329,7 +329,7 @@
                   },
                   {
                     "name": "pandas",
-                    "version": "2.2.3"
+                    "version": "2.3.3"
                   }
                 ],
                 "total_dependencies": 2
@@ -934,7 +934,7 @@
                   },
                   {
                     "name": "pandas",
-                    "version": "2.2.3"
+                    "version": "2.3.3"
                   },
                   {
                     "name": "lfx",

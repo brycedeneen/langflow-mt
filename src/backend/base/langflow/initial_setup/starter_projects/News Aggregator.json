@@ -890,7 +890,7 @@
                   },
                   {
                     "name": "fastapi",
-                    "version": "0.135.1"
+                    "version": "0.136.0"
                   },
                   {
                     "name": "lfx",
@@ -1761,11 +1761,11 @@
                   },
                   {
                     "name": "pandas",
-                    "version": "2.2.3"
+                    "version": "2.3.3"
                   },
                   {
                     "name": "fastapi",
-                    "version": "0.135.1"
+                    "version": "0.136.0"
                   },
                   {
                     "name": "lfx",
