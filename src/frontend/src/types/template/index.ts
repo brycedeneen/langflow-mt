@@ -1,0 +1,30 @@
+export type TemplateRead = {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  gradient: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TemplateReadDetail = TemplateRead & {
+  nodes: Array<Record<string, unknown>>;
+  edges: Array<Record<string, unknown>>;
+};
+
+export type BlankedField = {
+  node_id: string;
+  field_name: string;
+};
+
+export type TemplateCreateBody = {
+  source_flow_id: string;
+  name: string;
+  description?: string | null;
+  icon?: string | null;
+  gradient?: string | null;
+  blanked_fields?: BlankedField[];
+};
+
+export type TemplateUpdateBody = TemplateCreateBody;
