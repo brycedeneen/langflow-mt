@@ -134,6 +134,28 @@ def test_password_helpers_roundtrip(auth_service: AuthService):
     assert auth_service.verify_password(password, hashed)
 
 
+def test_verify_legacy_passlib_hash(auth_service: AuthService):
+    """Locks backward-compat: passlib 1.7.4 bcrypt hashes must still verify.
+
+    After the passlib→direct-bcrypt swap, the hash literal below (produced by
+    passlib.context.CryptContext(schemes=["bcrypt"])) must remain verifiable.
+    """
+    legacy_hash = "$2b$12$59zWuSrdgXLXBk4Ptr5YbuLq1GxvPc2tahv7AF6F9c5urd75WHDTa"  # pragma: allowlist secret
+    assert auth_service.verify_password("correct-horse", legacy_hash) is True
+    assert auth_service.verify_password("wrong-password", legacy_hash) is False
+
+
+def test_verify_legacy_2a_prefix_hash(auth_service: AuthService):
+    """Locks ``$2a$``-prefix support at the AuthService layer.
+
+    Older bcrypt installs produced ``$2a$``-prefixed hashes; the new direct-bcrypt
+    code path must continue to verify them.
+    """
+    legacy_2a_hash = "$2a$12$LhSKBxgIO1R1aYO2srqGguCC2JfTOy5IFUwSetpVwZARkxdqtUIVO"  # pragma: allowlist secret
+    assert auth_service.verify_password("correct-horse", legacy_2a_hash) is True
+    assert auth_service.verify_password("wrong", legacy_2a_hash) is False
+
+
 # =============================================================================
 # Token Creation Tests
 # =============================================================================

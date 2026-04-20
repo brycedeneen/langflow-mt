@@ -449,11 +449,15 @@ class AuthService(BaseAuthService):
 
         return authenticated_user
 
-    def verify_password(self, plain_password, hashed_password):
-        return self.settings.auth_settings.pwd_context.verify(plain_password, hashed_password)
+    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
+        from lfx.services.auth.password import verify_password as _verify
 
-    def get_password_hash(self, password):
-        return self.settings.auth_settings.pwd_context.hash(password)
+        return _verify(plain_password, hashed_password)
+
+    def get_password_hash(self, password: str) -> str:
+        from lfx.services.auth.password import hash_password as _hash
+
+        return _hash(password)
 
     def create_token(self, data: dict, expires_delta: timedelta):
         from langflow.services.auth.utils import get_jwt_signing_key
