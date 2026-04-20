@@ -52,7 +52,7 @@ class APIRequestComponent(Component):
     icon = "Globe"
     name = "APIRequest"
 
-    version: int = 1
+    version: int = 2
     changelog: ClassVar[list[ChangelogEntry]] = [
         ChangelogEntry(
             version=1,
@@ -66,6 +66,23 @@ class APIRequestComponent(Component):
                 "are opt-in under the Authentication field. If you previously "
                 "worked around the missing Bearer/mTLS options with custom headers, "
                 "you can switch to the native fields."
+            ),
+        ),
+        ChangelogEntry(
+            version=2,
+            changes=(
+                "- mTLS client cert/key fields switched to **paste-or-upload** "
+                "(TextFileSecretInput), stored encrypted at rest via a hidden "
+                "auto-Variable instead of as files on disk\n"
+                "- Replaced `client_cert_file` / `client_key_file` (FileInput) "
+                "with `cert_pem` / `key_pem` (TextFileSecretInput)"
+            ),
+            notes=(
+                "If a saved flow used the old `client_cert_file` / `client_key_file` "
+                "File inputs, those values are dropped and the mTLS fields appear "
+                "empty — re-enter the PEM (paste or upload) to restore the "
+                "connection. Paste or upload both the cert and the key in the new "
+                "fields; content is stored encrypted in the DB, not on disk."
             ),
         ),
     ]
