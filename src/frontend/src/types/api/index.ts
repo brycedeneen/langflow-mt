@@ -28,6 +28,12 @@ export type CustomComponentRequest = {
   type: string;
 };
 
+export type ChangelogEntry = {
+  version: number;
+  changes: string;
+  notes: string | null;
+};
+
 export type APIClassType = {
   base_classes?: Array<string>;
   description: string;
@@ -35,6 +41,8 @@ export type APIClassType = {
   display_name: string;
   icon?: string;
   edited?: boolean;
+  version?: number;
+  changelog?: ChangelogEntry[];
   is_input?: boolean;
   is_output?: boolean;
   conditional_paths?: Array<string>;
@@ -64,6 +72,8 @@ export type APIClassType = {
     | CustomFieldsType
     | boolean
     | undefined
+    | number
+    | ChangelogEntry[]
     | Array<{ types: Array<string>; selected?: string }>;
 };
 

@@ -8,7 +8,7 @@ import type {
 } from "@xyflow/react";
 import type { AllNodeType, EdgeType, FlowType } from "@/types/flow";
 import type { BuildStatus, EventDeliveryType } from "../../../constants/enums";
-import type { VertexBuildTypeAPI } from "../../api";
+import type { ChangelogEntry, VertexBuildTypeAPI } from "../../api";
 import type { ChatInputType, ChatOutputType } from "../../chat";
 import type { FlowState } from "../../tabs";
 
@@ -59,6 +59,9 @@ export type ComponentsToUpdateType = {
   outdated: boolean;
   breakingChange: boolean;
   userEdited: boolean;
+  userVersion: number;
+  latestVersion: number;
+  changelogEntries: ChangelogEntry[];
 };
 
 export type FlowStoreType = {
