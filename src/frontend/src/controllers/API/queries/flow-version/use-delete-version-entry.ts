@@ -27,8 +27,9 @@ export const useDeleteVersionEntry: useMutationFunctionType<
     {
       ...options,
       onSettled: (_, __, variables) => {
+        const vars = variables as IDeleteVersionEntry | undefined;
         queryClient.refetchQueries({
-          queryKey: ["useGetFlowVersions", { flowId: variables?.flowId }],
+          queryKey: ["useGetFlowVersions", { flowId: vars?.flowId }],
         });
       },
     },

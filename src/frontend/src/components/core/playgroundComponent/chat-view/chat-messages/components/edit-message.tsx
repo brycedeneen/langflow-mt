@@ -71,7 +71,11 @@ export const MarkdownField = ({
               </div>
             );
           },
-          code: ({ node, inline, className, children, ...props }) => {
+          code: ({ node, className, children, ...props }) => {
+            // `inline` was dropped from react-markdown's typed code props;
+            // infer it from the absence of a language class (block code has
+            // `language-*` via remark).
+            const inline = !/language-(\w+)/.test(className || "");
             let content = children as string;
             if (
               Array.isArray(children) &&

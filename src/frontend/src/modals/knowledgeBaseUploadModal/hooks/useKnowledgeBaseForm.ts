@@ -153,11 +153,12 @@ export function useKnowledgeBaseForm({
       // Always enable advanced mode in add-sources mode so the file
       // upload section is visible. Also enable when the KB already has
       // advanced chunking config.
+      const kb = existingKnowledgeBase;
       const hasAdvancedConfig =
         isAddSourcesMode ||
-        existingKnowledgeBase.chunkSize != null ||
-        existingKnowledgeBase.chunkOverlap != null ||
-        existingKnowledgeBase.separator != null;
+        kb.chunkSize != null ||
+        kb.chunkOverlap != null ||
+        kb.separator != null;
       if (hasAdvancedConfig) {
         setShowAdvanced(true);
       }

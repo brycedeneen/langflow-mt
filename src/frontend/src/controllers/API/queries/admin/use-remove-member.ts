@@ -28,7 +28,7 @@ export const useRemoveMember: useMutationFunctionType<
     ...options,
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({
-        queryKey: ["admin", "organizations", variables.orgId],
+        queryKey: ["admin", "organizations", (variables as unknown as RemoveMemberParams).orgId],
       });
       options?.onSuccess?.(data, variables, context);
     },

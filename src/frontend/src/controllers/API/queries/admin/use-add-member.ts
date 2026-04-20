@@ -33,7 +33,7 @@ export const useAddMember: useMutationFunctionType<
     ...options,
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({
-        queryKey: ["admin", "organizations", variables.orgId],
+        queryKey: ["admin", "organizations", (variables as unknown as AddMemberParams).orgId],
       });
       options?.onSuccess?.(data, variables, context);
     },

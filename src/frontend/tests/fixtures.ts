@@ -208,7 +208,10 @@ export const test = base.extend({
                 `If this error is expected, call page.allowFlowErrors() at the start of your test.`;
 
               // Use page.close() to fail the test immediately
-              page.emit("pageerror", new Error(errorMessage));
+              // `emit` is on Playwright's internal EventEmitter and not in
+              // the public Page type; cast to access it.
+              (page as unknown as { emit: (evt: string, err: Error) => void })
+                .emit("pageerror", new Error(errorMessage));
               throw new Error(errorMessage);
             }
           }

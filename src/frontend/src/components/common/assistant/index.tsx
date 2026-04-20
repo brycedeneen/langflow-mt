@@ -123,8 +123,8 @@ export const AssistantButton: React.FC<AssistantButtonProps> = ({
         const result = await refetch();
         handleOnNewValue({
           value:
-            result.data?.data?.outputs[0]?.outputs[0]?.outputs?.message
-              ?.message,
+            (result.data as { data?: { outputs?: Array<{ outputs?: Array<{ outputs?: { message?: { message?: unknown } } }> }> } } | undefined)?.data
+              ?.outputs?.[0]?.outputs?.[0]?.outputs?.message?.message,
         });
         break;
       }
