@@ -35,6 +35,18 @@ def test_verify_legacy_passlib_hash():
     assert verify_password("wrong", legacy_hash) is False
 
 
+def test_verify_legacy_2a_prefix_hash():
+    """Older deployments may have ``$2a$``-prefixed hashes from older bcrypt installs.
+
+    The verify_password docstring documents support for ``$2a$``/``$2b$``/``$2y$``;
+    this test locks the ``$2a$`` claim with a frozen literal generated against the
+    same password as the ``$2b$`` regression test.
+    """
+    legacy_2a_hash = "$2a$12$LhSKBxgIO1R1aYO2srqGguCC2JfTOy5IFUwSetpVwZARkxdqtUIVO"  # pragma: allowlist secret
+    assert verify_password("correct-horse", legacy_2a_hash) is True
+    assert verify_password("wrong", legacy_2a_hash) is False
+
+
 def test_verify_password_handles_unicode():
     """UTF-8 multi-byte passwords must roundtrip."""
     pw = "пароль-🔐"  # pragma: allowlist secret

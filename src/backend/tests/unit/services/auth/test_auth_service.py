@@ -145,6 +145,17 @@ def test_verify_legacy_passlib_hash(auth_service: AuthService):
     assert auth_service.verify_password("wrong-password", legacy_hash) is False
 
 
+def test_verify_legacy_2a_prefix_hash(auth_service: AuthService):
+    """Locks ``$2a$``-prefix support at the AuthService layer.
+
+    Older bcrypt installs produced ``$2a$``-prefixed hashes; the new direct-bcrypt
+    code path must continue to verify them.
+    """
+    legacy_2a_hash = "$2a$12$LhSKBxgIO1R1aYO2srqGguCC2JfTOy5IFUwSetpVwZARkxdqtUIVO"  # pragma: allowlist secret
+    assert auth_service.verify_password("correct-horse", legacy_2a_hash) is True
+    assert auth_service.verify_password("wrong", legacy_2a_hash) is False
+
+
 # =============================================================================
 # Token Creation Tests
 # =============================================================================
