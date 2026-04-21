@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
 from lfx.base.prompts.api_utils import process_prompt_template
+from lfx.components.processing._data_mapper import MapperConfig
 from lfx.custom.validate import validate_code
 from lfx.log.logger import logger
+from pydantic import ValidationError as _PydanticValidationError
 
 from langflow.api.v1.base import Code, CodeValidationResponse, PromptValidationResponse, ValidatePromptRequest
 from langflow.services.auth.utils import get_current_active_user
@@ -49,3 +52,23 @@ async def post_validate_prompt(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@router.post("/validate-mapping-config", status_code=200, dependencies=[Depends(get_current_active_user)])
+async def validate_mapping_config(body: dict) -> JSONResponse:
+    """Validate a Data Mapper mapping_config blob against the Pydantic schema.
+
+    Returns ``{"errors": []}`` on success (HTTP 200) or ``{"errors": [{path, message}]}``
+    on failure (HTTP 422).  Each error item is ``{path: list[str|int], message: str}``
+    so the modal can attach an inline error to the specific row / field.
+
+    Uses ``JSONResponse`` to control the body shape precisely — the 422 body is
+    ``{"errors": [...]}`` directly, without the ``{"detail": ...}`` envelope that
+    FastAPI adds when using ``HTTPException``.
+    """
+    try:
+        MapperConfig.model_validate(body)
+    except _PydanticValidationError as e:
+        errors = [{"path": list(err["loc"]), "message": err["msg"]} for err in e.errors()]
+        return JSONResponse(status_code=422, content={"errors": errors})
+    return JSONResponse(status_code=200, content={"errors": []})
