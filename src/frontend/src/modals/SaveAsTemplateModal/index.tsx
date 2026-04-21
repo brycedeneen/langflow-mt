@@ -5,6 +5,7 @@ import {
   useListTemplates,
   useUpdateTemplate,
 } from "@/controllers/API/queries/templates";
+import { useListMyMemberships } from "@/controllers/API/queries/memberships";
 import { useIsPlatformAdmin } from "@/hooks/use-is-platform-admin";
 import BaseModal from "@/modals/baseModal";
 import CategoryChipPicker from "@/modals/templatesModal/components/CategoryChipPicker";
@@ -35,20 +36,15 @@ type Props = {
 const DEFAULT_ICON = "FileText";
 const DEFAULT_GRADIENT = "0";
 
-/**
- * Scope state:
- *   "platform" → save as platform-scoped template (requires platform admin)
- *
- * NOTE: org-scoped save is not yet surfaced in this UI because the
- * GET /api/v1/memberships/me endpoint does not exist — there is no way to
- * enumerate the current user's orgs on the frontend. The scope selector is
- * therefore hidden until that endpoint lands (Phase H gap: FU-7).
- *
- * Platform admins default to "platform" scope, which the backend accepts.
- * Non-admin org members who try to save will receive a 403 from the server
- * because the backend requires platform-admin status for platform scope,
- * and we have no org_id to pass for org scope.
- */
+function computeDefaultScope(
+  isPlatformAdmin: boolean,
+  memberships: { organization: { id: string } }[],
+): string {
+  if (isPlatformAdmin) return "platform";
+  if (memberships.length > 0) return `org:${memberships[0].organization.id}`;
+  return "platform"; // fallback — Save will be disabled in this case
+}
+
 export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -62,6 +58,19 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
 
   const isPlatformAdmin = useIsPlatformAdmin();
+  const { data: memberships = [], isPending: membershipsLoading } =
+    useListMyMemberships();
+
+  const [scope, setScope] = useState<string>(() =>
+    computeDefaultScope(isPlatformAdmin, memberships),
+  );
+
+  // Update scope default once memberships/admin status loads.
+  useEffect(() => {
+    if (!isPlatformAdmin && memberships.length > 0 && scope === "platform") {
+      setScope(`org:${memberships[0].organization.id}`);
+    }
+  }, [isPlatformAdmin, memberships.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset state whenever the modal opens.
   useEffect(() => {
@@ -76,20 +85,23 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
       setConfirmOpen(false);
       setConflict(null);
       setSelectedCategoryIds([]);
+      // Re-derive scope on open so it reflects the latest admin/membership state.
+      setScope(computeDefaultScope(isPlatformAdmin, memberships));
     }
-  }, [open, flow.description]);
+  }, [open, flow.description]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const blankableFields: BlankableFieldInfo[] = useMemo(() => {
     const nodes = Array.isArray(flow.data?.nodes) ? flow.data!.nodes : [];
     return scanBlankableFields({ nodes });
   }, [flow.data?.nodes]);
 
-  // Non-platform-admin users cannot create platform-scoped templates, and we
-  // have no org_id to pass for org-scoped templates (memberships endpoint not
-  // yet available). Save is disabled for those users.
-  const canSave = isPlatformAdmin;
-
+  // A user can save if they are a platform admin OR a member of at least one org.
+  const canSave = isPlatformAdmin || memberships.length > 0;
   const canSubmit = name.trim().length > 0 && canSave;
+
+  // Show a radio selector when an admin is also a member of one or more orgs
+  // so they can choose between Platform scope and a specific org scope.
+  const showScopeSelector = isPlatformAdmin && memberships.length > 0;
 
   const createTemplate = useCreateTemplate();
   const { data: templatesList } = useListTemplates();
@@ -116,6 +128,10 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
         node_id: f.node_id,
         field_name: f.field_name,
       }));
+
+    const scopeValue = scope === "platform" ? "platform" : "org";
+    const orgId = scope.startsWith("org:") ? scope.slice(4) : null;
+
     return {
       source_flow_id: flow.id!,
       name: name.trim(),
@@ -123,9 +139,8 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
       icon,
       gradient,
       blanked_fields,
-      // Always platform-scoped until memberships endpoint lands (see note above).
-      scope: "platform" as const,
-      org_id: null,
+      scope: scopeValue as "platform" | "org",
+      org_id: orgId,
       category_ids: selectedCategoryIds,
     };
   }, [
@@ -137,6 +152,7 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
     icon,
     gradient,
     selectedCategoryIds,
+    scope,
   ]);
 
   function handleSubmit() {
@@ -254,6 +270,40 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
               />
             </label>
 
+            {/* Scope selector: only shown when a platform admin is also a member of >= 1 org */}
+            {showScopeSelector && (
+              <fieldset className="space-y-1">
+                <legend className="mb-1 block text-sm font-medium">
+                  Scope
+                </legend>
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="template-scope"
+                    value="platform"
+                    checked={scope === "platform"}
+                    onChange={() => setScope("platform")}
+                  />
+                  Platform
+                </label>
+                {memberships.map((m) => (
+                  <label
+                    key={m.organization.id}
+                    className="flex cursor-pointer items-center gap-2 text-sm"
+                  >
+                    <input
+                      type="radio"
+                      name="template-scope"
+                      value={`org:${m.organization.id}`}
+                      checked={scope === `org:${m.organization.id}`}
+                      onChange={() => setScope(`org:${m.organization.id}`)}
+                    />
+                    Org: {m.organization.name}
+                  </label>
+                ))}
+              </fieldset>
+            )}
+
             <div className="space-y-2">
               <span className="block text-sm font-medium">Categories</span>
               <CategoryChipPicker
@@ -281,11 +331,12 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
               onOpenChange={setDetailsOpen}
             />
 
-            {/* Non-admin notice */}
-            {!isPlatformAdmin && (
+            {/* Notice when the user is neither a platform admin nor an org member */}
+            {!isPlatformAdmin && memberships.length === 0 && !membershipsLoading && (
               <p className="text-xs text-muted-foreground">
-                Only platform administrators can save templates. Contact your
-                admin to create a template on your behalf.
+                Only platform administrators or organization members can save
+                templates. Contact your admin to create a template on your
+                behalf.
               </p>
             )}
           </div>
@@ -299,7 +350,7 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
               type="button"
               disabled={!canSubmit || submitting}
               title={
-                !isPlatformAdmin
+                !canSave
                   ? "You aren't a member of any organization. Ask a platform admin to create a template on your behalf."
                   : undefined
               }

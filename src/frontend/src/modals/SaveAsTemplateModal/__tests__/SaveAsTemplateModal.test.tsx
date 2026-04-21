@@ -38,6 +38,11 @@ jest.mock("@/controllers/API/queries/categories", () => ({
   useListCategories: () => ({ data: [] }),
 }));
 
+// useListMyMemberships: return empty list so admin with no orgs → no selector shown.
+jest.mock("@/controllers/API/queries/memberships", () => ({
+  useListMyMemberships: () => ({ data: [], isPending: false }),
+}));
+
 // Mock alertStore — match the shape of the existing Zustand selector pattern.
 // Existing modals import `useAlertStore` as the default export and call it
 // with a selector function.
