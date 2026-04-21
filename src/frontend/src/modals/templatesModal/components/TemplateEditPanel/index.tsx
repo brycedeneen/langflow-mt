@@ -9,12 +9,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useUpdateTemplate } from "@/controllers/API/queries/templates/use-update-template";
-import { useListCategories } from "@/controllers/API/queries/categories";
 import useAlertStore from "@/stores/alertStore";
 import IconPickerField from "@/modals/SaveAsTemplateModal/IconPickerField";
 import GradientPickerField from "@/modals/SaveAsTemplateModal/GradientPickerField";
+import CategoryChipPicker from "@/modals/templatesModal/components/CategoryChipPicker";
 import type { TemplateRead } from "@/types/template";
 
 type Props = {
@@ -32,7 +31,6 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
     template.categories.map((c) => c.id),
   );
 
-  const { data: allCategories = [] } = useListCategories();
   const { mutate: updateTemplate, isPending } = useUpdateTemplate();
   const setSuccessData = useAlertStore((s) => s.setSuccessData);
   const setErrorData = useAlertStore((s) => s.setErrorData);
@@ -47,12 +45,6 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
       setSelectedCategoryIds(template.categories.map((c) => c.id));
     }
   }, [open, template]);
-
-  const toggleCategory = (id: string) => {
-    setSelectedCategoryIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-  };
 
   const handleSave = () => {
     updateTemplate(
@@ -126,28 +118,15 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
             <GradientPickerField value={gradient} onChange={setGradient} />
           </div>
 
-          {/* Categories — simple checkbox list.
-              TODO(G2 → H1): replace with reusable CategoryChipPicker component
-              once Phase H1 ships. */}
-          {allCategories.length > 0 && (
-            <div className="flex flex-col gap-1.5">
-              <Label>Categories</Label>
-              <div className="flex max-h-40 flex-col gap-2 overflow-y-auto rounded-md border p-2">
-                {allCategories.map((cat) => (
-                  <label
-                    key={cat.id}
-                    className="flex cursor-pointer items-center gap-2 rounded-sm px-1 py-0.5 hover:bg-accent"
-                  >
-                    <Checkbox
-                      checked={selectedCategoryIds.includes(cat.id)}
-                      onCheckedChange={() => toggleCategory(cat.id)}
-                    />
-                    <span className="text-sm">{cat.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Categories */}
+          <div className="flex flex-col gap-1.5">
+            <Label>Categories</Label>
+            <CategoryChipPicker
+              selectedIds={selectedCategoryIds}
+              onChange={setSelectedCategoryIds}
+              disabled={isPending}
+            />
+          </div>
         </div>
 
         <DialogFooter>
