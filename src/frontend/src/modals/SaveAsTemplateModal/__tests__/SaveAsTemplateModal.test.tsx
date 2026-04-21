@@ -27,6 +27,17 @@ jest.mock(
   }),
 );
 
+// Default: user is a platform admin so Save button is enabled.
+jest.mock("@/hooks/use-is-platform-admin", () => ({
+  useIsPlatformAdmin: () => true,
+}));
+
+// CategoryChipPicker uses useListCategories — return empty list so it shows
+// "No categories defined" and doesn't break rendering.
+jest.mock("@/controllers/API/queries/categories", () => ({
+  useListCategories: () => ({ data: [] }),
+}));
+
 // Mock alertStore — match the shape of the existing Zustand selector pattern.
 // Existing modals import `useAlertStore` as the default export and call it
 // with a selector function.

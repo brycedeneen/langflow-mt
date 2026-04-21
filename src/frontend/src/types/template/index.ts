@@ -41,6 +41,9 @@ export type TemplateCreateBody = {
   icon?: string | null;
   gradient?: string | null;
   blanked_fields?: BlankedField[];
+  scope?: "platform" | "org";
+  org_id?: string | null;
+  category_ids?: string[];
 };
 
 export type TemplatePatchBody = {

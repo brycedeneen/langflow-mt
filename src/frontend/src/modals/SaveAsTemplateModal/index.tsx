@@ -5,7 +5,9 @@ import {
   useListTemplates,
   useUpdateTemplate,
 } from "@/controllers/API/queries/templates";
+import { useIsPlatformAdmin } from "@/hooks/use-is-platform-admin";
 import BaseModal from "@/modals/baseModal";
+import CategoryChipPicker from "@/modals/templatesModal/components/CategoryChipPicker";
 import useAlertStore from "@/stores/alertStore";
 import type { BlankedField, TemplateRead } from "@/types/template";
 import ConfirmOverwriteDialog from "./ConfirmOverwriteDialog";
@@ -33,6 +35,20 @@ type Props = {
 const DEFAULT_ICON = "FileText";
 const DEFAULT_GRADIENT = "0";
 
+/**
+ * Scope state:
+ *   "platform" → save as platform-scoped template (requires platform admin)
+ *
+ * NOTE: org-scoped save is not yet surfaced in this UI because the
+ * GET /api/v1/memberships/me endpoint does not exist — there is no way to
+ * enumerate the current user's orgs on the frontend. The scope selector is
+ * therefore hidden until that endpoint lands (Phase H gap: FU-7).
+ *
+ * Platform admins default to "platform" scope, which the backend accepts.
+ * Non-admin org members who try to save will receive a 403 from the server
+ * because the backend requires platform-admin status for platform scope,
+ * and we have no org_id to pass for org scope.
+ */
 export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -43,6 +59,9 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
   const [keptFieldKeys, setKeptFieldKeys] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [conflict, setConflict] = useState<TemplateRead | null>(null);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+
+  const isPlatformAdmin = useIsPlatformAdmin();
 
   // Reset state whenever the modal opens.
   useEffect(() => {
@@ -56,6 +75,7 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
       setKeptFieldKeys(new Set());
       setConfirmOpen(false);
       setConflict(null);
+      setSelectedCategoryIds([]);
     }
   }, [open, flow.description]);
 
@@ -64,7 +84,12 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
     return scanBlankableFields({ nodes });
   }, [flow.data?.nodes]);
 
-  const canSubmit = name.trim().length > 0;
+  // Non-platform-admin users cannot create platform-scoped templates, and we
+  // have no org_id to pass for org-scoped templates (memberships endpoint not
+  // yet available). Save is disabled for those users.
+  const canSave = isPlatformAdmin;
+
+  const canSubmit = name.trim().length > 0 && canSave;
 
   const createTemplate = useCreateTemplate();
   const { data: templatesList } = useListTemplates();
@@ -98,6 +123,10 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
       icon,
       gradient,
       blanked_fields,
+      // Always platform-scoped until memberships endpoint lands (see note above).
+      scope: "platform" as const,
+      org_id: null,
+      category_ids: selectedCategoryIds,
     };
   }, [
     blankableFields,
@@ -107,6 +136,7 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
     description,
     icon,
     gradient,
+    selectedCategoryIds,
   ]);
 
   function handleSubmit() {
@@ -225,6 +255,15 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
             </label>
 
             <div className="space-y-2">
+              <span className="block text-sm font-medium">Categories</span>
+              <CategoryChipPicker
+                selectedIds={selectedCategoryIds}
+                onChange={setSelectedCategoryIds}
+                disabled={submitting}
+              />
+            </div>
+
+            <div className="space-y-2">
               <span className="block text-sm font-medium">Icon</span>
               <IconPickerField value={icon} onChange={setIcon} />
             </div>
@@ -241,6 +280,14 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
               open={detailsOpen}
               onOpenChange={setDetailsOpen}
             />
+
+            {/* Non-admin notice */}
+            {!isPlatformAdmin && (
+              <p className="text-xs text-muted-foreground">
+                Only platform administrators can save templates. Contact your
+                admin to create a template on your behalf.
+              </p>
+            )}
           </div>
         </BaseModal.Content>
         <BaseModal.Footer>
@@ -251,6 +298,11 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
             <Button
               type="button"
               disabled={!canSubmit || submitting}
+              title={
+                !isPlatformAdmin
+                  ? "You aren't a member of any organization. Ask a platform admin to create a template on your behalf."
+                  : undefined
+              }
               onClick={handleSubmit}
             >
               {submitting ? "Saving…" : "Save as Template"}
