@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Literal
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field as PydanticField
-from sqlalchemy import JSON, CheckConstraint, Column, DateTime, ForeignKey, Index, String, Text, Uuid
+from sqlalchemy import JSON, CheckConstraint, Column, DateTime, ForeignKey, Index, String, Text, Uuid, text
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -28,8 +28,16 @@ class Template(SQLModel, table=True):
     """Authored template (platform or org-scoped)."""
 
     __tablename__ = "template"
+    # Match the Alembic-declared per-scope unique index (revision e0a0990b26b1):
+    # case-insensitive name uniqueness scoped by org_id, with a nil-UUID sentinel
+    # so platform-scoped rows (org_id IS NULL) share one namespace.
     __table_args__ = (
-        Index("uq_template_name_scope", "name", "scope", "org_id", unique=True),
+        Index(
+            "uq_template_name_per_scope",
+            text("COALESCE(org_id, '00000000-0000-0000-0000-000000000000')"),
+            text("LOWER(name)"),
+            unique=True,
+        ),
         CheckConstraint(
             "(scope = 'platform' AND org_id IS NULL) OR "
             "(scope = 'org' AND org_id IS NOT NULL)",

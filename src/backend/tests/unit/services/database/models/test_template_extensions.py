@@ -79,6 +79,15 @@ def test_template_rejects_org_scope_without_org_id(session: Session) -> None:
         session.commit()
 
 
+def test_template_name_is_case_insensitive_unique_per_scope(session: Session) -> None:
+    session.add(_make_template(name="Basic Prompting"))
+    session.commit()
+
+    session.add(_make_template(name="basic prompting"))
+    with pytest.raises(IntegrityError):
+        session.commit()
+
+
 def test_template_categories_many_to_many(session: Session) -> None:
     cat = Category(
         id=uuid4(),
