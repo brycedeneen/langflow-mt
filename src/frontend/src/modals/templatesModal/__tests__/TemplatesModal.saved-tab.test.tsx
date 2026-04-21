@@ -1,18 +1,42 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { track } from "@/customization/utils/analytics";
+import { updateIds } from "@/utils/reactflowUtils";
 import TemplatesModal from "../index";
 
-// Mocks — keep tight, only what the modal traverses.
+const mockAddFlow = jest.fn().mockResolvedValue("new-flow-id");
+const mockApiGet = jest.fn();
+
 jest.mock("@/controllers/API/queries/templates/use-list-templates", () => ({
   __esModule: true,
   useListTemplates: () => ({
-    data: [],
+    data: [
+      {
+        id: "11111111-1111-1111-1111-111111111111",
+        name: "Support Agent",
+        description: "Frontline triage",
+        icon: "Bot",
+        gradient: "2",
+        created_at: "2026-04-20T00:00:00Z",
+        updated_at: "2026-04-20T00:00:00Z",
+      },
+    ],
     isPending: false,
     isError: false,
     refetch: jest.fn(),
   }),
   TEMPLATES_QUERY_KEY: ["templates"],
+}));
+
+jest.mock("@/controllers/API/api", () => ({
+  __esModule: true,
+  api: { get: (...args: unknown[]) => mockApiGet(...args) },
+}));
+
+jest.mock("@/controllers/API/helpers/constants", () => ({
+  __esModule: true,
+  getURL: (key: string) => `/api/v1/${key.toLowerCase()}`,
 }));
 
 jest.mock("@/stores/flowsManagerStore", () => ({
@@ -23,7 +47,7 @@ jest.mock("@/stores/flowsManagerStore", () => ({
 
 jest.mock("@/hooks/flows/use-add-flow", () => ({
   __esModule: true,
-  default: () => jest.fn(),
+  default: () => mockAddFlow,
 }));
 
 jest.mock("@/customization/hooks/use-custom-navigate", () => ({
@@ -44,14 +68,24 @@ jest.mock("@/components/common/genericIconComponent", () => ({
   ),
 }));
 
-// GetStartedComponent transitively imports PNG assets at module load, which Jest
-// can't parse. Mock it out — this test doesn't traverse the get-started tab.
 jest.mock("../components/GetStartedComponent", () => ({
   __esModule: true,
   default: () => <div data-testid="get-started-stub" />,
 }));
 
+jest.mock("@/utils/reactflowUtils", () => ({
+  __esModule: true,
+  updateIds: jest.fn(),
+}));
+
 describe("TemplatesModal — Saved Templates tab", () => {
+  beforeEach(() => {
+    mockAddFlow.mockClear();
+    mockApiGet.mockReset();
+    (updateIds as jest.Mock).mockClear();
+    (track as jest.Mock).mockClear();
+  });
+
   it("shows the Saved Templates nav item and switches to it on click", () => {
     render(
       <MemoryRouter>
@@ -64,7 +98,52 @@ describe("TemplatesModal — Saved Templates tab", () => {
     expect(navItem).toBeInTheDocument();
 
     fireEvent.click(navItem);
-    // Empty-state copy from SavedTemplatesContent confirms the tab rendered.
-    expect(screen.getByTestId("saved-templates-empty")).toBeInTheDocument();
+    expect(screen.getByText("Support Agent")).toBeInTheDocument();
+  });
+
+  it("creates a flow from a saved template on Start building", async () => {
+    mockApiGet.mockResolvedValue({
+      data: {
+        id: "11111111-1111-1111-1111-111111111111",
+        name: "Support Agent",
+        description: "Frontline triage",
+        icon: "Bot",
+        gradient: "2",
+        nodes: [{ id: "node-a" }],
+        edges: [{ id: "edge-a" }],
+        created_at: "2026-04-20T00:00:00Z",
+        updated_at: "2026-04-20T00:00:00Z",
+      },
+    });
+
+    render(
+      <MemoryRouter>
+        <TooltipProvider>
+          <TemplatesModal open={true} setOpen={jest.fn()} />
+        </TooltipProvider>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByTestId("side_nav_options_saved-templates"));
+    fireEvent.click(screen.getByText("Support Agent"));
+    fireEvent.click(screen.getByRole("button", { name: /start building/i }));
+
+    await waitFor(() => expect(mockAddFlow).toHaveBeenCalledTimes(1));
+
+    expect(mockApiGet).toHaveBeenCalledWith(
+      "/api/v1/templates/11111111-1111-1111-1111-111111111111",
+    );
+    const callArg = mockAddFlow.mock.calls[0][0];
+    expect(callArg.flow.name).toBe("Support Agent");
+    expect(callArg.flow.data.nodes).toEqual([{ id: "node-a" }]);
+    expect(callArg.flow.data.edges).toEqual([{ id: "edge-a" }]);
+    expect(callArg.built_with_assist).toBe(false);
+    expect(callArg.based_on_template_flow_id).toBeNull();
+
+    expect(updateIds).toHaveBeenCalledWith(callArg.flow.data);
+    expect(track).toHaveBeenCalledWith("New Flow Created", {
+      template: "Support Agent",
+      entry: "start-building",
+    });
   });
 });

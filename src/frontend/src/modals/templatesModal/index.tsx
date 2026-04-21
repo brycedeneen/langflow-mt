@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { api } from "@/controllers/API/api";
+import { getURL } from "@/controllers/API/helpers/constants";
 import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
 import { track } from "@/customization/utils/analytics";
 import useAddFlow from "@/hooks/flows/use-add-flow";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
+import type { AllNodeType, EdgeType, FlowType } from "@/types/flow";
+import type { TemplateReadDetail } from "@/types/template";
 import type { Category } from "@/types/templates/types";
 import { updateIds } from "@/utils/reactflowUtils";
 import { openFlowInFullscreenAssist } from "@/utils/assist-entry";
@@ -15,6 +19,19 @@ import GetStartedComponent from "./components/GetStartedComponent";
 import { Nav } from "./components/navComponent";
 import SavedTemplatesContent from "./components/SavedTemplatesContent";
 import TemplateContentComponent from "./components/TemplateContentComponent";
+
+function adaptTemplateDetailToFlow(detail: TemplateReadDetail): FlowType {
+  return {
+    id: detail.id,
+    name: detail.name,
+    description: detail.description ?? "",
+    data: {
+      nodes: detail.nodes as unknown as AllNodeType[],
+      edges: detail.edges as unknown as EdgeType[],
+      viewport: { x: 0, y: 0, zoom: 1 },
+    },
+  };
+}
 
 export default function TemplatesModal({
   open,
@@ -37,17 +54,36 @@ export default function TemplatesModal({
     handleFlowCreating(true);
     try {
       let id: string;
+      let templateAnalyticsName = selectedTemplate;
+
       if (selectedTemplate === "blank") {
         id = await addFlow({ new_blank: true, built_with_assist: withAssist });
+        templateAnalyticsName = "Blank Flow";
+      } else if (selectedTemplate.startsWith("tpl:")) {
+        const templateId = selectedTemplate.slice("tpl:".length);
+        const { data: detail } = await api.get<TemplateReadDetail>(
+          `${getURL("TEMPLATES")}/${templateId}`,
+        );
+        const flowPayload = adaptTemplateDetailToFlow(detail);
+        updateIds(flowPayload.data!);
+        // `based_on_template_flow_id` is a FK to `flow.id`; `detail.id` is a
+        // `template.id`, so override the auto-fallback to avoid FK violations.
+        id = await addFlow({
+          flow: flowPayload,
+          built_with_assist: withAssist,
+          based_on_template_flow_id: null,
+        });
+        templateAnalyticsName = detail.name;
       } else {
         const example = examples.find((e) => e.id === selectedTemplate);
         if (!example) return;
         updateIds(example.data!);
         id = await addFlow({ flow: example, built_with_assist: withAssist });
+        templateAnalyticsName = example.name;
       }
+
       track("New Flow Created", {
-        template:
-          selectedTemplate === "blank" ? "Blank Flow" : selectedTemplate,
+        template: templateAnalyticsName,
         entry: withAssist ? "build-with-assist" : "start-building",
       });
       setOpen(false);
