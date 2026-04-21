@@ -137,6 +137,24 @@ describe("IconPickerField", () => {
     expect(parsed.length).toBe(1);
   });
 
+  it("arrow-key navigation moves focus through grid cells; Enter selects", () => {
+    const handleChange = jest.fn();
+    render(<IconPickerField value="FileText" onChange={handleChange} />);
+    openPicker();
+
+    const listbox = screen.getByRole("listbox", { name: /^icons$/i });
+    const initialFocus = listbox.getAttribute("aria-activedescendant");
+    expect(initialFocus).not.toBeNull();
+
+    fireEvent.keyDown(listbox, { key: "ArrowRight" });
+    const afterRight = listbox.getAttribute("aria-activedescendant");
+    expect(afterRight).not.toBe(initialFocus);
+
+    fireEvent.keyDown(listbox, { key: "Enter" });
+    expect(handleChange).toHaveBeenCalledTimes(1);
+    expect(typeof handleChange.mock.calls[0][0]).toBe("string");
+  });
+
   it("Escape closes the popover", () => {
     render(<IconPickerField value="FileText" onChange={() => {}} />);
     openPicker();

@@ -2,11 +2,17 @@
 // Used by Jest via moduleNameMapper because the real .mjs re-export can't be
 // parsed by Jest's CJS runner. Production (Vite) imports the real lucide module.
 //
-// Regenerate after bumping lucide-react:
+// Regenerate after bumping lucide-react. The exported shape MUST end with
+// `module.exports = { default: dynamicIconImports, __esModule: true };` —
+// lucideIconNames.ts uses `import dynamicIconImports from ".../dynamicIconImports"`,
+// which depends on the `__esModule` marker to pick up the inner map. Without
+// it, the default import resolves to the wrapper object and Object.keys()
+// returns ["default"], silently degrading the picker.
+//
 //   node -e "import('lucide-react/dynamicIconImports').then(m => { \
 //     const keys = Object.keys(m.default); \
-//     const body = keys.map(k => \`  \\\"\${k}\\\": () => Promise.resolve({ default: null }),\`).join('\n'); \
-//     console.log(\`const dynamicIconImports = {\n\${body}\n};\nmodule.exports = dynamicIconImports;\nmodule.exports.default = dynamicIconImports;\`); \
+//     const body = keys.map(k => \`  \\\"\${k}\\\": () => Promise.resolve({ default: null })\`).join(',\n'); \
+//     console.log(\`const dynamicIconImports = {\n\${body}\n};\nmodule.exports = { default: dynamicIconImports, __esModule: true };\`); \
 //   })" > src/__mocks__/lucide-react-dynamicIconImports.js
 const dynamicIconImports = {
   "a-arrow-down": () => Promise.resolve({ default: null }),

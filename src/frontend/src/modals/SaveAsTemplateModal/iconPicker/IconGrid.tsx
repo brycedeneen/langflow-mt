@@ -12,17 +12,14 @@ type Props = {
   names: string[];
   selected: string;
   onSelect: (name: string) => void;
-  /** Auto-focus the first cell when this becomes true (e.g. after Tab from search input). */
-  autoFocus?: boolean;
 };
 
-export default function IconGrid({ names, selected, onSelect, autoFocus }: Props) {
+export default function IconGrid({ names, selected, onSelect }: Props) {
   const cellIdPrefix = useId();
   const [focusIndex, setFocusIndex] = useState<number>(() => {
     const i = names.indexOf(selected);
     return i >= 0 ? i : 0;
   });
-  const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<FixedSizeGrid>(null);
 
   // Re-clamp focus when the names list shrinks (e.g. user types and filters down).
@@ -38,10 +35,6 @@ export default function IconGrid({ names, selected, onSelect, autoFocus }: Props
     const columnIndex = focusIndex % COLUMN_COUNT;
     gridRef.current?.scrollToItem({ rowIndex, columnIndex, align: "smart" });
   }, [focusIndex]);
-
-  useEffect(() => {
-    if (autoFocus) containerRef.current?.focus();
-  }, [autoFocus]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -120,7 +113,6 @@ export default function IconGrid({ names, selected, onSelect, autoFocus }: Props
 
   return (
     <div
-      ref={containerRef}
       tabIndex={0}
       role="listbox"
       aria-label="Icons"
