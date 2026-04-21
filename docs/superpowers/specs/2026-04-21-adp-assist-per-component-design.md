@@ -11,9 +11,11 @@ An AI icon in every component node's toolbar opens a small, ephemeral chat popov
 2. **Lifetime** — conversation is in-memory only. Closing the popover discards the thread. No DB persistence, no session cache in v1.
 3. **Tool surface** — one tool: `propose_config_update`. Proposals render inline in the chat as interactive blocks with Apply/Dismiss buttons. Apply is a purely client-side mutation using the existing flow-store update path.
 
-The motivating use case is the in-flight `FieldMapper` component: a user pastes a spec extract or describes rules in plain English, the assistant inspects the upstream schema and proposes a field mapping, the user reviews and applies it. The design is generic enough to support any component.
+The typical use case is natural-language configuration: a user describes intent in plain English, the assistant inspects the component schema (plus direct-neighbor schemas), and proposes field edits the user reviews and applies. The design is generic enough to support any component that opts in.
 
-As part of shipping this feature, we populate starting `assist_guide` content for **every existing user-facing component** (~400 classes across `src/backend/base/langflow/components/**` and `src/lfx/src/lfx/components/**`), auto-generated from each component's existing metadata (`display_name`, `description`, `documentation`, per-input `info` fields) and lightly reviewed. See Section 9.
+**Scope exclusion:** `DataMapperComponent` ships with its own dedicated agent and is explicitly excluded from ADP Assist. Components can opt out via a class attribute `assist_enabled: ClassVar[bool] = False` (default `True`). The Assist toolbar icon is suppressed on opted-out components and the backend rejects direct requests for them.
+
+As part of shipping this feature, we populate starting `assist_guide` content for **every eligible user-facing component** (~400 classes across `src/backend/base/langflow/components/**` and `src/lfx/src/lfx/components/**`, minus opted-out classes like `DataMapperComponent`), auto-generated from each component's existing metadata (`display_name`, `description`, `documentation`, per-input `info` fields) and lightly reviewed. See Section 7.
 
 ## Section 1: Architecture
 
@@ -40,6 +42,7 @@ Apply: flowStore.updateNodeTemplate           • No DB writes, no session cache
 - **SSE streaming.** Same transport as the flow-level assistant. Event types: `text-delta`, `tool-call`, `done`, `error`.
 - **Single tool surface.** `propose_config_update(node_id, patch)` is the only tool. It does not apply the patch server-side — it streams the proposal to the client as a tool-call event; the client renders it as an interactive `ProposalBlock`. Apply happens via the existing client-side flow-store mutation (same code path as manual edits).
 - **Component guide registry.** Guides are resolved in this order: (1) `assist_guide: ClassVar[str]` on the component class (co-located, highest priority — component authors editing a single component use this); (2) a curated bundle at `src/backend/base/langflow/services/component_assist/guides/*.yaml` keyed by component type (used for the bulk-populated starting guides); (3) fallback to a generic prompt. The backend injects the resolved guide into the system prompt when building the request for a node.
+- **Opt-out contract.** A component may set `assist_enabled: ClassVar[bool] = False` to disable ADP Assist for itself (used by `DataMapperComponent`, which has its own bespoke agent). The frontend suppresses the Assist icon on the node toolbar when the component's `assist_enabled` is `False`, and the backend endpoint returns 400 if a request targets an opted-out component.
 - **Multi-tenant inheritance.** Requests require `flow_id` for auth and pick up the same org/workspace scoping the flow-level assistant enforces. No new auth surface.
 - **Model inheritance.** Uses whatever model the user has configured for the flow-level assistant. No separate setting in v1.
 - **ADP red branding.** A new CSS variable `--color-adp-red: #ED1C2E` is introduced. Popover border, header gradient, Apply button, and brand-mark dot all reference it. This is distinct from `--destructive`, which is reserved for error states.
@@ -63,8 +66,8 @@ Only one component assist popover is open at a time. Opening a second popover cl
 | `src/backend/base/langflow/services/component_assist/service.py` | `ComponentAssistService`: build system prompt, drive LLM, stream SSE events. |
 | `src/backend/base/langflow/services/component_assist/prompt.py` | Generic base system prompt; guide-injection helper. |
 | `src/backend/base/langflow/services/component_assist/tools.py` | `propose_config_update` tool schema. Pydantic model for the patch shape. |
-| `src/backend/base/langflow/services/component_assist/guide_registry.py` | Resolves a component's guide by checking class attribute first, then the YAML bundle, then returning `None`. Caches the YAML bundle on first load. |
-| `src/backend/base/langflow/services/component_assist/guides/*.yaml` | Bundled starting guides. One or more YAML files keyed by component type. Generated by `scripts/generate_component_assist_guides.py` (see Section 9) and hand-reviewed. |
+| `src/backend/base/langflow/services/component_assist/guide_registry.py` | Resolves a component's guide (class attr → YAML bundle → `None`); also exposes `is_assist_enabled(cls)` (True unless the class sets `assist_enabled: ClassVar[bool] = False`). |
+| `src/backend/base/langflow/services/component_assist/guides/*.yaml` | Bundled starting guides. One or more YAML files keyed by component type. Generated by `scripts/generate_component_assist_guides.py` (see Section 7) and hand-reviewed. |
 | `scripts/generate_component_assist_guides.py` | One-shot generator script. Walks the `components/` directories, extracts metadata per class, calls an LLM to synthesize a 1–2 paragraph guide, emits YAML. Idempotent and re-runnable. |
 
 ### Request schema
@@ -98,16 +101,16 @@ The service validates that `patch` keys exist on the target node's template befo
 Any `Component` subclass can opt into specialized guidance:
 
 ```python
-class FieldMapperComponent(Component):
+class TextOperationsComponent(Component):
     assist_guide: ClassVar[str] = """
-    You help users configure field mappings. Prefer exact name matches,
-    then case-insensitive, then type-compatible. For ambiguous matches,
-    ask the user. Return the full mapping dict, not a partial patch, so
-    users can review the whole result at once.
+    You help users configure text operations. Ask which operation they want
+    (split, join, trim, replace), then which input fields feed it, then
+    any operation-specific options. Prefer concrete suggestions over open-ended
+    questions; the user can always reject and iterate.
     """
 ```
 
-`guide_registry.py` reads the attribute via `getattr(cls, "assist_guide", None)`. No decorator, no registration call, no plugin discovery — if the class has the attribute, it's used. If absent, the registry falls back to the YAML bundle (Section 9); if that's also absent, the generic prompt is used.
+`guide_registry.py` reads the attribute via `getattr(cls, "assist_guide", None)`. No decorator, no registration call, no plugin discovery — if the class has the attribute, it's used. If absent, the registry falls back to the YAML bundle (Section 7); if that's also absent, the generic prompt is used.
 
 ## Section 3: Frontend
 
@@ -207,7 +210,7 @@ Open-while-another-is-open triggers a confirm dialog if `thread.length > 0`. Clo
 
 ### Integration smoke test
 
-Fixture flow with `Source → FieldMapper`. Open Assist on `FieldMapper`, send *"map all fields from source to output,"* assert a `ProposalBlock` appears with 4 mappings, click Apply, assert `FieldMapper.template.mapping` now contains those 4 entries. Uses the existing backend test harness with a stubbed LLM response.
+Fixture flow with one upstream source node and one generic target component that has `assist_enabled=True` (e.g., `TextOperationsComponent`). Open Assist on the target, send a configuration request, assert a `ProposalBlock` appears, click Apply, assert the target's template now reflects the proposed patch. Uses the existing backend test harness with a stubbed LLM response. A separate assertion confirms that a component with `assist_enabled=False` does NOT render the Assist icon.
 
 ## Section 7: Initial Component Guide Population
 
@@ -252,15 +255,14 @@ The script is idempotent: re-runs pick up newly added components, skip those wit
 
 ```yaml
 # guides/processing.yaml
-- type: FieldMapperComponent
-  guide: |
-    You help users configure field mappings between the upstream row schema
-    and the output shape. Prefer exact field-name matches, then case-insensitive,
-    then type-compatible. Ask about ambiguous cases rather than guessing.
-    Always return the full mapping dict so the user can review every field
-    at once, not incremental patches.
-
 - type: TextOperationsComponent
+  guide: |
+    You help users configure text operations. Confirm which operation they want
+    (split / join / trim / replace), which input field feeds it, and any
+    operation-specific options. Propose concrete configurations rather than
+    asking open-ended questions — the user can reject and iterate cheaply.
+
+- type: SplitTextComponent
   guide: |
     ...
 ```
@@ -277,7 +279,8 @@ The registry loads all YAML files at startup, merges into a single `type → gui
 ### Acceptance bar for v1
 
 - Every non-excluded component has *some* entry in the bundle (generic fallback acceptable where metadata is too thin).
-- The `FieldMapper` component has a hand-authored guide on the class itself as the reference example.
+- At least one high-traffic component (e.g., `TextOperationsComponent` or an LLM/agent component) has a hand-authored `assist_guide` on its class to validate the class-attribute priority path. Choice of which component is left to the executor based on metadata completeness.
+- `DataMapperComponent` is **excluded** from the bundle (it has its own bespoke agent).
 - The review-report surfaces at most ~20% of components flagged for manual enrichment; those are tracked as a follow-up task, not a v1 blocker.
 
 ## Section 8: Out of Scope for v1
@@ -294,6 +297,6 @@ Deferred explicitly:
 
 ## Section 9: Dependencies
 
-- The `FieldMapper` component (in flight — commits `9d39022` through `45b450c` under `src/lfx/src/lfx/components/processing/_data_mapper/`) should be canvas-exposed before this feature's motivating demo is possible. This feature does not block on `FieldMapper`, but the first shipped `assist_guide` will live on `FieldMapper`.
+- `DataMapperComponent` is **out of scope** and must not be affected by this work — it has its own bespoke agent (see project memory `project_data_mapper_dedicated_agent.md`). ADP Assist is opted out on DataMapper via `assist_enabled: ClassVar[bool] = False`.
 - Inherits the existing flow-level assistant's LLM client, SSE streaming primitives, and auth guards.
-- Inherits the existing flow zustand store's `updateNodeTemplate` mutation — no new store write path is introduced.
+- Inherits the existing flow zustand store's `setNode` mutation — no new store write path is introduced.

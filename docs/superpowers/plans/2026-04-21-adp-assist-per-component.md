@@ -2,7 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship the per-component ephemeral ADP Assist feature end-to-end: the Assist icon in each node toolbar opens an ephemeral chat popover scoped to configuring that single component, with one hand-authored `assist_guide` on `DataMapperComponent` as the reference example. Excludes the bulk generator for the remaining ~400 component guides — that ships in a follow-up plan (`2026-04-21-adp-assist-bulk-guide-generator.md`).
+**Goal:** Ship the per-component ephemeral ADP Assist feature end-to-end: the Assist icon in each node toolbar opens an ephemeral chat popover scoped to configuring that single component. Includes a class-level opt-out (`assist_enabled: ClassVar[bool] = False`) that is applied to `DataMapperComponent` — DataMapper has its own bespoke agent and must NOT be touched by this feature. One high-traffic non-excluded component (e.g., `TextOperationsComponent`) gets a hand-authored `assist_guide` to validate the class-attribute priority path. Excludes the bulk generator for the remaining ~400 component guides — that ships in a follow-up plan (`2026-04-21-adp-assist-bulk-guide-generator.md`).
+
+**⚠ Important — do not touch DataMapper work:** `DataMapperComponent` has its own dedicated agent under active development. For this plan, DataMapper-related changes are limited to adding exactly one class attribute (`assist_enabled: ClassVar[bool] = False`) on the `DataMapperComponent` class. Do not modify its inputs, outputs, config schema, transforms, engine, or any `_data_mapper/` internals. If a task here seems to require deeper DataMapper changes, stop and raise it.
 
 **Architecture:** A new stateless SSE endpoint (`POST /api/v1/assistant/components/messages`) streams LLM responses and `propose_config_update` tool calls. A new `ComponentAssistService` resolves an `assist_guide` for the target node (class attribute → YAML bundle → generic), builds a scoped system prompt from the node + direct-neighbor snapshots, and streams events. On the frontend, a new zustand-backed popover renders a chat UI with inline proposal blocks; Apply mutates the flow store via the existing `setNode` path.
 
@@ -61,7 +63,8 @@
 | `src/frontend/src/style/index.css` | Add `--color-adp-red: 353 85% 52%;` inside `:root` HSL block (matches existing `hsl(var(...))` convention). |
 | `src/backend/base/langflow/api/router.py` | Include `component_assist_router` under `/api/v1`. |
 | `src/frontend/src/pages/FlowPage/components/nodeToolbarComponent/index.tsx` | Add `ToolbarButton` for Assist, wired to `componentAssistStore.open(nodeId, anchorRect)`. |
-| `src/lfx/src/lfx/components/processing/data_mapper.py` | Add `assist_guide: ClassVar[str]` (DataMapperComponent reference guide). |
+| `src/lfx/src/lfx/components/processing/data_mapper.py` | Add exactly one line: `assist_enabled: ClassVar[bool] = False`. **No other changes.** |
+| `src/lfx/src/lfx/components/processing/text_operations.py` (or similar) | Add a hand-authored `assist_guide: ClassVar[str]` as the reference example for the class-attribute priority path. |
 
 ---
 
@@ -345,6 +348,18 @@ def test_returns_none_when_nothing_found(monkeypatch: pytest.MonkeyPatch):
     assert guide_registry.resolve(_FakeWithoutGuide) is None
 
 
+class _FakeOptedOut:
+    assist_enabled: ClassVar[bool] = False
+
+
+def test_is_assist_enabled_defaults_true():
+    assert guide_registry.is_assist_enabled(_FakeWithoutGuide) is True
+
+
+def test_is_assist_enabled_honors_class_attribute():
+    assert guide_registry.is_assist_enabled(_FakeOptedOut) is False
+
+
 def test_yaml_bundle_loads_and_merges(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     (tmp_path / "a.yaml").write_text("- type: A\n  guide: from-a\n")
     (tmp_path / "b.yaml").write_text("- type: B\n  guide: from-b\n")
@@ -414,6 +429,15 @@ def resolve(component_cls: type) -> str | None:
     if isinstance(inline, str) and inline.strip():
         return inline
     return _load_yaml_bundle().get(component_cls.__name__)
+
+
+def is_assist_enabled(component_cls: type) -> bool:
+    """Return ``False`` only when the class explicitly opts out via ``assist_enabled = False``.
+
+    Components opt out when they ship their own bespoke assistant (e.g., DataMapperComponent).
+    """
+    value = getattr(component_cls, "assist_enabled", True)
+    return bool(value)
 
 
 def reset_cache() -> None:
@@ -929,6 +953,17 @@ async def test_404_when_flow_missing(client_authed: AsyncClient):
     assert resp.status_code == 404
 
 
+async def test_400_when_component_opts_out(
+    client_authed: AsyncClient, own_flow_id: str, monkeypatch
+):
+    """DataMapperComponent sets assist_enabled=False; the endpoint must refuse."""
+    body = _minimal_body(own_flow_id)
+    body["node_snapshot"]["type"] = "DataMapperComponent"
+    resp = await _post(client_authed, body)
+    assert resp.status_code == 400
+    assert "opted out" in resp.json()["detail"].lower() or "assist_enabled" in resp.json()["detail"]
+
+
 async def test_happy_path_streams_events(
     client_authed: AsyncClient, own_flow_id: str, scripted_llm_patch
 ):
@@ -970,7 +1005,10 @@ from sse_starlette.sse import EventSourceResponse
 
 from langflow.api.utils import CurrentActiveUser, CurrentOrg, DbSession
 from langflow.api.v1.assistant import _get_flow_with_org_check, _build_llm_client
-from langflow.services.component_assist.guide_registry import resolve as resolve_guide
+from langflow.services.component_assist.guide_registry import (
+    is_assist_enabled,
+    resolve as resolve_guide,
+)
 from langflow.services.component_assist.schemas import ComponentAssistRequest
 from langflow.services.component_assist.service import ComponentAssistService
 
@@ -1003,6 +1041,14 @@ async def component_assist_messages(
     await _get_flow_with_org_check(session=session, flow_id=body.flow_id, org=org)
 
     component_cls = _resolve_component_class(body.node_snapshot.type)
+    if component_cls is not None and not is_assist_enabled(component_cls):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Component '{body.node_snapshot.type}' has opted out of ADP Assist "
+                "(see assist_enabled=False). It ships with its own bespoke agent."
+            ),
+        )
     guide = resolve_guide(component_cls) if component_cls is not None else None
 
     llm = _build_llm_client(org=org, user=current_user)
@@ -1925,39 +1971,57 @@ const openComponentAssist = useComponentAssistStore((s) => s.open);
 const anchorRef = useRef<HTMLDivElement>(null);
 ```
 
-- [ ] **Step 3: Add the Assist button to the toolbar fragment**
+- [ ] **Step 3: Read the `assist_enabled` flag off the node**
 
-Insert this `ToolbarButton` at the start of the existing button list (so it's leftmost):
+The component's `assist_enabled` class attribute is exposed on the node's frontend template as part of the normal build-config path. Confirm by inspecting `data.node.template.assist_enabled` in a logged-out `console.log(data)` on a DataMapper node; otherwise it's available via `data.node.metadata.assist_enabled` (verify with a grep in `src/frontend/src/` for how other ClassVar flags like `legacy` surface on the frontend).
+
+Derive a local boolean:
 
 ```tsx
-<ToolbarButton
-  icon="Sparkles"
-  label="Assist"
-  iconClassName="text-adp-red"
-  onClick={() => {
-    const rect = anchorRef.current?.getBoundingClientRect() ?? null;
-    openComponentAssist(data.id, rect);
-  }}
-  dataTestId="component-assist-button"
-/>
+const assistEnabled = (data?.node?.metadata?.assist_enabled ?? data?.node?.template?.assist_enabled ?? true) !== false;
+```
+
+If neither location carries the flag, add a small backend adjustment (in a preliminary task committed separately): in the component's frontend-node serializer, emit `metadata.assist_enabled = getattr(cls, "assist_enabled", True)`. Never invent a new API surface — use whichever existing class-level-flag pathway `legacy` rides on.
+
+- [ ] **Step 4: Add the Assist button to the toolbar fragment, gated by the flag**
+
+Insert this `ToolbarButton` at the start of the existing button list (leftmost), wrapped in the enablement check:
+
+```tsx
+{assistEnabled && (
+  <ToolbarButton
+    icon="Sparkles"
+    label="Assist"
+    iconClassName="text-adp-red"
+    onClick={() => {
+      const rect = anchorRef.current?.getBoundingClientRect() ?? null;
+      openComponentAssist(data.id, rect);
+    }}
+    dataTestId="component-assist-button"
+  />
+)}
 ```
 
 If `ToolbarButton` doesn't accept `iconClassName`, extend its props (one-line addition in `ToolbarButton.tsx`) to forward a classname into the `ForwardedIconComponent`.
 
-- [ ] **Step 4: Attach the anchor ref to the toolbar wrapper**
+- [ ] **Step 5: Attach the anchor ref to the toolbar wrapper**
 
 Find the outer `<div>` that wraps the toolbar buttons. Attach `ref={anchorRef}` so the popover can anchor off its screen rect.
 
-- [ ] **Step 5: Manual smoke test**
+- [ ] **Step 6: Manual smoke test (including opt-out)**
 
 ```bash
 make backend  # terminal 1
 make frontend # terminal 2
 ```
 
-Open `http://localhost:3000`, open a flow, click any node, click the new red ✨ **Assist** button. The popover should open anchored near the node with the greeting. Close it with ✕. Kill the dev processes.
+Open `http://localhost:3000`, open a flow that contains a DataMapper component and at least one other component. Confirm:
+1. The **non-DataMapper** node shows the red ✨ **Assist** button. Click it — the popover opens anchored near the node with the greeting. Close it with ✕.
+2. The **DataMapper** node does NOT show the Assist button (it has `assist_enabled=False`).
 
-- [ ] **Step 6: Commit**
+Kill the dev processes.
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add src/frontend/src/pages/FlowPage/components/nodeToolbarComponent/index.tsx \
@@ -1967,110 +2031,150 @@ git commit -m "feat(component-assist): add Assist icon to node toolbar"
 
 ---
 
-## Task 12: Hand-authored `assist_guide` on `DataMapperComponent`
+## Task 12: DataMapper opt-out + one reference `assist_guide` on a non-excluded component
+
+**⚠ DataMapper hands-off:** DataMapperComponent has its own dedicated agent under active development. The ONLY change to DataMapper in this task is a single new class attribute. Do not touch its inputs, outputs, engine, transforms, or config schema.
 
 **Files:**
-- Modify: `src/lfx/src/lfx/components/processing/data_mapper.py`
-- Create: `src/lfx/tests/unit/components/processing/test_data_mapper_assist_guide.py`
+- Modify: `src/lfx/src/lfx/components/processing/data_mapper.py` (opt-out line only)
+- Modify: a non-excluded reference component — `src/lfx/src/lfx/components/processing/text_operations.py` (if present) OR another high-traffic component chosen by the executor based on metadata completeness
+- Create: `src/lfx/tests/unit/components/processing/test_assist_opt_out_and_guide.py`
+
+### 12A · DataMapper opt-out
 
 - [ ] **Step 1: Write the failing test**
 
 ```python
-"""The DataMapperComponent should expose a substantive assist_guide."""
+"""DataMapper must opt out of ADP Assist; the reference component must expose a guide."""
 from __future__ import annotations
 
 from lfx.components.processing.data_mapper import DataMapperComponent
+from langflow.services.component_assist.guide_registry import (
+    is_assist_enabled,
+    resolve as resolve_guide,
+)
 
 
-def test_data_mapper_has_assist_guide():
-    assert isinstance(getattr(DataMapperComponent, "assist_guide", None), str)
-    assert len(DataMapperComponent.assist_guide) > 200  # non-trivial body
-    assert "mapping" in DataMapperComponent.assist_guide.lower()
+def test_data_mapper_opts_out_of_assist():
+    assert is_assist_enabled(DataMapperComponent) is False
+
+
+def test_reference_component_has_guide():
+    # Import the chosen reference component. Executor: update this import to match
+    # whichever component you pick in Step 3 below.
+    from lfx.components.processing.text_operations import TextOperationsComponent
+
+    guide = resolve_guide(TextOperationsComponent)
+    assert isinstance(guide, str) and len(guide) > 200
+    assert is_assist_enabled(TextOperationsComponent) is True
 ```
 
 - [ ] **Step 2: Run and confirm failure**
 
 ```bash
-LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest src/lfx/tests/unit/components/processing/test_data_mapper_assist_guide.py -v
+LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest src/lfx/tests/unit/components/processing/test_assist_opt_out_and_guide.py -v
 ```
-Expected: `AttributeError` / assertion failure.
+Expected: `AttributeError` / assertion failure on both tests.
 
-- [ ] **Step 3: Add the guide to the component class**
+- [ ] **Step 3: Add the opt-out to DataMapperComponent**
 
-Open `src/lfx/src/lfx/components/processing/data_mapper.py`. Near the top of the `DataMapperComponent` class (alongside `display_name`/`description`), add:
+Open `src/lfx/src/lfx/components/processing/data_mapper.py`. Locate the `DataMapperComponent` class definition. Add **exactly one** class attribute (plus the `ClassVar` import if it isn't already present). Do not touch anything else.
 
 ```python
-from typing import ClassVar
+from typing import ClassVar  # only if not already imported
 
 class DataMapperComponent(Component):
-    display_name: str = "Data Mapper"
-    # ... existing class attributes ...
-
-    assist_guide: ClassVar[str] = """
-You help the user configure a field mapping between the upstream row(s) and the output shape.
-
-Approach, in order:
-1. Prefer exact field-name matches between upstream and output fields.
-2. Fall back to case-insensitive matches.
-3. Fall back to type-compatible matches (e.g., both strings, both numbers).
-4. For any ambiguous field, ask a short clarifying question before proposing.
-
-When you propose a mapping:
-- Always propose the full mapping dict at once, not incremental per-field patches — users want
-  to review the whole result in a single pass.
-- Include every upstream field. If a field has no reasonable destination, explicitly map it
-  to `_MISSING` so the user sees it was considered.
-- If the user provides a spec or list of rules, apply those rules literally before inferring.
-
-Neighbor context:
-- The direct upstream node's output schema is the source of truth for available fields.
-- If the user asks about a field you cannot see in neighbor snapshots, ask them to paste the
-  relevant excerpt rather than guessing.
-
-Transform hints:
-- Use `direct` for pass-through, `static` for constants, `variable` for environment/workspace
-  variables, `template` for jinja2 string composition, `expression` for arithmetic/boolean,
-  and `array` for list construction.
-""".strip()
+    # ... existing attributes ...
+    assist_enabled: ClassVar[bool] = False  # ADP Assist opt-out — DataMapper has its own bespoke agent
+    # ... rest of class unchanged ...
 ```
 
-- [ ] **Step 4: Run and confirm passing**
+- [ ] **Step 4: Confirm DataMapper test passes; reference-guide test still fails**
 
 ```bash
-LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest src/lfx/tests/unit/components/processing/test_data_mapper_assist_guide.py -v
+LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest src/lfx/tests/unit/components/processing/test_assist_opt_out_and_guide.py::test_data_mapper_opts_out_of_assist -v
 ```
-Expected: 1 passed.
+Expected: pass.
 
-- [ ] **Step 5: Apply component-authoring ritual**
+```bash
+LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest src/lfx/tests/unit/components/processing/test_assist_opt_out_and_guide.py::test_reference_component_has_guide -v
+```
+Expected: still fails (no guide yet).
 
-Per `.claude/skills/langflow-component-authoring/SKILL.md`, bump the component version and append to the changelog because `DataMapperComponent` has a user-visible change (documented behavior contract added). Follow whatever the skill prescribes (typically a `version` bump + an entry in the changelog attribute).
+### 12B · Reference guide on `TextOperationsComponent`
 
-- [ ] **Step 6: Rebuild the component index**
+- [ ] **Step 5: Add `assist_guide` to the reference component**
+
+Open `src/lfx/src/lfx/components/processing/text_operations.py`. If this component doesn't exist, grep `src/lfx/src/lfx/components/` for a high-traffic processing component with rich metadata (populated `description` and per-input `info` strings on at least 3 inputs) and substitute it throughout — then update the test's import line accordingly.
+
+Add the `ClassVar` import if needed, then add the guide alongside existing class attributes:
+
+```python
+from typing import ClassVar  # if not already imported
+
+class TextOperationsComponent(Component):
+    # ... existing attributes ...
+
+    assist_guide: ClassVar[str] = """
+You help the user configure text operations on an input string.
+
+Approach:
+1. Ask (or infer from the user's message) which operation they want: split, join, trim, replace,
+   uppercase, or lowercase.
+2. Confirm the input source — the upstream neighbor's output field that feeds this component's
+   text input. If the upstream snapshot doesn't make it obvious, ask.
+3. Propose operation-specific settings: for split, the delimiter; for replace, the find/replace
+   pair; for join, the separator; etc.
+
+When proposing config:
+- Propose a concrete, applyable patch — don't ask the user to fill in blanks they could reject.
+- If the user seems to want something the component can't do (e.g., regex when only literal
+  replace is available), say so plainly and suggest either rephrasing or a different component.
+""".strip()
+    # ... rest of class unchanged ...
+```
+
+- [ ] **Step 6: Run and confirm both tests pass**
+
+```bash
+LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest src/lfx/tests/unit/components/processing/test_assist_opt_out_and_guide.py -v
+```
+Expected: 2 passed.
+
+- [ ] **Step 7: Apply component-authoring ritual for modified components**
+
+Per `.claude/skills/langflow-component-authoring/SKILL.md`, bump the `version` and append to the changelog for **both** `DataMapperComponent` (opt-out contract added) and the reference component (guide added). Minimal, literal changelog entries only — do not expand either file's scope beyond these additions.
+
+- [ ] **Step 8: Rebuild the component index**
 
 ```bash
 uv run python scripts/build_component_index.py
 ```
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/data_mapper.py \
-        src/lfx/tests/unit/components/processing/test_data_mapper_assist_guide.py \
+        src/lfx/src/lfx/components/processing/text_operations.py \
+        src/lfx/tests/unit/components/processing/test_assist_opt_out_and_guide.py \
         src/lfx/src/lfx/_assets/component_index.json
-git commit -m "feat(lfx/data-mapper): add assist_guide for ADP Assist popover"
+git commit -m "feat(lfx): opt DataMapper out of ADP Assist + seed reference assist_guide"
 ```
 
 ---
 
-## Task 13: End-to-end smoke test
+## Task 13: End-to-end smoke test (non-excluded target component)
 
 **Files:**
 - Create: `src/backend/tests/integration/test_component_assist_smoke.py`
+- Modify: `src/backend/tests/integration/conftest.py` (fixtures)
+
+**⚠ DataMapper hands-off:** this smoke test must NOT use `DataMapperComponent` — that component has opted out of ADP Assist. Use any other non-excluded component (e.g., `TextOperationsComponent`, matching the reference guide added in Task 12).
 
 - [ ] **Step 1: Write the smoke test**
 
 ```python
-"""End-to-end smoke: Source → DataMapper, Assist proposes a mapping, frontend-equivalent apply."""
+"""End-to-end smoke: Source → TextOperations, Assist proposes a config, apply succeeds."""
 from __future__ import annotations
 
 import json
@@ -2082,40 +2186,44 @@ from httpx import AsyncClient
 pytestmark = pytest.mark.asyncio
 
 
-async def test_field_mapper_proposal_roundtrip(
+async def test_text_operations_proposal_roundtrip(
     client_authed: AsyncClient,
-    flow_with_source_and_datamapper: dict[str, Any],
-    scripted_llm_proposes_full_mapping,
+    flow_with_source_and_text_ops: dict[str, Any],
+    scripted_llm_proposes_config,
 ):
-    """With a scripted LLM that emits a full-mapping tool call, the SSE stream carries
-    exactly one tool_call event whose patch keys are a subset of the DataMapper template."""
-    flow = flow_with_source_and_datamapper
-    datamapper_node = next(n for n in flow["data"]["nodes"] if n["data"]["type"] == "DataMapperComponent")
-    source_node = next(n for n in flow["data"]["nodes"] if n["data"]["type"] != "DataMapperComponent")
+    """With a scripted LLM emitting a tool call, assert the SSE stream carries exactly one
+    tool_call event whose patch keys are a subset of the target template."""
+    flow = flow_with_source_and_text_ops
+    target = next(
+        n for n in flow["data"]["nodes"] if n["data"]["type"] == "TextOperationsComponent"
+    )
+    source = next(
+        n for n in flow["data"]["nodes"] if n["data"]["type"] != "TextOperationsComponent"
+    )
 
     body = {
         "flow_id": flow["id"],
-        "node_id": datamapper_node["id"],
+        "node_id": target["id"],
         "node_snapshot": {
-            "node_id": datamapper_node["id"],
-            "type": "DataMapperComponent",
-            "display_name": datamapper_node["data"]["node"]["display_name"],
-            "description": datamapper_node["data"]["node"].get("description"),
-            "template": datamapper_node["data"]["node"]["template"],
-            "outputs": datamapper_node["data"]["node"].get("outputs", []),
+            "node_id": target["id"],
+            "type": "TextOperationsComponent",
+            "display_name": target["data"]["node"]["display_name"],
+            "description": target["data"]["node"].get("description"),
+            "template": target["data"]["node"]["template"],
+            "outputs": target["data"]["node"].get("outputs", []),
         },
         "neighbor_snapshots": [
             {
-                "node_id": source_node["id"],
-                "type": source_node["data"]["type"],
-                "display_name": source_node["data"]["node"]["display_name"],
+                "node_id": source["id"],
+                "type": source["data"]["type"],
+                "display_name": source["data"]["node"]["display_name"],
                 "description": None,
-                "template": source_node["data"]["node"]["template"],
-                "outputs": source_node["data"]["node"].get("outputs", []),
+                "template": source["data"]["node"]["template"],
+                "outputs": source["data"]["node"].get("outputs", []),
             }
         ],
         "thread": [],
-        "user_message": "Map every field from the source into the output row.",
+        "user_message": "Split the upstream text on commas.",
     }
 
     async with client_authed.stream(
@@ -2133,12 +2241,35 @@ async def test_field_mapper_proposal_roundtrip(
     assert len(tool_calls) == 1
     assert tool_calls[0]["name"] == "propose_config_update"
     patch = tool_calls[0]["args"]["patch"]
-    template_keys = set(datamapper_node["data"]["node"]["template"].keys())
+    template_keys = set(target["data"]["node"]["template"].keys())
     assert set(patch.keys()).issubset(template_keys)
     assert events[-1]["type"] == "done"
+
+
+async def test_data_mapper_opts_out_endpoint_returns_400(
+    client_authed: AsyncClient, own_flow_id: str
+):
+    """Direct endpoint call for DataMapperComponent must be refused."""
+    body = {
+        "flow_id": own_flow_id,
+        "node_id": "dm-1",
+        "node_snapshot": {
+            "node_id": "dm-1",
+            "type": "DataMapperComponent",
+            "display_name": "Data Mapper",
+            "description": None,
+            "template": {"mapping": {"display_name": "Mapping", "value": {}}},
+            "outputs": [],
+        },
+        "neighbor_snapshots": [],
+        "thread": [],
+        "user_message": "help",
+    }
+    resp = await client_authed.post("/api/v1/assistant/components/messages", json=body)
+    assert resp.status_code == 400
 ```
 
-Fixtures `flow_with_source_and_datamapper` and `scripted_llm_proposes_full_mapping` go into `src/backend/tests/integration/conftest.py`. Model them on the existing endpoint-test fixtures (see `src/backend/tests/unit/api/v1/conftest.py`). The scripted LLM fixture should monkeypatch `_build_llm_client` to return a stub that yields a `tool_call` event with a patch that uses `DataMapperComponent`'s actual template keys.
+Fixtures `flow_with_source_and_text_ops` and `scripted_llm_proposes_config` go into `src/backend/tests/integration/conftest.py`. Model them on the existing endpoint-test fixtures under `src/backend/tests/unit/api/v1/conftest.py`. The scripted LLM fixture monkeypatches `_build_llm_client` to return a stub that yields a `tool_call` event whose `patch` uses `TextOperationsComponent`'s actual template keys (at minimum the `operation` field). If `TextOperationsComponent` doesn't exist, substitute the component chosen in Task 12 Step 5 — update the fixture and the test's type names together.
 
 - [ ] **Step 2: Run and confirm passing**
 
@@ -2165,15 +2296,18 @@ git commit -m "test(component-assist): end-to-end smoke for DataMapper proposal 
 |---|---|
 | §1 Architecture — stateless, SSE, single tool, guide registry | Tasks 2–6 |
 | §1 ADP red CSS variable | Task 1 |
+| §1 Opt-out contract (`assist_enabled`) | Task 3 (registry helper), Task 6 (endpoint 400), Task 11 (frontend icon gate), Task 12A (DataMapper opt-out) |
 | §2 Backend files — schemas, registry, prompt, service, endpoint | Tasks 2, 3, 4, 5, 6 |
 | §3 Frontend files — store, hook, ProposalBlock, popover, toolbar icon, CSS var | Tasks 1, 7, 8, 9, 10, 11 |
 | §4 Data flow (single turn) | Tasks 5 (backend), 8 + 10 (frontend), 13 (smoke) |
 | §5 Error handling — invalid patch retry, abort mid-stream, stale apply | Tasks 5 (retry), 8 (abort), 10 (skippedKeys) |
 | §6 Testing matrix | Tasks 2, 3, 4, 5, 6, 7, 8, 9, 10, 13 |
-| §7 Initial component guide population | **Deferred to the follow-up plan** (Plan 2) — only the DataMapper reference guide lands here (Task 12) |
+| §7 Initial component guide population | **Deferred to the follow-up plan** (Plan 2) — only one non-excluded reference guide lands here (Task 12B) |
 | §7 YAML bundle directory | Task 3 (empty `.gitkeep` placeholder) |
+| §7 DataMapper exclusion | Task 12A (adds `assist_enabled = False`) |
 | §8 Out-of-scope items | Respected — no session cache, no badges, no multi-open |
 | §9 Dependencies — flow store mutation reuse | Task 10 uses `setNode` from the existing flowStore |
+| §9 DataMapper hands-off | Task 12A constrains DataMapper changes to exactly one line; Task 13 routes its smoke target to a non-excluded component |
 
 **Placeholder scan:** No "TBD"/"TODO"/"implement later" markers. The two softest spots are (a) reliance on `_get_flow_with_org_check` and `_build_llm_client` being importable from `assistant.py` (called out in Task 6 Step 4 with a refactor fallback) and (b) fixture authoring for integration tests (called out explicitly in Task 13 with concrete file paths to mirror). Both are executor-actionable.
 

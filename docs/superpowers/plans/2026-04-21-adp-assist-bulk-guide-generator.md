@@ -2,7 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Populate starter `assist_guide` content for every user-facing Langflow component (~400 classes) so ADP Assist's per-component popover opens with specialized guidance instead of a generic prompt. Produces a YAML bundle at `src/backend/base/langflow/services/component_assist/guides/` and a review report surfacing components with thin metadata.
+**Goal:** Populate starter `assist_guide` content for every **ADP-Assist-eligible** Langflow component (~400 classes, skipping those with `assist_enabled = False`) so ADP Assist's per-component popover opens with specialized guidance instead of a generic prompt. Produces a YAML bundle at `src/backend/base/langflow/services/component_assist/guides/` and a review report surfacing components with thin metadata.
+
+**⚠ DataMapper hands-off:** `DataMapperComponent` sets `assist_enabled = False` (see Plan 1 Task 12A). The generator MUST skip it — do not write a YAML entry for it under any circumstance. Same rule applies to any other future opt-outs discovered at runtime.
 
 **Architecture:** A one-shot Python script (`scripts/generate_component_assist_guides.py`) walks the two component roots, extracts metadata (display_name, description, documentation, per-input `info` strings, class docstring, return types) for each eligible class, asks an LLM to synthesize a 1–2 paragraph guide, and writes YAML files partitioned by top-level category directory. Idempotent: re-runs skip classes that already have a guide (inline or in-bundle) unless `--overwrite` is passed.
 
@@ -596,6 +598,7 @@ def test_write_review_report(tmp_path: Path):
         ReportRow(component_type="AComponent", category="processing", completeness="rich", status="generated"),
         ReportRow(component_type="BComponent", category="processing", completeness="thin", status="generated"),
         ReportRow(component_type="CComponent", category="vectorstores", completeness="rich", status="skipped-existing"),
+        ReportRow(component_type="DataMapperComponent", category="processing", completeness="rich", status="skipped-opted-out"),
     ]
     report_path = tmp_path / "review.md"
     write_review_report(rows, report_path)
@@ -603,6 +606,8 @@ def test_write_review_report(tmp_path: Path):
     assert "BComponent" in body
     assert "thin" in body
     assert "Flagged for manual review" in body  # the thin-metadata callout
+    assert "DataMapperComponent" in body  # opt-outs surfaced
+    assert "opted out" in body.lower() or "skipped-opted-out" in body
 ```
 
 - [ ] **Step 2: Run and confirm failure**
@@ -638,7 +643,13 @@ class ReportRow:
     component_type: str
     category: str
     completeness: Literal["rich", "thin"]
-    status: Literal["generated", "skipped-existing", "fallback-used", "errored"]
+    status: Literal[
+        "generated",
+        "skipped-existing",
+        "skipped-opted-out",
+        "fallback-used",
+        "errored",
+    ]
 
 
 def _load_existing(path: Path) -> list[dict]:
@@ -673,6 +684,7 @@ def write_bundle(entries: Iterable[GuideEntry], out_dir: Path, *, overwrite: boo
 def write_review_report(rows: Iterable[ReportRow], path: Path) -> None:
     rows_list = list(rows)
     thin = [r for r in rows_list if r.completeness == "thin"]
+    opted_out = [r for r in rows_list if r.status == "skipped-opted-out"]
     lines: list[str] = [
         "# Component Assist Guide — Review Report",
         "",
@@ -680,11 +692,20 @@ def write_review_report(rows: Iterable[ReportRow], path: Path) -> None:
         f"Generated: {sum(1 for r in rows_list if r.status == 'generated')}",
         f"Fallback used: {sum(1 for r in rows_list if r.status == 'fallback-used')}",
         f"Skipped (existing): {sum(1 for r in rows_list if r.status == 'skipped-existing')}",
+        f"Skipped (opted out): {len(opted_out)}",
         f"Errored: {sum(1 for r in rows_list if r.status == 'errored')}",
         "",
-        "## Flagged for manual review (thin metadata)",
+        "## Opted out of ADP Assist",
         "",
     ]
+    if not opted_out:
+        lines.append("_None._")
+    else:
+        for row in sorted(opted_out, key=lambda r: (r.category, r.component_type)):
+            lines.append(f"- `{row.category}/` · **{row.component_type}**")
+    lines.append("")
+    lines.append("## Flagged for manual review (thin metadata)")
+    lines.append("")
     if not thin:
         lines.append("_None — every component had sufficient metadata._")
     else:
@@ -806,10 +827,15 @@ def _process_one(
     overwrite: bool,
     llm,
 ) -> tuple[list[GuideEntry], list[ReportRow]]:
+    from langflow.services.component_assist.guide_registry import is_assist_enabled
+
     entries: list[GuideEntry] = []
     rows: list[ReportRow] = []
     for cls in _find_component_classes(candidate):
         class_name = cls.__name__
+        if not is_assist_enabled(cls):
+            rows.append(ReportRow(class_name, candidate.category, "rich", "skipped-opted-out"))
+            continue
         if getattr(cls, "assist_guide", None):
             rows.append(ReportRow(class_name, candidate.category, "rich", "skipped-existing"))
             continue
