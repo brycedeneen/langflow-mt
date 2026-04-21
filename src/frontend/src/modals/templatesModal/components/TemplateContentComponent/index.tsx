@@ -1,7 +1,9 @@
 import Fuse from "fuse.js";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ENABLE_KNOWLEDGE_BASES } from "@/customization/feature-flags";
-import useFlowsManagerStore from "@/stores/flowsManagerStore";
+import { useListTemplates } from "@/controllers/API/queries/templates/use-list-templates";
+import type { ListTemplatesParams } from "@/controllers/API/queries/templates/use-list-templates";
+import type { FlowType } from "@/types/flow";
+import type { TemplateRead } from "@/types/template";
 import { ForwardedIconComponent } from "../../../../components/common/genericIconComponent";
 import { Input } from "../../../../components/ui/input";
 import type { TemplateContentProps } from "../../../../types/templates/types";
@@ -14,6 +16,28 @@ interface TemplateContentComponentProps extends TemplateContentProps {
   onSelectTemplate: (id: string | null) => void;
 }
 
+function adaptTemplateToFlowLike(template: TemplateRead): FlowType {
+  return {
+    id: `tpl:${template.id}`,
+    name: template.name,
+    description: template.description ?? "",
+    icon: template.icon ?? undefined,
+    gradient: template.gradient ?? undefined,
+    data: null,
+  };
+}
+
+function buildParams(currentTab: string): ListTemplatesParams | undefined {
+  if (currentTab === "all-templates") {
+    return undefined;
+  }
+  if (currentTab === "saved") {
+    return { created_by_me: true };
+  }
+  // Any other tab id is a category name coming from the API categories
+  return { category: currentTab };
+}
+
 export default function TemplateContentComponent({
   currentTab,
   categories,
@@ -22,22 +46,14 @@ export default function TemplateContentComponent({
   selectedTemplate,
   onSelectTemplate,
 }: TemplateContentComponentProps) {
-  const allExamples = useFlowsManagerStore((state) => state.examples);
+  const params = useMemo(() => buildParams(currentTab), [currentTab]);
 
-  const examples = useMemo(() => {
-    return allExamples
-      .filter((example) => {
-        if (!ENABLE_KNOWLEDGE_BASES && example.name?.includes("Knowledge")) {
-          return false;
-        }
-        return true;
-      })
-      .filter(
-        (example) =>
-          example.tags?.includes(currentTab ?? "") ||
-          currentTab === "all-templates",
-      );
-  }, [allExamples, currentTab]);
+  const { data: templateData = [], isPending } = useListTemplates(params);
+
+  const examples: FlowType[] = useMemo(
+    () => templateData.map(adaptTemplateToFlowLike),
+    [templateData],
+  );
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredExamples, setFilteredExamples] = useState(examples);
@@ -76,6 +92,20 @@ export default function TemplateContentComponent({
   const currentTabItem = categories.find((item) => item.id === currentTab);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  if (isPending) {
+    return (
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {[0, 1, 2, 4].map((i) => (
+          <div
+            key={i}
+            className="h-24 animate-pulse rounded-md bg-muted"
+            aria-hidden
+          />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col gap-6 overflow-hidden">

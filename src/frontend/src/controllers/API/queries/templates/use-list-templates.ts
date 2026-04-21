@@ -6,13 +6,32 @@ import type { TemplateRead } from "@/types/template";
 
 export const TEMPLATES_QUERY_KEY = ["templates"];
 
-export function useListTemplates() {
+export type ListTemplatesParams = {
+  category?: string;
+  scope?: "platform" | "org" | "all";
+  created_by_me?: boolean;
+  include_archived?: boolean;
+};
+
+export function useListTemplates(params?: ListTemplatesParams) {
   const { query } = UseRequestProcessor();
   const fn = async (): Promise<TemplateRead[]> => {
-    const res = await api.get<TemplateRead[]>(getURL("TEMPLATES"));
+    const searchParams = new URLSearchParams();
+    if (params?.category) searchParams.set("category", params.category);
+    if (params?.scope) searchParams.set("scope", params.scope);
+    if (params?.created_by_me) searchParams.set("created_by_me", "true");
+    if (params?.include_archived)
+      searchParams.set("include_archived", "true");
+    const qs = searchParams.toString();
+    const url = qs ? `${getURL("TEMPLATES")}?${qs}` : getURL("TEMPLATES");
+    const res = await api.get<TemplateRead[]>(url);
     return res.data;
   };
-  return query(TEMPLATES_QUERY_KEY, fn, {
-    placeholderData: keepPreviousData,
-  });
+  return query(
+    [...TEMPLATES_QUERY_KEY, "list", params ?? {}],
+    fn,
+    {
+      placeholderData: keepPreviousData,
+    },
+  );
 }
