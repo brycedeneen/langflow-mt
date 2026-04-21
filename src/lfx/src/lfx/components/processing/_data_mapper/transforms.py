@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import types
 from typing import Any, Callable
 
 import jinja2
@@ -33,6 +34,18 @@ _MISSING: _MissingType = _MissingType()
 
 
 VariableResolver = Callable[[str], Any]
+
+
+def _read_field(row: Any, field: str) -> Any:
+    """Read a field from a row, tolerating both dict and SimpleNamespace containers."""
+    if isinstance(row, dict):
+        if field not in row:
+            return _MISSING
+        return row[field]
+    # SimpleNamespace (or any object with __getattr__)
+    if not hasattr(row, field):
+        return _MISSING
+    return getattr(row, field)
 
 
 _JINJA_ENV = jinja2.Environment(
@@ -74,9 +87,7 @@ def _eval_direct(mapping: dict[str, Any], ctx: dict[str, Any], **_: Any) -> Any:
     row = ctx[input_alias]
     if row is None:
         return _MISSING
-    if field not in row:
-        return _MISSING
-    return row[field]
+    return _read_field(row, field)
 
 
 def _eval_static(mapping: dict[str, Any], ctx: dict[str, Any], **_: Any) -> Any:
@@ -165,10 +176,8 @@ def _eval_array(mapping: dict[str, Any], ctx: dict[str, Any], **_: Any) -> Any:
             row = ctx[input_alias]
             if row is None:
                 value = _MISSING
-            elif field not in row:
-                value = _MISSING
             else:
-                value = row[field]
+                value = _read_field(row, field)
 
         if value is _MISSING:
             if skip_missing:

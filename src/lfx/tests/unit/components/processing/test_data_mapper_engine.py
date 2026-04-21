@@ -198,3 +198,67 @@ def test_run_single_record_input_treated_as_one_row_list():
     # Pass a single dict (not wrapped in a list) — engine normalizes.
     out = run(cfg, inputs=[{"user_id": "u-1"}], variable_resolver=lambda n: None)
     assert out == [{"External_ID": "u-1"}]
+
+
+def test_run_expression_can_access_lookup_field_via_dot_notation():
+    cfg = _cfg(
+        destination_schema=[
+            {"name": "User", "type": "str", "required": True},
+            {"name": "AdjustedSalary", "type": "float", "required": False},
+        ],
+        mappings=[
+            {
+                "destination": "User",
+                "transform": "direct",
+                "sources": [{"input": "workers", "field": "user_id"}],
+            },
+            {
+                "destination": "AdjustedSalary",
+                "transform": "expression",
+                "sources": [],
+                "config": {"expression": "jobs.salary * 1.1"},
+            },
+        ],
+        has_jobs=True,
+    )
+    out = run(
+        cfg,
+        inputs=[
+            [{"user_id": "u-1", "job_id": "j-1"}],
+            [{"id": "j-1", "salary": 100}],
+        ],
+        variable_resolver=lambda n: None,
+    )
+    assert out[0]["User"] == "u-1"
+    assert out[0]["AdjustedSalary"] == pytest.approx(110.0)
+
+
+def test_run_direct_mapping_works_against_simplenamespace_lookup():
+    cfg = _cfg(
+        destination_schema=[
+            {"name": "User", "type": "str", "required": True},
+            {"name": "JobTitle", "type": "str", "required": False},
+        ],
+        mappings=[
+            {
+                "destination": "User",
+                "transform": "direct",
+                "sources": [{"input": "workers", "field": "user_id"}],
+            },
+            {
+                "destination": "JobTitle",
+                "transform": "direct",
+                "sources": [{"input": "jobs", "field": "title"}],
+            },
+        ],
+        has_jobs=True,
+    )
+    out = run(
+        cfg,
+        inputs=[
+            [{"user_id": "u-1", "job_id": "j-1"}],
+            [{"id": "j-1", "title": "Engineer"}],
+        ],
+        variable_resolver=lambda n: None,
+    )
+    assert out[0]["JobTitle"] == "Engineer"

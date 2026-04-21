@@ -96,24 +96,17 @@ def _build_row_context(
     driver_alias: str,
     lookup_rows: dict[str, dict[str, Any] | None],
 ) -> dict[str, Any]:
-    """Flatten driver fields to top-level; expose driver and lookups by alias.
+    """Flatten driver fields to top-level; expose lookups as dot-accessible namespaces.
 
     - Driver fields are flattened to top-level for template/expression access.
-    - Driver alias maps to the driver row dict (for _eval_direct compatibility).
-    - Lookup aliases map to their row dicts (or None if unmatched).
-    - Additionally, lookup aliases are exposed as SimpleNamespace for attribute
-      access in Jinja2 templates (e.g. {{ jobs.title }}).  However, since
-      Jinja2 also supports dict key access as attribute-style, plain dicts
-      work too.  We keep dicts so that _eval_direct (which uses `field in row`
-      and `row[field]`) continues to work without modification.
+    - Driver alias maps to a SimpleNamespace of the driver row (dot-access in expressions).
+    - Lookup aliases map to SimpleNamespace wrappers (or None if unmatched), enabling
+      dot-notation in expression transforms (e.g. ``jobs.salary * 1.1``).
     """
     ctx: dict[str, Any] = dict(driver_row)
-    # Expose the driver alias as the driver row dict (preserves _eval_direct compatibility)
-    ctx[driver_alias] = driver_row
+    ctx[driver_alias] = types.SimpleNamespace(**driver_row)
     for alias, row in lookup_rows.items():
-        # Keep as dict (or None) for _eval_direct compatibility;
-        # Jinja2 handles dict key access as attribute-style access transparently.
-        ctx[alias] = row
+        ctx[alias] = types.SimpleNamespace(**row) if row else None
     return ctx
 
 
