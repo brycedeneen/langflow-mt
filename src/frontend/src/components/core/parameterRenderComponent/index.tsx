@@ -18,6 +18,7 @@ import InputListComponent from "./components/inputListComponent";
 import IntComponent from "./components/intComponent";
 import KeypairListComponent from "./components/keypairListComponent";
 import McpComponent from "./components/mcpComponent";
+import MappingComponent from "./components/mappingComponent";
 import MultiselectComponent from "./components/multiselectComponent";
 import MustachePromptAreaComponent from "./components/mustachePromptComponent";
 import PromptAreaComponent from "./components/promptComponent";
@@ -327,6 +328,15 @@ export function ParameterRenderComponent({
             editNode={editNode}
             disabled={disabled}
             value={templateValue}
+          />
+        );
+      case "mapping":
+        return (
+          <MappingComponent
+            {...baseInputProps}
+            value={templateValue ?? ""}
+            nodeId={nodeId}
+            id={`mapping_${id}`}
           />
         );
       case "model":
