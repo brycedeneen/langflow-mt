@@ -163,3 +163,18 @@ class TemplateUpdate(BaseModel):
     gradient: str | None = PydanticField(default=None, max_length=32)
     blanked_fields: list[BlankedField] = PydanticField(default_factory=list)
     category_ids: list[UUID] | None = None
+
+
+class TemplatePatch(BaseModel):
+    """Partial update body for PATCH /templates/{id}.
+
+    All fields are optional.  When *category_ids* is provided (even as an empty
+    list) the existing tag set is replaced atomically.  Omitting *category_ids*
+    from the request body leaves the current tags untouched.
+    """
+
+    name: str | None = PydanticField(default=None, max_length=255)
+    description: str | None = None
+    icon: str | None = PydanticField(default=None, max_length=64)
+    gradient: str | None = PydanticField(default=None, max_length=32)
+    category_ids: list[UUID] | None = None

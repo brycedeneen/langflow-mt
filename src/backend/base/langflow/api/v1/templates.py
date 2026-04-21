@@ -27,6 +27,7 @@ from langflow.services.database.models.membership.model import Membership
 from langflow.services.database.models.template.model import (
     Template,
     TemplateCreate,
+    TemplatePatch,
     TemplateRead,
     TemplateReadDetail,
     TemplateUpdate,
@@ -303,9 +304,100 @@ async def update_template(
     row.updated_by = current_user.id
     row.updated_at = datetime.now(timezone.utc)
 
+    if body.category_ids is not None:
+        await _validate_category_ids(session, body.category_ids)
+        await session.exec(
+            select(TemplateCategory).where(TemplateCategory.template_id == template_id)
+        )
+        # Delete existing links
+        existing_links = (
+            await session.exec(
+                select(TemplateCategory).where(TemplateCategory.template_id == template_id)
+            )
+        ).all()
+        for link in existing_links:
+            await session.delete(link)
+        for cat_id in body.category_ids:
+            session.add(TemplateCategory(template_id=row.id, category_id=cat_id))
+
     session.add(row)
     await session.commit()
-    await session.refresh(row)
+    row = (
+        await session.exec(
+            select(Template)
+            .where(Template.id == row.id)
+            .options(selectinload(Template.categories))
+        )
+    ).one()
+    return TemplateReadDetail.model_validate(row, from_attributes=True)
+
+
+@router.patch("/{template_id}", response_model=TemplateReadDetail)
+async def patch_template(
+    template_id: UUID,
+    body: TemplatePatch,
+    *,
+    session: DbSession,
+    current_user: User = Depends(get_current_active_user),
+) -> TemplateReadDetail:
+    row = (
+        await session.exec(
+            select(Template)
+            .where(Template.id == template_id)
+            .where(Template.deleted_at.is_(None))
+        )
+    ).one_or_none()
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Template not found")
+
+    if not user_can_edit_template(current_user, row):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+
+    # Apply partial updates
+    if body.name is not None and body.name != row.name:
+        # Check for name collision
+        existing = (
+            await session.exec(
+                select(Template)
+                .where(Template.name == body.name)
+                .where(Template.deleted_at.is_(None))
+            )
+        ).first()
+        if existing is not None:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Template name already exists")
+        row.name = body.name
+
+    if body.description is not None:
+        row.description = body.description
+    if body.icon is not None:
+        row.icon = body.icon
+    if body.gradient is not None:
+        row.gradient = body.gradient
+
+    if body.category_ids is not None:
+        await _validate_category_ids(session, body.category_ids)
+        # Delete all existing category links
+        existing_links = (
+            await session.exec(
+                select(TemplateCategory).where(TemplateCategory.template_id == template_id)
+            )
+        ).all()
+        for link in existing_links:
+            await session.delete(link)
+        for cat_id in body.category_ids:
+            session.add(TemplateCategory(template_id=row.id, category_id=cat_id))
+
+    row.updated_by = current_user.id
+    row.updated_at = datetime.now(timezone.utc)
+    session.add(row)
+    await session.commit()
+    row = (
+        await session.exec(
+            select(Template)
+            .where(Template.id == row.id)
+            .options(selectinload(Template.categories))
+        )
+    ).one()
     return TemplateReadDetail.model_validate(row, from_attributes=True)
 
 
