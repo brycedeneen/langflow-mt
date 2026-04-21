@@ -562,6 +562,8 @@ export async function processDataFromFlow(
     processFlowEdges(flow);
     //add dropdown option to nodeOutputs
     processFlowNodes(flow);
+    // reconcile stale handle ids against current node schemas (React Flow #008)
+    reconcileEdgeHandleIds(flow);
     //add animation to text type edges
     updateEdges(data.edges);
     // updateNodes(data.nodes, data.edges);
@@ -1237,6 +1239,124 @@ function typesMatchWithMigration(
   }
 
   return false;
+}
+
+/**
+ * Rebuild an edge's target handle id from the target node's current template.
+ * Returns null if the referenced field no longer exists on the node.
+ */
+function buildCurrentTargetHandle(
+  storedHandle: string,
+  targetNode: AllNodeType,
+): string | null {
+  let stored: targetHandleType;
+  try {
+    stored = scapeJSONParse(storedHandle);
+  } catch {
+    return null;
+  }
+  const field = stored.fieldName;
+  if (!field) return null;
+
+  const input = targetNode.data.node?.template?.[field];
+  if (!input) return null;
+
+  const rawInputTypes = input.input_types;
+  const isModelType = input.type === "model";
+  const defaultModelInputType =
+    input.model_type === "embedding" ? "Embeddings" : "LanguageModel";
+  const inputTypes = rawInputTypes?.length
+    ? rawInputTypes
+    : isModelType
+      ? [defaultModelInputType]
+      : rawInputTypes;
+
+  const handle: targetHandleType = {
+    type: input.type,
+    fieldName: field,
+    id: targetNode.data.id,
+    inputTypes,
+  };
+  if (input.proxy) handle.proxy = input.proxy;
+  return getLeftHandleId(handle);
+}
+
+/**
+ * Rebuild an edge's source handle id from the source node's current outputs.
+ */
+function buildCurrentSourceHandle(
+  storedHandle: string,
+  sourceNode: AllNodeType,
+): string | null {
+  let stored: sourceHandleType;
+  try {
+    stored = scapeJSONParse(storedHandle);
+  } catch {
+    return null;
+  }
+  if (sourceNode.type !== "genericNode") return null;
+
+  const outputs = sourceNode.data.node?.outputs;
+  const output =
+    outputs?.find((o) => o.name === sourceNode.data.selected_output) ??
+    outputs?.find((o) => o.name === stored.name);
+  if (!output) return null;
+
+  const outputTypes =
+    output.types.length === 1 ? output.types : [output.selected!];
+
+  const handle: sourceHandleType = {
+    id: sourceNode.data.id,
+    name: output.name ?? stored.name,
+    output_types: outputTypes,
+    dataType: sourceNode.data.type,
+  };
+  return getRightHandleId(handle);
+}
+
+/**
+ * Normalize each edge's stored handle strings to what the target/source nodes
+ * will actually render. Only rewrites when `handlesMatch` already considers
+ * the pair equivalent — truly broken edges are left alone for `cleanEdges`.
+ *
+ * Why: handle ids embed `inputTypes`/`output_types` verbatim, so any change
+ * to a component's declared types mints a new id and orphans old edges.
+ * React Flow compares handle strings exactly and logs error #008 at render
+ * when no DOM handle matches.
+ */
+export function reconcileEdgeHandleIds(flow: FlowType) {
+  if (!flow.data?.nodes || !flow.data?.edges) return;
+  const { nodes, edges } = flow.data;
+  edges.forEach((edge) => {
+    if (edge.targetHandle) {
+      const targetNode = nodes.find((n) => n.id === edge.target);
+      if (targetNode) {
+        const current = buildCurrentTargetHandle(edge.targetHandle, targetNode);
+        if (
+          current &&
+          current !== edge.targetHandle &&
+          handlesMatch(current, edge.targetHandle)
+        ) {
+          edge.targetHandle = current;
+          if (edge.data) edge.data.targetHandle = scapeJSONParse(current);
+        }
+      }
+    }
+    if (edge.sourceHandle) {
+      const sourceNode = nodes.find((n) => n.id === edge.source);
+      if (sourceNode) {
+        const current = buildCurrentSourceHandle(edge.sourceHandle, sourceNode);
+        if (
+          current &&
+          current !== edge.sourceHandle &&
+          handlesMatch(current, edge.sourceHandle)
+        ) {
+          edge.sourceHandle = current;
+          if (edge.data) edge.data.sourceHandle = scapeJSONParse(current);
+        }
+      }
+    }
+  });
 }
 
 /**
