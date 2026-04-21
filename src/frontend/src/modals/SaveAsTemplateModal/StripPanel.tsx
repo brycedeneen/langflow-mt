@@ -68,7 +68,17 @@ export default function StripPanel({
         onOpenChange((e.target as HTMLDetailsElement).open)
       }
     >
-      <summary className="cursor-pointer text-sm font-medium">
+      <summary
+        className="cursor-pointer text-sm font-medium"
+        onClick={(e) => {
+          // Controlled <details>: intercept the click, prevent the browser's
+          // native toggle of the open attribute, and let React own open-state
+          // via onOpenChange. Also makes the component testable under jsdom,
+          // which does not fire the native toggle event on summary clicks.
+          e.preventDefault();
+          onOpenChange(!open);
+        }}
+      >
         <span className="inline-flex items-center gap-2">
           {showCount && <span>{countCopy}</span>}
           {showWarning && (

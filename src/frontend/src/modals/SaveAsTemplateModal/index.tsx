@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCreateTemplate } from "@/controllers/API/queries/templates";
 import BaseModal from "@/modals/baseModal";
@@ -6,6 +6,7 @@ import useAlertStore from "@/stores/alertStore";
 import type { BlankedField } from "@/types/template";
 import GradientPickerField from "./GradientPickerField";
 import IconPickerField from "./IconPickerField";
+import StripPanel from "./StripPanel";
 import {
   scanBlankableFields,
   type BlankableFieldInfo,
@@ -34,6 +35,7 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
   const [gradient, setGradient] = useState(DEFAULT_GRADIENT);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
+  const [keptFieldKeys, setKeptFieldKeys] = useState<Set<string>>(new Set());
 
   // Reset state whenever the modal opens.
   useEffect(() => {
@@ -44,6 +46,7 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
       setGradient(DEFAULT_GRADIENT);
       setDetailsOpen(false);
       setNameError(null);
+      setKeptFieldKeys(new Set());
     }
   }, [open, flow.description]);
 
@@ -59,14 +62,26 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
   const setSuccessData = useAlertStore((s) => s.setSuccessData);
   const setErrorData = useAlertStore((s) => s.setErrorData);
 
+  const toggleField = useCallback((node_id: string, field_name: string) => {
+    setKeptFieldKeys((prev) => {
+      const next = new Set(prev);
+      const key = `${node_id}:${field_name}`;
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
+
   function handleSubmit() {
     if (!canSubmit) return;
     if (!flow.id) return;
 
-    const blanked_fields: BlankedField[] = blankableFields.map((f) => ({
-      node_id: f.node_id,
-      field_name: f.field_name,
-    }));
+    const blanked_fields: BlankedField[] = blankableFields
+      .filter((f) => !keptFieldKeys.has(`${f.node_id}:${f.field_name}`))
+      .map((f) => ({
+        node_id: f.node_id,
+        field_name: f.field_name,
+      }));
 
     createTemplate.mutate(
       {
@@ -158,30 +173,13 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
             <GradientPickerField value={gradient} onChange={setGradient} />
           </div>
 
-          <details
+          <StripPanel
+            fields={blankableFields}
+            keptKeys={keptFieldKeys}
+            onToggle={toggleField}
             open={detailsOpen}
-            onToggle={(e) =>
-              setDetailsOpen((e.target as HTMLDetailsElement).open)
-            }
-          >
-            <summary className="cursor-pointer text-sm font-medium">
-              What gets stripped? ({blankableFields.length})
-            </summary>
-            <ul className="mt-2 list-disc pl-6 text-sm text-muted-foreground">
-              {blankableFields.map((f) => (
-                <li key={`${f.node_id}:${f.field_name}`}>
-                  <span className="font-medium">{f.component_display_name}</span>
-                  {" — "}
-                  {f.field_display_name}
-                </li>
-              ))}
-              {blankableFields.length === 0 && (
-                <li className="list-none italic">
-                  No credential fields detected.
-                </li>
-              )}
-            </ul>
-          </details>
+            onOpenChange={setDetailsOpen}
+          />
         </div>
       </BaseModal.Content>
       <BaseModal.Footer>

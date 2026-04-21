@@ -58,9 +58,32 @@ function baseFlow() {
                   value: "PEMPLAINTEXT",
                   display_name: "Client Certificate",
                 },
+                bearer_token: {
+                  _input_type: "SecretStrInput",
+                  auto_promote: true,
+                  value: "tok",
+                  display_name: "Bearer Token",
+                },
                 url_input: {
                   _input_type: "MessageTextInput",
                   value: "https://example.com",
+                },
+              },
+            },
+          },
+        },
+        {
+          id: "Node-2",
+          data: {
+            type: "OpenAI",
+            node: {
+              display_name: "OpenAI",
+              template: {
+                api_key: {
+                  _input_type: "SecretStrInput",
+                  auto_promote: true,
+                  value: "sk-xxx",
+                  display_name: "API Key",
                 },
               },
             },
@@ -114,10 +137,15 @@ describe("SaveAsTemplateModal — submit wiring", () => {
       icon: "FileText",
       gradient: "0",
     });
-    // blanked_fields carries the credential field only.
-    expect(payload.blanked_fields).toEqual([
-      { node_id: "Node-1", field_name: "cert_pem" },
-    ]);
+    // All 3 detected credentials are blanked by default.
+    expect(payload.blanked_fields).toEqual(
+      expect.arrayContaining([
+        { node_id: "Node-1", field_name: "cert_pem" },
+        { node_id: "Node-1", field_name: "bearer_token" },
+        { node_id: "Node-2", field_name: "api_key" },
+      ]),
+    );
+    expect(payload.blanked_fields).toHaveLength(3);
   });
 
   it("submit does nothing when flow has no id", () => {
@@ -179,5 +207,84 @@ describe("SaveAsTemplateModal — submit wiring", () => {
       expect(successMock).toHaveBeenCalledTimes(1);
       expect(onClose).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it("unchecking a field excludes it from blanked_fields on submit", async () => {
+    renderWithProviders(<SaveAsTemplateModal open onClose={() => {}} flow={baseFlow()} />);
+    fireEvent.change(screen.getByLabelText(/^name/i), {
+      target: { value: "T" },
+    });
+    // Open the strip panel
+    const summary = screen.getByText(/what gets stripped/i);
+    fireEvent.click(summary);
+    // Uncheck "Bearer Token"
+    fireEvent.click(screen.getByRole("checkbox", { name: /bearer token/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save as template/i }));
+
+    expect(mutateMock).toHaveBeenCalledTimes(1);
+    const [payload] = mutateMock.mock.calls[0];
+    expect(payload.blanked_fields).toHaveLength(2);
+    expect(payload.blanked_fields).toEqual(
+      expect.arrayContaining([
+        { node_id: "Node-1", field_name: "cert_pem" },
+        { node_id: "Node-2", field_name: "api_key" },
+      ]),
+    );
+    expect(payload.blanked_fields).not.toContainEqual({
+      node_id: "Node-1",
+      field_name: "bearer_token",
+    });
+  });
+
+  it("re-checking a field re-includes it in blanked_fields on submit", () => {
+    renderWithProviders(<SaveAsTemplateModal open onClose={() => {}} flow={baseFlow()} />);
+    fireEvent.change(screen.getByLabelText(/^name/i), {
+      target: { value: "T" },
+    });
+    fireEvent.click(screen.getByText(/what gets stripped/i));
+    const bearer = screen.getByRole("checkbox", { name: /bearer token/i });
+    fireEvent.click(bearer); // uncheck
+    fireEvent.click(bearer); // re-check
+    fireEvent.click(screen.getByRole("button", { name: /save as template/i }));
+
+    const [payload] = mutateMock.mock.calls[0];
+    expect(payload.blanked_fields).toHaveLength(3);
+    expect(payload.blanked_fields).toContainEqual({
+      node_id: "Node-1",
+      field_name: "bearer_token",
+    });
+  });
+
+  it("closing and re-opening the modal resets keptFieldKeys to empty", () => {
+    const flow = baseFlow();
+    const { rerender } = render(
+      <TooltipProvider>
+        <SaveAsTemplateModal open={true} onClose={() => {}} flow={flow} />
+      </TooltipProvider>,
+    );
+    // Uncheck a field
+    fireEvent.click(screen.getByText(/what gets stripped/i));
+    fireEvent.click(screen.getByRole("checkbox", { name: /bearer token/i }));
+
+    // Close
+    rerender(
+      <TooltipProvider>
+        <SaveAsTemplateModal open={false} onClose={() => {}} flow={flow} />
+      </TooltipProvider>,
+    );
+    // Re-open
+    rerender(
+      <TooltipProvider>
+        <SaveAsTemplateModal open={true} onClose={() => {}} flow={flow} />
+      </TooltipProvider>,
+    );
+
+    // Submit immediately — every field should be blanked again
+    fireEvent.change(screen.getByLabelText(/^name/i), {
+      target: { value: "T" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /save as template/i }));
+    const [payload] = mutateMock.mock.calls[0];
+    expect(payload.blanked_fields).toHaveLength(3);
   });
 });
