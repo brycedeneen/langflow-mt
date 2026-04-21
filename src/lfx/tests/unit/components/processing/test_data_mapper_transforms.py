@@ -20,3 +20,46 @@ def test_dispatch_unknown_transform_type_raises():
     ctx = {}
     with pytest.raises(ValueError, match="unknown transform type"):
         dispatch(mapping, ctx, variable_resolver=lambda name: None)
+
+
+def _direct(input_: str, field: str) -> dict:
+    return {
+        "transform": "direct",
+        "sources": [{"input": input_, "field": field}],
+        "config": {},
+    }
+
+
+def test_direct_transform_reads_driver_field():
+    ctx = {"workers": {"user_id": "u-1", "email": "a@b.co"}}
+    assert dispatch(_direct("workers", "user_id"), ctx, variable_resolver=lambda n: None) == "u-1"
+
+
+def test_direct_transform_reads_lookup_field_through_alias():
+    ctx = {
+        "workers": {"user_id": "u-1"},
+        "jobs": {"title": "Engineer", "id": "j-99"},
+    }
+    assert dispatch(_direct("jobs", "title"), ctx, variable_resolver=lambda n: None) == "Engineer"
+
+
+def test_direct_transform_missing_input_alias_returns_missing():
+    ctx = {"workers": {"user_id": "u-1"}}
+    assert dispatch(_direct("jobs", "title"), ctx, variable_resolver=lambda n: None) is _MISSING
+
+
+def test_direct_transform_lookup_is_none_when_unmatched():
+    # Unmatched lookup input has ctx value `None` (not absent).
+    ctx = {"workers": {"user_id": "u-1"}, "jobs": None}
+    assert dispatch(_direct("jobs", "title"), ctx, variable_resolver=lambda n: None) is _MISSING
+
+
+def test_direct_transform_missing_field_returns_missing():
+    ctx = {"workers": {"user_id": "u-1"}}
+    assert dispatch(_direct("workers", "nonexistent"), ctx, variable_resolver=lambda n: None) is _MISSING
+
+
+def test_direct_transform_explicit_none_is_preserved():
+    ctx = {"workers": {"user_id": None}}
+    # Explicit None from source is preserved, NOT converted to _MISSING.
+    assert dispatch(_direct("workers", "user_id"), ctx, variable_resolver=lambda n: None) is None

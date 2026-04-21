@@ -51,4 +51,24 @@ def dispatch(
     return _DISPATCH[transform_type](mapping, ctx, variable_resolver=variable_resolver)
 
 
-_DISPATCH: dict[str, Callable[..., Any]] = {}
+def _eval_direct(mapping: dict[str, Any], ctx: dict[str, Any], **_: Any) -> Any:
+    sources = mapping.get("sources") or []
+    if len(sources) != 1:
+        msg = f"'direct' transform requires exactly 1 source, got {len(sources)}"
+        raise ValueError(msg)
+    src = sources[0]
+    input_alias = src["input"]
+    field = src["field"]
+    if input_alias not in ctx:
+        return _MISSING
+    row = ctx[input_alias]
+    if row is None:
+        return _MISSING
+    if field not in row:
+        return _MISSING
+    return row[field]
+
+
+_DISPATCH: dict[str, Callable[..., Any]] = {
+    "direct": _eval_direct,
+}
