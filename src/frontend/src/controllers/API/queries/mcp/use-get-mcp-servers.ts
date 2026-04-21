@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { useQueryFunctionType } from "@/types/api";
 import type { MCPServerInfoType } from "@/types/mcp";
 import { api } from "../../api";
@@ -69,23 +69,32 @@ export const useGetMCPServers: useQueryFunctionType<
     ...queryOptions,
   });
 
+  // Key the counts fetch on the set of server names, not the full data array.
+  // `setQueryData` below produces a new data reference on each merge, which
+  // would otherwise re-fire this effect and hit the duplicate-request guard.
+  const serversKey =
+    queryResult.data?.map((s) => s.name).join("|") ?? "";
+  const fetchedForKeyRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (withCounts && queryResult.data && queryResult.data.length > 0) {
-      fetchWithCounts().then((countsData) => {
-        if (!countsData || countsData.length === 0) return;
-        // Merge by name
-        queryClient.setQueryData(
-          ["useGetMCPServers"],
-          (oldData: getMCPServersResponse = []) => {
-            return oldData.map((server) => {
-              const updated = countsData.find((s) => s.name === server.name);
-              return updated ? { ...server, ...updated } : server;
-            });
-          },
-        );
-      });
-    }
-  }, [withCounts, queryResult.data]);
+    if (!withCounts || !serversKey) return;
+    if (fetchedForKeyRef.current === serversKey) return;
+    fetchedForKeyRef.current = serversKey;
+
+    fetchWithCounts().then((countsData) => {
+      if (!countsData || countsData.length === 0) return;
+      // Merge by name
+      queryClient.setQueryData(
+        ["useGetMCPServers"],
+        (oldData: getMCPServersResponse = []) => {
+          return oldData.map((server) => {
+            const updated = countsData.find((s) => s.name === server.name);
+            return updated ? { ...server, ...updated } : server;
+          });
+        },
+      );
+    });
+  }, [withCounts, serversKey]);
 
   return queryResult;
 };

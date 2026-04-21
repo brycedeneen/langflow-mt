@@ -1,4 +1,3 @@
-import { GRADIENT_CLASS } from "@/constants/constants";
 import CodeAreaModal from "@/modals/codeAreaModal";
 import { cn } from "../../../../../utils/utils";
 import IconComponent from "../../../../common/genericIconComponent";
@@ -14,18 +13,6 @@ const codeContentClasses = {
 };
 
 const externalLinkIconClasses = {
-  gradient: ({
-    disabled,
-    editNode,
-  }: {
-    disabled: boolean;
-    editNode: boolean;
-  }) =>
-    disabled
-      ? ""
-      : editNode
-        ? "gradient-fade-input-edit-node"
-        : "gradient-fade-input",
   background: ({
     disabled,
     editNode,
@@ -70,19 +57,6 @@ export default function CodeAreaComponent({
 
   const renderExternalLinkIcon = () => (
     <>
-      <div
-        className={cn(
-          externalLinkIconClasses.gradient({ disabled, editNode }),
-          editNode
-            ? externalLinkIconClasses.editNodeTop
-            : externalLinkIconClasses.normalTop,
-        )}
-        style={{
-          pointerEvents: "none",
-          background: disabled ? "" : GRADIENT_CLASS,
-        }}
-        aria-hidden="true"
-      />
       <div
         className={cn(
           externalLinkIconClasses.background({ disabled, editNode }),

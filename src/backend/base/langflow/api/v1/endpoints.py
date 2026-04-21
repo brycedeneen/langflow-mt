@@ -671,6 +671,48 @@ async def simplified_run_flow_session(
     )
 
 
+async def _authorize_sse_subscriber(flow, user) -> None:
+    """Authorize a user to subscribe to a flow's SSE webhook events.
+
+    Multi-tenant rule: the user must be a member of the flow's organization.
+    Falls back to strict personal ownership for legacy flows that predate
+    organization scoping (flow.organization_id is None).
+    """
+    from langflow.services.database.models.membership.model import Membership
+    from langflow.services.deps import session_scope
+
+    async with session_scope() as session:
+        flow_record = await session.get(Flow, flow.id)
+        flow_org_id = flow_record.organization_id if flow_record is not None else None
+
+        if flow_org_id is None:
+            is_authorized = str(flow.user_id) == str(user.id)
+            await logger.ainfo(
+                f"sse_auth.legacy flow_id={flow.id} flow_user_id={flow.user_id} "
+                f"user_id={user.id} authorized={is_authorized}"
+            )
+        else:
+            membership = (
+                await session.exec(
+                    select(Membership).where(
+                        Membership.user_id == user.id,
+                        Membership.organization_id == flow_org_id,
+                    )
+                )
+            ).first()
+            is_authorized = membership is not None
+            await logger.ainfo(
+                f"sse_auth.org flow_id={flow.id} flow_org_id={flow_org_id} "
+                f"user_id={user.id} authorized={is_authorized}"
+            )
+
+    if not is_authorized:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN,
+            detail="Access denied: You do not have permission to subscribe to events for this flow",
+        )
+
+
 @router.get("/webhook-events/{flow_id_or_name}", include_in_schema=False)
 async def webhook_events_stream(
     flow_id_or_name: str,  # noqa: ARG001 - Used by get_flow_by_id_or_endpoint_name dependency
@@ -683,17 +725,14 @@ async def webhook_events_stream(
     of webhook execution progress, similar to clicking "Play" in the UI.
 
     Authentication: Requires user to be logged in (via cookie) or provide API key.
-    The user must own the flow to subscribe to its events.
+    Authorization: the user must be a member of the flow's organization
+    (or strictly own the flow for legacy flows without an organization).
     """
     # Authenticate user via cookie or API key
     user = await get_current_user_for_sse(request)
 
-    # Verify user owns the flow
-    if str(flow.user_id) != str(user.id):
-        raise HTTPException(
-            status_code=HTTPStatus.FORBIDDEN,
-            detail="Access denied: You can only subscribe to events for flows you own",
-        )
+    # Verify user has access to the flow (via org membership, or legacy ownership)
+    await _authorize_sse_subscriber(flow, user)
 
     async def event_generator() -> AsyncGenerator[str, None]:
         """Generate SSE events from the webhook event manager."""

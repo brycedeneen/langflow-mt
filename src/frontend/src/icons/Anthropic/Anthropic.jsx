@@ -1,5 +1,8 @@
+import { useDarkStore } from "@/stores/darkStore";
+
 const SvgAnthropicBox = (props) => {
-  return props.isDark ? (
+  const isDark = useDarkStore((state) => state.dark);
+  return isDark ? (
     <svg
       width="38"
       height="38"

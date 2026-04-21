@@ -78,7 +78,8 @@ function ApiInterceptor() {
         if (shouldRetryRefresh) {
           if (
             error?.config?.url?.includes("github") ||
-            error?.config?.url?.includes("public")
+            error?.config?.url?.includes("public") ||
+            error?.config?.url?.includes("auto_login")
           ) {
             return Promise.reject(error);
           }
@@ -97,32 +98,6 @@ function ApiInterceptor() {
         }
       },
     );
-
-    const isAuthorizedURL = (url) => {
-      const authorizedDomains = [
-        "https://raw.githubusercontent.com/langflow-ai/langflow_examples/main/examples",
-        "https://api.github.com/repos/langflow-ai/langflow_examples/contents/examples",
-        "https://api.github.com/repos/langflow-ai/langflow",
-        "auto_login",
-      ];
-
-      const authorizedEndpoints = ["auto_login"];
-
-      try {
-        const parsedURL = new URL(url);
-        const isDomainAllowed = authorizedDomains.some(
-          (domain) => parsedURL.origin === new URL(domain).origin,
-        );
-        const isEndpointAllowed = authorizedEndpoints.some((endpoint) =>
-          parsedURL.pathname.includes(endpoint),
-        );
-
-        return isDomainAllowed || isEndpointAllowed;
-      } catch (_e) {
-        // Invalid URL
-        return false;
-      }
-    };
 
     // Check for external url which we don't want to add custom headers to
     const isExternalURL = (url: string): boolean => {
@@ -206,7 +181,18 @@ function ApiInterceptor() {
     mutationRenewAccessToken(undefined, {
       onSuccess: async () => {
         setAuthenticationErrorCount(0);
-        await remakeRequest(error);
+        try {
+          await remakeRequest(error);
+        } catch (retryError) {
+          // Token renewal succeeded but the retried request still failed
+          // (e.g. the 403 is a real permission error, not an expired token).
+          // Swallow here to avoid an uncaught promise rejection — the
+          // original call site has already received the original error.
+          console.debug(
+            "Request retry after token renewal still failed",
+            retryError,
+          );
+        }
       },
       onError: (error) => {
         console.error(error);

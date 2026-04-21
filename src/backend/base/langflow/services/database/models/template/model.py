@@ -12,7 +12,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field as PydanticField
-from sqlalchemy import JSON, CheckConstraint, Column, DateTime, ForeignKey, String, Text, Uuid
+from sqlalchemy import JSON, CheckConstraint, Column, DateTime, ForeignKey, String, Text, UniqueConstraint, Uuid
 from sqlmodel import Field, SQLModel
 
 
@@ -25,6 +25,7 @@ class Template(SQLModel, table=True):
 
     __tablename__ = "template"
     __table_args__ = (
+        UniqueConstraint("name", name="uq_template_name"),
         CheckConstraint(
             "(scope = 'platform' AND org_id IS NULL) OR "
             "(scope = 'org' AND org_id IS NOT NULL)",
@@ -34,7 +35,7 @@ class Template(SQLModel, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     name: str = Field(
-        sa_column=Column(String(255), nullable=False, unique=True, index=True),
+        sa_column=Column(String(255), nullable=False, index=True),
     )
     description: str | None = Field(
         default=None, sa_column=Column(Text(), nullable=True),

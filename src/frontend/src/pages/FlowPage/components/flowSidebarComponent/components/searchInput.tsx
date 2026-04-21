@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { ENABLE_NEW_SIDEBAR } from "@/customization/feature-flags";
 import ShortcutDisplay from "../../nodeToolbarComponent/shortcutDisplay";
@@ -18,6 +18,12 @@ export const SearchInput = memo(function SearchInput({
   handleInputBlur: (event: React.FocusEvent<HTMLInputElement>) => void;
   handleInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
+  // Chrome ignores `autocomplete="off"` for inputs it heuristically
+  // classifies as username fields on authenticated origins. Rendering
+  // readOnly until the user interacts blocks the initial-load autofill pass;
+  // we clear it on focus so typing works as expected.
+  const [blockAutofill, setBlockAutofill] = useState(true);
+
   return (
     <div className={`relative w-full flex-1 ${!ENABLE_NEW_SIDEBAR && "pb-2"}`}>
       <Input
@@ -27,7 +33,17 @@ export const SearchInput = memo(function SearchInput({
         data-testid="sidebar-search-input"
         inputClassName="w-full rounded-lg bg-background text-sm"
         placeholder="Search"
-        onFocus={handleInputFocus}
+        name="sidebar-component-search"
+        autoComplete="off"
+        data-1p-ignore
+        data-lpignore="true"
+        data-bwignore="true"
+        data-form-type="other"
+        readOnly={blockAutofill}
+        onFocus={(event) => {
+          setBlockAutofill(false);
+          handleInputFocus(event);
+        }}
         onBlur={handleInputBlur}
         onChange={handleInputChange}
         value={search}

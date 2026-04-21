@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import PaginatorComponent from "@/components/common/paginatorComponent";
 import CardsWrapComponent from "@/components/core/cardsWrapComponent";
@@ -45,13 +45,13 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
     "";
   const flows = useFlowsManagerStore((state) => state.flows);
 
+  const redirectedForFolderId = useRef<string | null>(null);
   useEffect(() => {
-    // Only check if we have a folderId and folders have loaded
     if (folderId && folders && folders.length > 0) {
       const folderExists = folders.find((folder) => folder.id === folderId);
-      if (!folderExists) {
-        // Folder doesn't exist for this user, redirect to /all
-        console.error("Invalid folderId, redirecting to /all");
+      if (!folderExists && redirectedForFolderId.current !== folderId) {
+        redirectedForFolderId.current = folderId;
+        console.debug("Invalid folderId, redirecting to /all");
         navigate("/all");
       }
     }

@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
-from enum import Enum
 from uuid import uuid4
 
-from sqlalchemy import Column
+import sqlalchemy as sa
+from enum import Enum
+from sqlalchemy import Column, ForeignKey
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, SQLModel
@@ -23,7 +24,14 @@ class Membership(SQLModel, table=True):  # type: ignore[call-arg]
     __table_args__ = (UniqueConstraint("user_id", "organization_id", name="uq_membership_user_org"),)
 
     id: UUIDstr = Field(default_factory=uuid4, primary_key=True)
-    user_id: UUIDstr = Field(index=True, foreign_key="user.id")
+    user_id: UUIDstr = Field(
+        sa_column=Column(
+            sa.Uuid(),
+            ForeignKey("user.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        )
+    )
     organization_id: UUIDstr = Field(index=True, foreign_key="organization.id")
     role: MembershipRole = Field(
         default=MembershipRole.OWNER,

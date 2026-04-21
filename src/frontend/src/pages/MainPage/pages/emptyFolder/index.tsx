@@ -10,8 +10,8 @@ export const EmptyFolder = ({ setOpenModal }: EmptyFolderProps) => {
   const folders = useFolderStore((state) => state.folders);
 
   return (
-    <div className="m-0 flex w-full justify-center">
-      <div className="absolute top-1/2 flex w-full -translate-y-1/2 flex-col items-center justify-center gap-2">
+    <div className="flex min-h-0 w-full flex-1 items-center justify-center self-stretch">
+      <div className="flex flex-col items-center justify-center gap-2 text-center">
         <h3
           className="pt-5 font-chivo text-2xl font-semibold"
           data-testid="mainpage_title"

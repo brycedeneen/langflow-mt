@@ -1,6 +1,7 @@
-import PropTypes from "prop-types";
+import { useDarkStore } from "@/stores/darkStore";
 
-const SvgVLLM = ({ isDark = false, ...props }) => {
+const SvgVLLM = (props) => {
+  const isDark = useDarkStore((state) => state.dark);
   const color = isDark ? "#fff" : "#000";
   const bgColor = isDark ? "#1a1a1a" : "#f5f5f5";
 
@@ -147,10 +148,6 @@ const SvgVLLM = ({ isDark = false, ...props }) => {
       </g>
     </svg>
   );
-};
-
-SvgVLLM.propTypes = {
-  isDark: PropTypes.bool,
 };
 
 export default SvgVLLM;

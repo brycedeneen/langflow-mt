@@ -3,7 +3,6 @@ import { useCallback, useEffect, useState } from "react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import ShadTooltip from "@/components/common/shadTooltipComponent";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useDeleteDeleteFlows } from "@/controllers/API/queries/flows/use-delete-delete-flows";
 import { useGetDownloadFlows } from "@/controllers/API/queries/flows/use-get-download-flows";
@@ -43,7 +42,7 @@ const HeaderComponent = ({
   const debouncedSetSearch = useCallback(
     debounce((value: string) => {
       setSearch(value);
-    }, 1000),
+    }, 500),
     [setSearch],
   );
 
@@ -132,7 +131,7 @@ const HeaderComponent = ({
                 onClick={() => {
                   setFlowType(type as "flows" | "components" | "mcp");
                 }}
-                className={`border-b ${
+                className={`cursor-pointer border-b ${
                   flowType === type
                     ? "border-b-2 border-foreground text-foreground"
                     : "border-border text-muted-foreground hover:text-foreground"
@@ -150,16 +149,27 @@ const HeaderComponent = ({
           {flowType !== "mcp" && (
             <div className="flex justify-between">
               <div className="flex w-full xl:w-5/12">
-                <Input
-                  icon="Search"
-                  data-testid="search-store-input"
-                  type="text"
-                  placeholder={`Search ${flowType}...`}
-                  className="mr-2 !text-mmd"
-                  inputClassName="!text-mmd"
-                  value={debouncedSearch}
-                  onChange={handleSearch}
-                />
+                <div className="relative mr-2 w-full">
+                  <ForwardedIconComponent
+                    name="Search"
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                  />
+                  <input
+                    data-testid="search-store-input"
+                    type="text"
+                    autoComplete="off"
+                    placeholder={`Search ${flowType}...`}
+                    value={debouncedSearch}
+                    onChange={handleSearch}
+                    className={cn(
+                      "flex h-10 w-full rounded-md border border-border bg-background pl-9 pr-3 py-2 text-mmd",
+                      "ring-offset-background placeholder:text-muted-foreground",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2",
+                      "disabled:cursor-not-allowed disabled:opacity-50",
+                    )}
+                  />
+                </div>
                 <div className="relative mr-2 flex h-fit rounded-lg border border-muted bg-muted">
                   {/* Sliding Indicator */}
                   <div

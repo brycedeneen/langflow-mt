@@ -287,7 +287,7 @@ async def read_project(
             if is_flow:
                 stmt = stmt.where(Flow.is_component == False)  # noqa: E712
             if search:
-                stmt = stmt.where(Flow.name.like(f"%{search}%"))  # type: ignore[attr-defined]
+                stmt = stmt.where(Flow.name.ilike(f"%{search}%"))  # type: ignore[attr-defined]
 
             import warnings
 

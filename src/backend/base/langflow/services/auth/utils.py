@@ -8,7 +8,7 @@ from fastapi import Depends, HTTPException, Request, Security, WebSocket, WebSoc
 from fastapi.security import APIKeyHeader, APIKeyQuery, OAuth2PasswordBearer
 from fastapi.security.utils import get_authorization_scheme_param
 from lfx.log.logger import logger
-from lfx.services.deps import injectable_session_scope
+from lfx.services.deps import injectable_session_scope, session_scope
 
 from langflow.services.auth.exceptions import (
     AuthenticationError,
@@ -206,19 +206,22 @@ async def get_current_user_for_websocket(
         raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason=WS_AUTH_REASON) from e
 
 
-async def get_current_user_for_sse(
-    request: Request,
-    db: AsyncSession = Depends(injectable_session_scope),
-) -> User | UserRead:
+async def get_current_user_for_sse(request: Request) -> User | UserRead:
     """Extracts credentials from request and delegates to auth service.
 
     Accepts cookie (access_token_lf) or API key (x-api-key query param).
+
+    This helper is invoked directly (not as a FastAPI dependency) from SSE
+    endpoints, so it opens its own DB session rather than relying on
+    Depends(injectable_session_scope) — which would leave `db` as a Depends
+    sentinel and fail any ORM call inside the auth service.
     """
     token = request.cookies.get("access_token_lf")
     api_key = request.query_params.get("x-api-key") or request.headers.get("x-api-key")
 
     try:
-        return await _auth_service().get_current_user_for_sse(token, api_key, db)
+        async with session_scope() as db:
+            return await _auth_service().get_current_user_for_sse(token, api_key, db)
     except AuthenticationError as e:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

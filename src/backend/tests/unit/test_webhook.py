@@ -698,6 +698,9 @@ class TestWebhookEventsStreamAuth:
 
         with (
             patch("langflow.api.v1.endpoints.get_current_user_for_sse", new_callable=AsyncMock) as mock_auth,
+            patch(
+                "langflow.api.v1.endpoints._authorize_sse_subscriber", new_callable=AsyncMock
+            ) as mock_authorize,
             patch("langflow.api.v1.endpoints.webhook_event_manager") as mock_manager,
         ):
             mock_auth.return_value = mock_user
@@ -712,6 +715,8 @@ class TestWebhookEventsStreamAuth:
 
             # Should call get_current_user_for_sse with request
             mock_auth.assert_called_once_with(request)
+            # And delegate authorization to the membership-aware helper
+            mock_authorize.assert_awaited_once_with(flow, mock_user)
 
     async def test_raises_403_when_auth_fails(self):
         """Should propagate 403 error when authentication fails."""
@@ -738,8 +743,8 @@ class TestWebhookEventsStreamAuth:
             assert exc_info.value.status_code == 403
             assert "Missing or invalid credentials" in exc_info.value.detail
 
-    async def test_raises_403_when_user_does_not_own_flow(self):
-        """Should raise 403 when authenticated user doesn't own the flow."""
+    async def test_raises_403_when_authorization_denied(self):
+        """Should propagate 403 when the authorization helper rejects the subscriber."""
         from unittest.mock import AsyncMock, Mock, patch
 
         from fastapi import HTTPException
@@ -750,12 +755,21 @@ class TestWebhookEventsStreamAuth:
         flow.user_id = "owner-user-id"
 
         mock_user = Mock()
-        mock_user.id = "different-user-id"  # Different from flow owner
+        mock_user.id = "different-user-id"
 
         request = Mock()
 
-        with patch("langflow.api.v1.endpoints.get_current_user_for_sse", new_callable=AsyncMock) as mock_auth:
+        with (
+            patch("langflow.api.v1.endpoints.get_current_user_for_sse", new_callable=AsyncMock) as mock_auth,
+            patch(
+                "langflow.api.v1.endpoints._authorize_sse_subscriber", new_callable=AsyncMock
+            ) as mock_authorize,
+        ):
             mock_auth.return_value = mock_user
+            mock_authorize.side_effect = HTTPException(
+                status_code=403,
+                detail="Access denied: You do not have permission to subscribe to events for this flow",
+            )
 
             with pytest.raises(HTTPException) as exc_info:
                 await webhook_events_stream(

@@ -7,7 +7,6 @@ import React, {
   useState,
 } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDarkStore } from "../../../stores/darkStore";
 import { IconComponentProps } from "../../../types/components";
 import { getCachedIcon, getNodeIcon } from "../../../utils/styleUtils";
 import { cn } from "../../../utils/utils";
@@ -17,7 +16,6 @@ type IconComponentType = React.ComponentType<{
   style?: React.CSSProperties;
   ref?: React.Ref<unknown>;
   "data-testid"?: string;
-  isDark?: boolean;
 }>;
 
 export const ForwardedIconComponent = memo(
@@ -35,14 +33,13 @@ export const ForwardedIconComponent = memo(
       }: IconComponentProps,
       ref,
     ) => {
-      // Subscribe to dark store directly in memoized component
-      // This forces re-render when theme changes, bypassing memo
-      const { dark: isDark } = useDarkStore();
-
       const [showFallback, setShowFallback] = useState(false);
       const [iconError, setIconError] = useState(false);
+      // Wrap useState init and setter in functional form so React treats the
+      // icon (itself a function component) as the value, not as a lazy
+      // initializer or updater callback.
       const [TargetIcon, setTargetIcon] = useState<IconComponentType | null>(
-        getCachedIcon(name) as IconComponentType | null,
+        () => getCachedIcon(name) as IconComponentType | null,
       );
 
       useEffect(() => {
@@ -57,7 +54,7 @@ export const ForwardedIconComponent = memo(
           getNodeIcon(name)
             .then((component) => {
               if (isMounted) {
-                setTargetIcon(component);
+                setTargetIcon(() => component);
                 setShowFallback(false);
               }
             })
@@ -155,7 +152,7 @@ export const ForwardedIconComponent = memo(
       const componentProps = { ...baseProps, ref };
 
       const content = isValidComponent ? (
-        <TargetIcon {...componentProps} isDark={isDark} />
+        <TargetIcon {...componentProps} />
       ) : (
         <div {...baseProps}>{TargetIcon}</div>
       );

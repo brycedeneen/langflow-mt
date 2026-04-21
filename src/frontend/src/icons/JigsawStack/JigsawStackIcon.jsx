@@ -1,4 +1,8 @@
-const JigsawStackIconSVG = (props) => (
+import { useDarkStore } from "@/stores/darkStore";
+
+const JigsawStackIconSVG = (props) => {
+  const isDark = useDarkStore((state) => state.dark);
+  return (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="278"
@@ -9,7 +13,7 @@ const JigsawStackIconSVG = (props) => (
   >
     <path
       fill={
-        props.isDark
+        isDark
           ? "url(#paint0_linear_102_21_dark)"
           : "url(#paint0_linear_102_21)"
       }
@@ -40,6 +44,7 @@ const JigsawStackIconSVG = (props) => (
       </linearGradient>
     </defs>
   </svg>
-);
+  );
+};
 
 export default JigsawStackIconSVG;

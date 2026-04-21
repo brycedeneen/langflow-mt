@@ -1,5 +1,4 @@
 import { useMemo, useRef, useState } from "react";
-import { GRADIENT_CLASS_DISABLED } from "@/constants/constants";
 import { customGetHostProtocol } from "@/customization/utils/custom-get-host-protocol";
 import useAlertStore from "@/stores/alertStore";
 import useFlowStore from "@/stores/flowStore";
@@ -24,33 +23,8 @@ const inputClasses = {
 };
 
 const externalLinkIconClasses = {
-  gradient: ({
-    editNode,
-    disabled,
-  }: {
-    editNode: boolean;
-    disabled: boolean;
-  }) =>
-    disabled
-      ? "gradient-fade-input-edit-node"
-      : editNode
-        ? "gradient-fade-input-edit-node"
-        : "gradient-fade-input",
-  background: ({
-    editNode,
-    disabled,
-  }: {
-    editNode: boolean;
-    disabled: boolean;
-  }) =>
-    disabled
-      ? ""
-      : editNode
-        ? "background-fade-input-edit-node"
-        : "background-fade-input",
   icon: "icons-parameters-comp absolute right-3 h-4 w-4 shrink-0",
   editNodeTop: "top-[-1.4rem] h-5",
-  normalTop: "top-[-2.1rem] h-7",
   iconTop: "top-[-1.7rem]",
 };
 
@@ -104,24 +78,6 @@ export default function CopyFieldAreaComponent({
 
   const renderIcon = () => (
     <>
-      {!isFocused && (
-        <div
-          className={cn(
-            externalLinkIconClasses.gradient({
-              editNode,
-              disabled: false,
-            }),
-            editNode
-              ? externalLinkIconClasses.editNodeTop
-              : externalLinkIconClasses.normalTop,
-          )}
-          style={{
-            pointerEvents: "none",
-            background: isFocused ? undefined : GRADIENT_CLASS_DISABLED,
-          }}
-          aria-hidden="true"
-        />
-      )}
       <div onClick={handleCopy}>
         <IconComponent
           dataTestId={`btn_copy_${id?.toLowerCase()}${

@@ -813,6 +813,7 @@ export const BUNDLES_SIDEBAR_FOLDER_NAMES = [
 export const AUTHORIZED_DUPLICATE_REQUESTS = [
   "/health",
   "/flows",
+  "/files",
   "/logout",
   "/refresh",
   "/login",
@@ -921,12 +922,6 @@ export const STORE_PAGINATION_PAGE = 1;
 
 export const PAGINATION_ROWS_COUNT = [12, 24, 48, 96];
 export const STORE_PAGINATION_ROWS_COUNT = [12, 24, 48, 96];
-
-export const GRADIENT_CLASS =
-  "linear-gradient(to right, hsl(var(--background) / 0.3), hsl(var(--background)))";
-
-export const GRADIENT_CLASS_DISABLED =
-  "linear-gradient(to right, hsl(var(--muted) / 0.3), hsl(var(--muted)))";
 
 export const RECEIVING_INPUT_VALUE = "Receiving input";
 export const SELECT_AN_OPTION = "Select an option";

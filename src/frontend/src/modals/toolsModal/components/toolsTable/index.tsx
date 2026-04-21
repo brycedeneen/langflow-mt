@@ -106,7 +106,15 @@ export default function ToolsTable({
     }
 
     applyingSelection.current = true;
-    agGrid.current.api.setGridOption("suppressRowClickSelection", true);
+    const currentRowSelection = agGrid.current.api.getGridOption("rowSelection");
+    const baseRowSelection =
+      typeof currentRowSelection === "object" && currentRowSelection !== null
+        ? currentRowSelection
+        : { mode: "multiRow" as const };
+    agGrid.current.api.setGridOption("rowSelection", {
+      ...baseRowSelection,
+      enableClickSelection: false,
+    });
 
     const selectedIds = new Set(selectedRows.map((row) => row.name));
     agGrid.current.api.forEachNode((node) => {
@@ -116,7 +124,10 @@ export default function ToolsTable({
       }
     });
 
-    agGrid.current.api.setGridOption("suppressRowClickSelection", false);
+    agGrid.current.api.setGridOption("rowSelection", {
+      ...baseRowSelection,
+      enableClickSelection: true,
+    });
     setTimeout(() => {
       applyingSelection.current = false;
     }, 50);

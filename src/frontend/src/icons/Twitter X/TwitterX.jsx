@@ -1,5 +1,8 @@
+import { useDarkStore } from "@/stores/darkStore";
+
 const TwitterXSVG = (props) => {
-  return props.isDark ? (
+  const isDark = useDarkStore((state) => state.dark);
+  return isDark ? (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0,0,256,256"

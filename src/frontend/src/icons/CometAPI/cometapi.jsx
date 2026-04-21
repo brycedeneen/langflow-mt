@@ -1,4 +1,8 @@
-const SvgCometAPI = ({ isDark = false, ...props }) => (
+import { useDarkStore } from "@/stores/darkStore";
+
+const SvgCometAPI = (props) => {
+  const isDark = useDarkStore((state) => state.dark);
+  return (
   <svg
     width="24"
     height="24"
@@ -26,6 +30,7 @@ const SvgCometAPI = ({ isDark = false, ...props }) => (
       fill={isDark ? "#D9E7EE" : "#FCFDFE"}
     />
   </svg>
-);
+  );
+};
 
 export default SvgCometAPI;

@@ -21,6 +21,7 @@ import {
   SelectTrigger,
 } from "../../../../components/ui/select-custom";
 import useAlertStore from "../../../../stores/alertStore";
+import useAuthStore from "../../../../stores/authStore";
 import { useDarkStore } from "../../../../stores/darkStore";
 import useFlowStore from "../../../../stores/flowStore";
 import useFlowsManagerStore from "../../../../stores/flowsManagerStore";
@@ -110,11 +111,19 @@ const NodeToolbarComponent = memo(
       Object.values(flow).includes(data.node?.display_name!),
     );
 
+    const { isAdmin, userData } = useAuthStore(
+      useShallow((state) => ({
+        isAdmin: state.isAdmin,
+        userData: state.userData,
+      })),
+    );
+
     const nodeLength = useMemo(() => getNodeLength(data), [data]);
     const hasCode = useMemo(
       () => Object.keys(data.node!.template).includes("code"),
       [data.node],
     );
+    const canViewCode = hasCode && (isAdmin || !!userData?.is_superuser);
     const isGroup = useMemo(
       () => (data.node?.flow ? true : false),
       [data.node],
@@ -238,11 +247,12 @@ const NodeToolbarComponent = memo(
     }, [hasApiKey, hasStore]);
 
     const handleCodeModal = useCallback(() => {
-      if (!hasCode) {
+      if (!canViewCode) {
         setNoticeData({ title: `You can not access ${data.id} code` });
+        return;
       }
       setOpenModal((state) => !state);
-    }, [hasCode, data.id]);
+    }, [canViewCode, data.id]);
 
     const saveComponent = useCallback(() => {
       if (isSaved) {
@@ -489,7 +499,7 @@ const NodeToolbarComponent = memo(
     const renderToolbarButtons = useMemo(
       () => (
         <>
-          {hasCode && (
+          {canViewCode && (
             <ToolbarButton
               className={isCustomComponent ? "animate-pulse-pink" : ""}
               icon="Code"
@@ -591,7 +601,7 @@ const NodeToolbarComponent = memo(
         </>
       ),
       [
-        hasCode,
+        canViewCode,
         nodeLength,
         hasToolMode,
         toolMode,
@@ -616,7 +626,7 @@ const NodeToolbarComponent = memo(
               onOpenChange={handleOpenChange}
               open={dropdownOpen}
             >
-              <SelectTrigger className="w-62">
+              <SelectTrigger className="w-auto">
                 <ShadTooltip content="Show More" side="top">
                   <div data-testid="more-options-modal">
                     <Button
@@ -803,7 +813,7 @@ const NodeToolbarComponent = memo(
             showconfirmShare={showconfirmShare}
             showOverrideModal={showOverrideModal}
             openModal={openModal}
-            hasCode={hasCode}
+            hasCode={canViewCode}
             setShowModalAdvanced={setShowModalAdvanced}
             setShowconfirmShare={setShowconfirmShare}
             setShowOverrideModal={setShowOverrideModal}

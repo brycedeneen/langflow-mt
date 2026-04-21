@@ -69,7 +69,7 @@ def upgrade() -> None:
         op.create_table(
             "membership",
             sa.Column("id", sa.Uuid(), primary_key=True),
-            sa.Column("user_id", sa.Uuid(), sa.ForeignKey("user.id"), nullable=False),
+            sa.Column("user_id", sa.Uuid(), sa.ForeignKey("user.id", ondelete="CASCADE"), nullable=False),
             sa.Column("organization_id", sa.Uuid(), sa.ForeignKey("organization.id"), nullable=False),
             sa.Column("role", sa.String(), nullable=False, server_default="owner"),
             sa.Column("created_at", sa.DateTime(), nullable=False, server_default=sa.func.now()),

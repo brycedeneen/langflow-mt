@@ -1,4 +1,8 @@
-const DeepSeekSVG = (props) => (
+import { useDarkStore } from "@/stores/darkStore";
+
+const DeepSeekSVG = (props) => {
+  const isDark = useDarkStore((state) => state.dark);
+  return (
   <svg
     version="1.0"
     xmlns="http://www.w3.org/2000/svg"
@@ -10,7 +14,7 @@ const DeepSeekSVG = (props) => (
   >
     <g
       transform="translate(0.000000,225.000000) scale(0.100000,-0.100000)"
-      fill={props.isDark ? "#1f3a94" : "#4c6cfc"}
+      fill={isDark ? "#1f3a94" : "#4c6cfc"}
       stroke="none"
     >
       <path
@@ -37,6 +41,7 @@ m943 -79 c50 -25 130 -115 166 -186 25 -50 27 -57 13 -71 -9 -8 -36 -18 -61
       />
     </g>
   </svg>
-);
+  );
+};
 
 export default DeepSeekSVG;

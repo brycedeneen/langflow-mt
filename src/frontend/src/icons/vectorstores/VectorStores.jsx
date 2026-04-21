@@ -1,6 +1,10 @@
-const SvgVectorStores = (props) => (
+import { useDarkStore } from "@/stores/darkStore";
+
+const SvgVectorStores = (props) => {
+  const isDark = useDarkStore((state) => state.dark);
+  return (
   <svg
-    fill={props.isDark ? "#ffffff" : "#0A0A0A"}
+    fill={isDark ? "#ffffff" : "#0A0A0A"}
     fillRule="evenodd"
     style={{ flex: "none", lineHeight: 1 }}
     viewBox="0 0 32 32"
@@ -25,5 +29,6 @@ const SvgVectorStores = (props) => (
     />
     <path d="m16,1c-3.3744,0-6.5818,1.1193-9.2048,3.1662-.244-.106-.5123-.1662-.7952-.1662-1.1046,0-2,.8954-2,2s.8954,2,2,2,2-.8954,2-2c0-.0764-.0142-.1488-.0225-.2229,2.2808-1.7963,5.0792-2.7771,8.0225-2.7771,4.2617,0,8,3.9722,8,8.5,0,4.687-3.813,8.5-8.5,8.5h-.5v2h.5c5.7896,0,10.5-4.7104,10.5-10.5,0-1.8853-.5322-3.6917-1.4401-5.2593,2.715,2.3843,4.4401,5.8704,4.4401,9.7593,0,2.1152-.4917,4.1328-1.4619,5.9956l1.7744.9238c1.104-2.1211,1.6875-4.5137,1.6875-6.9194C31,7.729,24.271,1,16,1Z" />
   </svg>
-);
+  );
+};
 export default SvgVectorStores;

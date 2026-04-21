@@ -52,6 +52,28 @@ select:-webkit-autofill:focus {
   box-shadow: 0 0 0px 1000px #fff6d0 inset;
   color: black;
 }
+
+.login-form input:-webkit-autofill,
+.login-form input:-webkit-autofill:hover,
+.login-form input:-webkit-autofill:focus {
+  -webkit-text-fill-color: hsl(var(--foreground));
+  caret-color: hsl(var(--foreground));
+  -webkit-box-shadow:
+    inset 0 0 0 1px hsl(var(--border)),
+    inset 0 0 0 1000px hsl(var(--background));
+  box-shadow:
+    inset 0 0 0 1px hsl(var(--border)),
+    inset 0 0 0 1000px hsl(var(--background));
+}
+
+.login-form input:-webkit-autofill:focus {
+  -webkit-box-shadow:
+    inset 0 0 0 2px hsl(var(--foreground)),
+    inset 0 0 0 1000px hsl(var(--background));
+  box-shadow:
+    inset 0 0 0 2px hsl(var(--foreground)),
+    inset 0 0 0 1000px hsl(var(--background));
+}
 .ace_scrollbar::-webkit-scrollbar {
   height: 8px;
   width: 8px;

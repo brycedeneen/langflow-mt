@@ -8,7 +8,7 @@ import {
 } from "@/constants/constants";
 import { useDarkStore } from "@/stores/darkStore";
 import "@/style/ag-theme-shadcn.css"; // Custom CSS applied to the grid
-import type { ColDef } from "ag-grid-community";
+import type { ColDef, RowSelectionOptions } from "ag-grid-community";
 import type { TableOptionsTypeAPI } from "@/types/api";
 import { cn } from "@/utils/utils";
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the grid
@@ -50,6 +50,16 @@ const TableComponent = forwardRef<
       alertTitle = DEFAULT_TABLE_ALERT_TITLE,
       alertDescription = DEFAULT_TABLE_ALERT_MSG,
       displayEmptyAlert = true,
+      editable,
+      tableOptions,
+      onDelete,
+      onDuplicate,
+      addRow,
+      paginationInfo,
+      rowSelection: rowSelectionProp,
+      suppressRowClickSelection: suppressRowClickSelectionProp,
+      gridOptions: gridOptionsProp,
+      columnDefs: columnDefsProp,
       ...props
     },
     ref,
@@ -101,12 +111,17 @@ const TableComponent = forwardRef<
       }
     };
 
-    const colDef = props.columnDefs
+    const colDef = columnDefsProp
       .filter((col) => !col.hide)
       .map((col, index, filteredArray) => {
-        let newCol = {
+        let newCol: ColDef = {
           ...col,
         };
+
+        // Strip deprecated per-column selection props (v32.2+: moved to rowSelection grid option)
+        delete newCol.checkboxSelection;
+        delete newCol.headerCheckboxSelection;
+        delete newCol.headerCheckboxSelectionFilteredOnly;
 
         if (index !== filteredArray.length - 1) {
           newCol = {
@@ -114,19 +129,11 @@ const TableComponent = forwardRef<
             suppressSizeToFit: true,
           };
         }
-        if (props.rowSelection && props.onSelectionChanged && index === 0) {
-          newCol = {
-            ...newCol,
-            checkboxSelection: col.checkboxSelection !== false,
-            headerCheckboxSelection: col.headerCheckboxSelection !== false,
-            headerCheckboxSelectionFilteredOnly: true,
-          };
-        }
         if (
-          (typeof props.tableOptions?.block_hide === "boolean" &&
-            props.tableOptions?.block_hide) ||
-          (Array.isArray(props.tableOptions?.block_hide) &&
-            props.tableOptions?.block_hide.includes(newCol.field ?? ""))
+          (typeof tableOptions?.block_hide === "boolean" &&
+            tableOptions?.block_hide) ||
+          (Array.isArray(tableOptions?.block_hide) &&
+            tableOptions?.block_hide.includes(newCol.field ?? ""))
         ) {
           newCol = {
             ...newCol,
@@ -134,10 +141,10 @@ const TableComponent = forwardRef<
           };
         }
         if (
-          (typeof props.editable === "boolean" && props.editable) ||
-          (Array.isArray(props.editable) &&
-            props.editable.every((field) => typeof field === "string") &&
-            (props.editable as Array<string>).includes(newCol.field ?? ""))
+          (typeof editable === "boolean" && editable) ||
+          (Array.isArray(editable) &&
+            editable.every((field) => typeof field === "string") &&
+            (editable as Array<string>).includes(newCol.field ?? ""))
         ) {
           // Special handling for single-toggle columns (Vectorize and Identifier)
           const isSingleToggleColumn =
@@ -184,11 +191,11 @@ const TableComponent = forwardRef<
           }
         }
         if (
-          Array.isArray(props.editable) &&
-          props.editable.every((field) => typeof field === "object")
+          Array.isArray(editable) &&
+          editable.every((field) => typeof field === "object")
         ) {
           const field = (
-            props.editable as Array<{
+            editable as Array<{
               field: string;
               onUpdate: (value: any) => void;
               editableCell: boolean;
@@ -268,7 +275,7 @@ const TableComponent = forwardRef<
     const initialColumnDefs = useRef(colDef);
     const [columnStateChange, setColumnStateChange] = useState(false);
     // Only use visible columns for the store reference
-    const storeReference = props.columnDefs
+    const storeReference = columnDefsProp
       .filter((col) => !col.hide)
       .map((e) => e.headerName)
       .join("_");
@@ -332,6 +339,36 @@ const TableComponent = forwardRef<
         params.api.sizeColumnsToFit();
       }
     };
+    // Normalize legacy AG Grid v32 selection API (rowSelection string, suppressRowClickSelection,
+    // per-column checkboxSelection/headerCheckboxSelection) to the v32.2+ rowSelection object.
+    const legacyGridOptionsSuppress = gridOptionsProp?.suppressRowClickSelection;
+    const normalizedRowSelection = ((): RowSelectionOptions | undefined => {
+      if (!rowSelectionProp) return undefined;
+      const base: Record<string, unknown> =
+        typeof rowSelectionProp === "string"
+          ? {
+              mode: rowSelectionProp === "single" ? "singleRow" : "multiRow",
+            }
+          : { ...rowSelectionProp };
+      if (props.onSelectionChanged) {
+        if (base.checkboxes === undefined) base.checkboxes = true;
+        if (base.headerCheckbox === undefined) base.headerCheckbox = true;
+        if (base.selectAll === undefined) base.selectAll = "filtered";
+      }
+      const legacySuppress =
+        suppressRowClickSelectionProp ?? legacyGridOptionsSuppress;
+      if (
+        legacySuppress !== undefined &&
+        base.enableClickSelection === undefined
+      ) {
+        base.enableClickSelection = !legacySuppress;
+      }
+      return base as unknown as RowSelectionOptions;
+    })();
+
+    const { suppressRowClickSelection: _stripped, ...gridOptionsForwarded } =
+      gridOptionsProp ?? {};
+
     if (props.rowData.length === 0 && displayEmptyAlert) {
       return (
         <div className="flex h-full w-full items-center justify-center rounded-md border">
@@ -374,6 +411,8 @@ const TableComponent = forwardRef<
       >
         <AgGridReact
           {...props}
+          theme="legacy"
+          rowSelection={normalizedRowSelection}
           defaultColDef={{
             minWidth: 100,
             suppressColumnsToolPanel: true, // Don't show hidden columns in tool panel
@@ -382,7 +421,7 @@ const TableComponent = forwardRef<
           gridOptions={{
             colResizeDefault: "shift",
             suppressColumnVirtualisation: false, // Enable column virtualization for better performance
-            ...props.gridOptions,
+            ...gridOptionsForwarded,
           }}
           onColumnResized={onColumnResized}
           columnDefs={colDef}
@@ -468,15 +507,15 @@ const TableComponent = forwardRef<
             }
           }}
         />
-        {!props.tableOptions?.hide_options && props.pagination && (
+        {!tableOptions?.hide_options && props.pagination && (
           <TableOptions
-            tableOptions={props.tableOptions}
+            tableOptions={tableOptions}
             stateChange={columnStateChange}
-            paginationInfo={props.paginationInfo}
+            paginationInfo={paginationInfo}
             hasSelection={realRef.current?.api?.getSelectedRows()?.length > 0}
-            duplicateRow={props.onDuplicate ? props.onDuplicate : undefined}
-            deleteRow={props.onDelete ? props.onDelete : undefined}
-            addRow={props.addRow ? props.addRow : undefined}
+            duplicateRow={onDuplicate ? onDuplicate : undefined}
+            deleteRow={onDelete ? onDelete : undefined}
+            addRow={addRow ? addRow : undefined}
             resetGrid={() => {
               resetGrid(realRef, initialColumnDefs);
               setTimeout(() => {

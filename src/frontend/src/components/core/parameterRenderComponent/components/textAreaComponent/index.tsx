@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { GRADIENT_CLASS } from "@/constants/constants";
 import { customGetHostProtocol } from "@/customization/utils/custom-get-host-protocol";
 import { getCurlWebhookCode } from "@/modals/apiModal/utils/get-curl-code";
 import ComponentTextModal from "@/modals/textAreaModal";
@@ -29,35 +28,8 @@ const { protocol, host } = customGetHostProtocol();
 const URL_MCP_SSE = `${protocol}//${host}/api/v1/mcp/sse`;
 
 const externalLinkIconClasses = {
-  gradient: ({
-    disabled,
-    editNode,
-    password,
-  }: {
-    disabled: boolean;
-    editNode: boolean;
-    password: boolean;
-  }) =>
-    disabled || password
-      ? ""
-      : editNode
-        ? "gradient-fade-input-edit-node"
-        : "gradient-fade-input",
-  background: ({
-    disabled,
-    editNode,
-  }: {
-    disabled: boolean;
-    editNode: boolean;
-  }) =>
-    disabled
-      ? ""
-      : editNode
-        ? "background-fade-input-edit-node"
-        : "background-fade-input",
   icon: "icons-parameters-comp absolute right-3 h-4 w-4 shrink-0",
   editNodeTop: "top-[-1.4rem] h-5",
-  normalTop: "top-[-2.1rem] h-7",
   iconTop: "top-[-1.7rem]",
 };
 
@@ -147,30 +119,6 @@ export default function TextAreaComponent({
 
   const renderIcon = () => (
     <div>
-      {!disabled && !isFocused && (
-        <div
-          className={cn(
-            externalLinkIconClasses.gradient({
-              disabled,
-              editNode,
-              password: password!,
-            }),
-            editNode
-              ? externalLinkIconClasses.editNodeTop
-              : externalLinkIconClasses.normalTop,
-          )}
-          style={{
-            pointerEvents: "none",
-            background: isFocused
-              ? undefined
-              : disabled
-                ? "bg-background"
-                : GRADIENT_CLASS,
-          }}
-          aria-hidden="true"
-        />
-      )}
-
       <IconComponent
         dataTestId={`button_open_text_area_modal_${id}${editNode ? "_advanced" : ""}`}
         name={getIconName(disabled, "", "", false, isToolMode) || "Scan"}

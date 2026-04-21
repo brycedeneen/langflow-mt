@@ -34,19 +34,24 @@ export const useLogout: useMutationFunctionType<undefined, void> = (
     return res.data;
   }
 
+  const cleanupLocalState = () => {
+    logout();
+
+    useFlowStore.getState().resetFlowState();
+    useFlowsManagerStore.getState().resetStore();
+    useFolderStore.getState().resetStore();
+
+    // Clear all React Query cache to prevent data leakage between users
+    queryClient.clear();
+  };
+
   const mutation = mutate(["useLogout"], logoutUser, {
-    onSuccess: () => {
-      logout();
-
-      useFlowStore.getState().resetFlowState();
-      useFlowsManagerStore.getState().resetStore();
-      useFolderStore.getState().resetStore();
-
-      // Clear all React Query cache to prevent data leakage between users
-      queryClient.clear();
-    },
+    onSuccess: cleanupLocalState,
     onError: (error) => {
+      // A failed /logout POST still means the client is done with this session —
+      // clear local state so stale-cookie users aren't stuck retrying in a loop.
       console.error(error);
+      cleanupLocalState();
     },
     ...options,
     retry: false,

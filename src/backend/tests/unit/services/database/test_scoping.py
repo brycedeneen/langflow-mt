@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 import pytest
+import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel import Field, SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -19,7 +20,13 @@ from langflow.services.database.scoping import (
 _FAKE_TABLE_NAME = "fake_tenant"
 
 
-class FakeTenant(SQLModel, table=True):  # type: ignore[call-arg]
+# Separate metadata so FakeTenant does not register on SQLModel.metadata, which
+# would leak into test_no_phantom_migrations' autogenerate diff.
+class _TestModelBase(SQLModel):
+    metadata = sa.MetaData()
+
+
+class FakeTenant(_TestModelBase, table=True):  # type: ignore[call-arg]
     __tablename__ = _FAKE_TABLE_NAME
 
     id: UUIDstr = Field(default_factory=uuid4, primary_key=True)
@@ -45,6 +52,7 @@ async def guarded_session(tenant_table_registered):
     install_scoping_guards(engine.sync_engine, enforce_select=True)
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
+        await conn.run_sync(_TestModelBase.metadata.create_all)
     async with AsyncSession(engine, expire_on_commit=False) as session:
         yield session
     await engine.dispose()
