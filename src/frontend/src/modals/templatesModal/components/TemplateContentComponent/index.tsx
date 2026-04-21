@@ -6,6 +6,8 @@ import type { FlowType } from "@/types/flow";
 import type { TemplateRead } from "@/types/template";
 import { ForwardedIconComponent } from "../../../../components/common/genericIconComponent";
 import { Input } from "../../../../components/ui/input";
+import { Switch } from "../../../../components/ui/switch";
+import { Label } from "../../../../components/ui/label";
 import type { TemplateContentProps } from "../../../../types/templates/types";
 import { TemplateCategoryComponent } from "../TemplateCategoryComponent";
 
@@ -28,15 +30,21 @@ function adaptTemplateToFlowLike(template: TemplateRead): FlowType {
   };
 }
 
-function buildParams(currentTab: string): ListTemplatesParams | undefined {
+function buildParams(
+  currentTab: string,
+  includeArchived: boolean,
+): ListTemplatesParams | undefined {
+  const base: ListTemplatesParams = {};
+  if (includeArchived) base.include_archived = true;
+
   if (currentTab === "all-templates") {
-    return undefined;
+    return Object.keys(base).length ? base : undefined;
   }
   if (currentTab === "saved") {
-    return { created_by_me: true };
+    return { created_by_me: true, ...base };
   }
   // Any other tab id is a category name coming from the API categories
-  return { category: currentTab };
+  return { category: currentTab, ...base };
 }
 
 export default function TemplateContentComponent({
@@ -48,7 +56,15 @@ export default function TemplateContentComponent({
   onSelectTemplate,
   isAdmin = false,
 }: TemplateContentComponentProps) {
-  const params = useMemo(() => buildParams(currentTab), [currentTab]);
+  // "Show archived" toggle is visible for admins on any tab, or for anyone on the
+  // "saved" (Saved Templates) tab (pairs with created_by_me so the server allows it).
+  const showArchivedToggleVisible = isAdmin || currentTab === "saved";
+  const [showArchived, setShowArchived] = useState(false);
+
+  const params = useMemo(
+    () => buildParams(currentTab, showArchivedToggleVisible && showArchived),
+    [currentTab, showArchived, showArchivedToggleVisible],
+  );
 
   const { data: templateData = [], isPending } = useListTemplates(params);
 
@@ -59,6 +75,7 @@ export default function TemplateContentComponent({
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredExamples, setFilteredExamples] = useState(examples);
+  const [filteredRaw, setFilteredRaw] = useState<TemplateRead[]>(templateData);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const fuse = useMemo(
@@ -67,22 +84,28 @@ export default function TemplateContentComponent({
   );
 
   useEffect(() => {
-    // Reset search query when currentTab changes
+    // Reset search query and showArchived when currentTab changes
     setSearchQuery("");
+    setShowArchived(false);
   }, [currentTab]);
 
   useEffect(() => {
     if (searchQuery === "") {
       setFilteredExamples(examples);
+      setFilteredRaw(templateData);
     } else {
       const searchResults = fuse.search(searchQuery);
+      const indices = searchResults.map((r) =>
+        examples.findIndex((e) => e.id === r.item.id),
+      );
       setFilteredExamples(searchResults.map((result) => result.item));
+      setFilteredRaw(indices.map((i) => templateData[i]).filter(Boolean));
     }
     // Scroll to the top when search query changes
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0;
     }
-  }, [searchQuery, currentTab, examples, fuse]);
+  }, [searchQuery, currentTab, examples, templateData, fuse]);
 
   const handleClearSearch = () => {
     setSearchQuery("");
@@ -127,6 +150,21 @@ export default function TemplateContentComponent({
           className="w-3/4 rounded-lg bg-background lg:w-2/3"
         />
       </div>
+
+      {/* Show archived toggle — visible for admins everywhere, or for anyone on the Saved tab */}
+      {showArchivedToggleVisible && (
+        <div className="mx-3 flex items-center gap-2">
+          <Switch
+            id="show-archived-toggle"
+            checked={showArchived}
+            onCheckedChange={setShowArchived}
+          />
+          <Label htmlFor="show-archived-toggle" className="cursor-pointer text-sm text-muted-foreground">
+            Show archived
+          </Label>
+        </div>
+      )}
+
       <div
         ref={scrollContainerRef}
         className="flex flex-1 flex-col gap-6 overflow-auto scrollbar-hide"
@@ -138,6 +176,8 @@ export default function TemplateContentComponent({
             loading={loading}
             selectedTemplate={selectedTemplate}
             onSelectTemplate={onSelectTemplate}
+            rawTemplates={filteredRaw}
+            isAdmin={isAdmin}
           />
         ) : (
           <div className="flex flex-col items-center justify-center px-4 py-12 text-center">

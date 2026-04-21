@@ -1,5 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useListTemplates } from "@/controllers/API/queries/templates/use-list-templates";
 import type { FlowType } from "@/types/flow";
 import type { TemplateRead } from "@/types/template";
@@ -9,6 +11,7 @@ type Props = {
   selectedTemplate: string | null;
   onSelectTemplate: (id: string | null) => void;
   loading: boolean;
+  isAdmin?: boolean;
 };
 
 function adaptTemplateToFlowLike(template: TemplateRead): FlowType {
@@ -26,8 +29,16 @@ export default function SavedTemplatesContent({
   selectedTemplate,
   onSelectTemplate,
   loading,
+  isAdmin = false,
 }: Props) {
-  const { data, isPending, isError, refetch } = useListTemplates();
+  // Saved Templates always shows the toggle (any user can see their own archived templates
+  // via created_by_me=true pairing on the server).
+  const [showArchived, setShowArchived] = useState(false);
+
+  const { data, isPending, isError, refetch } = useListTemplates({
+    created_by_me: true,
+    include_archived: showArchived,
+  });
 
   const adapted = useMemo(
     () => (data ?? []).map(adaptTemplateToFlowLike),
@@ -67,27 +78,45 @@ export default function SavedTemplatesContent({
     );
   }
 
-  if (adapted.length === 0) {
-    return (
-      <div
-        data-testid="saved-templates-empty"
-        className="flex flex-col items-center justify-center px-4 py-12 text-center"
-      >
-        <p className="text-sm text-secondary-foreground">
-          No saved templates yet. Save a flow as a template from the flow
-          toolbar to see it here.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <TemplateCategoryComponent
-      examples={adapted}
-      onCardClick={() => {}}
-      loading={loading}
-      selectedTemplate={selectedTemplate}
-      onSelectTemplate={onSelectTemplate}
-    />
+    <div className="flex flex-col gap-4">
+      {/* Show archived toggle — visible on Saved Templates for all users */}
+      <div className="flex items-center gap-2">
+        <Switch
+          id="saved-show-archived-toggle"
+          checked={showArchived}
+          onCheckedChange={setShowArchived}
+        />
+        <Label
+          htmlFor="saved-show-archived-toggle"
+          className="cursor-pointer text-sm text-muted-foreground"
+        >
+          Show archived
+        </Label>
+      </div>
+
+      {adapted.length === 0 ? (
+        <div
+          data-testid="saved-templates-empty"
+          className="flex flex-col items-center justify-center px-4 py-12 text-center"
+        >
+          <p className="text-sm text-secondary-foreground">
+            {showArchived
+              ? "No templates found (including archived)."
+              : "No saved templates yet. Save a flow as a template from the flow toolbar to see it here."}
+          </p>
+        </div>
+      ) : (
+        <TemplateCategoryComponent
+          examples={adapted}
+          onCardClick={() => {}}
+          loading={loading}
+          selectedTemplate={selectedTemplate}
+          onSelectTemplate={onSelectTemplate}
+          rawTemplates={data ?? []}
+          isAdmin={isAdmin}
+        />
+      )}
+    </div>
   );
 }

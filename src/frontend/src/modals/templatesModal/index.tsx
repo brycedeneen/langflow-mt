@@ -147,6 +147,7 @@ export default function TemplatesModal({
                         loading={loading}
                         selectedTemplate={selectedTemplate}
                         onSelectTemplate={setSelectedTemplate}
+                        isAdmin={isAdmin}
                       />
                     );
                   default:
