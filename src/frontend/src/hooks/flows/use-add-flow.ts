@@ -113,12 +113,13 @@ const useAddFlow = () => {
       folder_id: folder_id,
       built_with_assist:
         params?.built_with_assist ?? flow?.built_with_assist ?? false,
+      // Explicit null means "no link"; omit the key to fall back to
+      // params.flow.id (the ADP Assist template-cloning path, where
+      // params.flow is a real Flow row).
       based_on_template_flow_id:
-        params?.based_on_template_flow_id ??
-        // When cloning from a template (params.flow is the source template),
-        // preserve the template's flow.id so the backend can resolve
-        // TemplateMetadata for conversation context.
-        (params?.flow?.id ?? null),
+        params && "based_on_template_flow_id" in params
+          ? (params.based_on_template_flow_id ?? null)
+          : (params?.flow?.id ?? null),
     };
 
     return new Promise<string>((resolve, reject) => {
