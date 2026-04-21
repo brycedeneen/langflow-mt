@@ -401,6 +401,72 @@ async def patch_template(
     return TemplateReadDetail.model_validate(row, from_attributes=True)
 
 
+@router.post("/{template_id}/archive", response_model=TemplateRead)
+async def archive_template(
+    template_id: UUID,
+    *,
+    session: DbSession,
+    current_user: User = Depends(get_current_active_user),
+) -> TemplateRead:
+    row = (
+        await session.exec(
+            select(Template)
+            .where(Template.id == template_id)
+            .where(Template.deleted_at.is_(None))
+            .options(selectinload(Template.categories))
+        )
+    ).one_or_none()
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Template not found")
+    if not user_can_edit_template(current_user, row):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+    if row.archived_at is None:
+        row.archived_at = datetime.now(timezone.utc)
+        session.add(row)
+        await session.commit()
+        row = (
+            await session.exec(
+                select(Template)
+                .where(Template.id == template_id)
+                .options(selectinload(Template.categories))
+            )
+        ).one()
+    return TemplateRead.model_validate(row, from_attributes=True)
+
+
+@router.post("/{template_id}/unarchive", response_model=TemplateRead)
+async def unarchive_template(
+    template_id: UUID,
+    *,
+    session: DbSession,
+    current_user: User = Depends(get_current_active_user),
+) -> TemplateRead:
+    row = (
+        await session.exec(
+            select(Template)
+            .where(Template.id == template_id)
+            .where(Template.deleted_at.is_(None))
+            .options(selectinload(Template.categories))
+        )
+    ).one_or_none()
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Template not found")
+    if not user_can_edit_template(current_user, row):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+    if row.archived_at is not None:
+        row.archived_at = None
+        session.add(row)
+        await session.commit()
+        row = (
+            await session.exec(
+                select(Template)
+                .where(Template.id == template_id)
+                .options(selectinload(Template.categories))
+            )
+        ).one()
+    return TemplateRead.model_validate(row, from_attributes=True)
+
+
 @router.delete("/{template_id}", status_code=204)
 async def soft_delete_template(
     template_id: UUID,
