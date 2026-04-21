@@ -20,9 +20,25 @@ branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
 
+_PER_SCOPE_INDEX_SQL = (
+    "CREATE UNIQUE INDEX uq_template_name_per_scope "
+    "ON template (COALESCE(org_id, '00000000-0000-0000-0000-000000000000'), LOWER(name))"
+)
+
+
 def upgrade() -> None:
+    is_sqlite = op.get_bind().dialect.name == "sqlite"
+
+    # On SQLite, batch_alter_table rebuilds the table and silently drops expression
+    # indexes it can't reflect (see e0a0990b26b1 for the same landmine). On Postgres,
+    # batch_alter_table emits plain ALTER TABLE and the index survives — so the
+    # drop/recreate dance is SQLite-only.
+    if is_sqlite:
+        op.execute("DROP INDEX IF EXISTS uq_template_name_per_scope")
     with op.batch_alter_table("template") as batch:
         batch.alter_column("updated_by", existing_type=sa.Uuid(), nullable=True)
+    if is_sqlite:
+        op.execute(_PER_SCOPE_INDEX_SQL)
 
     with op.batch_alter_table("membership") as batch:
         batch.drop_constraint("fk_membership_user_id_user", type_="foreignkey")
@@ -36,6 +52,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    is_sqlite = op.get_bind().dialect.name == "sqlite"
+
     with op.batch_alter_table("membership") as batch:
         batch.drop_constraint("fk_membership_user_id_user", type_="foreignkey")
         batch.create_foreign_key(
@@ -45,5 +63,9 @@ def downgrade() -> None:
             ["id"],
         )
 
+    if is_sqlite:
+        op.execute("DROP INDEX IF EXISTS uq_template_name_per_scope")
     with op.batch_alter_table("template") as batch:
         batch.alter_column("updated_by", existing_type=sa.Uuid(), nullable=False)
+    if is_sqlite:
+        op.execute(_PER_SCOPE_INDEX_SQL)

@@ -21,6 +21,9 @@ class TemplateCategory(SQLModel, table=True):
     """Join table linking Templates to Categories (M:N)."""
 
     __tablename__ = "template_category"
+    __table_args__ = (
+        Index("ix_template_category_category_id", "category_id"),
+    )
 
     template_id: UUID = Field(
         sa_column=Column(Uuid(), ForeignKey("template.id", ondelete="CASCADE"), primary_key=True),

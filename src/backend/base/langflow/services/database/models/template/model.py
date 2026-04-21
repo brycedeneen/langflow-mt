@@ -38,6 +38,12 @@ class Template(SQLModel, table=True):
             text("LOWER(name)"),
             unique=True,
         ),
+        Index(
+            "ix_template_active",
+            "id",
+            postgresql_where=text("archived_at IS NULL"),
+            sqlite_where=text("archived_at IS NULL"),
+        ),
         CheckConstraint(
             "(scope = 'platform' AND org_id IS NULL) OR "
             "(scope = 'org' AND org_id IS NOT NULL)",
