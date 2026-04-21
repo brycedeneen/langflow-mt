@@ -39,6 +39,7 @@ export const URLs = {
   RUN: `run`,
   RUN_SESSION: `run/session`,
   REGISTRATION: `registration`,
+  CATEGORIES: `categories`,
   ADMIN_ORGS: `admin/organizations`,
   ADMIN_USERS: `admin/users`,
   METADATA_COMPONENTS: `admin/metadata/components`,

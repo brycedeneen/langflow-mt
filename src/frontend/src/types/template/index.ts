@@ -1,3 +1,14 @@
+export type Category = {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  description: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type TemplateRead = {
   id: string;
   name: string;
@@ -6,6 +17,10 @@ export type TemplateRead = {
   gradient: string | null;
   created_at: string;
   updated_at: string;
+  archived_at: string | null;
+  scope: "platform" | "org";
+  org_id: string | null;
+  categories: Category[];
 };
 
 export type TemplateReadDetail = TemplateRead & {
