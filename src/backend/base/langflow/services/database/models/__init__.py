@@ -1,6 +1,7 @@
 from .api_key import ApiKey
 from .assistant import AssistantConversation, AssistantMessage
 from .auth import SSOConfig, SSOUserProfile
+from .category import Category, TemplateCategory
 from .component_metadata import ComponentMetadata
 from .deployment import Deployment
 from .deployment_provider_account import DeploymentProviderAccount
@@ -25,6 +26,7 @@ __all__ = [
     "ApiKey",
     "AssistantConversation",
     "AssistantMessage",
+    "Category",
     "ComponentMetadata",
     "Deployment",
     "DeploymentProviderAccount",
@@ -44,6 +46,7 @@ __all__ = [
     "SSOUserProfile",
     "SpanTable",
     "Template",
+    "TemplateCategory",
     "TemplateMetadata",
     "TraceTable",
     "TransactionTable",
