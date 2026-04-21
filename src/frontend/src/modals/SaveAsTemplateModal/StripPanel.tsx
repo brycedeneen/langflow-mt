@@ -62,19 +62,13 @@ export default function StripPanel({
   }
 
   return (
-    <details
-      open={open}
-      onToggle={(e) =>
-        onOpenChange((e.target as HTMLDetailsElement).open)
-      }
-    >
+    <details open={open}>
       <summary
         className="cursor-pointer text-sm font-medium"
         onClick={(e) => {
           // Controlled <details>: intercept the click, prevent the browser's
           // native toggle of the open attribute, and let React own open-state
-          // via onOpenChange. Also makes the component testable under jsdom,
-          // which does not fire the native toggle event on summary clicks.
+          // via onOpenChange.
           e.preventDefault();
           onOpenChange(!open);
         }}
@@ -83,7 +77,7 @@ export default function StripPanel({
           {showCount && <span>{countCopy}</span>}
           {showWarning && (
             <span
-              role="alert"
+              role="status"
               className="inline-flex items-center gap-1 text-yellow-600"
             >
               <AlertTriangle className="h-4 w-4" />
@@ -96,7 +90,7 @@ export default function StripPanel({
       <div className="mt-2 space-y-3">
         {showWarning && (
           <div
-            role="alert"
+            role="status"
             className="flex items-center gap-2 rounded-sm border border-yellow-300 bg-yellow-50 px-2 py-1 text-sm text-yellow-700"
           >
             <AlertTriangle className="h-4 w-4 shrink-0" />

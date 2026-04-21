@@ -3,13 +3,6 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import StripPanel from "../StripPanel";
 import type { BlankableFieldInfo } from "../scanBlankableFields";
 
-// `fireEvent.toggle` isn't included in this version of @testing-library/react;
-// polyfill it locally for the <details> element test below.
-if (!fireEvent.toggle) {
-  (fireEvent as any).toggle = (element: Element) =>
-    fireEvent(element, new Event("toggle", { bubbles: false }));
-}
-
 const fields: BlankableFieldInfo[] = [
   {
     node_id: "n1",
@@ -46,7 +39,7 @@ describe("StripPanel", () => {
     );
     expect(screen.getByText(/no credential fields detected/i)).toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
   it("summary reads 'What gets stripped (N)' when no fields are kept", () => {
@@ -61,7 +54,7 @@ describe("StripPanel", () => {
     );
     const summary = screen.getByText(/what gets stripped/i);
     expect(summary).toHaveTextContent("What gets stripped (3)");
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
   it("summary reads 'What gets stripped (B of N)' when 1 ≤ K < N fields are kept", () => {
@@ -75,7 +68,7 @@ describe("StripPanel", () => {
       />,
     );
     expect(screen.getByText(/what gets stripped \(2 of 3\)/i)).toBeInTheDocument();
-    expect(screen.getByRole("alert")).toHaveTextContent(/1 credential will be saved/i);
+    expect(screen.getByRole("status")).toHaveTextContent(/1 credential will be saved/i);
   });
 
   it("summary reads only the warning when all N fields are kept (K = N)", () => {
@@ -89,7 +82,7 @@ describe("StripPanel", () => {
       />,
     );
     expect(screen.queryByText(/what gets stripped/i)).not.toBeInTheDocument();
-    expect(screen.getByRole("alert")).toHaveTextContent(/3 credentials will be saved/i);
+    expect(screen.getByRole("status")).toHaveTextContent(/3 credentials will be saved/i);
   });
 
   it("groups field rows by component_display_name, alphabetically", () => {
@@ -164,9 +157,9 @@ describe("StripPanel", () => {
     expect(screen.getAllByRole("checkbox")).toHaveLength(3);
   });
 
-  it("toggling the <details> element fires onOpenChange with the new state", () => {
+  it("clicking the <summary> fires onOpenChange with the new state", () => {
     const onOpenChange = jest.fn();
-    const { container } = render(
+    render(
       <StripPanel
         fields={fields}
         keptKeys={new Set()}
@@ -175,11 +168,7 @@ describe("StripPanel", () => {
         onOpenChange={onOpenChange}
       />,
     );
-    const details = container.querySelector("details") as HTMLDetailsElement;
-    expect(details).not.toBeNull();
-    // Simulate the browser toggling the details element open
-    details.open = true;
-    fireEvent.toggle(details);
+    fireEvent.click(screen.getByText(/what gets stripped/i));
     expect(onOpenChange).toHaveBeenCalledWith(true);
   });
 
@@ -193,11 +182,11 @@ describe("StripPanel", () => {
         onOpenChange={noop}
       />,
     );
-    // Both the summary and inside-body alert should be present.
-    const alerts = screen.getAllByRole("alert");
-    expect(alerts.length).toBe(2);
-    alerts.forEach((a) =>
-      expect(a).toHaveTextContent(/1 credential will be saved/i),
+    // Both the summary and inside-body status should be present.
+    const statuses = screen.getAllByRole("status");
+    expect(statuses.length).toBe(2);
+    statuses.forEach((s) =>
+      expect(s).toHaveTextContent(/1 credential will be saved/i),
     );
   });
 });
