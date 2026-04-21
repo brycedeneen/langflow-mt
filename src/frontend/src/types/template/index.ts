@@ -20,6 +20,7 @@ export type TemplateRead = {
   archived_at: string | null;
   scope: "platform" | "org";
   org_id: string | null;
+  created_by: string | null;
   categories: Category[];
 };
 
@@ -40,6 +41,15 @@ export type TemplateCreateBody = {
   icon?: string | null;
   gradient?: string | null;
   blanked_fields?: BlankedField[];
+};
+
+export type TemplatePatchBody = {
+  name?: string;
+  description?: string | null;
+  icon?: string | null;
+  gradient?: string | null;
+  /** null = leave tags unchanged; [] = clear all tags; id[] = full-replace */
+  category_ids?: string[] | null;
 };
 
 export type TemplateUpdateBody = TemplateCreateBody;

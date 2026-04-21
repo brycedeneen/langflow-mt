@@ -1,10 +1,14 @@
 import type { TemplateCategoryProps } from "../../../../types/templates/types";
+import type { TemplateRead } from "@/types/template";
 import TemplateExampleCard from "../TemplateCardComponent";
 
 interface TemplateCategoryComponentProps extends TemplateCategoryProps {
   loading: boolean;
   selectedTemplate?: string | null;
   onSelectTemplate?: (id: string | null) => void;
+  /** Raw TemplateRead objects, parallel-indexed with examples, for admin features. */
+  rawTemplates?: TemplateRead[];
+  isAdmin?: boolean;
 }
 
 export function TemplateCategoryComponent({
@@ -13,6 +17,8 @@ export function TemplateCategoryComponent({
   loading,
   selectedTemplate,
   onSelectTemplate,
+  rawTemplates,
+  isAdmin = false,
 }: TemplateCategoryComponentProps) {
   return (
     <>
@@ -25,6 +31,8 @@ export function TemplateCategoryComponent({
             disabled={loading}
             selected={selectedTemplate === example.id}
             onSelect={() => onSelectTemplate?.(example.id)}
+            templateData={rawTemplates?.[index]}
+            isAdmin={isAdmin}
           />
         ))}
       </div>

@@ -1,14 +1,58 @@
+import { useState } from "react";
 import { convertTestName } from "@/components/common/storeCardComponent/utils/convert-test-name";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useArchiveTemplate } from "@/controllers/API/queries/templates/use-archive-template";
+import { useUnarchiveTemplate } from "@/controllers/API/queries/templates/use-unarchive-template";
+import { useHardDeleteTemplate } from "@/controllers/API/queries/templates/use-hard-delete-template";
+import { useIsPlatformAdmin } from "@/hooks/use-is-platform-admin";
+import useAuthStore from "@/stores/authStore";
+import useAlertStore from "@/stores/alertStore";
 import { swatchColors } from "@/utils/styleUtils";
 import { cn, getNumberFromString } from "@/utils/utils";
 import IconComponent, {
   ForwardedIconComponent,
 } from "../../../../components/common/genericIconComponent";
 import type { TemplateCardComponentProps } from "../../../../types/templates/types";
+import type { TemplateRead } from "@/types/template";
+import TemplateCardAdminMenu from "../TemplateCardAdminMenu";
+import TemplateEditPanel from "../TemplateEditPanel";
 
 interface TemplateCardComponentExtendedProps
   extends TemplateCardComponentProps {
   disabled?: boolean;
+  /** Full TemplateRead data for admin actions. If absent, no admin menu is shown. */
+  templateData?: TemplateRead;
+  isAdmin?: boolean;
+}
+
+/**
+ * canEditTemplate: user may edit when they are a platform admin OR when they
+ * created the template (scope=org case). Full org-admin check (user is org admin
+ * of template.org_id) is not yet wired on the frontend — deferred until
+ * org membership is surfaced in the auth store.
+ */
+function canEditTemplate(
+  template: TemplateRead,
+  isPlatformAdmin: boolean,
+  userId: string | undefined,
+): boolean {
+  if (isPlatformAdmin) return true;
+  if (template.scope === "org" && template.created_by === userId) return true;
+  return false;
 }
 
 export default function TemplateCardComponent({
@@ -17,6 +61,8 @@ export default function TemplateCardComponent({
   disabled = false,
   selected = false,
   onSelect,
+  templateData,
+  isAdmin = false,
 }: TemplateCardComponentExtendedProps) {
   const swatchIndex =
     (example.gradient && !isNaN(parseInt(example.gradient))
@@ -24,25 +70,104 @@ export default function TemplateCardComponent({
       : getNumberFromString(example.gradient ?? example.name)) %
     swatchColors.length;
 
-  const handleKeyDown = (e) => {
+  const isPlatformAdmin = useIsPlatformAdmin();
+  const userData = useAuthStore((s) => s.userData);
+  const setSuccessData = useAlertStore((s) => s.setSuccessData);
+  const setErrorData = useAlertStore((s) => s.setErrorData);
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteBlockedFlows, setDeleteBlockedFlows] = useState<string[] | null>(null);
+
+  const { mutate: archiveMutate } = useArchiveTemplate();
+  const { mutate: unarchiveMutate } = useUnarchiveTemplate();
+  const { mutate: hardDeleteMutate, isPending: isDeleting } = useHardDeleteTemplate();
+
+  const isArchived = templateData?.archived_at != null;
+
+  const canEdit =
+    templateData !== undefined &&
+    canEditTemplate(templateData, isPlatformAdmin, userData?.id);
+
+  // Archived cards are not selectable — clicks are blocked.
+  const effectivelyDisabled = disabled || isArchived;
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      if (!disabled) onSelect?.();
+      if (!effectivelyDisabled) onSelect?.();
     }
   };
 
-  return (
+  const handleArchiveToggle = () => {
+    if (!templateData) return;
+    if (isArchived) {
+      unarchiveMutate(
+        { templateId: templateData.id },
+        {
+          onSuccess: () =>
+            setSuccessData({ title: `"${templateData.name}" unarchived` }),
+          onError: () =>
+            setErrorData({ title: `Failed to unarchive "${templateData.name}"` }),
+        },
+      );
+    } else {
+      archiveMutate(
+        { templateId: templateData.id },
+        {
+          onSuccess: () =>
+            setSuccessData({ title: `"${templateData.name}" archived` }),
+          onError: () =>
+            setErrorData({ title: `Failed to archive "${templateData.name}"` }),
+        },
+      );
+    }
+  };
+
+  const handleDelete = () => {
+    setDeleteBlockedFlows(null);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!templateData) return;
+    hardDeleteMutate(
+      { templateId: templateData.id },
+      {
+        onSuccess: () => {
+          setDeleteDialogOpen(false);
+          setSuccessData({ title: `Template "${templateData.name}" deleted` });
+        },
+        onError: (err: unknown) => {
+          const axiosErr = err as {
+            response?: { status?: number; data?: { detail?: { referencing_flow_ids?: string[] } } };
+          };
+          if (axiosErr?.response?.status === 409) {
+            const ids = axiosErr.response?.data?.detail?.referencing_flow_ids ?? [];
+            setDeleteBlockedFlows(ids);
+          } else {
+            setDeleteDialogOpen(false);
+            setErrorData({ title: `Failed to delete "${templateData?.name}"` });
+          }
+        },
+      },
+    );
+  };
+
+  const card = (
     <div
       data-testid={`template-${convertTestName(example.name)}`}
       className={cn(
         "group relative flex gap-3 overflow-hidden rounded-md p-3 hover:bg-muted focus-visible:bg-muted",
-        disabled ? "cursor-default opacity-80" : "cursor-pointer",
+        effectivelyDisabled ? "cursor-default opacity-80" : "cursor-pointer",
+        isArchived && "opacity-50",
         selected && "border-2 border-primary",
       )}
-      tabIndex={disabled ? -1 : 0}
+      tabIndex={effectivelyDisabled ? -1 : 0}
       onKeyDown={handleKeyDown}
-      onClick={() => !disabled && onSelect?.()}
+      onClick={() => !effectivelyDisabled && onSelect?.()}
     >
+      {/* Selection dot */}
       <div
         className={cn(
           "absolute right-3 top-3 h-4 w-4 rounded-full border-2 z-10",
@@ -50,6 +175,30 @@ export default function TemplateCardComponent({
         )}
         aria-hidden
       />
+
+      {/* Archived badge */}
+      {isArchived && (
+        <div className="absolute left-2 top-2 z-10 rounded-sm bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          Archived
+        </div>
+      )}
+
+      {/* Archived overlay — blocks card-select interaction */}
+      {isArchived && (
+        <div className="absolute inset-0 z-10 rounded-md" aria-hidden />
+      )}
+
+      {/* Admin ⋯ menu — rendered above the archived overlay so it still works */}
+      {canEdit && templateData && (
+        <TemplateCardAdminMenu
+          template={templateData}
+          canEdit={canEdit}
+          onEdit={() => setEditOpen(true)}
+          onArchiveToggle={handleArchiveToggle}
+          onDelete={handleDelete}
+        />
+      )}
+
       <div
         className={cn(
           "relative h-20 w-20 shrink-0 overflow-hidden rounded-md p-4 outline-hidden ring-ring",
@@ -73,10 +222,12 @@ export default function TemplateCardComponent({
             >
               {example.name}
             </h3>
-            <ForwardedIconComponent
-              name="ArrowRight"
-              className="mr-3 h-5 w-5 shrink-0 translate-x-0 opacity-0 transition-all duration-300 group-hover:translate-x-3 group-hover:opacity-100 group-focus-visible:translate-x-3 group-focus-visible:opacity-100"
-            />
+            {!isArchived && (
+              <ForwardedIconComponent
+                name="ArrowRight"
+                className="mr-3 h-5 w-5 shrink-0 translate-x-0 opacity-0 transition-all duration-300 group-hover:translate-x-3 group-hover:opacity-100 group-focus-visible:translate-x-3 group-focus-visible:opacity-100"
+              />
+            )}
           </div>
           <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
             {example.description}
@@ -84,5 +235,78 @@ export default function TemplateCardComponent({
         </div>
       </div>
     </div>
+  );
+
+  return (
+    <>
+      {/* Wrap archived cards in a tooltip */}
+      {isArchived ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>{card}</TooltipTrigger>
+            <TooltipContent side="top">
+              Unarchive to create flows from this template.
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        card
+      )}
+
+      {/* Edit panel */}
+      {templateData && (
+        <TemplateEditPanel
+          template={templateData}
+          open={editOpen}
+          onOpenChange={setEditOpen}
+        />
+      )}
+
+      {/* Delete confirm dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Permanently delete &ldquo;{templateData?.name}&rdquo;?
+            </DialogTitle>
+            {deleteBlockedFlows !== null ? (
+              <DialogDescription className="text-destructive">
+                Cannot delete — {deleteBlockedFlows.length} flow
+                {deleteBlockedFlows.length !== 1 ? "s" : ""} still reference
+                this template.
+              </DialogDescription>
+            ) : (
+              <DialogDescription>This cannot be undone.</DialogDescription>
+            )}
+          </DialogHeader>
+          <DialogFooter>
+            {deleteBlockedFlows !== null ? (
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+              >
+                Close
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={confirmDelete}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Deleting…" : "Delete"}
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

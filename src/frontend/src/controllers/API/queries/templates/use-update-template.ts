@@ -1,10 +1,10 @@
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
-import type { TemplateReadDetail, TemplateUpdateBody } from "@/types/template";
+import type { TemplateReadDetail, TemplateUpdateBody, TemplatePatchBody } from "@/types/template";
 import { TEMPLATES_QUERY_KEY } from "./use-list-templates";
 
-type Vars = { templateId: string; body: TemplateUpdateBody };
+type Vars = { templateId: string; body: TemplateUpdateBody | TemplatePatchBody };
 
 export function useUpdateTemplate() {
   const { mutate, queryClient } = UseRequestProcessor();
@@ -12,7 +12,7 @@ export function useUpdateTemplate() {
     templateId,
     body,
   }: Vars): Promise<TemplateReadDetail> => {
-    const res = await api.put<TemplateReadDetail>(
+    const res = await api.patch<TemplateReadDetail>(
       `${getURL("TEMPLATES")}/${templateId}`,
       body,
     );
