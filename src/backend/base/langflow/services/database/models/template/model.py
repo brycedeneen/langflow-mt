@@ -1,19 +1,23 @@
-"""Template SQLModel + Pydantic schemas for Phase 1 (save-as-template + blanking).
+"""Template SQLModel + Pydantic schemas.
 
-Phase 1 notes:
-- scope is always 'platform'; org_id always NULL. Columns reserved for Phase 2.
-- No versioning: every Template row represents the current content. Re-save
-  with same name overwrites in place (UPSERT by name at the service layer).
-- soft-delete via `deleted_at` nullable column.
+Both 'platform' and 'org' scopes are supported:
+- platform-scoped templates have org_id = NULL.
+- org-scoped templates have org_id = <organization.id>.
+The check constraint ck_template_scope_org_coherence enforces this invariant.
 """
 
 from datetime import datetime, timezone
-from typing import Any
+from typing import TYPE_CHECKING, Any, Literal
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field as PydanticField
-from sqlalchemy import JSON, CheckConstraint, Column, DateTime, ForeignKey, String, Text, UniqueConstraint, Uuid
-from sqlmodel import Field, SQLModel
+from sqlalchemy import JSON, CheckConstraint, Column, DateTime, ForeignKey, Index, String, Text, Uuid
+from sqlmodel import Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from langflow.services.database.models.category.model import Category
+
+from langflow.services.database.models.category.model import CategoryRead, TemplateCategory
 
 
 def _utc_now() -> datetime:
@@ -21,11 +25,11 @@ def _utc_now() -> datetime:
 
 
 class Template(SQLModel, table=True):
-    """Authored template (platform-scoped in Phase 1)."""
+    """Authored template (platform or org-scoped)."""
 
     __tablename__ = "template"
     __table_args__ = (
-        UniqueConstraint("name", name="uq_template_name"),
+        Index("uq_template_name_scope", "name", "scope", "org_id", unique=True),
         CheckConstraint(
             "(scope = 'platform' AND org_id IS NULL) OR "
             "(scope = 'org' AND org_id IS NOT NULL)",
@@ -46,31 +50,31 @@ class Template(SQLModel, table=True):
     scope: str = Field(
         default="platform",
         sa_column=Column(String(16), nullable=False, default="platform"),
-        description="Phase 1 is always 'platform'. 'org' reserved for Phase 2.",
     )
     org_id: UUID | None = Field(
         default=None,
         sa_column=Column(
             Uuid(), ForeignKey("organization.id", ondelete="CASCADE"), nullable=True,
         ),
-        description="Always NULL in Phase 1. Reserved for Phase 2 org-scoped templates.",
     )
 
     nodes: list[dict[str, Any]] = Field(sa_column=Column(JSON, nullable=False))
     edges: list[dict[str, Any]] = Field(sa_column=Column(JSON, nullable=False))
 
-    created_by: UUID = Field(
+    created_by: UUID | None = Field(
+        default=None,
         sa_column=Column(
-            Uuid(), ForeignKey("user.id", ondelete="RESTRICT"), nullable=False,
+            Uuid(), ForeignKey("user.id", ondelete="RESTRICT"), nullable=True,
         ),
     )
     created_at: datetime = Field(
         default_factory=_utc_now,
         sa_column=Column(DateTime(timezone=True), nullable=False, default=_utc_now),
     )
-    updated_by: UUID = Field(
+    updated_by: UUID | None = Field(
+        default=None,
         sa_column=Column(
-            Uuid(), ForeignKey("user.id", ondelete="RESTRICT"), nullable=False,
+            Uuid(), ForeignKey("user.id", ondelete="RESTRICT"), nullable=True,
         ),
     )
     updated_at: datetime = Field(
@@ -86,6 +90,14 @@ class Template(SQLModel, table=True):
         default=None,
         sa_column=Column(DateTime(timezone=True), nullable=True, default=None),
     )
+    archived_at: datetime | None = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True), nullable=True, default=None),
+    )
+
+    categories: list["Category"] = Relationship(
+        back_populates="templates", link_model=TemplateCategory
+    )
 
 
 # ---------------------------- Pydantic schemas ----------------------------
@@ -99,6 +111,8 @@ class TemplateRead(BaseModel):
     description: str | None
     icon: str | None
     gradient: str | None
+    archived_at: datetime | None
+    categories: list[CategoryRead]
     created_at: datetime
     updated_at: datetime
 
@@ -126,6 +140,9 @@ class TemplateCreate(BaseModel):
     icon: str | None = PydanticField(default=None, max_length=64)
     gradient: str | None = PydanticField(default=None, max_length=32)
     blanked_fields: list[BlankedField] = PydanticField(default_factory=list)
+    scope: Literal["platform", "org"] = "platform"
+    org_id: UUID | None = None
+    category_ids: list[UUID] = PydanticField(default_factory=list)
 
 
 class TemplateUpdate(BaseModel):
@@ -137,3 +154,4 @@ class TemplateUpdate(BaseModel):
     icon: str | None = PydanticField(default=None, max_length=64)
     gradient: str | None = PydanticField(default=None, max_length=32)
     blanked_fields: list[BlankedField] = PydanticField(default_factory=list)
+    category_ids: list[UUID] | None = None

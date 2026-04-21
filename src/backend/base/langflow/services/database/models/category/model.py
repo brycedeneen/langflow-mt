@@ -5,14 +5,12 @@ Each Template may belong to zero or more Categories via the
 TemplateCategory join table.
 """
 
-from __future__ import annotations
-
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field as PydanticField
 from sqlalchemy import Column, DateTime, ForeignKey, Index, String, Uuid, func, text
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 
 
 def _utc_now() -> datetime:
@@ -72,10 +70,9 @@ class Category(SQLModel, table=True):
         ),
     )
 
-    # templates relationship wired in Task A3 once Template.categories is added
-    # templates: Mapped[list["Template"]] = Relationship(
-    #     back_populates="categories", link_model=TemplateCategory
-    # )
+    templates: list["Template"] = Relationship(
+        back_populates="categories", link_model=TemplateCategory
+    )
 
 
 # ---------------------------- Pydantic schemas ----------------------------
