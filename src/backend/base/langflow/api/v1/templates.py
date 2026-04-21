@@ -159,13 +159,58 @@ async def get_template(
     return TemplateReadDetail.model_validate(row, from_attributes=True)
 
 
+async def _validate_category_ids(session: AsyncSession, category_ids: list[UUID]) -> None:
+    """Raise 422 if any of *category_ids* does not exist in the Category table."""
+    if not category_ids:
+        return
+    existing_ids = set(
+        (await session.exec(select(Category.id).where(col(Category.id).in_(category_ids)))).all()
+    )
+    missing = [str(cid) for cid in category_ids if cid not in existing_ids]
+    if missing:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Unknown category_ids: {missing}",
+        )
+
+
 @router.post("", response_model=TemplateReadDetail, status_code=201)
 async def create_template(
     body: TemplateCreate,
     *,
     session: DbSession,
-    current_user: User = Depends(get_current_active_superuser),
+    current_user: User = Depends(get_current_active_user),
 ) -> TemplateReadDetail:
+    # --- Permission check ---
+    if body.scope == "platform":
+        if not getattr(current_user, "is_platform_admin", False):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only platform admins may create platform-scoped templates.",
+            )
+    elif body.scope == "org":
+        if body.org_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="org_id is required for org-scoped templates.",
+            )
+        membership = (
+            await session.exec(
+                select(Membership)
+                .where(Membership.user_id == current_user.id)
+                .where(Membership.organization_id == body.org_id)
+            )
+        ).first()
+        if membership is None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You are not a member of this organization.",
+            )
+
+    # --- Category validation ---
+    await _validate_category_ids(session, body.category_ids)
+
+    # --- Name collision check ---
     existing = (
         await session.exec(
             select(Template)
@@ -174,7 +219,7 @@ async def create_template(
         )
     ).first()
     if existing is not None:
-        raise HTTPException(status_code=409, detail="Template name already exists")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Template name already exists")
 
     blanked_nodes, edges = await _load_source_and_blank(
         session, body.source_flow_id, body.blanked_fields,
@@ -185,16 +230,34 @@ async def create_template(
         description=body.description,
         icon=body.icon,
         gradient=body.gradient,
-        scope="platform",
-        org_id=None,
+        scope=body.scope,
+        org_id=body.org_id,
         nodes=blanked_nodes,
         edges=edges,
         created_by=current_user.id,
         updated_by=current_user.id,
     )
     session.add(row)
+    await session.flush()
+
+    for cat_id in body.category_ids:
+        session.add(TemplateCategory(template_id=row.id, category_id=cat_id))
+
     await session.commit()
+    await session.exec(
+        select(Template)
+        .where(Template.id == row.id)
+        .options(selectinload(Template.categories))
+    )
     await session.refresh(row)
+    # Re-fetch with categories eager-loaded
+    row = (
+        await session.exec(
+            select(Template)
+            .where(Template.id == row.id)
+            .options(selectinload(Template.categories))
+        )
+    ).one()
     return TemplateReadDetail.model_validate(row, from_attributes=True)
 
 
