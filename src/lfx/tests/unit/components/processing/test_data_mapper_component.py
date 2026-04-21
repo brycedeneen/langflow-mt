@@ -235,3 +235,11 @@ def test_update_outputs_ignores_other_fields():
     cmp.update_outputs(frontend_node, "mapping_config", "anything")
     # Should be untouched
     assert frontend_node["outputs"] == [{"name": "existing"}]
+
+
+def test_component_is_discoverable_from_bundle():
+    from lfx.components import processing
+    cls = getattr(processing, "DataMapperComponent", None)
+    assert cls is not None
+    assert cls.__name__ == "DataMapperComponent"
+    assert "DataMapperComponent" in processing.__all__
