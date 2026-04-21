@@ -48,6 +48,8 @@ export interface NavProps {
   currentTab: string;
   setCurrentTab: (id: string) => void;
   isAdmin?: boolean;
+  /** Full Category objects from the API, used for admin CRUD operations */
+  apiCategories?: ApiCategory[];
 }
 
 export interface ApiCategory {

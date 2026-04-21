@@ -127,6 +127,7 @@ export default function TemplatesModal({
               currentTab={currentTab}
               setCurrentTab={setCurrentTab}
               isAdmin={isAdmin}
+              apiCategories={apiCategories}
             />
             <main className="flex flex-1 flex-col gap-4 overflow-auto p-6 md:gap-8">
               {(() => {

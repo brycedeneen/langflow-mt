@@ -29,6 +29,7 @@ export function SchemaSourceTabs(props: SchemaSourceTabsProps) {
             key={s}
             role="tab"
             aria-selected={source === s}
+            data-testid={`schema-source-tab-${s}`}
             onClick={() => onSourceChange(s)}
           >
             {TAB_LABELS[s]}
@@ -51,6 +52,7 @@ export function SchemaSourceTabs(props: SchemaSourceTabsProps) {
       {source === "sample" && (
         <div>
           <textarea
+            data-testid="schema-source-sample-textarea"
             value={sampleText}
             onChange={(e) => {
               setSampleText(e.target.value);

@@ -130,12 +130,13 @@ function AddFieldForm({ onAdd, onCancel }: { onAdd(f: DestFieldDef): void; onCan
       <div>
         <label style={{ fontSize: "0.75em", display: "block" }}>Name *</label>
         <input autoFocus type="text" value={name} placeholder="field_name"
+          data-testid="data-mapper-field-name-input"
           style={{ width: 140, border: nameErr ? "1px solid red" : undefined }}
           onChange={(e) => { setName(e.target.value); setNameErr(false); }} />
       </div>
       <div>
         <label style={{ fontSize: "0.75em", display: "block" }}>Type</label>
-        <select value={type} onChange={(e) => setType(e.target.value as FieldType)}>
+        <select value={type} data-testid="data-mapper-field-type-select" onChange={(e) => setType(e.target.value as FieldType)}>
           {FIELD_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
       </div>
@@ -145,10 +146,10 @@ function AddFieldForm({ onAdd, onCancel }: { onAdd(f: DestFieldDef): void; onCan
           onChange={(e) => setDefaultVal(e.target.value)} />
       </div>
       <label style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85em" }}>
-        <input type="checkbox" checked={required} onChange={(e) => setRequired(e.target.checked)} />
+        <input type="checkbox" checked={required} data-testid="data-mapper-field-required-checkbox" onChange={(e) => setRequired(e.target.checked)} />
         Required
       </label>
-      <button type="submit" style={{ padding: "0.25rem 0.75rem" }}>Add</button>
+      <button type="submit" data-testid="data-mapper-field-add-submit" style={{ padding: "0.25rem 0.75rem" }}>Add</button>
       <button type="button" onClick={onCancel} style={{ padding: "0.25rem 0.75rem" }}>Cancel</button>
     </form>
   );
@@ -224,6 +225,7 @@ export function DestinationTable({ config, errors = [], onConfigChange }: Destin
                 {/* Transform */}
                 <td style={{ padding: "0.4rem 0.5rem" }}>
                   <select value={mapping?.transform ?? "direct"}
+                    data-testid={`data-mapper-transform-select-${dest.name}`}
                     onChange={(e) =>
                       onConfigChange(setTransformForDestination(config, dest.name, e.target.value as TransformType))}>
                     {TRANSFORM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -263,6 +265,7 @@ export function DestinationTable({ config, errors = [], onConfigChange }: Destin
             onAdd={(field) => { onConfigChange(addDestinationField(config, field)); setShowAddForm(false); }}
             onCancel={() => setShowAddForm(false)} />
         : <button type="button" onClick={() => setShowAddForm(true)}
+            data-testid="data-mapper-add-field-btn"
             style={{ marginTop: "0.5rem", padding: "0.25rem 0.75rem" }}>
             + Add destination field
           </button>}
