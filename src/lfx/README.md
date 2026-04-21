@@ -1,5 +1,12 @@
 # lfx - Langflow Executor
 
+lfx is both:
+
+1. **The graph engine used by the Langflow backend and workers** in this fork. The FastAPI app and the Arq worker (`langflow worker`) both depend on `lfx` to build and execute flow graphs. All components under `lfx.components.*` (including the ADP-fork additions like `DataMapperComponent`) are what the UI's component palette shows.
+2. **A standalone CLI** (`lfx serve`, `lfx run`) for running a single flow without the full Langflow stack.
+
+This README covers the standalone CLI. For running the engine as part of the full stack, see the root [README](../../README.md) and [`deploy/README.md`](../../deploy/README.md).
+
 lfx is a command-line tool for running Langflow workflows. It provides two main commands: `serve` and `run`.
 
 ## Installation
@@ -284,6 +291,36 @@ make test
 # Format code
 make format
 ```
+
+## Deployment
+
+### Standalone `lfx serve` (single flow as an API)
+
+Minimal footprint: a Python process and one flow JSON file. Suitable for edge/sidecar deployments or when you want to pin a specific flow as a microservice without the Langflow control plane.
+
+| What | Value |
+|---|---|
+| Runtime | Python 3.11+ |
+| Default port | `8000` (`--port` to override) |
+| Required env | `LANGFLOW_API_KEY` (auth for the emitted `/flows/{id}/run` endpoint) |
+| External deps | None unless the flow itself uses them (Redis, Postgres, vector stores, LLM APIs) |
+
+Docker alternative:
+```shell
+make lfx_docker_build                         # builds the production image
+cd src/lfx && make docker_dev                 # dev compose with hot reload
+```
+
+### As part of the Langflow stack
+
+When deployed as part of the full Langflow stack, lfx is bundled into the `langflow-backend` image and used by both:
+
+- **The FastAPI app** — when `LANGFLOW_DISTRIBUTED_EXECUTION=false`, flows run in-process using lfx.
+- **Arq workers** (`langflow worker`) — when distributed execution is on, workers import `lfx.graph` to execute runs dequeued from Redis.
+
+The component index at `lfx/_assets/component_index.json` is built with `make build_component_index` (from the repo root) and checked in — rebuild it after adding or modifying components, otherwise the UI palette won't show them.
+
+See [`deploy/README.md`](../../deploy/README.md) for the full stack, including Redis/Postgres wiring and worker queue topology.
 
 ## License
 

@@ -1,46 +1,91 @@
-# Getting Started with Create React App
+# Langflow Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Vite + React 18 + TypeScript SPA. Styled with Tailwind v4 (CSS-first config — no `tailwind.config.mjs`; `index.css` owns the theme). Uses TanStack Query v5, Zustand v5, React Flow (`@xyflow/react`), and Radix primitives.
 
-## Available Scripts
+## Running in dev
 
-In the project directory, you can run:
+From the repo root:
+```shell
+make frontend
+```
 
-### `npm start`
+That runs `npm install` once, then `npm start` — Vite on `http://localhost:3000`, HMR enabled. The `%` placeholder target in `Makefile.frontend` swallows positional args, so extra make args won't pollute the vite flags.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+If you want the raw script:
+```shell
+cd src/frontend
+npm install
+npm start
+```
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### Dependencies
 
-### `npm test`
+- Node.js **>=20.19** (enforced in `package.json`)
+- npm 10+
+- A running backend at `BACKEND_URL` (default `http://localhost:7860`)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Environment variables
 
-### `npm run build`
+Vite reads from `.env` files in `src/frontend/`. Only one var actually matters for dev:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+| Var | Required | Default | Description |
+|---|---|---|---|
+| `BACKEND_URL` | Yes | `http://localhost:7860` | Langflow API the frontend calls and proxies WebSockets to |
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+All other runtime config is served by the backend at `/api/v1/config` and read by the app — there is no separate frontend `.env` file to maintain.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Building for production
 
-### `npm run eject`
+```shell
+# From repo root — builds the SPA AND copies it into the backend package
+make build_frontend
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+Outputs:
+- `src/frontend/build/` — raw static bundle
+- `src/backend/base/langflow/frontend/` — same bundle, copied so the backend serves it from the same container
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Serving the bundle requires no Node process; the backend's FastAPI app mounts `LANGFLOW_FRONTEND_PATH` (defaulting to the copy above) as static files.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Building a standalone frontend image
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+If you want the frontend in its own container (as `deploy/docker-compose.yml` does):
 
-## Learn More
+```shell
+make docker_build_frontend
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Uses `docker/frontend/build_and_push_frontend.Dockerfile`. The resulting image is an `nginx:alpine` serving the Vite build and proxying `/api` to `BACKEND_URL`.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Testing
+
+| Command | What it runs |
+|---|---|
+| `make test_frontend` | Jest unit tests (this project uses **Jest**, not Vitest) |
+| `make test_frontend_watch` | Jest in watch mode |
+| `make test_frontend_coverage` | Jest with coverage |
+| `make tests_frontend` | Playwright E2E — requires a running backend |
+| `make tests_frontend UI=true` | Playwright with UI |
+
+React Query v5 quirk: use `isPending` (not `isLoading`) in assertions; `isLoading` is v4 terminology.
+
+## Formatting and linting
+
+```shell
+make format_frontend           # biome format --write
+make format_frontend_check     # biome check (read-only)
+```
+
+Biome is the only formatter/linter — no ESLint, no Prettier.
+
+## Storybook
+
+```shell
+make storybook            # http://localhost:6006
+make storybook_network    # accessible on 0.0.0.0:6006
+make storybook_build      # static export to storybook-static/
+```
+
+## Dependency on the backend
+
+The frontend expects the backend API surface (v1 + v2). Run the backend and a worker (if you're exercising webhook/schedule flows) as described in the root [README](../../README.md#running-locally).
