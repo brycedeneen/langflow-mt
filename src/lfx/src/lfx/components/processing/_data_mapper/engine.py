@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json as _json
 import logging
 import types
 from datetime import date, datetime
@@ -10,6 +11,8 @@ from typing import Any, Callable
 from lfx.components.processing._data_mapper.config_schema import DestFieldDef, MapperConfig
 from lfx.components.processing._data_mapper.join import build_index, lookup as join_lookup
 from lfx.components.processing._data_mapper.transforms import _MISSING, dispatch
+from lfx.schema import Data, DataFrame, Message
+from lfx.schema.data import JSON
 
 logger = logging.getLogger(__name__)
 
@@ -179,3 +182,37 @@ def run(
         output_rows.append(output_row)
 
     return output_rows
+
+
+def package_output(
+    rows: list[dict[str, Any]],
+    *,
+    output_type: str,
+    driver_was_list: bool,
+) -> Any:
+    """Wrap engine output in the requested Langflow type.
+
+    `Auto` resolves to DataFrame when the driver was a list; Data otherwise.
+    """
+    effective = output_type
+    if output_type == "Auto":
+        effective = "DataFrame" if driver_was_list else "Data"
+
+    if effective == "DataFrame":
+        return DataFrame(data=rows)
+
+    if effective == "Data":
+        if len(rows) <= 1:
+            return Data(data=(rows[0] if rows else {}))
+        return Data(data={"records": rows})
+
+    if effective == "JSON":
+        if len(rows) <= 1:
+            return JSON(data=(rows[0] if rows else {}))
+        return JSON(data={"records": rows})
+
+    if effective == "Message":
+        return Message(text=_json.dumps(rows, default=str))
+
+    msg = f"unknown output_type: {output_type!r}"
+    raise ValueError(msg)

@@ -1,7 +1,9 @@
 import pytest
 
 from lfx.components.processing._data_mapper.config_schema import MapperConfig
-from lfx.components.processing._data_mapper.engine import run
+from lfx.components.processing._data_mapper.engine import package_output, run
+from lfx.schema import Data, DataFrame, Message
+from lfx.schema.data import JSON
 
 
 def _cfg(destination_schema, mappings, *, has_jobs=False):
@@ -262,3 +264,61 @@ def test_run_direct_mapping_works_against_simplenamespace_lookup():
         variable_resolver=lambda n: None,
     )
     assert out[0]["JobTitle"] == "Engineer"
+
+
+def test_package_output_auto_list_returns_dataframe():
+    rows = [{"a": 1}, {"a": 2}]
+    result = package_output(rows, output_type="Auto", driver_was_list=True)
+    assert isinstance(result, DataFrame)
+
+
+def test_package_output_auto_single_record_returns_data():
+    rows = [{"a": 1}]
+    result = package_output(rows, output_type="Auto", driver_was_list=False)
+    assert isinstance(result, Data)
+    assert result.data["a"] == 1
+
+
+def test_package_output_explicit_dataframe():
+    rows = [{"a": 1}]
+    result = package_output(rows, output_type="DataFrame", driver_was_list=False)
+    assert isinstance(result, DataFrame)
+
+
+def test_package_output_explicit_data_single_row():
+    rows = [{"a": 1}]
+    result = package_output(rows, output_type="Data", driver_was_list=True)
+    assert isinstance(result, Data)
+
+
+def test_package_output_explicit_data_multi_row_wraps_records():
+    rows = [{"a": 1}, {"a": 2}]
+    # Convention: Data output for multi-row wraps under "records" key.
+    result = package_output(rows, output_type="Data", driver_was_list=True)
+    assert isinstance(result, Data)
+    assert result.data == {"records": [{"a": 1}, {"a": 2}]}
+
+
+def test_package_output_explicit_json():
+    rows = [{"a": 1}, {"a": 2}]
+    result = package_output(rows, output_type="JSON", driver_was_list=True)
+    assert isinstance(result, JSON)
+
+
+def test_package_output_explicit_message_serializes_to_json_text():
+    import json as _json
+    rows = [{"a": 1}, {"a": 2}]
+    result = package_output(rows, output_type="Message", driver_was_list=True)
+    assert isinstance(result, Message)
+    assert _json.loads(result.text) == rows
+
+
+def test_package_output_empty_rows_auto_list():
+    result = package_output([], output_type="Auto", driver_was_list=True)
+    assert isinstance(result, DataFrame)
+
+
+def test_package_output_empty_rows_auto_single():
+    result = package_output([], output_type="Auto", driver_was_list=False)
+    assert isinstance(result, Data)
+    assert result.data == {}
