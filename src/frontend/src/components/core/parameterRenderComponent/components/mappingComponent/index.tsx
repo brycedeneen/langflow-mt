@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import useFlowStore from "@/stores/flowStore";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import { Button } from "@/components/ui/button";
@@ -37,26 +38,39 @@ export default function MappingComponent({
   const flowId = useFlowsManagerStore((state) => state.currentFlowId);
 
   // Derive connected upstreams from the flow's edge list. Each edge where
-  // `target === nodeId` represents an upstream connection; use the source node's
-  // display_name as a default alias suggestion for the modal.
-  const edges = useFlowStore((state) => state.edges);
-  const getNode = useFlowStore((state) => state.getNode);
+  // `target === nodeId` represents an upstream connection; use the source
+  // node's display_name as a default alias suggestion for the modal.
+  //
+  // We only resolve these when the modal is about to open — reading edges on
+  // every render subscribes to the flowStore which re-renders this component
+  // on every flowPool update (the build endpoint mutates it), which would
+  // re-mount the modal and re-fire the monitor/builds query in a loop.
+  const upstreamSeedKey = useFlowStore(
+    useShallow((state) =>
+      state.edges
+        .filter((e) => e.target === nodeId)
+        .map((e) => e.source)
+        .sort()
+        .join(","),
+    ),
+  );
 
   const connectedUpstreams = useMemo(() => {
-    return edges
-      .filter((e) => e.target === nodeId)
-      .map((e) => {
-        const srcNode = getNode(e.source);
-        const alias: string =
-          srcNode?.data?.node?.display_name ?? e.source;
-        return { alias, vertexId: e.source };
-      })
-      // Deduplicate by vertexId in case multiple edges come from the same node.
-      .filter(
-        (u, idx, arr) =>
-          arr.findIndex((x) => x.vertexId === u.vertexId) === idx,
-      );
-  }, [edges, nodeId, getNode]);
+    if (!upstreamSeedKey) return [];
+    const sourceIds = upstreamSeedKey.split(",").filter(Boolean);
+    const { getNode } = useFlowStore.getState();
+    const seen = new Set<string>();
+    const result: { alias: string; vertexId: string }[] = [];
+    for (const source of sourceIds) {
+      if (seen.has(source)) continue;
+      seen.add(source);
+      const srcNode = getNode(source);
+      const alias: string =
+        srcNode?.data?.node?.display_name ?? source;
+      result.push({ alias, vertexId: source });
+    }
+    return result;
+  }, [upstreamSeedKey]);
 
   function handleChange(newValue: string) {
     handleOnNewValue({ value: newValue });
@@ -82,15 +96,17 @@ export default function MappingComponent({
         )}
       </div>
 
-      <DataMapperModal
-        open={open}
-        onClose={() => setOpen(false)}
-        value={value ?? ""}
-        onChange={handleChange}
-        nodeId={nodeId ?? ""}
-        flowId={flowId}
-        connectedUpstreams={connectedUpstreams}
-      />
+      {open && (
+        <DataMapperModal
+          open={open}
+          onClose={() => setOpen(false)}
+          value={value ?? ""}
+          onChange={handleChange}
+          nodeId={nodeId ?? ""}
+          flowId={flowId}
+          connectedUpstreams={connectedUpstreams}
+        />
+      )}
     </>
   );
 }

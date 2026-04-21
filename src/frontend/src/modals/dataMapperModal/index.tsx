@@ -63,7 +63,6 @@ export function DataMapperModal({
   onClose,
   value,
   onChange,
-  flowId,
   connectedUpstreams,
   suggestionsSlot,
 }: DataMapperModalProps) {
@@ -71,7 +70,6 @@ export function DataMapperModal({
   const [validationErrors, setValidationErrors] = useState<MappingConfigError[]>([]);
 
   const { shapes, isPending: shapesPending } = useVertexBuildShapes({
-    flowId,
     upstreams: connectedUpstreams,
   });
 
