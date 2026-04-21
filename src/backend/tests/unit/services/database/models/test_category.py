@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 import pytest
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, SQLModel, create_engine
 
 from langflow.services.database.models.category.model import Category
@@ -50,5 +51,5 @@ def test_category_name_is_case_insensitive_unique(session: Session) -> None:
         id=uuid4(), name="rag", icon="database", color="indigo",
         created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc),
     ))
-    with pytest.raises(Exception):  # IntegrityError or its driver subclass
+    with pytest.raises(IntegrityError):
         session.commit()
