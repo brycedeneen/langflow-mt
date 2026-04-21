@@ -10,11 +10,18 @@ function renderWithProviders(ui: React.ReactElement) {
 // ---- Mocks -----------------------------------------------------------
 // Mock the create-template mutation: `useCreateTemplate()` returns `{ mutate, isLoading }`.
 const mutateMock = jest.fn();
+const listMock = jest.fn();
+const updateMock = jest.fn();
 jest.mock(
   "@/controllers/API/queries/templates",
   () => ({
     useCreateTemplate: () => ({
       mutate: mutateMock,
+      isPending: false,
+    }),
+    useListTemplates: () => ({ data: listMock() }),
+    useUpdateTemplate: () => ({
+      mutate: updateMock,
       isPending: false,
     }),
   }),
@@ -100,6 +107,9 @@ describe("SaveAsTemplateModal — submit wiring", () => {
     mutateMock.mockReset();
     successMock.mockReset();
     errorMock.mockReset();
+    listMock.mockReset();
+    updateMock.mockReset();
+    listMock.mockReturnValue([]); // default: no templates
   });
 
   it("renders defaults: empty name, prefilled description, FileText icon", () => {
@@ -286,5 +296,139 @@ describe("SaveAsTemplateModal — submit wiring", () => {
     fireEvent.click(screen.getByRole("button", { name: /save as template/i }));
     const [payload] = mutateMock.mock.calls[0];
     expect(payload.blanked_fields).toHaveLength(3);
+  });
+
+  it("409 + matching row in list opens the confirm dialog", async () => {
+    listMock.mockReturnValue([
+      {
+        id: "T-1",
+        name: "Duplicate",
+        description: "Pre-existing description of the clashing template",
+        icon: null,
+        gradient: null,
+        created_at: "2026-04-01T00:00:00Z",
+        updated_at: "2026-04-01T00:00:00Z",
+      },
+    ]);
+    mutateMock.mockImplementation((_payload: any, opts: any) => {
+      opts.onError?.({ response: { status: 409 } });
+    });
+    renderWithProviders(<SaveAsTemplateModal open onClose={() => {}} flow={baseFlow()} />);
+    fireEvent.change(screen.getByLabelText(/^name/i), {
+      target: { value: "Duplicate" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /save as template/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /^overwrite$/i }),
+      ).toBeInTheDocument();
+    });
+    expect(
+      screen.getByText(/Pre-existing description of the clashing template/),
+    ).toBeInTheDocument();
+  });
+
+  it("409 with empty list falls back to inline name error and does not open the dialog", async () => {
+    listMock.mockReturnValue(undefined);
+    mutateMock.mockImplementation((_payload: any, opts: any) => {
+      opts.onError?.({ response: { status: 409 } });
+    });
+    renderWithProviders(<SaveAsTemplateModal open onClose={() => {}} flow={baseFlow()} />);
+    fireEvent.change(screen.getByLabelText(/^name/i), {
+      target: { value: "Duplicate" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /save as template/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(/already exists/i);
+    });
+    expect(
+      screen.queryByRole("button", { name: /^overwrite$/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("clicking Overwrite fires the update mutation with the correct payload", async () => {
+    listMock.mockReturnValue([
+      {
+        id: "T-1",
+        name: "Duplicate",
+        description: "x",
+        icon: null,
+        gradient: null,
+        created_at: "2026-04-01T00:00:00Z",
+        updated_at: "2026-04-01T00:00:00Z",
+      },
+    ]);
+    mutateMock.mockImplementation((_payload: any, opts: any) => {
+      opts.onError?.({ response: { status: 409 } });
+    });
+    renderWithProviders(<SaveAsTemplateModal open onClose={() => {}} flow={baseFlow()} />);
+    fireEvent.change(screen.getByLabelText(/^name/i), {
+      target: { value: "Duplicate" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /save as template/i }));
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /^overwrite$/i }),
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /^overwrite$/i }));
+
+    expect(updateMock).toHaveBeenCalledTimes(1);
+    const [vars] = updateMock.mock.calls[0];
+    expect(vars.templateId).toBe("T-1");
+    expect(vars.body).toMatchObject({
+      source_flow_id: "flow-abc",
+      name: "Duplicate",
+      icon: "FileText",
+      gradient: "0",
+    });
+    expect(vars.body.blanked_fields).toEqual(
+      expect.arrayContaining([
+        { node_id: "Node-1", field_name: "cert_pem" },
+        { node_id: "Node-1", field_name: "bearer_token" },
+        { node_id: "Node-2", field_name: "api_key" },
+      ]),
+    );
+  });
+
+  it("clicking Cancel closes the dialog, shows inline error, and re-enables Save", async () => {
+    listMock.mockReturnValue([
+      {
+        id: "T-1",
+        name: "Duplicate",
+        description: "x",
+        icon: null,
+        gradient: null,
+        created_at: "2026-04-01T00:00:00Z",
+        updated_at: "2026-04-01T00:00:00Z",
+      },
+    ]);
+    mutateMock.mockImplementation((_payload: any, opts: any) => {
+      opts.onError?.({ response: { status: 409 } });
+    });
+    renderWithProviders(<SaveAsTemplateModal open onClose={() => {}} flow={baseFlow()} />);
+    fireEvent.change(screen.getByLabelText(/^name/i), {
+      target: { value: "Duplicate" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /save as template/i }));
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /^overwrite$/i }),
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /^cancel$/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("button", { name: /^overwrite$/i }),
+      ).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole("alert")).toHaveTextContent(/already exists/i);
+    expect(screen.getByRole("button", { name: /save as template/i })).toBeEnabled();
+    expect(updateMock).not.toHaveBeenCalled();
   });
 });
