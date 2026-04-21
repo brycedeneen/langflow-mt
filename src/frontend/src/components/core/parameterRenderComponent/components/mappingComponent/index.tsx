@@ -4,7 +4,10 @@ import useFlowStore from "@/stores/flowStore";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import { Button } from "@/components/ui/button";
 import { DataMapperModal } from "@/modals/dataMapperModal";
-import type { MapperConfig } from "@/modals/dataMapperModal/types";
+import { MappingSuggestions } from "@/modals/dataMapperModal/components/MappingSuggestions";
+import { useMappingSuggestions } from "@/modals/dataMapperModal/hooks/useMappingSuggestions";
+import { applyMappingSuggestion } from "@/modals/dataMapperModal/util/applyMappingSuggestion";
+import { EMPTY_MAPPER_CONFIG, type MapperConfig } from "@/modals/dataMapperModal/types";
 import type { InputProps } from "../../types";
 
 export default function MappingComponent({
@@ -76,6 +79,63 @@ export default function MappingComponent({
     handleOnNewValue({ value: newValue });
   }
 
+  // Parse the value into a MapperConfig usable by the suggestions hook.
+  const parsedConfig: MapperConfig = useMemo(() => {
+    if (!value) return EMPTY_MAPPER_CONFIG;
+    try {
+      return JSON.parse(value) as MapperConfig;
+    } catch {
+      return EMPTY_MAPPER_CONFIG;
+    }
+  }, [value]);
+
+  const suggestions = useMappingSuggestions({ config: parsedConfig });
+  const [showPending, setShowPending] = useState(true);
+
+  const allCustomized = useMemo(
+    () =>
+      parsedConfig.destination_schema.length > 0 &&
+      parsedConfig.destination_schema.every((d) => {
+        const m = parsedConfig.mappings.find((x) => x.destination === d.name);
+        if (!m) return false;
+        return !(
+          m.transform === "direct" &&
+          m.sources.length === 0 &&
+          Object.keys(m.config).length === 0
+        );
+      }),
+    [parsedConfig],
+  );
+
+  const acceptSuggestion = (destination: string) => {
+    const entry = suggestions.entries.find((e) => e.destination === destination);
+    if (!entry) return;
+    const next = applyMappingSuggestion(parsedConfig, entry);
+    handleChange(JSON.stringify(next));
+    const remaining = suggestions.entries.filter(
+      (e) => e.destination !== destination,
+    );
+    suggestions.setEntries(remaining);
+    if (remaining.length === 0) suggestions.reset();
+  };
+
+  const rejectSuggestion = (destination: string) => {
+    const remaining = suggestions.entries.filter(
+      (e) => e.destination !== destination,
+    );
+    suggestions.setEntries(remaining);
+    if (remaining.length === 0) suggestions.reset();
+  };
+
+  const applyAllSuggestions = () => {
+    let next = parsedConfig;
+    for (const entry of suggestions.entries) {
+      next = applyMappingSuggestion(next, entry);
+    }
+    handleChange(JSON.stringify(next));
+    suggestions.reset();
+  };
+
   return (
     <>
       <div className="flex flex-col gap-1">
@@ -105,6 +165,24 @@ export default function MappingComponent({
           nodeId={nodeId ?? ""}
           flowId={flowId}
           connectedUpstreams={connectedUpstreams}
+          suggestionsSlot={
+            <MappingSuggestions
+              state={suggestions.state}
+              error={suggestions.error}
+              pendingCount={suggestions.entries.length}
+              showPending={showPending}
+              allDestinationsCustomized={allCustomized}
+              onSuggest={suggestions.run}
+              onCancel={suggestions.cancel}
+              onApplyAll={applyAllSuggestions}
+              onTogglePending={setShowPending}
+              onRetry={suggestions.run}
+            />
+          }
+          pendingSuggestions={suggestions.entries}
+          showPendingSuggestions={showPending}
+          onAcceptSuggestion={acceptSuggestion}
+          onRejectSuggestion={rejectSuggestion}
         />
       )}
     </>
