@@ -17,7 +17,7 @@ from pydantic import ValidationError
 from lfx.components.processing._data_mapper import MapperConfig, package_output, run
 from lfx.custom import Component
 from lfx.custom.custom_component.changelog import ChangelogEntry
-from lfx.io import CodeInput, DropdownInput, HandleInput, Output
+from lfx.io import DropdownInput, HandleInput, MappingInput, Output
 from lfx.schema import Data, DataFrame, Message
 from lfx.schema.data import JSON
 from lfx.services.deps import get_variable_service, session_scope
@@ -95,9 +95,14 @@ class DataMapperComponent(Component):
     icon = "shuffle"
     name = "DataMapper"
 
-    version: int = 1
+    version: int = 2
     changelog: ClassVar[list[ChangelogEntry]] = [
         ChangelogEntry(version=1, changes="Initial release."),
+        ChangelogEntry(
+            version=2,
+            changes="Config surface upgraded from raw JSON editor to visual modal.",
+            notes="No action needed; existing saved configurations continue to parse.",
+        ),
     ]
 
     inputs = [
@@ -109,12 +114,12 @@ class DataMapperComponent(Component):
             is_list=True,
             required=True,
         ),
-        CodeInput(
+        MappingInput(
             name="mapping_config",
             display_name="Mapping Config",
             info=(
-                "JSON mapping configuration. Phase 1a surface; Phase 1b replaces this "
-                "with a visual modal editor."
+                "Visual mapping editor. Describes inputs, join keys, destination schema, "
+                "and per-field transforms."
             ),
             required=True,
         ),

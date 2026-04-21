@@ -243,3 +243,19 @@ def test_component_is_discoverable_from_bundle():
     assert cls is not None
     assert cls.__name__ == "DataMapperComponent"
     assert "DataMapperComponent" in processing.__all__
+
+
+def test_component_uses_mapping_input_for_mapping_config():
+    mapping_input = next(i for i in DataMapperComponent.inputs if i.name == "mapping_config")
+    from lfx.io import MappingInput
+    assert isinstance(mapping_input, MappingInput)
+
+
+def test_component_version_is_2_for_phase_1b():
+    assert DataMapperComponent.version == 2
+
+
+def test_component_changelog_has_two_entries():
+    assert len(DataMapperComponent.changelog) == 2
+    assert DataMapperComponent.changelog[-1].version == 2
+    assert DataMapperComponent.changelog[-1].notes is not None
