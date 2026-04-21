@@ -150,3 +150,58 @@ def test_template_requires_config_template():
     mapping = {"transform": "template", "sources": [], "config": {}}
     with pytest.raises(ValueError, match="config.template"):
         dispatch(mapping, {}, variable_resolver=lambda n: None)
+
+
+def _expr(expression_str):
+    return {
+        "transform": "expression",
+        "sources": [],
+        "config": {"expression": expression_str},
+    }
+
+
+def test_expression_arithmetic():
+    flat = {"x": 10, "y": 3}
+    assert dispatch(_expr("x + y"), flat, variable_resolver=lambda n: None) == 13
+
+
+def test_expression_multiplication_and_precedence():
+    flat = {"price": 100, "tax_rate": 0.08}
+    assert dispatch(_expr("price * (1 + tax_rate)"), flat, variable_resolver=lambda n: None) == pytest.approx(108.0)
+
+
+def test_expression_boolean_ternary():
+    flat = {"country": "FR"}
+    assert (
+        dispatch(_expr("'EMEA' if country in ['FR','DE','UK'] else 'US'"), flat, variable_resolver=lambda n: None)
+        == "EMEA"
+    )
+
+
+def test_expression_comprehension():
+    flat = {"invoices": [{"amt": 10}, {"amt": 20}, {"amt": 30}]}
+    assert dispatch(_expr("[i['amt'] for i in invoices]"), flat, variable_resolver=lambda n: None) == [10, 20, 30]
+
+
+def test_expression_rejects_import():
+    flat = {}
+    with pytest.raises(ValueError, match="expression"):
+        dispatch(_expr("__import__('os').system('echo hi')"), flat, variable_resolver=lambda n: None)
+
+
+def test_expression_rejects_dunder_access():
+    flat = {"x": 1}
+    with pytest.raises(ValueError, match="expression"):
+        dispatch(_expr("x.__class__"), flat, variable_resolver=lambda n: None)
+
+
+def test_expression_requires_config_expression():
+    mapping = {"transform": "expression", "sources": [], "config": {}}
+    with pytest.raises(ValueError, match="config.expression"):
+        dispatch(mapping, {}, variable_resolver=lambda n: None)
+
+
+def test_expression_syntax_error_raises_value_error():
+    flat = {}
+    with pytest.raises(ValueError, match="expression"):
+        dispatch(_expr("x ++"), flat, variable_resolver=lambda n: None)

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Callable
 
 import jinja2
+from asteval import Interpreter
 
 
 class _MissingType:
@@ -113,9 +114,46 @@ def _eval_template(mapping: dict[str, Any], ctx: dict[str, Any], **_: Any) -> An
     return template.render(**ctx)
 
 
+_FORBIDDEN_EXPR_TOKENS = ("__", "import ", "from ")
+
+
+def _eval_expression(mapping: dict[str, Any], ctx: dict[str, Any], **_: Any) -> Any:
+    config = mapping.get("config") or {}
+    expression_str = config.get("expression")
+    if expression_str is None:
+        msg = "'expression' transform requires config.expression"
+        raise ValueError(msg)
+
+    # Coarse pre-filter — blocks dunder access and import statements before asteval sees them.
+    # asteval already blocks imports in the interpreter, but this gives a cleaner error earlier
+    # and catches dunder attribute access that asteval may or may not block depending on version.
+    for token in _FORBIDDEN_EXPR_TOKENS:
+        if token in expression_str:
+            msg = f"'expression' transform disallows token {token!r}: {expression_str!r}"
+            raise ValueError(msg)
+
+    interp = Interpreter(
+        use_numpy=False,
+        minimal=False,
+        readonly_symbols=set(ctx.keys()),
+    )
+    # Preload context as readonly.
+    for k, v in ctx.items():
+        interp.symtable[k] = v
+
+    result = interp.eval(expression_str, show_errors=False, raise_errors=False)
+    if interp.error:
+        # asteval collects errors without raising by default; surface them as ValueError.
+        err_msg = interp.error[0].get_error()
+        msg = f"'expression' transform failed: {err_msg[0] if isinstance(err_msg, tuple) else err_msg}"
+        raise ValueError(msg)
+    return result
+
+
 _DISPATCH: dict[str, Callable[..., Any]] = {
     "direct": _eval_direct,
     "static": _eval_static,
     "variable": _eval_variable,
     "template": _eval_template,
+    "expression": _eval_expression,
 }
