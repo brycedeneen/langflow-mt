@@ -77,7 +77,25 @@ def _eval_static(mapping: dict[str, Any], ctx: dict[str, Any], **_: Any) -> Any:
     return config["value"]
 
 
+def _eval_variable(
+    mapping: dict[str, Any],
+    ctx: dict[str, Any],
+    *,
+    variable_resolver: VariableResolver,
+) -> Any:
+    config = mapping.get("config") or {}
+    name = config.get("variable")
+    if not name:
+        msg = "'variable' transform requires config.variable (name)"
+        raise ValueError(msg)
+    result = variable_resolver(name)
+    if result is None:
+        return _MISSING
+    return result
+
+
 _DISPATCH: dict[str, Callable[..., Any]] = {
     "direct": _eval_direct,
     "static": _eval_static,
+    "variable": _eval_variable,
 }

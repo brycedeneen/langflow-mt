@@ -84,3 +84,26 @@ def test_static_returns_list_verbatim():
 def test_static_returns_none_verbatim_not_missing():
     # `static` with value=None emits an explicit None, never _MISSING.
     assert dispatch(_static(None), {}, variable_resolver=lambda n: None) is None
+
+
+def _variable(name):
+    return {"transform": "variable", "sources": [], "config": {"variable": name}}
+
+
+def test_variable_resolves_via_resolver():
+    resolver = {"current_timestamp": "2026-04-21T10:00:00Z"}.get
+    assert (
+        dispatch(_variable("current_timestamp"), {}, variable_resolver=resolver)
+        == "2026-04-21T10:00:00Z"
+    )
+
+
+def test_variable_unknown_name_returns_missing():
+    resolver = {}.get
+    assert dispatch(_variable("does_not_exist"), {}, variable_resolver=resolver) is _MISSING
+
+
+def test_variable_requires_config_variable_name():
+    mapping = {"transform": "variable", "sources": [], "config": {}}
+    with pytest.raises(ValueError, match="config.variable"):
+        dispatch(mapping, {}, variable_resolver=lambda n: None)
