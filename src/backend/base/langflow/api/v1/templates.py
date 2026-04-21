@@ -468,11 +468,11 @@ async def unarchive_template(
 
 
 @router.delete("/{template_id}", status_code=204)
-async def soft_delete_template(
+async def delete_template(
     template_id: UUID,
     *,
     session: DbSession,
-    _user: User = Depends(get_current_active_superuser),
+    current_user: User = Depends(get_current_active_user),
 ) -> Response:
     row = (
         await session.exec(
@@ -482,8 +482,23 @@ async def soft_delete_template(
         )
     ).one_or_none()
     if row is None:
-        raise HTTPException(status_code=404, detail="Template not found")
-    row.deleted_at = datetime.now(timezone.utc)
-    session.add(row)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Template not found")
+
+    if not user_can_edit_template(current_user, row):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+
+    # 409 guard: refuse to delete if any flow still references this template
+    referencing_flow_ids = (
+        await session.exec(
+            select(Flow.id).where(Flow.based_on_template_flow_id == template_id)
+        )
+    ).all()
+    if referencing_flow_ids:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"referencing_flow_ids": [str(fid) for fid in referencing_flow_ids]},
+        )
+
+    await session.delete(row)
     await session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
