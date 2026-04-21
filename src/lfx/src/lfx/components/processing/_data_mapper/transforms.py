@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
+import jinja2
+
 
 class _MissingType:
     """Singleton sentinel indicating an absent source value.
@@ -30,6 +32,13 @@ _MISSING: _MissingType = _MissingType()
 
 
 VariableResolver = Callable[[str], Any]
+
+
+_JINJA_ENV = jinja2.Environment(
+    undefined=jinja2.ChainableUndefined,
+    autoescape=False,
+    keep_trailing_newline=False,
+)
 
 
 def dispatch(
@@ -94,8 +103,19 @@ def _eval_variable(
     return result
 
 
+def _eval_template(mapping: dict[str, Any], ctx: dict[str, Any], **_: Any) -> Any:
+    config = mapping.get("config") or {}
+    template_str = config.get("template")
+    if template_str is None:
+        msg = "'template' transform requires config.template"
+        raise ValueError(msg)
+    template = _JINJA_ENV.from_string(template_str)
+    return template.render(**ctx)
+
+
 _DISPATCH: dict[str, Callable[..., Any]] = {
     "direct": _eval_direct,
     "static": _eval_static,
     "variable": _eval_variable,
+    "template": _eval_template,
 }

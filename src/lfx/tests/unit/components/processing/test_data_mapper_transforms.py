@@ -107,3 +107,46 @@ def test_variable_requires_config_variable_name():
     mapping = {"transform": "variable", "sources": [], "config": {}}
     with pytest.raises(ValueError, match="config.variable"):
         dispatch(mapping, {}, variable_resolver=lambda n: None)
+
+
+def _template(template_str):
+    return {
+        "transform": "template",
+        "sources": [],
+        "config": {"template": template_str},
+    }
+
+
+def test_template_renders_driver_fields():
+    ctx = {"workers": {"first_name": "Ada", "last_name": "Lovelace"}}
+    # Convention: driver fields are flattened into context top-level.
+    # The engine passes a flattened-ctx view to template; here we test that
+    # the transform reads from the flattened view it receives.
+    flat = {"first_name": "Ada", "last_name": "Lovelace"}
+    assert (
+        dispatch(_template("{{ first_name }} {{ last_name }}"), flat, variable_resolver=lambda n: None)
+        == "Ada Lovelace"
+    )
+
+
+def test_template_undefined_renders_as_empty_string():
+    flat = {"first_name": "Ada"}
+    assert dispatch(_template("{{ first_name }} {{ missing }}"), flat, variable_resolver=lambda n: None) == "Ada "
+
+
+def test_template_supports_filters():
+    flat = {"name": "ada"}
+    assert dispatch(_template("{{ name | upper }}"), flat, variable_resolver=lambda n: None) == "ADA"
+
+
+def test_template_lookup_attribute_access():
+    # Lookups are exposed as SimpleNamespace-like: jobs.title
+    import types
+    flat = {"jobs": types.SimpleNamespace(title="Engineer")}
+    assert dispatch(_template("{{ jobs.title }}"), flat, variable_resolver=lambda n: None) == "Engineer"
+
+
+def test_template_requires_config_template():
+    mapping = {"transform": "template", "sources": [], "config": {}}
+    with pytest.raises(ValueError, match="config.template"):
+        dispatch(mapping, {}, variable_resolver=lambda n: None)
