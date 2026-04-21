@@ -5,6 +5,9 @@ import ConfirmOverwriteDialog from "../ConfirmOverwriteDialog";
 
 // Fix "now" so the relative-date assertion is stable.
 // Pin the system clock to just after NOW so formatRelativeTime returns "just now".
+// Coupling note: the 30-second gap is under formatRelativeTime's < 60s "just now"
+// threshold. If that threshold ever drops below 30s, this test flips to "N seconds
+// ago" and fails. Shrink the gap here if that threshold changes.
 const NOW = new Date("2026-04-21T12:00:00Z").toISOString();
 const FAKE_NOW = new Date("2026-04-21T12:00:30Z"); // 30 s after NOW → "just now"
 
@@ -81,6 +84,11 @@ describe("ConfirmOverwriteDialog", () => {
     setup({ submitting: true });
     expect(screen.getByRole("button", { name: /^overwrite$/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /^cancel$/i })).toBeEnabled();
+  });
+
+  it("Cancel button receives focus on mount (safe-default)", () => {
+    setup();
+    expect(screen.getByRole("button", { name: /^cancel$/i })).toHaveFocus();
   });
 
   it("does not render dialog DOM when open=false", () => {
