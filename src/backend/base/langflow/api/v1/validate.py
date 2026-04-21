@@ -4,6 +4,7 @@ from lfx.base.prompts.api_utils import process_prompt_template
 from lfx.components.processing._data_mapper import MapperConfig
 from lfx.custom.validate import validate_code
 from lfx.log.logger import logger
+from lfx.schema.json_schema import create_input_schema_from_json_schema
 from pydantic import ValidationError as _PydanticValidationError
 
 from langflow.api.v1.base import Code, CodeValidationResponse, PromptValidationResponse, ValidatePromptRequest
@@ -72,3 +73,50 @@ async def validate_mapping_config(body: dict) -> JSONResponse:
         errors = [{"path": list(err["loc"]), "message": err["msg"]} for err in e.errors()]
         return JSONResponse(status_code=422, content={"errors": errors})
     return JSONResponse(status_code=200, content={"errors": []})
+
+
+# ---------------------------------------------------------------------------
+# JSON Schema → field list
+# ---------------------------------------------------------------------------
+
+_JSON_SCHEMA_FIELD_TYPE_MAP = {
+    "string": "str",
+    "integer": "int",
+    "number": "float",
+    "boolean": "bool",
+    "array": "list",
+    "object": "dict",
+}
+
+
+def _infer_field_type(prop: dict) -> str:
+    fmt = prop.get("format")
+    if prop.get("type") == "string" and fmt == "date-time":
+        return "datetime"
+    if prop.get("type") == "string" and fmt == "date":
+        return "date"
+    return _JSON_SCHEMA_FIELD_TYPE_MAP.get(prop.get("type", "string"), "str")
+
+
+@router.post("/jsonschema-to-fields", dependencies=[Depends(get_current_active_user)])
+async def jsonschema_to_fields(schema: dict) -> JSONResponse:
+    """Convert a JSON Schema object to a flat list of typed fields.
+
+    Validates the schema via ``create_input_schema_from_json_schema`` (which
+    resolves ``$ref`` references and enforces shape requirements), then walks
+    the top-level ``properties`` to produce ``{fields: [{name, type, required}]}``.
+
+    Returns HTTP 400 with ``{"detail": "..."}`` when the schema is invalid.
+    """
+    try:
+        create_input_schema_from_json_schema(schema)
+    except Exception as e:
+        return JSONResponse(status_code=400, content={"detail": f"Invalid JSON Schema: {e}"})
+
+    properties = schema.get("properties") or {}
+    required = set(schema.get("required") or [])
+    fields = [
+        {"name": name, "type": _infer_field_type(prop), "required": name in required}
+        for name, prop in properties.items()
+    ]
+    return JSONResponse(status_code=200, content={"fields": fields})
