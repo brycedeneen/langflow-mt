@@ -1,3 +1,17 @@
+export type MembershipOrg = {
+  id: string;
+  name: string;
+  slug: string;
+  is_personal: boolean;
+};
+
+export type MyMembership = {
+  id: string;
+  role: "owner"; // expand if the enum grows
+  is_org_admin: boolean;
+  organization: MembershipOrg;
+};
+
 export type Category = {
   id: string;
   name: string;
