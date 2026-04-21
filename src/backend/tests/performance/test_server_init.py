@@ -62,17 +62,9 @@ async def test_get_and_cache_all_types_dict():
     assert "test_performance.db" in settings_service.settings.database_url
 
 
+@pytest.mark.skip(reason="create_or_update_starter_projects removed; starters now seeded via Alembic migration")
 async def test_create_starter_projects():
-    """Benchmark creation of starter projects."""
-    from langflow.initial_setup.setup import create_or_update_starter_projects
-    from langflow.services.utils import initialize_services
-    from lfx.interface.components import get_and_cache_all_types_dict
-
-    await initialize_services(fix_migration=False)
-    settings_service = get_settings_service()
-    types_dict = await get_and_cache_all_types_dict(settings_service)
-    await create_or_update_starter_projects(types_dict)
-    assert "test_performance.db" in settings_service.settings.database_url
+    """Benchmark creation of starter projects (now no-op — seeded via migration)."""
 
 
 async def test_load_flows():

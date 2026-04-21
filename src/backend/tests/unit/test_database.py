@@ -7,7 +7,6 @@ import orjson
 import pytest
 from httpx import AsyncClient
 from langflow.api.v1.schemas import FlowListCreate, ResultDataResponse
-from langflow.initial_setup.setup import load_starter_projects
 from langflow.services.database.models.base import orjson_dumps
 from langflow.services.database.models.flow import Flow, FlowCreate, FlowUpdate
 from langflow.services.database.models.folder.model import FolderCreate
@@ -627,10 +626,12 @@ async def test_delete_nonexistent_flow(client: AsyncClient, logged_in_headers):
 
 @pytest.mark.usefixtures("active_user")
 async def test_read_only_starter_projects(client: AsyncClient, logged_in_headers):
+    # Starter projects are now stored as Template rows (not Flows).
+    # The legacy /basic_examples/ endpoint returns flows from the Starter Projects folder,
+    # which is deleted by the data migration; the endpoint returns an empty list.
     response = await client.get("api/v1/flows/basic_examples/", headers=logged_in_headers)
-    starter_projects = await load_starter_projects()
     assert response.status_code == 200
-    assert len(response.json()) == len(starter_projects)
+    assert isinstance(response.json(), list)
 
 
 async def test_sqlite_pragmas():

@@ -3,7 +3,6 @@ import json
 import os
 import re
 import sys
-import tempfile
 import warnings
 from contextlib import asynccontextmanager, suppress
 from http import HTTPStatus
@@ -19,7 +18,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi_pagination import add_pagination
-from filelock import FileLock
 from lfx.interface.utils import setup_llm_caching
 from lfx.log.logger import configure, logger
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -32,7 +30,6 @@ from langflow.api.router import router
 from langflow.api.v1.mcp_projects import init_mcp_servers
 from langflow.initial_setup.setup import (
     copy_profile_pictures,
-    create_or_update_starter_projects,
     create_or_update_template_metadata,
     initialize_auto_login_default_superuser,
     load_bundles_from_urls,
@@ -207,29 +204,16 @@ def get_lifespan(*, fix_migration=False, version=None):
             all_types_dict = await get_and_cache_all_types_dict(get_settings_service(), telemetry_service)
             await logger.adebug(f"Types cached in {asyncio.get_event_loop().time() - current_time:.2f}s")
 
-            # Use file-based lock to prevent multiple workers from creating duplicate starter projects concurrently.
-            # Note that it's still possible that one worker may complete this task, release the lock,
-            # then another worker pick it up, but the operation is idempotent so worst case it duplicates
-            # the initialization work.
+            # Seed template metadata from .metadata.json sidecars (ADP etc.).
             current_time = asyncio.get_event_loop().time()
-            await logger.adebug("Creating/updating starter projects")
-
-            lock_file = Path(tempfile.gettempdir()) / "langflow_starter_projects.lock"
-            lock = FileLock(lock_file, timeout=1)
+            await logger.adebug("Seeding template metadata")
             try:
-                with lock:
-                    await create_or_update_starter_projects(all_types_dict)
-                    await create_or_update_template_metadata()
-                    await logger.adebug(
-                        f"Starter projects created/updated in {asyncio.get_event_loop().time() - current_time:.2f}s"
-                    )
-            except TimeoutError:
-                # Another process has the lock
-                await logger.adebug("Another worker is creating starter projects, skipping")
-            except Exception as e:  # noqa: BLE001
-                await logger.awarning(
-                    f"Failed to acquire lock for starter projects: {e}. Starter projects may not be created or updated."
+                await create_or_update_template_metadata()
+                await logger.adebug(
+                    f"Template metadata seeded in {asyncio.get_event_loop().time() - current_time:.2f}s"
                 )
+            except Exception as e:  # noqa: BLE001
+                await logger.awarning(f"Failed to seed template metadata: {e}")
 
             # Initialize agentic global variables early (before MCP server and flows)
             if get_settings_service().settings.agentic_experience:

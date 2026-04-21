@@ -4,109 +4,25 @@ import shutil
 import tempfile
 import uuid
 from copy import deepcopy
-from datetime import datetime
 from pathlib import Path as SyncPath
 from unittest.mock import AsyncMock, patch
 
 import pytest
 from anyio import Path
 from httpx import AsyncClient
-from langflow.initial_setup.constants import STARTER_FOLDER_NAME
 from langflow.initial_setup.setup import (
     copy_profile_pictures,
     detect_github_url,
-    get_project_data,
     load_bundles_from_urls,
-    load_starter_projects,
     update_projects_components_with_latest_component_versions,
 )
 from langflow.interface.components import get_and_cache_all_types_dict
 from langflow.services.auth.utils import create_super_user
 from langflow.services.database.models import Flow
-from langflow.services.database.models.folder.model import Folder
 from langflow.services.deps import get_settings_service, session_scope
-from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 
-async def test_load_starter_projects():
-    projects = await load_starter_projects()
-    assert isinstance(projects, list)
-    assert all(isinstance(project[1], dict) for project in projects)
-    assert all(isinstance(project[0], Path) for project in projects)
-
-
-async def test_get_project_data():
-    projects = await load_starter_projects()
-    for _, project in projects:
-        (
-            project_name,
-            project_description,
-            project_is_component,
-            updated_at_datetime,
-            project_data,
-            project_icon,
-            project_icon_bg_color,
-            project_gradient,
-            project_tags,
-        ) = get_project_data(project)
-        assert isinstance(project_gradient, str) or project_gradient is None
-        assert isinstance(project_tags, list), f"Project {project_name} has no tags"
-        assert isinstance(project_name, str), f"Project {project_name} has no name"
-        assert isinstance(project_description, str), f"Project {project_name} has no description"
-        assert isinstance(project_is_component, bool), f"Project {project_name} has no is_component"
-        assert isinstance(updated_at_datetime, datetime), f"Project {project_name} has no updated_at_datetime"
-        assert isinstance(project_data, dict), f"Project {project_name} has no data"
-        assert isinstance(project_icon, str) or project_icon is None, f"Project {project_name} has no icon"
-        assert isinstance(project_icon_bg_color, str) or project_icon_bg_color is None, (
-            f"Project {project_name} has no icon_bg_color"
-        )
-
-
-async def test_should_not_leak_caio_contexts_when_loading_starter_projects():
-    """Test that load_starter_projects does not leak caio async I/O contexts.
-
-    Bug: On Linux CI, aiofile's async_open creates caio.AsyncioContext objects
-    keyed by event loop in a global dict (DEFAULT_CONTEXT_STORE) that are never
-    cleaned up. With pytest-asyncio creating a new event loop per test function,
-    these contexts accumulate until the OS limit (aio-max-nr) is exhausted,
-    causing SystemError: (11, 'Resource temporarily unavailable') (EAGAIN).
-
-    This test verifies that load_starter_projects does not increase the number
-    of leaked caio contexts after being called.
-    """
-    try:
-        from aiofile.aio import DEFAULT_CONTEXT_STORE
-    except ImportError:
-        pytest.skip("aiofile not installed")
-
-    contexts_before = len(DEFAULT_CONTEXT_STORE)
-    await load_starter_projects()
-    contexts_after = len(DEFAULT_CONTEXT_STORE)
-
-    assert contexts_after == contexts_before, (
-        f"load_starter_projects leaked {contexts_after - contexts_before} caio context(s). "
-        f"This causes SystemError(11, 'Resource temporarily unavailable') on Linux CI "
-        f"when many tests accumulate leaked contexts. "
-        f"Use anyio.Path.read_text() instead of aiofile.async_open()."
-    )
-
-
-@pytest.mark.usefixtures("client")
-async def test_create_or_update_starter_projects():
-    async with session_scope() as session:
-        # Get the number of projects returned by load_starter_projects
-        num_projects = len(await load_starter_projects())
-
-        # Get the number of projects in the database
-        stmt = select(Folder).options(selectinload(Folder.flows)).where(Folder.name == STARTER_FOLDER_NAME)
-        folder = (await session.exec(stmt)).first()
-        assert folder is not None
-        num_db_projects = len(folder.flows)
-
-        # Check that the number of projects in the database is the same as the number of projects returned by
-        # load_starter_projects
-        assert num_db_projects == num_projects
 
 
 # Some starter projects require integration

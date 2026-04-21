@@ -180,12 +180,13 @@ async def test_create_flows(client: AsyncClient, logged_in_headers):
 
 
 async def test_read_basic_examples(client: AsyncClient, logged_in_headers):
+    # Starter projects are now DB-resident Template rows; the legacy Starter Projects
+    # folder is deleted by migration so the /basic_examples/ endpoint returns [].
     response = await client.get("api/v1/flows/basic_examples/", headers=logged_in_headers)
     result = response.json()
 
     assert response.status_code == status.HTTP_200_OK
     assert isinstance(result, list), "The result must be a list"
-    assert len(result) > 0, "The result must have at least one flow"
 
 
 async def test_read_flows_user_isolation(client: AsyncClient, logged_in_headers, active_user):

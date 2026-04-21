@@ -14,12 +14,15 @@ from pathlib import Path
 import pytest
 
 
+# JSON source files have been moved to the alembic fixtures directory after
+# being imported into the DB as Template rows during the D-phase migration.
 TEMPLATE_PATH = (
     Path(__file__).resolve().parents[3]
     / "base"
     / "langflow"
-    / "initial_setup"
-    / "starter_projects"
+    / "alembic"
+    / "versions"
+    / "category_rework_fixtures"
     / "ADP Worker Sync to SFTP.json"
 )
 
@@ -108,7 +111,16 @@ def test_sftp_node_per_flow_fields_empty(template):
 
 
 def test_metadata_sibling_file_present_and_well_formed():
-    sibling = TEMPLATE_PATH.with_name("ADP Worker Sync to SFTP.metadata.json")
+    # The metadata.json remains in the original starter_projects directory
+    # (not in the alembic fixtures), as it's consumed by create_or_update_template_metadata.
+    sibling = (
+        Path(__file__).resolve().parents[3]
+        / "base"
+        / "langflow"
+        / "initial_setup"
+        / "starter_projects"
+        / "ADP Worker Sync to SFTP.metadata.json"
+    )
     assert sibling.exists()
     with sibling.open(encoding="utf-8") as f:
         meta = json.load(f)
