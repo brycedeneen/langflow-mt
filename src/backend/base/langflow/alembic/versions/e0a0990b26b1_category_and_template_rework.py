@@ -63,16 +63,10 @@ def upgrade() -> None:
     with op.batch_alter_table("template") as batch:
         batch.drop_constraint(op.f("uq_template_name"), type_="unique")
 
-    # 6. Rewrite scope coherence constraint to allow 'org' scope.
-    # Note: bb45fc63cdcd already ships with the broader text, so this is a
-    # semantic no-op for existing data; the drop/recreate anchors the constraint
-    # under the right name in the new schema.
-    with op.batch_alter_table("template") as batch:
-        batch.drop_constraint(op.f("ck_template_scope_org_coherence"), type_="check")
-        batch.create_check_constraint(
-            op.f("ck_template_scope_org_coherence"),
-            "(scope = 'platform' AND org_id IS NULL) OR (scope = 'org' AND org_id IS NOT NULL)",
-        )
+    # 6. Scope coherence constraint is already correct from bb45fc63cdcd
+    # (same name, same broad text). No rewrite needed — the earlier drop/recreate
+    # here was a cosmetic no-op that broke SQLite batch-mode reflection of CHECK
+    # constraints.
 
     # 7. Per-scope unique index. Must be created AFTER the final batch_alter_table
     # on `template` — on SQLite, batch mode rebuilds the table and drops any indexes
@@ -92,15 +86,8 @@ def downgrade() -> None:
     # be gone. Dropping it up-front keeps the downgrade robust to re-runs.
     op.execute("DROP INDEX IF EXISTS uq_template_name_per_scope")
 
-    # Restore scope coherence constraint. This installs the *same* text the
-    # upgrade uses because bb45fc63cdcd (the prior head) already shipped with the
-    # broader form; there is no narrower Phase-1 constraint to roll back to.
-    with op.batch_alter_table("template") as batch:
-        batch.drop_constraint(op.f("ck_template_scope_org_coherence"), type_="check")
-        batch.create_check_constraint(
-            op.f("ck_template_scope_org_coherence"),
-            "(scope = 'platform' AND org_id IS NULL) OR (scope = 'org' AND org_id IS NOT NULL)",
-        )
+    # Scope coherence constraint does not need re-installation; upgrade did not
+    # change it (see note in upgrade()).
 
     with op.batch_alter_table("template") as batch:
         batch.create_unique_constraint(op.f("uq_template_name"), ["name"])
