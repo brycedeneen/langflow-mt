@@ -33,6 +33,7 @@ class FieldTypes(str, Enum):
     OTHER = "other"
     TABLE = "table"
     LINK = "link"
+    MAPPING = "mapping"
     SLIDER = "slider"
     TAB = "tab"
     QUERY = "query"

@@ -145,6 +145,17 @@ class CodeInput(BaseInputMixin, ListableInputMixin, InputTraceMixin, ToolModeMix
     field_type: SerializableFieldTypes = FieldTypes.CODE
 
 
+class MappingInput(BaseInputMixin, ListableInputMixin):
+    """Data Mapper mapping-config input.
+
+    Stores a JSON string describing source-to-destination field mappings.
+    Rendered by the frontend as a button + modal editor; the backend treats
+    the value opaquely (validation lives in DataMapperComponent, not here).
+    """
+
+    field_type: SerializableFieldTypes = FieldTypes.MAPPING
+
+
 class ModelInput(BaseInputMixin, ModelInputMixin, ListableInputMixin, InputTraceMixin, ToolModeMixin):
     """Represents a model input field with optional model connection support.
 
@@ -900,6 +911,7 @@ InputTypes: TypeAlias = (
     | FloatInput
     | HandleInput
     | IntInput
+    | MappingInput
     | McpInput
     | ModelInput
     | MultilineInput
