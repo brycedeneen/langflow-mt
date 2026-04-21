@@ -12,7 +12,7 @@ from uuid import UUID, uuid4
 import orjson
 from aiofile import async_open
 from anyio import Path
-from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 from fastapi_pagination import Page, Params
@@ -35,6 +35,7 @@ from langflow.services.database.models.flow.model import (
     FlowRead,
     FlowUpdate,
 )
+from langflow.services.database.models.template.model import Template
 from langflow.services.database.models.flow.utils import generate_webhook_api_key, get_webhook_component_in_flow
 from lfx.services.secret_store import get_secret_store
 
@@ -364,6 +365,15 @@ async def create_flow(
     current_org: CurrentOrg,
     storage_service: Annotated[StorageService, Depends(get_storage_service)],
 ):
+    # Guard: reject creation if the referenced template is archived
+    if flow.based_on_template_flow_id is not None:
+        t = await session.get(Template, flow.based_on_template_flow_id)
+        if t is not None and t.archived_at is not None:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="template is archived",
+            )
+
     try:
         flow_id = uuid4()
 
