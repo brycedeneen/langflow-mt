@@ -29,6 +29,5 @@ async def test_data_mapper_auto_map_flow_has_required_shape():
     assert len(matched) == 1
     flow = matched[0]
     assert "data" in flow
-    assert "data" in flow["data"]
-    assert "nodes" in flow["data"]["data"]
-    assert len(flow["data"]["data"]["nodes"]) > 0
+    assert "nodes" in flow["data"]
+    assert len(flow["data"]["nodes"]) > 0
