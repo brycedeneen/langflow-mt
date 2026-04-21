@@ -13,6 +13,7 @@ import BaseModal from "../baseModal";
 import { ActionBar } from "./components/actionBar";
 import GetStartedComponent from "./components/GetStartedComponent";
 import { Nav } from "./components/navComponent";
+import SavedTemplatesContent from "./components/SavedTemplatesContent";
 import TemplateContentComponent from "./components/TemplateContentComponent";
 
 export default function TemplatesModal({
@@ -67,6 +68,7 @@ export default function TemplatesModal({
       items: [
         { title: "Get started", icon: "SquarePlay", id: "get-started" },
         { title: "All templates", icon: "LayoutPanelTop", id: "all-templates" },
+        { title: "Saved Templates", icon: "Bookmark", id: "saved" },
       ],
     },
     {
@@ -106,23 +108,38 @@ export default function TemplatesModal({
               setCurrentTab={setCurrentTab}
             />
             <main className="flex flex-1 flex-col gap-4 overflow-auto p-6 md:gap-8">
-              {currentTab === "get-started" ? (
-                <GetStartedComponent
-                  loading={loading}
-                  onFlowCreating={handleFlowCreating}
-                  selectedTemplate={selectedTemplate}
-                  onSelectTemplate={setSelectedTemplate}
-                />
-              ) : (
-                <TemplateContentComponent
-                  currentTab={currentTab}
-                  categories={categories.flatMap((category) => category.items)}
-                  loading={loading}
-                  onFlowCreating={handleFlowCreating}
-                  selectedTemplate={selectedTemplate}
-                  onSelectTemplate={setSelectedTemplate}
-                />
-              )}
+              {(() => {
+                switch (currentTab) {
+                  case "get-started":
+                    return (
+                      <GetStartedComponent
+                        loading={loading}
+                        onFlowCreating={handleFlowCreating}
+                        selectedTemplate={selectedTemplate}
+                        onSelectTemplate={setSelectedTemplate}
+                      />
+                    );
+                  case "saved":
+                    return (
+                      <SavedTemplatesContent
+                        loading={loading}
+                        selectedTemplate={selectedTemplate}
+                        onSelectTemplate={setSelectedTemplate}
+                      />
+                    );
+                  default:
+                    return (
+                      <TemplateContentComponent
+                        currentTab={currentTab}
+                        categories={categories.flatMap((c) => c.items)}
+                        loading={loading}
+                        onFlowCreating={handleFlowCreating}
+                        selectedTemplate={selectedTemplate}
+                        onSelectTemplate={setSelectedTemplate}
+                      />
+                    );
+                }
+              })()}
             </main>
           </SidebarProvider>
         </div>
