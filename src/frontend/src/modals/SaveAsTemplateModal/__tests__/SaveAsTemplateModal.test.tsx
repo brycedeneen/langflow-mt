@@ -85,7 +85,8 @@ describe("SaveAsTemplateModal — submit wiring", () => {
     expect(screen.getByLabelText(/description/i)).toHaveValue(
       "Pre-existing description",
     );
-    expect(screen.getByRole("button", { name: /filetext/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /choose icon/i })).toBeInTheDocument();
+    expect(screen.getByText("FileText")).toBeInTheDocument();
   });
 
   it("Save button disabled until Name is non-empty", () => {

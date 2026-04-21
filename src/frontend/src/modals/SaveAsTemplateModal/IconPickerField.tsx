@@ -1,15 +1,15 @@
-import { useMemo, useState } from "react";
-import * as LucideIcons from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
+import { Command, CommandInput } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import IconComponent from "@/components/common/genericIconComponent";
+import { cn } from "@/utils/utils";
+import { filterIconNames } from "./iconPicker/filterIconNames";
+import IconGrid from "./iconPicker/IconGrid";
+import { LUCIDE_ICON_NAMES } from "./iconPicker/lucideIconNames";
+import { useRecentIcons } from "./iconPicker/useRecentIcons";
 
-// Build the icon name list from lucide-react exports, filtering out
-// duplicate "Icon"-suffixed aliases and non-component exports.
-const ALL_ICON_NAMES: string[] = Object.keys(LucideIcons).filter(
-  (name) =>
-    !name.endsWith("Icon") &&
-    name !== "createLucideIcon" &&
-    name !== "LucideProvider" &&
-    name !== "useLucideContext",
-);
+const LUCIDE_NAME_SET = new Set(LUCIDE_ICON_NAMES);
 
 type Props = {
   value: string;
@@ -19,61 +19,106 @@ type Props = {
 export default function IconPickerField({ value, onChange }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const { recents, record } = useRecentIcons();
 
-  const options = useMemo(() => {
-    if (!query.trim()) return ALL_ICON_NAMES;
-    const q = query.toLowerCase();
-    return ALL_ICON_NAMES.filter((n) => n.toLowerCase().includes(q));
-  }, [query]);
+  const filtered = useMemo(() => filterIconNames(LUCIDE_ICON_NAMES, query), [query]);
 
-  const close = () => {
-    setOpen(false);
-    setQuery("");
-  };
+  // Drop recents that no longer exist in the current lucide set.
+  const validRecents = useMemo(
+    () => recents.filter((n) => LUCIDE_NAME_SET.has(n)),
+    [recents],
+  );
+
+  const showRecents = query.trim() === "" && validRecents.length > 0;
+
+  const handleSelect = useCallback(
+    (name: string) => {
+      onChange(name);
+      record(name);
+      setOpen(false);
+      setQuery("");
+    },
+    [onChange, record],
+  );
 
   return (
-    <div className="relative inline-block">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm"
-      >
-        {value}
-      </button>
-      {open && (
-        <div className="absolute z-50 mt-2 w-72 rounded-md border bg-popover p-2 shadow-lg">
-          <input
-            autoFocus
-            type="text"
+    <Popover
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) setQuery("");
+      }}
+    >
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label="Choose icon"
+          className="inline-flex items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm hover:bg-accent"
+        >
+          <IconComponent name={value} className="h-4 w-4" />
+          <span>{value}</span>
+          <ChevronDown className="h-4 w-4 opacity-50" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[340px] p-0" align="start">
+        <Command shouldFilter={false}>
+          <CommandInput
             placeholder="Search icons…"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="mb-2 w-full rounded-sm border px-2 py-1 text-sm"
+            onValueChange={setQuery}
+            autoFocus
           />
-          <div
-            role="listbox"
-            className="grid max-h-60 grid-cols-5 gap-1 overflow-y-auto"
-          >
-            {options.map((name) => (
-              <button
-                key={name}
-                type="button"
-                role="option"
-                aria-selected={name === value}
-                onClick={() => {
-                  onChange(name);
-                  close();
-                }}
-                className={`rounded-sm px-2 py-1 text-xs ${
-                  name === value ? "bg-accent" : ""
-                }`}
+          <div className="p-2">
+            {showRecents && (
+              <div
+                role="region"
+                aria-label="Recents"
+                className="mb-2 border-b pb-2"
               >
-                {name}
-              </button>
-            ))}
+                <div className="mb-1 px-1 text-xs font-medium text-muted-foreground">
+                  Recents
+                </div>
+                <div
+                  role="listbox"
+                  aria-label="Recent icons"
+                  className="flex flex-wrap gap-1"
+                >
+                  {validRecents.map((name) => {
+                    const isSelected = name === value;
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        role="option"
+                        aria-selected={isSelected}
+                        onClick={() => handleSelect(name)}
+                        title={name}
+                        className={cn(
+                          "flex h-9 w-9 items-center justify-center rounded-sm hover:bg-accent",
+                          isSelected && "bg-accent text-accent-foreground",
+                        )}
+                      >
+                        <IconComponent name={name} className="h-5 w-5" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {filtered.length === 0 ? (
+              <div className="py-6 text-center text-sm text-muted-foreground">
+                No icons match "{query}"
+              </div>
+            ) : (
+              <IconGrid
+                names={filtered}
+                selected={value}
+                onSelect={handleSelect}
+              />
+            )}
           </div>
-        </div>
-      )}
-    </div>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
