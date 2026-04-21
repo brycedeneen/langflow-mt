@@ -238,3 +238,61 @@ class DataMapperComponent(Component):
         result = package_output(rows, output_type="JSON", driver_was_list=driver_was_list)
         self.status = result
         return result  # type: ignore[return-value]
+
+    _OUTPUT_SPEC: ClassVar[dict[str, dict[str, Any]]] = {
+        "Data": {
+            "display_name": "Data Output",
+            "name": "data_output",
+            "method": "build_data",
+            "types": ["Data"],
+        },
+        "DataFrame": {
+            "display_name": "DataFrame Output",
+            "name": "dataframe_output",
+            "method": "build_dataframe",
+            "types": ["DataFrame"],
+        },
+        "Message": {
+            "display_name": "Message Output",
+            "name": "message_output",
+            "method": "build_message",
+            "types": ["Message"],
+        },
+        "JSON": {
+            "display_name": "JSON Output",
+            "name": "json_output",
+            "method": "build_json",
+            "types": ["JSON"],
+        },
+    }
+
+    def update_outputs(
+        self,
+        frontend_node: dict[str, Any],
+        field_name: str,
+        field_value: Any,
+    ) -> dict[str, Any]:
+        if field_name != "output_type":
+            return frontend_node
+
+        frontend_node["outputs"] = []
+        if field_value == "Auto":
+            for spec in self._OUTPUT_SPEC.values():
+                frontend_node["outputs"].append(Output(**spec).to_dict())
+        elif field_value in self._OUTPUT_SPEC:
+            frontend_node["outputs"].append(
+                Output(**self._OUTPUT_SPEC[field_value]).to_dict()
+            )
+        return frontend_node
+
+    async def update_frontend_node(
+        self,
+        new_frontend_node: dict[str, Any],
+        current_frontend_node: dict[str, Any],
+    ) -> dict[str, Any]:
+        await super().update_frontend_node(new_frontend_node, current_frontend_node)
+        output_type = (
+            new_frontend_node.get("template", {}).get("output_type", {}).get("value", "Auto")
+        )
+        self.update_outputs(new_frontend_node, "output_type", output_type)
+        return new_frontend_node

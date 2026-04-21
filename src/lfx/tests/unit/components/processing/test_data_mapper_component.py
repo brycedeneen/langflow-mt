@@ -191,3 +191,47 @@ async def test_component_unknown_variable_becomes_blank():
 
     result = await cmp.build_data()
     assert result.data["Maybe"] == ""
+
+
+def test_update_outputs_auto_keeps_all_four():
+    cmp = DataMapperComponent()
+    frontend_node = {"outputs": []}
+    cmp.update_outputs(frontend_node, "output_type", "Auto")
+    names = [o["name"] for o in frontend_node["outputs"]]
+    assert set(names) == {"data_output", "dataframe_output", "message_output", "json_output"}
+
+
+def test_update_outputs_explicit_data_filters_to_one():
+    cmp = DataMapperComponent()
+    frontend_node = {"outputs": []}
+    cmp.update_outputs(frontend_node, "output_type", "Data")
+    assert [o["name"] for o in frontend_node["outputs"]] == ["data_output"]
+
+
+def test_update_outputs_explicit_dataframe_filters_to_one():
+    cmp = DataMapperComponent()
+    frontend_node = {"outputs": []}
+    cmp.update_outputs(frontend_node, "output_type", "DataFrame")
+    assert [o["name"] for o in frontend_node["outputs"]] == ["dataframe_output"]
+
+
+def test_update_outputs_explicit_message_filters_to_one():
+    cmp = DataMapperComponent()
+    frontend_node = {"outputs": []}
+    cmp.update_outputs(frontend_node, "output_type", "Message")
+    assert [o["name"] for o in frontend_node["outputs"]] == ["message_output"]
+
+
+def test_update_outputs_explicit_json_filters_to_one():
+    cmp = DataMapperComponent()
+    frontend_node = {"outputs": []}
+    cmp.update_outputs(frontend_node, "output_type", "JSON")
+    assert [o["name"] for o in frontend_node["outputs"]] == ["json_output"]
+
+
+def test_update_outputs_ignores_other_fields():
+    cmp = DataMapperComponent()
+    frontend_node = {"outputs": [{"name": "existing"}]}
+    cmp.update_outputs(frontend_node, "mapping_config", "anything")
+    # Should be untouched
+    assert frontend_node["outputs"] == [{"name": "existing"}]
