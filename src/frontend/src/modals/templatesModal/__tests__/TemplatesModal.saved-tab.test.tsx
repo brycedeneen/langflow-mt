@@ -8,6 +8,14 @@ import TemplatesModal from "../index";
 const mockAddFlow = jest.fn().mockResolvedValue("new-flow-id");
 const mockApiGet = jest.fn();
 
+jest.mock("@/controllers/API/queries/categories", () => ({
+  __esModule: true,
+  useListCategories: () => ({
+    data: [],
+    isPending: false,
+  }),
+}));
+
 jest.mock("@/controllers/API/queries/templates/use-list-templates", () => ({
   __esModule: true,
   useListTemplates: () => ({

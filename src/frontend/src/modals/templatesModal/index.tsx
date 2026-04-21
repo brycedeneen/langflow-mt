@@ -3,13 +3,14 @@ import { useParams } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { api } from "@/controllers/API/api";
 import { getURL } from "@/controllers/API/helpers/constants";
+import { useListCategories } from "@/controllers/API/queries/categories";
 import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
 import { track } from "@/customization/utils/analytics";
 import useAddFlow from "@/hooks/flows/use-add-flow";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import type { AllNodeType, EdgeType, FlowType } from "@/types/flow";
 import type { TemplateReadDetail } from "@/types/template";
-import type { Category } from "@/types/templates/types";
+import type { NavItem } from "@/types/templates/types";
 import { updateIds } from "@/utils/reactflowUtils";
 import { openFlowInFullscreenAssist } from "@/utils/assist-entry";
 import type { newFlowModalPropsType } from "../../types/components";
@@ -33,6 +34,12 @@ function adaptTemplateDetailToFlow(detail: TemplateReadDetail): FlowType {
   };
 }
 
+const PERMANENT_ROWS: NavItem[] = [
+  { id: "get-started", title: "Get started", icon: "SquarePlay" },
+  { id: "all-templates", title: "All templates", icon: "LayoutPanelTop" },
+  { id: "saved", title: "Saved Templates", icon: "Bookmark" },
+];
+
 export default function TemplatesModal({
   open,
   setOpen,
@@ -44,6 +51,8 @@ export default function TemplatesModal({
   const navigate = useCustomNavigate();
   const { folderId } = useParams();
   const examples = useFlowsManagerStore((state) => state.examples);
+
+  const { data: apiCategories = [] } = useListCategories();
 
   const handleFlowCreating = (isCreating: boolean) => {
     setLoading(isCreating);
@@ -97,41 +106,14 @@ export default function TemplatesModal({
     }
   };
 
-  // Define categories and their items
-  const categories: Category[] = [
-    {
-      title: "Templates",
-      items: [
-        { title: "Get started", icon: "SquarePlay", id: "get-started" },
-        { title: "All templates", icon: "LayoutPanelTop", id: "all-templates" },
-        { title: "Saved Templates", icon: "Bookmark", id: "saved" },
-      ],
-    },
-    {
-      title: "Use Cases",
-      items: [
-        { title: "Assistants", icon: "BotMessageSquare", id: "assistants" },
-        { title: "Classification", icon: "Tags", id: "classification" },
-        { title: "Coding", icon: "TerminalIcon", id: "coding" },
-        {
-          title: "Content Generation",
-          icon: "Newspaper",
-          id: "content-generation",
-        },
-        { title: "Q&A", icon: "Database", id: "q-a" },
-        // { title: "Summarization", icon: "Bot", id: "summarization" },
-        // { title: "Web Scraping", icon: "CodeXml", id: "web-scraping" },
-      ],
-    },
-    {
-      title: "Methodology",
-      items: [
-        { title: "Prompting", icon: "MessagesSquare", id: "chatbots" },
-        { title: "RAG", icon: "Database", id: "rag" },
-        { title: "Agents", icon: "Bot", id: "agents" },
-      ],
-    },
+  const categoryNavItems: NavItem[] = [
+    ...apiCategories
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((cat) => ({ id: cat.name, title: cat.name, icon: cat.icon })),
   ];
+
+  const navItems: NavItem[] = [...PERMANENT_ROWS, ...categoryNavItems];
 
   return (
     <BaseModal size="templates" open={open} setOpen={setOpen} className="p-0">
@@ -139,7 +121,7 @@ export default function TemplatesModal({
         <div className="flex flex-1 min-h-0">
           <SidebarProvider width="15rem" defaultOpen={false}>
             <Nav
-              categories={categories}
+              items={navItems}
               currentTab={currentTab}
               setCurrentTab={setCurrentTab}
             />
@@ -167,7 +149,7 @@ export default function TemplatesModal({
                     return (
                       <TemplateContentComponent
                         currentTab={currentTab}
-                        categories={categories.flatMap((c) => c.items)}
+                        categories={navItems}
                         loading={loading}
                         onFlowCreating={handleFlowCreating}
                         selectedTemplate={selectedTemplate}
