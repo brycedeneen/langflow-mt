@@ -14,7 +14,7 @@ import { cn } from "@/utils/utils";
 import { useIsMobile } from "../../../../hooks/use-mobile";
 import type { NavProps } from "../../../../types/templates/types";
 
-export function Nav({ items, currentTab, setCurrentTab }: NavProps) {
+export function Nav({ items, currentTab, setCurrentTab, isAdmin = false }: NavProps) {
   const isMobile = useIsMobile();
 
   return (

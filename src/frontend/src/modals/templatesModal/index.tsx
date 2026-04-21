@@ -7,6 +7,7 @@ import { useListCategories } from "@/controllers/API/queries/categories";
 import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
 import { track } from "@/customization/utils/analytics";
 import useAddFlow from "@/hooks/flows/use-add-flow";
+import { useIsPlatformAdmin } from "@/hooks/use-is-platform-admin";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import type { AllNodeType, EdgeType, FlowType } from "@/types/flow";
 import type { TemplateReadDetail } from "@/types/template";
@@ -53,6 +54,7 @@ export default function TemplatesModal({
   const examples = useFlowsManagerStore((state) => state.examples);
 
   const { data: apiCategories = [] } = useListCategories();
+  const isAdmin = useIsPlatformAdmin();
 
   const handleFlowCreating = (isCreating: boolean) => {
     setLoading(isCreating);
@@ -124,6 +126,7 @@ export default function TemplatesModal({
               items={navItems}
               currentTab={currentTab}
               setCurrentTab={setCurrentTab}
+              isAdmin={isAdmin}
             />
             <main className="flex flex-1 flex-col gap-4 overflow-auto p-6 md:gap-8">
               {(() => {
@@ -154,6 +157,7 @@ export default function TemplatesModal({
                         onFlowCreating={handleFlowCreating}
                         selectedTemplate={selectedTemplate}
                         onSelectTemplate={setSelectedTemplate}
+                        isAdmin={isAdmin}
                       />
                     );
                 }

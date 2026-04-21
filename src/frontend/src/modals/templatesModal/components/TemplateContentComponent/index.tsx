@@ -14,6 +14,7 @@ interface TemplateContentComponentProps extends TemplateContentProps {
   onFlowCreating: (loading: boolean) => void;
   selectedTemplate: string | null;
   onSelectTemplate: (id: string | null) => void;
+  isAdmin?: boolean;
 }
 
 function adaptTemplateToFlowLike(template: TemplateRead): FlowType {
@@ -45,6 +46,7 @@ export default function TemplateContentComponent({
   onFlowCreating,
   selectedTemplate,
   onSelectTemplate,
+  isAdmin = false,
 }: TemplateContentComponentProps) {
   const params = useMemo(() => buildParams(currentTab), [currentTab]);
 

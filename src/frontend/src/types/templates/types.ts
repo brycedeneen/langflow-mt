@@ -27,6 +27,7 @@ export interface TemplateCategoryProps {
 export interface TemplateContentProps {
   currentTab: string;
   categories: NavItem[];
+  isAdmin?: boolean;
 }
 
 export interface TemplateCardComponentProps {
@@ -46,4 +47,13 @@ export interface NavProps {
   items: NavItem[];
   currentTab: string;
   setCurrentTab: (id: string) => void;
+  isAdmin?: boolean;
+}
+
+export interface ApiCategory {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  description: string | null;
 }
