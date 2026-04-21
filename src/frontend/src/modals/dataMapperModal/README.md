@@ -14,29 +14,15 @@ Props: see `DataMapperModalProps` in `index.tsx`.
 
 ## Extension seam — `suggestionsSlot`
 
-The modal accepts an optional `suggestionsSlot?: React.ReactNode` prop. When provided, it renders in the modal header above the destination table.
+The modal accepts an optional `suggestionsSlot?: React.ReactNode` prop that renders in the modal header above the destination table. In production, the `MappingComponent` input renderer populates this slot with a `<MappingSuggestions>` component that provides LLM-driven auto-mapping via the shipped `DataMapperAutoMap` flow.
 
-Phase 1c (auto-mapping via the component assistant) injects a suggestions component through this seam. Expected contract:
+See `docs/superpowers/specs/2026-04-21-data-mapper-heavy-auto-mapping-design.md` for the full design.
 
-```tsx
-<DataMapperModal
-  {...baseProps}
-  suggestionsSlot={
-    <MappingSuggestions
-      currentConfig={parsedConfig}
-      onApply={(proposed) => { /* Phase 1c caller writes to config */ }}
-    />
-  }
-/>
-```
+Callers can still pass a custom `suggestionsSlot` for bespoke integrations — the contract is just a `ReactNode`.
 
-The slot component is responsible for:
+## Pending suggestions
 
-- Inspecting the current `MapperConfig` (via props from the caller, not from the modal itself).
-- Proposing a new `MapperConfig` (or diff) via `onApply`.
-- Its own UX for presenting suggestions (dialog, inline chips, etc.).
-
-The modal stays agnostic of how suggestions are generated — it just renders the slot and waits for `onApply` calls. In Phase 1b, no caller provides the slot and it renders nothing.
+When `pendingSuggestions` is non-empty and `showPendingSuggestions` is true, the destination table renders proposed rows in a blue "pending" state with per-row ✓/✗ handlers (`onAcceptSuggestion(destination)` / `onRejectSuggestion(destination)`). The modal is agnostic about how suggestions are generated — it only renders what it's given.
 
 ## Shape of persisted value
 
