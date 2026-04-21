@@ -5,6 +5,8 @@ module.exports = {
   moduleNameMapper: {
     "\\.(css|less|scss|sass)$": "<rootDir>/src/__mocks__/styleMock.js",
     "^@/(.*)$": "<rootDir>/src/$1",
+    "^lucide-react/dynamicIconImports$":
+      "<rootDir>/src/__mocks__/lucide-react-dynamicIconImports.js",
     "^@jsonquerylang/jsonquery$":
       "<rootDir>/src/__mocks__/@jsonquerylang/jsonquery.js",
     "^vanilla-jsoneditor$": "<rootDir>/src/__mocks__/vanilla-jsoneditor.js",

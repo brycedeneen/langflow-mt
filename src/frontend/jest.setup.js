@@ -69,7 +69,9 @@ jest.mock("@radix-ui/react-form", () => ({
 
 jest.mock("react-markdown", () => ({ __esModule: true, default: () => null }));
 
-jest.mock("lucide-react/dynamicIconImports", () => ({}), { virtual: true });
+// lucide-react/dynamicIconImports is resolved via moduleNameMapper in
+// jest.config.js to a CJS-compatible stub that provides the real icon keys.
+// No jest.mock() override is needed here.
 
 // Avoid darkStore import in tests via genericIconComponent
 jest.mock("@/components/common/genericIconComponent", () => ({
