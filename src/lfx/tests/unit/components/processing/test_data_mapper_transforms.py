@@ -63,3 +63,24 @@ def test_direct_transform_explicit_none_is_preserved():
     ctx = {"workers": {"user_id": None}}
     # Explicit None from source is preserved, NOT converted to _MISSING.
     assert dispatch(_direct("workers", "user_id"), ctx, variable_resolver=lambda n: None) is None
+
+
+def _static(value):
+    return {"transform": "static", "sources": [], "config": {"value": value}}
+
+
+def test_static_returns_string_verbatim():
+    assert dispatch(_static("EMEA"), {}, variable_resolver=lambda n: None) == "EMEA"
+
+
+def test_static_returns_number_verbatim():
+    assert dispatch(_static(42), {}, variable_resolver=lambda n: None) == 42
+
+
+def test_static_returns_list_verbatim():
+    assert dispatch(_static([1, 2, 3]), {}, variable_resolver=lambda n: None) == [1, 2, 3]
+
+
+def test_static_returns_none_verbatim_not_missing():
+    # `static` with value=None emits an explicit None, never _MISSING.
+    assert dispatch(_static(None), {}, variable_resolver=lambda n: None) is None

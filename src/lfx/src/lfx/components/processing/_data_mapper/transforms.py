@@ -69,6 +69,15 @@ def _eval_direct(mapping: dict[str, Any], ctx: dict[str, Any], **_: Any) -> Any:
     return row[field]
 
 
+def _eval_static(mapping: dict[str, Any], ctx: dict[str, Any], **_: Any) -> Any:
+    config = mapping.get("config") or {}
+    if "value" not in config:
+        msg = "'static' transform requires config.value"
+        raise ValueError(msg)
+    return config["value"]
+
+
 _DISPATCH: dict[str, Callable[..., Any]] = {
     "direct": _eval_direct,
+    "static": _eval_static,
 }
