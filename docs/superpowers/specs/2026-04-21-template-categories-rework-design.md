@@ -83,7 +83,7 @@ class TemplateCategory(SQLModel, table=True):
 1. **Add** `archived_at: datetime | None` (nullable). NULL = active, timestamp = archived. Unarchive clears the column. Partial index on `(archived_at IS NULL)` to keep the common active-templates query cheap.
 2. **Unfreeze `scope` and `org_id`**:
    - Allowed combinations: `(scope="platform", org_id IS NULL)` or `(scope="org", org_id IS NOT NULL)`.
-   - Rewrite the existing `ck_template_scope_org_coherence` check constraint to enforce exactly those two combinations. (Phase 1 froze it to platform/NULL-only.)
+   - The existing `ck_template_scope_org_coherence` check constraint already has the broad text `(platform, NULL) OR (org, NOT NULL)` (installed by the prior multi-tenant foundation migration `bb45fc63cdcd`); Phase 1 never froze it at the SQL layer, only at the Pydantic layer. No rewrite needed.
 3. **Make `created_by` nullable**. Seeded platform templates migrated from starter JSON have no authoring user; NULL is the truthful value. Future templates created via the API always populate it.
 4. **Rewrite `uq_template_name`** as `uq_template_name_per_scope`, unique on `(COALESCE(org_id, '00000000-0000-0000-0000-000000000000'), LOWER(name))`. Two different orgs can both have a "Customer Onboarding" template; no collision.
 5. Drop the Phase 1 comment/guard asserting scope is always platform. Loosen Pydantic validators on the request schemas to accept org-scoped input.
@@ -150,14 +150,19 @@ Downgrade reverses each step in order.
 
 | Seed name | From old tag | Icon | Color |
 |---|---|---|---|
+| Agents | `agents`, `agent` (alias) | `bot` | rose |
 | Assistants | `assistants` | `users-round` | slate |
 | Classification | `classification` | `tag` | amber |
 | Coding | `coding` | `code` | violet |
 | Content Generation | `content-generation` | `book-open` | emerald |
-| Q&A | `q-a` | `help-circle` | sky |
 | Prompting | `chatbots` | `message-square` | fuchsia |
+| Q&A | `q-a` | `help-circle` | sky |
 | RAG | `rag` | `database` | indigo |
-| Agents | `agents` | `bot` | rose |
+| Web Scraping | `web-scraping` | `globe` | teal |
+| ADP | `adp` | `briefcase` | orange |
+| SFTP | `sftp` | `upload-cloud` | cyan |
+
+Ignored (vendor / modifier tags present in starter JSON that are not user-facing categories): `openai`, `astradb`, `hybrid`.
 
 Icons match today's sidebar. Colors are stylistic defaults; admins can edit after.
 
@@ -241,3 +246,14 @@ These are choices that look reasonable but deserve a second look when writing th
 3. **Side-panel template editor vs. modal-over-modal.** Spec picks the side panel for context retention. If the slide-in doesn't fit the existing modal layout, fall back to a nested dialog.
 4. **Curated ~50 Lucide icons vs. free text.** Spec picks the curated set to prevent typos and icon drift. The exact icon list is an implementation detail; use the set already imported by `genericIconComponent` if feasible.
 5. **Archive vs. soft-delete column separation.** Spec keeps `deleted_at` (existing) and adds `archived_at` (new) as distinct concepts. If this feels redundant during implementation, revisit — but they do mean different things (admin-visible retirement vs. tombstone).
+
+## 7. Post-Implementation Amendments (2026-04-21)
+
+Updates reflecting what actually landed:
+
+- **Seed category list grew from 8 to 11.** Starter JSON survey revealed more tags than the spec anticipated. Final categories: Agents, Assistants, Classification, Coding, Content Generation, Prompting, Q&A, RAG, Web Scraping, ADP, SFTP. Tags `agent` (singular) alias to Agents. Tags `openai`, `astradb`, `hybrid` are recognized but ignored (vendor / modifier flavor, not user-facing categories). See §4.2 above for the updated table.
+- **Scope constraint was already broad.** §4.1 originally said the schema migration would rewrite `ck_template_scope_org_coherence`. In reality, the prior multi-tenant migration (`bb45fc63cdcd`) already shipped with the broad text, so the rewrite was a cosmetic no-op that broke SQLite batch-mode reflection of CHECK constraints. The scope rewrite was removed from the shipped `e0a0990b26b1` migration.
+- **`ix_template_active` partial index was dropped** (migration `cc6f6cca0ead`). As initially specified it was keyed on `id WHERE archived_at IS NULL`, which helped no actual query — PK lookups don't need a covering partial index. Left in the schema until real list-query perf evidence motivates a targeted shape.
+- **FU-7 (originally a gap, now shipped):** `GET /api/v1/memberships/me` returns the current user's memberships with org summaries. The frontend's `useListMyMemberships` hook powers (a) the Save-as-Template scope selector for platform admins, (b) auto-assignment of org scope for regular org members, and (c) the full `canEditTemplate` permission check (platform admin OR org admin of this org OR creator). Without this endpoint the modal would have either blocked org-member saves or leaked wrong permissions.
+- **Bulk `agent`/`agents` dedup:** `Invoice Summarizer.json` had both tags; data migration dedups via set before inserting `template_category` rows.
+- **`deleted_at` vs `archived_at`:** both columns remain on `Template`. `deleted_at` was never wired into a real soft-delete code path and is effectively unused today. Revisit whether to drop it in a follow-up — no consumer observed during implementation.
