@@ -18,6 +18,11 @@ export interface DestinationTableProps {
   config: MapperConfig;
   errors?: MappingConfigError[];
   onConfigChange(next: MapperConfig): void;
+
+  pendingSuggestions?: MappingEntry[];
+  showPendingSuggestions?: boolean;
+  onAcceptSuggestion?: (destination: string) => void;
+  onRejectSuggestion?: (destination: string) => void;
 }
 
 const FIELD_TYPES: FieldType[] = [
@@ -157,7 +162,38 @@ function AddFieldForm({ onAdd, onCancel }: { onAdd(f: DestFieldDef): void; onCan
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function DestinationTable({ config, errors = [], onConfigChange }: DestinationTableProps) {
+/** Short human-readable summary of a MappingEntry, for read-only pending rows. */
+function summarizePendingEntry(entry: MappingEntry): string {
+  switch (entry.transform) {
+    case "direct": {
+      const s = entry.sources[0];
+      return s ? `${s.input}.${s.field}` : "—";
+    }
+    case "template":
+      return typeof entry.config.template === "string"
+        ? entry.config.template
+        : JSON.stringify(entry.config);
+    case "static":
+      return typeof entry.config.value === "string"
+        ? entry.config.value
+        : JSON.stringify(entry.config.value ?? null);
+    case "variable":
+      return typeof entry.config.name === "string"
+        ? `$${entry.config.name}`
+        : JSON.stringify(entry.config);
+    case "expression":
+      return typeof entry.config.expr === "string"
+        ? entry.config.expr
+        : JSON.stringify(entry.config);
+    case "array":
+      return entry.sources.map((s) => `${s.input}.${s.field}`).join(", ") || "[]";
+    default:
+      return JSON.stringify(entry.config);
+  }
+}
+
+export function DestinationTable(props: DestinationTableProps) {
+  const { config, errors = [], onConfigChange, pendingSuggestions, showPendingSuggestions } = props;
   const [showAddForm, setShowAddForm] = useState(false);
 
   return (
@@ -181,14 +217,26 @@ export function DestinationTable({ config, errors = [], onConfigChange }: Destin
           {config.destination_schema.map((dest, idx) => {
             const mapping = config.mappings.find((m) => m.destination === dest.name);
             const rowError = rowHasError(errors, dest, idx);
+            const pendingEntry =
+              pendingSuggestions && showPendingSuggestions
+                ? pendingSuggestions.find((p) => p.destination === dest.name)
+                : undefined;
 
             return (
               <tr
                 key={`${dest.name}-${idx}`}
                 style={{
-                  borderLeft: rowError ? "3px solid red" : undefined,
+                  borderLeft: pendingEntry
+                    ? "3px solid #3b82f6"
+                    : rowError
+                      ? "3px solid red"
+                      : undefined,
                   borderBottom: "1px solid #f0f0f0",
-                  background: rowError ? "#fff5f5" : undefined,
+                  background: pendingEntry
+                    ? "#3b82f615"
+                    : rowError
+                      ? "#fff5f5"
+                      : undefined,
                 }}
               >
                 {/* Destination field: name input + type pill + inline error */}
@@ -224,20 +272,24 @@ export function DestinationTable({ config, errors = [], onConfigChange }: Destin
 
                 {/* Transform */}
                 <td style={{ padding: "0.4rem 0.5rem" }}>
-                  <select value={mapping?.transform ?? "direct"}
-                    data-testid={`data-mapper-transform-select-${dest.name}`}
-                    onChange={(e) =>
-                      onConfigChange(setTransformForDestination(config, dest.name, e.target.value as TransformType))}>
-                    {TRANSFORM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </select>
+                  {pendingEntry
+                    ? <span style={{ color: "#a5a5a5" }}>{pendingEntry.transform}</span>
+                    : <select value={mapping?.transform ?? "direct"}
+                        data-testid={`data-mapper-transform-select-${dest.name}`}
+                        onChange={(e) =>
+                          onConfigChange(setTransformForDestination(config, dest.name, e.target.value as TransformType))}>
+                        {TRANSFORM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                      </select>}
                 </td>
 
                 {/* Source / Config */}
                 <td style={{ padding: "0.4rem 0.5rem" }}>
-                  {mapping
-                    ? <TransformCell mapping={mapping} inputs={config.inputs}
-                        onMappingChange={(entry) => onConfigChange(updateMappingEntry(config, entry))} />
-                    : <span style={{ color: "#aaa" }}>—</span>}
+                  {pendingEntry
+                    ? <span style={{ color: "#a5a5a5" }}>{summarizePendingEntry(pendingEntry)}</span>
+                    : mapping
+                      ? <TransformCell mapping={mapping} inputs={config.inputs}
+                          onMappingChange={(entry) => onConfigChange(updateMappingEntry(config, entry))} />
+                      : <span style={{ color: "#aaa" }}>—</span>}
                 </td>
 
                 {/* Default */}
@@ -254,6 +306,22 @@ export function DestinationTable({ config, errors = [], onConfigChange }: Destin
                     −
                   </button>
                 </td>
+
+                {pendingEntry && (
+                  <td style={{ padding: "0.4rem 0.5rem", whiteSpace: "nowrap" }}>
+                    <button
+                      type="button"
+                      aria-label={`Accept suggestion for ${dest.name}`}
+                      onClick={() => props.onAcceptSuggestion?.(dest.name)}
+                    >✓</button>
+                    <button
+                      type="button"
+                      aria-label={`Reject suggestion for ${dest.name}`}
+                      onClick={() => props.onRejectSuggestion?.(dest.name)}
+                      style={{ marginLeft: 4 }}
+                    >✗</button>
+                  </td>
+                )}
               </tr>
             );
           })}

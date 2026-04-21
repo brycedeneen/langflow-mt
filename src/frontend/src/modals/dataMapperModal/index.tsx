@@ -8,6 +8,7 @@ import {
   EMPTY_MAPPER_CONFIG,
   type FieldDef,
   type MapperConfig,
+  type MappingEntry,
 } from "@/modals/dataMapperModal/types";
 import { usePostValidateMappingConfig } from "@/controllers/API/queries/utils/use-post-validate-mapping-config";
 import type { MappingConfigError } from "@/controllers/API/queries/utils/use-post-validate-mapping-config";
@@ -21,6 +22,11 @@ export interface DataMapperModalProps {
   flowId: string;
   connectedUpstreams: { alias: string; vertexId: string }[];
   suggestionsSlot?: React.ReactNode;
+
+  pendingSuggestions?: MappingEntry[];
+  showPendingSuggestions?: boolean;
+  onAcceptSuggestion?: (destination: string) => void;
+  onRejectSuggestion?: (destination: string) => void;
 }
 
 function parseConfig(value: string): MapperConfig {
@@ -65,6 +71,10 @@ export function DataMapperModal({
   onChange,
   connectedUpstreams,
   suggestionsSlot,
+  pendingSuggestions,
+  showPendingSuggestions,
+  onAcceptSuggestion,
+  onRejectSuggestion,
 }: DataMapperModalProps) {
   const [config, setConfig] = useState<MapperConfig>(() => parseConfig(value));
   const [validationErrors, setValidationErrors] = useState<MappingConfigError[]>([]);
@@ -172,6 +182,10 @@ export function DataMapperModal({
             config={config}
             errors={validationErrors}
             onConfigChange={setConfig}
+            pendingSuggestions={pendingSuggestions}
+            showPendingSuggestions={showPendingSuggestions}
+            onAcceptSuggestion={onAcceptSuggestion}
+            onRejectSuggestion={onRejectSuggestion}
           />
         </section>
       </BaseModal.Content>
