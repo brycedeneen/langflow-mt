@@ -67665,398 +67665,6 @@
           "tool_mode": false,
           "version": 0
         },
-        "DoclingInline": {
-          "base_classes": [
-            "Table"
-          ],
-          "beta": false,
-          "changelog": [],
-          "conditional_paths": [],
-          "custom_fields": {},
-          "description": "Uses Docling to process input documents running the Docling models locally.",
-          "display_name": "Docling",
-          "documentation": "https://docling-project.github.io/docling/",
-          "edited": false,
-          "field_order": [
-            "path",
-            "file_path",
-            "separator",
-            "silent_errors",
-            "delete_server_file_after_processing",
-            "ignore_unsupported_extensions",
-            "ignore_unspecified_files",
-            "pipeline",
-            "ocr_engine",
-            "do_picture_classification",
-            "pic_desc_llm",
-            "pic_desc_prompt"
-          ],
-          "frozen": false,
-          "icon": "Docling",
-          "legacy": false,
-          "metadata": {
-            "code_hash": "519d12bd6451",
-            "dependencies": {
-              "dependencies": [
-                {
-                  "name": "lfx",
-                  "version": null
-                },
-                {
-                  "name": "docling",
-                  "version": "2.90.0"
-                }
-              ],
-              "total_dependencies": 2
-            },
-            "module": "lfx.components.docling.docling_inline.DoclingInlineComponent"
-          },
-          "minimized": false,
-          "output_types": [],
-          "outputs": [
-            {
-              "allows_loop": false,
-              "cache": true,
-              "display_name": "Files",
-              "group_outputs": false,
-              "method": "load_files",
-              "name": "dataframe",
-              "selected": "Table",
-              "tool_mode": true,
-              "types": [
-                "Table"
-              ],
-              "value": "__UNDEFINED__"
-            }
-          ],
-          "pinned": false,
-          "template": {
-            "_type": "Component",
-            "code": {
-              "advanced": true,
-              "dynamic": true,
-              "fileTypes": [],
-              "file_path": "",
-              "info": "",
-              "list": false,
-              "load_from_db": false,
-              "multiline": true,
-              "name": "code",
-              "password": false,
-              "placeholder": "",
-              "required": true,
-              "show": true,
-              "title_case": false,
-              "type": "code",
-              "value": "import queue\nimport threading\nimport time\n\nfrom lfx.base.data import BaseFileComponent\nfrom lfx.base.data.docling_utils import _serialize_pydantic_model, docling_worker\nfrom lfx.inputs import BoolInput, DropdownInput, HandleInput, StrInput\nfrom lfx.schema import Data\n\n\nclass DoclingInlineComponent(BaseFileComponent):\n    display_name = \"Docling\"\n    description = \"Uses Docling to process input documents running the Docling models locally.\"\n    documentation = \"https://docling-project.github.io/docling/\"\n    trace_type = \"tool\"\n    icon = \"Docling\"\n    name = \"DoclingInline\"\n\n    # https://docling-project.github.io/docling/usage/supported_formats/\n    VALID_EXTENSIONS = [\n        \"adoc\",\n        \"asciidoc\",\n        \"asc\",\n        \"bmp\",\n        \"csv\",\n        \"dotx\",\n        \"dotm\",\n        \"docm\",\n        \"docx\",\n        \"htm\",\n        \"html\",\n        \"jpeg\",\n        \"json\",\n        \"md\",\n        \"pdf\",\n        \"png\",\n        \"potx\",\n        \"ppsx\",\n        \"pptm\",\n        \"potm\",\n        \"ppsm\",\n        \"pptx\",\n        \"tiff\",\n        \"txt\",\n        \"xls\",\n        \"xlsx\",\n        \"xhtml\",\n        \"xml\",\n        \"webp\",\n    ]\n\n    inputs = [\n        *BaseFileComponent.get_base_inputs(),\n        DropdownInput(\n            name=\"pipeline\",\n            display_name=\"Pipeline\",\n            info=\"Docling pipeline to use\",\n            options=[\"standard\", \"vlm\"],\n            value=\"standard\",\n        ),\n        DropdownInput(\n            name=\"ocr_engine\",\n            display_name=\"OCR Engine\",\n            info=\"OCR engine to use. None will disable OCR.\",\n            options=[\"None\", \"easyocr\", \"tesserocr\", \"rapidocr\", \"ocrmac\"],\n            value=\"None\",\n        ),\n        BoolInput(\n            name=\"do_picture_classification\",\n            display_name=\"Picture classification\",\n            info=\"If enabled, the Docling pipeline will classify the pictures type.\",\n            value=False,\n        ),\n        HandleInput(\n            name=\"pic_desc_llm\",\n            display_name=\"Picture description LLM\",\n            info=\"If connected, the model to use for running the picture description task.\",\n            input_types=[\"LanguageModel\"],\n            required=False,\n        ),\n        StrInput(\n            name=\"pic_desc_prompt\",\n            display_name=\"Picture description prompt\",\n            value=\"Describe the image in three sentences. Be concise and accurate.\",\n            info=\"The user prompt to use when invoking the model.\",\n            advanced=True,\n        ),\n        # TODO: expose more Docling options\n    ]\n\n    outputs = [\n        *BaseFileComponent.get_base_outputs(),\n    ]\n\n    def _wait_for_result_with_thread_monitoring(\n        self, result_queue: queue.Queue, thread: threading.Thread, timeout: int = 300\n    ):\n        \"\"\"Wait for result from queue while monitoring thread health.\n\n        Handles cases where thread crashes without sending result.\n        \"\"\"\n        start_time = time.time()\n\n        while time.time() - start_time < timeout:\n            # Check if thread is still alive\n            if not thread.is_alive():\n                # Thread finished, try to get any result it might have sent\n                try:\n                    result = result_queue.get_nowait()\n                except queue.Empty:\n                    # Thread finished without sending result\n                    msg = \"Worker thread crashed unexpectedly without producing result.\"\n                    raise RuntimeError(msg) from None\n                else:\n                    self.log(\"Thread completed and result retrieved\")\n                    return result\n\n            # Poll the queue instead of blocking\n            try:\n                result = result_queue.get(timeout=1)\n            except queue.Empty:\n                # No result yet, continue monitoring\n                continue\n            else:\n                self.log(\"Result received from worker thread\")\n                return result\n\n        # Overall timeout reached\n        msg = f\"Thread timed out after {timeout} seconds\"\n        raise TimeoutError(msg)\n\n    def _stop_thread_gracefully(self, thread: threading.Thread, timeout: int = 10):\n        \"\"\"Wait for thread to complete gracefully.\n\n        Note: Python threads cannot be forcefully killed, so we just wait.\n        The thread should respond to shutdown signals via the queue.\n        \"\"\"\n        if not thread.is_alive():\n            return\n\n        self.log(\"Waiting for thread to complete gracefully\")\n        thread.join(timeout=timeout)\n\n        if thread.is_alive():\n            self.log(\"Warning: Thread still alive after timeout\")\n\n    def process_files(self, file_list: list[BaseFileComponent.BaseFile]) -> list[BaseFileComponent.BaseFile]:\n        try:\n            from docling.document_converter import DocumentConverter  # noqa: F401\n        except ImportError as e:\n            msg = (\n                \"Docling is an optional dependency. Install with `uv pip install 'langflow[docling]'` or refer to the \"\n                \"documentation on how to install optional dependencies.\"\n            )\n            raise ImportError(msg) from e\n\n        file_paths = [file.path for file in file_list if file.path]\n\n        if not file_paths:\n            self.log(\"No files to process.\")\n            return file_list\n\n        pic_desc_config: dict | None = None\n        if self.pic_desc_llm is not None:\n            pic_desc_config = _serialize_pydantic_model(self.pic_desc_llm)\n\n        # Use threading instead of multiprocessing for memory sharing\n        # This enables the global DocumentConverter cache to work across runs\n        result_queue: queue.Queue = queue.Queue()\n        thread = threading.Thread(\n            target=docling_worker,\n            kwargs={\n                \"file_paths\": file_paths,\n                \"queue\": result_queue,\n                \"pipeline\": self.pipeline,\n                \"ocr_engine\": self.ocr_engine,\n                \"do_picture_classification\": self.do_picture_classification,\n                \"pic_desc_config\": pic_desc_config,\n                \"pic_desc_prompt\": self.pic_desc_prompt,\n            },\n            daemon=False,  # Allow thread to complete even if main thread exits\n        )\n\n        result = None\n        thread.start()\n\n        try:\n            result = self._wait_for_result_with_thread_monitoring(result_queue, thread, timeout=300)\n        except KeyboardInterrupt:\n            self.log(\"Docling thread cancelled by user\")\n            result = []\n        except Exception as e:\n            self.log(f\"Error during processing: {e}\")\n            raise\n        finally:\n            # Wait for thread to complete gracefully\n            self._stop_thread_gracefully(thread)\n\n        # Enhanced error checking with dependency-specific handling\n        if isinstance(result, dict) and \"error\" in result:\n            error_msg = result[\"error\"]\n\n            # Handle dependency errors specifically\n            if result.get(\"error_type\") == \"dependency_error\":\n                dependency_name = result.get(\"dependency_name\", \"Unknown dependency\")\n                install_command = result.get(\"install_command\", \"Please check documentation\")\n\n                # Create a user-friendly error message\n                user_message = (\n                    f\"Missing OCR dependency: {dependency_name}. \"\n                    f\"{install_command} \"\n                    f\"Alternatively, you can set OCR Engine to 'None' to disable OCR processing.\"\n                )\n                raise ImportError(user_message)\n\n            # Handle other specific errors\n            if error_msg.startswith(\"Docling is not installed\"):\n                raise ImportError(error_msg)\n\n            # Handle graceful shutdown\n            if \"Worker interrupted by SIGINT\" in error_msg or \"shutdown\" in result:\n                self.log(\"Docling process cancelled by user\")\n                result = []\n            else:\n                raise RuntimeError(error_msg)\n\n        processed_data = [Data(data={\"doc\": r[\"document\"], \"file_path\": r[\"file_path\"]}) if r else None for r in result]\n        return self.rollup_data(file_list, processed_data)\n"
-            },
-            "delete_server_file_after_processing": {
-              "_input_type": "BoolInput",
-              "advanced": true,
-              "display_name": "Delete Server File After Processing",
-              "dynamic": false,
-              "info": "If true, the Server File Path will be deleted after processing.",
-              "list": false,
-              "list_add_label": "Add More",
-              "name": "delete_server_file_after_processing",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "bool",
-              "value": true
-            },
-            "do_picture_classification": {
-              "_input_type": "BoolInput",
-              "advanced": false,
-              "display_name": "Picture classification",
-              "dynamic": false,
-              "info": "If enabled, the Docling pipeline will classify the pictures type.",
-              "list": false,
-              "list_add_label": "Add More",
-              "name": "do_picture_classification",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "bool",
-              "value": false
-            },
-            "file_path": {
-              "_input_type": "HandleInput",
-              "advanced": true,
-              "display_name": "Server File Path",
-              "dynamic": false,
-              "info": "Data object with a 'file_path' property pointing to server file or a Message object with a path to the file. Supercedes 'Path' but supports same file types.",
-              "input_types": [
-                "Data",
-                "JSON",
-                "Message"
-              ],
-              "list": true,
-              "list_add_label": "Add More",
-              "name": "file_path",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": false,
-              "type": "other",
-              "value": ""
-            },
-            "ignore_unspecified_files": {
-              "_input_type": "BoolInput",
-              "advanced": true,
-              "display_name": "Ignore Unspecified Files",
-              "dynamic": false,
-              "info": "If true, Data with no 'file_path' property will be ignored.",
-              "list": false,
-              "list_add_label": "Add More",
-              "name": "ignore_unspecified_files",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "bool",
-              "value": false
-            },
-            "ignore_unsupported_extensions": {
-              "_input_type": "BoolInput",
-              "advanced": true,
-              "display_name": "Ignore Unsupported Extensions",
-              "dynamic": false,
-              "info": "If true, files with unsupported extensions will not be processed.",
-              "list": false,
-              "list_add_label": "Add More",
-              "name": "ignore_unsupported_extensions",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "bool",
-              "value": true
-            },
-            "ocr_engine": {
-              "_input_type": "DropdownInput",
-              "advanced": false,
-              "combobox": false,
-              "dialog_inputs": {},
-              "display_name": "OCR Engine",
-              "dynamic": false,
-              "external_options": {},
-              "info": "OCR engine to use. None will disable OCR.",
-              "name": "ocr_engine",
-              "options": [
-                "None",
-                "easyocr",
-                "tesserocr",
-                "rapidocr",
-                "ocrmac"
-              ],
-              "options_metadata": [],
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "toggle": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "str",
-              "value": "None"
-            },
-            "path": {
-              "_input_type": "FileInput",
-              "advanced": false,
-              "display_name": "Files",
-              "dynamic": false,
-              "fileTypes": [
-                "adoc",
-                "asciidoc",
-                "asc",
-                "bmp",
-                "csv",
-                "dotx",
-                "dotm",
-                "docm",
-                "docx",
-                "htm",
-                "html",
-                "jpeg",
-                "json",
-                "md",
-                "pdf",
-                "png",
-                "potx",
-                "ppsx",
-                "pptm",
-                "potm",
-                "ppsm",
-                "pptx",
-                "tiff",
-                "txt",
-                "xls",
-                "xlsx",
-                "xhtml",
-                "xml",
-                "webp",
-                "zip",
-                "tar",
-                "tgz",
-                "bz2",
-                "gz"
-              ],
-              "file_path": "",
-              "info": "Supported file extensions: adoc, asciidoc, asc, bmp, csv, dotx, dotm, docm, docx, htm, html, jpeg, json, md, pdf, png, potx, ppsx, pptm, potm, ppsm, pptx, tiff, txt, xls, xlsx, xhtml, xml, webp; optionally bundled in file extensions: zip, tar, tgz, bz2, gz",
-              "list": true,
-              "list_add_label": "Add More",
-              "name": "path",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "temp_file": false,
-              "title_case": false,
-              "tool_mode": true,
-              "trace_as_metadata": true,
-              "track_in_telemetry": false,
-              "type": "file",
-              "value": []
-            },
-            "pic_desc_llm": {
-              "_input_type": "HandleInput",
-              "advanced": false,
-              "display_name": "Picture description LLM",
-              "dynamic": false,
-              "info": "If connected, the model to use for running the picture description task.",
-              "input_types": [
-                "LanguageModel"
-              ],
-              "list": false,
-              "list_add_label": "Add More",
-              "name": "pic_desc_llm",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": false,
-              "type": "other",
-              "value": ""
-            },
-            "pic_desc_prompt": {
-              "_input_type": "StrInput",
-              "advanced": true,
-              "display_name": "Picture description prompt",
-              "dynamic": false,
-              "info": "The user prompt to use when invoking the model.",
-              "list": false,
-              "list_add_label": "Add More",
-              "load_from_db": false,
-              "name": "pic_desc_prompt",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": false,
-              "type": "str",
-              "value": "Describe the image in three sentences. Be concise and accurate."
-            },
-            "pipeline": {
-              "_input_type": "DropdownInput",
-              "advanced": false,
-              "combobox": false,
-              "dialog_inputs": {},
-              "display_name": "Pipeline",
-              "dynamic": false,
-              "external_options": {},
-              "info": "Docling pipeline to use",
-              "name": "pipeline",
-              "options": [
-                "standard",
-                "vlm"
-              ],
-              "options_metadata": [],
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "toggle": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "str",
-              "value": "standard"
-            },
-            "separator": {
-              "_input_type": "StrInput",
-              "advanced": true,
-              "display_name": "Separator",
-              "dynamic": false,
-              "info": "Specify the separator to use between multiple outputs in Message format.",
-              "list": false,
-              "list_add_label": "Add More",
-              "load_from_db": false,
-              "name": "separator",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": false,
-              "type": "str",
-              "value": "\n\n"
-            },
-            "silent_errors": {
-              "_input_type": "BoolInput",
-              "advanced": true,
-              "display_name": "Silent Errors",
-              "dynamic": false,
-              "info": "If true, errors will not raise an exception.",
-              "list": false,
-              "list_add_label": "Add More",
-              "name": "silent_errors",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "bool",
-              "value": false
-            }
-          },
-          "tool_mode": false,
-          "version": 0
-        },
         "DoclingRemote": {
           "base_classes": [
             "Table"
@@ -103264,6 +102872,11 @@
               "changes": "Initial release.",
               "notes": null,
               "version": 1
+            },
+            {
+              "changes": "Config surface upgraded from raw JSON editor to visual modal.",
+              "notes": "No action needed; existing saved configurations continue to parse.",
+              "version": 2
             }
           ],
           "conditional_paths": [],
@@ -103281,7 +102894,7 @@
           "icon": "shuffle",
           "legacy": false,
           "metadata": {
-            "code_hash": "6ade24ac6bb1",
+            "code_hash": "2dec737c05ea",
             "dependencies": {
               "dependencies": [
                 {
@@ -103378,7 +102991,7 @@
               "show": true,
               "title_case": false,
               "type": "code",
-              "value": "\"\"\"DataMapperComponent — deterministic record-level field mapping.\n\nPhase 1a surface: mapping configured via raw JSON in `mapping_config`.\nPhase 1b replaces that with a custom UI input (`MappingInput`).\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\nimport logging\nimport os\nfrom typing import Any, ClassVar\nfrom uuid import UUID\n\nfrom pydantic import ValidationError\n\nfrom lfx.components.processing._data_mapper import MapperConfig, package_output, run\nfrom lfx.custom import Component\nfrom lfx.custom.custom_component.changelog import ChangelogEntry\nfrom lfx.io import CodeInput, DropdownInput, HandleInput, Output\nfrom lfx.schema import Data, DataFrame, Message\nfrom lfx.schema.data import JSON\nfrom lfx.services.deps import get_variable_service, session_scope\n\nlogger = logging.getLogger(__name__)\n\n\ndef _resolve_mapping_config(raw: Any) -> MapperConfig:\n    \"\"\"Parse + validate the JSON blob from the mapping_config field.\"\"\"\n    if raw is None or raw == \"\":\n        msg = \"mapping_config is empty\"\n        raise ValueError(msg)\n    try:\n        parsed = json.loads(raw) if isinstance(raw, str) else raw\n    except json.JSONDecodeError as e:\n        msg = f\"mapping_config is not valid JSON: {e}\"\n        raise ValueError(msg) from e\n    try:\n        return MapperConfig.model_validate(parsed)\n    except ValidationError as e:\n        msg = f\"mapping_config failed validation: {e}\"\n        raise ValueError(msg) from e\n\n\ndef _normalize_inputs_for_run(raw: Any, n_expected: int) -> list[Any]:\n    \"\"\"Normalize the `inputs` handle value to a positional list of length n_expected.\n\n    Langflow's `HandleInput(is_list=True)` yields a list of upstream values. When only\n    one upstream is connected, the value may arrive as a single object.\n    \"\"\"\n    if raw is None:\n        return [None] * n_expected\n    if isinstance(raw, list):\n        return list(raw) + [None] * max(0, n_expected - len(raw))\n    return [raw] + [None] * (n_expected - 1)\n\n\ndef _unwrap_langflow_type(v: Any) -> Any:\n    \"\"\"Convert Data/DataFrame/Message/JSON back to plain dict or list[dict].\"\"\"\n    if v is None:\n        return None\n    if isinstance(v, Data):\n        return v.data\n    if isinstance(v, JSON):\n        return v.data\n    if isinstance(v, DataFrame):\n        return v.to_dict(orient=\"records\") if hasattr(v, \"to_dict\") else list(v)\n    if isinstance(v, Message):\n        try:\n            return json.loads(v.text)\n        except (json.JSONDecodeError, TypeError):\n            return {\"text\": v.text}\n    return v\n\n\ndef _collect_referenced_variable_names(cfg: MapperConfig) -> list[str]:\n    \"\"\"Walk the mapping config and collect every `variable` transform's target name.\"\"\"\n    names: list[str] = []\n    for m in cfg.mappings:\n        if m.transform == \"variable\":\n            n = m.config.get(\"variable\")\n            if isinstance(n, str) and n:\n                names.append(n)\n    return names\n\n\nclass DataMapperComponent(Component):\n    display_name = \"Data Mapper\"\n    description = (\n        \"Left-join 1..N upstream inputs on declared keys, apply per-destination-field \"\n        \"transforms (direct / template / expression / static / variable / array), \"\n        \"and emit Data / DataFrame / Message / JSON.\"\n    )\n    documentation: str = \"https://docs.langflow.org/data-mapper\"\n    icon = \"shuffle\"\n    name = \"DataMapper\"\n\n    version: int = 1\n    changelog: ClassVar[list[ChangelogEntry]] = [\n        ChangelogEntry(version=1, changes=\"Initial release.\"),\n    ]\n\n    inputs = [\n        HandleInput(\n            name=\"inputs\",\n            display_name=\"Inputs\",\n            input_types=[\"Message\", \"Data\", \"JSON\", \"DataFrame\"],\n            info=\"Upstream inputs to map from. Positional order must match mapping_config.inputs.\",\n            is_list=True,\n            required=True,\n        ),\n        CodeInput(\n            name=\"mapping_config\",\n            display_name=\"Mapping Config\",\n            info=(\n                \"JSON mapping configuration. Phase 1a surface; Phase 1b replaces this \"\n                \"with a visual modal editor.\"\n            ),\n            required=True,\n        ),\n        DropdownInput(\n            name=\"output_type\",\n            display_name=\"Output Type\",\n            options=[\"Auto\", \"Data\", \"DataFrame\", \"Message\", \"JSON\"],\n            info=\"Auto: DataFrame when driver is a list, Data when a single record.\",\n            real_time_refresh=True,\n            value=\"Auto\",\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Data Output\", name=\"data_output\", method=\"build_data\", types=[\"Data\"]),\n        Output(\n            display_name=\"DataFrame Output\",\n            name=\"dataframe_output\",\n            method=\"build_dataframe\",\n            types=[\"DataFrame\"],\n        ),\n        Output(\n            display_name=\"Message Output\",\n            name=\"message_output\",\n            method=\"build_message\",\n            types=[\"Message\"],\n        ),\n        Output(display_name=\"JSON Output\", name=\"json_output\", method=\"build_json\", types=[\"JSON\"]),\n    ]\n\n    async def _collect_variable_values(self, cfg: MapperConfig) -> dict[str, Any]:\n        \"\"\"Pre-resolve all referenced variables (env first, then VariableService).\n\n        Done upfront so the sync engine can consume a plain dict. Unknown names\n        are simply absent from the dict; the engine maps that to `_MISSING`.\n        \"\"\"\n        names = _collect_referenced_variable_names(cfg)\n        if not names:\n            return {}\n\n        resolved: dict[str, Any] = {}\n        remaining: list[str] = []\n        for name in names:\n            env_value = os.environ.get(name)\n            if env_value is not None:\n                resolved[name] = env_value\n            else:\n                remaining.append(name)\n\n        if not remaining:\n            return resolved\n\n        user_id = getattr(self, \"_user_id\", None)\n        if user_id is None:\n            # No user context — DB-backed variables are unreachable.\n            return resolved\n\n        variable_service = get_variable_service()\n        if variable_service is None:\n            return resolved\n\n        try:\n            user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id\n        except (ValueError, TypeError):\n            logger.warning(\"DataMapper: could not coerce user_id=%r to UUID\", user_id)\n            return resolved\n\n        async with session_scope() as session:\n            for name in remaining:\n                try:\n                    value = await variable_service.get_variable(\n                        user_id=user_uuid,\n                        name=name,\n                        field=\"\",\n                        session=session,\n                    )\n                except ValueError:\n                    continue  # unknown / null → leave out so engine yields _MISSING\n                except Exception:  # noqa: BLE001\n                    logger.exception(\"DataMapper: variable lookup failed for %r\", name)\n                    continue\n                if value is not None:\n                    resolved[name] = value\n        return resolved\n\n    async def _run_engine(self) -> tuple[list[dict[str, Any]], bool]:\n        cfg = _resolve_mapping_config(self.mapping_config)\n        raw_inputs = _normalize_inputs_for_run(self.inputs, len(cfg.inputs))\n        unwrapped = [_unwrap_langflow_type(v) for v in raw_inputs]\n        resolved_vars = await self._collect_variable_values(cfg)\n        rows = run(\n            cfg,\n            inputs=unwrapped,\n            variable_resolver=resolved_vars.get,\n        )\n        driver_was_list = isinstance(unwrapped[cfg.driver_index], list)\n        return rows, driver_was_list\n\n    async def build_data(self) -> Data:\n        rows, driver_was_list = await self._run_engine()\n        selected = \"Data\" if self.output_type == \"Auto\" else self.output_type\n        result = package_output(rows, output_type=selected, driver_was_list=driver_was_list)\n        self.status = result\n        return result  # type: ignore[return-value]\n\n    async def build_dataframe(self) -> DataFrame:\n        rows, driver_was_list = await self._run_engine()\n        selected = \"DataFrame\" if self.output_type == \"Auto\" else self.output_type\n        result = package_output(rows, output_type=selected, driver_was_list=driver_was_list)\n        self.status = result\n        return result  # type: ignore[return-value]\n\n    async def build_message(self) -> Message:\n        rows, driver_was_list = await self._run_engine()\n        result = package_output(rows, output_type=\"Message\", driver_was_list=driver_was_list)\n        self.status = result\n        return result  # type: ignore[return-value]\n\n    async def build_json(self) -> JSON:\n        rows, driver_was_list = await self._run_engine()\n        result = package_output(rows, output_type=\"JSON\", driver_was_list=driver_was_list)\n        self.status = result\n        return result  # type: ignore[return-value]\n\n    _OUTPUT_SPEC: ClassVar[dict[str, dict[str, Any]]] = {\n        \"Data\": {\n            \"display_name\": \"Data Output\",\n            \"name\": \"data_output\",\n            \"method\": \"build_data\",\n            \"types\": [\"Data\"],\n        },\n        \"DataFrame\": {\n            \"display_name\": \"DataFrame Output\",\n            \"name\": \"dataframe_output\",\n            \"method\": \"build_dataframe\",\n            \"types\": [\"DataFrame\"],\n        },\n        \"Message\": {\n            \"display_name\": \"Message Output\",\n            \"name\": \"message_output\",\n            \"method\": \"build_message\",\n            \"types\": [\"Message\"],\n        },\n        \"JSON\": {\n            \"display_name\": \"JSON Output\",\n            \"name\": \"json_output\",\n            \"method\": \"build_json\",\n            \"types\": [\"JSON\"],\n        },\n    }\n\n    def update_outputs(\n        self,\n        frontend_node: dict[str, Any],\n        field_name: str,\n        field_value: Any,\n    ) -> dict[str, Any]:\n        if field_name != \"output_type\":\n            return frontend_node\n\n        frontend_node[\"outputs\"] = []\n        if field_value == \"Auto\":\n            for spec in self._OUTPUT_SPEC.values():\n                frontend_node[\"outputs\"].append(Output(**spec).to_dict())\n        elif field_value in self._OUTPUT_SPEC:\n            frontend_node[\"outputs\"].append(\n                Output(**self._OUTPUT_SPEC[field_value]).to_dict()\n            )\n        return frontend_node\n\n    async def update_frontend_node(\n        self,\n        new_frontend_node: dict[str, Any],\n        current_frontend_node: dict[str, Any],\n    ) -> dict[str, Any]:\n        await super().update_frontend_node(new_frontend_node, current_frontend_node)\n        output_type = (\n            new_frontend_node.get(\"template\", {}).get(\"output_type\", {}).get(\"value\", \"Auto\")\n        )\n        self.update_outputs(new_frontend_node, \"output_type\", output_type)\n        return new_frontend_node\n"
+              "value": "\"\"\"DataMapperComponent — deterministic record-level field mapping.\n\nPhase 1a surface: mapping configured via raw JSON in `mapping_config`.\nPhase 1b replaces that with a custom UI input (`MappingInput`).\n\"\"\"\n\nfrom __future__ import annotations\n\nimport json\nimport logging\nimport os\nfrom typing import Any, ClassVar\nfrom uuid import UUID\n\nfrom pydantic import ValidationError\n\nfrom lfx.components.processing._data_mapper import MapperConfig, package_output, run\nfrom lfx.custom import Component\nfrom lfx.custom.custom_component.changelog import ChangelogEntry\nfrom lfx.io import DropdownInput, HandleInput, MappingInput, Output\nfrom lfx.schema import Data, DataFrame, Message\nfrom lfx.schema.data import JSON\nfrom lfx.services.deps import get_variable_service, session_scope\n\nlogger = logging.getLogger(__name__)\n\n\ndef _resolve_mapping_config(raw: Any) -> MapperConfig:\n    \"\"\"Parse + validate the JSON blob from the mapping_config field.\"\"\"\n    if raw is None or raw == \"\":\n        msg = \"mapping_config is empty\"\n        raise ValueError(msg)\n    try:\n        parsed = json.loads(raw) if isinstance(raw, str) else raw\n    except json.JSONDecodeError as e:\n        msg = f\"mapping_config is not valid JSON: {e}\"\n        raise ValueError(msg) from e\n    try:\n        return MapperConfig.model_validate(parsed)\n    except ValidationError as e:\n        msg = f\"mapping_config failed validation: {e}\"\n        raise ValueError(msg) from e\n\n\ndef _normalize_inputs_for_run(raw: Any, n_expected: int) -> list[Any]:\n    \"\"\"Normalize the `inputs` handle value to a positional list of length n_expected.\n\n    Langflow's `HandleInput(is_list=True)` yields a list of upstream values. When only\n    one upstream is connected, the value may arrive as a single object.\n    \"\"\"\n    if raw is None:\n        return [None] * n_expected\n    if isinstance(raw, list):\n        return list(raw) + [None] * max(0, n_expected - len(raw))\n    return [raw] + [None] * (n_expected - 1)\n\n\ndef _unwrap_langflow_type(v: Any) -> Any:\n    \"\"\"Convert Data/DataFrame/Message/JSON back to plain dict or list[dict].\"\"\"\n    if v is None:\n        return None\n    if isinstance(v, Data):\n        return v.data\n    if isinstance(v, JSON):\n        return v.data\n    if isinstance(v, DataFrame):\n        return v.to_dict(orient=\"records\") if hasattr(v, \"to_dict\") else list(v)\n    if isinstance(v, Message):\n        try:\n            return json.loads(v.text)\n        except (json.JSONDecodeError, TypeError):\n            return {\"text\": v.text}\n    return v\n\n\ndef _collect_referenced_variable_names(cfg: MapperConfig) -> list[str]:\n    \"\"\"Walk the mapping config and collect every `variable` transform's target name.\"\"\"\n    names: list[str] = []\n    for m in cfg.mappings:\n        if m.transform == \"variable\":\n            n = m.config.get(\"variable\")\n            if isinstance(n, str) and n:\n                names.append(n)\n    return names\n\n\nclass DataMapperComponent(Component):\n    display_name = \"Data Mapper\"\n    description = (\n        \"Left-join 1..N upstream inputs on declared keys, apply per-destination-field \"\n        \"transforms (direct / template / expression / static / variable / array), \"\n        \"and emit Data / DataFrame / Message / JSON.\"\n    )\n    documentation: str = \"https://docs.langflow.org/data-mapper\"\n    icon = \"shuffle\"\n    name = \"DataMapper\"\n\n    version: int = 2\n    changelog: ClassVar[list[ChangelogEntry]] = [\n        ChangelogEntry(version=1, changes=\"Initial release.\"),\n        ChangelogEntry(\n            version=2,\n            changes=\"Config surface upgraded from raw JSON editor to visual modal.\",\n            notes=\"No action needed; existing saved configurations continue to parse.\",\n        ),\n    ]\n\n    inputs = [\n        HandleInput(\n            name=\"inputs\",\n            display_name=\"Inputs\",\n            input_types=[\"Message\", \"Data\", \"JSON\", \"DataFrame\"],\n            info=\"Upstream inputs to map from. Positional order must match mapping_config.inputs.\",\n            is_list=True,\n            required=True,\n        ),\n        MappingInput(\n            name=\"mapping_config\",\n            display_name=\"Mapping Config\",\n            info=(\n                \"Visual mapping editor. Describes inputs, join keys, destination schema, \"\n                \"and per-field transforms.\"\n            ),\n            required=True,\n        ),\n        DropdownInput(\n            name=\"output_type\",\n            display_name=\"Output Type\",\n            options=[\"Auto\", \"Data\", \"DataFrame\", \"Message\", \"JSON\"],\n            info=\"Auto: DataFrame when driver is a list, Data when a single record.\",\n            real_time_refresh=True,\n            value=\"Auto\",\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Data Output\", name=\"data_output\", method=\"build_data\", types=[\"Data\"]),\n        Output(\n            display_name=\"DataFrame Output\",\n            name=\"dataframe_output\",\n            method=\"build_dataframe\",\n            types=[\"DataFrame\"],\n        ),\n        Output(\n            display_name=\"Message Output\",\n            name=\"message_output\",\n            method=\"build_message\",\n            types=[\"Message\"],\n        ),\n        Output(display_name=\"JSON Output\", name=\"json_output\", method=\"build_json\", types=[\"JSON\"]),\n    ]\n\n    async def _collect_variable_values(self, cfg: MapperConfig) -> dict[str, Any]:\n        \"\"\"Pre-resolve all referenced variables (env first, then VariableService).\n\n        Done upfront so the sync engine can consume a plain dict. Unknown names\n        are simply absent from the dict; the engine maps that to `_MISSING`.\n        \"\"\"\n        names = _collect_referenced_variable_names(cfg)\n        if not names:\n            return {}\n\n        resolved: dict[str, Any] = {}\n        remaining: list[str] = []\n        for name in names:\n            env_value = os.environ.get(name)\n            if env_value is not None:\n                resolved[name] = env_value\n            else:\n                remaining.append(name)\n\n        if not remaining:\n            return resolved\n\n        user_id = getattr(self, \"_user_id\", None)\n        if user_id is None:\n            # No user context — DB-backed variables are unreachable.\n            return resolved\n\n        variable_service = get_variable_service()\n        if variable_service is None:\n            return resolved\n\n        try:\n            user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id\n        except (ValueError, TypeError):\n            logger.warning(\"DataMapper: could not coerce user_id=%r to UUID\", user_id)\n            return resolved\n\n        async with session_scope() as session:\n            for name in remaining:\n                try:\n                    value = await variable_service.get_variable(\n                        user_id=user_uuid,\n                        name=name,\n                        field=\"\",\n                        session=session,\n                    )\n                except ValueError:\n                    continue  # unknown / null → leave out so engine yields _MISSING\n                except Exception:  # noqa: BLE001\n                    logger.exception(\"DataMapper: variable lookup failed for %r\", name)\n                    continue\n                if value is not None:\n                    resolved[name] = value\n        return resolved\n\n    async def _run_engine(self) -> tuple[list[dict[str, Any]], bool]:\n        cfg = _resolve_mapping_config(self.mapping_config)\n        raw_inputs = _normalize_inputs_for_run(self.inputs, len(cfg.inputs))\n        unwrapped = [_unwrap_langflow_type(v) for v in raw_inputs]\n        resolved_vars = await self._collect_variable_values(cfg)\n        rows = run(\n            cfg,\n            inputs=unwrapped,\n            variable_resolver=resolved_vars.get,\n        )\n        driver_was_list = isinstance(unwrapped[cfg.driver_index], list)\n        return rows, driver_was_list\n\n    async def build_data(self) -> Data:\n        rows, driver_was_list = await self._run_engine()\n        selected = \"Data\" if self.output_type == \"Auto\" else self.output_type\n        result = package_output(rows, output_type=selected, driver_was_list=driver_was_list)\n        self.status = result\n        return result  # type: ignore[return-value]\n\n    async def build_dataframe(self) -> DataFrame:\n        rows, driver_was_list = await self._run_engine()\n        selected = \"DataFrame\" if self.output_type == \"Auto\" else self.output_type\n        result = package_output(rows, output_type=selected, driver_was_list=driver_was_list)\n        self.status = result\n        return result  # type: ignore[return-value]\n\n    async def build_message(self) -> Message:\n        rows, driver_was_list = await self._run_engine()\n        result = package_output(rows, output_type=\"Message\", driver_was_list=driver_was_list)\n        self.status = result\n        return result  # type: ignore[return-value]\n\n    async def build_json(self) -> JSON:\n        rows, driver_was_list = await self._run_engine()\n        result = package_output(rows, output_type=\"JSON\", driver_was_list=driver_was_list)\n        self.status = result\n        return result  # type: ignore[return-value]\n\n    _OUTPUT_SPEC: ClassVar[dict[str, dict[str, Any]]] = {\n        \"Data\": {\n            \"display_name\": \"Data Output\",\n            \"name\": \"data_output\",\n            \"method\": \"build_data\",\n            \"types\": [\"Data\"],\n        },\n        \"DataFrame\": {\n            \"display_name\": \"DataFrame Output\",\n            \"name\": \"dataframe_output\",\n            \"method\": \"build_dataframe\",\n            \"types\": [\"DataFrame\"],\n        },\n        \"Message\": {\n            \"display_name\": \"Message Output\",\n            \"name\": \"message_output\",\n            \"method\": \"build_message\",\n            \"types\": [\"Message\"],\n        },\n        \"JSON\": {\n            \"display_name\": \"JSON Output\",\n            \"name\": \"json_output\",\n            \"method\": \"build_json\",\n            \"types\": [\"JSON\"],\n        },\n    }\n\n    def update_outputs(\n        self,\n        frontend_node: dict[str, Any],\n        field_name: str,\n        field_value: Any,\n    ) -> dict[str, Any]:\n        if field_name != \"output_type\":\n            return frontend_node\n\n        frontend_node[\"outputs\"] = []\n        if field_value == \"Auto\":\n            for spec in self._OUTPUT_SPEC.values():\n                frontend_node[\"outputs\"].append(Output(**spec).to_dict())\n        elif field_value in self._OUTPUT_SPEC:\n            frontend_node[\"outputs\"].append(\n                Output(**self._OUTPUT_SPEC[field_value]).to_dict()\n            )\n        return frontend_node\n\n    async def update_frontend_node(\n        self,\n        new_frontend_node: dict[str, Any],\n        current_frontend_node: dict[str, Any],\n    ) -> dict[str, Any]:\n        await super().update_frontend_node(new_frontend_node, current_frontend_node)\n        output_type = (\n            new_frontend_node.get(\"template\", {}).get(\"output_type\", {}).get(\"value\", \"Auto\")\n        )\n        self.update_outputs(new_frontend_node, \"output_type\", output_type)\n        return new_frontend_node\n"
             },
             "inputs": {
               "_input_type": "HandleInput",
@@ -103406,11 +103019,11 @@
               "value": ""
             },
             "mapping_config": {
-              "_input_type": "CodeInput",
+              "_input_type": "MappingInput",
               "advanced": false,
               "display_name": "Mapping Config",
               "dynamic": false,
-              "info": "JSON mapping configuration. Phase 1a surface; Phase 1b replaces this with a visual modal editor.",
+              "info": "Visual mapping editor. Describes inputs, join keys, destination schema, and per-field transforms.",
               "list": false,
               "list_add_label": "Add More",
               "name": "mapping_config",
@@ -103419,10 +103032,8 @@
               "required": true,
               "show": true,
               "title_case": false,
-              "tool_mode": false,
-              "trace_as_input": true,
               "track_in_telemetry": false,
-              "type": "code",
+              "type": "mapping",
               "value": ""
             },
             "output_type": {
@@ -103458,7 +103069,7 @@
             }
           },
           "tool_mode": false,
-          "version": 1
+          "version": 2
         },
         "DataOperations": {
           "base_classes": [
@@ -121974,9 +121585,9 @@
     ]
   ],
   "metadata": {
-    "num_components": 366,
+    "num_components": 365,
     "num_modules": 99
   },
-  "sha256": "dd8625f6dadd8fe89c2b6c74ccacb285852ba8a8450bcd9ffb6e765a4c9852e0",
+  "sha256": "5c856bf83a2bce3f60bb27f27a171d555eb93a3507a297cf66b59bd4780c4a69",
   "version": "0.3.4"
 }
