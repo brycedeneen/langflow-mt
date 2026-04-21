@@ -18,6 +18,7 @@ import {
 import { useArchiveTemplate } from "@/controllers/API/queries/templates/use-archive-template";
 import { useUnarchiveTemplate } from "@/controllers/API/queries/templates/use-unarchive-template";
 import { useHardDeleteTemplate } from "@/controllers/API/queries/templates/use-hard-delete-template";
+import { useListMyMemberships } from "@/controllers/API/queries/memberships";
 import { useIsPlatformAdmin } from "@/hooks/use-is-platform-admin";
 import useAuthStore from "@/stores/authStore";
 import useAlertStore from "@/stores/alertStore";
@@ -40,19 +41,19 @@ interface TemplateCardComponentExtendedProps
 }
 
 /**
- * canEditTemplate: user may edit when they are a platform admin OR when they
- * created the template (scope=org case). Full org-admin check (user is org admin
- * of template.org_id) is not yet wired on the frontend — deferred until
- * org membership is surfaced in the auth store.
+ * canEditTemplate: user may edit when they are (a) a platform admin, (b) an org
+ * admin of the template's org, or (c) the template's creator (scope=org case).
  */
 function canEditTemplate(
   template: TemplateRead,
   isPlatformAdmin: boolean,
   userId: string | undefined,
+  orgAdminOfOrgIds: Set<string>,
 ): boolean {
   if (isPlatformAdmin) return true;
-  if (template.scope === "org" && template.created_by === userId) return true;
-  return false;
+  if (template.scope !== "org" || template.org_id == null) return false;
+  if (orgAdminOfOrgIds.has(template.org_id)) return true;
+  return template.created_by === userId;
 }
 
 export default function TemplateCardComponent({
@@ -72,6 +73,10 @@ export default function TemplateCardComponent({
 
   const isPlatformAdmin = useIsPlatformAdmin();
   const userData = useAuthStore((s) => s.userData);
+  const { data: memberships = [] } = useListMyMemberships();
+  const orgAdminOfOrgIds = new Set<string>(
+    memberships.filter((m) => m.is_org_admin).map((m) => m.organization.id),
+  );
   const setSuccessData = useAlertStore((s) => s.setSuccessData);
   const setErrorData = useAlertStore((s) => s.setErrorData);
 
@@ -87,7 +92,12 @@ export default function TemplateCardComponent({
 
   const canEdit =
     templateData !== undefined &&
-    canEditTemplate(templateData, isPlatformAdmin, userData?.id);
+    canEditTemplate(
+      templateData,
+      isPlatformAdmin,
+      userData?.id,
+      orgAdminOfOrgIds,
+    );
 
   // Archived cards are not selectable — clicks are blocked.
   const effectivelyDisabled = disabled || isArchived;
