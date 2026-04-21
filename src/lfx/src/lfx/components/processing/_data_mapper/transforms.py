@@ -150,10 +150,40 @@ def _eval_expression(mapping: dict[str, Any], ctx: dict[str, Any], **_: Any) -> 
     return result
 
 
+def _eval_array(mapping: dict[str, Any], ctx: dict[str, Any], **_: Any) -> Any:
+    sources = mapping.get("sources") or []
+    config = mapping.get("config") or {}
+    skip_missing = bool(config.get("skip_missing", False))
+
+    result: list[Any] = []
+    for src in sources:
+        input_alias = src["input"]
+        field = src["field"]
+        if input_alias not in ctx:
+            value = _MISSING
+        else:
+            row = ctx[input_alias]
+            if row is None:
+                value = _MISSING
+            elif field not in row:
+                value = _MISSING
+            else:
+                value = row[field]
+
+        if value is _MISSING:
+            if skip_missing:
+                continue
+            result.append(None)
+        else:
+            result.append(value)
+    return result
+
+
 _DISPATCH: dict[str, Callable[..., Any]] = {
     "direct": _eval_direct,
     "static": _eval_static,
     "variable": _eval_variable,
     "template": _eval_template,
     "expression": _eval_expression,
+    "array": _eval_array,
 }

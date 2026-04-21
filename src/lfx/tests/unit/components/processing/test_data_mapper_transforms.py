@@ -205,3 +205,69 @@ def test_expression_syntax_error_raises_value_error():
     flat = {}
     with pytest.raises(ValueError, match="expression"):
         dispatch(_expr("x ++"), flat, variable_resolver=lambda n: None)
+
+
+def _array(sources, skip_missing=False):
+    return {
+        "transform": "array",
+        "sources": [{"input": i, "field": f} for i, f in sources],
+        "config": {"skip_missing": skip_missing},
+    }
+
+
+def test_array_packs_sources_into_list():
+    ctx = {"workers": {"invoice_1": "A", "invoice_2": "B", "invoice_3": "C"}}
+    result = dispatch(
+        _array([("workers", "invoice_1"), ("workers", "invoice_2"), ("workers", "invoice_3")]),
+        ctx,
+        variable_resolver=lambda n: None,
+    )
+    assert result == ["A", "B", "C"]
+
+
+def test_array_skip_missing_filters_missing_sources():
+    ctx = {"workers": {"invoice_1": "A", "invoice_3": "C"}}  # invoice_2 absent
+    result = dispatch(
+        _array(
+            [("workers", "invoice_1"), ("workers", "invoice_2"), ("workers", "invoice_3")],
+            skip_missing=True,
+        ),
+        ctx,
+        variable_resolver=lambda n: None,
+    )
+    assert result == ["A", "C"]
+
+
+def test_array_without_skip_missing_preserves_missing_as_none():
+    ctx = {"workers": {"invoice_1": "A", "invoice_3": "C"}}  # invoice_2 absent
+    result = dispatch(
+        _array(
+            [("workers", "invoice_1"), ("workers", "invoice_2"), ("workers", "invoice_3")],
+            skip_missing=False,
+        ),
+        ctx,
+        variable_resolver=lambda n: None,
+    )
+    # Convention: without skip_missing, _MISSING is substituted with None in-array.
+    # (Per-field blank substitution is the engine's job at the row level; arrays
+    # use None as the element-level blank to keep list length stable.)
+    assert result == ["A", None, "C"]
+
+
+def test_array_empty_sources_returns_empty_list():
+    result = dispatch(
+        {"transform": "array", "sources": [], "config": {"skip_missing": False}},
+        {},
+        variable_resolver=lambda n: None,
+    )
+    assert result == []
+
+
+def test_array_explicit_none_source_is_preserved():
+    ctx = {"workers": {"a": None, "b": "x"}}
+    result = dispatch(
+        _array([("workers", "a"), ("workers", "b")], skip_missing=False),
+        ctx,
+        variable_resolver=lambda n: None,
+    )
+    assert result == [None, "x"]
