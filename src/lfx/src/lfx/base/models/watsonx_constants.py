@@ -1,79 +1,24 @@
-from .model_metadata import create_model_metadata
+"""Compatibility shim — IBM WatsonX is being removed (Phase 1).
 
-WATSONX_DEFAULT_LLM_MODELS = [
-    create_model_metadata(
-        provider="IBM WatsonX",
-        name="ibm/granite-3-2b-instruct",
-        icon="IBM",
-        model_type="llm",
-        tool_calling=True,
-        default=True,
-    ),
-    create_model_metadata(
-        provider="IBM WatsonX",
-        name="ibm/granite-3-8b-instruct",
-        icon="IBM",
-        model_type="llm",
-        tool_calling=True,
-        default=True,
-    ),
-    create_model_metadata(
-        provider="IBM WatsonX",
-        name="ibm/granite-13b-instruct-v2",
-        icon="IBM",
-        model_type="llm",
-        tool_calling=True,
-        default=True,
-    ),
-]
+The actual constants and helpers have been deleted; this file exists solely to
+keep module-level `from lfx.base.models.watsonx_constants import …` statements
+in downstream files resolvable while Phase 2 migrates each caller off the
+symbol. All exports are empty / no-op; any code path that reaches this module
+at runtime will get no WatsonX options surfaced to the user.
 
-WATSONX_DEFAULT_EMBEDDING_MODELS = [
-    create_model_metadata(
-        provider="IBM WatsonX",
-        name="sentence-transformers/all-minilm-l12-v2",
-        icon="IBM",
-        model_type="embeddings",
-        tool_calling=True,
-        default=True,
-    ),
-    create_model_metadata(
-        provider="IBM WatsonX",
-        name="ibm/slate-125m-english-rtrvr-v2",
-        icon="IBM",
-        model_type="embeddings",
-        tool_calling=True,
-        default=True,
-    ),
-    create_model_metadata(
-        provider="IBM WatsonX",
-        name="ibm/slate-30m-english-rtrvr-v2",
-        icon="IBM",
-        model_type="embeddings",
-        tool_calling=True,
-        default=True,
-    ),
-    create_model_metadata(
-        provider="IBM WatsonX",
-        name="intfloat/multilingual-e5-large",
-        icon="IBM",
-        model_type="embeddings",
-        tool_calling=True,
-        default=True,
-    ),
-]
+Remove this file once Phase 2 (removing watsonx references from
+unified_models.py, model_input_constants.py, model_metadata.py, tool_calling.py,
+agentics/*, langchain_utilities/*, services/settings/constants.py, and the
+models_and_agents/{agent,language_model,embedding_model}.py form inputs) lands.
+"""
 
+from __future__ import annotations
 
-WATSONX_EMBEDDING_MODELS_DETAILED = WATSONX_DEFAULT_EMBEDDING_MODELS
-# Combined list for all watsonx models
-WATSONX_MODELS_DETAILED = WATSONX_DEFAULT_LLM_MODELS + WATSONX_DEFAULT_EMBEDDING_MODELS
-
-WATSONX_EMBEDDING_MODEL_NAMES = [metadata["name"] for metadata in WATSONX_DEFAULT_EMBEDDING_MODELS]
-
-IBM_WATSONX_URLS = [
-    "https://us-south.ml.cloud.ibm.com",
-    "https://eu-de.ml.cloud.ibm.com",
-    "https://eu-gb.ml.cloud.ibm.com",
-    "https://au-syd.ml.cloud.ibm.com",
-    "https://jp-tok.ml.cloud.ibm.com",
-    "https://ca-tor.ml.cloud.ibm.com",
-]
+WATSONX_DEFAULT_LLM_MODELS: list[dict] = []
+WATSONX_DEFAULT_EMBEDDING_MODELS: list[dict] = []
+WATSONX_EMBEDDING_MODELS_DETAILED: list[dict] = []
+WATSONX_MODELS_DETAILED: list[dict] = []
+WATSONX_EMBEDDING_MODEL_NAMES: list[str] = []
+# Single placeholder entry so any consumer doing IBM_WATSONX_URLS[0] during form
+# construction doesn't crash on an empty list. Runtime WatsonX flows are gone.
+IBM_WATSONX_URLS: list[str] = [""]

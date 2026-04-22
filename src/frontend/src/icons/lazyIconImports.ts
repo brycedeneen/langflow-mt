@@ -282,14 +282,6 @@ export const lazyIconsMapping = {
     import("@/icons/HuggingFace").then((mod) => ({
       default: mod.HuggingFaceIcon,
     })),
-  IBM: () =>
-    import("@/icons/IBM").then((mod) => ({
-      default: mod.IBMIcon,
-    })),
-  WatsonxAI: () =>
-    import("@/icons/IBM").then((mod) => ({
-      default: mod.WatsonxAiIcon,
-    })),
   Icosa: () =>
     import("@/icons/Icosa").then((mod) => ({ default: mod.IcosaIcon })),
   IFixIt: () =>

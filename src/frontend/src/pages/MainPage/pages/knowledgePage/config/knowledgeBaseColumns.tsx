@@ -100,7 +100,6 @@ export const createKnowledgeBaseColumns = (
           OpenAI: "OpenAI",
           Anthropic: "Anthropic",
           "Google Generative AI": "GoogleGenerativeAI",
-          "IBM WatsonX": "WatsonxAI",
           Ollama: "Ollama",
           NVIDIA: "NVIDIA",
         };

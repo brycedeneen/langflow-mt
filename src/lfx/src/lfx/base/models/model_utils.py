@@ -4,18 +4,8 @@ from urllib.parse import urljoin
 from uuid import UUID
 
 import httpx
-import requests
 
 from lfx.base.models.model_metadata import LIVE_MODEL_PROVIDERS, create_model_metadata
-from lfx.base.models.watsonx_constants import (
-    IBM_WATSONX_URLS,
-)
-from lfx.base.models.watsonx_constants import (
-    WATSONX_DEFAULT_EMBEDDING_MODELS as WATSONX_EMBEDDING_METADATA,
-)
-from lfx.base.models.watsonx_constants import (
-    WATSONX_DEFAULT_LLM_MODELS as WATSONX_LLM_METADATA,
-)
 from lfx.log.logger import logger
 from lfx.services.deps import get_variable_service, session_scope
 from lfx.utils.async_helpers import run_until_complete
@@ -23,10 +13,6 @@ from lfx.utils.util import transform_localhost_url
 
 HTTP_STATUS_OK = 200
 MIN_DEFAULT_MODELS = 5
-
-# Extract model names from metadata for fallback defaults
-WATSONX_DEFAULT_LLM_MODEL_NAMES = [m["name"] for m in WATSONX_LLM_METADATA]
-WATSONX_DEFAULT_EMBEDDING_MODEL_NAMES = [m["name"] for m in WATSONX_EMBEDDING_METADATA]
 
 
 def _to_str(value: Any) -> str | None:
@@ -186,81 +172,12 @@ async def get_ollama_embedding_models(base_url: str) -> list[str]:
     )
 
 
-# ============================================================================
-# WatsonX Model Fetching Functions
-# ============================================================================
-
-
-def get_watsonx_llm_models(
-    base_url: str,
-    default_models: list[str] | None = None,
-) -> list[str]:
-    """Fetch WatsonX LLM models with chat capability.
-
-    Args:
-        base_url: The WatsonX API endpoint URL (e.g., "https://us-south.ml.cloud.ibm.com").
-        default_models: Fallback models to return if API fetch fails.
-
-    Returns:
-        A sorted list of model IDs that support text chat.
-    """
-    if default_models is None:
-        default_models = WATSONX_DEFAULT_LLM_MODEL_NAMES
-
-    try:
-        endpoint = f"{base_url}/ml/v1/foundation_model_specs"
-        params = {
-            "version": "2024-09-16",
-            "filters": "function_text_chat,!lifecycle_withdrawn",
-        }
-        response = requests.get(endpoint, params=params, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-        models = [model["model_id"] for model in data.get("resources", [])]
-        return sorted(models)
-    except Exception:  # noqa: BLE001
-        logger.exception("Error fetching WatsonX LLM models. Using default models.")
-        return default_models
-
-
-def get_watsonx_embedding_models(
-    base_url: str,
-    default_models: list[str] | None = None,
-) -> list[str]:
-    """Fetch WatsonX embedding models.
-
-    Args:
-        base_url: The WatsonX API endpoint URL (e.g., "https://us-south.ml.cloud.ibm.com").
-        default_models: Fallback models to return if API fetch fails.
-
-    Returns:
-        A sorted list of model IDs that support embeddings.
-    """
-    if default_models is None:
-        default_models = WATSONX_DEFAULT_EMBEDDING_MODEL_NAMES
-
-    try:
-        endpoint = f"{base_url}/ml/v1/foundation_model_specs"
-        params = {
-            "version": "2024-09-16",
-            "filters": "function_embedding,!lifecycle_withdrawn:and",
-        }
-        response = requests.get(endpoint, params=params, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-        models = [model["model_id"] for model in data.get("resources", [])]
-        return sorted(models)
-    except Exception:  # noqa: BLE001
-        logger.exception("Error fetching WatsonX embedding models. Using default models.")
-        return default_models
-
-
 def get_provider_variable_value(user_id: UUID | str | None, variable_key: str) -> str | None:
     """Get a variable value from global variables for a provider.
 
     Args:
         user_id: The user ID to look up global variables for
-        variable_key: The variable key to look up (e.g., "OLLAMA_BASE_URL", "WATSONX_URL")
+        variable_key: The variable key to look up (e.g., "OLLAMA_BASE_URL")
 
     Returns:
         The variable value if found, None otherwise
@@ -321,47 +238,6 @@ def fetch_live_ollama_models(user_id: UUID | str | None, model_type: str = "llm"
         return []
 
 
-def fetch_live_watsonx_models(user_id: UUID | str | None, model_type: str = "llm") -> list[dict]:
-    """Fetch live WatsonX models from the configured WatsonX instance.
-
-    Args:
-        user_id: The user ID to look up the WatsonX URL
-        model_type: "llm" or "embeddings"
-
-    Returns:
-        List of model metadata dicts, or empty list if unable to fetch
-    """
-    # Get the configured WatsonX URL
-    watsonx_url = get_provider_variable_value(user_id, "WATSONX_URL")
-    if not watsonx_url:
-        # Try first default URL if none configured
-        watsonx_url = IBM_WATSONX_URLS[0] if IBM_WATSONX_URLS else None
-        if not watsonx_url:
-            return []
-
-    try:
-        if model_type == "llm":
-            model_names = get_watsonx_llm_models(watsonx_url)
-        else:
-            model_names = get_watsonx_embedding_models(watsonx_url)
-
-        # Convert to model metadata format
-        return [
-            create_model_metadata(
-                provider="IBM WatsonX",
-                name=name,
-                icon="IBM",
-                model_type=model_type if model_type == "llm" else "embeddings",
-                tool_calling=model_type == "llm",
-                default=i < MIN_DEFAULT_MODELS,  # Mark first 5 as default
-            )
-            for i, name in enumerate(model_names)
-        ]
-    except Exception:  # noqa: BLE001
-        logger.debug(f"Could not fetch live WatsonX {model_type} models from {watsonx_url}")
-        return []
-
-
 def get_live_models_for_provider(
     user_id: UUID | str | None,
     provider: str,
@@ -371,7 +247,7 @@ def get_live_models_for_provider(
 
     Args:
         user_id: The user ID to look up credentials
-        provider: The provider name (e.g., "Ollama", "IBM WatsonX")
+        provider: The provider name (e.g., "Ollama")
         model_type: "llm" or "embeddings"
 
     Returns:
@@ -379,8 +255,6 @@ def get_live_models_for_provider(
     """
     if provider == "Ollama":
         return fetch_live_ollama_models(user_id, model_type)
-    if provider == "IBM WatsonX":
-        return fetch_live_watsonx_models(user_id, model_type)
     return []
 
 

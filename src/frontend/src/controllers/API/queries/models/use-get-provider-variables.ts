@@ -12,12 +12,7 @@ export type ProviderVariablesMapping = Record<string, ProviderVariable[]>;
  *
  * Example response:
  * {
- *   "OpenAI": [{ variable_name: "API Key", variable_key: "OPENAI_API_KEY", ... }],
- *   "IBM WatsonX": [
- *     { variable_name: "API Key", variable_key: "WATSONX_APIKEY", ... },
- *     { variable_name: "Project ID", variable_key: "WATSONX_PROJECT_ID", ... },
- *     { variable_name: "URL", variable_key: "WATSONX_URL", ... }
- *   ]
+ *   "OpenAI": [{ variable_name: "API Key", variable_key: "OPENAI_API_KEY", ... }]
  * }
  */
 export const useGetProviderVariables: useQueryFunctionType<

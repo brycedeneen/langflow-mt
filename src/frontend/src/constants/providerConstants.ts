@@ -5,7 +5,7 @@
 export interface ProviderVariable {
   /** Display name shown to user (e.g., "API Key", "Project ID") */
   variable_name: string;
-  /** Environment variable key (e.g., "OPENAI_API_KEY", "WATSONX_PROJECT_ID") */
+  /** Environment variable key (e.g., "OPENAI_API_KEY") */
   variable_key: string;
   /** Whether this variable is required */
   required: boolean;
@@ -22,7 +22,7 @@ export interface ProviderVariable {
 /**
  * @deprecated Use the API endpoint /api/v1/models/provider-variable-mapping instead.
  * This static mapping only contains the primary variable for each provider.
- * For providers with multiple variables (like IBM WatsonX), use the API.
+ * For providers with multiple variables, use the API.
  */
 export const PROVIDER_VARIABLE_MAPPING: Record<string, string> = {
   OpenAI: "OPENAI_API_KEY",
@@ -30,7 +30,6 @@ export const PROVIDER_VARIABLE_MAPPING: Record<string, string> = {
   "Google Generative AI": "GOOGLE_API_KEY",
   Google: "GOOGLE_API_KEY",
   Ollama: "OLLAMA_BASE_URL",
-  "IBM WatsonX": "WATSONX_APIKEY",
   Cohere: "COHERE_API_KEY",
   HuggingFace: "HUGGINGFACEHUB_API_TOKEN",
   Groq: "GROQ_API_KEY",

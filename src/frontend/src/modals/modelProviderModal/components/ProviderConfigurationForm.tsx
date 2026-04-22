@@ -16,7 +16,6 @@ const PROVIDER_KEY_PREVIEW: Record<
   OpenAI: { prefix: "sk-", totalLength: 164 },
   Anthropic: { prefix: "sk-ant-", totalLength: 108 },
   "Google Generative AI": { prefix: "AIza", totalLength: 39 },
-  "IBM watsonx": { prefix: "", totalLength: 44 },
 };
 
 const getMaskedKeyPreview = (providerName: string): string => {

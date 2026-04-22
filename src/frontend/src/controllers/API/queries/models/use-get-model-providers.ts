@@ -84,8 +84,6 @@ const getProviderIcon = (providerName: string): string => {
     "Azure OpenAI": "AzureOpenAI",
     SambaNova: "SambaNova",
     Ollama: "Ollama",
-    "IBM WatsonX": "IBM",
-    "IBM watsonx.ai": "IBM",
   };
 
   return iconMap[providerName] || "Bot";
