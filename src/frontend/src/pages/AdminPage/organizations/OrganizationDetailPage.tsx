@@ -21,15 +21,24 @@ export default function OrganizationDetailPage() {
   );
 
   return (
-    <div className="admin-page-panel flex h-full flex-col pb-8">
-      <div className="main-page-nav-arrangement">
-        <span className="main-page-nav-title">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <IconComponent name="ChevronLeft" className="w-5" />
-          </Button>
-          <IconComponent name="Building2" className="w-6" />
-          {isLoading ? "Loading…" : isError ? "Organization" : org?.name}
-        </span>
+    <div className="flex h-full w-full flex-col gap-4">
+      <div className="flex w-full items-start justify-between gap-6">
+        <div className="flex flex-col">
+          <h2
+            className="flex items-center gap-2 text-lg font-semibold tracking-tight"
+            data-testid="settings_menu_header"
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/settings/organizations")}
+            >
+              <IconComponent name="ChevronLeft" className="w-5" />
+            </Button>
+            <IconComponent name="Building2" className="w-5" />
+            {isLoading ? "Loading…" : isError ? "Organization" : org?.name}
+          </h2>
+        </div>
       </div>
 
       {isLoading ? (

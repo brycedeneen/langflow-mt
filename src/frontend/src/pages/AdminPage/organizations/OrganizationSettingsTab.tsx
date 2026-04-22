@@ -46,7 +46,7 @@ export default function OrganizationSettingsTab({ org }: { org: OrgDetail }) {
         onConfirm={async () => {
           await del.mutateAsync({ orgId: org.id, confirm_name: org.name });
           setConfirming(false);
-          nav("/admin/organizations");
+          nav("/settings/organizations");
         }}
       />
     </div>

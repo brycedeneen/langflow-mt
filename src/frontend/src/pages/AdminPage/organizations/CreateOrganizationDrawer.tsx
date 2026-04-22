@@ -43,7 +43,7 @@ export default function CreateOrganizationDrawer() {
       { name: name.trim(), slug: slug.trim() },
       {
         onSuccess: (org) => {
-          navigate(`/admin/organizations/${org.id}`);
+          navigate(`/settings/organizations/${org.id}`);
         },
         onError: (error: any) => {
           setErrorData({
@@ -58,23 +58,27 @@ export default function CreateOrganizationDrawer() {
   }
 
   return (
-    <div className="admin-page-panel flex h-full flex-col pb-8">
-      <div className="main-page-nav-arrangement">
-        <span className="main-page-nav-title">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/admin/organizations")}
+    <div className="flex h-full w-full flex-col gap-6">
+      <div className="flex w-full items-start justify-between gap-6">
+        <div className="flex flex-col">
+          <h2
+            className="flex items-center gap-2 text-lg font-semibold tracking-tight"
+            data-testid="settings_menu_header"
           >
-            <IconComponent name="ChevronLeft" className="w-5" />
-          </Button>
-          <IconComponent name="Building2" className="w-6" />
-          New Organization
-        </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/settings/organizations")}
+            >
+              <IconComponent name="ChevronLeft" className="w-5" />
+            </Button>
+            New Organization
+          </h2>
+          <p className="pl-11 text-sm text-muted-foreground">
+            Create a new platform organization.
+          </p>
+        </div>
       </div>
-      <span className="admin-page-description-text">
-        Create a new platform organization.
-      </span>
 
       <form
         onSubmit={handleSubmit}
@@ -116,7 +120,7 @@ export default function CreateOrganizationDrawer() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate("/admin/organizations")}
+            onClick={() => navigate("/settings/organizations")}
           >
             Cancel
           </Button>

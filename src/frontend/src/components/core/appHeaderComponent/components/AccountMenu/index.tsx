@@ -1,4 +1,3 @@
-import { useShallow } from "zustand/react/shallow";
 import { DATASTAX_DOCS_URL, DOCS_URL } from "@/constants/constants";
 import { useLogout } from "@/controllers/API/queries/auth";
 import { CustomProfileIcon } from "@/customization/components/custom-profile-icon";
@@ -22,13 +21,7 @@ export const AccountMenu = () => {
   const navigate = useCustomNavigate();
   const { mutate: mutationLogout } = useLogout();
 
-  const { isAdmin, autoLogin, userData } = useAuthStore(
-    useShallow((state) => ({
-      isAdmin: state.isAdmin,
-      autoLogin: state.autoLogin,
-      userData: state.userData,
-    })),
-  );
+  const autoLogin = useAuthStore((state) => state.autoLogin);
 
   const handleLogout = () => {
     mutationLogout();
@@ -93,38 +86,6 @@ export const AccountMenu = () => {
               </span>
             </HeaderMenuItemButton>
 
-            {isAdmin && !autoLogin && (
-              <div>
-                <HeaderMenuItemButton
-                  onClick={() => {
-                    navigate("/admin");
-                  }}
-                >
-                  <span
-                    data-testid="menu_admin_page_button"
-                    id="menu_admin_page_button"
-                  >
-                    User Admin
-                  </span>
-                </HeaderMenuItemButton>
-              </div>
-            )}
-            {userData?.is_platform_admin && (
-              <div>
-                <HeaderMenuItemButton
-                  onClick={() => {
-                    navigate("/admin/organizations");
-                  }}
-                >
-                  <span
-                    data-testid="menu_platform_admin_button"
-                    id="menu_platform_admin_button"
-                  >
-                    Org Admin
-                  </span>
-                </HeaderMenuItemButton>
-              </div>
-            )}
             <HeaderMenuItemLink
               newPage
               href={ENABLE_DATASTAX_LANGFLOW ? DATASTAX_DOCS_URL : DOCS_URL}

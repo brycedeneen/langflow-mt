@@ -43,7 +43,6 @@ import { ProtectedSuperuserRoute } from "./components/authorization/authSuperuse
 import ShortcutsPage from "./pages/SettingsPage/pages/ShortcutsPage";
 import ViewPage from "./pages/ViewPage";
 
-const AdminPage = lazy(() => import("./pages/AdminPage"));
 const LoginAdminPage = lazy(() => import("./pages/AdminPage/LoginPage"));
 const UsersPage = lazy(() => import("./pages/AdminPage/UsersPage"));
 const OrganizationsListPage = lazy(
@@ -189,33 +188,43 @@ const router = createBrowserRouter(
                       </ProtectedSuperuserRoute>
                     }
                   />
+                  <Route
+                    path="users"
+                    element={
+                      <ProtectedAdminRoute>
+                        <UsersPage />
+                      </ProtectedAdminRoute>
+                    }
+                  />
+                  <Route
+                    path="organizations"
+                    element={
+                      <ProtectedAdminRoute>
+                        <OrganizationsListPage />
+                      </ProtectedAdminRoute>
+                    }
+                  />
+                  <Route
+                    path="organizations/new"
+                    element={
+                      <ProtectedAdminRoute>
+                        <CreateOrganizationDrawer />
+                      </ProtectedAdminRoute>
+                    }
+                  />
+                  <Route
+                    path="organizations/:orgId"
+                    element={
+                      <ProtectedAdminRoute>
+                        <OrganizationDetailPage />
+                      </ProtectedAdminRoute>
+                    }
+                  />
                   {CustomRoutesStore()}
                 </Route>
                 {CustomRoutesStorePages()}
                 <Route path="account">
                   <Route path="delete" element={<DeleteAccountPage />}></Route>
-                </Route>
-                <Route
-                  path="admin"
-                  element={
-                    <ProtectedAdminRoute>
-                      <AdminPage />
-                    </ProtectedAdminRoute>
-                  }
-                >
-                  <Route index element={<UsersPage />} />
-                  <Route
-                    path="organizations"
-                    element={<OrganizationsListPage />}
-                  />
-                  <Route
-                    path="organizations/new"
-                    element={<CreateOrganizationDrawer />}
-                  />
-                  <Route
-                    path="organizations/:orgId"
-                    element={<OrganizationDetailPage />}
-                  />
                 </Route>
               </Route>
               <Route path="flow/:id/">

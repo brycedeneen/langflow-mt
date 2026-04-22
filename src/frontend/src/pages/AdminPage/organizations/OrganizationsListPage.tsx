@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGetOrganizations } from "@/controllers/API/queries/admin";
 import type { OrgSummary } from "@/controllers/API/queries/admin";
-import IconComponent from "../../../components/common/genericIconComponent";
+import IconComponent, {
+  ForwardedIconComponent,
+} from "../../../components/common/genericIconComponent";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import {
@@ -23,19 +25,32 @@ export default function OrganizationsListPage() {
   const orgs: OrgSummary[] = data?.items ?? [];
 
   return (
-    <div className="admin-page-panel flex h-full flex-col pb-8">
-      <div className="main-page-nav-arrangement">
-        <span className="main-page-nav-title">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <IconComponent name="ChevronLeft" className="w-5" />
+    <div className="flex h-full w-full flex-col gap-6">
+      <div className="flex w-full items-start justify-between gap-6">
+        <div className="flex flex-col">
+          <h2
+            className="flex items-center text-lg font-semibold tracking-tight"
+            data-testid="settings_menu_header"
+          >
+            Org Admin
+            <ForwardedIconComponent
+              name="Building2"
+              className="ml-2 h-5 w-5 text-primary"
+            />
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Manage platform organizations and their members.
+          </p>
+        </div>
+        <div className="shrink-0">
+          <Button
+            variant="primary"
+            onClick={() => navigate("/settings/organizations/new")}
+          >
+            New organization
           </Button>
-          <IconComponent name="Building2" className="w-6" />
-          Organizations
-        </span>
+        </div>
       </div>
-      <span className="admin-page-description-text">
-        Manage platform organizations and their members.
-      </span>
       <div className="flex w-full justify-between">
         <div className="flex w-96 items-center gap-4">
           <Input
@@ -52,14 +67,6 @@ export default function OrganizationsListPage() {
               <IconComponent name="Search" className="w-6 text-foreground" />
             </div>
           )}
-        </div>
-        <div>
-          <Button
-            variant="primary"
-            onClick={() => navigate("/admin/organizations/new")}
-          >
-            New organization
-          </Button>
         </div>
       </div>
 
@@ -87,7 +94,7 @@ export default function OrganizationsListPage() {
                 <TableRow
                   key={org.id}
                   className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => navigate(`/admin/organizations/${org.id}`)}
+                  onClick={() => navigate(`/settings/organizations/${org.id}`)}
                 >
                   <TableCell className="truncate py-2 font-medium">
                     {org.name}

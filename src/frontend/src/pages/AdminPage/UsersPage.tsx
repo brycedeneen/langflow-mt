@@ -8,8 +8,9 @@ import {
   useUpdateUser,
 } from "@/controllers/API/queries/auth";
 import CustomLoader from "@/customization/components/custom-loader";
-import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
-import IconComponent from "../../components/common/genericIconComponent";
+import IconComponent, {
+  ForwardedIconComponent,
+} from "../../components/common/genericIconComponent";
 import ShadTooltip from "../../components/common/shadTooltipComponent";
 import { Button } from "../../components/ui/button";
 import { CheckBoxDiv } from "../../components/ui/checkbox";
@@ -31,8 +32,6 @@ import {
   USER_EDIT_SUCCESS_ALERT,
 } from "../../constants/alerts_constants";
 import {
-  ADMIN_HEADER_DESCRIPTION,
-  ADMIN_HEADER_TITLE,
   PAGINATION_PAGE,
   PAGINATION_ROWS_COUNT,
   PAGINATION_SIZE,
@@ -52,7 +51,6 @@ export default function UsersPage() {
   const setSuccessData = useAlertStore((state) => state.setSuccessData);
   const setErrorData = useAlertStore((state) => state.setErrorData);
   const { userData } = useContext(AuthContext);
-  const navigate = useCustomNavigate();
   const [totalRowsCount, setTotalRowsCount] = useState(0);
 
   const { mutate: mutateDeleteUser } = useDeleteUsers();
@@ -251,19 +249,39 @@ export default function UsersPage() {
   return (
     <>
       {userData && (
-        <div className="admin-page-panel flex h-full flex-col pb-8">
-          <div className="main-page-nav-arrangement">
-            <span className="main-page-nav-title">
-              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-                <IconComponent name="ChevronLeft" className="w-5" />
-              </Button>
-              <IconComponent name="Shield" className="w-6" />
-              {ADMIN_HEADER_TITLE}
-            </span>
+        <div className="flex h-full w-full flex-col gap-6">
+          <div className="flex w-full items-start justify-between gap-6">
+            <div className="flex flex-col">
+              <h2
+                className="flex items-center text-lg font-semibold tracking-tight"
+                data-testid="settings_menu_header"
+              >
+                User Admin
+                <ForwardedIconComponent
+                  name="Users"
+                  className="ml-2 h-5 w-5 text-primary"
+                />
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Manage user accounts for this Langflow instance.
+              </p>
+            </div>
+            <div className="shrink-0">
+              <UserManagementModal
+                title="New User"
+                titleHeader={"Add a new user"}
+                cancelText="Cancel"
+                confirmationText="Save"
+                icon={"UserPlus2"}
+                onConfirm={(index, user) => {
+                  handleNewUser(user);
+                }}
+                asChild
+              >
+                <Button variant="primary">New User</Button>
+              </UserManagementModal>
+            </div>
           </div>
-          <span className="admin-page-description-text">
-            {ADMIN_HEADER_DESCRIPTION}
-          </span>
           <div className="flex w-full justify-between">
             <div className="flex w-96 items-center gap-4">
               <Input
@@ -289,21 +307,6 @@ export default function UsersPage() {
                   />
                 </div>
               )}
-            </div>
-            <div>
-              <UserManagementModal
-                title="New User"
-                titleHeader={"Add a new user"}
-                cancelText="Cancel"
-                confirmationText="Save"
-                icon={"UserPlus2"}
-                onConfirm={(index, user) => {
-                  handleNewUser(user);
-                }}
-                asChild
-              >
-                <Button variant="primary">New User</Button>
-              </UserManagementModal>
             </div>
           </div>
           {isPending || isIdle ? (

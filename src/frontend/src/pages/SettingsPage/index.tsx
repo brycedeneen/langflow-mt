@@ -116,6 +116,32 @@ export default function SettingsPage(): JSX.Element {
     });
   }
 
+  if (isAdmin && !autoLogin) {
+    sidebarNavItems.push({
+      title: "User Admin",
+      href: "/settings/users",
+      icon: (
+        <ForwardedIconComponent
+          name="Users"
+          className="w-4 shrink-0 justify-start stroke-[1.5]"
+        />
+      ),
+    });
+  }
+
+  if (userData?.is_platform_admin) {
+    sidebarNavItems.push({
+      title: "Org Admin",
+      href: "/settings/organizations",
+      icon: (
+        <ForwardedIconComponent
+          name="Building2"
+          className="w-4 shrink-0 justify-start stroke-[1.5]"
+        />
+      ),
+    });
+  }
+
   // TODO: Remove this on cleanup
   if (!ENABLE_DATASTAX_LANGFLOW) {
     const langflowItems = CustomStoreSidebar(true, ENABLE_LANGFLOW_STORE);
