@@ -1,4 +1,4 @@
-from pytube import Playlist  # Ensure you have pytube installed
+from pytubefix import Playlist
 
 from lfx.custom.custom_component.component import Component
 from lfx.inputs.inputs import MessageTextInput

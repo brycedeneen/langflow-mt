@@ -1,5 +1,5 @@
+from exa_py import Exa
 from langchain_core.tools import tool
-from metaphor_python import Metaphor
 
 from lfx.custom.custom_component.component import Component
 from lfx.field_typing import Tool
@@ -9,14 +9,14 @@ from lfx.io import BoolInput, IntInput, Output, SecretStrInput
 class ExaSearchToolkit(Component):
     display_name = "Exa Search"
     description = "Exa Search toolkit for search and content retrieval"
-    documentation = "https://python.langchain.com/docs/integrations/tools/metaphor_search"
+    documentation = "https://docs.exa.ai/reference/python-sdk"
     beta = True
     name = "ExaSearch"
     icon = "ExaSearch"
 
     inputs = [
         SecretStrInput(
-            name="metaphor_api_key",
+            name="exa_api_key",
             display_name="Exa Search API Key",
             password=True,
         ),
@@ -42,7 +42,7 @@ class ExaSearchToolkit(Component):
     ]
 
     def build_toolkit(self) -> Tool:
-        client = Metaphor(api_key=self.metaphor_api_key)
+        client = Exa(api_key=self.exa_api_key)
 
         @tool
         def search(query: str):
