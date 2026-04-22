@@ -59,3 +59,23 @@ export interface OrgCreate {
   name: string;
   slug: string;
 }
+
+export interface UserMembership {
+  organization_id: string;
+  organization_name: string;
+  is_personal: boolean;
+  role: string;
+  joined_at: string;
+}
+
+export interface UserDetail {
+  id: string;
+  username: string;
+  is_active: boolean;
+  is_platform_admin: boolean;
+  is_superuser: boolean;
+  create_at: string | null;
+  updated_at: string | null;
+  last_login_at: string | null;
+  memberships: UserMembership[];
+}

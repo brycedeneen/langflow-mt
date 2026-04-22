@@ -1,6 +1,7 @@
 export * from "./types";
 export * from "./use-get-organizations";
 export * from "./use-get-organization";
+export * from "./use-get-user";
 export * from "./use-create-organization";
 export * from "./use-delete-organization";
 export * from "./use-add-member";
