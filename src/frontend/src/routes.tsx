@@ -45,6 +45,7 @@ import ViewPage from "./pages/ViewPage";
 
 const LoginAdminPage = lazy(() => import("./pages/AdminPage/LoginPage"));
 const UsersPage = lazy(() => import("./pages/AdminPage/UsersPage"));
+const UserDetailPage = lazy(() => import("./pages/AdminPage/UserDetailPage"));
 const OrganizationsListPage = lazy(
   () => import("./pages/AdminPage/organizations/OrganizationsListPage"),
 );
@@ -193,6 +194,14 @@ const router = createBrowserRouter(
                     element={
                       <ProtectedAdminRoute>
                         <UsersPage />
+                      </ProtectedAdminRoute>
+                    }
+                  />
+                  <Route
+                    path="users/:userId"
+                    element={
+                      <ProtectedAdminRoute>
+                        <UserDetailPage />
                       </ProtectedAdminRoute>
                     }
                   />
