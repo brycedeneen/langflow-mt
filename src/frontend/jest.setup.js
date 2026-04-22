@@ -13,6 +13,27 @@ if (typeof global.ReadableStream === "undefined") {
   global.ReadableStream = ReadableStream;
 }
 
+// Polyfill fetch for the jsdom test environment. Node has native fetch, but
+// jest's jsdom `global` does not.
+if (typeof global.fetch === "undefined" && typeof fetch !== "undefined") {
+  global.fetch = fetch;
+  global.Request = Request;
+  global.Response = Response;
+  global.Headers = Headers;
+}
+
+// fetch-intercept's node entry (v2.4.0) has a webpack-bootstrap bug: the
+// `global` it checks for fetch is the module's empty exports object, so it
+// always throws "No fetch available" under Jest. Stub it with a no-op; api.tsx
+// only uses it to register/unregister interceptors which are not needed in
+// unit tests.
+jest.mock("fetch-intercept", () => ({
+  __esModule: true,
+  register: jest.fn(() => jest.fn()),
+  clear: jest.fn(),
+  default: { register: jest.fn(() => jest.fn()), clear: jest.fn() },
+}));
+
 // Mock import.meta
 global.import = {
   meta: {
