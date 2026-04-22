@@ -135,6 +135,27 @@ async def list_templates(
             .where(Category.name.ilike(category))
         )
 
+    # Tenant scoping: platform admins see all rows; everyone else sees
+    # platform-scoped templates + org-scoped templates for their own orgs.
+    if not getattr(current_user, "is_platform_admin", False):
+        member_org_ids = list(
+            (
+                await session.exec(
+                    select(Membership.organization_id).where(
+                        Membership.user_id == current_user.id
+                    )
+                )
+            ).all()
+        )
+        if member_org_ids:
+            stmt = stmt.where(
+                (Template.scope == "platform")
+                | ((Template.scope == "org") & col(Template.org_id).in_(member_org_ids))
+            )
+        else:
+            # User has no memberships — restrict to platform-scoped templates only.
+            stmt = stmt.where(Template.scope == "platform")
+
     stmt = stmt.order_by(Template.name)
     rows = (await session.exec(stmt)).all()
     return [TemplateRead.model_validate(r, from_attributes=True) for r in rows]
