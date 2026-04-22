@@ -13,6 +13,10 @@ from langflow.schema.serialize import UUIDstr
 
 class MembershipRole(str, Enum):
     OWNER = "owner"
+    ADMIN = "admin"
+    MEMBER = "member"
+    OPERATOR = "operator"
+    VIEWER = "viewer"
 
 
 def _utc_now() -> datetime:
