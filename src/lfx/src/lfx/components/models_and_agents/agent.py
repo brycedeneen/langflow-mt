@@ -497,9 +497,14 @@ class AgentComponent(ToolCallingAgentComponent):
         provider = ""
         if isinstance(current_model_value, list) and current_model_value:
             selected_model = current_model_value[0]
-            provider = (selected_model.get("provider") or "").strip()
-            if not provider and selected_model.get("name"):
-                provider = get_provider_for_model_name(str(selected_model["name"]))
+            if isinstance(selected_model, dict):
+                provider = (selected_model.get("provider") or "").strip()
+                if not provider and selected_model.get("name"):
+                    provider = get_provider_for_model_name(str(selected_model["name"]))
+            elif isinstance(selected_model, str):
+                # Assistant-created flows sometimes store the model field as a list
+                # of bare model names. Look the provider up by name rather than 500ing.
+                provider = get_provider_for_model_name(selected_model)
 
         if provider:
             build_config = apply_provider_variable_config_to_build_config(build_config, provider)

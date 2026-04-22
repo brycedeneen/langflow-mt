@@ -505,6 +505,27 @@ class TestAgentComponent(ComponentTestBaseWithoutClient):
         assert updated_config["base_url_ibm_watsonx"]["show"] is False
         assert updated_config["project_id"]["show"] is False
 
+    async def test_update_build_config_tolerates_string_model_entries(self, component_class, default_kwargs):
+        """Regression: ``model`` coming through as a list of bare strings must not 500.
+
+        Assistant-driven flow creation has been observed to store the model field as
+        ``["claude-sonnet-4-6"]`` (strings, not dicts). The old guard only checked the
+        outer list/empty case, so ``selected_model.get("provider")`` blew up with
+        ``'str' object has no attribute 'get'`` during the per-node
+        ``/custom_component/update`` refresh.
+        """
+        from lfx.schema.dotdict import dotdict
+
+        component = await self.component_setup(component_class, default_kwargs)
+        frontend_node = component.to_frontend_node()
+        build_config = frontend_node["data"]["node"]["template"]
+
+        # Should not raise.
+        updated_config = await component.update_build_config(
+            dotdict(build_config), ["claude-sonnet-4-6"], field_name="model"
+        )
+        assert updated_config is not None
+
     async def test_get_agent_requirements_passes_watsonx_params(self, component_class, default_kwargs):
         """Test that get_agent_requirements passes WatsonX URL and project_id to get_llm()."""
         from unittest.mock import AsyncMock, patch
