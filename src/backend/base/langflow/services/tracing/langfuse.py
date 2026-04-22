@@ -54,26 +54,37 @@ class LangFuseTracer(BaseTracer):
             from langfuse import Langfuse
 
             self._client = Langfuse(**config)
+            # langfuse v3+ replaces the v2 `client.client.health.health()` probe
+            # with a high-level auth_check() returning bool.
             try:
-                from langfuse.api.core.request_options import RequestOptions
-
-                self._client.client.health.health(request_options=RequestOptions(timeout_in_seconds=1))
+                if not self._client.auth_check():
+                    logger.debug("Langfuse auth_check failed")
+                    return False
             except Exception as e:  # noqa: BLE001
                 logger.debug(f"can not connect to Langfuse: {e}")
                 return False
-            self.trace = self._client.trace(
-                id=str(self.trace_id),
-                name=self.flow_id,
-                user_id=self.user_id,
-                session_id=self.session_id,
-            )
+
+            # langfuse v3+ removed client.trace(); a root span implicitly creates
+            # the enclosing trace. Trace-level attributes (user_id, session_id)
+            # are attached via span.update_trace() on the root.
+            self._root_span = self._client.start_span(name=self.flow_id)
+            try:
+                self._root_span.update_trace(
+                    user_id=self.user_id,
+                    session_id=self.session_id,
+                    metadata={"langflow_trace_id": str(self.trace_id)},
+                )
+            except Exception as e:  # noqa: BLE001 — tolerate minor-version API shape drift
+                logger.debug(f"Langfuse update_trace failed: {e}")
+            # Back-compat alias so the rest of the class reads naturally.
+            self.trace = self._root_span
 
         except ImportError:
             logger.exception("Could not import langfuse. Please install it with `pip install langfuse`.")
             return False
 
         except Exception as e:  # noqa: BLE001
-            logger.debug(f"Error setting up LangSmith tracer: {e}")
+            logger.debug(f"Error setting up Langfuse tracer: {e}")
             return False
 
         return True
@@ -97,19 +108,19 @@ class LangFuseTracer(BaseTracer):
         metadata_ |= metadata or {}
 
         name = trace_name.removesuffix(f" ({trace_id})")
-        content_span = {
-            "name": name,
-            "input": inputs,
-            "metadata": metadata_,
-            "start_time": start_time,
-        }
 
-        # if two component is built concurrently, will use wrong last span. just flatten now, maybe fix in future.
-        # if len(self.spans) > 0:
-        #     last_span = next(reversed(self.spans))
-        #     span = self.spans[last_span].span(**content_span)
-        # else:
-        span = self.trace.span(**serialize(content_span))
+        # langfuse v3+ uses start_span on the parent (trace = root span here).
+        # start_time is set automatically; we no longer pass it explicitly.
+        # Concurrent component builds still flatten to the root; nested parent
+        # tracking is left as-is (see commented block in the v2 code for the
+        # deferred alternative).
+        serialized = serialize({"input": inputs, "metadata": metadata_})
+        span = self.trace.start_span(
+            name=name,
+            input=serialized.get("input"),
+            metadata=serialized.get("metadata"),
+        )
+        _ = start_time  # preserved for future use; langfuse v3 sets automatically
 
         self.spans[trace_id] = span
 
@@ -132,8 +143,11 @@ class LangFuseTracer(BaseTracer):
             output |= outputs or {}
             output |= {"error": str(error)} if error else {}
             output |= {"logs": list(logs)} if logs else {}
-            content = serialize({"output": output, "end_time": end_time})
-            span.update(**content)
+            serialized = serialize({"output": output})
+            span.update(output=serialized.get("output"))
+            # v3+: explicitly end the span. end_time is set by .end() automatically.
+            span.end()
+            _ = end_time  # v3 sets end_time on .end() — kept for symmetry
 
     @override
     def end(
@@ -145,20 +159,27 @@ class LangFuseTracer(BaseTracer):
     ) -> None:
         if not self._ready:
             return
-        content_update = {
-            "input": inputs,
-            "output": outputs,
-            "metadata": metadata,
-        }
-        self.trace.update(**serialize(content_update))
+        serialized = serialize({"input": inputs, "output": outputs, "metadata": metadata})
+        self.trace.update(
+            input=serialized.get("input"),
+            output=serialized.get("output"),
+            metadata=serialized.get("metadata"),
+        )
+        # v3+: root span must be explicitly ended to flush the trace.
+        self.trace.end()
 
     def get_langchain_callback(self) -> BaseCallbackHandler | None:
         if not self._ready:
             return None
 
-        # get callback from parent span
-        stateful_client = self.spans[next(reversed(self.spans))] if len(self.spans) > 0 else self.trace
-        return stateful_client.get_langchain_handler()
+        # langfuse v3+ moved the langchain callback to langfuse.langchain and
+        # it picks up the current span from OpenTelemetry context automatically.
+        try:
+            from langfuse.langchain import CallbackHandler
+        except ImportError:  # v2 fallback retained for graceful degradation
+            stateful_client = self.spans[next(reversed(self.spans))] if len(self.spans) > 0 else self.trace
+            return stateful_client.get_langchain_handler()
+        return CallbackHandler()
 
     @staticmethod
     def _get_config() -> dict:
