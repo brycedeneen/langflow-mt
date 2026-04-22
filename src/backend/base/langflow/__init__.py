@@ -5,7 +5,32 @@ langflow.* to lfx.* to maintain compatibility with existing code that
 references the old langflow module structure.
 """
 
-from langflow.helpers.windows_postgres_helper import configure_windows_postgres_event_loop
+# Suppress known upstream deprecation noise as early as possible — before any
+# component discovery / dep import fires a warning. Python's warnings module
+# deduplicates on first emission, so filters installed in `langflow.main`
+# (loaded lazily) are too late for package-init imports.
+import warnings as _warnings  # noqa: E402
+
+# Pydantic 2.x class-based `config` + `pydantic.config.Extra` — legacy patterns
+# in twelvelabs, storage3 (supabase dep), altk/agent-lifecycle-toolkit.
+# Will break in Pydantic 3.x; upstream fixes tracked but we don't gate on them.
+try:
+    from pydantic import PydanticDeprecatedSince20 as _PydanticDeprecatedSince20
+
+    _warnings.filterwarnings("ignore", category=_PydanticDeprecatedSince20)
+except ImportError:
+    pass
+
+# LangGraph 1.0 deprecation of `from langgraph.constants import Send` — emitted
+# by trustcall on first import. Breaks in LangGraph 2.0; upstream fix pending.
+try:
+    from langgraph.errors import LangGraphDeprecatedSinceV10 as _LangGraphDeprecatedSinceV10
+
+    _warnings.filterwarnings("ignore", category=_LangGraphDeprecatedSinceV10)
+except ImportError:
+    pass
+
+from langflow.helpers.windows_postgres_helper import configure_windows_postgres_event_loop  # noqa: E402
 
 configure_windows_postgres_event_loop(source="package_init")
 
