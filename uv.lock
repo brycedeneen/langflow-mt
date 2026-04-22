@@ -5828,7 +5828,6 @@ aioboto3 = [
 all = [
     { name = "ag2" },
     { name = "agent-lifecycle-toolkit" },
-    { name = "aioboto3" },
     { name = "apify-client" },
     { name = "arize-phoenix-otel" },
     { name = "assemblyai" },
@@ -5989,7 +5988,6 @@ cohere = [
 complete = [
     { name = "ag2" },
     { name = "agent-lifecycle-toolkit" },
-    { name = "aioboto3" },
     { name = "apify-client" },
     { name = "arize-phoenix-otel" },
     { name = "assemblyai" },
@@ -6487,7 +6485,6 @@ requires-dist = [
     { name = "langchain-sambanova", marker = "extra == 'sambanova'", specifier = ">=1.1.0,<2.0.0" },
     { name = "langchain-unstructured", marker = "extra == 'langchain-unstructured'", specifier = ">=1.0.0,<2.0.0" },
     { name = "langflow-base", extras = ["ag2"], marker = "extra == 'complete'", editable = "src/backend/base" },
-    { name = "langflow-base", extras = ["aioboto3"], marker = "extra == 'complete'", editable = "src/backend/base" },
     { name = "langflow-base", extras = ["altk"], marker = "extra == 'complete'", editable = "src/backend/base" },
     { name = "langflow-base", extras = ["anthropic"], marker = "extra == 'complete'", editable = "src/backend/base" },
     { name = "langflow-base", extras = ["apify"], marker = "extra == 'complete'", editable = "src/backend/base" },

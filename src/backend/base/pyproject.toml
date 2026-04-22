@@ -338,6 +338,18 @@ mlx = [
 fastmcp = ["fastmcp>=2.14.0"]
 
 # AWS extras
+# `aioboto3` powers the S3 `StorageService` backend
+# (`services/storage/s3.py`, `api/v2/files.py`), only active when
+# `LANGFLOW_STORAGE_TYPE=s3`. This extra is NOT pulled in by `complete`
+# (see comment in the `complete` block below) because aiobotocore 2.25.1
+# — the version aioboto3 15.x pins — is incompatible with the
+# botocore>=1.42.42 override required by langchain-aws 1.4.x; S3 client
+# construction fails with:
+#   TypeError: ClientArgsCreator.compute_endpoint_resolver_builtin_defaults()
+#       missing 1 required positional argument: 's3_disable_express_session_auth'
+# Installing this extra today requires lowering botocore (which breaks
+# langchain-aws 1.4.x resolution). Re-add `langflow-base[aioboto3]` to
+# `complete` once aiobotocore ships a release that spans botocore>=1.42.42.
 aioboto3 = ["aioboto3>=15.2.0,<16.0.0"]
 
 # Astra
@@ -449,7 +461,11 @@ complete = [
     # MCP
     "langflow-base[fastmcp]",
     # AWS extras
-    "langflow-base[aioboto3]",
+    # NOTE: `langflow-base[aioboto3]` is intentionally NOT included here.
+    # aiobotocore 2.25.1 (pinned by aioboto3 15.x) is incompatible with the
+    # botocore>=1.42.42 override required by langchain-aws 1.4.x. See the
+    # comment on the `aioboto3` extra definition above for details.
+    # Re-enable once aiobotocore supports botocore>=1.42.42.
     # Astra
     "langflow-base[astrapy]",
     # Windows-specific

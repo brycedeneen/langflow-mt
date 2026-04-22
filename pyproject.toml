@@ -163,9 +163,18 @@ override-dependencies = [
     # that works under 0.25. Smoke probe at
     # tests/unit/integration_smoke/test_tree_sitter_override_astra_assistants.py.
     "tree-sitter>=0.25,<0.27",
-    # langchain-aws 1.4.x requires boto3>=1.42.42, but aiobotocore/aioboto3 pin boto3 to
-    # narrow sub-ranges (e.g. <1.40.62). Force boto3 through to satisfy langchain-aws;
-    # aioboto3/aiobotocore appear to work fine against newer boto3 in practice.
+    # langchain-aws 1.4.x requires boto3>=1.42.42, but aiobotocore/aioboto3 pin
+    # boto3/botocore to narrow sub-ranges (e.g. aiobotocore 2.25.1 → <1.40.62,
+    # aiobotocore 3.5.0 → <1.42.92). Force boto3/botocore through to satisfy
+    # langchain-aws. Side effect: the aioboto3 S3 StorageService backend
+    # (`services/storage/s3.py`, `api/v2/files.py`) breaks at client construction
+    # with `TypeError: compute_endpoint_resolver_builtin_defaults() missing 1
+    # required positional argument: 's3_disable_express_session_auth'`. Because
+    # of that, `langflow-base[aioboto3]` is excluded from `langflow-base[complete]`
+    # (see `src/backend/base/pyproject.toml`). The deploy target uses local
+    # storage (`LANGFLOW_STORAGE_TYPE=local`) so this is dormant. Re-add the
+    # extra to `complete` once aiobotocore ships a release spanning
+    # botocore>=1.42.42.
     "boto3>=1.42.42,<2.0.0",
     "botocore>=1.42.42,<2.0.0",
     # langchain-openai 1.x requires openai>=2.26 while astra-assistants pins openai<2.
