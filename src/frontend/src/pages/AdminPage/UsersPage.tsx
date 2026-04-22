@@ -1,5 +1,6 @@
 import { cloneDeep } from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PaginatorComponent from "@/components/common/paginatorComponent";
 import {
   useAddUser,
@@ -44,6 +45,7 @@ import type { Users } from "../../types/api";
 import type { UserInputType } from "../../types/components";
 
 export default function UsersPage() {
+  const navigate = useNavigate();
   const [inputValue, setInputValue] = useState("");
 
   const [size, setPageSize] = useState(PAGINATION_SIZE);
@@ -354,9 +356,14 @@ export default function UsersPage() {
                           </TableCell>
                           <TableCell className="truncate py-2">
                             <ShadTooltip content={user.username}>
-                              <span className="cursor-default">
+                              <button
+                                className="cursor-pointer text-left hover:underline"
+                                onClick={() =>
+                                  navigate(`/settings/users/${user.id}`)
+                                }
+                              >
                                 {user.username}
-                              </span>
+                              </button>
                             </ShadTooltip>
                           </TableCell>
                           <TableCell className="relative left-1 truncate py-2 text-align-last-left">
