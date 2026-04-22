@@ -15,6 +15,7 @@ import useSaveFlow from "@/hooks/flows/use-save-flow";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useWebhookEvents } from "@/hooks/use-webhook-events";
 import AssistantPanel from "@/modals/AssistantPanel";
+import ComponentAssistPopover from "@/modals/ComponentAssistPopover";
 import { SaveChangesModal } from "@/modals/saveChangesModal";
 import useAlertStore from "@/stores/alertStore";
 import useAssistantStore from "@/stores/assistantStore";
@@ -315,6 +316,7 @@ export default function FlowPage({ view }: { view?: boolean }): JSX.Element {
                 />
               </SimpleSidebar>
               {id && <AssistantPanel flowId={id} />}
+              <ComponentAssistPopover />
             </div>
           )}
         </div>
