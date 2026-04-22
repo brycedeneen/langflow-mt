@@ -1,4 +1,4 @@
-"""Shared fixtures for tests under `src/backend/tests/unit/api/v1/admin/`."""
+"""Shared fixtures for tests under `src/backend/tests/unit/api/v1/`."""
 from __future__ import annotations
 
 from uuid import uuid4

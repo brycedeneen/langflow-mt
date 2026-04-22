@@ -68,8 +68,8 @@ async def get_user_detail(
         is_active=user.is_active,
         is_platform_admin=user.is_platform_admin,
         is_superuser=user.is_superuser,
-        create_at=getattr(user, "create_at", None),
-        updated_at=getattr(user, "updated_at", None),
-        last_login_at=getattr(user, "last_login_at", None),
+        create_at=user.create_at,
+        updated_at=user.updated_at,
+        last_login_at=user.last_login_at,
         memberships=memberships,
     )
