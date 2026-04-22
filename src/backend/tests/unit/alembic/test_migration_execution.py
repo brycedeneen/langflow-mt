@@ -97,6 +97,38 @@ def test_migrated_schema_has_expected_tables():
         Path(db_path).unlink(missing_ok=True)
 
 
+def test_flow_folder_user_id_fk_is_set_null():
+    """Flow and folder `user_id` FKs must cascade to NULL on user delete.
+
+    Guards the migration 6fd608236310 (flow/folder user_id ON DELETE SET NULL)
+    from silent regression. Uses `sa.inspect(...).get_foreign_keys()` — same
+    style as the sibling assertions in `test_migrated_schema_has_expected_tables`.
+    """
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:
+        db_path = tmp.name
+
+    try:
+        alembic_cfg = _get_alembic_cfg(db_path)
+        command.upgrade(alembic_cfg, "head")
+
+        engine = create_engine(f"sqlite:///{db_path}")
+        try:
+            insp = inspect(engine)
+            for table in ("flow", "folder"):
+                user_fks = [fk for fk in insp.get_foreign_keys(table) if "user_id" in fk["constrained_columns"]]
+                assert len(user_fks) == 1, (
+                    f"Table '{table}' expected exactly one FK on user_id, got {len(user_fks)}: {user_fks}"
+                )
+                options = user_fks[0].get("options") or {}
+                assert options.get("ondelete", "").upper() == "SET NULL", (
+                    f"Table '{table}' user_id FK ondelete should be 'SET NULL', got {options!r}"
+                )
+        finally:
+            engine.dispose()
+    finally:
+        Path(db_path).unlink(missing_ok=True)
+
+
 def test_no_phantom_migrations():
     """Verify that models and migrations are in sync.
 

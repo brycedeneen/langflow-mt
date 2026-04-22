@@ -26,21 +26,30 @@ FLOW_FK = "fk_flow_user_id_user"
 FOLDER_FK = "fk_folder_user_id_user"
 
 
+def _get_fk_constraint_name(conn, table_name: str, column_name: str) -> str | None:
+    """Find the foreign key constraint name for a given column."""
+    inspector = sa.inspect(conn)
+    for fk in inspector.get_foreign_keys(table_name):
+        if column_name in fk["constrained_columns"]:
+            return fk["name"]
+    return None
+
+
 def _alter_user_fk(table: str, fk_name: str, ondelete: str | None) -> None:
     """Rewrite the user_id FK on `table` with the given ondelete behavior.
 
     Uses batch_alter_table(recreate="always") so SQLite's copy-and-rename
     rewrite happens cleanly regardless of whether the original FK was
-    named or inline.
+    named or inline. Reflects the actual FK name from the live schema
+    (mirroring 0e6138e7a0c2_add_ondelete_cascade_to_file_user_id_fk.py)
+    so we don't rely on a specific stored name.
     """
+    conn = op.get_bind()
+    existing_fk_name = _get_fk_constraint_name(conn, table, "user_id")
+
     with op.batch_alter_table(table, recreate="always") as batch_op:
-        # Drop the existing FK by name when present; on dialects where the
-        # FK was unnamed/inline, recreate still handles it during the
-        # copy-and-rename dance.
-        try:
-            batch_op.drop_constraint(fk_name, type_="foreignkey")
-        except Exception:
-            pass
+        if existing_fk_name is not None:
+            batch_op.drop_constraint(existing_fk_name, type_="foreignkey")
         batch_op.create_foreign_key(
             fk_name,
             "user",
