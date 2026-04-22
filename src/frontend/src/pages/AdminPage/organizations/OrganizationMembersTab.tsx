@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import RoleBadge from "@/components/common/roleBadge";
 import { useRemoveMember } from "@/controllers/API/queries/admin";
 import type { MemberRow } from "@/controllers/API/queries/admin";
+import type { MembershipRole } from "@/constants/roles";
 import IconComponent from "../../../components/common/genericIconComponent";
 import { Button } from "../../../components/ui/button";
 import {
@@ -22,6 +25,7 @@ export default function OrganizationMembersTab({
   orgId,
   members,
 }: OrganizationMembersTabProps) {
+  const navigate = useNavigate();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   const { mutate: removeMember, isPending: isRemoving } = useRemoveMember();
@@ -52,9 +56,20 @@ export default function OrganizationMembersTab({
               {members.map((member) => (
                 <TableRow key={member.user_id}>
                   <TableCell className="truncate py-2 font-medium">
-                    {member.username}
+                    <button
+                      className="cursor-pointer text-left hover:underline"
+                      onClick={() =>
+                        navigate(
+                          `/settings/organizations/${orgId}/members/${member.user_id}`,
+                        )
+                      }
+                    >
+                      {member.username}
+                    </button>
                   </TableCell>
-                  <TableCell className="truncate py-2">{member.role}</TableCell>
+                  <TableCell className="truncate py-2">
+                    <RoleBadge role={member.role as MembershipRole} />
+                  </TableCell>
                   <TableCell className="py-2">
                     <Button
                       variant="ghost"
