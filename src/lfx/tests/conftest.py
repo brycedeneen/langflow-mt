@@ -9,6 +9,20 @@ import pandas as _pd_cow
 _pd_cow.options.mode.copy_on_write = True
 # ---------------------------------------------------------------------
 
+# --- Pre-warm alembic.autogenerate so its one-shot Plugin() INFO logs fire
+# at session init, before any CliRunner.invoke() redirects sys.stdout.
+# Background: codeflash's pytest plugin calls logging.basicConfig() at
+# import time and attaches a RichHandler tied to sys.stdout on the root
+# logger. Alembic 1.18 registers built-in autogenerate comparators via
+# `Plugin(name)` on first import of alembic.autogenerate.compare, each
+# emitting `log.info("setup plugin %s", name)`. If the first import
+# happens inside a CliRunner.invoke() (which redirects sys.stdout into
+# its capture buffer), those INFO lines end up in result.stdout and
+# break json.loads in CLI-output tests. Pre-importing here fires them
+# once at session startup, where they hit the real terminal harmlessly.
+import alembic.autogenerate  # noqa: F401, E402
+# ---------------------------------------------------------------------
+
 
 @pytest.fixture(autouse=True, scope="session")
 def setup_structlog():

@@ -133,7 +133,14 @@ class TestRunStarterProjects:
 
     @pytest.mark.parametrize("template_file", get_starter_project_files(), ids=lambda x: x.name)
     def test_run_starter_project_valid_json(self, template_file):
-        """Test that starter project file is valid JSON."""
+        """Test that starter project file is valid JSON with the expected flow shape.
+
+        Template-management `.metadata.json` sidecars (e.g., ADP Worker Sync to SFTP)
+        ship in the same directory but carry agent-usage metadata, not a flow graph —
+        skip them here.
+        """
+        if template_file.name.endswith(".metadata.json"):
+            pytest.skip(f"{template_file.name} is a template-metadata sidecar, not a flow file")
         with template_file.open(encoding="utf-8") as f:
             try:
                 data = json.load(f)
