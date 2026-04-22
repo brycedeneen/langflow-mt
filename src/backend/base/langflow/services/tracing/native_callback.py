@@ -17,7 +17,7 @@ from langchain_core.callbacks import BaseCallbackHandler
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from langchain.schema import AgentAction, AgentFinish, LLMResult
+    from langchain_classic.schema import AgentAction, AgentFinish, LLMResult
     from langchain_core.documents import Document
     from langchain_core.messages import BaseMessage
 

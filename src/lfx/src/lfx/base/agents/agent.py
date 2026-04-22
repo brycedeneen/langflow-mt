@@ -1,13 +1,23 @@
+import os
 import re
 import uuid
 from abc import abstractmethod
 from typing import TYPE_CHECKING, cast
 
-from langchain.agents import AgentExecutor, BaseMultiActionAgent, BaseSingleActionAgent
-from langchain.agents.agent import RunnableAgent
+from langchain_classic.agents import AgentExecutor, BaseMultiActionAgent, BaseSingleActionAgent
+from langchain_classic.agents.agent import RunnableAgent
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import BaseMessage, HumanMessage
 from langchain_core.runnables import Runnable
+
+# Feature flag for the LangGraph agent runtime swap (plan Phase 1).
+# Default "classic" preserves the AgentExecutor path; set to "langgraph" to use
+# langchain.agents.create_agent (LangGraph-backed) instead.
+_AGENT_RUNTIME_ENV = "LANGFLOW_AGENT_RUNTIME"
+
+
+def _use_langgraph_runtime() -> bool:
+    return os.environ.get(_AGENT_RUNTIME_ENV, "classic").lower() == "langgraph"
 
 from lfx.base.agents.callback import AgentAsyncHandler
 from lfx.base.agents.events import ExceptionWithMessageError, process_agent_events
@@ -147,7 +157,10 @@ class LCAgentComponent(Component):
         self,
         agent: Runnable | BaseSingleActionAgent | BaseMultiActionAgent | AgentExecutor,
     ) -> Message:
-        if isinstance(agent, AgentExecutor):
+        # Graphs from langchain.agents.create_agent (LangGraph) speak the messages
+        # schema natively, so neither wrap them in an AgentExecutor nor reformat input.
+        is_langgraph = _use_langgraph_runtime() and not isinstance(agent, AgentExecutor)
+        if isinstance(agent, AgentExecutor) or is_langgraph:
             runnable = agent
         else:
             # note the tools are not required to run the agent, hence the validation removed.
@@ -261,10 +274,11 @@ class LCAgentComponent(Component):
         if self._event_manager:
             on_token_callback = cast("OnTokenFunctionType", self._event_manager.on_token)
 
+        stream_input = self._adapt_stream_input(input_dict) if is_langgraph else input_dict
         try:
             result = await process_agent_events(
                 runnable.astream_events(
-                    input_dict,
+                    stream_input,
                     # here we use the shared callbacks because the AgentExecutor uses the tools
                     config={"callbacks": [AgentAsyncHandler(self.log), *self._get_shared_callbacks()]},
                     version="v2",
@@ -294,6 +308,24 @@ class LCAgentComponent(Component):
     def create_agent_runnable(self) -> Runnable:
         """Create the agent."""
 
+    @staticmethod
+    def _adapt_stream_input(input_dict: dict) -> dict:
+        """Convert the AgentExecutor-style input dict into the LangGraph messages schema.
+
+        LangGraph's create_agent expects `{"messages": [...]}`. The system prompt is
+        baked into the compiled graph at build time, so it's dropped here.
+        """
+        messages: list[BaseMessage] = []
+        history = input_dict.get("chat_history") or []
+        if isinstance(history, list):
+            messages.extend(m for m in history if isinstance(m, BaseMessage))
+        human_text = input_dict.get("input", "")
+        if not isinstance(human_text, str):
+            human_text = str(human_text)
+        if human_text.strip():
+            messages.append(HumanMessage(content=human_text))
+        return {"messages": messages}
+
     def validate_tool_names(self) -> None:
         """Validate tool names to ensure they match the required pattern."""
         pattern = re.compile(r"^[a-zA-Z0-9_-]+$")
@@ -320,13 +352,27 @@ class LCToolsAgentComponent(LCAgentComponent):
         *LCAgentComponent.get_base_inputs(),
     ]
 
-    def build_agent(self) -> AgentExecutor:
+    def build_agent(self) -> AgentExecutor | Runnable:
         self.validate_tool_names()
+        if _use_langgraph_runtime():
+            return self._build_langgraph_agent()
         agent = self.create_agent_runnable()
         return AgentExecutor.from_agent_and_tools(
             agent=RunnableAgent(runnable=agent, input_keys_arg=["input"], return_keys_arg=["output"]),
             tools=self.tools,
             **self.get_agent_kwargs(flatten=True),
+        )
+
+    def _build_langgraph_agent(self) -> Runnable:
+        # Imported lazily so environments without langchain 1.x still start.
+        from langchain.agents import create_agent
+
+        llm = self._get_llm()
+        system_prompt = getattr(self, "_effective_system_prompt", None) or getattr(self, "system_prompt", None) or ""
+        return create_agent(
+            model=llm,
+            tools=self.tools or [],
+            system_prompt=system_prompt.strip() or None,
         )
 
     @abstractmethod

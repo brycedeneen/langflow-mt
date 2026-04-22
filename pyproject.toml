@@ -101,7 +101,7 @@ Documentation = "https://docs.langflow.org"
 
 [project.optional-dependencies]
 docling = [
-    "langchain-docling>=1.1,<2.0",
+    "langchain-docling>=2.0.0,<3.0.0",
     "tesserocr>=2.8.0",
     "rapidocr>=3.8,<4.0",
     "ocrmac>=1.0.0; sys_platform == 'darwin'",
@@ -136,8 +136,10 @@ nv-ingest = [
     # due to incompatibility with <3.12 and how uv handles lockfile creation.
     # If upgrading, ensure `uv lock` and `uv sync` are run after upgrade with these,
     # and that afterward, the lockfile contains nv-ingest.
-    "nv-ingest-api==25.6.2,<26.0.0 ; python_version >= '3.12'",
-    "nv-ingest-client==25.6.3,<26.0.0 ; python_version >= '3.12'",
+    # Bumped from 25.6.x → 26.x to drop the openai~=1.82 pin that blocks openai 2.x
+    # (required by langchain-openai 1.x).
+    "nv-ingest-api>=26.1.2,<27.0.0 ; python_version >= '3.12'",
+    "nv-ingest-client>=26.1.2,<27.0.0 ; python_version >= '3.12'",
 ]
 
 postgresql = [
@@ -161,6 +163,15 @@ override-dependencies = [
     # that works under 0.25. Smoke probe at
     # tests/unit/integration_smoke/test_tree_sitter_override_astra_assistants.py.
     "tree-sitter>=0.25,<0.27",
+    # langchain-aws 1.4.x requires boto3>=1.42.42, but aiobotocore/aioboto3 pin boto3 to
+    # narrow sub-ranges (e.g. <1.40.62). Force boto3 through to satisfy langchain-aws;
+    # aioboto3/aiobotocore appear to work fine against newer boto3 in practice.
+    "boto3>=1.42.42,<2.0.0",
+    "botocore>=1.42.42,<2.0.0",
+    # langchain-openai 1.x requires openai>=2.26 while astra-assistants pins openai<2.
+    # Force openai through; astra-assistants is used for an integration extra and its
+    # surface area is limited — monitor for runtime breakage.
+    "openai>=2.26.0,<3.0.0",
 ]
 
 [project.scripts]
