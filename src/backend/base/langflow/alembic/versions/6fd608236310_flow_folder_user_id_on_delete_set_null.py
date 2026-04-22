@@ -38,20 +38,31 @@ def _get_fk_constraint_name(conn, table_name: str, column_name: str) -> str | No
 def _alter_user_fk(table: str, fk_name: str, ondelete: str | None) -> None:
     """Rewrite the user_id FK on `table` with the given ondelete behavior.
 
-    Uses batch_alter_table(recreate="always") so SQLite's copy-and-rename
-    rewrite happens cleanly regardless of whether the original FK was
-    named or inline. Reflects the actual FK name from the live schema
-    (mirroring 0e6138e7a0c2_add_ondelete_cascade_to_file_user_id_fk.py)
-    so we don't rely on a specific stored name.
+    SQLite can't ALTER an FK in place, so we use batch_alter_table(recreate="always")
+    to get the copy-and-rename rewrite. Postgres (and other "real" DBs) support
+    native ALTER TABLE — recreating would try to drop the flow PK, which fails
+    because other tables' FKs reference it. So branch on dialect.
     """
     conn = op.get_bind()
     existing_fk_name = _get_fk_constraint_name(conn, table, "user_id")
 
-    with op.batch_alter_table(table, recreate="always") as batch_op:
+    if conn.dialect.name == "sqlite":
+        with op.batch_alter_table(table, recreate="always") as batch_op:
+            if existing_fk_name is not None:
+                batch_op.drop_constraint(existing_fk_name, type_="foreignkey")
+            batch_op.create_foreign_key(
+                fk_name,
+                "user",
+                ["user_id"],
+                ["id"],
+                ondelete=ondelete,
+            )
+    else:
         if existing_fk_name is not None:
-            batch_op.drop_constraint(existing_fk_name, type_="foreignkey")
-        batch_op.create_foreign_key(
+            op.drop_constraint(existing_fk_name, table, type_="foreignkey")
+        op.create_foreign_key(
             fk_name,
+            table,
             "user",
             ["user_id"],
             ["id"],

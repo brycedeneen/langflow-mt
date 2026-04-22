@@ -1,7 +1,7 @@
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import Text, UniqueConstraint
+from sqlalchemy import ForeignKey, Text, UniqueConstraint, Uuid
 from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
 from langflow.services.database.models.deployment.model import Deployment
@@ -28,7 +28,10 @@ class Folder(FolderBase, table=True):  # type: ignore[call-arg]
         sa_relationship_kwargs={"remote_side": "Folder.id"},
     )
     children: list["Folder"] = Relationship(back_populates="parent")
-    user_id: UUID | None = Field(default=None, foreign_key="user.id")
+    user_id: UUID | None = Field(
+        default=None,
+        sa_column=Column(Uuid(), ForeignKey("user.id", ondelete="SET NULL"), nullable=True),
+    )
     organization_id: UUID | None = Field(default=None, index=True, foreign_key="organization.id", nullable=False)
     user: User = Relationship(back_populates="folders")
     flows: list[Flow] = Relationship(

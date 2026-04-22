@@ -210,7 +210,9 @@ class FlowBase(SQLModel):
 class Flow(FlowBase, table=True):  # type: ignore[call-arg]
     id: UUID = Field(default_factory=uuid4, primary_key=True, unique=True)
     data: dict | None = Field(default=None, sa_column=Column(JSON))
-    user_id: UUID | None = Field(index=True, foreign_key="user.id", nullable=True)
+    user_id: UUID | None = Field(
+        sa_column=Column(Uuid(), ForeignKey("user.id", ondelete="SET NULL"), index=True, nullable=True),
+    )
     organization_id: UUID | None = Field(default=None, index=True, foreign_key="organization.id", nullable=False)
     user: "User" = Relationship(back_populates="flows")
     icon: str | None = Field(default=None, nullable=True)
