@@ -7,3 +7,4 @@ export * from "./use-delete-organization";
 export * from "./use-add-member";
 export * from "./use-remove-member";
 export * from "./use-search-users";
+export * from "./use-update-member-role";
