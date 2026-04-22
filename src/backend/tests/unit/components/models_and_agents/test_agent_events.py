@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 from langchain_core.agents import AgentFinish
-from langchain_core.messages import AIMessageChunk
+from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
 from lfx.base.agents.events import (
     _extract_output_text,
     handle_on_chain_end,
@@ -94,6 +94,91 @@ async def test_chain_end_event():
     assert result.properties.icon == "Bot"
     assert result.properties.state == "complete"
     assert result.text == "final output"
+
+
+@pytest.mark.asyncio
+async def test_chain_start_and_end_langgraph_shape():
+    """LangGraph `create_agent` emits on_chain_start/end with `{messages: [...]}` payloads.
+
+    The top-level event (parent_ids=[]) carries the agent's input/answer; no AgentFinish
+    is emitted. Exercises the LANGFLOW_AGENT_RUNTIME=langgraph path end-to-end.
+    """
+    send_message = create_mock_send_message()
+
+    events = [
+        {
+            "event": "on_chain_start",
+            "name": "LangGraph",
+            "parent_ids": [],
+            "data": {"input": {"messages": [HumanMessage(content="hi")]}},
+            "start_time": 0,
+        },
+        {
+            "event": "on_chain_end",
+            "name": "LangGraph",
+            "parent_ids": [],
+            "data": {
+                "output": {
+                    "messages": [
+                        HumanMessage(content="hi"),
+                        AIMessage(content="hello back"),
+                    ]
+                }
+            },
+            "start_time": 0,
+        },
+    ]
+
+    agent_message = Message(
+        sender=MESSAGE_SENDER_AI,
+        sender_name="Agent",
+        properties={"icon": "Bot", "state": "partial"},
+        content_blocks=[ContentBlock(title="Agent Steps", contents=[])],
+        session_id="test_session_id",
+    )
+
+    result = await process_agent_events(create_event_iterator(events), agent_message, send_message)
+
+    assert result.properties.state == "complete"
+    assert result.text == "hello back"
+    block_titles = [c.header.get("title") for c in result.content_blocks[0].contents if hasattr(c, "header") and c.header]
+    assert "Input" in block_titles
+    assert "Output" in block_titles
+
+
+@pytest.mark.asyncio
+async def test_langgraph_subnode_on_chain_end_ignored():
+    """Sub-node on_chain_end events (parent_ids non-empty) must not populate the final text.
+
+    LangGraph emits on_chain_end for every node in the graph. Only the top-level
+    event (depth 0) should drive the Output block; sub-node events carry partial
+    state and would overwrite it with the wrong shape.
+    """
+    send_message = create_mock_send_message()
+
+    events = [
+        {
+            "event": "on_chain_end",
+            "name": "agent",
+            "parent_ids": ["root"],
+            "data": {"output": [AIMessage(content="subnode")]},
+            "start_time": 0,
+        },
+    ]
+
+    agent_message = Message(
+        sender=MESSAGE_SENDER_AI,
+        sender_name="Agent",
+        properties={"icon": "Bot", "state": "partial"},
+        content_blocks=[ContentBlock(title="Agent Steps", contents=[])],
+        session_id="test_session_id",
+    )
+
+    result = await process_agent_events(create_event_iterator(events), agent_message, send_message)
+
+    # Sub-node output ignored — final text stays empty, state still flips to complete
+    # after the stream ends (handled by process_agent_events itself).
+    assert result.text == ""
 
 
 @pytest.mark.asyncio

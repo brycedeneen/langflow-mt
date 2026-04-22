@@ -5,7 +5,7 @@ from time import perf_counter
 from typing import Any, Protocol
 
 from langchain_core.agents import AgentFinish
-from langchain_core.messages import AIMessageChunk, BaseMessage
+from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage, HumanMessage
 from typing_extensions import TypedDict
 
 from lfx.schema.content_block import ContentBlock
@@ -53,6 +53,53 @@ def _calculate_duration(start_time: float) -> int:
     return result
 
 
+def _is_top_level_event(event: dict[str, Any]) -> bool:
+    """True for astream_events v2 events emitted by the outermost runnable.
+
+    LangGraph compiled graphs emit an on_chain_start/end for every sub-node;
+    only the root one represents the agent run as a whole.
+    """
+    return not event.get("parent_ids")
+
+
+def _extract_langgraph_input_text(input_data: Any) -> str | None:
+    """Pull the human question out of LangGraph's `{messages: [...]}` input shape."""
+    if not isinstance(input_data, dict):
+        return None
+    messages = input_data.get("messages")
+    if not isinstance(messages, list):
+        return None
+    for msg in messages:
+        if isinstance(msg, HumanMessage):
+            content = msg.content
+            if isinstance(content, str):
+                return content
+            if isinstance(content, list):
+                text_parts = [part.get("text", "") for part in content if isinstance(part, dict) and part.get("type") == "text"]
+                if text_parts:
+                    return " ".join(text_parts)
+    return None
+
+
+def _extract_langgraph_output_text(data_output: Any) -> str | None:
+    """Pull the final answer out of LangGraph's `{messages: [...]}` terminal event.
+
+    `langchain.agents.create_agent` (LangGraph-backed) emits its terminal
+    on_chain_end with `data.output = {"messages": [HumanMessage, AIMessage, ...]}`
+    and never emits AgentFinish. The last AIMessage with no pending tool_calls
+    is the answer.
+    """
+    if not isinstance(data_output, dict):
+        return None
+    messages = data_output.get("messages")
+    if not isinstance(messages, list):
+        return None
+    for msg in reversed(messages):
+        if isinstance(msg, AIMessage) and not getattr(msg, "tool_calls", None):
+            return _extract_output_text(msg.content)
+    return None
+
+
 async def handle_on_chain_start(
     event: dict[str, Any],
     agent_message: Message,
@@ -67,29 +114,41 @@ async def handle_on_chain_start(
     if not agent_message.content_blocks:
         agent_message.content_blocks = [ContentBlock(title="Agent Steps", contents=[])]
 
-    if event["data"].get("input"):
-        input_data = event["data"].get("input")
-        if isinstance(input_data, dict) and "input" in input_data:
-            # Cast the input_data to InputDict
-            input_message = input_data.get("input", "")
-            if isinstance(input_message, BaseMessage):
-                input_message = input_message.text()
-            elif not isinstance(input_message, str):
-                input_message = str(input_message)
+    input_data = event["data"].get("input") if event.get("data") else None
+    if not input_data:
+        return agent_message, start_time
 
-            input_dict: InputDict = {
-                "input": input_message,
-                "chat_history": input_data.get("chat_history", []),
-            }
-            text_content = TextContent(
-                type="text",
-                text=_build_agent_input_text_content(input_dict),
-                duration=_calculate_duration(start_time),
-                header={"title": "Input", "icon": "MessageSquare"},
-            )
-            agent_message.content_blocks[0].contents.append(text_content)
-            agent_message = await send_message_callback(message=agent_message, skip_db_update=True)
-            start_time = perf_counter()
+    input_text: str | None = None
+    chat_history: list[BaseMessage] = []
+    if isinstance(input_data, dict) and "input" in input_data:
+        # AgentExecutor-style input: {"input": "...", "chat_history": [...]}.
+        raw_input = input_data.get("input", "")
+        if isinstance(raw_input, BaseMessage):
+            input_text = raw_input.text()
+        elif isinstance(raw_input, str):
+            input_text = raw_input
+        else:
+            input_text = str(raw_input)
+        chat_history = input_data.get("chat_history", []) or []
+    elif _is_top_level_event(event):
+        # LangGraph create_agent input: {"messages": [HumanMessage, ...]}.
+        langgraph_input = _extract_langgraph_input_text(input_data)
+        if langgraph_input is not None:
+            input_text = langgraph_input
+
+    if input_text is None:
+        return agent_message, start_time
+
+    input_dict: InputDict = {"input": input_text, "chat_history": chat_history}
+    text_content = TextContent(
+        type="text",
+        text=_build_agent_input_text_content(input_dict),
+        duration=_calculate_duration(start_time),
+        header={"title": "Input", "icon": "MessageSquare"},
+    )
+    agent_message.content_blocks[0].contents.append(text_content)
+    agent_message = await send_message_callback(message=agent_message, skip_db_update=True)
+    start_time = perf_counter()
     return agent_message, start_time
 
 
@@ -159,27 +218,36 @@ async def handle_on_chain_end(
     message_id: str | None = None,  # noqa: ARG001
 ) -> tuple[Message, float]:
     data_output = event["data"].get("output")
+    output_text: str | None = None
     if data_output and isinstance(data_output, AgentFinish) and data_output.return_values.get("output"):
-        output = data_output.return_values.get("output")
+        # AgentExecutor terminal event (classic runtime).
+        output_text = _extract_output_text(data_output.return_values.get("output"))
+    elif _is_top_level_event(event):
+        # LangGraph create_agent terminal event (LANGFLOW_AGENT_RUNTIME=langgraph):
+        # data.output = {"messages": [...]}; never an AgentFinish.
+        output_text = _extract_langgraph_output_text(data_output)
 
-        agent_message.text = _extract_output_text(output)
-        agent_message.properties.state = "complete"
-        # Add duration to the last content if it exists
-        if agent_message.content_blocks:
-            duration = _calculate_duration(start_time)
-            text_content = TextContent(
-                type="text",
-                text=agent_message.text,
-                duration=duration,
-                header={"title": "Output", "icon": "MessageSquare"},
-            )
-            agent_message.content_blocks[0].contents.append(text_content)
+    if output_text is None:
+        return agent_message, start_time
 
-        # Only send final message if we didn't have streaming chunks
-        # If we had streaming, frontend already accumulated the chunks
-        if not had_streaming:
-            agent_message = await send_message_callback(message=agent_message)
-        start_time = perf_counter()
+    agent_message.text = output_text
+    agent_message.properties.state = "complete"
+    # Add duration to the last content if it exists
+    if agent_message.content_blocks:
+        duration = _calculate_duration(start_time)
+        text_content = TextContent(
+            type="text",
+            text=agent_message.text,
+            duration=duration,
+            header={"title": "Output", "icon": "MessageSquare"},
+        )
+        agent_message.content_blocks[0].contents.append(text_content)
+
+    # Only send final message if we didn't have streaming chunks
+    # If we had streaming, frontend already accumulated the chunks
+    if not had_streaming:
+        agent_message = await send_message_callback(message=agent_message)
+    start_time = perf_counter()
     return agent_message, start_time
 
 
