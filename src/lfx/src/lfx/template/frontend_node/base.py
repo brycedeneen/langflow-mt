@@ -55,6 +55,10 @@ class FrontendNode(BaseModel):
     """Whether the frontend node is in beta."""
     legacy: bool = False
     """Whether the frontend node is legacy."""
+    assist_enabled: bool = True
+    """Whether ADP Assist is enabled for this component. Components with their
+    own bespoke agent (e.g. DataMapperComponent) set this to False to suppress
+    the Assist icon on the node toolbar."""
     replacement: list[str] | None = None
     """Replacement for the frontend node when it is deprecated."""
     error: str | None = None

@@ -22,6 +22,7 @@ import {
 } from "../../../../components/ui/select-custom";
 import useAlertStore from "../../../../stores/alertStore";
 import useAuthStore from "../../../../stores/authStore";
+import useComponentAssistStore from "../../../../stores/componentAssistStore";
 import { useDarkStore } from "../../../../stores/darkStore";
 import useFlowStore from "../../../../stores/flowStore";
 import useFlowsManagerStore from "../../../../stores/flowsManagerStore";
@@ -124,6 +125,12 @@ const NodeToolbarComponent = memo(
       [data.node],
     );
     const canViewCode = hasCode && (isAdmin || !!userData?.is_superuser);
+
+    // ADP Assist opt-in: suppressed when the component sets assist_enabled=False
+    // (e.g., DataMapperComponent, which ships with its own bespoke agent).
+    const assistEnabled = data.node?.assist_enabled !== false;
+    const openComponentAssist = useComponentAssistStore((s) => s.open);
+    const toolbarAnchorRef = useRef<HTMLDivElement>(null);
     const isGroup = useMemo(
       () => (data.node?.flow ? true : false),
       [data.node],
@@ -499,6 +506,19 @@ const NodeToolbarComponent = memo(
     const renderToolbarButtons = useMemo(
       () => (
         <>
+          {assistEnabled && (
+            <ToolbarButton
+              className="text-adp-red"
+              icon="Sparkles"
+              label="Assist"
+              onClick={() => {
+                const rect =
+                  toolbarAnchorRef.current?.getBoundingClientRect() ?? null;
+                openComponentAssist(data.id, rect);
+              }}
+              dataTestId="component-assist-button"
+            />
+          )}
           {canViewCode && (
             <ToolbarButton
               className={isCustomComponent ? "animate-pulse-pink" : ""}
@@ -601,6 +621,7 @@ const NodeToolbarComponent = memo(
         </>
       ),
       [
+        assistEnabled,
         canViewCode,
         nodeLength,
         hasToolMode,
@@ -612,13 +633,16 @@ const NodeToolbarComponent = memo(
         shortcuts,
         frozen,
         handleSelectChange,
+        openComponentAssist,
+        isCustomComponent,
+        inspectionPanelVisible,
       ],
     );
 
     return (
       <>
         <div className="noflow nopan nodelete nodrag">
-          <div className="toolbar-wrapper">
+          <div ref={toolbarAnchorRef} className="toolbar-wrapper">
             {renderToolbarButtons}
             <Select
               onValueChange={handleSelectChange}

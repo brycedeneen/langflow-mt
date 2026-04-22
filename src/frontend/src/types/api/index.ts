@@ -51,6 +51,7 @@ export type APIClassType = {
   custom_fields?: CustomFieldsType;
   beta?: boolean;
   legacy?: boolean;
+  assist_enabled?: boolean;
   replacement?: string[];
   documentation: string;
   error?: string;
