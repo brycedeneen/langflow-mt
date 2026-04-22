@@ -252,34 +252,40 @@ async def list_members(
 async def add_member(
     org_id: UUID,
     body: MemberAdd,
-    _admin: PlatformAdmin,
+    user: CurrentActiveUser,
     session: DbSession,
 ) -> MemberRow:
-    from langflow.services.database.models.membership.model import MembershipRole
     from langflow.services.database.models.user.model import User
 
     org = await session.get(Organization, org_id)
     if org is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Organization not found")
-    user = await session.get(User, body.user_id)
-    if user is None:
+    target = await session.get(User, body.user_id)
+    if target is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
     try:
-        role = MembershipRole(body.role)
+        new_role = MembershipRole(body.role)
     except ValueError as e:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Invalid role: {body.role}") from e
 
+    caller_membership = await assert_org_role(user, org_id, MembershipRole.ADMIN, session=session)
+    caller_role = caller_membership.role if caller_membership is not None else None
+    if caller_role == MembershipRole.ADMIN and new_role not in {
+        MembershipRole.MEMBER, MembershipRole.OPERATOR, MembershipRole.VIEWER,
+    }:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Admins cannot assign Admin or Owner")
+
     existing = (await session.exec(
         select(Membership).where(
-            Membership.user_id == user.id, Membership.organization_id == org.id
+            Membership.user_id == target.id, Membership.organization_id == org.id
         )
     )).first()
     if existing is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "User already a member")
-    m = Membership(user_id=user.id, organization_id=org.id, role=role)
+    m = Membership(user_id=target.id, organization_id=org.id, role=new_role)
     session.add(m)
     await session.flush()
-    return MemberRow(user_id=user.id, username=user.username, role=role.value)
+    return MemberRow(user_id=target.id, username=target.username, role=new_role.value)
 
 
 @router.delete(
@@ -289,7 +295,7 @@ async def add_member(
 async def remove_member(
     org_id: UUID,
     user_id: UUID,
-    _admin: PlatformAdmin,
+    user: CurrentActiveUser,
     session: DbSession,
 ) -> None:
     org = await session.get(Organization, org_id)
@@ -301,6 +307,9 @@ async def remove_member(
             status.HTTP_403_FORBIDDEN,
             "Cannot remove a user from their personal organization",
         )
+
+    await assert_org_role(user, org_id, MembershipRole.ADMIN, session=session)
+
     m = (await session.exec(
         select(Membership).where(
             Membership.user_id == user_id, Membership.organization_id == org_id
@@ -308,6 +317,19 @@ async def remove_member(
     )).first()
     if m is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Membership not found")
+
+    if m.role == MembershipRole.OWNER:
+        owner_count = (await session.exec(
+            select(func.count())
+            .select_from(Membership)
+            .where(
+                Membership.organization_id == org_id,
+                Membership.role == MembershipRole.OWNER,
+            )
+        )).one()
+        if int(owner_count) <= 1:
+            raise HTTPException(status.HTTP_409_CONFLICT, "Cannot remove the last Owner")
+
     await session.delete(m)
     await session.flush()
 

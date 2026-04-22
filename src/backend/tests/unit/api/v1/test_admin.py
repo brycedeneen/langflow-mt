@@ -253,16 +253,18 @@ async def test_member_add_remove_happy(client: AsyncClient, admin_headers, regul
     user_id = regular_user["id"]
 
     # POST → 201
+    # Use `member` role: removing the last Owner is now blocked by the
+    # last-Owner guard, and this test is about the add/duplicate/remove flow.
     add_resp = await client.post(
         f"api/v1/admin/organizations/{org_id}/members",
-        json={"user_id": user_id, "role": "owner"},
+        json={"user_id": user_id, "role": "member"},
         headers=admin_headers,
     )
     assert add_resp.status_code == status.HTTP_201_CREATED
     data = add_resp.json()
     assert data["user_id"] == user_id
     assert data["username"] == regular_user["username"]
-    assert data["role"] == "owner"
+    assert data["role"] == "member"
 
     # Verify it appears in the list
     list_resp = await client.get(
@@ -276,7 +278,7 @@ async def test_member_add_remove_happy(client: AsyncClient, admin_headers, regul
     # POST again → 409
     dupe_resp = await client.post(
         f"api/v1/admin/organizations/{org_id}/members",
-        json={"user_id": user_id, "role": "owner"},
+        json={"user_id": user_id, "role": "member"},
         headers=admin_headers,
     )
     assert dupe_resp.status_code == status.HTTP_409_CONFLICT

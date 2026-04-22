@@ -201,10 +201,16 @@ async def personal_org(client: AsyncClient):  # noqa: ARG001
 
 
 @pytest.fixture
-async def org_admin_headers(client: AsyncClient, org_with_member):
-    """Headers for a user who is ADMIN in `org_with_member` (not an Owner)."""
+async def org_admin_org(client: AsyncClient, org_with_member):  # noqa: ARG001
+    """A (non-personal) org where a freshly-created user is ADMIN.
+
+    Reuses `org_with_member` as the org (which has platform-admin Owner +
+    target Member), and adds a new ADMIN caller user. Returns
+    `{org_id, admin_user_id}` so tests can log in as the admin and
+    operate on that org.
+    """
     username = f"org_admin_{uuid4().hex[:8]}"
-    password = "secret123"
+    password = "secret123"  # noqa: S105
     user_id = await _create_user(username, password)
     async with session_scope() as session:
         session.add(
@@ -216,10 +222,21 @@ async def org_admin_headers(client: AsyncClient, org_with_member):
         )
         await session.flush()
 
-    headers = await _login(client, username, password)
-    yield headers
+    yield {
+        "org_id": org_with_member["org_id"],
+        "admin_user_id": str(user_id),
+        "username": username,
+        "password": password,
+    }
 
     await _delete_user(user_id)
+
+
+@pytest.fixture
+async def org_admin_headers(client: AsyncClient, org_admin_org):
+    """Headers for the user who is ADMIN in `org_admin_org` (not an Owner)."""
+    headers = await _login(client, org_admin_org["username"], org_admin_org["password"])
+    yield headers
 
 
 @pytest.fixture
@@ -234,6 +251,37 @@ async def viewer_headers(client: AsyncClient, org_with_member):
                 user_id=user_id,
                 organization_id=UUID(org_with_member["org_id"]),
                 role=MembershipRole.VIEWER,
+            )
+        )
+        await session.flush()
+
+    headers = await _login(client, username, password)
+    yield headers
+
+    await _delete_user(user_id)
+
+
+@pytest.fixture
+async def another_user(client: AsyncClient):  # noqa: ARG001
+    """A user not yet a member of any specific org (beyond their personal org)."""
+    username = f"another_user_{uuid4().hex[:8]}"
+    user_id = await _create_user(username)
+    yield {"id": str(user_id), "username": username}
+    await _delete_user(user_id)
+
+
+@pytest.fixture
+async def member_headers(client: AsyncClient, org_with_member):
+    """Headers for a user who is Member in `org_with_member`."""
+    username = f"member_{uuid4().hex[:8]}"
+    password = "secret123"
+    user_id = await _create_user(username, password)
+    async with session_scope() as session:
+        session.add(
+            Membership(
+                user_id=user_id,
+                organization_id=UUID(org_with_member["org_id"]),
+                role=MembershipRole.MEMBER,
             )
         )
         await session.flush()
