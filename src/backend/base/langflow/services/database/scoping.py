@@ -179,31 +179,56 @@ def install_scoping_guards(engine, *, enforce_select: bool) -> None:
         table_name = mapper.local_table.name if mapper.local_table is not None else None
         if table_name not in TENANT_SCOPED_TABLES:
             return
-        if getattr(target, "organization_id", None) is not None:
-            return
 
-        # Resolve via flow_id → flow.organization_id (covers transaction/message/vertex_build/
-        # flow_version/job which have no direct user_id).
+        # Look up the org_ids of any tenant-FK parents (flow_id, folder_id) once —
+        # used for both the auto-resolve path and the cross-org validator below.
         flow_id = getattr(target, "flow_id", None)
+        folder_id = getattr(target, "folder_id", None)
+        flow_org_id = None
+        folder_org_id = None
         if flow_id is not None:
             row = connection.execute(
                 text("SELECT organization_id FROM flow WHERE id = :fid"),
                 {"fid": _as_hex(flow_id)},
             ).first()
             if row is not None and row[0] is not None:
-                target.organization_id = _to_uuid(row[0])
-                return
-
-        # Resolve via folder_id → folder.organization_id.
-        folder_id = getattr(target, "folder_id", None)
+                flow_org_id = _to_uuid(row[0])
         if folder_id is not None:
             row = connection.execute(
                 text("SELECT organization_id FROM folder WHERE id = :fid"),
                 {"fid": _as_hex(folder_id)},
             ).first()
             if row is not None and row[0] is not None:
-                target.organization_id = _to_uuid(row[0])
-                return
+                folder_org_id = _to_uuid(row[0])
+
+        target_org_id = getattr(target, "organization_id", None)
+        if target_org_id is not None:
+            # Defense-in-depth: reject inserts where an explicit organization_id
+            # disagrees with a tenant-FK parent's org. API routes already filter
+            # folder/flow lookups by current org, so this mainly catches
+            # programmatic misuse (direct ORM inserts, background jobs).
+            target_as_uuid = _to_uuid(target_org_id)
+            if flow_org_id is not None and flow_org_id != target_as_uuid:
+                raise CrossOrgFKError(
+                    f"Insert into '{table_name}' references flow.id={flow_id} in "
+                    f"organization_id={flow_org_id}, but row's organization_id={target_as_uuid}"
+                )
+            if folder_org_id is not None and folder_org_id != target_as_uuid:
+                raise CrossOrgFKError(
+                    f"Insert into '{table_name}' references folder.id={folder_id} in "
+                    f"organization_id={folder_org_id}, but row's organization_id={target_as_uuid}"
+                )
+            return
+
+        # Auto-resolve organization_id from the first available FK parent.
+        # Covers transaction/message/vertex_build/flow_version/job (no user_id)
+        # and rows that only carry folder_id.
+        if flow_org_id is not None:
+            target.organization_id = flow_org_id
+            return
+        if folder_org_id is not None:
+            target.organization_id = folder_org_id
+            return
 
         user_id = getattr(target, "user_id", None)
         if user_id is not None:

@@ -109,6 +109,80 @@ async def test_insert_guard_resolves_via_folder_id(client):  # noqa: ARG001
 
 
 @pytest.mark.asyncio
+async def test_cross_org_flow_fk_raises(client):  # noqa: ARG001
+    """Insert whose explicit organization_id disagrees with its flow_id parent's org must raise."""
+    from langflow.services.database.models.flow.model import Flow
+    from langflow.services.database.models.message.model import MessageTable
+    from langflow.services.database.scoping import CrossOrgFKError
+
+    async with session_scope() as session:
+        # Two users in two different (auto-provisioned) personal orgs.
+        user_a = User(username=f"fk-a-{uuid4().hex[:8]}", password="x", is_active=True)
+        user_b = User(username=f"fk-b-{uuid4().hex[:8]}", password="x", is_active=True)
+        session.add(user_a); session.add(user_b)
+        await session.flush()
+
+        flow_a = Flow(user_id=user_a.id, name="a-flow", data={})
+        session.add(flow_a)
+        await session.flush()
+        await session.refresh(flow_a)
+
+        org_b_id = (
+            await session.exec(select(Membership.organization_id).where(Membership.user_id == user_b.id))
+        ).first()
+        assert org_b_id is not None and org_b_id != flow_a.organization_id
+
+        # Build a message pointing at flow_a but stamped with user_b's org.
+        msg = MessageTable(
+            flow_id=flow_a.id,
+            organization_id=org_b_id,
+            sender="Machine",
+            sender_name="test",
+            session_id=str(uuid4()),
+            text="stitched",
+        )
+        session.add(msg)
+        with pytest.raises(CrossOrgFKError):
+            await session.flush()
+        await session.rollback()
+
+
+@pytest.mark.asyncio
+async def test_cross_org_folder_fk_raises(client):  # noqa: ARG001
+    """Flow insert with explicit organization_id disagreeing with its folder's org must raise."""
+    from langflow.services.database.models.flow.model import Flow
+    from langflow.services.database.scoping import CrossOrgFKError
+
+    async with session_scope() as session:
+        user_a = User(username=f"fk-fol-a-{uuid4().hex[:8]}", password="x", is_active=True)
+        user_b = User(username=f"fk-fol-b-{uuid4().hex[:8]}", password="x", is_active=True)
+        session.add(user_a); session.add(user_b)
+        await session.flush()
+
+        folder_a = Folder(user_id=user_a.id, name="folder-a")
+        session.add(folder_a)
+        await session.flush()
+        await session.refresh(folder_a)
+
+        org_b_id = (
+            await session.exec(select(Membership.organization_id).where(Membership.user_id == user_b.id))
+        ).first()
+        assert org_b_id is not None and org_b_id != folder_a.organization_id
+
+        flow = Flow(
+            user_id=user_b.id,
+            folder_id=folder_a.id,
+            organization_id=org_b_id,
+            name="cross-org-flow",
+            data={},
+        )
+        session.add(flow)
+        with pytest.raises(CrossOrgFKError):
+            await session.flush()
+        await session.rollback()
+
+
+@pytest.mark.asyncio
 async def test_get_current_organization_prefers_oldest_personal_org(client, active_user):  # noqa: ARG001
     """When two personal orgs somehow survive for a user, pick the oldest.
 
