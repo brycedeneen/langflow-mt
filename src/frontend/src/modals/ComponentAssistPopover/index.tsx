@@ -11,6 +11,7 @@ import { useComponentAssistStream } from "./hooks/use-component-assist-stream";
 export default function ComponentAssistPopover() {
   const {
     activeNodeId,
+    openedOnFlowId,
     position,
     size,
     thread,
@@ -21,6 +22,7 @@ export default function ComponentAssistPopover() {
   } = useComponentAssistStore(
     useShallow((s) => ({
       activeNodeId: s.activeNodeId,
+      openedOnFlowId: s.flowId,
       position: s.position,
       size: s.size,
       thread: s.thread,
@@ -61,6 +63,16 @@ export default function ComponentAssistPopover() {
       bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
     }
   }, [thread, isStreaming, activeNodeId]);
+
+  // Close (and wipe the stale thread) when the visible flow no longer matches
+  // the flow the popover was opened on — covers both "flow switched while the
+  // popover stayed mounted" and "navigated to /all then into a different flow"
+  // (the store is app-scoped so activeNodeId survives the remount).
+  useEffect(() => {
+    if (activeNodeId && openedOnFlowId && flowId && openedOnFlowId !== flowId) {
+      close();
+    }
+  }, [flowId, openedOnFlowId, activeNodeId, close]);
 
   if (!activeNodeId) return null;
 

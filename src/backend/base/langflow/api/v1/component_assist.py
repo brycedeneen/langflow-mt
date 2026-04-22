@@ -65,11 +65,34 @@ class _ProviderLLMAdapter:
 
     ``ProviderClient.stream_with_tools`` yields ``StreamEvent`` dataclasses;
     ``ComponentAssistService`` consumes dicts with event types it understands.
-    This adapter translates.
+    This adapter translates. It also converts the service's internal tool
+    schema (``{name, description, parameters}``) into the provider's native
+    format — Anthropic expects ``input_schema``, OpenAI expects the
+    ``{"type": "function", "function": {...}}`` wrapping.
     """
 
     def __init__(self, provider: ProviderClient) -> None:
         self._provider = provider
+
+    def _to_native_tools(self, tools: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        from langflow.services.assistant.providers.anthropic_provider import AnthropicProviderClient
+
+        if isinstance(self._provider, AnthropicProviderClient):
+            return [
+                {"name": t["name"], "description": t["description"], "input_schema": t["parameters"]}
+                for t in tools
+            ]
+        return [
+            {
+                "type": "function",
+                "function": {
+                    "name": t["name"],
+                    "description": t["description"],
+                    "parameters": t["parameters"],
+                },
+            }
+            for t in tools
+        ]
 
     async def stream(
         self,
@@ -83,9 +106,10 @@ class _ProviderLLMAdapter:
             {"role": m.get("role"), "content": m.get("content", "")} for m in thread
         ]
         messages.append({"role": "user", "content": user_message})
+        native_tools = self._to_native_tools(tools)
 
         async def _gen() -> AsyncIterator[dict[str, Any]]:
-            async for event in self._provider.stream_with_tools(messages, system_prompt, tools):
+            async for event in self._provider.stream_with_tools(messages, system_prompt, native_tools):
                 if event.type == "token":
                     yield {"type": "token", "text": event.text or ""}
                 elif event.type == "tool_call":

@@ -18,7 +18,7 @@ describe("componentAssistStore", () => {
     const { result } = renderHook(() => useComponentAssistStore());
     const rect = { top: 100, left: 200, bottom: 140, right: 280, width: 80, height: 40, x: 200, y: 100, toJSON: () => ({}) } as DOMRect;
     act(() => {
-      result.current.open("node-a", rect);
+      result.current.open("node-a", rect, "flow-1");
     });
     expect(result.current.activeNodeId).toBe("node-a");
     expect(result.current.anchorRect).toBe(rect);
@@ -28,7 +28,7 @@ describe("componentAssistStore", () => {
   it("closes and wipes the thread", () => {
     const { result } = renderHook(() => useComponentAssistStore());
     act(() => {
-      result.current.open("node-a", null);
+      result.current.open("node-a", null, "flow-1");
       result.current.appendUserMessage("hi");
     });
     expect(result.current.thread.length).toBe(1);
@@ -42,7 +42,7 @@ describe("componentAssistStore", () => {
   it("appendAssistantDelta merges into the trailing assistant message", () => {
     const { result } = renderHook(() => useComponentAssistStore());
     act(() => {
-      result.current.open("n", null);
+      result.current.open("n", null, "flow-1");
       result.current.appendUserMessage("hi");
       result.current.appendAssistantDelta("Hel");
       result.current.appendAssistantDelta("lo!");
@@ -55,7 +55,7 @@ describe("componentAssistStore", () => {
   it("dismissProposal removes the proposal without flipping Applied state", () => {
     const { result } = renderHook(() => useComponentAssistStore());
     act(() => {
-      result.current.open("n", null);
+      result.current.open("n", null, "flow-1");
       result.current.appendProposal({
         id: "p1",
         nodeId: "n",

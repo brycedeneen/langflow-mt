@@ -6,6 +6,7 @@ import type {
 
 type ComponentAssistState = {
   activeNodeId: string | null;
+  flowId: string | null;
   anchorRect: DOMRect | null;
   position: { x: number; y: number };
   size: { w: number; h: number };
@@ -13,7 +14,7 @@ type ComponentAssistState = {
   isStreaming: boolean;
   abortController: AbortController | null;
 
-  open: (nodeId: string, anchorRect: DOMRect | null) => void;
+  open: (nodeId: string, anchorRect: DOMRect | null, flowId: string | null) => void;
   close: () => void;
   setPosition: (p: { x: number; y: number }) => void;
   setSize: (s: { w: number; h: number }) => void;
@@ -31,6 +32,7 @@ const INITIAL_SIZE = { w: 420, h: 500 };
 
 const useComponentAssistStore = create<ComponentAssistState>((set, get) => ({
   activeNodeId: null,
+  flowId: null,
   anchorRect: null,
   position: INITIAL_POSITION,
   size: INITIAL_SIZE,
@@ -38,12 +40,13 @@ const useComponentAssistStore = create<ComponentAssistState>((set, get) => ({
   isStreaming: false,
   abortController: null,
 
-  open: (nodeId, anchorRect) => {
+  open: (nodeId, anchorRect, flowId) => {
     const position = anchorRect
       ? { x: Math.min(anchorRect.right + 12, window.innerWidth - 440), y: anchorRect.top }
       : INITIAL_POSITION;
     set({
       activeNodeId: nodeId,
+      flowId,
       anchorRect,
       position,
       size: INITIAL_SIZE,
@@ -56,6 +59,7 @@ const useComponentAssistStore = create<ComponentAssistState>((set, get) => ({
     get().abortController?.abort();
     set({
       activeNodeId: null,
+      flowId: null,
       anchorRect: null,
       thread: [],
       isStreaming: false,
