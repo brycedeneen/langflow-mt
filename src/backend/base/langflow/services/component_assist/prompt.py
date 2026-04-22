@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
-from langflow.services.component_assist.schemas import NodeSnapshot
+if TYPE_CHECKING:
+    from langflow.services.component_assist.schemas import NodeSnapshot
 
 _BASE = """You are ADP Assist, helping the user configure a single component in a Langflow flow.
 
