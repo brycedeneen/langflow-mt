@@ -1,7 +1,7 @@
 # Multi-Tenant Vertical Slice — Design
 
 **Date:** 2026-04-14
-**Status:** Draft, awaiting user review
+**Status:** Implemented on `platform-multi-tenant` as of 2026-04-22 (93 multi-tenant tests green). See **Divergences from original design** at the bottom for what changed during implementation.
 **Scope:** Foundational vertical slice converting Langflow from single-tenant to multi-tenant. End-to-end: schema → migrations → auth/scoping → query enforcement → MCP isolation → tests. Excludes org switcher UI, invitations, role hierarchy, billing, and admin cross-org endpoints (deferred to follow-up sub-projects).
 
 ## Goals
@@ -176,3 +176,19 @@ None blocking. Items intentionally deferred to follow-up sub-projects:
 - Admin/cross-org endpoints (the `X-Acting-Org-Id` mechanism is in place; endpoints are not).
 - Org claim in JWT (current dependency reads from membership; trivial to swap for a JWT claim later).
 - Quotas, billing, seat limits.
+
+---
+
+## Divergences from original design (as implemented, 2026-04-22)
+
+The design above describes intent; what shipped differs in four places:
+
+1. **Scoping guard is permissive, not strict.** The original design called for `before_insert` to raise `MissingOrgIdOnInsertError` when a tenant-scoped row is inserted without `organization_id`. In practice the guard in `services/database/scoping.py` auto-resolves the column via a lookup chain: `flow_id → flow.organization_id`, then `folder_id → folder.organization_id`, then `user_id → membership.organization_id`, and finally falls back to auto-provisioning a personal org (via the `user` `after_insert` hook) or a `system-orphan` org if no attribution is possible. The error classes are still defined but rarely raised. This was done to avoid churning every insert site during the `feat/adp-connector` cutover; long-term we can tighten this.
+
+2. **Role hierarchy landed alongside the slice.** `MembershipRole` has five values (`OWNER`, `ADMIN`, `MEMBER`, `OPERATOR`, `VIEWER`) from the `feat/user-detail-and-roles` work, not just `OWNER`. Default on insert is still `OWNER`.
+
+3. **Multiple memberships per user are tolerated.** `get_current_organization` no longer asserts exactly one membership; it prefers the user's personal org, falling back to the earliest-created org if the user has multiple non-personal memberships. This is load-bearing for the admin UI (users with cross-org access).
+
+4. **Cross-org FK validator is defined but not wired.** `CrossOrgFKError` lives in `scoping.py` but no SQLAlchemy listener invokes it. Defense today relies entirely on every API route's folder/flow lookup filtering by the current org. Cross-org stitching is only possible by bypassing the API layer; the DB-level defense-in-depth validator is an open follow-up.
+
+5. **Admin endpoints shipped.** `api/v1/admin/orgs.py` landed beyond the original non-goals, driven by the user-detail + role-model work. It uses the same `CurrentOrg` dependency with `X-Acting-Org-Id` for cross-org read access.

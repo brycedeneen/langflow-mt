@@ -1,5 +1,7 @@
 # Multi-Tenant Vertical Slice Implementation Plan
 
+> **Status (2026-04-22):** All 18 tasks landed via the `feat/adp-connector` and `feat/user-detail-and-roles` merges on `platform-multi-tenant`. Verified by running the targeted multi-tenant test suites (93 tests pass). See **Execution Status** section below for per-task notes and design deviations from the original spec.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Convert Langflow from single-tenant to multi-tenant via a foundational vertical slice — `Organization` and `Membership` as first-class entities, every tenant resource carries `organization_id`, all reads/writes scoped per org, existing data migrated into a single Default Organization. UI unchanged (one org per user implicitly).
@@ -1266,3 +1268,45 @@ git commit -m "test(multi-tenant): final fixture and factory cleanups for org-sc
 - `default_org` and `two_orgs` fixtures are defined in earlier tasks before later tasks consume them.
 - The plan deliberately keeps Phase 4 tasks symmetric (Task 10 is the template; 11–15 reference it explicitly rather than re-listing every step). Engineers reading them out of order will see the cross-reference up top.
 - Open question for executor: Task 6 Step 4's SQLite-friendly `id`-prefix trick is fragile on Postgres. If the engineer is on Postgres, they should use the Python-loop alternative shown in the same step.
+
+---
+
+## Execution Status (2026-04-22)
+
+All 18 tasks landed on `platform-multi-tenant` ahead of this plan being executed, via the
+`feat/adp-connector` merge (multi-tenant foundation) and the `feat/user-detail-and-roles`
+merge (5-tier role model). Verified by running:
+
+```
+uv run pytest \
+  src/backend/tests/unit/services/database/ \
+  src/backend/tests/unit/api/test_org_helpers.py \
+  src/backend/tests/unit/api/test_cross_org_matrix.py \
+  src/backend/tests/unit/api/test_flows_org_isolation.py \
+  src/backend/tests/unit/api/v1/test_memberships.py \
+  src/backend/tests/unit/api/v1/test_org_helpers_multi_membership.py \
+  src/backend/tests/unit/api/v1/admin/
+```
+→ **93 passed**.
+
+| Task | Status | Deviation from plan |
+|------|--------|---------------------|
+| 1 — Organization model | Done | Extended with `runs_max_concurrent`, `runs_priority_tier` columns |
+| 2 — Membership model | Done | `MembershipRole` has 5 values (OWNER/ADMIN/MEMBER/OPERATOR/VIEWER), not just OWNER |
+| 3 — Scoping module | Done, **design changed** | `before_insert` auto-resolves `organization_id` via flow_id → folder_id → user_id lookup chain and auto-provisions personal orgs; `MissingOrgIdOnInsertError` is defined but rarely raised. `TENANT_SCOPED_TABLES` uses `apikey` (actual table name), not `api_key` |
+| 4 — org_helpers dependency | Done at `api/utils/org_helpers.py` (plan said `api/v1/`) | Relaxed single-membership assertion to "prefer personal, else earliest-created" to support the role/admin work |
+| 5 — `organization_id` on tenant tables | Done on 13 tables (12 planned + `flow_run`) | |
+| 6 — Alembic migration | `6d926936ec2d_multi_tenant_foundation.py` + follow-up `26b3d04efba1_organization_runs_limits.py` | |
+| 7 — Install guards at startup | `services/database/service.py` wires `install_scoping_guards` | |
+| 8 — Personal org on signup | Via scoping's `after_insert` User hook + explicit `test_personal_org.py` coverage | |
+| 9 — Two-org fixtures | Used throughout isolation test suites | |
+| 10–15 — Endpoint scoping | `flows.py`, `variable.py`, `api_key.py`, `projects.py`, `files.py` (v2) all call `get_current_organization` | |
+| 16 — MCP isolation | `api/v1/mcp.py`, `mcp_projects.py`, `api/v2/mcp.py` all scope by org | |
+| 17 — Cross-org matrix | `test_cross_org_matrix.py` | |
+| 18 — Final smoke | Targeted suite green | |
+
+**Extras landed beyond plan scope:** `api/v1/admin/orgs.py` admin endpoint; membership/role-change test coverage (`test_memberships.py`, `test_role_changes.py`, `test_org_helpers_multi_membership.py`).
+
+### Known gap (deferred)
+
+**Cross-org FK validator is not wired.** `CrossOrgFKError` is defined in `scoping.py` but no `before_insert` / `before_update` listener uses it. The auto-resolve logic covers the case where `organization_id` is missing (it derives it from `folder_id`/`flow_id`), but if a caller supplies BOTH `organization_id=X` and `folder_id=Y` where `folder.organization_id == Z`, the DB layer won't catch the inconsistency. Mitigation today: every route's folder/flow lookup filters by current org, so cross-org FK stitching requires bypassing the API layer. Worth adding the defense-in-depth validator as a follow-up.
