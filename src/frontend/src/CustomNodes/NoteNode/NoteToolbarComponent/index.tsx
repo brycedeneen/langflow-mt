@@ -1,5 +1,6 @@
 import { cloneDeep } from "lodash";
 import { memo, useCallback, useMemo } from "react";
+import { useShallow } from "zustand/react/shallow";
 import IconComponent from "@/components/common/genericIconComponent";
 import ShadTooltip from "@/components/common/shadTooltipComponent";
 import {
@@ -32,19 +33,19 @@ const NoteToolbarComponent = memo(function NoteToolbarComponent({
   const takeSnapshot = useFlowsManagerStore((state) => state.takeSnapshot);
   const shortcuts = useShortcutsStore((state) => state.shortcuts);
 
-  // Batch store selectors to reduce re-renders
+  // Zustand v5 compares selector results by reference — an object-literal
+  // selector returns a new ref on every call and loops forever. useShallow
+  // does a shallow compare so we re-render only when one of these fields
+  // actually changes.
   const { nodes, setLastCopiedSelection, paste, setNode, deleteNode } =
     useFlowStore(
-      useCallback(
-        (state) => ({
-          nodes: state.nodes,
-          setLastCopiedSelection: state.setLastCopiedSelection,
-          paste: state.paste,
-          setNode: state.setNode,
-          deleteNode: state.deleteNode,
-        }),
-        [],
-      ),
+      useShallow((state) => ({
+        nodes: state.nodes,
+        setLastCopiedSelection: state.setLastCopiedSelection,
+        paste: state.paste,
+        setNode: state.setNode,
+        deleteNode: state.deleteNode,
+      })),
     );
 
   /** Opens documentation URL or shows notice if unavailable */

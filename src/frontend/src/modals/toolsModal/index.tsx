@@ -48,12 +48,14 @@ const ToolsModal = forwardRef<AgGridReact, ToolsModalProps>(
     const [data, setData] = useState<any[]>(cloneDeep(rows));
 
     useEffect(() => {
-      if (placeholder === "Loading actions...") {
-        handleOnNewValue({
-          value: [],
-        });
+      // Backend sets an error placeholder (Timeout/Error …) only when a load
+      // failed; a truthy placeholder means "leave any stale value alone".
+      // When the load succeeded with zero tools, mirror that to the parent so
+      // stale entries don't linger.
+      if (rows.length === 0 && !placeholder) {
+        handleOnNewValue({ value: [] });
       }
-    }, [placeholder]);
+    }, [rows.length, placeholder]);
 
     return (
       <BaseModal

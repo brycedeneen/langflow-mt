@@ -514,7 +514,7 @@ const NodeToolbarComponent = memo(
               onClick={() => {
                 const rect =
                   toolbarAnchorRef.current?.getBoundingClientRect() ?? null;
-                openComponentAssist(data.id, rect);
+                openComponentAssist(data.id, rect, currentFlowId || null);
               }}
               dataTestId="component-assist-button"
             />
