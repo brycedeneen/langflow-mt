@@ -15,8 +15,9 @@ from sqlalchemy import delete as sa_delete
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import func, select
 
-from langflow.api.utils.core import DbSession, PlatformAdmin
-from langflow.services.database.models.membership.model import Membership
+from langflow.api.utils.authz import assert_org_role
+from langflow.api.utils.core import CurrentActiveUser, DbSession, PlatformAdmin
+from langflow.services.database.models.membership.model import Membership, MembershipRole
 from langflow.services.database.models.organization.model import Organization
 
 router = APIRouter(tags=["Admin"])
@@ -365,3 +366,90 @@ async def search_users(
             )
         )
     return UserSearchResponse(items=items)
+
+
+class MemberRolePatch(BaseModel):
+    role: str
+
+
+def _check_role_change_allowed(
+    caller_role: MembershipRole | None,  # None = platform admin
+    current_target_role: MembershipRole,
+    new_target_role: MembershipRole,
+) -> None:
+    """Escalation guard. Raises HTTPException(403) if disallowed."""
+    if caller_role is None:  # platform admin bypass
+        return
+    if caller_role == MembershipRole.OWNER:
+        return
+    below_admin = {MembershipRole.MEMBER, MembershipRole.OPERATOR, MembershipRole.VIEWER}
+    if caller_role == MembershipRole.ADMIN:
+        if current_target_role not in below_admin or new_target_role not in below_admin:
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN,
+                "Admins cannot change Admin or Owner roles",
+            )
+        return
+    raise HTTPException(status.HTTP_403_FORBIDDEN, "Insufficient role to change memberships")
+
+
+@router.patch("/organizations/{org_id}/members/{user_id}", response_model=MemberRow)
+async def patch_member_role(
+    org_id: UUID,
+    user_id: UUID,
+    body: MemberRolePatch,
+    user: CurrentActiveUser,
+    session: DbSession,
+) -> MemberRow:
+    from langflow.services.database.models.user.model import User
+
+    org = await session.get(Organization, org_id)
+    if org is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Organization not found")
+    if org.is_personal:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Personal-org memberships cannot be changed"
+        )
+
+    try:
+        new_role = MembershipRole(body.role)
+    except ValueError as e:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Invalid role: {body.role}") from e
+
+    caller_membership = await assert_org_role(
+        user, org_id, MembershipRole.ADMIN, session=session
+    )
+    caller_role = caller_membership.role if caller_membership is not None else None
+
+    m = (await session.exec(
+        select(Membership).where(
+            Membership.user_id == user_id, Membership.organization_id == org_id
+        )
+    )).first()
+    if m is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Membership not found")
+
+    _check_role_change_allowed(caller_role, m.role, new_role)
+
+    # Last-Owner guard: if demoting an Owner, at least one other Owner must remain.
+    if m.role == MembershipRole.OWNER and new_role != MembershipRole.OWNER:
+        owner_count = (await session.exec(
+            select(func.count())
+            .select_from(Membership)
+            .where(
+                Membership.organization_id == org_id,
+                Membership.role == MembershipRole.OWNER,
+            )
+        )).one()
+        if int(owner_count) <= 1:
+            raise HTTPException(status.HTTP_409_CONFLICT, "Cannot demote the last Owner")
+
+    m.role = new_role
+    await session.flush()
+
+    target_user = await session.get(User, user_id)
+    return MemberRow(
+        user_id=user_id,
+        username=target_user.username,
+        role=new_role.value,
+    )
