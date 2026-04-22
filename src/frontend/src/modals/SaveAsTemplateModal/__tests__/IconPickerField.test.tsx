@@ -1,23 +1,22 @@
 /**
- * react-window's FixedSizeGrid measures DOM size; jsdom reports 0×0, so
- * the real grid would render zero cells. Mock it with a passthrough that
- * renders every cell so tests can interact with the icon options.
+ * react-window v2's Grid measures its container via ResizeObserver; jsdom
+ * reports 0×0 so the real grid would render zero cells. Mock it with a
+ * passthrough that renders every cell so tests can interact with the icon
+ * options. The v2 API takes the cell as a `cellComponent` prop (not as
+ * children) and exposes the ref via `gridRef`, not React's `ref`.
  */
 jest.mock("react-window", () => {
   const React = require("react");
-  const FixedSizeGrid = React.forwardRef(function MockGrid(
-    {
-      children: Cell,
-      columnCount,
-      rowCount,
-    }: {
-      children: React.ComponentType<any>;
-      columnCount: number;
-      rowCount: number;
-    },
-    _ref: React.Ref<unknown>,
-  ) {
-    const cells = [];
+  function MockGrid({
+    cellComponent: Cell,
+    columnCount,
+    rowCount,
+  }: {
+    cellComponent: React.ComponentType<any>;
+    columnCount: number;
+    rowCount: number;
+  }) {
+    const cells: ReturnType<typeof React.createElement>[] = [];
     for (let r = 0; r < rowCount; r++) {
       for (let c = 0; c < columnCount; c++) {
         cells.push(
@@ -26,15 +25,14 @@ jest.mock("react-window", () => {
             columnIndex: c,
             rowIndex: r,
             style: {},
-            data: undefined,
-            isScrolling: false,
+            ariaAttributes: { "aria-colindex": c + 1, role: "gridcell" },
           }),
         );
       }
     }
     return React.createElement("div", { "data-testid": "mock-grid" }, cells);
-  });
-  return { __esModule: true, FixedSizeGrid };
+  }
+  return { __esModule: true, Grid: MockGrid };
 });
 
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";

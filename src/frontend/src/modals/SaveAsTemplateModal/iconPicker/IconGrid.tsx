@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { FixedSizeGrid, type GridChildComponentProps } from "react-window";
+import {
+  type CellComponentProps,
+  Grid,
+  type GridImperativeAPI,
+} from "react-window";
 import IconComponent from "@/components/common/genericIconComponent";
 import { cn } from "@/utils/utils";
 
@@ -20,7 +24,7 @@ export default function IconGrid({ names, selected, onSelect }: Props) {
     const i = names.indexOf(selected);
     return i >= 0 ? i : 0;
   });
-  const gridRef = useRef<FixedSizeGrid>(null);
+  const gridRef = useRef<GridImperativeAPI>(null);
 
   // Re-clamp focus when the names list shrinks (e.g. user types and filters down).
   useEffect(() => {
@@ -33,7 +37,12 @@ export default function IconGrid({ names, selected, onSelect }: Props) {
   useEffect(() => {
     const rowIndex = Math.floor(focusIndex / COLUMN_COUNT);
     const columnIndex = focusIndex % COLUMN_COUNT;
-    gridRef.current?.scrollToItem({ rowIndex, columnIndex, align: "smart" });
+    gridRef.current?.scrollToCell({
+      rowIndex,
+      columnIndex,
+      rowAlign: "smart",
+      columnAlign: "smart",
+    });
   }, [focusIndex]);
 
   const handleKeyDown = useCallback(
@@ -78,7 +87,7 @@ export default function IconGrid({ names, selected, onSelect }: Props) {
   // from it. Acceptable for ~30 visible cells; don't try to drop focusIndex
   // from the deps without also re-deriving isFocused some other way.
   const Cell = useCallback(
-    ({ columnIndex, rowIndex, style }: GridChildComponentProps) => {
+    ({ columnIndex, rowIndex, style }: CellComponentProps) => {
       const index = rowIndex * COLUMN_COUNT + columnIndex;
       if (index >= names.length) return null;
       const name = names[index];
@@ -120,17 +129,18 @@ export default function IconGrid({ names, selected, onSelect }: Props) {
       onKeyDown={handleKeyDown}
       className="outline-hidden"
     >
-      <FixedSizeGrid
-        ref={gridRef}
+      <Grid
+        gridRef={gridRef}
         columnCount={COLUMN_COUNT}
         rowCount={rowCount}
         columnWidth={CELL_SIZE}
         rowHeight={CELL_SIZE}
-        height={GRID_HEIGHT}
-        width={GRID_WIDTH}
-      >
-        {Cell}
-      </FixedSizeGrid>
+        defaultHeight={GRID_HEIGHT}
+        defaultWidth={GRID_WIDTH}
+        cellComponent={Cell}
+        cellProps={{}}
+        style={{ height: GRID_HEIGHT, width: GRID_WIDTH }}
+      />
     </div>
   );
 }
