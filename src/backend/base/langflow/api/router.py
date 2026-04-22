@@ -6,6 +6,7 @@ from langflow.api.v1 import (
     assistant_router,
     categories_router,
     chat_router,
+    component_assist_router,
     deployment_router,
     endpoints_router,
     files_router,
@@ -14,9 +15,9 @@ from langflow.api.v1 import (
     folders_router,
     knowledge_bases_router,
     login_router,
-    memberships_router,
     mcp_projects_router,
     mcp_router,
+    memberships_router,
     model_options_router,
     models_router,
     monitor_router,
@@ -47,6 +48,7 @@ router_v2 = APIRouter(
 )
 
 router_v1.include_router(assistant_router)
+router_v1.include_router(component_assist_router)
 router_v1.include_router(chat_router)
 router_v1.include_router(endpoints_router)
 router_v1.include_router(validate_router)

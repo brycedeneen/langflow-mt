@@ -1,6 +1,6 @@
 import contextlib
 import re
-from typing import Any
+from typing import Any, ClassVar
 
 import pandas as pd
 
@@ -25,6 +25,31 @@ class TextOperations(Component):
     description = "Perform various text processing operations including text-to-DataFrame conversion."
     icon = "type"
     name = "TextOperations"
+
+    assist_guide: ClassVar[str] = """
+You help the user configure Text Operations on an upstream text input.
+
+Approach:
+1. Confirm which operation the user wants. Supported: Text to DataFrame, Word Count,
+   Case Conversion, Text Replace, Text Extract, Text Head, Text Tail, Text Strip,
+   Text Join, Text Clean. If the user's phrasing is ambiguous (e.g. "clean this up"),
+   ask before choosing.
+2. Identify the upstream text source. If a neighbor snapshot shows a Message/Data field
+   feeding `text_input`, reference it concretely in your proposal's rationale.
+3. Set operation-specific fields. Common patterns:
+   - Text Replace: `search_pattern`, `replacement_text`, and `use_regex` (default False).
+   - Text Extract: `extract_pattern` (regex) and `max_matches` (0 = unlimited).
+   - Text Strip: `strip_mode` (leading / trailing / both) and optionally `strip_characters`.
+   - Text to DataFrame: `table_separator` and `has_header` (True for headered rows).
+   - Case Conversion: `case_type` (upper / lower / title / sentence).
+
+When you propose a configuration:
+- Always set `operation` first; the dynamic field set depends on it.
+- Propose concrete values, not blanks. The user can reject and iterate cheaply.
+- If the user asks for something outside this component's capability (e.g. regex when
+  they want Case Conversion), say so plainly and suggest a different approach or another
+  component rather than forcing it.
+""".strip()
 
     # Configuration for operation-specific input fields
     OPERATION_FIELDS: dict[str, list[str]] = {

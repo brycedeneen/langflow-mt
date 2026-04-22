@@ -7,6 +7,12 @@ if (typeof global.TextEncoder === "undefined") {
   global.TextDecoder = TextDecoder;
 }
 
+// Polyfill ReadableStream for Node.js environment
+if (typeof global.ReadableStream === "undefined") {
+  const { ReadableStream } = require("stream/web");
+  global.ReadableStream = ReadableStream;
+}
+
 // Mock import.meta
 global.import = {
   meta: {
