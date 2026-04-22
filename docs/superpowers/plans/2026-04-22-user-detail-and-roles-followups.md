@@ -66,3 +66,30 @@ Two concurrent privileged callers demoting/removing two different Owners can bot
 
 **Affected files:**
 - `src/backend/base/langflow/alembic/versions/d882b36fff8d_extend_membership_role_enum.py`.
+
+## FU-4. Phase 6 — Flow & folder ownership transition
+
+**Discovered:** Phase 6, Task 21 audit.
+
+**Status:** Deferred to a follow-up PR after the initial User Detail Page merge.
+
+**The issue:** The plan's Phase 6 (tasks 22-26) was scoped as a 5-task flip of flow/folder access checks from `user_id == current_user.id` to role-based gates. The Task 21 audit uncovered ~50 endpoints across more routers than the plan anticipated:
+
+- Flow reads: 12 sites (`flows.py`, `flow_version.py`, `traces.py`, `monitor.py`)
+- Flow writes: 13 sites (same routers + version create/activate/delete)
+- Flow execution: 11 sites (`chat.py` build/vertex/stream/events/cancel; `endpoints.py` simplified_run, experimental_run, webhook_events_stream)
+- Folder CRUD: 7 sites in `projects.py` + 5 `folders.py` redirects + 7 separate sites in the MCP-projects module
+- Shared helpers: 11 with their own "decide how to plumb org_id" calls
+
+**Real design blockers surfaced:**
+- `get_build_events` / `cancel_build` route by `job_id`; no clean path from a job back to its flow's org without queue-service changes.
+- `read_public_flow` synthesizes a user to re-enter `read_flow` — the indirection is redundant under org ownership.
+- `_authorize_sse_subscriber` is already half-migrated (org Membership check + legacy `user_id` fallback).
+
+**The worklist:** Committed to `docs/superpowers/plans/2026-04-22-flow-ownership-worklist.md` (commit `4d1ff2a057`). It's the effective spec for the follow-up PR — every site is enumerated with its target role (Viewer+/Member+/Operator+) and notes on helpers that need shared decisions.
+
+**Why defer:** Phases 1-5 already ship a coherent unit (role model + admin API + User Detail Page + existing-page linkups). Adding 50+ endpoint changes to the same PR would: (a) make review impractical, (b) mix UI and deep-behavior-change concerns, (c) block the Detail Page from landing until the bigger migration completes. Shipping the detail page first also provides the UI surface operators need to set up roles in preparation for the flow-ownership flip.
+
+**Recommendation:** Follow-up PR tackles the worklist in phases corresponding to Plan Tasks 22-26, each as its own commit (or small commit series) with parameterized role-matrix tests. The queue-service `job_id` plumbing for `get_build_events` / `cancel_build` may warrant a separate mini-spec.
+
+**Affected files:** See the worklist doc. Primary routers: `flows.py`, `flow_version.py`, `projects.py`, `folders.py`, `chat.py`, `endpoints.py`, `traces.py`, `monitor.py`, plus MCP-projects.
