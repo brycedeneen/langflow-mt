@@ -178,6 +178,66 @@ async def test_400_when_component_opts_out(
 
 
 @pytest.mark.asyncio
+async def test_tool_call_proposal_roundtrip(
+    client: AsyncClient, logged_in_headers, active_super_user, monkeypatch
+):
+    """End-to-end smoke: scripted provider emits a propose_config_update tool call
+    whose patch targets a valid template key; the SSE stream carries exactly one
+    tool_call event with the patch intact, then terminates with done."""
+    from langflow.api.v1 import component_assist as component_assist_module
+
+    events = [
+        StreamEvent(
+            type="tool_call",
+            tool_call_id="call_1",
+            tool_name="propose_config_update",
+            tool_args={
+                "node_id": "n1",
+                "patch": {"x": 5},
+                "rationale": "user asked to set x",
+            },
+        ),
+    ]
+    monkeypatch.setattr(
+        component_assist_module,
+        "_create_provider_client",
+        lambda *_a, **_kw: _ScriptedProvider(events),
+        raising=True,
+    )
+    monkeypatch.setattr(
+        component_assist_module,
+        "_load_assistant_settings",
+        _fake_settings_factory(),
+        raising=True,
+    )
+
+    flow_id = await _create_flow(client, logged_in_headers)
+    body = _minimal_body(flow_id)  # node_snapshot.template has key "x"
+    body["user_message"] = "set x to 5"
+
+    response = await client.post(
+        "/api/v1/assistant/components/messages",
+        headers=logged_in_headers,
+        json=body,
+        timeout=30,
+    )
+    assert response.status_code == 200, response.text
+    text = response.text
+
+    # Exactly one tool_call event for propose_config_update.
+    tool_call_lines = [
+        line for line in text.splitlines() if '"type": "tool_call"' in line
+    ]
+    assert len(tool_call_lines) == 1, f"expected 1 tool_call event, got {tool_call_lines}"
+    assert '"name": "propose_config_update"' in tool_call_lines[0]
+    assert '"patch": {"x": 5}' in tool_call_lines[0]
+    assert '"rationale": "user asked to set x"' in tool_call_lines[0]
+
+    # Stream terminates with done.
+    assert '"type": "done"' in text
+
+
+@pytest.mark.asyncio
 async def test_400_when_settings_unconfigured(
     client: AsyncClient, logged_in_headers, active_super_user, monkeypatch
 ):
