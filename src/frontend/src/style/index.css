@@ -152,6 +152,9 @@
 
   --color-accent-pink: hsl(var(--accent-pink));
 
+  --color-adp-red: hsl(var(--adp-red));
+  --color-adp-red-foreground: hsl(var(--adp-red-foreground));
+
   --color-popover: hsl(var(--popover));
   --color-popover-foreground: hsl(var(--popover-foreground));
 
@@ -476,6 +479,9 @@
 
     --accent-pink: 326, 78%, 95%; /* hsl(326, 78%, 95%) */
     --accent-pink-foreground: 333 71% 51%; /* hsl(333, 71%, 51%) */
+
+    --adp-red: 353 85% 52%; /* hsl(353, 85%, 52%) ≈ #ED1C2E — ADP brand red */
+    --adp-red-foreground: 0 0% 100%; /* white text on ADP red */
 
     --accent-purple-foreground: 271 81% 56%;
 
