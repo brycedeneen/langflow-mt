@@ -9,22 +9,42 @@ import { ProposalBlock } from "./components/ProposalBlock";
 import { useComponentAssistStream } from "./hooks/use-component-assist-stream";
 
 export default function ComponentAssistPopover() {
-  const { activeNodeId, position, size, thread, isStreaming, close, setPosition } =
-    useComponentAssistStore(
-      useShallow((s) => ({
-        activeNodeId: s.activeNodeId,
-        position: s.position,
-        size: s.size,
-        thread: s.thread,
-        isStreaming: s.isStreaming,
-        close: s.close,
-        setPosition: s.setPosition,
-      })),
-    );
+  const {
+    activeNodeId,
+    position,
+    size,
+    thread,
+    isStreaming,
+    close,
+    setPosition,
+    setSize,
+  } = useComponentAssistStore(
+    useShallow((s) => ({
+      activeNodeId: s.activeNodeId,
+      position: s.position,
+      size: s.size,
+      thread: s.thread,
+      isStreaming: s.isStreaming,
+      close: s.close,
+      setPosition: s.setPosition,
+      setSize: s.setSize,
+    })),
+  );
 
   const flowId = useFlowStore((s) => s.currentFlow?.id ?? "");
   const node = useFlowStore(
     (s) => (activeNodeId ? s.nodes.find((n) => n.id === activeNodeId) ?? null : null),
+  );
+  const neighborNodes = useFlowStore(
+    useShallow((s) => {
+      if (!activeNodeId) return [] as typeof s.nodes;
+      const neighborIds = new Set<string>();
+      for (const edge of s.edges) {
+        if (edge.source === activeNodeId) neighborIds.add(edge.target);
+        if (edge.target === activeNodeId) neighborIds.add(edge.source);
+      }
+      return s.nodes.filter((n) => neighborIds.has(n.id));
+    }),
   );
   const setNode = useFlowStore((s) => s.setNode);
 
@@ -34,10 +54,13 @@ export default function ComponentAssistPopover() {
   const { sendMessage } = useComponentAssistStream(flowId);
 
   useEffect(() => {
+    // Depend on `thread` (the whole array reference) rather than `thread.length`
+    // so we re-scroll on streaming delta appends too — appendAssistantDelta
+    // mutates the trailing message in place, leaving length unchanged.
     if (bodyRef.current && activeNodeId) {
       bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
     }
-  }, [thread.length, isStreaming, activeNodeId]);
+  }, [thread, isStreaming, activeNodeId]);
 
   if (!activeNodeId) return null;
 
@@ -56,7 +79,15 @@ export default function ComponentAssistPopover() {
       template,
       outputs: node.data?.node?.outputs ?? [],
     };
-    await sendMessage({ nodeSnapshot, neighborSnapshots: [], userMessage: text });
+    const neighborSnapshots = neighborNodes.map((n) => ({
+      node_id: n.id,
+      type: n.data?.type ?? "",
+      display_name: n.data?.node?.display_name ?? "Component",
+      description: n.data?.node?.description ?? null,
+      template: (n.data?.node?.template ?? {}) as Record<string, unknown>,
+      outputs: n.data?.node?.outputs ?? [],
+    }));
+    await sendMessage({ nodeSnapshot, neighborSnapshots, userMessage: text });
   };
 
   const applyPatch = (patch: Record<string, unknown>, proposalId: string) => {
@@ -140,7 +171,7 @@ export default function ComponentAssistPopover() {
                     proposal={p}
                     currentTemplate={template}
                     onApply={(patch) => applyPatch(patch, p.id)}
-                    onDismiss={() => useComponentAssistStore.getState().markProposalApplied(p.id, [])}
+                    onDismiss={() => useComponentAssistStore.getState().dismissProposal(p.id)}
                   />
                 ))}
             </div>
@@ -172,6 +203,39 @@ export default function ComponentAssistPopover() {
           This conversation won't be saved when you close.
         </div>
       </div>
+
+      {/* Resize handle (bottom-right corner) */}
+      <div
+        aria-label="Resize"
+        role="separator"
+        className="absolute bottom-0 right-0 h-3 w-3 cursor-nwse-resize"
+        style={{
+          background:
+            "linear-gradient(135deg, transparent 50%, hsl(var(--adp-red)) 50%)",
+        }}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const startX = e.clientX;
+          const startY = e.clientY;
+          const startW = size.w;
+          const startH = size.h;
+          const MIN_W = 320;
+          const MIN_H = 360;
+          const onMove = (ev: MouseEvent) => {
+            setSize({
+              w: Math.max(MIN_W, startW + (ev.clientX - startX)),
+              h: Math.max(MIN_H, startH + (ev.clientY - startY)),
+            });
+          };
+          const onUp = () => {
+            document.removeEventListener("mousemove", onMove);
+            document.removeEventListener("mouseup", onUp);
+          };
+          document.addEventListener("mousemove", onMove);
+          document.addEventListener("mouseup", onUp);
+        }}
+      />
     </div>
   );
 }

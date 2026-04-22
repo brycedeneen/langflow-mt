@@ -21,6 +21,7 @@ type ComponentAssistState = {
   appendAssistantDelta: (delta: string) => void;
   appendProposal: (proposal: ProposalPayload) => void;
   markProposalApplied: (proposalId: string, skippedKeys: string[]) => void;
+  dismissProposal: (proposalId: string) => void;
   setStreaming: (v: boolean) => void;
   setAbortController: (c: AbortController | null) => void;
 };
@@ -105,6 +106,15 @@ const useComponentAssistStore = create<ComponentAssistState>((set, get) => ({
                 p.id === proposalId ? { ...p, applied: { skippedKeys } } : p,
               ),
             }
+          : m,
+      ),
+    })),
+
+  dismissProposal: (proposalId) =>
+    set((s) => ({
+      thread: s.thread.map((m) =>
+        m.role === "assistant" && m.proposals
+          ? { ...m, proposals: m.proposals.filter((p) => p.id !== proposalId) }
           : m,
       ),
     })),
