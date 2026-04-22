@@ -45,6 +45,7 @@ import ViewPage from "./pages/ViewPage";
 
 const LoginAdminPage = lazy(() => import("./pages/AdminPage/LoginPage"));
 const UsersPage = lazy(() => import("./pages/AdminPage/UsersPage"));
+const UserDetailPage = lazy(() => import("./pages/AdminPage/UserDetailPage"));
 const OrganizationsListPage = lazy(
   () => import("./pages/AdminPage/organizations/OrganizationsListPage"),
 );
@@ -53,6 +54,9 @@ const CreateOrganizationDrawer = lazy(
 );
 const OrganizationDetailPage = lazy(
   () => import("./pages/AdminPage/organizations/OrganizationDetailPage"),
+);
+const OrgMemberDetailPage = lazy(
+  () => import("./pages/AdminPage/organizations/OrgMemberDetailPage"),
 );
 const DeleteAccountPage = lazy(() => import("./pages/DeleteAccountPage"));
 
@@ -197,6 +201,14 @@ const router = createBrowserRouter(
                     }
                   />
                   <Route
+                    path="users/:userId"
+                    element={
+                      <ProtectedAdminRoute>
+                        <UserDetailPage />
+                      </ProtectedAdminRoute>
+                    }
+                  />
+                  <Route
                     path="organizations"
                     element={
                       <ProtectedAdminRoute>
@@ -217,6 +229,14 @@ const router = createBrowserRouter(
                     element={
                       <ProtectedAdminRoute>
                         <OrganizationDetailPage />
+                      </ProtectedAdminRoute>
+                    }
+                  />
+                  <Route
+                    path="organizations/:orgId/members/:userId"
+                    element={
+                      <ProtectedAdminRoute>
+                        <OrgMemberDetailPage />
                       </ProtectedAdminRoute>
                     }
                   />
