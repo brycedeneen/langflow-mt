@@ -86,6 +86,7 @@ class MemberRow(BaseModel):
     user_id: UUID
     username: str
     role: str
+    is_active: bool
 
 
 class OrgDetail(BaseModel):
@@ -115,7 +116,7 @@ async def get_organization(
         .where(Membership.organization_id == org_id)
     )).all()
     members = [
-        MemberRow(user_id=u.id, username=u.username, role=m.role.value)
+        MemberRow(user_id=u.id, username=u.username, role=m.role.value, is_active=u.is_active)
         for (m, u) in rows
     ]
     return OrgDetail(
@@ -240,7 +241,8 @@ async def list_members(
         .where(Membership.organization_id == org_id)
     )).all()
     return MembersResponse(items=[
-        MemberRow(user_id=u.id, username=u.username, role=m.role.value) for (m, u) in rows
+        MemberRow(user_id=u.id, username=u.username, role=m.role.value, is_active=u.is_active)
+        for (m, u) in rows
     ])
 
 
@@ -285,7 +287,12 @@ async def add_member(
     m = Membership(user_id=target.id, organization_id=org.id, role=new_role)
     session.add(m)
     await session.flush()
-    return MemberRow(user_id=target.id, username=target.username, role=new_role.value)
+    return MemberRow(
+        user_id=target.id,
+        username=target.username,
+        role=new_role.value,
+        is_active=target.is_active,
+    )
 
 
 @router.delete(
@@ -474,4 +481,5 @@ async def patch_member_role(
         user_id=user_id,
         username=target_user.username,
         role=new_role.value,
+        is_active=target_user.is_active,
     )

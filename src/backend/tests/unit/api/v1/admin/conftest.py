@@ -271,6 +271,53 @@ async def another_user(client: AsyncClient):  # noqa: ARG001
 
 
 @pytest.fixture
+async def org_with_inactive_member(client: AsyncClient, platform_admin_user):  # noqa: ARG001
+    """Non-personal org. Platform admin is Owner; a second user has is_active=False."""
+    org_id = uuid4()
+    inactive_user_id = uuid4()
+    async with session_scope() as session:
+        org = Organization(
+            id=org_id,
+            name=f"OrgWithInactive {org_id.hex[:6]}",
+            slug=f"org-with-inactive-{org_id.hex[:8]}",
+            is_personal=False,
+        )
+        session.add(org)
+
+        inactive = User(
+            id=inactive_user_id,
+            username=f"inactive_user_{inactive_user_id.hex[:8]}",
+            password=get_auth_service().get_password_hash("secret123"),
+            is_active=False,
+            is_superuser=False,
+            is_platform_admin=False,
+        )
+        session.add(inactive)
+        await session.flush()
+
+        session.add(
+            Membership(
+                user_id=UUID(platform_admin_user["id"]),
+                organization_id=org_id,
+                role=MembershipRole.OWNER,
+            )
+        )
+        session.add(
+            Membership(
+                user_id=inactive_user_id,
+                organization_id=org_id,
+                role=MembershipRole.MEMBER,
+            )
+        )
+        await session.flush()
+
+    yield {"org_id": str(org_id), "inactive_user_id": str(inactive_user_id)}
+
+    await _delete_org(org_id)
+    await _delete_user(inactive_user_id)
+
+
+@pytest.fixture
 async def member_headers(client: AsyncClient, org_with_member):
     """Headers for a user who is Member in `org_with_member`."""
     username = f"member_{uuid4().hex[:8]}"
