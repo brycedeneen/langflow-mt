@@ -95,13 +95,21 @@ class DataMapperComponent(Component):
     icon = "shuffle"
     name = "DataMapper"
 
-    version: int = 2
+    # DataMapper ships with its own bespoke agent; suppress the generic ADP Assist icon.
+    assist_enabled: ClassVar[bool] = False
+
+    version: int = 3
     changelog: ClassVar[list[ChangelogEntry]] = [
         ChangelogEntry(version=1, changes="Initial release."),
         ChangelogEntry(
             version=2,
             changes="Config surface upgraded from raw JSON editor to visual modal.",
             notes="No action needed; existing saved configurations continue to parse.",
+        ),
+        ChangelogEntry(
+            version=3,
+            changes="Opt out of generic ADP Assist popover (assist_enabled=False).",
+            notes="The bespoke Data Mapper agent remains; only the generic Assist icon is suppressed.",
         ),
     ]
 
