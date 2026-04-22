@@ -68,6 +68,7 @@ describe("useComponentAssistStream", () => {
     const thread = useComponentAssistStore.getState().thread;
     const last = thread[thread.length - 1];
     expect(last.role).toBe("assistant");
+    if (last.role !== "assistant") throw new Error("unreachable");
     expect(last.proposals?.[0].patch).toEqual({ x: 5 });
   });
 });

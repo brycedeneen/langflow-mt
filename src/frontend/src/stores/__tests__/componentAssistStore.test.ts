@@ -51,4 +51,32 @@ describe("componentAssistStore", () => {
     expect(last.role).toBe("assistant");
     expect(last.content).toBe("Hello!");
   });
+
+  it("dismissProposal removes the proposal without flipping Applied state", () => {
+    const { result } = renderHook(() => useComponentAssistStore());
+    act(() => {
+      result.current.open("n", null);
+      result.current.appendProposal({
+        id: "p1",
+        nodeId: "n",
+        patch: { x: 5 },
+        rationale: "set x",
+      });
+      result.current.appendProposal({
+        id: "p2",
+        nodeId: "n",
+        patch: { y: "z" },
+        rationale: "set y",
+      });
+    });
+    act(() => {
+      result.current.dismissProposal("p1");
+    });
+    const last = result.current.thread[result.current.thread.length - 1];
+    expect(last.role).toBe("assistant");
+    // p1 removed entirely — not flipped to applied
+    expect((last as any).proposals).toHaveLength(1);
+    expect((last as any).proposals[0].id).toBe("p2");
+    expect((last as any).proposals[0].applied ?? null).toBeNull();
+  });
 });
