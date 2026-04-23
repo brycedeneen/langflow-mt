@@ -2,6 +2,7 @@ import type { ReactFlowJsonObject } from "@xyflow/react";
 import type { ReactElement, ReactNode } from "react";
 import type { handleOnNewValueType } from "@/CustomNodes/hooks/use-handle-new-value";
 import type { InputOutput } from "../../constants/enums";
+import type { MembershipRole } from "@/constants/roles";
 import type {
   APIClassType,
   APITemplateType,
@@ -446,6 +447,8 @@ export type UserInputType = {
   is_active?: boolean;
   is_superuser?: boolean;
   is_platform_admin?: boolean;
+  organization_id?: string;
+  role?: MembershipRole;
   id?: string;
   create_at?: string;
   updated_at?: string;

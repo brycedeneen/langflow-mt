@@ -653,6 +653,9 @@ export const CONTROL_NEW_USER = {
   password: "",
   is_active: false,
   is_superuser: false,
+  is_platform_admin: false,
+  organization_id: "",
+  role: "member" as const,
 };
 
 export const tabsCode = [];

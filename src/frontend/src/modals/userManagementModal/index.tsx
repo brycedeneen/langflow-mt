@@ -34,6 +34,9 @@ export default function UserManagementModal({
   const [confirmPassword, setConfirmPassword] = useState(data?.password ?? "");
   const [isActive, setIsActive] = useState(data?.is_active ?? false);
   const [isSuperUser, setIsSuperUser] = useState(data?.is_superuser ?? false);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(
+    data?.is_platform_admin ?? false,
+  );
   const [inputState, setInputState] = useState<UserInputType>(CONTROL_NEW_USER);
   const { userData } = useContext(AuthContext);
 
@@ -51,11 +54,15 @@ export default function UserManagementModal({
         setUserName(data.username);
         setIsActive(data.is_active);
         setIsSuperUser(data.is_superuser);
+        setIsPlatformAdmin(data.is_platform_admin ?? false);
 
         handleInput({ target: { name: "username", value: data.username } });
         handleInput({ target: { name: "is_active", value: data.is_active } });
         handleInput({
           target: { name: "is_superuser", value: data.is_superuser },
+        });
+        handleInput({
+          target: { name: "is_platform_admin", value: data.is_platform_admin ?? false },
         });
       }
     }
@@ -67,6 +74,7 @@ export default function UserManagementModal({
     setConfirmPassword("");
     setIsActive(false);
     setIsSuperUser(false);
+    setIsPlatformAdmin(false);
   }
 
   return (
@@ -289,6 +297,30 @@ export default function UserManagementModal({
                           });
                           setIsSuperUser(value);
                         }}
+                      />
+                    </Form.Control>
+                  </div>
+                </Form.Field>
+              )}
+              {userData?.is_platform_admin && (
+                <Form.Field name="is_platform_admin">
+                  <div>
+                    <Form.Label className="data-[invalid]:label-invalid mr-3">
+                      Platform Admin
+                    </Form.Label>
+                    <Form.Control asChild>
+                      <Checkbox
+                        checked={isPlatformAdmin}
+                        value={isPlatformAdmin}
+                        id="is_platform_admin"
+                        className="relative top-0.5"
+                        onCheckedChange={(value) => {
+                          handleInput({
+                            target: { name: "is_platform_admin", value },
+                          });
+                          setIsPlatformAdmin(value);
+                        }}
+                        data-testid="new-user-is-platform-admin"
                       />
                     </Form.Control>
                   </div>
