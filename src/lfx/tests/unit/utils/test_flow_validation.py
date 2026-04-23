@@ -82,8 +82,10 @@ def test_shipped_component_code_is_accepted():
 
     from langflow.components.input_output.chat import ChatInput
 
-    # Take the verbatim source of a shipped component class.
-    shipped_code = inspect.getsource(ChatInput)
+    # Take the verbatim source of the shipped component's MODULE — this is
+    # what Component.set_class_code stores in template.code.value at runtime,
+    # so it's also what the gate's shipped-hash cache hashes.
+    shipped_code = inspect.getsource(inspect.getmodule(ChatInput))
     flow = {
         "nodes": [
             {

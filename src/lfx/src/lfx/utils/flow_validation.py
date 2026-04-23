@@ -222,12 +222,22 @@ def _populate_shipped_hashes() -> set[str]:
         return _shipped_code_hashes
 
     hashes: set[str] = set()
+    seen_modules: set[str] = set()
     for package_name in ("lfx.components", "langflow.components"):
         for cls in _iter_component_classes(package_name):
+            # Components are served to the frontend with template.code.value =
+            # inspect.getsource(module) (Component.set_class_code), i.e. the whole
+            # file including imports. Hash the same shape so non-admin builds can
+            # match — class-only source would never line up with what's persisted.
+            module = inspect.getmodule(cls)
+            module_name = getattr(module, "__name__", None)
+            if module is None or module_name in seen_modules:
+                continue
             try:
-                source = inspect.getsource(cls)
+                source = inspect.getsource(module)
             except (OSError, TypeError):  # pragma: no cover - defensive
                 continue
+            seen_modules.add(module_name)
             hashes.add(_compute_code_hash(source))
 
     _shipped_code_hashes = hashes
