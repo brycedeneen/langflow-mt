@@ -246,3 +246,45 @@ async def test_upload_flow_accepts_custom_component_for_platform_admin(client, t
             if row is not None:
                 await session.delete(row)
         await session.commit()
+
+
+async def test_create_template_rejects_custom_source_flow_for_tenant(client, tenant_and_admin):
+    """A tenant's source flow containing custom code cannot be promoted to a
+    template even if they're a member of the destination org. Layers on top
+    of the 2026-04-22 source-flow org-binding fix — both checks run."""
+    # Seed a source flow owned by the tenant in the tenant's org.
+    async with session_scope() as session:
+        source = Flow(
+            name=f"src-custom-{uuid.uuid4().hex[:8]}",
+            data=flow_payload_with_custom_code(),
+            user_id=tenant_and_admin["tenant_id"],
+            organization_id=tenant_and_admin["org_id"],
+        )
+        session.add(source)
+        await session.commit()
+        await session.refresh(source)
+        source_id = source.id
+
+    try:
+        headers = await login_as(client, tenant_and_admin["tenant_username"])
+        resp = await client.post(
+            "api/v1/templates",
+            headers=headers,
+            json={
+                "name": f"custom-tmpl-{uuid.uuid4().hex[:8]}",
+                "description": "should be rejected",
+                "source_flow_id": str(source_id),
+                "scope": "org",
+                "org_id": str(tenant_and_admin["org_id"]),
+                "blanked_fields": [],
+                "category_ids": [],
+            },
+        )
+        assert resp.status_code == 403, resp.text
+        assert "custom components are not allowed" in resp.json()["detail"].lower()
+    finally:
+        async with session_scope() as session:
+            row = await session.get(Flow, source_id)
+            if row is not None:
+                await session.delete(row)
+                await session.commit()
