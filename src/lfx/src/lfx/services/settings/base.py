@@ -392,6 +392,9 @@ class Settings(BaseSettings):
 
     secret_store: SecretStoreSettings = Field(default_factory=SecretStoreSettings)
 
+    metering_enabled: bool = True
+    """Kill switch for the metering post-commit hook in worker_app/execute.py."""
+
     @field_validator("runtime_port", mode="before")
     @classmethod
     def validate_runtime_port(cls, value):

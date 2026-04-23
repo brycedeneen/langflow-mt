@@ -187,6 +187,18 @@ async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
             RUN_DURATION.labels(status=terminal_label, flow_id=flow_label).observe(duration)
         ACTIVE_RUNS.labels(organization_id=str(org_id_captured)).dec()
 
+        # Metering + threshold/alert eval (kill-switch: settings.metering_enabled).
+        try:
+            from langflow.services.deps import get_settings_service, get_usage_alert_dispatcher
+            if get_settings_service().settings.metering_enabled:
+                from langflow.services.metering import record_run_completion_and_eval
+                dispatcher = get_usage_alert_dispatcher()
+                await record_run_completion_and_eval(session, run=run, dispatcher=dispatcher)
+                await session.commit()
+        except Exception:  # noqa: BLE001
+            # Never let metering break run completion. Log and move on.
+            logger.exception(f"[run={run_uuid}] metering post-commit failed")
+
     await concurrency.release(org_id_captured)
 
     event_map = {

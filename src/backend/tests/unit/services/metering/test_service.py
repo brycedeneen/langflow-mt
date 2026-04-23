@@ -116,3 +116,75 @@ async def test_sum_tokens_for_flow_day(session_factory):
         total = await sum_tokens_for_flow_day(session, flow_id=flow_id, day=target_day)
 
     assert total == 500
+
+
+@pytest.mark.asyncio
+async def test_record_run_completion_upserts_counters_and_fires_threshold(session_factory, monkeypatch):
+    from langflow.services.database.models.flow_run.model import FlowRun, RunStatus, TriggeredBy
+    from langflow.services.database.models.org_usage_threshold import (
+        OrgUsageThreshold,
+        UsageMetric,
+        UsagePeriod,
+    )
+    from langflow.services.metering.service import record_run_completion_and_eval
+    from langflow.services.notifier.dispatcher import UsageAlertDispatcher
+    from langflow.services.notifier.protocol import UsageAlertEvent
+
+    fired: list[UsageAlertEvent] = []
+
+    class Capturing:
+        async def notify(self, event):
+            fired.append(event)
+
+    dispatcher = UsageAlertDispatcher([Capturing()])
+
+    org_id = uuid4()
+    user_id = uuid4()
+    flow_id = uuid4()
+
+    started = datetime(2026, 4, 22, 10, 0, tzinfo=timezone.utc)
+    finished = datetime(2026, 4, 22, 10, 0, 30, tzinfo=timezone.utc)
+
+    async with session_factory() as session:
+        # Seed a threshold at runs >= 1, daily — crossing on this single run.
+        threshold = OrgUsageThreshold(
+            id=uuid4(),
+            org_id=org_id,
+            metric=UsageMetric.RUNS,
+            period=UsagePeriod.DAILY,
+            threshold_value=1,
+            is_active=True,
+            last_fired_at=None,
+            cooldown_seconds=0,
+            created_by_user_id=user_id,
+        )
+        session.add(threshold)
+        await session.commit()
+
+        run = FlowRun(
+            id=uuid4(),
+            organization_id=org_id,
+            flow_id=flow_id,
+            triggered_by=TriggeredBy.API,
+            status=RunStatus.SUCCEEDED,
+            queued_at=started,
+            started_at=started,
+            finished_at=finished,
+        )
+        session.add(run)
+        await session.commit()
+
+        await record_run_completion_and_eval(session, run=run, dispatcher=dispatcher)
+        await session.commit()
+
+        row = (
+            await session.exec(
+                select(OrgUsageDaily).where(OrgUsageDaily.org_id == org_id)
+            )
+        ).one()
+
+    assert row.runs == 1
+    assert row.run_seconds == 30
+    assert len(fired) == 1
+    assert fired[0].category == "usage_threshold"
+    assert fired[0].org_id == org_id
