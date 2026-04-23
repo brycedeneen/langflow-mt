@@ -8,7 +8,13 @@ from __future__ import annotations
 
 import uuid
 
+from sqlmodel import select
+
 from langflow.services.database.models.flow.model import Flow
+from langflow.services.database.models.folder.constants import DEFAULT_FOLDER_NAME
+from langflow.services.database.models.folder.model import Folder
+from langflow.services.database.models.membership.model import Membership
+from langflow.services.database.models.organization.model import Organization
 from langflow.services.deps import session_scope
 
 from .conftest import login_as
@@ -103,3 +109,69 @@ async def test_execution_blocks_custom_component_for_tenant(client, tenant_and_a
             if row is not None:
                 await session.delete(row)
                 await session.commit()
+
+
+async def test_create_flow_rejects_custom_component_for_tenant(client, tenant_and_admin):
+    headers = await login_as(client, tenant_and_admin["tenant_username"])
+    resp = await client.post(
+        "api/v1/flows/",
+        headers=headers,
+        json={
+            "name": f"rejected-{uuid.uuid4().hex[:8]}",
+            "data": flow_payload_with_custom_code(),
+            "folder_id": None,
+        },
+    )
+    assert resp.status_code == 403, resp.text
+    assert "custom components are not allowed" in resp.json()["detail"].lower()
+
+
+async def test_create_flow_accepts_custom_component_for_platform_admin(client, tenant_and_admin):
+    # The `tenant_and_admin` fixture's admin user picks up TWO memberships: the
+    # one the fixture explicitly creates (in the test org) and a personal org
+    # auto-provisioned by the User `after_insert` scoping trigger. The
+    # `get_current_organization` dependency prefers personal orgs and breaks
+    # ties by earliest-created — which can resolve to the auto-provisioned
+    # personal org, NOT the test org. When `_new_flow` then fabricates a
+    # default folder via `get_or_create_default_folder(user_id)` (no org arg),
+    # the folder's org gets auto-resolved by the scoping trigger from a
+    # different `membership LIMIT 1` lookup, producing a folder-org/flow-org
+    # mismatch. Pre-seed a folder scoped to whichever personal org the request
+    # will resolve to, so the default-folder fallback picks that folder
+    # (matched by `Folder.user_id == user_id`) instead of creating a new one.
+    async with session_scope() as session:
+        memberships = (
+            await session.exec(
+                select(Membership).where(Membership.user_id == tenant_and_admin["admin_id"])
+            )
+        ).all()
+        org_ids = [m.organization_id for m in memberships]
+        orgs = (await session.exec(select(Organization).where(Organization.id.in_(org_ids)))).all()
+        personal_orgs = [o for o in orgs if o.is_personal]
+        picked = min(personal_orgs, key=lambda o: o.created_at) if personal_orgs else min(orgs, key=lambda o: o.created_at)
+        folder = Folder(
+            name=DEFAULT_FOLDER_NAME,
+            user_id=tenant_and_admin["admin_id"],
+            organization_id=picked.id,
+        )
+        session.add(folder)
+        await session.commit()
+
+    headers = await login_as(client, tenant_and_admin["admin_username"])
+    resp = await client.post(
+        "api/v1/flows/",
+        headers=headers,
+        json={
+            "name": f"admin-custom-{uuid.uuid4().hex[:8]}",
+            "data": flow_payload_with_custom_code(),
+            "folder_id": None,
+        },
+    )
+    assert resp.status_code == 201, resp.text
+    # Clean up the flow we just created.
+    created_id = resp.json()["id"]
+    async with session_scope() as session:
+        row = await session.get(Flow, uuid.UUID(created_id))
+        if row is not None:
+            await session.delete(row)
+            await session.commit()

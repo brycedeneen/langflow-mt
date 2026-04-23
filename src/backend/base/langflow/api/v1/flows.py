@@ -18,10 +18,18 @@ from fastapi.responses import StreamingResponse
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.sqlmodel import apaginate
 from lfx.log import logger
+from lfx.utils.flow_validation import CustomComponentNotAllowedError, validate_flow_components
 from sqlmodel import and_, col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from langflow.api.utils import CurrentActiveUser, DbSession, cascade_delete_flow, remove_api_keys, validate_is_component
+from langflow.api.utils import (
+    CurrentActiveUser,
+    DbSession,
+    cascade_delete_flow,
+    remove_api_keys,
+    resolve_component_gate_flags,
+    validate_is_component,
+)
 from langflow.api.utils.core import CurrentOrg
 from langflow.api.v1.schemas import FlowListCreate
 from langflow.helpers.user import get_user_by_flow_id_or_endpoint_name
@@ -365,6 +373,21 @@ async def create_flow(
     current_org: CurrentOrg,
     storage_service: Annotated[StorageService, Depends(get_storage_service)],
 ):
+    # Gate: block custom-component code on creation for non-admin callers.
+    # Mirrors the execution-path gate in langflow.api.utils.core.build_graph_from_data.
+    try:
+        allow_custom, is_pa = resolve_component_gate_flags(current_user)
+        validate_flow_components(
+            flow.data or {},
+            allow_custom=allow_custom,
+            caller_is_platform_admin=is_pa,
+        )
+    except CustomComponentNotAllowedError as err:
+        raise HTTPException(
+            status_code=403,
+            detail="Custom components are not allowed on this deployment.",
+        ) from err
+
     # Guard: reject creation if the referenced template is archived
     if flow.based_on_template_flow_id is not None:
         t = await session.get(Template, flow.based_on_template_flow_id)
