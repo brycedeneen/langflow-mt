@@ -45,6 +45,11 @@ export const URLs = {
   ADMIN_USERS: `admin/users`,
   METADATA_COMPONENTS: `admin/metadata/components`,
   METADATA_TEMPLATES: `admin/metadata/templates`,
+  ADMIN_NOTIFICATIONS: `admin/notifications`,
+  ADMIN_USAGE_THRESHOLDS: `admin/orgs`,
+  ADMIN_USAGE_THRESHOLD: `admin/usage/thresholds`,
+  ADMIN_ALERT_RULES: `admin/orgs`,
+  ADMIN_ALERT_RULE: `admin/alert-rules`,
 } as const;
 
 // IMPORTANT: FOLDERS endpoint now points to 'projects' for backward compatibility
