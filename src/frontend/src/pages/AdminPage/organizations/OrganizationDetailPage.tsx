@@ -8,8 +8,10 @@ import {
   TabsTrigger,
   TabsContent,
 } from "../../../components/ui/tabs";
+import OrganizationAlertRulesTab from "./OrganizationAlertRulesTab";
 import OrganizationMembersTab from "./OrganizationMembersTab";
 import OrganizationSettingsTab from "./OrganizationSettingsTab";
+import OrganizationThresholdsTab from "./OrganizationThresholdsTab";
 import OrganizationUsageTab from "./OrganizationUsageTab";
 
 export default function OrganizationDetailPage() {
@@ -55,7 +57,9 @@ export default function OrganizationDetailPage() {
           <TabsList className="border-b">
             <TabsTrigger value="members">Members</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
-            <TabsTrigger value="usage">Usage &amp; Alerts</TabsTrigger>
+            <TabsTrigger value="usage">Usage</TabsTrigger>
+            <TabsTrigger value="thresholds">Thresholds</TabsTrigger>
+            <TabsTrigger value="alert-rules">Alert rules</TabsTrigger>
           </TabsList>
           <TabsContent value="members" className="flex-1 overflow-auto pt-4">
             <OrganizationMembersTab orgId={org.id} members={org.members} />
@@ -65,6 +69,12 @@ export default function OrganizationDetailPage() {
           </TabsContent>
           <TabsContent value="usage" className="flex-1 overflow-auto pt-4">
             <OrganizationUsageTab orgId={org.id} />
+          </TabsContent>
+          <TabsContent value="thresholds" className="flex-1 overflow-auto pt-4">
+            <OrganizationThresholdsTab orgId={org.id} />
+          </TabsContent>
+          <TabsContent value="alert-rules" className="flex-1 overflow-auto pt-4">
+            <OrganizationAlertRulesTab orgId={org.id} />
           </TabsContent>
         </Tabs>
       )}
