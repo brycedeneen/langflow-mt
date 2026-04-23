@@ -24,6 +24,7 @@ from langflow.services.database.models.traces.model import SpanTable, TraceTable
 from langflow.services.database.models.transactions.model import TransactionTable
 from langflow.services.database.models.user.model import User
 from langflow.services.database.models.vertex_builds.model import VertexBuildTable
+from langflow.services.deps import get_settings_service
 from langflow.services.store.utils import get_lf_version_from_pypi
 from langflow.utils.constants import LANGFLOW_GLOBAL_VAR_HEADER_PREFIX
 
@@ -218,8 +219,36 @@ async def _get_flow_name(flow_id: uuid.UUID) -> str:
     return flow.name
 
 
-async def build_graph_from_data(flow_id: uuid.UUID | str, payload: dict, **kwargs):
-    """Build and cache the graph."""
+def resolve_component_gate_flags(user: User | None) -> tuple[bool, bool]:
+    """Return ``(allow_custom_components, caller_is_platform_admin)`` for the current request context.
+
+    Centralises the two reads performed at every enforcement site (build, run,
+    upload, template-create). ``user`` may be ``None`` to cover anonymous /
+    api-key paths where the caller identity is not yet resolved — both flags
+    then fall back to their safe defaults (``False``), so the gate remains
+    engaged by default.
+    """
+    settings = get_settings_service().settings
+    allow_custom = bool(getattr(settings, "allow_custom_components", False))
+    is_platform_admin = bool(getattr(user, "is_platform_admin", False))
+    return allow_custom, is_platform_admin
+
+
+async def build_graph_from_data(
+    flow_id: uuid.UUID | str,
+    payload: dict,
+    *,
+    allow_custom_components: bool = False,
+    caller_is_platform_admin: bool = False,
+    **kwargs,
+):
+    """Build and cache the graph.
+
+    ``allow_custom_components`` and ``caller_is_platform_admin`` are promoted to
+    explicit keyword-only parameters so a typo at any call site fails loudly
+    instead of silently engaging the gate. All other graph construction options
+    continue to flow through ``**kwargs``.
+    """
     # Get flow name
     if "flow_name" not in kwargs:
         flow_name = await _get_flow_name(flow_id if isinstance(flow_id, uuid.UUID) else uuid.UUID(flow_id))
@@ -228,7 +257,14 @@ async def build_graph_from_data(flow_id: uuid.UUID | str, payload: dict, **kwarg
     str_flow_id = str(flow_id)
     session_id = kwargs.get("session_id") or str_flow_id
 
-    graph = Graph.from_payload(payload, str_flow_id, flow_name, kwargs.get("user_id"))
+    graph = Graph.from_payload(
+        payload,
+        str_flow_id,
+        flow_name,
+        kwargs.get("user_id"),
+        allow_custom_components=allow_custom_components,
+        caller_is_platform_admin=caller_is_platform_admin,
+    )
     for vertex_id in graph.has_session_id_vertices:
         vertex = graph.get_vertex(vertex_id)
         if vertex is None:
@@ -242,18 +278,46 @@ async def build_graph_from_data(flow_id: uuid.UUID | str, payload: dict, **kwarg
     return graph
 
 
-async def build_graph_from_db_no_cache(flow_id: uuid.UUID, session: AsyncSession, **kwargs):
+async def build_graph_from_db_no_cache(
+    flow_id: uuid.UUID,
+    session: AsyncSession,
+    *,
+    allow_custom_components: bool = False,
+    caller_is_platform_admin: bool = False,
+    **kwargs,
+):
     """Build and cache the graph."""
     flow: Flow | None = await session.get(Flow, flow_id)
     if not flow or not flow.data:
         msg = "Invalid flow ID"
         raise ValueError(msg)
     kwargs["user_id"] = kwargs.get("user_id") or str(flow.user_id)
-    return await build_graph_from_data(flow_id, flow.data, flow_name=flow.name, **kwargs)
+    return await build_graph_from_data(
+        flow_id,
+        flow.data,
+        flow_name=flow.name,
+        allow_custom_components=allow_custom_components,
+        caller_is_platform_admin=caller_is_platform_admin,
+        **kwargs,
+    )
 
 
-async def build_graph_from_db(flow_id: uuid.UUID, session: AsyncSession, chat_service: ChatService, **kwargs):
-    graph = await build_graph_from_db_no_cache(flow_id=flow_id, session=session, **kwargs)
+async def build_graph_from_db(
+    flow_id: uuid.UUID,
+    session: AsyncSession,
+    chat_service: ChatService,
+    *,
+    allow_custom_components: bool = False,
+    caller_is_platform_admin: bool = False,
+    **kwargs,
+):
+    graph = await build_graph_from_db_no_cache(
+        flow_id=flow_id,
+        session=session,
+        allow_custom_components=allow_custom_components,
+        caller_is_platform_admin=caller_is_platform_admin,
+        **kwargs,
+    )
     await chat_service.set_cache(str(flow_id), graph)
     return graph
 
