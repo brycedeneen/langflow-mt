@@ -154,3 +154,13 @@ Backport merged to `platform-multi-tenant` 2026-04-23. Coding work is complete a
 ### Task 5 (Revert Audit) — not executed, see above
 
 - [ ] **Task 5 of the plan was scoped to enumerate what else the `642e39fcb8` revert re-exposed. Since that commit never landed on `platform-multi-tenant`, there is no revert to audit.** Close this item unless/until a similar release-merge revert appears on our branch.
+
+## 2026-04-23 — `/custom_component/update` RCE surface still ungated
+
+**Origin:** Commit `e4867515e` ("require superuser for custom component endpoints") over-gated `POST /api/v1/custom_component/update`. Reverted on the same day because that endpoint is the hot path for every dynamic field refresh (Agent model dropdown via `use-refresh-model-inputs.ts:230`, all template value writes via `use-post-template-value.ts:58`) — superuser-gating it broke the normal-user UI with 403s.
+
+- [ ] **Endpoint is back on `CurrentActiveUser` (its pre-2026-04-23 shape) but still calls `Component(_code=code_request.code)` → `build_custom_component_template(...)`, which compiles and imports user-supplied Python at request time.** That's a pre-run RCE surface for any authenticated user, regardless of the deploy-level `LANGFLOW_ALLOW_CUSTOM_COMPONENTS` setting and regardless of `is_platform_admin`.
+- [ ] **Proper fix: integrate `resolve_component_gate_flags` into the handler.** When `allow_custom_components=False AND not caller_is_platform_admin`, the endpoint must NOT compile arbitrary `code_request.code`. Two viable shapes:
+  - (a) Look up the component's canonical code server-side using a stable identifier (e.g., `template._type` or a registered-component name in the request) and use that instead of the user-supplied `code`. The user-supplied `code` becomes informational only.
+  - (b) Hash-compare `code_request.code` against the registered code for that component type; if they match, accept; if they differ, require the gate. Requires extending the request schema with a component-identity field.
+- [ ] **Sibling endpoint `POST /custom_component` remains correctly gated on `get_current_active_superuser`.** It's only invoked from the Code-paste validator (`use-post-validate-component-code.ts`), which the UI already restricts to platform admins via `useCustomComponentsAllowed`. That endpoint and its 403 negative test (`test_custom_component_build_requires_superuser`) are untouched by the revert.

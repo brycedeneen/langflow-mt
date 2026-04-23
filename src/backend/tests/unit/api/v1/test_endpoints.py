@@ -34,7 +34,7 @@ async def test_get_config_basic(client: AsyncClient, logged_in_headers: dict):
     assert "max_file_size_upload" in result, "The dictionary must contain a key called 'max_file_size_upload'"
 
 
-async def test_update_component_outputs(client: AsyncClient, logged_in_headers_super_user: dict):
+async def test_update_component_outputs(client: AsyncClient, logged_in_headers: dict):
     path = Path(__file__).parent.parent.parent.parent / "data" / "dynamic_output_component.py"
 
     code = await path.read_text(encoding="utf-8")
@@ -46,7 +46,7 @@ async def test_update_component_outputs(client: AsyncClient, logged_in_headers_s
         field_value=True,
         template={},
     )
-    response = await client.post("api/v1/custom_component/update", json=request.model_dump(), headers=logged_in_headers_super_user)
+    response = await client.post("api/v1/custom_component/update", json=request.model_dump(), headers=logged_in_headers)
     result = response.json()
 
     assert response.status_code == status.HTTP_200_OK
@@ -54,7 +54,7 @@ async def test_update_component_outputs(client: AsyncClient, logged_in_headers_s
     assert "tool_output" in output_names
 
 
-async def test_update_component_model_name_options(client: AsyncClient, logged_in_headers_super_user: dict):
+async def test_update_component_model_name_options(client: AsyncClient, logged_in_headers: dict):
     """Test that model options are updated when the model field changes."""
     component = AgentComponent()
     component_node, _cc_instance = build_custom_component_template(
@@ -82,7 +82,7 @@ async def test_update_component_model_name_options(client: AsyncClient, logged_i
     )
 
     # Make the request to update the component
-    response = await client.post("api/v1/custom_component/update", json=request.model_dump(), headers=logged_in_headers_super_user)
+    response = await client.post("api/v1/custom_component/update", json=request.model_dump(), headers=logged_in_headers)
     result = response.json()
 
     # Verify the response
@@ -289,30 +289,6 @@ async def test_get_config_authenticated_returns_full_config(client: AsyncClient,
     assert "auto_saving_interval" in result, "Authenticated response must contain 'auto_saving_interval'"
     assert "health_check_max_retries" in result, "Authenticated response must contain 'health_check_max_retries'"
     assert "feature_flags" in result, "Authenticated response must contain 'feature_flags'"
-
-
-async def test_update_component_requires_superuser(
-    client: AsyncClient, logged_in_headers: dict
-):
-    """Non-superuser users get 403 from POST /custom_component/update."""
-    path = Path(__file__).parent.parent.parent.parent / "data" / "dynamic_output_component.py"
-    code = await path.read_text(encoding="utf-8")
-    frontend_node: dict[str, Any] = {"outputs": []}
-    request = UpdateCustomComponentRequest(
-        code=code,
-        frontend_node=frontend_node,
-        field="show_output",
-        field_value=True,
-        template={},
-    )
-
-    response = await client.post(
-        "api/v1/custom_component/update",
-        json=request.model_dump(),
-        headers=logged_in_headers,  # plain non-super user
-    )
-
-    assert response.status_code == status.HTTP_403_FORBIDDEN, response.text
 
 
 async def test_custom_component_build_requires_superuser(

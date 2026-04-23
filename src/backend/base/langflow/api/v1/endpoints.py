@@ -1173,7 +1173,7 @@ async def custom_component(
 @router.post("/custom_component/update", status_code=HTTPStatus.OK, include_in_schema=False)
 async def custom_component_update(
     code_request: UpdateCustomComponentRequest,
-    user: User = Depends(get_current_active_superuser),
+    user: CurrentActiveUser,
 ):
     """Update an existing custom component with new code and configuration.
 
