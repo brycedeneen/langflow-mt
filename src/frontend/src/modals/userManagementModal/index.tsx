@@ -2,11 +2,15 @@ import * as Form from "@radix-ui/react-form";
 import { Eye, EyeOff } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import IconComponent from "@/components/common/genericIconComponent";
+import RolePicker from "@/components/common/rolePicker";
 import ShadTooltip from "@/components/common/shadTooltipComponent";
 import { Button } from "../../components/ui/button";
 import { Checkbox } from "../../components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { CONTROL_NEW_USER } from "../../constants/constants";
+import type { MembershipRole } from "@/constants/roles";
 import { AuthContext } from "../../contexts/authContext";
+import { useGetOrganizations } from "@/controllers/API/queries/admin";
 import type {
   inputHandlerEventType,
   UserInputType,
@@ -38,13 +42,38 @@ export default function UserManagementModal({
     data?.is_platform_admin ?? false,
   );
   const [inputState, setInputState] = useState<UserInputType>(CONTROL_NEW_USER);
+  const [organizationId, setOrganizationId] = useState("");
+  const [orgQuery, setOrgQuery] = useState("");
+  const [role, setRole] = useState<MembershipRole>("member");
   const { userData } = useContext(AuthContext);
+
+  const isCreateMode = !data;
+  const needsOrg = isCreateMode && !isSuperUser && !isPlatformAdmin;
+
+  const { data: orgsData, isLoading: isOrgsLoading } = useGetOrganizations(
+    { q: orgQuery || undefined, limit: 20 },
+    {
+      enabled: isCreateMode && userData?.is_platform_admin === true,
+    },
+  );
+  const orgItems = (orgsData?.items ?? []).filter((o) => !o.is_personal);
+  const hasAnyOrgs = (orgsData?.total ?? orgItems.length) > 0 || orgQuery !== "";
 
   function handleInput({
     target: { name, value },
   }: inputHandlerEventType): void {
     setInputState((prev) => ({ ...prev, [name]: value }));
   }
+
+  useEffect(() => {
+    if (isSuperUser || isPlatformAdmin) {
+      setOrganizationId("");
+      setOrgQuery("");
+      setRole("member");
+      handleInput({ target: { name: "organization_id", value: "" } });
+      handleInput({ target: { name: "role", value: "member" } });
+    }
+  }, [isSuperUser, isPlatformAdmin]);
 
   useEffect(() => {
     if (open) {
@@ -75,6 +104,9 @@ export default function UserManagementModal({
     setIsActive(false);
     setIsSuperUser(false);
     setIsPlatformAdmin(false);
+    setOrganizationId("");
+    setOrgQuery("");
+    setRole("member");
   }
 
   return (
@@ -327,6 +359,72 @@ export default function UserManagementModal({
                 </Form.Field>
               )}
             </div>
+
+            {needsOrg && (
+              <div className="flex flex-col gap-3">
+                <Form.Field name="organization_id">
+                  <Form.Label className="data-[invalid]:label-invalid">
+                    Organization <span className="font-medium text-destructive">*</span>
+                  </Form.Label>
+                  {!hasAnyOrgs && !isOrgsLoading ? (
+                    <div
+                      className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive"
+                      data-testid="new-user-no-orgs-message"
+                    >
+                      No organizations exist. Create one in Admin → Organizations first.
+                    </div>
+                  ) : (
+                    <>
+                      <Input
+                        placeholder="Search organizations..."
+                        value={orgQuery}
+                        onChange={(e) => setOrgQuery(e.target.value)}
+                        data-testid="new-user-org-search"
+                      />
+                      <ul
+                        className="mt-2 max-h-48 overflow-auto rounded-md border"
+                        data-testid="new-user-org-list"
+                      >
+                        {orgItems.map((o) => (
+                          <li
+                            key={o.id}
+                            className={`cursor-pointer px-3 py-2 hover:bg-muted ${
+                              organizationId === o.id ? "bg-muted" : ""
+                            }`}
+                            onClick={() => {
+                              setOrganizationId(o.id);
+                              handleInput({
+                                target: { name: "organization_id", value: o.id },
+                              });
+                            }}
+                            data-testid={`new-user-org-option-${o.id}`}
+                          >
+                            {o.name}
+                          </li>
+                        ))}
+                        {orgItems.length === 0 && !isOrgsLoading && (
+                          <li className="px-3 py-2 text-muted-foreground">No matches.</li>
+                        )}
+                      </ul>
+                    </>
+                  )}
+                </Form.Field>
+
+                <Form.Field name="role">
+                  <Form.Label className="data-[invalid]:label-invalid mr-3">
+                    Role <span className="font-medium text-destructive">*</span>
+                  </Form.Label>
+                  <RolePicker
+                    caller="platform_admin"
+                    current={role}
+                    onSelect={(next) => {
+                      setRole(next);
+                      handleInput({ target: { name: "role", value: next } });
+                    }}
+                  />
+                </Form.Field>
+              </div>
+            )}
           </div>
 
           <div className="float-right">
@@ -341,7 +439,16 @@ export default function UserManagementModal({
             </Button>
 
             <Form.Submit asChild>
-              <Button className="mt-8">{confirmationText}</Button>
+              <Button
+                className="mt-8"
+                disabled={
+                  needsOrg &&
+                  (!organizationId || (!hasAnyOrgs && !isOrgsLoading))
+                }
+                data-testid="new-user-save"
+              >
+                {confirmationText}
+              </Button>
             </Form.Submit>
           </div>
         </Form.Root>
