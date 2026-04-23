@@ -6,6 +6,7 @@ from arq.connections import RedisSettings
 from lfx.log.logger import logger
 
 from langflow.services.settings.base import Settings
+from langflow.worker_app.audit_cleanup import audit_cleanup
 from langflow.worker_app.execute import WORKER_ID, execute_run
 from langflow.worker_app.reaper import reap_lost_runs
 from langflow.worker_app.retention import retention_sweep
@@ -47,6 +48,7 @@ class WorkerSettings:
     cron_jobs = [
         cron(reap_lost_runs, name="reap_lost_runs", second={0, 30}),
         cron(retention_sweep, name="retention_sweep", minute=0),
+        cron(audit_cleanup, name="audit_cleanup", hour=3, minute=0),  # daily 03:00 UTC
     ]
     queue_name = _settings.arq_default_queue
     max_jobs = _settings.worker_concurrency
