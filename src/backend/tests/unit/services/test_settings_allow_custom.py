@@ -22,3 +22,25 @@ def test_allow_custom_components_parses_truthy(monkeypatch, truthy):
 def test_allow_custom_components_parses_falsy(monkeypatch, falsy):
     monkeypatch.setenv("LANGFLOW_ALLOW_CUSTOM_COMPONENTS", falsy)
     assert Settings().allow_custom_components is False
+
+
+async def test_config_endpoint_surfaces_allow_custom_components(client, logged_in_headers):
+    """GET /api/v1/config must expose the allow_custom_components flag so
+    the frontend guard hook can read it."""
+    resp = await client.get("api/v1/config", headers=logged_in_headers)
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert "allow_custom_components" in body
+    assert body["allow_custom_components"] is False  # default fleet posture
+
+
+async def test_public_config_endpoint_surfaces_allow_custom_components(client):
+    """Pre-auth clients must see the flag too so the guard hook can gate UI
+    before login. Locks in the BaseConfigResponse placement decision — if a
+    future refactor moves the field to ConfigResponse only, this test fails
+    and the public playground stops enforcing the gate."""
+    resp = await client.get("api/v1/config")
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["type"] == "public"
+    assert body["allow_custom_components"] is False

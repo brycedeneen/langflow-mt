@@ -379,6 +379,7 @@ class BaseConfigResponse(BaseModel):
     event_delivery: Literal["polling", "streaming", "direct"]
     voice_mode_available: bool
     frontend_timeout: int
+    allow_custom_components: bool = False
 
 
 class PublicConfigResponse(BaseConfigResponse):
@@ -405,6 +406,7 @@ class PublicConfigResponse(BaseConfigResponse):
             event_delivery=settings.event_delivery,
             voice_mode_available=settings.voice_mode_available,
             frontend_timeout=settings.frontend_timeout,
+            allow_custom_components=settings.allow_custom_components,
         )
 
 
@@ -460,6 +462,7 @@ class ConfigResponse(BaseConfigResponse):
             webhook_auth_enable=auth_settings.WEBHOOK_AUTH_ENABLE,
             default_folder_name=DEFAULT_FOLDER_NAME,
             hide_getting_started_progress=os.getenv("HIDE_GETTING_STARTED_PROGRESS", "").lower() == "true",
+            allow_custom_components=settings.allow_custom_components,
         )
 
 
