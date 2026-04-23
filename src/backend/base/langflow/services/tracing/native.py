@@ -312,6 +312,7 @@ class NativeTracer(BaseTracer):
                     id=self.trace_id,
                     name=self.trace_name,
                     flow_id=flow_uuid,
+                    flow_run_id=self.trace_id,  # trace_id == run_id for native tracer
                     session_id=self.session_id,
                     status=trace_status,
                     start_time=self._start_time,

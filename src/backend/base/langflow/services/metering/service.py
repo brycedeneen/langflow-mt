@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime as dt
 from dataclasses import dataclass
 from datetime import datetime, time, timedelta, timezone
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 from lfx.log.logger import logger
@@ -98,6 +98,48 @@ async def sum_tokens_for_flow_day(
     return int(result.one())
 
 
+async def upsert_flow_usage_daily(
+    session: "AsyncSession",
+    *,
+    flow_id: UUID,
+    org_id: UUID,
+    day: dt.date,
+    runs_delta: int,
+    run_seconds_delta: int,
+    tokens_delta: int,
+    cost_cents_delta: int,
+) -> None:
+    """Atomic per-(flow, date) counter upsert for FlowUsageDaily."""
+    from langflow.services.database.models.flow_usage_daily import FlowUsageDaily
+
+    bind = session.bind
+    dialect = bind.dialect.name if bind else "sqlite"
+    insert_fn = pg_insert if dialect == "postgresql" else sqlite_insert
+
+    now = datetime.now(timezone.utc)
+    stmt = insert_fn(FlowUsageDaily).values(
+        flow_id=flow_id,
+        date=day,
+        org_id=org_id,
+        runs=runs_delta,
+        run_seconds=run_seconds_delta,
+        tokens=tokens_delta,
+        cost_cents=cost_cents_delta,
+        updated_at=now,
+    )
+    stmt = stmt.on_conflict_do_update(
+        index_elements=["flow_id", "date"],
+        set_={
+            "runs": FlowUsageDaily.runs + stmt.excluded.runs,
+            "run_seconds": FlowUsageDaily.run_seconds + stmt.excluded.run_seconds,
+            "tokens": FlowUsageDaily.tokens + stmt.excluded.tokens,
+            "cost_cents": FlowUsageDaily.cost_cents + stmt.excluded.cost_cents,
+            "updated_at": stmt.excluded.updated_at,
+        },
+    )
+    await session.exec(stmt)
+
+
 @dataclass(frozen=True)
 class _DailyCounters:
     runs: int
@@ -142,6 +184,25 @@ async def record_run_completion_and_eval(
     if run.flow_id is not None:
         tokens = await sum_tokens_for_flow_day(session, flow_id=run.flow_id, day=day)
 
+    # Cost computation (gated by settings.cost_tracking_enabled).
+    cost_cents = 0
+    model_usage: dict[str, Any] = {}
+    try:
+        from langflow.services.deps import get_pricing_service, get_settings_service
+        if get_settings_service().settings.cost_tracking_enabled and run.flow_id is not None:
+            from langflow.services.cost.compute import compute_cost_for_run
+            pricing = get_pricing_service()
+            cost_cents, model_usage = await compute_cost_for_run(
+                session, flow_run_id=run.id, pricing=pricing
+            )
+            run.cost_cents = cost_cents
+            run.model_usage = model_usage or None
+            session.add(run)
+    except Exception:  # noqa: BLE001
+        logger.exception("cost computation failed for run %s", run.id)
+        cost_cents = 0
+        model_usage = {}
+
     # Re-read pre-increment counters so threshold eval sees the crossing delta.
     existing = (
         await session.exec(
@@ -164,7 +225,19 @@ async def record_run_completion_and_eval(
         runs_delta=1,
         run_seconds_delta=duration_s,
         tokens_delta=tokens,
+        cost_cents_delta=cost_cents,
     )
+    if run.flow_id is not None:
+        await upsert_flow_usage_daily(
+            session,
+            flow_id=run.flow_id,
+            org_id=run.organization_id,
+            day=day,
+            runs_delta=1,
+            run_seconds_delta=duration_s,
+            tokens_delta=tokens,
+            cost_cents_delta=cost_cents,
+        )
     current = _DailyCounters(
         runs=previous.runs + 1,
         run_seconds=previous.run_seconds + duration_s,
