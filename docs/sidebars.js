@@ -124,6 +124,11 @@ module.exports = {
               id: "Develop/enterprise-database-guide",
               label: "Database guide for enterprise administrators"
             },
+            {
+              type: "doc",
+              id: "Develop/database-connection-pool-and-replicas",
+              label: "Database connection pool and read replicas"
+            },
             "Develop/knowledge",
           ],
         },
