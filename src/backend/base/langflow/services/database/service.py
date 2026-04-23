@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import os
-import re
 import sqlite3
 import sys
 import time
@@ -22,22 +21,19 @@ from sqlalchemy.dialects import sqlite as dialect_sqlite
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
-from sqlmodel import SQLModel, select, text
+from sqlmodel import SQLModel, text
 from sqlmodel.ext.asyncio.session import AsyncSession as SQLModelAsyncSession
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from langflow.helpers.windows_postgres_helper import configure_windows_postgres_event_loop
-from langflow.initial_setup.constants import STARTER_FOLDER_NAME
 from langflow.services.base import Service
 from langflow.services.database import models
 from langflow.services.database.constants import (
     MIN_POSTGRESQL_MAJOR_VERSION,
     POSTGRESQL_VERSION_REQUIRED_MESSAGE,
 )
-from langflow.services.database.models.user.crud import get_user_by_username
 from langflow.services.database.session import NoopSession
 from langflow.services.database.utils import Result, TableResults
-from langflow.services.deps import get_settings_service
 
 if TYPE_CHECKING:
     from lfx.services.settings.service import SettingsService
@@ -305,81 +301,6 @@ class DatabaseService(Service):
         # Raise AFTER session_scope exits so session_scope doesn't log a
         # noisy "An error occurred during the session scope." traceback.
         _check_version_row(version_num_str, version_str)
-
-    async def assign_orphaned_flows_to_superuser(self) -> None:
-        """Assign orphaned flows to the default superuser when auto login is enabled."""
-        settings_service = get_settings_service()
-
-        if not settings_service.auth_settings.AUTO_LOGIN:
-            return
-
-        async with session_scope() as session:
-            # Fetch orphaned flows
-            stmt = (
-                select(models.Flow)
-                .join(models.Folder)
-                .where(
-                    models.Flow.user_id == None,  # noqa: E711
-                    models.Folder.name != STARTER_FOLDER_NAME,
-                )
-            )
-            orphaned_flows = (await session.exec(stmt)).all()
-
-            if not orphaned_flows:
-                return
-
-            await logger.adebug("Assigning orphaned flows to the default superuser")
-
-            # Retrieve superuser
-            superuser_username = settings_service.auth_settings.SUPERUSER
-            superuser = await get_user_by_username(session, superuser_username)
-
-            if not superuser:
-                error_message = "Default superuser not found"
-                await logger.aerror(error_message)
-                raise RuntimeError(error_message)
-
-            # Get existing flow names for the superuser
-            existing_names: set[str] = set(
-                (await session.exec(select(models.Flow.name).where(models.Flow.user_id == superuser.id))).all()
-            )
-
-            # Process orphaned flows
-            for flow in orphaned_flows:
-                flow.user_id = superuser.id
-                flow.name = self._generate_unique_flow_name(flow.name, existing_names)
-                existing_names.add(flow.name)
-                session.add(flow)
-
-            # Commit changes
-            await session.commit()
-            await logger.adebug("Successfully assigned orphaned flows to the default superuser")
-
-    @staticmethod
-    def _generate_unique_flow_name(original_name: str, existing_names: set[str]) -> str:
-        """Generate a unique flow name by adding or incrementing a suffix."""
-        if original_name not in existing_names:
-            return original_name
-
-        match = re.search(r"^(.*) \((\d+)\)$", original_name)
-        if match:
-            base_name, current_number = match.groups()
-            new_name = f"{base_name} ({int(current_number) + 1})"
-        else:
-            new_name = f"{original_name} (1)"
-
-        # Ensure unique name by incrementing suffix
-        while new_name in existing_names:
-            match = re.match(r"^(.*) \((\d+)\)$", new_name)
-            if match is not None:
-                base_name, current_number = match.groups()
-            else:
-                error_message = "Invalid format: match is None"
-                raise ValueError(error_message)
-
-            new_name = f"{base_name} ({int(current_number) + 1})"
-
-        return new_name
 
     @staticmethod
     def _check_schema_health(connection) -> bool:
