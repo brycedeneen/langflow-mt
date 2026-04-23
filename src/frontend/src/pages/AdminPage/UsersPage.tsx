@@ -2,6 +2,7 @@ import { cloneDeep } from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PaginatorComponent from "@/components/common/paginatorComponent";
+import { useAddMember } from "@/controllers/API/queries/admin";
 import {
   useAddUser,
   useDeleteUsers,
@@ -58,6 +59,7 @@ export default function UsersPage() {
   const { mutate: mutateDeleteUser } = useDeleteUsers();
   const { mutate: mutateUpdateUser } = useUpdateUser();
   const { mutate: mutateAddUser } = useAddUser();
+  const { mutate: mutateAddMember } = useAddMember();
 
   const userList = useRef([]);
 
@@ -238,25 +240,49 @@ export default function UsersPage() {
   function handleNewUser(user: UserInputType) {
     mutateAddUser(user, {
       onSuccess: (res) => {
+        const newUserId = res["id"];
         mutateUpdateUser(
           {
-            user_id: res["id"],
+            user_id: newUserId,
             user: {
               is_active: user.is_active,
               is_superuser: user.is_superuser,
+              is_platform_admin: user.is_platform_admin,
             },
           },
           {
             onSuccess: () => {
-              resetFilter();
-              setSuccessData({
-                title: USER_ADD_SUCCESS_ALERT,
-              });
+              if (user.organization_id) {
+                mutateAddMember(
+                  {
+                    orgId: user.organization_id,
+                    user_id: newUserId,
+                    role: user.role ?? "member",
+                  },
+                  {
+                    onSuccess: () => {
+                      resetFilter();
+                      setSuccessData({ title: USER_ADD_SUCCESS_ALERT });
+                    },
+                    onError: (error) => {
+                      resetFilter();
+                      setErrorData({
+                        title: "User created, but could not be added to organization. Add them from the organization page.",
+                        list: [error["response"]?.["data"]?.["detail"] ?? String(error)],
+                      });
+                    },
+                  },
+                );
+              } else {
+                resetFilter();
+                setSuccessData({ title: USER_ADD_SUCCESS_ALERT });
+              }
             },
             onError: (error) => {
+              resetFilter();
               setErrorData({
-                title: USER_ADD_ERROR_ALERT,
-                list: [error["response"]["data"]["detail"]],
+                title: "User created, but role flags could not be applied. Please edit the user to set roles.",
+                list: [error["response"]?.["data"]?.["detail"] ?? String(error)],
               });
             },
           },

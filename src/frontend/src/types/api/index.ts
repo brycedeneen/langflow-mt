@@ -184,6 +184,7 @@ export type changeUser = {
   username?: string;
   is_active?: boolean;
   is_superuser?: boolean;
+  is_platform_admin?: boolean;
   password?: string;
   profile_image?: string;
   optins?: {
