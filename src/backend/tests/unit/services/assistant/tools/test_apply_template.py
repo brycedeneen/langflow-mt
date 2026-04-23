@@ -2,19 +2,32 @@
 
 from __future__ import annotations
 
+import uuid
+
 import pytest
 from sqlmodel import select
 
 from langflow.services.assistant.tools.template_apply import apply_template
 from langflow.services.database.models import Flow, Folder
 from langflow.services.database.models.flow.starter import STARTER_FOLDER_NAME
+from langflow.services.database.models.organization.model import Organization
 from langflow.services.deps import session_scope
+
+
+async def _make_test_org(session) -> Organization:
+    slug = uuid.uuid4().hex[:8]
+    org = Organization(name=f"test-org-{slug}", slug=f"test-org-{slug}", is_personal=False)
+    session.add(org)
+    await session.flush()
+    await session.refresh(org)
+    return org
 
 
 @pytest.mark.asyncio
 async def test_apply_template_happy_path(active_super_user):
     async with session_scope() as session:
-        folder = Folder(name=STARTER_FOLDER_NAME, user_id=active_super_user.id)
+        org = await _make_test_org(session)
+        folder = Folder(name=STARTER_FOLDER_NAME, user_id=active_super_user.id, organization_id=org.id)
         session.add(folder)
         await session.commit()
         await session.refresh(folder)
@@ -22,6 +35,7 @@ async def test_apply_template_happy_path(active_super_user):
             name="Slack Tpl",
             user_id=active_super_user.id,
             folder_id=folder.id,
+            organization_id=org.id,
             data={
                 "nodes": [{"id": "Webhook-aaaaa", "data": {"id": "Webhook-aaaaa", "type": "Webhook"}}],
                 "edges": [],
@@ -30,13 +44,23 @@ async def test_apply_template_happy_path(active_super_user):
         session.add(template)
         await session.commit()
         await session.refresh(template)
-        target = Flow(name="Empty", user_id=active_super_user.id, data={"nodes": [], "edges": []})
+        target = Flow(
+            name="Empty",
+            user_id=active_super_user.id,
+            organization_id=org.id,
+            data={"nodes": [], "edges": []},
+        )
         session.add(target)
         await session.commit()
         await session.refresh(target)
         target_id, template_id = str(target.id), str(template.id)
+        actor_org_id = org.id
 
-    result = await apply_template(target_flow_id=target_id, template_flow_id=template_id)
+    result = await apply_template(
+        target_flow_id=target_id,
+        template_flow_id=template_id,
+        actor_org_id=actor_org_id,
+    )
     assert "applied_patch" in result
     assert result["template_name"] == "Slack Tpl"
     assert len(result["applied_patch"]["added_nodes"]) == 1
@@ -53,7 +77,8 @@ async def test_apply_template_happy_path(active_super_user):
 @pytest.mark.asyncio
 async def test_apply_template_refuses_non_empty_target(active_super_user):
     async with session_scope() as session:
-        folder = Folder(name=STARTER_FOLDER_NAME, user_id=active_super_user.id)
+        org = await _make_test_org(session)
+        folder = Folder(name=STARTER_FOLDER_NAME, user_id=active_super_user.id, organization_id=org.id)
         session.add(folder)
         await session.commit()
         await session.refresh(folder)
@@ -61,12 +86,14 @@ async def test_apply_template_refuses_non_empty_target(active_super_user):
             name="Tpl",
             user_id=active_super_user.id,
             folder_id=folder.id,
+            organization_id=org.id,
             data={"nodes": [], "edges": []},
         )
         session.add(template)
         target = Flow(
             name="Not empty",
             user_id=active_super_user.id,
+            organization_id=org.id,
             data={
                 "nodes": [{"id": "Existing-11111", "data": {"id": "Existing-11111", "type": "Existing"}}],
                 "edges": [],
@@ -77,8 +104,13 @@ async def test_apply_template_refuses_non_empty_target(active_super_user):
         await session.refresh(template)
         await session.refresh(target)
         target_id, template_id = str(target.id), str(template.id)
+        actor_org_id = org.id
 
-    result = await apply_template(target_flow_id=target_id, template_flow_id=template_id)
+    result = await apply_template(
+        target_flow_id=target_id,
+        template_flow_id=template_id,
+        actor_org_id=actor_org_id,
+    )
     assert "error" in result
     assert "not empty" in result["error"].lower()
 
@@ -86,7 +118,8 @@ async def test_apply_template_refuses_non_empty_target(active_super_user):
 @pytest.mark.asyncio
 async def test_apply_template_refuses_non_starter_source(active_super_user):
     async with session_scope() as session:
-        other_folder = Folder(name="My Projects", user_id=active_super_user.id)
+        org = await _make_test_org(session)
+        other_folder = Folder(name="My Projects", user_id=active_super_user.id, organization_id=org.id)
         session.add(other_folder)
         await session.commit()
         await session.refresh(other_folder)
@@ -94,17 +127,28 @@ async def test_apply_template_refuses_non_starter_source(active_super_user):
             name="Not a tpl",
             user_id=active_super_user.id,
             folder_id=other_folder.id,
+            organization_id=org.id,
             data={"nodes": [], "edges": []},
         )
         session.add(template)
-        target = Flow(name="Blank", user_id=active_super_user.id, data={"nodes": [], "edges": []})
+        target = Flow(
+            name="Blank",
+            user_id=active_super_user.id,
+            organization_id=org.id,
+            data={"nodes": [], "edges": []},
+        )
         session.add(target)
         await session.commit()
         await session.refresh(template)
         await session.refresh(target)
         target_id, template_id = str(target.id), str(template.id)
+        actor_org_id = org.id
 
-    result = await apply_template(target_flow_id=target_id, template_flow_id=template_id)
+    result = await apply_template(
+        target_flow_id=target_id,
+        template_flow_id=template_id,
+        actor_org_id=actor_org_id,
+    )
     assert "error" in result
     assert "template" in result["error"].lower()
 
@@ -114,5 +158,6 @@ async def test_apply_template_unknown_flow_id_errors():
     result = await apply_template(
         target_flow_id="00000000-0000-0000-0000-000000000000",
         template_flow_id="00000000-0000-0000-0000-000000000001",
+        actor_org_id=uuid.uuid4(),
     )
     assert "error" in result

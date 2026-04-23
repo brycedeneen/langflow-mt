@@ -327,7 +327,10 @@ class AssistantService:
         try:
             if is_catalog_tool(name):
                 fn = CATALOG_DISPATCH[name]
-                result = await fn(**args)
+                if name == "apply_template":
+                    result = await fn(**args, actor_org_id=self.org_id)
+                else:
+                    result = await fn(**args)
                 return {"result": result}
             elif is_mutation_tool(name):
                 method = getattr(self.mutation_tools, name)
