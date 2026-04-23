@@ -243,3 +243,35 @@ async def test_create_super_user_concurrent_workers():
 
     # Worker 2 should have rolled back and fetched existing user
     assert mock_session2.rollback.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_create_super_user_sets_platform_admin():
+    """A freshly created superuser must also be a platform admin.
+
+    Without this, the bootstrap superuser can see the User Admin list but gets 403
+    on every /api/v1/admin/* endpoint (including opening a user to toggle the flag),
+    which is a catch-22 on fresh installs where the alembic backfill has nothing
+    to promote.
+    """
+    # Call the concrete Langflow AuthService directly rather than going through
+    # the utils wrapper, which resolves via the registered service and pulls in
+    # the unrelated lfx base class in this test harness.
+    from langflow.services.auth.service import AuthService
+
+    service = AuthService.__new__(AuthService)
+    mock_session = AsyncMock()
+    with (
+        patch("langflow.services.auth.service.get_user_by_username", AsyncMock(return_value=None)),
+        patch(
+            "langflow.services.database.models.user.helpers.ensure_personal_organization",
+            AsyncMock(),
+        ),
+    ):
+        result = await service.create_super_user("newadmin", "password", db=mock_session)
+
+    added_user = mock_session.add.call_args.args[0]
+    assert added_user is result
+    assert isinstance(added_user, User)
+    assert added_user.is_superuser is True
+    assert added_user.is_platform_admin is True

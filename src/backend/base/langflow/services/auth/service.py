@@ -488,6 +488,7 @@ class AuthService(BaseAuthService):
                 username=username,
                 password=self.get_password_hash(password),
                 is_superuser=True,
+                is_platform_admin=True,
                 is_active=True,
                 last_login_at=None,
             )
