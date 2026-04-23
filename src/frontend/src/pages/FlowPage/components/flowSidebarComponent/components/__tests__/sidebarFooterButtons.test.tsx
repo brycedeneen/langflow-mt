@@ -94,6 +94,13 @@ jest.mock("@/modals/addMcpServerModal", () => ({
   ),
 }));
 
+// Mock the custom-component guard — mutable return for Task 9 tests.
+const mockUseCustomComponentsAllowed = jest.fn();
+jest.mock("@/utils/customComponentGuards", () => ({
+  useCustomComponentsAllowed: () => mockUseCustomComponentsAllowed(),
+  flowJsonHasCustomComponent: jest.fn().mockReturnValue(false),
+}));
+
 describe("SidebarMenuButtons", () => {
   const mockAddComponent = jest.fn();
   const mockCustomComponent = {
@@ -116,6 +123,9 @@ describe("SidebarMenuButtons", () => {
     mockUseSidebar.mockReturnValue({
       activeSection: "components",
     });
+    // Default: custom components allowed (matches platform-admin/fleet-enabled
+    // posture). Individual tests override to cover the gated posture.
+    mockUseCustomComponentsAllowed.mockReturnValue(true);
   });
 
   describe("Basic Rendering - Custom Component Mode", () => {
@@ -703,6 +713,40 @@ describe("SidebarMenuButtons", () => {
       expect(async () => {
         await user.click(customButton);
       }).not.toThrow();
+    });
+  });
+
+  describe("custom-component gate (Task 9)", () => {
+    it("disables the New Custom Component button when guard returns false", () => {
+      mockUseCustomComponentsAllowed.mockReturnValue(false);
+
+      render(<SidebarMenuButtons {...defaultProps} />);
+
+      const btn = screen.getByTestId("sidebar-custom-component-button");
+      expect(btn).toBeDisabled();
+      const hint = btn.getAttribute("title") ?? btn.getAttribute("aria-label");
+      expect(hint).toMatch(/not allowed/i);
+    });
+
+    it("leaves the button enabled when guard returns true", () => {
+      mockUseCustomComponentsAllowed.mockReturnValue(true);
+
+      render(<SidebarMenuButtons {...defaultProps} />);
+
+      const btn = screen.getByTestId("sidebar-custom-component-button");
+      expect(btn).not.toBeDisabled();
+    });
+
+    it("does not invoke addComponent when clicked while gated", async () => {
+      const user = userEvent.setup();
+      mockUseCustomComponentsAllowed.mockReturnValue(false);
+
+      render(<SidebarMenuButtons {...defaultProps} />);
+
+      const btn = screen.getByTestId("sidebar-custom-component-button");
+      await user.click(btn);
+
+      expect(mockAddComponent).not.toHaveBeenCalled();
     });
   });
 });

@@ -5,6 +5,7 @@ import { SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
 import { ENABLE_NEW_SIDEBAR } from "@/customization/feature-flags";
 import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
 import AddMcpServerModal from "@/modals/addMcpServerModal";
+import { useCustomComponentsAllowed } from "@/utils/customComponentGuards";
 
 const SidebarMenuButtons = ({
   customComponent,
@@ -14,6 +15,7 @@ const SidebarMenuButtons = ({
   const { activeSection } = useSidebar();
   const [addMcpOpen, setAddMcpOpen] = useState(false);
   const navigate = useCustomNavigate();
+  const customAllowed = useCustomComponentsAllowed();
 
   const handleAddMcpServerClick = () => {
     setAddMcpOpen(true);
@@ -63,8 +65,14 @@ const SidebarMenuButtons = ({
     <SidebarMenuButton asChild className="group">
       <Button
         unstyled
-        disabled={isLoading}
+        disabled={isLoading || !customAllowed}
+        title={
+          !customAllowed
+            ? "Custom components are not allowed on this deployment."
+            : undefined
+        }
         onClick={() => {
+          if (!customAllowed) return;
           if (customComponent) {
             addComponent(customComponent, "CustomComponent");
           }
