@@ -157,10 +157,6 @@ class BaseAuthService(Service, abc.ABC):
         """Create superuser."""
 
     @abc.abstractmethod
-    async def create_user_longterm_token(self, db: Any) -> tuple[UUID, dict[str, Any]]:
-        """Create long-term token for auto-login. Returns (user_id, token_dict)."""
-
-    @abc.abstractmethod
     def create_user_api_key(self, user_id: UUID) -> dict[str, Any]:
         """Create an API key for a user."""
 

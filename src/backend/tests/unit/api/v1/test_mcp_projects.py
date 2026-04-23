@@ -17,7 +17,7 @@ from langflow.api.v1.mcp_projects import (
     project_mcp_servers,
     project_sse_transports,
 )
-from langflow.services.auth.utils import create_user_longterm_token, get_password_hash
+from langflow.services.auth.utils import get_password_hash
 from langflow.services.database.models.flow import Flow
 from langflow.services.database.models.folder import Folder
 from langflow.services.database.models.user.model import User
@@ -955,28 +955,6 @@ async def test_list_project_tools_response_structure(client: AsyncClient, user_t
         assert "action_name" in tool
         assert "action_description" in tool
         assert "mcp_enabled" in tool
-
-
-@pytest.mark.asyncio
-async def test_mcp_longterm_token_fails_without_superuser():
-    """When AUTO_LOGIN is false and no superuser exists, creating a long-term token should raise 400.
-
-    This simulates a clean DB with AUTO_LOGIN disabled and without provisioning a superuser.
-    """
-    settings_service = get_settings_service()
-    settings_service.auth_settings.AUTO_LOGIN = False
-
-    # Ensure no superuser exists in DB
-    async with session_scope() as session:
-        result = await session.exec(select(User).where(User.is_superuser == True))  # noqa: E712
-        users = result.all()
-        for user in users:
-            await session.delete(user)
-
-    # Now attempt to create long-term token -> expect HTTPException 400
-    async with session_scope() as session:
-        with pytest.raises(HTTPException, match="Auto login required to create a long-term token"):
-            await create_user_longterm_token(session)
 
 
 def _prepare_installed_check_env(monkeypatch, tmp_path):

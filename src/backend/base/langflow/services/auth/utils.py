@@ -355,10 +355,6 @@ async def create_super_user(username: str, password: str, db: AsyncSession) -> U
     return await _auth_service().create_super_user(username, password, db)
 
 
-async def create_user_longterm_token(db: AsyncSession) -> tuple:
-    return await _auth_service().create_user_longterm_token(db)
-
-
 async def get_current_user_mcp(
     token: Annotated[str | None, Security(oauth2_login)],
     query_param: Annotated[str | None, Security(api_key_query)],

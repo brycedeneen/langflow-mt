@@ -113,9 +113,6 @@ class AuthService(BaseAuthService):
     async def create_super_user(self, username: str, password: str, db: Any) -> Any:
         raise NotImplementedError("create_super_user not implemented")
 
-    async def create_user_longterm_token(self, db: Any) -> tuple[UUID, dict[str, Any]]:
-        raise NotImplementedError("create_user_longterm_token not implemented")
-
     def create_user_api_key(self, user_id: UUID) -> dict[str, Any]:
         raise NotImplementedError("create_user_api_key not implemented")
 

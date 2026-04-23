@@ -513,37 +513,6 @@ class AuthService(BaseAuthService):
 
         return super_user
 
-    async def create_user_longterm_token(self, db: AsyncSession) -> tuple[UUID, dict]:
-        settings_service = self.settings
-        if not settings_service.auth_settings.AUTO_LOGIN:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Auto login required to create a long-term token"
-            )
-
-        username = settings_service.auth_settings.SUPERUSER
-        super_user = await get_user_by_username(db, username)
-        if not super_user:
-            from langflow.services.database.models.user.crud import get_all_superusers
-
-            superusers = await get_all_superusers(db)
-            super_user = superusers[0] if superusers else None
-
-        if not super_user:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Super user hasn't been created")
-        access_token_expires_longterm = timedelta(days=365)
-        access_token = self.create_token(
-            data={"sub": str(super_user.id), "type": "access"},
-            expires_delta=access_token_expires_longterm,
-        )
-
-        await update_user_last_login_at(super_user.id, db)
-
-        return super_user.id, {
-            "access_token": access_token,
-            "refresh_token": None,
-            "token_type": "bearer",
-        }
-
     def create_user_api_key(self, user_id: UUID) -> dict:
         access_token = self.create_token(
             data={"sub": str(user_id), "type": "api_key"},
