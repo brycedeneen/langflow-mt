@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from ast import literal_eval
+from dataclasses import replace
 from datetime import timedelta
 from enum import Enum
 from typing import TYPE_CHECKING, Annotated, Any
@@ -37,7 +38,24 @@ API_WORDS = ["api", "key", "token"]
 MAX_PAGE_SIZE = 50
 MIN_PAGE_SIZE = 1
 
-CurrentActiveUser = Annotated[User, Depends(get_current_active_user)]
+from langflow.services.audit.context import audit_ctx  # noqa: E402
+
+
+async def _enrich_audit_ctx(user: "User" = Depends(get_current_active_user)) -> "User":
+    ctx = audit_ctx.get()
+    if ctx is not None:
+        enriched = replace(
+            ctx,
+            user_id=user.id,
+            user_email=user.username or user.email or "",
+            is_platform_admin=bool(user.is_platform_admin),
+            is_super=bool(user.is_superuser),
+        )
+        audit_ctx.set(enriched)
+    return user
+
+
+CurrentActiveUser = Annotated[User, Depends(_enrich_audit_ctx)]
 CurrentActiveMCPUser = Annotated[User, Depends(get_current_active_user_mcp)]
 # DbSession with auto-commit for write operations
 DbSession = Annotated[AsyncSession, Depends(injectable_session_scope)]
