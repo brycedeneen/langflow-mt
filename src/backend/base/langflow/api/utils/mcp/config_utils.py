@@ -380,26 +380,13 @@ async def auto_configure_starter_projects_mcp(session):
                 server_name = validation_result.server_name
 
                 # Set up THIS USER'S starter folder authentication (same as new projects)
-                # If AUTO_LOGIN is false, automatically enable API key authentication
                 default_auth = {"auth_type": "none"}
-                await logger.adebug(f"Settings service auth settings: {settings_service.auth_settings}")
                 await logger.adebug(f"User starter folder auth settings: {user_starter_folder.auth_settings}")
-                if (
-                    not user_starter_folder.auth_settings
-                    and settings_service.auth_settings.AUTO_LOGIN
-                    and not settings_service.auth_settings.SUPERUSER
-                ):
-                    default_auth = {"auth_type": "apikey"}
-                    user_starter_folder.auth_settings = encrypt_auth_settings(default_auth)
-                    await logger.adebug(
-                        "AUTO_LOGIN enabled without SUPERUSER; forcing API key auth for starter folder %s",
-                        user.username,
-                    )
-                elif not settings_service.auth_settings.AUTO_LOGIN and not user_starter_folder.auth_settings:
+                if not user_starter_folder.auth_settings:
                     default_auth = {"auth_type": "apikey"}
                     user_starter_folder.auth_settings = encrypt_auth_settings(default_auth)
                     await logger.adebug(f"Set up auth settings for user {user.username}'s starter folder")
-                elif user_starter_folder.auth_settings:
+                else:
                     default_auth = user_starter_folder.auth_settings
 
                 # Create API key for this user to access their own starter projects

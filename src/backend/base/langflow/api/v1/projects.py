@@ -89,16 +89,11 @@ async def create_project(
                 else:
                     new_project.name = f"{new_project.name} (1)"
 
-        settings_service = get_settings_service()
-
-        # If AUTO_LOGIN is false, automatically enable API key authentication
-        default_auth = {"auth_type": "none"}
-        if not settings_service.auth_settings.AUTO_LOGIN and not new_project.auth_settings:
-            default_auth = {"auth_type": "apikey"}
+        default_auth = {"auth_type": "apikey"}
+        if not new_project.auth_settings:
             new_project.auth_settings = encrypt_auth_settings(default_auth)
             await logger.adebug(
-                f"Auto-enabled API key authentication for project {new_project.name} "
-                f"({new_project.id}) due to AUTO_LOGIN=false"
+                f"Enabled API key authentication for project {new_project.name} ({new_project.id})"
             )
 
         session.add(new_project)
@@ -691,15 +686,11 @@ async def upload_file(
     new_project.user_id = current_user.id
     new_project.organization_id = current_org.id
 
-    settings_service = get_settings_service()
-
-    # If AUTO_LOGIN is false, automatically enable API key authentication
-    if not settings_service.auth_settings.AUTO_LOGIN and not new_project.auth_settings:
+    if not new_project.auth_settings:
         default_auth = {"auth_type": "apikey"}
         new_project.auth_settings = encrypt_auth_settings(default_auth)
         await logger.adebug(
-            f"Auto-enabled API key authentication for uploaded project {new_project.name} "
-            f"({new_project.id}) due to AUTO_LOGIN=false"
+            f"Enabled API key authentication for uploaded project {new_project.name} ({new_project.id})"
         )
 
     session.add(new_project)
