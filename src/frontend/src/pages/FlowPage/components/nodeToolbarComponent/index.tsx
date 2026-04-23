@@ -22,6 +22,7 @@ import {
 } from "../../../../components/ui/select-custom";
 import useAlertStore from "../../../../stores/alertStore";
 import useAuthStore from "../../../../stores/authStore";
+import { canViewCodeButton } from "./utils/can-view-code-button";
 import useComponentAssistStore from "../../../../stores/componentAssistStore";
 import { useDarkStore } from "../../../../stores/darkStore";
 import useFlowStore from "../../../../stores/flowStore";
@@ -112,19 +113,17 @@ const NodeToolbarComponent = memo(
       Object.values(flow).includes(data.node?.display_name!),
     );
 
-    const { isAdmin, userData } = useAuthStore(
-      useShallow((state) => ({
-        isAdmin: state.isAdmin,
-        userData: state.userData,
-      })),
-    );
+    const userData = useAuthStore((state) => state.userData);
 
     const nodeLength = useMemo(() => getNodeLength(data), [data]);
     const hasCode = useMemo(
       () => Object.keys(data.node!.template).includes("code"),
       [data.node],
     );
-    const canViewCode = hasCode && (isAdmin || !!userData?.is_superuser);
+    const canViewCode = useMemo(
+      () => canViewCodeButton({ hasCode, isSuperuser: userData?.is_superuser }),
+      [hasCode, userData?.is_superuser],
+    );
 
     // ADP Assist opt-in: suppressed when the component sets assist_enabled=False
     // (e.g., DataMapperComponent, which ships with its own bespoke agent).
