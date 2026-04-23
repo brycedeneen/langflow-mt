@@ -57,7 +57,7 @@ export default function UserManagementModal({
     },
   );
   const orgItems = (orgsData?.items ?? []).filter((o) => !o.is_personal);
-  const hasAnyOrgs = (orgsData?.total ?? orgItems.length) > 0 || orgQuery !== "";
+  const hasAnyOrgs = orgItems.length > 0 || orgQuery !== "";
 
   function handleInput({
     target: { name, value },
@@ -98,6 +98,7 @@ export default function UserManagementModal({
   }, [open]);
 
   function resetForm() {
+    setInputState(CONTROL_NEW_USER);
     setPassword("");
     setUserName("");
     setConfirmPassword("");
