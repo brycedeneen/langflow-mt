@@ -159,7 +159,6 @@ class TelemetryService(Service):
             cache_type=self.settings_service.settings.cache_type,
             backend_only=self.settings_service.settings.backend_only,
             arch=self.architecture,
-            auto_login=self.settings_service.auth_settings.AUTO_LOGIN,
             client_type=self.client_type,
         )
         await self._queue_event((self.send_telemetry_data, payload, None))
