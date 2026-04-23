@@ -212,6 +212,29 @@ export default function UsersPage() {
     );
   }
 
+  function handlePlatformAdminEdit(check, userId, user) {
+    const userEdit = cloneDeep(user);
+    userEdit.is_platform_admin = !check;
+
+    mutateUpdateUser(
+      { user_id: userId, user: userEdit },
+      {
+        onSuccess: () => {
+          resetFilter();
+          setSuccessData({
+            title: USER_EDIT_SUCCESS_ALERT,
+          });
+        },
+        onError: (error) => {
+          setErrorData({
+            title: USER_EDIT_ERROR_ALERT,
+            list: [error["response"]["data"]["detail"]],
+          });
+        },
+      },
+    );
+  }
+
   function handleNewUser(user: UserInputType) {
     mutateAddUser(user, {
       onSuccess: (res) => {
@@ -340,6 +363,7 @@ export default function UsersPage() {
                       <TableHead className="h-10">Username</TableHead>
                       <TableHead className="h-10">Active</TableHead>
                       <TableHead className="h-10">Superuser</TableHead>
+                      <TableHead className="h-10">Platform Admin</TableHead>
                       <TableHead className="h-10">Created At</TableHead>
                       <TableHead className="h-10">Updated At</TableHead>
                       <TableHead className="h-10 w-[100px] text-right"></TableHead>
@@ -434,6 +458,43 @@ export default function UsersPage() {
                               <ConfirmationModal.Trigger>
                                 <div className="flex w-fit">
                                   <CheckBoxDiv checked={user.is_superuser} />
+                                </div>
+                              </ConfirmationModal.Trigger>
+                            </ConfirmationModal>
+                          </TableCell>
+                          <TableCell className="relative left-1 truncate py-2 text-align-last-left">
+                            <ConfirmationModal
+                              size="x-small"
+                              title="Edit"
+                              titleHeader={`${user.username}`}
+                              modalContentTitle="Attention!"
+                              cancelText="Cancel"
+                              confirmationText="Confirm"
+                              icon={"UserCog2"}
+                              data={user}
+                              index={index}
+                              onConfirm={(index, user) => {
+                                handlePlatformAdminEdit(
+                                  user.is_platform_admin,
+                                  user.id,
+                                  user,
+                                );
+                              }}
+                            >
+                              <ConfirmationModal.Content>
+                                <span>
+                                  Platform admins can manage organizations and
+                                  memberships for this Amplify instance. Continue?
+                                </span>
+                              </ConfirmationModal.Content>
+                              <ConfirmationModal.Trigger>
+                                <div
+                                  className="flex w-fit"
+                                  data-testid={`platform-admin-cell-${user.username}`}
+                                >
+                                  <CheckBoxDiv
+                                    checked={!!user.is_platform_admin}
+                                  />
                                 </div>
                               </ConfirmationModal.Trigger>
                             </ConfirmationModal>
