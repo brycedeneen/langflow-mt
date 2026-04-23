@@ -43,6 +43,7 @@ import { ProtectedSuperuserRoute } from "./components/authorization/authSuperuse
 import ShortcutsPage from "./pages/SettingsPage/pages/ShortcutsPage";
 import ViewPage from "./pages/ViewPage";
 
+const AdminAuditLogsPage = lazy(() => import("@/pages/AdminPage/AdminAuditLogsPage"));
 const LoginAdminPage = lazy(() => import("./pages/AdminPage/LoginPage"));
 const UsersPage = lazy(() => import("./pages/AdminPage/UsersPage"));
 const UserDetailPage = lazy(() => import("./pages/AdminPage/UserDetailPage"));
@@ -237,6 +238,14 @@ const router = createBrowserRouter(
                     element={
                       <ProtectedAdminRoute>
                         <OrgMemberDetailPage />
+                      </ProtectedAdminRoute>
+                    }
+                  />
+                  <Route
+                    path="audit-logs"
+                    element={
+                      <ProtectedAdminRoute>
+                        <AdminAuditLogsPage />
                       </ProtectedAdminRoute>
                     }
                   />

@@ -43,6 +43,8 @@ export const URLs = {
   MEMBERSHIPS: `memberships`,
   ADMIN_ORGS: `admin/organizations`,
   ADMIN_USERS: `admin/users`,
+  ADMIN_AUDIT_LOGS: `admin/audit-logs`,
+  ADMIN_AUDIT_LOG: `admin/audit-logs/`,
   METADATA_COMPONENTS: `admin/metadata/components`,
   METADATA_TEMPLATES: `admin/metadata/templates`,
 } as const;
