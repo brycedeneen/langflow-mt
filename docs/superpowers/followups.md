@@ -136,3 +136,21 @@ Backport merged to `platform-multi-tenant` 2026-04-23. Coding work is complete a
 - [ ] **Lint-clean the privileged-flag clearing effect's dep array.** `useEffect(() => { if (isSuperUser || isPlatformAdmin) { ... } }, [isSuperUser, isPlatformAdmin])` at `src/frontend/src/modals/userManagementModal/index.tsx` omits `handleInput` from its deps. It is safe today (the body only drives `setInputState` via `handleInput`, and `setInputState` is stable), but `eslint-plugin-react-hooks/exhaustive-deps` will complain. Inline two `setInputState((prev) => ({ ...prev, organization_id: "", role: "member" }))` calls to dodge the rule entirely.
 
 - [ ] **Edit-mode PATCH body carries the new create-only fields.** `inputState` is now initialized from `CONTROL_NEW_USER`, which includes `organization_id: ""` and `role: "member"`. In edit mode, `handleEditUser` passes the full `inputState` to `PATCH /users/{id}`. The backend `UserUpdate` schema silently ignores unknowns, so this is noise rather than a bug — but consider splitting into `CONTROL_NEW_USER` (create) + `CONTROL_EDIT_USER` (edit), or whitelisting fields in `handleEditUser`.
+
+## 2026-04-23 — Security Advisory Backport follow-ups
+
+**Source:** `docs/superpowers/plans/2026-04-23-security-advisory-backport.md`
+**Integrated commits:** `344ed42b4b` (T3), `2ab9f3d228` (T4), `a2bbce48ce` (T1). T2 was reverted (`fdc91e5347`) — see below.
+**Triage reports:** `docs/superpowers/security-review-2026-04-23/advisories-{a,b,c}.md`
+
+### Plan premise partially invalid — commit 642e39fcb8 never reached our branch
+
+- [ ] **The plan attributed missing fixes to the 2026-04-15 release-merge revert (`642e39fcb8`); that commit is NOT in `platform-multi-tenant`'s ancestry.** My earlier verification used `git log --all --oneline | grep 642e39fcb8` which walks all refs, not the branch lineage. The commit lives on `origin/aka/main-1` / `origin/release-1.9.0-3`. Two practical consequences: (1) Tasks 1 and 2 found their fixes already applied on `platform-multi-tenant` — only regression-guard tests were added. (2) **Task 5 (revert-audit) is moot for our branch** — there is no revert to audit here. However, the agent reports confirm CVE-2026-33309 was genuinely live on our tree (T3's agent watched a file actually escape to `~/Library/Caches/` during its failing test), so the MISSING/PARTIAL verdicts for T3 and T4 held up on their own merits, not because of a revert story.
+
+### T2 regression test could not be integrated — AUTO_LOGIN harness interaction
+
+- [ ] **`test_download_image_ownership.py` (CVE-2026-33484 regression guard) was reverted (commit `fdc91e5347`).** The tests asserted 401/403 (no auth) and 404 (cross-user) on `GET /api/v1/files/images/{flow_id}/{file_name}`. The production `Depends(get_flow)` protection is already applied at `src/backend/base/langflow/api/v1/files.py:139` — the code is correct. Tests failed because the `client` fixture is auto-authenticated when AUTO_LOGIN is on, so both cases reached the handler, passed `get_flow`, and surfaced a 500 from the storage call instead of a 401/403/404. To reinstate coverage, either (a) add a new `unauthenticated_client` fixture that disables AUTO_LOGIN, (b) patch the settings for this test to disable AUTO_LOGIN, or (c) use a separately-instantiated FastAPI TestClient with explicit auth dependencies.
+
+### Task 5 (Revert Audit) — not executed, see above
+
+- [ ] **Task 5 of the plan was scoped to enumerate what else the `642e39fcb8` revert re-exposed. Since that commit never landed on `platform-multi-tenant`, there is no revert to audit.** Close this item unless/until a similar release-merge revert appears on our branch.
