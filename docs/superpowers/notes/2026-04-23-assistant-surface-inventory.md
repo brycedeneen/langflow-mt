@@ -1,6 +1,12 @@
 # Assistant Data-Access Surface Inventory
 
 **Date:** 2026-04-23
+**Status:** ✅ **Closed by Sprint 2 Part A** — all three ❌ leaks fixed. The five deferred items listed in "Deferred follow-ups (P1.5)" remain open and should stay captured here until a P1.5 pass picks them up.
+**Closing commits:**
+- `146817f2c2` — `_get_flow_with_org_check` 403→404 + regression matrix populated
+- `d3de932fc8` — `list_user_variables` org filter
+- `669c2731ca` — `apply_template` requires `actor_org_id`; cross-org targets rejected
+
 **Scope:** Part A (Sprint 2) of the Assistant Org-Isolation spec — every surface an assistant-authenticated caller (or the Flow Builder Assistant's LLM tool-loop) can reach, and whether that surface scopes its DB reads by `organization_id`.
 **Out-of-scope per spec A.3:** template-catalog filtering, per-org component metadata, OIDC/SAML. Those rows are marked `N/A — out of scope`.
 **Target entities in scope:** `Flow`, `FlowRun`, `File`, `Message`, `Attachment`, `AssistantConversation`, `AssistantMessage`, `Variable`.

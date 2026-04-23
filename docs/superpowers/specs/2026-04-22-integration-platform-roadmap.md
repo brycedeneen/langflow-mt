@@ -98,7 +98,7 @@ Grouped by theme. These aren't on the current sprint but are the obvious next se
 - **Per-flow guardrails** — input validation + output schema enforcement per flow.
 - **Prompt injection / redaction policies** — steered by component/flow metadata.
 - **Tagging / labeling for flows and templates** — powers search, filter, and cost-center attribution on the dashboard.
-- **Metadata taxonomy extension** — add the org-level policy layer on top of the existing component/template metadata.
+- ~~**Metadata taxonomy extension** — add the org-level policy layer on top of the existing component/template metadata.~~ Reframed during Sprint 2 brainstorming to **Assistant data-access isolation** — ✅ **Done (2026-04-23)**. Spec: `2026-04-23-assistant-org-isolation-and-tagging-design.md` Part A. Closed 3 real cross-org leaks (`_get_flow_with_org_check` 403→404 alignment, `list_user_variables` user-only scope, `apply_template` target-flow mutation); added a registry-driven regression test matrix covering all 7 assistant HTTP routes. 4 defense-in-depth items + SELECT-guard-in-prod deferred to P1.5 — tracked in `docs/superpowers/notes/2026-04-23-assistant-surface-inventory.md`.
 
 ### Connectors
 - **SCIM formatter connector** — outgoing: transform data to SCIM format and POST to an API. Used for user/group provisioning; common customer ask. (The full SCIM-as-provider + SSO story is a separate future manual project.)
