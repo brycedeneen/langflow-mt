@@ -20,6 +20,7 @@ from langflow.api.utils.core import CurrentOrg
 from langflow.services.assistant.providers.anthropic_provider import AnthropicProviderClient
 from langflow.services.assistant.providers.openai_provider import OpenAIProviderClient
 from langflow.services.assistant.service import AssistantService
+from langflow.services.auth.utils import decrypt_api_key, encrypt_api_key
 from langflow.services.database.models.assistant.model import AssistantConversation, AssistantMessage
 from langflow.services.database.models.flow.model import Flow
 from langflow.services.database.models.variable.model import Variable
@@ -79,6 +80,11 @@ class AssistantMessageRead(BaseModel):
 
 ASSISTANT_VAR_NAMES = ("assistant.provider", "assistant.model", "assistant.api_key")
 
+# Names whose `Variable.value` is Fernet-encrypted at rest. Other assistant_*
+# variables (provider, model) are stored as plaintext because they are not
+# secrets.
+ASSISTANT_ENCRYPTED_VAR_NAMES = frozenset({"assistant.api_key"})
+
 
 async def _get_flow_with_org_check(
     session, flow_id: UUID, org_id: UUID
@@ -93,7 +99,14 @@ async def _get_flow_with_org_check(
 
 
 async def _load_assistant_settings(session, org_id: UUID, user_id: UUID) -> dict[str, str | None]:
-    """Load assistant.* variables for the org."""
+    """Load assistant.* variables for the org, decrypting those that were
+    stored Fernet-encrypted.
+
+    A missing/unreadable ciphertext (e.g. pre-fix plaintext row that has *not*
+    been covered by the Task 6 migration yet, or a value encrypted under a
+    different secret key) surfaces as ``None`` rather than a crash — this
+    matches the contract of a missing key.
+    """
     stmt = select(Variable).where(
         Variable.organization_id == org_id,
         Variable.name.in_(ASSISTANT_VAR_NAMES),  # type: ignore[union-attr]
@@ -102,26 +115,44 @@ async def _load_assistant_settings(session, org_id: UUID, user_id: UUID) -> dict
     settings: dict[str, str | None] = {"provider": None, "model": None, "api_key": None}
     for row in rows:
         key = row.name.replace("assistant.", "")
-        settings[key] = row.value
+        if row.name in ASSISTANT_ENCRYPTED_VAR_NAMES and row.value:
+            try:
+                settings[key] = decrypt_api_key(row.value)
+            except Exception:
+                # Corrupt or wrong-key ciphertext: treat as no key configured.
+                logger.warning(
+                    "Failed to decrypt %s for org %s; treating as missing.",
+                    row.name,
+                    org_id,
+                )
+                settings[key] = None
+        else:
+            settings[key] = row.value
     return settings
 
 
 async def _upsert_variable(
     session, org_id: UUID, user_id: UUID, name: str, value: str
 ) -> None:
-    """Create or update a Variable scoped to an org."""
+    """Create or update a Variable scoped to an org.
+
+    Names in ASSISTANT_ENCRYPTED_VAR_NAMES are Fernet-encrypted at rest so
+    they match the invariant applied by DatabaseVariableService.create_variable
+    for CREDENTIAL_TYPE rows in the same table.
+    """
+    stored_value = encrypt_api_key(value) if name in ASSISTANT_ENCRYPTED_VAR_NAMES else value
     stmt = select(Variable).where(
         Variable.organization_id == org_id,
         Variable.name == name,
     )
     existing = (await session.exec(stmt)).first()
     if existing is not None:
-        existing.value = value
+        existing.value = stored_value
         session.add(existing)
     else:
         var = Variable(
             name=name,
-            value=value,
+            value=stored_value,
             type="assistant_setting",
             default_fields=[],
             user_id=user_id,
