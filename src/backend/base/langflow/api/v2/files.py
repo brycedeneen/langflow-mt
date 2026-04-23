@@ -161,8 +161,19 @@ async def upload_user_file(
 
     # Create a new database record for the uploaded file.
     try:
+        # CVE-2026-33309: reject filenames that contain path components or
+        # traversal sequences, then additionally collapse to `Path.name` as
+        # a defense-in-depth basename extraction. `Path.name` returns just
+        # the final component with no separators, so "../../../etc/passwd"
+        # → "passwd" even if the reject-check is bypassed somehow.
+        raw_filename = file.filename or ""
+        dangerous_substrings = ("..", "/", "\\", "\x00", "\n", "\r")
+        if not raw_filename or any(token in raw_filename for token in dangerous_substrings):
+            raise HTTPException(status_code=400, detail="Invalid file name")
+        new_filename = Path(raw_filename).name
+        if not new_filename or new_filename in {".", ".."}:
+            raise HTTPException(status_code=400, detail="Invalid file name")
         # Enforce unique constraint on name, except for the special _mcp_servers file
-        new_filename = file.filename
         try:
             root_filename, file_extension = new_filename.rsplit(".", 1)
         except ValueError:

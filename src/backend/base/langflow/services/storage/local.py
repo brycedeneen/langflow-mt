@@ -112,8 +112,23 @@ class LocalStorageService(StorageService):
             PermissionError: If there is no permission to write the file.
         """
         folder_path = self.data_dir / flow_id
-        await folder_path.mkdir(parents=True, exist_ok=True)
         file_path = folder_path / file_name
+
+        # CVE-2026-33309 defense-in-depth: even if the API layer fails to
+        # sanitize the filename, refuse to write outside the flow's folder.
+        # `anyio.Path.resolve` is async; we use the sync pathlib equivalent
+        # on the string form because resolution is a filesystem operation.
+        from pathlib import Path as _StdPath
+
+        folder_resolved = _StdPath(str(folder_path)).resolve()
+        resolved = _StdPath(str(file_path)).resolve()
+        try:
+            resolved.relative_to(folder_resolved)
+        except ValueError as exc:
+            msg = f"Refusing to write {file_name!r}: resolves outside {folder_resolved}"
+            raise ValueError(msg) from exc
+
+        await folder_path.mkdir(parents=True, exist_ok=True)
 
         try:
             mode = "ab" if append else "wb"
