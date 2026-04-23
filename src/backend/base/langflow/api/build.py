@@ -306,7 +306,13 @@ async def generate_flow_events(
         # Graph.from_payload can enforce before any vertex is materialised.
         allow_custom_components, caller_is_platform_admin = resolve_component_gate_flags(current_user)
 
-        if not data:
+        # CVE-2026-33017 defense-in-depth: public-flow builds (identified by
+        # source_flow_id being set) must never execute an attacker-supplied
+        # `data` payload. Force DB-load path even if some caller threads data
+        # through start_flow_build.
+        effective_data = None if source_flow_id is not None else data
+
+        if not effective_data:
             # For public flows, source_flow_id is the real DB ID, flow_id is virtual.
             # Load from DB using the real ID, then override graph.flow_id with virtual.
             db_flow_id = source_flow_id if source_flow_id is not None else flow_id
@@ -329,7 +335,7 @@ async def generate_flow_events(
 
         return await build_graph_from_data(
             flow_id=flow_id_str,
-            payload=data.model_dump(),
+            payload=effective_data.model_dump(),
             user_id=str(current_user.id),
             flow_name=flow_name,
             session_id=effective_session_id,
