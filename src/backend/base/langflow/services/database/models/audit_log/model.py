@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import JSON, DateTime
+from sqlalchemy import JSON, DateTime, Index, String
 from sqlmodel import Column, Field, ForeignKey, SQLModel
 
 
@@ -30,6 +30,11 @@ class AuditAction(str, Enum):
 
 class AuditLog(SQLModel, table=True):
     __tablename__ = "audit_log"
+    __table_args__ = (
+        Index("ix_audit_log_org_occurred", "org_id", "occurred_at"),
+        Index("ix_audit_log_actor_occurred", "actor_user_id", "occurred_at"),
+        Index("ix_audit_log_target", "target_type", "target_id", "occurred_at"),
+    )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True, nullable=False)
     occurred_at: datetime = Field(
@@ -46,9 +51,13 @@ class AuditLog(SQLModel, table=True):
         default=None,
         sa_column=Column(ForeignKey("organization.id", ondelete="SET NULL"), nullable=True),
     )
-    target_type: AuditTargetType = Field(max_length=32, nullable=False)
+    target_type: AuditTargetType = Field(
+        sa_column=Column(String(32), nullable=False),
+    )
     target_id: UUID = Field(nullable=False)
-    action: AuditAction = Field(max_length=32, nullable=False)
+    action: AuditAction = Field(
+        sa_column=Column(String(32), nullable=False),
+    )
     diff: dict[str, Any] = Field(
         default_factory=dict, sa_column=Column(JSON, nullable=False),
     )
