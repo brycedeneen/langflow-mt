@@ -128,3 +128,11 @@ Backport merged to `platform-multi-tenant` 2026-04-23. Coding work is complete a
 ### `update_template` (PUT) is still ungated
 
 - [ ] **`PUT /api/v1/templates/{template_id}` (`update_template`) accepts a `source_flow_id` that could introduce custom code.** The handler is currently superuser-only, so it's a latent defense-in-depth gap rather than an active vulnerability. Whenever `update_template` is opened to non-superusers (or if the superuser fixture above gets a non-platform-admin caller), add the same gate wired into `create_template` per Task 7.
+
+## Plan (New-User Org Assignment — 2026-04-23)
+
+### UserManagementModal cleanup
+
+- [ ] **Lint-clean the privileged-flag clearing effect's dep array.** `useEffect(() => { if (isSuperUser || isPlatformAdmin) { ... } }, [isSuperUser, isPlatformAdmin])` at `src/frontend/src/modals/userManagementModal/index.tsx` omits `handleInput` from its deps. It is safe today (the body only drives `setInputState` via `handleInput`, and `setInputState` is stable), but `eslint-plugin-react-hooks/exhaustive-deps` will complain. Inline two `setInputState((prev) => ({ ...prev, organization_id: "", role: "member" }))` calls to dodge the rule entirely.
+
+- [ ] **Edit-mode PATCH body carries the new create-only fields.** `inputState` is now initialized from `CONTROL_NEW_USER`, which includes `organization_id: ""` and `role: "member"`. In edit mode, `handleEditUser` passes the full `inputState` to `PATCH /users/{id}`. The backend `UserUpdate` schema silently ignores unknowns, so this is noise rather than a bug — but consider splitting into `CONTROL_NEW_USER` (create) + `CONTROL_EDIT_USER` (edit), or whitelisting fields in `handleEditUser`.
