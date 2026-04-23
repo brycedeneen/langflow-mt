@@ -34,7 +34,7 @@ async def test_get_config_basic(client: AsyncClient, logged_in_headers: dict):
     assert "max_file_size_upload" in result, "The dictionary must contain a key called 'max_file_size_upload'"
 
 
-async def test_update_component_outputs(client: AsyncClient, logged_in_headers: dict):
+async def test_update_component_outputs(client: AsyncClient, logged_in_headers_super_user: dict):
     path = Path(__file__).parent.parent.parent.parent / "data" / "dynamic_output_component.py"
 
     code = await path.read_text(encoding="utf-8")
@@ -46,7 +46,7 @@ async def test_update_component_outputs(client: AsyncClient, logged_in_headers: 
         field_value=True,
         template={},
     )
-    response = await client.post("api/v1/custom_component/update", json=request.model_dump(), headers=logged_in_headers)
+    response = await client.post("api/v1/custom_component/update", json=request.model_dump(), headers=logged_in_headers_super_user)
     result = response.json()
 
     assert response.status_code == status.HTTP_200_OK
@@ -54,7 +54,7 @@ async def test_update_component_outputs(client: AsyncClient, logged_in_headers: 
     assert "tool_output" in output_names
 
 
-async def test_update_component_model_name_options(client: AsyncClient, logged_in_headers: dict):
+async def test_update_component_model_name_options(client: AsyncClient, logged_in_headers_super_user: dict):
     """Test that model options are updated when the model field changes."""
     component = AgentComponent()
     component_node, _cc_instance = build_custom_component_template(
@@ -82,7 +82,7 @@ async def test_update_component_model_name_options(client: AsyncClient, logged_i
     )
 
     # Make the request to update the component
-    response = await client.post("api/v1/custom_component/update", json=request.model_dump(), headers=logged_in_headers)
+    response = await client.post("api/v1/custom_component/update", json=request.model_dump(), headers=logged_in_headers_super_user)
     result = response.json()
 
     # Verify the response
@@ -100,7 +100,7 @@ async def test_update_component_model_name_options(client: AsyncClient, logged_i
     )
 
 
-async def test_custom_component_endpoint_returns_metadata(client: AsyncClient, logged_in_headers: dict):
+async def test_custom_component_endpoint_returns_metadata(client: AsyncClient, logged_in_headers_super_user: dict):
     """Test that the /custom_component endpoint returns metadata with module and code_hash."""
     component_code = """
 from lfx.custom import Component
@@ -123,7 +123,7 @@ class TestMetadataComponent(Component):
 """
 
     request = CustomComponentRequest(code=component_code)
-    response = await client.post("api/v1/custom_component", json=request.model_dump(), headers=logged_in_headers)
+    response = await client.post("api/v1/custom_component", json=request.model_dump(), headers=logged_in_headers_super_user)
     result = response.json()
 
     assert response.status_code == status.HTTP_200_OK
@@ -149,7 +149,7 @@ class TestMetadataComponent(Component):
     # assert all(c in "0123456789abcdef" for c in metadata["code_hash"]), "Code hash should be hexadecimal"
 
 
-async def test_custom_component_endpoint_metadata_consistency(client: AsyncClient, logged_in_headers: dict):
+async def test_custom_component_endpoint_metadata_consistency(client: AsyncClient, logged_in_headers_super_user: dict):
     """Test that the same component code produces consistent metadata."""
     component_code = """
 from lfx.custom import Component
@@ -169,10 +169,10 @@ class ConsistencyTestComponent(Component):
     # Make two identical requests
     request = CustomComponentRequest(code=component_code)
 
-    response1 = await client.post("api/v1/custom_component", json=request.model_dump(), headers=logged_in_headers)
+    response1 = await client.post("api/v1/custom_component", json=request.model_dump(), headers=logged_in_headers_super_user)
     # result1 = response1.json()
 
-    response2 = await client.post("api/v1/custom_component", json=request.model_dump(), headers=logged_in_headers)
+    response2 = await client.post("api/v1/custom_component", json=request.model_dump(), headers=logged_in_headers_super_user)
     # result2 = response2.json()
 
     # Both requests should succeed
@@ -289,3 +289,44 @@ async def test_get_config_authenticated_returns_full_config(client: AsyncClient,
     assert "auto_saving_interval" in result, "Authenticated response must contain 'auto_saving_interval'"
     assert "health_check_max_retries" in result, "Authenticated response must contain 'health_check_max_retries'"
     assert "feature_flags" in result, "Authenticated response must contain 'feature_flags'"
+
+
+async def test_update_component_requires_superuser(
+    client: AsyncClient, logged_in_headers: dict
+):
+    """Non-superuser users get 403 from POST /custom_component/update."""
+    path = Path(__file__).parent.parent.parent.parent / "data" / "dynamic_output_component.py"
+    code = await path.read_text(encoding="utf-8")
+    frontend_node: dict[str, Any] = {"outputs": []}
+    request = UpdateCustomComponentRequest(
+        code=code,
+        frontend_node=frontend_node,
+        field="show_output",
+        field_value=True,
+        template={},
+    )
+
+    response = await client.post(
+        "api/v1/custom_component/update",
+        json=request.model_dump(),
+        headers=logged_in_headers,  # plain non-super user
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN, response.text
+
+
+async def test_custom_component_build_requires_superuser(
+    client: AsyncClient, logged_in_headers: dict
+):
+    """Non-superuser users get 403 from POST /custom_component."""
+    path = Path(__file__).parent.parent.parent.parent / "data" / "dynamic_output_component.py"
+    code = await path.read_text(encoding="utf-8")
+    request = CustomComponentRequest(code=code, frontend_node=None)
+
+    response = await client.post(
+        "api/v1/custom_component",
+        json=request.model_dump(),
+        headers=logged_in_headers,  # plain non-super user
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN, response.text

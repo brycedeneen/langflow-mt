@@ -50,6 +50,7 @@ from langflow.processing.process import process_tweaks, run_graph_internal
 from langflow.schema.graph import Tweaks
 from langflow.services.auth.utils import (
     api_key_security,
+    get_current_active_superuser,
     get_current_active_user,
     get_current_user_for_sse,
     get_optional_user,
@@ -1134,7 +1135,7 @@ async def get_version():
 @router.post("/custom_component", status_code=HTTPStatus.OK, include_in_schema=False)
 async def custom_component(
     raw_code: CustomComponentRequest,
-    user: CurrentActiveUser,
+    user: User = Depends(get_current_active_superuser),
 ) -> CustomComponentResponse:
     component = Component(_code=raw_code.code)
 
@@ -1156,7 +1157,7 @@ async def custom_component(
 @router.post("/custom_component/update", status_code=HTTPStatus.OK, include_in_schema=False)
 async def custom_component_update(
     code_request: UpdateCustomComponentRequest,
-    user: CurrentActiveUser,
+    user: User = Depends(get_current_active_superuser),
 ):
     """Update an existing custom component with new code and configuration.
 

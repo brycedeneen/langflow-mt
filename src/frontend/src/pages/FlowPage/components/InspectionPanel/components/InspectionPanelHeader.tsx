@@ -10,6 +10,7 @@ import { ICON_STROKE_WIDTH } from "@/constants/constants";
 import { customOpenNewTab } from "@/customization/utils/custom-open-new-tab";
 import CodeAreaModal from "@/modals/codeAreaModal";
 import useAlertStore from "@/stores/alertStore";
+import useAuthStore from "@/stores/authStore";
 import { useShortcutsStore } from "@/stores/shortcuts";
 import type { NodeDataType } from "@/types/flow";
 import { cn } from "@/utils/utils";
@@ -28,6 +29,8 @@ export default function InspectionPanelHeader({
   setIsEditingFields,
 }: InspectionPanelHeaderProps) {
   const [openCodeModal, setOpenCodeModal] = useState(false);
+  const isSuperuser =
+    useAuthStore((state) => state.userData?.is_superuser) === true;
   const [editMode, setEditMode] = useState(false);
   const [isHoveringContent, setIsHoveringContent] = useState(false);
   const { handleNodeClass } = useHandleNodeClass(data.id);
@@ -51,10 +54,10 @@ export default function InspectionPanelHeader({
   }, [data.id, setSuccessData]);
 
   const handleOpenCode = useCallback(() => {
-    if (hasCode) {
+    if (hasCode && isSuperuser) {
       setOpenCodeModal(true);
     }
-  }, [hasCode]);
+  }, [hasCode, isSuperuser]);
 
   const openDocs = useCallback(() => {
     if (data.node?.documentation) {
@@ -195,7 +198,7 @@ export default function InspectionPanelHeader({
           </div>
         </div>
 
-        {hasCode && openCodeModal && (
+        {hasCode && openCodeModal && isSuperuser && (
           <div className="hidden">
             <CodeAreaModal
               setValue={handleSetValue}
