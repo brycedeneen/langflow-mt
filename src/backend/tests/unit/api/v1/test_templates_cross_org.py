@@ -144,3 +144,22 @@ async def test_list_templates_platform_scope_visible_across_tenants(client, two_
             if row is not None:
                 await session.delete(row)
                 await session.commit()
+
+
+async def test_get_template_denies_cross_org(client, two_tenants):
+    headers = await _login(client, two_tenants["user_a_username"])
+    resp = await client.get(
+        f"api/v1/templates/{two_tenants['tmpl_b_id']}", headers=headers
+    )
+    # 404 (not 403) to avoid confirming the template's existence to an
+    # unauthorized caller.
+    assert resp.status_code == 404, resp.text
+
+
+async def test_get_template_allows_own_org(client, two_tenants):
+    headers = await _login(client, two_tenants["user_a_username"])
+    resp = await client.get(
+        f"api/v1/templates/{two_tenants['tmpl_a_id']}", headers=headers
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["id"] == str(two_tenants["tmpl_a_id"])

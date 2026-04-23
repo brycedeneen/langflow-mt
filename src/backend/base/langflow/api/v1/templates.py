@@ -98,6 +98,34 @@ async def _load_source_and_blank(
     return blanked, edges
 
 
+async def _user_member_org_ids(session: AsyncSession, user_id: UUID) -> set[UUID]:
+    """Return the set of org_ids the user is a member of. Empty set = no memberships."""
+    return {
+        org_id
+        for org_id in (
+            await session.exec(
+                select(Membership.organization_id).where(Membership.user_id == user_id)
+            )
+        ).all()
+    }
+
+
+def _caller_can_view_template(user: User, template: Template, member_org_ids: set[UUID]) -> bool:
+    """True when *user* is allowed to read *template*.
+
+    - Platform admins see everything.
+    - Platform-scoped templates are visible to every authenticated user.
+    - Org-scoped templates are visible only to members of the owning org.
+    """
+    if getattr(user, "is_platform_admin", False):
+        return True
+    if template.scope == "platform":
+        return True
+    if template.scope == "org" and template.org_id is not None:
+        return template.org_id in member_org_ids
+    return False
+
+
 @router.get("", response_model=list[TemplateRead])
 async def list_templates(
     *,
@@ -166,7 +194,7 @@ async def get_template(
     template_id: UUID,
     *,
     session: DbSession,
-    _user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_active_user),
 ) -> TemplateReadDetail:
     row = (
         await session.exec(
@@ -177,6 +205,10 @@ async def get_template(
         )
     ).one_or_none()
     if row is None:
+        raise HTTPException(status_code=404, detail="Template not found")
+    member_org_ids = await _user_member_org_ids(session, current_user.id)
+    if not _caller_can_view_template(current_user, row, member_org_ids):
+        # 404 (not 403) to avoid confirming existence to an unauthorized caller.
         raise HTTPException(status_code=404, detail="Template not found")
     return TemplateReadDetail.model_validate(row, from_attributes=True)
 
