@@ -952,6 +952,23 @@ async def upload_file(
     # When implemented, extract raw flow dicts here to read embedded "version"
     # arrays and create FlowVersion entries for each imported flow.
 
+    # Gate: block custom-component code on upload for non-admin callers.
+    # Pre-pass validation across ALL flows in the batch BEFORE any DB insert —
+    # atomic rejection: one bad flow anywhere fails the whole upload.
+    allow_custom, is_pa = resolve_component_gate_flags(current_user)
+    for flow in flow_list.flows:
+        try:
+            validate_flow_components(
+                flow.data or {},
+                allow_custom=allow_custom,
+                caller_is_platform_admin=is_pa,
+            )
+        except CustomComponentNotAllowedError as err:
+            raise HTTPException(
+                status_code=403,
+                detail="Custom components are not allowed on this deployment.",
+            ) from err
+
     try:
         flow_reads = []
         for flow in flow_list.flows:

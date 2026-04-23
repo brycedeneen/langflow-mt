@@ -6,6 +6,8 @@ Covers the design at docs/superpowers/specs/2026-04-22-allow-custom-components-g
 
 from __future__ import annotations
 
+import io
+import json
 import uuid
 
 from sqlmodel import select
@@ -175,3 +177,72 @@ async def test_create_flow_accepts_custom_component_for_platform_admin(client, t
         if row is not None:
             await session.delete(row)
             await session.commit()
+
+
+async def test_upload_flow_rejects_custom_component_for_tenant(client, tenant_and_admin):
+    headers = await login_as(client, tenant_and_admin["tenant_username"])
+    payload = {
+        "name": f"uploaded-{uuid.uuid4().hex[:8]}",
+        "data": flow_payload_with_custom_code(),
+    }
+    file_bytes = json.dumps(payload).encode()
+    files = {"file": ("flow.json", io.BytesIO(file_bytes), "application/json")}
+    resp = await client.post("api/v1/flows/upload/", headers=headers, files=files)
+    assert resp.status_code == 403, resp.text
+    assert "custom components are not allowed" in resp.json()["detail"].lower()
+
+
+async def test_upload_flow_accepts_custom_component_for_platform_admin(client, tenant_and_admin):
+    # Same pre-existing multi-tenant folder bug as `test_create_flow_accepts_custom_component_for_platform_admin`
+    # applies here: `_new_flow` -> `get_or_create_default_folder(user_id)` resolves the org via the
+    # scoping trigger and can land on a different personal org than the one the request is bound to,
+    # producing a cross-org folder/flow mismatch. Pre-seed a folder scoped to whichever personal org
+    # the request will resolve to so the default-folder fallback picks it. Orthogonal to the gate.
+    async with session_scope() as session:
+        memberships = (
+            await session.exec(
+                select(Membership).where(Membership.user_id == tenant_and_admin["admin_id"])
+            )
+        ).all()
+        org_ids = [m.organization_id for m in memberships]
+        orgs = (await session.exec(select(Organization).where(Organization.id.in_(org_ids)))).all()
+        personal_orgs = [o for o in orgs if o.is_personal]
+        picked = min(personal_orgs, key=lambda o: o.created_at) if personal_orgs else min(orgs, key=lambda o: o.created_at)
+        # Reuse existing folder if the admin already has one (e.g. from the create_flow sibling test
+        # running first in the same module); otherwise insert a fresh default folder.
+        existing = (
+            await session.exec(
+                select(Folder).where(
+                    Folder.user_id == tenant_and_admin["admin_id"],
+                    Folder.organization_id == picked.id,
+                )
+            )
+        ).first()
+        if existing is None:
+            session.add(
+                Folder(
+                    name=DEFAULT_FOLDER_NAME,
+                    user_id=tenant_and_admin["admin_id"],
+                    organization_id=picked.id,
+                )
+            )
+            await session.commit()
+
+    headers = await login_as(client, tenant_and_admin["admin_username"])
+    payload = {
+        "name": f"admin-uploaded-{uuid.uuid4().hex[:8]}",
+        "data": flow_payload_with_custom_code(),
+    }
+    file_bytes = json.dumps(payload).encode()
+    files = {"file": ("flow.json", io.BytesIO(file_bytes), "application/json")}
+    resp = await client.post("api/v1/flows/upload/", headers=headers, files=files)
+    assert resp.status_code == 201, resp.text
+    # Clean up any flows that were created.
+    created = resp.json()
+    created_ids = [row["id"] for row in (created if isinstance(created, list) else [created])]
+    async with session_scope() as session:
+        for created_id in created_ids:
+            row = await session.get(Flow, uuid.UUID(created_id))
+            if row is not None:
+                await session.delete(row)
+        await session.commit()
