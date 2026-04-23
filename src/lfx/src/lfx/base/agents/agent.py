@@ -21,6 +21,7 @@ def _use_langgraph_runtime() -> bool:
 
 from lfx.base.agents.callback import AgentAsyncHandler
 from lfx.base.agents.events import ExceptionWithMessageError, process_agent_events
+from lfx.base.agents.token_callback import TokenUsageCallbackHandler
 from lfx.base.agents.utils import get_chat_output_sender_name
 from lfx.custom.custom_component.component import Component, _get_component_toolkit
 from lfx.field_typing import Tool
@@ -275,12 +276,20 @@ class LCAgentComponent(Component):
             on_token_callback = cast("OnTokenFunctionType", self._event_manager.on_token)
 
         stream_input = self._adapt_stream_input(input_dict) if is_langgraph else input_dict
+        token_usage_handler = TokenUsageCallbackHandler()
+
         try:
             result = await process_agent_events(
                 runnable.astream_events(
                     stream_input,
                     # here we use the shared callbacks because the AgentExecutor uses the tools
-                    config={"callbacks": [AgentAsyncHandler(self.log), *self._get_shared_callbacks()]},
+                    config={
+                        "callbacks": [
+                            AgentAsyncHandler(self.log),
+                            token_usage_handler,
+                            *self._get_shared_callbacks(),
+                        ]
+                    },
                     version="v2",
                 ),
                 agent_message,
@@ -300,6 +309,17 @@ class LCAgentComponent(Component):
             # Log or handle any other exceptions
             logger.error(f"Error: {e}")
             raise
+
+        # Extract accumulated token usage from callback handler
+        usage_data = token_usage_handler.get_usage()
+        if usage_data:
+            self._token_usage = usage_data
+            result.properties.usage = usage_data
+            # Only update DB and send event if the message was stored (has an ID)
+            if result.get_id():
+                stored_result = await self._update_stored_message(result)
+                await self._send_message_event(stored_result)
+                result = stored_result
 
         self.status = result
         return result
