@@ -1,13 +1,20 @@
 import { createFileUpload } from "@/helpers/create-file-upload";
 import { getObjectsFromFilelist } from "@/helpers/get-objects-from-filelist";
+import useAlertStore from "@/stores/alertStore";
 import useFlowStore from "@/stores/flowStore";
 import type { FlowType } from "@/types/flow";
+import {
+  flowJsonHasCustomComponent,
+  useCustomComponentsAllowed,
+} from "@/utils/customComponentGuards";
 import { processDataFromFlow } from "@/utils/reactflowUtils";
 import useAddFlow from "./use-add-flow";
 
 const useUploadFlow = () => {
   const addFlow = useAddFlow();
   const paste = useFlowStore((state) => state.paste);
+  const setErrorData = useAlertStore((state) => state.setErrorData);
+  const customAllowed = useCustomComponentsAllowed();
 
   const getFlowsFromFiles = async ({
     files,
@@ -55,6 +62,24 @@ const useUploadFlow = () => {
   }): Promise<void> => {
     try {
       const flows = await getFlowsToUpload({ files });
+      // UX-only precheck for the LANGFLOW_ALLOW_CUSTOM_COMPONENTS gate.
+      // Backend /api/v1/flows/upload is the real enforcement boundary
+      // (Task 6); this avoids a round-trip and gives clear feedback at
+      // drop time.
+      if (!customAllowed) {
+        const hasCustom = flows.some((flow) =>
+          flowJsonHasCustomComponent(flow),
+        );
+        if (hasCustom) {
+          setErrorData({
+            title: "Custom components are not allowed on this deployment.",
+            list: [
+              "The uploaded flow contains custom Python component code. Contact your administrator if you need this capability.",
+            ],
+          });
+          return;
+        }
+      }
       for (const flow of flows) {
         await processDataFromFlow(flow);
       }
