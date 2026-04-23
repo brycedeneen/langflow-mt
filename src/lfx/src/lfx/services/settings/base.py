@@ -381,6 +381,14 @@ class Settings(BaseSettings):
     run_retention_hours: int = 24
     """Hours to retain finished flow_runs rows before the retention job deletes them."""
 
+    audit_log_enabled: bool = True
+    """Kill switch for audit-log writes. If False, the SQLAlchemy listener is still
+    registered but emits no rows; set to False if the listener causes prod issues."""
+
+    audit_log_retention_days: int = 90
+    """Days to retain audit_log rows before the daily cleanup job deletes them.
+    Set to 0 for indefinite retention."""
+
     run_payload_inline_max_bytes: int = 1 * 1024 * 1024
     """Inputs/result larger than this are offloaded to object storage."""
 

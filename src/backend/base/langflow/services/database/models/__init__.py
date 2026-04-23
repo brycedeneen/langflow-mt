@@ -1,4 +1,5 @@
 from .api_key import ApiKey
+from .audit_log import AuditAction, AuditLog, AuditTargetType
 from .assistant import AssistantConversation, AssistantMessage
 from .auth import SSOConfig, SSOUserProfile
 from .category import Category, TemplateCategory
@@ -24,6 +25,9 @@ from .variable import Variable
 
 __all__ = [
     "ApiKey",
+    "AuditAction",
+    "AuditLog",
+    "AuditTargetType",
     "AssistantConversation",
     "AssistantMessage",
     "Category",
