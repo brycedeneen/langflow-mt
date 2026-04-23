@@ -1,5 +1,6 @@
 from langflow.services.database.models.admin_notification import AdminNotification
 from langflow.services.database.models.alert_rule import AlertRule
+from langflow.services.database.models.flow_usage_daily import FlowUsageDaily
 from langflow.services.database.models.org_usage_daily import OrgUsageDaily
 from langflow.services.database.models.org_usage_threshold import OrgUsageThreshold
 from .api_key import ApiKey
@@ -30,6 +31,7 @@ __all__ = [
     "AdminNotification",
     "AlertRule",
     "ApiKey",
+    "FlowUsageDaily",
     "OrgUsageDaily",
     "OrgUsageThreshold",
     "AssistantConversation",

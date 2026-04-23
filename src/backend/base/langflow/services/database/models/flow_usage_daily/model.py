@@ -8,13 +8,16 @@ from sqlalchemy import DateTime
 from sqlmodel import Column, Field, ForeignKey, SQLModel
 
 
-class OrgUsageDaily(SQLModel, table=True):
-    __tablename__ = "org_usage_daily"
+class FlowUsageDaily(SQLModel, table=True):
+    __tablename__ = "flow_usage_daily"
 
-    org_id: UUID = Field(
-        sa_column=Column(ForeignKey("organization.id", ondelete="CASCADE"), primary_key=True, nullable=False),
+    flow_id: UUID = Field(
+        sa_column=Column(ForeignKey("flow.id", ondelete="CASCADE"), primary_key=True, nullable=False),
     )
     date: dt.date = Field(primary_key=True, nullable=False)
+    org_id: UUID = Field(
+        sa_column=Column(ForeignKey("organization.id", ondelete="CASCADE"), nullable=False),
+    )
     runs: int = Field(default=0, nullable=False)
     run_seconds: int = Field(default=0, nullable=False)
     tokens: int = Field(default=0, nullable=False)

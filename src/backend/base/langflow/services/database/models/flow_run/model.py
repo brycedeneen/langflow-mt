@@ -69,6 +69,11 @@ class FlowRun(FlowRunBase, table=True):  # type: ignore[call-arg]
         sa.Index("ix_flow_run_status_finished", "status", "finished_at"),
     )
     id: UUID = Field(default_factory=uuid4, primary_key=True)
+    cost_cents: int | None = Field(default=None, nullable=True)
+    model_usage: dict | None = Field(
+        default=None,
+        sa_column=Column(JSON, nullable=True),
+    )
 
 
 class FlowRunCreate(FlowRunBase):
