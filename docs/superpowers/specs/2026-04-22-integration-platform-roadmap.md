@@ -104,7 +104,7 @@ Grouped by theme. These aren't on the current sprint but are the obvious next se
 - **SCIM formatter connector** — outgoing: transform data to SCIM format and POST to an API. Used for user/group provisioning; common customer ask. (The full SCIM-as-provider + SSO story is a separate future manual project.)
 - **OAuth 2.0 framework** — shared reusable OAuth2 connector scaffold. Currently only ADP has OAuth.
 - **Message queue connectors** — Kafka / SQS / Pub/Sub outbound + inbound, pairs with event-bus triggers above.
-- **Validate upstream coverage** — confirm status of Postgres/MySQL/Snowflake/BigQuery, S3/GCS/Azure Blob, Email/SMTP/IMAP, Slack/Teams notifications. Mark which are production-ready in the fork.
+- ~~**Validate upstream coverage** — confirm status of Postgres/MySQL/Snowflake/BigQuery, S3/GCS/Azure Blob, Email/SMTP/IMAP, Slack/Teams notifications.~~ ✅ **Done (2026-04-23)** — results reflected in §7 below. Follow-ups surfaced: native SMTP/IMAP, native Slack sender, and MySQL/Snowflake convenience components tagged **P1.5** (ship if a customer asks); GCS/Azure Blob and Teams kept **P2**.
 
 ### Developer experience
 - **OpenAPI / typed SDKs** — FastAPI generates OpenAPI; no typed client SDK exists. Useful for host-app integration even without the full embed story.
@@ -255,10 +255,18 @@ Compressed so it doesn't drown the live backlog. Ordered by PRD section.
 | SCIM formatter (outbound) | **P1** | Converts data to SCIM format and POSTs to an API |
 | OAuth 2.0 framework | **P1** | Shared reusable scaffold; ADP has its own today |
 | Message queues (Kafka / SQS / Pub/Sub) | **P1** | Paired with event-bus triggers |
-| Databases (Postgres / MySQL / Snowflake / BigQuery) | 🟦 validate | Upstream has some; confirm production-ready in the fork |
-| Object storage (S3 / GCS / Azure Blob) | 🟦 validate | Upstream has some |
-| Email / SMTP / IMAP | 🟦 validate | Upstream partial |
-| Slack / Teams notifications | 🟡 **P2** | Upstream partial — harden or replace |
+| PostgreSQL | ✅ | `pgvector` vectorstore + generic `data_source/sql_executor.py` SQLComponent (SQLAlchemy, shared-cache) |
+| MySQL | 🟡 | Works through generic SQLComponent when a driver (`pymysql` / `mysqlclient`) is installed; no MySQL-specific component. **P1.5** — ship a thin MySQL convenience component if demand appears |
+| Snowflake | 🟡 | Works through generic SQLComponent with `snowflake-sqlalchemy` installed; Composio stub exists but delegates to the Composio framework. **P1.5** — native connector only if a customer asks |
+| BigQuery | ✅ | Dedicated `google/google_bq_sql_executor.py` with service-account JSON auth |
+| Amazon S3 | ✅ | `amazon/s3_bucket_uploader.py` with upload-by-data and upload-by-path strategies; backend tests cover both paths |
+| Google Cloud Storage | ❌ | Not implemented. **P2** — parity with S3 if a GCP customer asks |
+| Azure Blob Storage | ❌ | Not implemented. **P2** — parity with S3 if an Azure customer asks |
+| Gmail | ✅ | Native `google/gmail.py` (GmailLoaderComponent) with service-account auth; `gmail_composio.py` available as Composio alternative |
+| Outlook / Exchange mail | 🟡 | Via Composio only (`outlook_composio.py`); no native component |
+| Generic SMTP / IMAP | ❌ | Not implemented. **P1.5** — generic SMTP send + IMAP fetch would unblock any email provider |
+| Slack | 🟡 | Via Composio (`slack_composio.py`, `slackbot_composio.py`); no native send-message component. **P1.5** — native incoming-webhook sender is cheap to add |
+| Microsoft Teams | ❌ | Not present in native or Composio components. **P2** — paired with the MS suite below |
 | Microsoft (Graph / Entra / Teams / SharePoint) | **P2** | Paired with the future SSO/SCIM project |
 | Salesforce / HubSpot / Workday | **P2** | Common HR/CRM targets |
 | SCIM-as-provider (Langflow as SCIM target) | 🔁 External | Future manual project with SSO |
