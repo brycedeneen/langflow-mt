@@ -36,12 +36,21 @@ class VariableService(Service):
         """
 
     @abc.abstractmethod
-    async def list_variables(self, user_id: UUID | str, session: AsyncSession) -> list[str | None]:
+    async def list_variables(
+        self,
+        user_id: UUID | str,
+        session: AsyncSession,
+        *,
+        organization_id: UUID | None = None,
+    ) -> list[str | None]:
         """List all variables.
 
         Args:
             user_id: The user ID.
             session: The database session.
+            organization_id: When provided, only variables belonging to this
+                organization are returned. When None, all variables for the
+                user are returned (backward-compatible default).
 
         Returns:
             A list of variable names.
@@ -111,12 +120,21 @@ class VariableService(Service):
         """
 
     @abc.abstractmethod
-    async def get_all(self, user_id: UUID | str, session: AsyncSession) -> list[VariableRead]:
+    async def get_all(
+        self,
+        user_id: UUID | str,
+        session: AsyncSession,
+        *,
+        organization_id: UUID | None = None,
+    ) -> list[VariableRead]:
         """Get all variables.
 
         Args:
             user_id: The user ID.
             session: The database session.
+            organization_id: When provided, filter to variables belonging to
+                this organization. When None, return all variables (backward
+                compat).
         """
 
     @abc.abstractmethod

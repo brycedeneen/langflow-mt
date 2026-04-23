@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from uuid import UUID
 
 from langflow.services.deps import get_variable_service, session_scope
 from lfx.services.secret_store import get_secret_store
@@ -19,9 +20,9 @@ class FlowInspectionTools:
         self,
         flow_data: dict[str, Any],
         *,
-        flow_id: Any | None = None,
-        org_id: Any | None = None,
-        user_id: Any | None = None,
+        flow_id: UUID | None = None,
+        org_id: UUID | None = None,
+        user_id: UUID | None = None,
         base_url: str | None = None,
     ) -> None:
         self.flow_data = flow_data
@@ -92,7 +93,11 @@ class FlowInspectionTools:
         try:
             service = get_variable_service()
             async with session_scope() as session:
-                names = await service.list_variables(user_id=self.user_id, session=session)
+                names = await service.list_variables(
+                    user_id=self.user_id,
+                    session=session,
+                    organization_id=self.org_id,
+                )
         except Exception as e:  # noqa: BLE001
             return {"error": f"failed to list variables: {e}"}
         return {"variable_names": [n for n in names if n is not None]}

@@ -19,7 +19,7 @@ async def test_list_user_variables_returns_names_only(monkeypatch):
     user_id = uuid4()
 
     class FakeVariableService:
-        async def list_variables(self, user_id, session):  # noqa: ARG002
+        async def list_variables(self, user_id, session, *, organization_id=None):  # noqa: ARG002
             return ["adp_client_id", "adp_client_secret", "sftp_password_old"]
 
     @asynccontextmanager
@@ -49,7 +49,7 @@ async def test_list_user_variables_filters_out_none_entries(monkeypatch):
     user_id = uuid4()
 
     class FakeVariableService:
-        async def list_variables(self, user_id, session):  # noqa: ARG002
+        async def list_variables(self, user_id, session, *, organization_id=None):  # noqa: ARG002
             return ["good_one", None, "another_good"]
 
     @asynccontextmanager
@@ -76,7 +76,7 @@ async def test_list_user_variables_returns_empty_when_user_has_no_variables(monk
     user_id = uuid4()
 
     class FakeVariableService:
-        async def list_variables(self, user_id, session):  # noqa: ARG002
+        async def list_variables(self, user_id, session, *, organization_id=None):  # noqa: ARG002
             return []
 
     @asynccontextmanager
@@ -106,11 +106,41 @@ async def test_list_user_variables_returns_error_when_user_id_missing():
 
 
 @pytest.mark.asyncio
+async def test_list_user_variables_passes_org_id_to_service(monkeypatch):
+    user_id = uuid4()
+    org_id = uuid4()
+    captured: dict[str, object] = {}
+
+    class FakeVariableService:
+        async def list_variables(self, user_id, session, *, organization_id=None):  # noqa: ARG002
+            captured["organization_id"] = organization_id
+            return []
+
+    @asynccontextmanager
+    async def fake_session_scope():
+        yield object()
+
+    monkeypatch.setattr(
+        "langflow.services.assistant.tools.inspection.get_variable_service",
+        lambda: FakeVariableService(),
+    )
+    monkeypatch.setattr(
+        "langflow.services.assistant.tools.inspection.session_scope",
+        fake_session_scope,
+    )
+
+    tools = FlowInspectionTools({"nodes": [], "edges": []}, user_id=user_id, org_id=org_id)
+    await tools.list_user_variables()
+
+    assert captured["organization_id"] == org_id
+
+
+@pytest.mark.asyncio
 async def test_list_user_variables_returns_error_on_service_failure(monkeypatch):
     user_id = uuid4()
 
     class FakeVariableService:
-        async def list_variables(self, user_id, session):  # noqa: ARG002
+        async def list_variables(self, user_id, session, *, organization_id=None):  # noqa: ARG002
             msg = "db unreachable"
             raise RuntimeError(msg)
 

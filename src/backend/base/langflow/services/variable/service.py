@@ -220,8 +220,16 @@ class DatabaseVariableService(VariableService, Service):
         # GENERIC type - return as-is
         return variable.value
 
-    async def get_all(self, user_id: UUID | str, session: AsyncSession) -> list[VariableRead]:
+    async def get_all(
+        self,
+        user_id: UUID | str,
+        session: AsyncSession,
+        *,
+        organization_id: UUID | None = None,
+    ) -> list[VariableRead]:
         stmt = select(Variable).where(Variable.user_id == user_id)
+        if organization_id is not None:
+            stmt = stmt.where(Variable.organization_id == organization_id)
         variables = list((await session.exec(stmt)).all())
         variables_read = []
         for variable in variables:
@@ -289,8 +297,14 @@ class DatabaseVariableService(VariableService, Service):
             raise ValueError(msg)
         return variable
 
-    async def list_variables(self, user_id: UUID | str, session: AsyncSession) -> list[str | None]:
-        variables = await self.get_all(user_id=user_id, session=session)
+    async def list_variables(
+        self,
+        user_id: UUID | str,
+        session: AsyncSession,
+        *,
+        organization_id: UUID | None = None,
+    ) -> list[str | None]:
+        variables = await self.get_all(user_id=user_id, session=session, organization_id=organization_id)
         return [variable.name for variable in variables if variable]
 
     async def update_variable(
