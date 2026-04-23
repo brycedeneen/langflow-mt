@@ -113,6 +113,13 @@ def get_variable_service() -> VariableService:
     return get_service(ServiceType.VARIABLE_SERVICE, VariableServiceFactory())
 
 
+def get_usage_alert_dispatcher():
+    """Retrieves the UsageAlertDispatcher instance from the service manager."""
+    from langflow.services.notifier.factory import UsageAlertDispatcherFactory
+
+    return get_service(ServiceType.USAGE_ALERT_DISPATCHER, UsageAlertDispatcherFactory())
+
+
 def is_settings_service_initialized() -> bool:
     """Check if the SettingsService is already initialized without triggering initialization.
 

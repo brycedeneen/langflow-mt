@@ -22,3 +22,4 @@ class ServiceType(str, Enum):
     MCP_COMPOSER_SERVICE = "mcp_composer_service"
     JOB_SERVICE = "jobs_service"
     REDIS_SERVICE = "redis_service"
+    USAGE_ALERT_DISPATCHER = "usage_alert_dispatcher"
