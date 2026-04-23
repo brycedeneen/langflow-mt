@@ -18,6 +18,7 @@ interface BaseConfig {
   max_file_size_upload: number;
   event_delivery: EventDeliveryType;
   voice_mode_available: boolean;
+  allow_custom_components: boolean;
 }
 
 // Public config = base config (unauthenticated users get only base fields)

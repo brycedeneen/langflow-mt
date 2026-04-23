@@ -42,6 +42,7 @@ from lfx.schema.schema import INPUT_FIELD_NAME, InputType, OutputValue
 from lfx.services.cache.utils import CacheMiss
 from lfx.services.deps import get_chat_service, get_tracing_service
 from lfx.utils.async_helpers import run_until_complete
+from lfx.utils.flow_validation import validate_flow_components
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Callable, Generator, Iterable
@@ -1150,6 +1151,9 @@ class Graph:
         flow_name: str | None = None,
         user_id: str | None = None,
         context: dict | None = None,
+        *,
+        allow_custom_components: bool = False,
+        caller_is_platform_admin: bool = False,
     ) -> Graph:
         """Creates a graph from a payload.
 
@@ -1159,10 +1163,25 @@ class Graph:
             flow_name: The flow name.
             user_id: The user ID.
             context: Optional context dictionary for request-specific data.
+            allow_custom_components: When True, skip the custom-component gate.
+                Backend callers forward ``settings.allow_custom_components`` here.
+            caller_is_platform_admin: When True, skip the custom-component gate
+                (platform admins can always run custom code). Backend callers
+                forward ``current_user.is_platform_admin`` here.
 
         Returns:
             Graph: The created graph.
         """
+        # Gate first — before any vertex is materialised. validate_flow_components
+        # short-circuits on admin-bypass / allow-custom-components, so defaults of
+        # False/False preserve the "deny custom code by default" posture.
+        # validate_flow_components handles the {"data": {...}} unwrap itself.
+        validate_flow_components(
+            payload,
+            allow_custom=allow_custom_components,
+            caller_is_platform_admin=caller_is_platform_admin,
+        )
+
         if "data" in payload:
             payload = payload["data"]
         try:

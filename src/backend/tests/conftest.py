@@ -680,6 +680,13 @@ async def added_webhook_test(client, json_webhook_test, logged_in_headers, in_me
     settings = get_settings_service().settings
     original_distributed = settings.distributed_execution
     settings.distributed_execution = False
+    # The test flow payload contains a custom-coded Webhook component fixture.
+    # After the LANGFLOW_ALLOW_CUSTOM_COMPONENTS gate lands, execution for
+    # non-admins is blocked by default — which is the intended deployment posture
+    # but breaks these fixtures. Enable the flag for the fixture scope so the
+    # webhook integration tests can still exercise run/webhook plumbing.
+    original_allow_custom = settings.allow_custom_components
+    settings.allow_custom_components = True
 
     try:
         webhook_test = orjson.loads(json_webhook_test)
@@ -695,6 +702,7 @@ async def added_webhook_test(client, json_webhook_test, logged_in_headers, in_me
         await client.delete(f"api/v1/flows/{response.json()['id']}", headers=logged_in_headers)
     finally:
         settings.distributed_execution = original_distributed
+        settings.allow_custom_components = original_allow_custom
 
 
 @pytest.fixture

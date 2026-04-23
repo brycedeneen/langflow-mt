@@ -15,8 +15,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import selectinload
 from sqlmodel import col, select
 
-from langflow.api.utils import DbSession
+from langflow.api.utils import DbSession, resolve_component_gate_flags
 from langflow.api.v1._template_permissions import user_can_edit_template
+from lfx.utils.flow_validation import CustomComponentNotAllowedError, validate_flow_components
 from langflow.services.auth.utils import (
     get_current_active_superuser,
     get_current_active_user,
@@ -296,6 +297,19 @@ async def create_template(
         required_org_id=body.org_id,
         caller_is_platform_admin=bool(getattr(current_user, "is_platform_admin", False)),
     )
+
+    try:
+        allow_custom, is_pa = resolve_component_gate_flags(current_user)
+        validate_flow_components(
+            {"nodes": blanked_nodes, "edges": edges},
+            allow_custom=allow_custom,
+            caller_is_platform_admin=is_pa,
+        )
+    except CustomComponentNotAllowedError as err:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Custom components are not allowed on this deployment.",
+        ) from err
 
     row = Template(
         name=body.name,

@@ -323,6 +323,12 @@ class Settings(BaseSettings):
     developer_api_enabled: bool = False
     """If set to True, Langflow will enable developer API endpoints for advanced debugging and introspection."""
 
+    # Custom Components gate
+    allow_custom_components: bool = False
+    """When False, non-platform-admin users cannot create, upload, or execute flows
+    containing custom Python components. Platform admins always bypass this gate.
+    Env var: LANGFLOW_ALLOW_CUSTOM_COMPONENTS."""
+
     # Public Flow Settings
     public_flow_cleanup_interval: int = Field(default=3600, gt=600)
     """The interval in seconds at which public temporary flows will be cleaned up.

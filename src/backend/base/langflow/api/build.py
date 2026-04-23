@@ -22,6 +22,7 @@ from langflow.api.utils import (
     format_exception_message,
     get_top_level_vertices,
     parse_exception,
+    resolve_component_gate_flags,
 )
 from langflow.api.v1.schemas import FlowDataRequest, ResultDataResponse, VertexBuildResponse
 from langflow.events.event_manager import EventManager
@@ -301,6 +302,10 @@ async def generate_flow_events(
         else:
             effective_session_id = flow_id_str
 
+        # Custom-component gate: read deployment posture + caller identity so
+        # Graph.from_payload can enforce before any vertex is materialised.
+        allow_custom_components, caller_is_platform_admin = resolve_component_gate_flags(current_user)
+
         if not data:
             # For public flows, source_flow_id is the real DB ID, flow_id is virtual.
             # Load from DB using the real ID, then override graph.flow_id with virtual.
@@ -311,6 +316,8 @@ async def generate_flow_events(
                 chat_service=chat_service,
                 user_id=str(current_user.id),
                 session_id=effective_session_id,
+                allow_custom_components=allow_custom_components,
+                caller_is_platform_admin=caller_is_platform_admin,
             )
             if source_flow_id is not None:
                 graph.flow_id = str(flow_id)
@@ -326,6 +333,8 @@ async def generate_flow_events(
             user_id=str(current_user.id),
             flow_name=flow_name,
             session_id=effective_session_id,
+            allow_custom_components=allow_custom_components,
+            caller_is_platform_admin=caller_is_platform_admin,
         )
 
     def sort_vertices(graph: Graph) -> list[str]:

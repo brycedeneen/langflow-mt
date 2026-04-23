@@ -29,7 +29,13 @@ from lfx.services.secret_store import get_secret_store
 from lfx.services.settings.service import SettingsService
 from sqlmodel import select
 
-from langflow.api.utils import CurrentActiveUser, DbSession, extract_global_variables_from_headers, parse_value
+from langflow.api.utils import (
+    CurrentActiveUser,
+    DbSession,
+    extract_global_variables_from_headers,
+    parse_value,
+    resolve_component_gate_flags,
+)
 from langflow.api.v1.schemas import (
     ConfigResponse,
     CustomComponentRequest,
@@ -166,8 +172,18 @@ async def simple_run_flow(
             raise ValueError(msg)
         graph_data = flow.data.copy()
         graph_data = process_tweaks(graph_data, input_request.tweaks or {}, stream=stream)
+        # Custom-component gate: mirror the /build/{flow_id}/flow posture.
+        # Deployment can opt in via LANGFLOW_ALLOW_CUSTOM_COMPONENTS; platform
+        # admins always bypass.
+        allow_custom_components, caller_is_platform_admin = resolve_component_gate_flags(api_key_user)
         graph = Graph.from_payload(
-            graph_data, flow_id=flow_id_str, user_id=str(user_id), flow_name=flow.name, context=context
+            graph_data,
+            flow_id=flow_id_str,
+            user_id=str(user_id),
+            flow_name=flow.name,
+            context=context,
+            allow_custom_components=allow_custom_components,
+            caller_is_platform_admin=caller_is_platform_admin,
         )
         if run_id is None:
             run_id = str(uuid4())

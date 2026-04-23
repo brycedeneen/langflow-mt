@@ -142,12 +142,16 @@ async def test_flow_execution_equivalence(flow_name: str):
 
     graph_data = flow_data.get("data", flow_data)
 
-    # Create two independent copies - use valid UUIDs for flow_id
+    # Create two independent copies - use valid UUIDs for flow_id.
+    # These fixtures exercise execution-equivalence with trusted JSON flows;
+    # bypass the custom-component gate (platform-admin posture) so the test
+    # focuses on execution parity rather than deployment policy.
     graph_for_async_start = Graph.from_payload(
         deepcopy(graph_data),
         flow_id=str(uuid4()),
         flow_name=flow_name,
         user_id="test-user-async",
+        caller_is_platform_admin=True,
     )
 
     graph_for_arun = Graph.from_payload(
@@ -155,6 +159,7 @@ async def test_flow_execution_equivalence(flow_name: str):
         flow_id=str(uuid4()),
         flow_name=flow_name,
         user_id="test-user-arun",
+        caller_is_platform_admin=True,
     )
 
     # Run both paths with tracing

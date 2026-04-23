@@ -13,6 +13,7 @@ import useAlertStore from "@/stores/alertStore";
 import useAuthStore from "@/stores/authStore";
 import { useShortcutsStore } from "@/stores/shortcuts";
 import type { NodeDataType } from "@/types/flow";
+import { useCustomComponentsAllowed } from "@/utils/customComponentGuards";
 import { cn } from "@/utils/utils";
 import { ToolbarButton } from "../../nodeToolbarComponent/components/toolbar-button";
 import EditableHeaderContent from "./EditableHeaderContent";
@@ -33,6 +34,8 @@ export default function InspectionPanelHeader({
     useAuthStore((state) => state.userData?.is_superuser) === true;
   const [editMode, setEditMode] = useState(false);
   const [isHoveringContent, setIsHoveringContent] = useState(false);
+  // Force read-only editing for gated tenants (Task 10).
+  const customAllowed = useCustomComponentsAllowed();
   const { handleNodeClass } = useHandleNodeClass(data.id);
   const { handleOnNewValue } = useHandleOnNewValue({
     node: data.node!,
@@ -211,6 +214,7 @@ export default function InspectionPanelHeader({
               nodeClass={data.node}
               value={data.node?.template?.code?.value ?? ""}
               componentId={data.id}
+              readonly={!customAllowed}
             >
               <></>
             </CodeAreaModal>
