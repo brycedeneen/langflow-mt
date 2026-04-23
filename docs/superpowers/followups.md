@@ -81,3 +81,21 @@ Deferred items surfaced during implementation of prior plans. Pick up when revis
 ### UX polish
 
 - [ ] **PipelineCard tool sub-item styling.** Grouped tools render as plain `Tool: <name>` rows indented under the parent card header. Works functionally but looks thin compared to the card's own chrome. Consider: small tool icon, a left-border accent matching the agent card, or a subtle chip background. See `src/frontend/src/modals/AssistantPanel/FlowPipelineView/pipeline-card.tsx`.
+
+
+## 2026-04-22 — Backport upstream PR #11893 (`LANGFLOW_ALLOW_CUSTOM_COMPONENTS`)
+
+**Source:** https://github.com/langflow-ai/langflow/pull/11893 (merged 2026-04-05 upstream)
+
+**Why:** On a multi-tenant deploy (ours is the effective main), a tenant who uploads a flow containing a custom Python component executes that code on shared infrastructure. Upstream's gate validates every node's code against a server-side component template cache before execution and refuses anything that doesn't match. Cached template misses during startup block *all* flow execution as a safety fallback. No equivalent exists on `platform-multi-tenant` (none of the PR's files are present: `src/lfx/src/lfx/utils/flow_validation.py`, `src/lfx/src/lfx/utils/component_aliases.py`, `src/frontend/src/utils/customComponentGuards.ts`, no `ALLOW_CUSTOM_COMPONENTS` setting).
+
+**Decisions to brainstorm before planning:**
+- Default posture for our multi-tenant deploy: `ALLOW_CUSTOM_COMPONENTS=false` baked into the container image, or opt-in per deployment?
+- Platform-admin override: can platform admins run custom components while tenants cannot? (Current upstream design: env-var is global.)
+- Frontend gating UX on ADP Assist / Template Management / Data Mapper surfaces.
+- How to reconcile the 20+ starter-project JSON edits in the upstream PR with our ADP-specific starter-project content.
+- Scope — backport as-is, or fork the gate to be per-org (membership-scoped allowlist)?
+
+**Size estimate:** ~85 files touched upstream (50 backend + 30 frontend + 5 lfx). Multi-day effort.
+
+**Cross-ref:** flagged in `docs/superpowers/plans/2026-04-22-platform-multi-tenant-security-fixes.md` as out of scope.
