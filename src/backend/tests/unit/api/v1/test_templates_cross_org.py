@@ -8,8 +8,10 @@ from __future__ import annotations
 import uuid
 
 import pytest
+from sqlmodel import select
 
 from langflow.services.auth.utils import get_password_hash
+from langflow.services.database.models.flow.model import Flow
 from langflow.services.database.models.membership.model import Membership, MembershipRole
 from langflow.services.database.models.organization.model import Organization
 from langflow.services.database.models.template.model import Template
@@ -163,3 +165,68 @@ async def test_get_template_allows_own_org(client, two_tenants):
     )
     assert resp.status_code == 200, resp.text
     assert resp.json()["id"] == str(two_tenants["tmpl_a_id"])
+
+
+async def test_create_template_rejects_cross_org_source_flow(client, two_tenants):
+    # Seed a flow in org_b owned by user_b.
+    async with session_scope() as session:
+        victim_flow = Flow(
+            name=f"victim-{uuid.uuid4().hex[:8]}",
+            data={
+                "nodes": [
+                    {
+                        "id": "n1",
+                        "data": {
+                            "node": {
+                                "template": {
+                                    "api_key": {"value": "sk-victim", "password": True},
+                                    "system_prompt": {"value": "IP worth stealing", "password": False},
+                                }
+                            }
+                        },
+                    }
+                ],
+                "edges": [],
+            },
+            user_id=two_tenants["user_b_id"],
+            organization_id=two_tenants["org_b_id"],
+        )
+        session.add(victim_flow)
+        await session.commit()
+        await session.refresh(victim_flow)
+        victim_flow_id = victim_flow.id
+
+    try:
+        # user_a (in org_a) tries to exfiltrate victim_flow into their own org.
+        headers = await _login(client, two_tenants["user_a_username"])
+        resp = await client.post(
+            "api/v1/templates",
+            headers=headers,
+            json={
+                "name": f"exfil-{uuid.uuid4().hex[:8]}",
+                "description": "should be rejected",
+                "source_flow_id": str(victim_flow_id),
+                "scope": "org",
+                "org_id": str(two_tenants["org_a_id"]),
+                "blanked_fields": [],
+                "category_ids": [],
+            },
+        )
+        assert resp.status_code == 404, resp.text  # 404, not 403, to hide existence
+        # No template was persisted under org_a.
+        async with session_scope() as session:
+            stolen = (
+                await session.exec(
+                    select(Template).where(
+                        Template.org_id == two_tenants["org_a_id"],
+                        Template.description == "should be rejected",
+                    )
+                )
+            ).first()
+            assert stolen is None
+    finally:
+        async with session_scope() as session:
+            row = await session.get(Flow, victim_flow_id)
+            if row is not None:
+                await session.delete(row)
+                await session.commit()

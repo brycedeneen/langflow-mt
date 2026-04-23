@@ -84,11 +84,25 @@ async def _load_source_and_blank(
     session: AsyncSession,
     source_flow_id: UUID,
     blanked_fields: list[BlankedField],
+    *,
+    required_org_id: UUID | None,
+    caller_is_platform_admin: bool,
 ) -> tuple[list[dict], list[dict]]:
-    """Load the source flow (404 if missing) and return (blanked_nodes, edges)."""
-    flow = (
-        await session.exec(select(Flow).where(Flow.id == source_flow_id))
-    ).one_or_none()
+    """Load the source flow and return (blanked_nodes, edges).
+
+    Authorization:
+    - Platform admins may use any flow as a source.
+    - All other callers must supply ``required_org_id`` and the source flow's
+      ``organization_id`` must match. On mismatch we raise 404 (not 403) so the
+      endpoint does not confirm the flow's existence to an unauthorized caller.
+    """
+    stmt = select(Flow).where(Flow.id == source_flow_id)
+    if not caller_is_platform_admin:
+        if required_org_id is None:
+            # Defense-in-depth: callers that don't supply an org cannot load a flow.
+            raise HTTPException(status_code=404, detail="Source flow not found")
+        stmt = stmt.where(Flow.organization_id == required_org_id)
+    flow = (await session.exec(stmt)).one_or_none()
     if flow is None:
         raise HTTPException(status_code=404, detail="Source flow not found")
     data = flow.data or {}
@@ -276,7 +290,11 @@ async def create_template(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Template name already exists")
 
     blanked_nodes, edges = await _load_source_and_blank(
-        session, body.source_flow_id, body.blanked_fields,
+        session,
+        body.source_flow_id,
+        body.blanked_fields,
+        required_org_id=body.org_id,
+        caller_is_platform_admin=bool(getattr(current_user, "is_platform_admin", False)),
     )
 
     row = Template(
@@ -345,7 +363,11 @@ async def update_template(
             raise HTTPException(status_code=409, detail="Template name already exists")
 
     blanked_nodes, edges = await _load_source_and_blank(
-        session, body.source_flow_id, body.blanked_fields,
+        session,
+        body.source_flow_id,
+        body.blanked_fields,
+        required_org_id=row.org_id,
+        caller_is_platform_admin=bool(getattr(current_user, "is_platform_admin", False)),
     )
 
     row.name = body.name
