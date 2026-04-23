@@ -44,6 +44,9 @@ import ShortcutsPage from "./pages/SettingsPage/pages/ShortcutsPage";
 import ViewPage from "./pages/ViewPage";
 
 const AdminAuditLogsPage = lazy(() => import("@/pages/AdminPage/AdminAuditLogsPage"));
+const AdminNotificationsPage = lazy(
+  () => import("./pages/AdminPage/AdminNotificationsPage"),
+);
 const LoginAdminPage = lazy(() => import("./pages/AdminPage/LoginPage"));
 const UsersPage = lazy(() => import("./pages/AdminPage/UsersPage"));
 const UserDetailPage = lazy(() => import("./pages/AdminPage/UserDetailPage"));
@@ -246,6 +249,14 @@ const router = createBrowserRouter(
                     element={
                       <ProtectedAdminRoute>
                         <AdminAuditLogsPage />
+                      </ProtectedAdminRoute>
+                    }
+                  />
+                  <Route
+                    path="notifications"
+                    element={
+                      <ProtectedAdminRoute>
+                        <AdminNotificationsPage />
                       </ProtectedAdminRoute>
                     }
                   />

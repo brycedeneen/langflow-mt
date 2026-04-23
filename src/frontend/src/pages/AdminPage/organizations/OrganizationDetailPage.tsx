@@ -10,6 +10,7 @@ import {
 } from "../../../components/ui/tabs";
 import OrganizationMembersTab from "./OrganizationMembersTab";
 import OrganizationSettingsTab from "./OrganizationSettingsTab";
+import OrganizationUsageTab from "./OrganizationUsageTab";
 
 export default function OrganizationDetailPage() {
   const { orgId } = useParams<{ orgId: string }>();
@@ -54,12 +55,16 @@ export default function OrganizationDetailPage() {
           <TabsList className="border-b">
             <TabsTrigger value="members">Members</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="usage">Usage &amp; Alerts</TabsTrigger>
           </TabsList>
           <TabsContent value="members" className="flex-1 overflow-auto pt-4">
             <OrganizationMembersTab orgId={org.id} members={org.members} />
           </TabsContent>
           <TabsContent value="settings" className="flex-1 overflow-auto pt-4">
             <OrganizationSettingsTab org={org} />
+          </TabsContent>
+          <TabsContent value="usage" className="flex-1 overflow-auto pt-4">
+            <OrganizationUsageTab orgId={org.id} />
           </TabsContent>
         </Tabs>
       )}

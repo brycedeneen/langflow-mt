@@ -243,6 +243,8 @@ def register_all_service_factories() -> None:
     from langflow.services.tracing import factory as tracing_factory
     from langflow.services.transaction import factory as transaction_factory
     from langflow.services.variable import factory as variable_factory
+    from langflow.services.notifier import factory as notifier_factory
+    from langflow.services.pricing import factory as pricing_factory
 
     # Register all factories
     service_manager.register_factory(settings_factory.SettingsServiceFactory())
@@ -266,6 +268,8 @@ def register_all_service_factories() -> None:
     service_manager.register_factory(mcp_composer_factory.MCPComposerServiceFactory())
     from langflow.services.audit import factory as audit_factory
     service_manager.register_factory(audit_factory.AuditServiceFactory())
+    service_manager.register_factory(notifier_factory.UsageAlertDispatcherFactory())
+    service_manager.register_factory(pricing_factory.PricingServiceFactory())
     service_manager.set_factory_registered()
 
 

@@ -526,6 +526,47 @@ async def logged_in_headers_super_user(client, active_super_user):
 
 
 @pytest.fixture
+async def active_platform_admin(client):  # noqa: ARG001
+    async with session_scope() as session:
+        user = User(
+            username="platformadmin",
+            password=get_auth_service().get_password_hash("testpassword"),
+            is_active=True,
+            is_superuser=True,
+            is_platform_admin=True,
+        )
+        stmt = select(User).where(User.username == user.username)
+        if existing := (await session.exec(stmt)).first():
+            user = existing
+        else:
+            session.add(user)
+            await session.commit()
+            await session.refresh(user)
+    yield user
+
+
+@pytest.fixture
+async def logged_in_headers_platform_admin(client, active_platform_admin):
+    login_data = {"username": active_platform_admin.username, "password": "testpassword"}
+    response = await client.post("api/v1/login", data=login_data)
+    assert response.status_code == 200
+    tokens = response.json()
+    return {"Authorization": f"Bearer {tokens['access_token']}"}
+
+
+@pytest.fixture
+async def seeded_org(client):  # noqa: ARG001
+    from langflow.services.database.models.organization.model import Organization
+
+    async with session_scope() as session:
+        org = Organization(id=uuid4(), name="test-org", slug="test-org")
+        session.add(org)
+        await session.commit()
+        await session.refresh(org)
+    yield org
+
+
+@pytest.fixture
 async def flow(
     client,  # noqa: ARG001
     json_flow: str,

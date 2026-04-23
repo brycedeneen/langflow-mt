@@ -6,6 +6,7 @@ from uuid import UUID, uuid4
 from pydantic import BaseModel, ConfigDict, field_serializer, field_validator
 from pydantic import Field as PydanticField
 from pydantic.alias_generators import to_camel
+from sqlalchemy import ForeignKey
 from sqlmodel import JSON, Column, Field, Relationship, SQLModel, Text
 
 from langflow.serialization.serialization import serialize
@@ -100,6 +101,10 @@ class TraceTable(TraceBase, table=True):  # type: ignore[call-arg]
     __tablename__ = "trace"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
+    flow_run_id: UUID | None = Field(
+        default=None,
+        sa_column=Column(ForeignKey("flow_run.id", ondelete="SET NULL"), nullable=True, index=True),
+    )
     spans: list["SpanTable"] = Relationship(
         back_populates="trace",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},

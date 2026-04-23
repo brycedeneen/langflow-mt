@@ -1,4 +1,5 @@
 import useFlowStore from "@/stores/flowStore";
+import CostEstimateBadge from "./cost-estimate-badge";
 import PublishDropdown from "./deploy-dropdown";
 import PlaygroundButton from "./playground-button";
 import AssistantToggleButton from "./assistant-toggle-button";
@@ -16,6 +17,7 @@ const FlowToolbarOptions = ({
   return (
     <div className="flex items-center gap-1">
       <AssistantToggleButton />
+      <CostEstimateBadge />
       <PlaygroundButton hasIO={hasIO} />
       <PublishDropdown
         openApiModal={openApiModal}
