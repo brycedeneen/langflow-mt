@@ -1,5 +1,7 @@
 # Tagging for Flows and Templates Implementation Plan
 
+> **Resume context (2026-04-23):** Part A of Sprint 2 (Assistant data-access org isolation) shipped in 8 commits: `b52bb50380` → `ec44256791` on `p1/batch-1`. Worktree: `/Users/brycedeneen/dev/langflow/.worktrees/p1-batch-1`. This plan (Part B) is untouched and ready to start at Task 1. Spec: `docs/superpowers/specs/2026-04-23-assistant-org-isolation-and-tagging-design.md` (Part B section). 5 P1.5 follow-ups from Part A tracked in `docs/superpowers/notes/2026-04-23-assistant-surface-inventory.md`.
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 >
 > **User-specific commit discipline:** This user has a standing rule — pause and ask before every `git commit`. The commit commands below are the exact command to run *after* the user approves. Stage explicit paths only (no `git add -A` / `.`).
