@@ -79,6 +79,8 @@ def import_all_services_into_a_dict():
             # Special handling for mcp_composer which is now in lfx module
             if service_name == "mcp_composer":
                 module_name = f"lfx.services.{service_name}.service"
+            elif service_name == "usage_alert_dispatcher":
+                module_name = "langflow.services.notifier.factory"
             else:
                 module_name = f"langflow.services.{service_name}.service"
 

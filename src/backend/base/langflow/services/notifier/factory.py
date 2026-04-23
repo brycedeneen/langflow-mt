@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from typing_extensions import override
-
 from langflow.services.base import Service
 from langflow.services.factory import ServiceFactory
 from langflow.services.notifier.dispatcher import UsageAlertDispatcher
@@ -13,7 +11,7 @@ if TYPE_CHECKING:
     from langflow.services.database.service import DatabaseService
 
 
-class _UsageAlertDispatcherService(UsageAlertDispatcher, Service):
+class UsageAlertDispatcherService(UsageAlertDispatcher, Service):
     """Thin Service wrapper around UsageAlertDispatcher for the service manager."""
 
     name = "usage_alert_dispatcher"
@@ -24,10 +22,9 @@ class _UsageAlertDispatcherService(UsageAlertDispatcher, Service):
 
 class UsageAlertDispatcherFactory(ServiceFactory):
     def __init__(self) -> None:
-        super().__init__(_UsageAlertDispatcherService)
+        super().__init__(UsageAlertDispatcherService)
 
-    @override
-    def create(self, database_service: "DatabaseService") -> _UsageAlertDispatcherService:
+    def create(self, database_service: "DatabaseService") -> UsageAlertDispatcherService:
         # v1: only InAppNotifier. Future notifiers are added here, gated on settings.
         notifiers = [InAppNotifier(database_service.async_session_maker)]
-        return _UsageAlertDispatcherService(notifiers)
+        return UsageAlertDispatcherService(notifiers)
