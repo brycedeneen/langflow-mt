@@ -468,8 +468,6 @@ async def read_flows(
         A list of flows or a paginated response containing the list of flows or a list of flow headers.
     """
     try:
-        auth_settings = get_settings_service().auth_settings
-
         default_folder = (await session.exec(select(Folder).where(Folder.name == DEFAULT_FOLDER_NAME))).first()
         default_folder_id = default_folder.id if default_folder else None
 
@@ -485,12 +483,7 @@ async def read_flows(
         if not folder_id:
             folder_id = default_folder_id
 
-        if auth_settings.AUTO_LOGIN:
-            stmt = select(Flow).where(
-                (Flow.user_id == None) | (Flow.user_id == current_user.id)  # noqa: E711
-            )
-        else:
-            stmt = select(Flow).where(Flow.user_id == current_user.id)
+        stmt = select(Flow).where(Flow.user_id == current_user.id)
         # Multi-tenant scoping: only return flows in the caller's organization,
         # or legacy flows with no organization assigned yet (backfill edge case).
         stmt = stmt.where((Flow.organization_id == current_org.id) | (Flow.organization_id == None))  # noqa: E711
