@@ -81,6 +81,8 @@ def import_all_services_into_a_dict():
                 module_name = f"lfx.services.{service_name}.service"
             elif service_name == "usage_alert_dispatcher":
                 module_name = "langflow.services.notifier.factory"
+            elif service_name == "pricing":
+                module_name = "langflow.services.pricing.service"
             else:
                 module_name = f"langflow.services.{service_name}.service"
 

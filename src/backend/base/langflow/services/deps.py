@@ -113,6 +113,13 @@ def get_variable_service() -> VariableService:
     return get_service(ServiceType.VARIABLE_SERVICE, VariableServiceFactory())
 
 
+def get_pricing_service():
+    """Retrieves the PricingService instance from the service manager."""
+    from langflow.services.pricing.factory import PricingServiceFactory
+
+    return get_service(ServiceType.PRICING_SERVICE, PricingServiceFactory())
+
+
 def get_usage_alert_dispatcher():
     """Retrieves the UsageAlertDispatcher instance from the service manager."""
     from langflow.services.notifier.factory import UsageAlertDispatcherFactory

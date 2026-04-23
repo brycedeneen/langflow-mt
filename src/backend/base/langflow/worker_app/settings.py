@@ -9,6 +9,7 @@ from langflow.services.settings.base import Settings
 from langflow.worker_app.execute import WORKER_ID, execute_run
 from langflow.worker_app.reaper import reap_lost_runs
 from langflow.worker_app.retention import retention_sweep
+from langflow.worker_app.pricing_refresh import refresh_pricing_cache
 from langflow.worker_app.webhook import deliver_webhook
 
 _settings = Settings(_env_file=None)
@@ -47,6 +48,7 @@ class WorkerSettings:
     cron_jobs = [
         cron(reap_lost_runs, name="reap_lost_runs", second={0, 30}),
         cron(retention_sweep, name="retention_sweep", minute=0),
+        cron(refresh_pricing_cache, name="refresh_pricing_cache", hour=0, minute=0),
     ]
     queue_name = _settings.arq_default_queue
     max_jobs = _settings.worker_concurrency

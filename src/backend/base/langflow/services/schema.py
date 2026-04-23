@@ -23,3 +23,4 @@ class ServiceType(str, Enum):
     JOB_SERVICE = "jobs_service"
     REDIS_SERVICE = "redis_service"
     USAGE_ALERT_DISPATCHER = "usage_alert_dispatcher"
+    PRICING_SERVICE = "pricing_service"

@@ -395,6 +395,18 @@ class Settings(BaseSettings):
     metering_enabled: bool = True
     """Kill switch for the metering post-commit hook in worker_app/execute.py."""
 
+    cost_tracking_enabled: bool = True
+    """Kill switch for the cost-computation path in record_run_completion_and_eval."""
+
+    cost_estimate_llm_input_tokens: int = 800
+    cost_estimate_llm_output_tokens: int = 400
+    cost_estimate_embed_input_tokens: int = 512
+    cost_estimate_agent_multiplier: int = 4
+    """Heuristics for the pre-run cost estimator."""
+
+    pricing_overrides_json: str = ""
+    """JSON map of model-name -> {input_cents_per_1k, output_cents_per_1k}."""
+
     @field_validator("runtime_port", mode="before")
     @classmethod
     def validate_runtime_port(cls, value):
