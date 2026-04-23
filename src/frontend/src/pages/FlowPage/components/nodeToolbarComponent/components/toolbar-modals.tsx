@@ -5,6 +5,7 @@ import EditNodeModal from "@/modals/editNodeModal";
 import ShareModal from "@/modals/shareModal";
 import type { APIClassType } from "@/types/api";
 import type { FlowType } from "@/types/flow";
+import { useCustomComponentsAllowed } from "@/utils/customComponentGuards";
 
 interface ToolbarModalsProps {
   // Modal visibility states
@@ -51,6 +52,9 @@ const ToolbarModals = memo(
     addFlow,
     name = "code",
   }: ToolbarModalsProps) => {
+    // Force read-only editing for gated tenants (Task 10).
+    const customAllowed = useCustomComponentsAllowed();
+
     // Handlers for confirmation modal
     const handleConfirm = () => {
       addFlow({
@@ -130,6 +134,7 @@ const ToolbarModals = memo(
                 nodeClass={data.node}
                 value={data.node?.template[name]?.value ?? ""}
                 componentId={data.id}
+                readonly={!customAllowed}
               >
                 <></>
               </CodeAreaModal>

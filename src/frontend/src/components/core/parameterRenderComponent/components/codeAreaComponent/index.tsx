@@ -1,4 +1,5 @@
 import CodeAreaModal from "@/modals/codeAreaModal";
+import { useCustomComponentsAllowed } from "@/utils/customComponentGuards";
 import { cn } from "../../../../../utils/utils";
 import IconComponent from "../../../../common/genericIconComponent";
 import { Button } from "../../../../ui/button";
@@ -41,6 +42,9 @@ export default function CodeAreaComponent({
   placeholder,
   showParameter = true,
 }: InputProps<string>): JSX.Element | null {
+  // Force read-only editing for gated tenants (Task 10).
+  const customAllowed = useCustomComponentsAllowed();
+
   const renderCodeText = () => (
     <span
       id={id}
@@ -92,6 +96,7 @@ export default function CodeAreaComponent({
         nodeClass={nodeClass}
         setNodeClass={handleNodeClass!}
         setValue={(newValue) => handleOnNewValue({ value: newValue })}
+        readonly={!customAllowed}
       >
         <Button unstyled className="w-full">
           <div className="relative w-full">
