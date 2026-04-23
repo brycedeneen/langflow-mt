@@ -185,8 +185,6 @@ async def test_load_bundles_from_urls():
     settings_service.settings.bundle_urls = [
         "https://github.com/langflow-ai/langflow-bundles/commit/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9"
     ]
-    settings_service.auth_settings.AUTO_LOGIN = True
-
     # Create a superuser in the test database since load_bundles_from_urls requires one
     async with session_scope() as session:
         await create_super_user(

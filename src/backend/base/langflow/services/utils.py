@@ -4,7 +4,6 @@ import asyncio
 from typing import TYPE_CHECKING
 
 from lfx.log.logger import logger
-from lfx.services.settings.constants import DEFAULT_SUPERUSER, DEFAULT_SUPERUSER_PASSWORD
 from sqlalchemy import delete
 from sqlalchemy import exc as sqlalchemy_exc
 from sqlmodel import col, select
@@ -16,122 +15,40 @@ from langflow.services.database.models.vertex_builds.model import VertexBuildTab
 from langflow.services.database.utils import initialize_database
 from langflow.services.schema import ServiceType
 
-from .deps import get_auth_service, get_db_service, get_service, get_settings_service, session_scope
+from .deps import get_db_service, get_service, get_settings_service, session_scope
 
 if TYPE_CHECKING:
     from lfx.services.settings.manager import SettingsService
     from sqlmodel.ext.asyncio.session import AsyncSession
 
 
-async def get_or_create_super_user(session: AsyncSession, username, password, is_default):
-    from langflow.services.database.models.user.model import User
-
-    stmt = select(User).where(User.username == username)
-    result = await session.exec(stmt)
-    user = result.first()
-
-    auth = get_auth_service()
-    if user and user.is_superuser:
-        return None  # Superuser already exists
-
-    if user and is_default:
-        if user.is_superuser:
-            if auth.verify_password(password, user.password):
-                return None
-            # Superuser exists but password is incorrect
-            # which means that the user has changed the
-            # base superuser credentials.
-            # This means that the user has already created
-            # a superuser and changed the password in the UI
-            # so we don't need to do anything.
-            await logger.adebug(
-                "Superuser exists but password is incorrect. "
-                "This means that the user has changed the "
-                "base superuser credentials."
-            )
-            return None
-        logger.debug("User with superuser credentials exists but is not a superuser.")
-        return None
-
-    if user:
-        if auth.verify_password(password, user.password):
-            msg = "User with superuser credentials exists but is not a superuser."
-            raise ValueError(msg)
-        msg = "Incorrect superuser credentials"
-        raise ValueError(msg)
-
-    if is_default:
-        logger.debug("Creating default superuser.")
-    else:
-        logger.debug("Creating superuser.")
-    return await auth.create_super_user(username, password, db=session)
-
-
 async def setup_superuser(settings_service: SettingsService, session: AsyncSession) -> None:
-    if settings_service.auth_settings.AUTO_LOGIN:
-        await logger.adebug("AUTO_LOGIN is set to True. Creating default superuser.")
-        username = DEFAULT_SUPERUSER
-        password = DEFAULT_SUPERUSER_PASSWORD.get_secret_value()
-    else:
-        # Remove the default superuser if it exists
-        await teardown_superuser(settings_service, session)
-        # If AUTO_LOGIN is disabled, attempt to use configured credentials
-        # or fall back to default credentials if none are provided.
-        username = settings_service.auth_settings.SUPERUSER or DEFAULT_SUPERUSER
-        password = (settings_service.auth_settings.SUPERUSER_PASSWORD or DEFAULT_SUPERUSER_PASSWORD).get_secret_value()
+    from langflow.services.auth.utils import create_super_user
 
-    if not username or not password:
-        msg = "Username and password must be set"
+    username = settings_service.auth_settings.SUPERUSER
+    password_secret = settings_service.auth_settings.SUPERUSER_PASSWORD
+    password = password_secret.get_secret_value() if password_secret else ""
+
+    if not username:
+        msg = (
+            "LANGFLOW_SUPERUSER must be set. Username/password authentication is required; "
+            "provide LANGFLOW_SUPERUSER and LANGFLOW_SUPERUSER_PASSWORD via environment or .env."
+        )
+        raise ValueError(msg)
+    if not password:
+        msg = (
+            "LANGFLOW_SUPERUSER_PASSWORD must be set. Username/password authentication is required; "
+            "provide LANGFLOW_SUPERUSER and LANGFLOW_SUPERUSER_PASSWORD via environment or .env."
+        )
         raise ValueError(msg)
 
-    is_default = (username == DEFAULT_SUPERUSER) and (password == DEFAULT_SUPERUSER_PASSWORD.get_secret_value())
-
-    try:
-        user = await get_or_create_super_user(
-            session=session, username=username, password=password, is_default=is_default
-        )
-        if user is not None:
-            await logger.adebug("Superuser created successfully.")
-    except Exception as exc:
-        logger.exception(exc)
-        msg = "Could not create superuser. Please create a superuser manually."
-        raise RuntimeError(msg) from exc
-    finally:
-        # Scrub credentials from in-memory settings after setup
-        settings_service.auth_settings.reset_credentials()
-
-
-async def teardown_superuser(settings_service, session: AsyncSession) -> None:
-    """Teardown the superuser."""
-    # If AUTO_LOGIN is True, we will remove the default superuser
-    # from the database.
-
-    if not settings_service.auth_settings.AUTO_LOGIN:
-        try:
-            await logger.adebug("AUTO_LOGIN is set to False. Removing default superuser if exists.")
-            username = DEFAULT_SUPERUSER
-            from langflow.services.database.models.user.model import User
-
-            stmt = select(User).where(User.username == username)
-            result = await session.exec(stmt)
-            user = result.first()
-            # Check if super was ever logged in, if not delete it
-            # if it has logged in, it means the user is using it to login
-            if user and user.is_superuser is True and not user.last_login_at:
-                await session.delete(user)
-                await logger.adebug("Default superuser removed successfully.")
-
-        except Exception as exc:
-            logger.exception(exc)
-            msg = "Could not remove default superuser."
-            raise RuntimeError(msg) from exc
+    await logger.adebug(f"Creating or updating superuser '{username}'.")
+    await create_super_user(username=username, password=password, db=session)
+    settings_service.auth_settings.reset_credentials()
 
 
 async def teardown_services() -> None:
     """Teardown all the services."""
-    async with session_scope() as session:
-        await teardown_superuser(get_settings_service(), session)
-
     from lfx.services.manager import get_service_manager
 
     service_manager = get_service_manager()

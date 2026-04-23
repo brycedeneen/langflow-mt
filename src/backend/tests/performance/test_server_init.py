@@ -41,17 +41,6 @@ def test_setup_llm_caching():
     assert "test_performance.db" in settings_service.settings.database_url
 
 
-async def test_initialize_super_user():
-    """Benchmark super user initialization."""
-    from langflow.initial_setup.setup import initialize_auto_login_default_superuser
-    from langflow.services.utils import initialize_services
-
-    await initialize_services(fix_migration=False)
-    await initialize_auto_login_default_superuser()
-    settings_service = get_settings_service()
-    assert "test_performance.db" in settings_service.settings.database_url
-
-
 async def test_get_and_cache_all_types_dict():
     """Benchmark get_and_cache_all_types_dict function."""
     from lfx.interface.components import get_and_cache_all_types_dict

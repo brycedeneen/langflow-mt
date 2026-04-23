@@ -38,7 +38,6 @@ from langflow.services.database.models.user.crud import get_user_by_username
 from langflow.services.database.session import NoopSession
 from langflow.services.database.utils import Result, TableResults
 from langflow.services.deps import get_settings_service
-from langflow.services.utils import teardown_superuser
 
 if TYPE_CHECKING:
     from lfx.services.settings.service import SettingsService
@@ -634,12 +633,4 @@ class DatabaseService(Service):
 
     async def teardown(self) -> None:
         await logger.adebug("Tearing down database")
-        try:
-            settings_service = get_settings_service()
-            # remove the default superuser if auto_login is enabled
-            # using the SUPERUSER to get the user
-            async with session_scope() as session:
-                await teardown_superuser(settings_service, session)
-        except Exception:  # noqa: BLE001
-            await logger.aexception("Error tearing down database")
         await self.engine.dispose()
