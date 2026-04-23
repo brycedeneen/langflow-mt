@@ -264,6 +264,8 @@ def register_all_service_factories() -> None:
     service_manager.register_service_class(ServiceType.AUTH_SERVICE, AuthService, override=True)
     service_manager.register_factory(auth_factory.AuthServiceFactory())
     service_manager.register_factory(mcp_composer_factory.MCPComposerServiceFactory())
+    from langflow.services.audit import factory as audit_factory
+    service_manager.register_factory(audit_factory.AuditServiceFactory())
     service_manager.set_factory_registered()
 
 

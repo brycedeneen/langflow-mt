@@ -275,3 +275,10 @@ def get_redis_service() -> "RedisService":
     from langflow.services.redis.factory import RedisServiceFactory
 
     return get_service(ServiceType.REDIS_SERVICE, RedisServiceFactory())
+
+
+def get_audit_service():
+    """Retrieves the AuditService instance from the service manager."""
+    from langflow.services.audit.factory import AuditServiceFactory
+
+    return get_service(ServiceType.AUDIT_SERVICE, AuditServiceFactory())

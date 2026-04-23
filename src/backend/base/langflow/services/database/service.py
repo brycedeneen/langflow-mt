@@ -136,6 +136,11 @@ class DatabaseService(Service):
             expire_on_commit=False,
         )
 
+        from langflow.services.audit.listener import register_audit_listener, register_dirty_capture
+
+        register_audit_listener(self.async_session_maker)
+        register_dirty_capture(self.async_session_maker)
+
         # Check if Alembic should log to stdout or a file.
         # If file, check if the provided path is absolute, cross-platform.
         alembic_log_file = self.settings_service.settings.alembic_log_file

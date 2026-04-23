@@ -427,6 +427,10 @@ def create_app():
         ContentSizeLimitMiddleware,
     )
 
+    # AuditContextMiddleware must be outermost so it wraps all other middleware.
+    from langflow.services.audit.middleware import AuditContextMiddleware
+    app.add_middleware(AuditContextMiddleware)
+
     setup_sentry(app)
 
     settings = get_settings_service().settings

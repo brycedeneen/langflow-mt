@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Annotated
 from uuid import UUID
 
@@ -8,6 +9,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from langflow.api.utils.core import CurrentActiveUser, DbSession
+from langflow.services.audit.context import audit_ctx
 from langflow.services.database.models.membership.model import Membership
 from langflow.services.database.models.organization.model import Organization
 from langflow.services.database.models.user.model import User
@@ -43,9 +45,14 @@ async def get_current_organization(
     # pick the earliest-created so the choice is deterministic. Otherwise
     # fall back to the earliest-created org overall.
     personal_orgs = [o for o in orgs if o.is_personal]
-    if personal_orgs:
-        return min(personal_orgs, key=lambda o: o.created_at)
-    return min(orgs, key=lambda o: o.created_at)
+    org = min(personal_orgs, key=lambda o: o.created_at) if personal_orgs else min(orgs, key=lambda o: o.created_at)
+
+    # Enrich the audit context with the resolved org_id.
+    ctx = audit_ctx.get()
+    if ctx is not None:
+        audit_ctx.set(replace(ctx, org_id=org.id))
+
+    return org
 
 
 async def get_current_membership(
