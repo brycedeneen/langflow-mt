@@ -284,11 +284,17 @@ class TestValidateComponentCode:
         assert result.error is not None
 
     def test_fails_for_missing_imports(self):
-        """Should fail validation when required imports are missing."""
+        """Should fail validation when required imports are missing.
+
+        Post CVE-2026-33873 mitigation, AST-only validation (the secure default)
+        cannot detect missing imports — that error only surfaces when the code
+        is actually exec'd via ``create_class``. Pass ``allow_custom_components=True``
+        to exercise the exec path this test was originally written for.
+        """
         code_without_imports = """class BrokenComponent(Component):
     display_name = "Broken"
 """
-        result = validate_component_code(code_without_imports)
+        result = validate_component_code(code_without_imports, allow_custom_components=True)
 
         assert result.is_valid is False
         assert result.error is not None

@@ -37,3 +37,8 @@ class ValidationResult(BaseModel):
     code: str | None = None
     error: str | None = None
     class_name: str | None = None
+    # False when gated-off AST-only validation was used (see CVE-2026-33873
+    # mitigation in langflow.agentic.helpers.validation). Default True
+    # preserves the implicit semantics of legacy callers that ran the full
+    # create_class + instantiate path.
+    executed: bool = True

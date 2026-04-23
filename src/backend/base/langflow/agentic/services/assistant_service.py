@@ -1,8 +1,10 @@
 """Assistant service with validation and retry logic."""
 
+from __future__ import annotations
+
 import asyncio
 from collections.abc import AsyncGenerator, Callable, Coroutine
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from fastapi import HTTPException
 from lfx.log.logger import logger
@@ -28,6 +30,10 @@ from langflow.agentic.services.flow_types import (
     VALIDATION_UI_DELAY_SECONDS,
 )
 from langflow.agentic.services.helpers.intent_classification import classify_intent
+from langflow.api.utils.core import resolve_component_gate_flags
+
+if TYPE_CHECKING:
+    from langflow.services.database.models.user.model import User
 
 
 async def execute_flow_with_validation(
@@ -41,6 +47,7 @@ async def execute_flow_with_validation(
     provider: str | None = None,
     model_name: str | None = None,
     api_key_var: str | None = None,
+    current_user: User | None = None,
 ) -> dict:
     """Execute flow and validate the generated component code.
 
@@ -50,6 +57,11 @@ async def execute_flow_with_validation(
     """
     current_input = input_value
     attempt = 0
+
+    # CVE-2026-33873: resolve gate flags once up-front so the tight retry
+    # loop does not re-read settings each iteration. Falls back to the
+    # secure default (both False) when no user is threaded in.
+    allow_custom_components, caller_is_platform_admin = resolve_component_gate_flags(current_user)
 
     while attempt <= max_retries:
         attempt += 1
@@ -75,7 +87,11 @@ async def execute_flow_with_validation(
             return result
 
         logger.info("Validating generated component code...")
-        validation = validate_component_code(code)
+        validation = validate_component_code(
+            code,
+            allow_custom_components=allow_custom_components,
+            caller_is_platform_admin=caller_is_platform_admin,
+        )
 
         if validation.is_valid:
             logger.info(f"Component '{validation.class_name}' validated successfully!")
@@ -122,6 +138,7 @@ async def execute_flow_with_validation_streaming(
     model_name: str | None = None,
     api_key_var: str | None = None,
     is_disconnected: Callable[[], Coroutine[Any, Any, bool]] | None = None,
+    current_user: User | None = None,
 ) -> AsyncGenerator[str, None]:
     """Execute flow with validation, yielding SSE progress and token events.
 
@@ -138,6 +155,11 @@ async def execute_flow_with_validation_streaming(
     Note: Component generation is detected by analyzing the user's input.
     """
     current_input = input_value
+
+    # CVE-2026-33873: resolve gate flags once at the top of the stream so the
+    # retry loop does not re-read settings each iteration. Falls back to the
+    # secure default (both False) when no user is threaded in.
+    allow_custom_components, caller_is_platform_admin = resolve_component_gate_flags(current_user)
 
     # Classify intent using LLM (handles multi-language support)
     # This translates the input and determines if user wants to generate a component or ask a question
@@ -296,7 +318,11 @@ async def execute_flow_with_validation_streaming(
             )
             await asyncio.sleep(VALIDATION_UI_DELAY_SECONDS)
 
-            validation = validate_component_code(code)
+            validation = validate_component_code(
+                code,
+                allow_custom_components=allow_custom_components,
+                caller_is_platform_admin=caller_is_platform_admin,
+            )
 
             if validation.is_valid:
                 # Step 5a: Validated successfully

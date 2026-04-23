@@ -270,6 +270,7 @@ async def assist(
         provider=ctx.provider,
         model_name=ctx.model_name,
         api_key_var=ctx.api_key_name,
+        current_user=current_user,
     )
 
 
@@ -293,6 +294,7 @@ async def assist_stream(
             provider=ctx.provider,
             model_name=ctx.model_name,
             api_key_var=ctx.api_key_name,
+            current_user=current_user,
         ),
         media_type="text/event-stream",
         headers={
