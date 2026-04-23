@@ -1,0 +1,265 @@
+---
+title: Autoscale the Langflow API tier on Kubernetes
+slug: /deployment-api-autoscaling
+---
+
+This guide covers Horizontal Pod Autoscaler (HPA) configuration for the Langflow FastAPI tier — liveness / readiness probes, resource requests, CPU- and memory-based scaling, and custom-metrics scaling on Prometheus request rate. It complements the high-level snippet in [Best practices for Langflow on Kubernetes](/deployment-prod-best-practices#use-hpa-for-dynamic-scaling).
+
+The arq worker tier has different scaling characteristics (queue depth, not request rate) and is out of scope here.
+
+## Prerequisites
+
+Before an HPA can meaningfully scale the API tier, three pieces must be in place.
+
+1. **Stateless API pods.** Langflow is stateless *only when the cache backend is shared.* The default cache is in-process. If you scale above one replica without switching to a shared backend, session and cache-scoped features break across pods. Set:
+
+    ```bash
+    LANGFLOW_CACHE_TYPE=redis
+    LANGFLOW_REDIS_URL=redis://<host>:6379/0
+    ```
+
+    The same Redis instance used by the arq worker pool is fine; Langflow partitions keys by prefix.
+
+2. **A metrics source.** CPU / memory HPAs require the Kubernetes `metrics-server` addon. Custom-metrics HPAs (scaling on request rate) additionally require `prometheus-adapter` or a managed equivalent (e.g. Datadog Cluster Agent, Google Cloud Managed Service for Prometheus).
+
+3. **Accurate resource requests.** HPA utilization is computed relative to `resources.requests`. If you omit requests, CPU-based scaling silently does nothing. The runtime baseline documented in [Best practices](/deployment-prod-best-practices#resources-and-scaling) is a starting point, not a prescription — adjust after load testing with your flows.
+
+## Probes
+
+Langflow exposes two health routes. Use them for different purposes.
+
+| Endpoint | What it does | Use for |
+|----------|--------------|---------|
+| `GET /health` | Returns `{"status": "ok"}` as soon as uvicorn accepts connections; does not check dependencies. | Liveness — "is the process responsive?" |
+| `GET /health_check` | Pings the database and the cache backend; returns non-200 if either is unavailable. | Readiness — "is this pod ready to serve traffic?" |
+
+Recommended probe config:
+
+```yaml
+readinessProbe:
+  httpGet:
+    path: /health_check
+    port: 7860
+  initialDelaySeconds: 20
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 7860
+  initialDelaySeconds: 30
+  periodSeconds: 20
+  timeoutSeconds: 3
+  failureThreshold: 3
+```
+
+Do **not** point liveness at `/health_check`. A transient database hiccup will then kill otherwise-healthy pods in a restart loop. Readiness removes them from the Service backend without terminating them, which is what you want during dependency flaps.
+
+`initialDelaySeconds` on readiness covers cold-start time: migrations run at startup if the pod is elected as the Alembic leader, and component registration walks every installed package. On large component trees, cold start is typically 15-30 seconds.
+
+## Resource requests and limits
+
+A reasonable production baseline for runtime (headless) pods:
+
+```yaml
+resources:
+  requests:
+    cpu: 1000m
+    memory: 2Gi
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+```
+
+Notes on sizing:
+
+- Langflow workloads are typically **I/O-bound** (LLM calls, database, external APIs) rather than CPU-bound. A pod at 40% CPU utilization may already be saturated on outbound concurrency. This is why request-rate scaling (below) is usually a better signal than CPU.
+- Memory is driven by the size of loaded components and by any in-flight flow payloads. Flows that process large files (SFTP CSV ingest, document parsing) briefly spike memory while the payload is in-process; the payload-offload helper reduces but does not eliminate this.
+- `limits.memory` should be at least 2× the steady-state working set. An OOMKill on a pod mid-flow will drop the run and its logs.
+- Leave `limits.cpu` at 2× requests, or omit it entirely if your cluster is not CPU-bound and you accept the scheduling trade-off.
+
+## HPA: CPU + memory
+
+For most deployments, start with a CPU+memory HPA and move to custom metrics only if you observe underscaling at low CPU.
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: langflow-api-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: langflow-runtime
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 25
+        periodSeconds: 60
+```
+
+Why these values:
+
+- **`minReplicas: 3`** matches the recommended baseline — one replica cannot tolerate a pod replacement without downtime.
+- **`averageUtilization: 70` (CPU)** leaves headroom for request bursts between scaling decisions. 80% tends to be too aggressive for FastAPI because request latency rises fast once the event loop saturates.
+- **Asymmetric `behavior`** scales up quickly (double the pod count every 30 s when overloaded) and scales down slowly (shed 25% every minute, 5-minute stabilization window). This avoids flapping under bursty workloads.
+
+## HPA: custom metrics (request rate)
+
+For production Langflow, request-rate or p95-latency scaling usually reflects real load better than CPU. This requires `prometheus-adapter` or equivalent, configured to expose Langflow's FastAPI metrics to the Kubernetes Custom Metrics API.
+
+Expose Prometheus on the API tier:
+
+```bash
+LANGFLOW_PROMETHEUS_ENABLED=true
+LANGFLOW_PROMETHEUS_PORT=9090
+```
+
+Metrics emitted by the FastAPI instrumentor include `http_server_requests_total` and `http_server_request_duration_seconds`. Configure `prometheus-adapter` to expose a per-pod RPS derived gauge, for example:
+
+```yaml
+# prometheus-adapter rule
+- seriesQuery: 'http_server_requests_total{namespace!="",pod!=""}'
+  resources:
+    overrides:
+      namespace: {resource: "namespace"}
+      pod: {resource: "pod"}
+  name:
+    matches: "^(.*)_total$"
+    as: "langflow_requests_per_second"
+  metricsQuery: |
+    sum by (<<.GroupBy>>) (
+      rate(<<.Series>>{<<.LabelMatchers>>}[1m])
+    )
+```
+
+Then scale on that metric:
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: langflow-api-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: langflow-runtime
+  minReplicas: 3
+  maxReplicas: 30
+  metrics:
+  - type: Pods
+    pods:
+      metric:
+        name: langflow_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "20"  # target 20 RPS per pod; tune per your flows
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+```
+
+Keep a memory resource metric alongside the custom metric — memory is a hard ceiling (OOMKill), not a soft one, and should always be in the HPA.
+
+Pick the target RPS per pod empirically. A flow that makes one LLM call per request and averages 2 seconds of latency saturates around 10-15 concurrent requests on a 1-CPU pod. Load-test with representative flows before committing to a target.
+
+## Pod Disruption Budget
+
+Protect against voluntary disruption (node drain, cluster upgrade) taking down too many API pods at once:
+
+```yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: langflow-api-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: langflow-runtime
+```
+
+`minAvailable: 2` pairs with `minReplicas: 3`. If your min is higher, raise the PDB proportionally.
+
+## Termination grace period
+
+Langflow API pods serve short HTTP requests *and* long-lived WebSocket connections (voice-mode endpoints at `/ws/flow_as_tool/{flow_id}` and `/ws/flow_tts/{flow_id}`). A default 30-second grace period disconnects in-flight WebSocket sessions abruptly.
+
+If voice-mode usage is production-critical, raise the grace period:
+
+```yaml
+spec:
+  template:
+    spec:
+      terminationGracePeriodSeconds: 120
+      containers:
+      - name: langflow
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep 10"]
+```
+
+The `preStop sleep` gives the Service and load balancer time to remove the pod from rotation before SIGTERM arrives, preventing connections from hitting a pod that has already started shutting down.
+
+Non-WebSocket deployments can keep the 30-second default.
+
+## Rollout strategy
+
+Rolling updates with a small surge work well for the API tier since requests are idempotent at the HTTP layer:
+
+```yaml
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+```
+
+`maxUnavailable: 0` prevents the HPA floor from temporarily falling below `minReplicas` during a rollout, which matters most when you are already near capacity.
+
+## Verification
+
+After applying an HPA, verify it is working before trusting it in production.
+
+- `kubectl get hpa langflow-api-hpa -w` — watch current vs. target metric values. If `TARGETS` shows `<unknown>`, metrics-server or prometheus-adapter is not returning data for the pods.
+- `kubectl describe hpa langflow-api-hpa` — the `Events` section shows scaling decisions and any errors.
+- Load-test to saturation and confirm the replica count rises within the `scaleUp` window. If the HPA never triggers, check that `resources.requests` are set — HPA on a pod without CPU requests will report `<unknown>` and silently no-op.
+- After the load test drains, confirm the HPA scales back toward `minReplicas` within the `scaleDown` stabilization window.
+
+## See also
+
+- [Best practices for Langflow on Kubernetes](/deployment-prod-best-practices)
+- [Deploy the Langflow production environment on Kubernetes](/deployment-kubernetes-prod)
+- [Database connection pool and read replicas](/database-connection-pool-and-replicas) — size the primary database to support the max replica count you set here.
+- [Langflow Helm Charts repository](https://github.com/langflow-ai/langflow-helm-charts)

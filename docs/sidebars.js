@@ -229,6 +229,11 @@ module.exports = {
                   id: "Deployment/deployment-kubernetes-prod",
                   label: "Deploy in production"
                 },
+                {
+                  type: "doc",
+                  id: "Deployment/deployment-api-autoscaling",
+                  label: "Autoscale the API tier"
+                },
               ]
             },
           ],
