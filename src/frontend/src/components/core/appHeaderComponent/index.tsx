@@ -1,18 +1,21 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import AlertDropdown from "@/alerts/alertDropDown";
 import LangflowLogo from "@/assets/LangflowLogo.svg?react";
+import AdminNotificationBell from "@/components/core/adminNotificationBell";
 import { AssistantButton } from "@/components/common/assistant";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import ModelProviderCount from "@/components/common/modelProviderCountComponent";
 import ShadTooltip from "@/components/common/shadTooltipComponent";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { AuthContext } from "@/contexts/authContext";
 import CustomAccountMenu from "@/customization/components/custom-AccountMenu";
 import { CustomOrgSelector } from "@/customization/components/custom-org-selector";
 import { LANGFLOW_AGENTIC_EXPERIENCE } from "@/customization/feature-flags";
 import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
 import useTheme from "@/customization/hooks/use-custom-theme";
 import useAlertStore from "@/stores/alertStore";
+import useAuthStore from "@/stores/authStore";
 import FlowMenu from "./components/FlowMenu";
 
 export default function AppHeader(): JSX.Element {
@@ -21,6 +24,10 @@ export default function AppHeader(): JSX.Element {
   const [activeState, setActiveState] = useState<"notifications" | null>(null);
   const notificationRef = useRef<HTMLButtonElement | null>(null);
   const notificationContentRef = useRef<HTMLDivElement | null>(null);
+  const { userData } = useContext(AuthContext);
+  const isAdmin = useAuthStore((state) => state.isAdmin);
+  const isPlatformAdmin = userData?.is_platform_admin === true;
+  const showAdminBell = Boolean(isAdmin || isPlatformAdmin);
   useTheme();
 
   useEffect(() => {
@@ -81,6 +88,7 @@ export default function AppHeader(): JSX.Element {
       >
         {false && <ModelProviderCount />}
         {LANGFLOW_AGENTIC_EXPERIENCE && <AssistantButton type="header" />}
+        {showAdminBell && <AdminNotificationBell />}
         <AlertDropdown
           notificationRef={notificationContentRef}
           onClose={() => setActiveState(null)}

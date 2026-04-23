@@ -15,7 +15,7 @@ export default function AdminNotificationBell() {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => navigate("/admin/notifications")}
+        onClick={() => navigate("/settings/notifications")}
         aria-label="Notifications"
       >
         <IconComponent name="Bell" className="h-5 w-5" />
