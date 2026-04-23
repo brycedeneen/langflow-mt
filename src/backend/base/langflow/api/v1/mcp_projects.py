@@ -65,8 +65,7 @@ from langflow.api.v1.schemas import (
 from langflow.services.auth.mcp_encryption import decrypt_auth_settings, encrypt_auth_settings
 from langflow.services.database.models import Flow, Folder
 from langflow.services.database.models.api_key.crud import check_key, create_api_key
-from langflow.services.database.models.api_key.model import ApiKey, ApiKeyCreate
-from langflow.services.database.models.user.crud import get_user_by_username
+from langflow.services.database.models.api_key.model import ApiKeyCreate
 from langflow.services.database.models.user.model import User
 from langflow.services.deps import get_service
 
@@ -82,14 +81,10 @@ async def verify_project_auth(
     query_param: str,
     header_param: str,
 ) -> User:
-    """MCP-specific user authentication that allows fallback to username lookup when not using API key auth.
+    """MCP-specific user authentication.
 
-    This function provides authentication for MCP endpoints when using MCP Composer and no API key is provided,
-    or checks if the API key is valid.
+    Requires a valid API key unless the project is configured for a non-apikey auth type (e.g. OAuth).
     """
-    settings_service = get_settings_service()
-    result: ApiKey | User | None
-
     project = (await db.exec(select(Folder).where(Folder.id == project_id))).first()
 
     if not project:
@@ -100,9 +95,7 @@ async def verify_project_auth(
     if project.auth_settings:
         auth_settings = AuthSettings(**project.auth_settings)
 
-    if (not auth_settings and not settings_service.auth_settings.AUTO_LOGIN) or (
-        auth_settings and auth_settings.auth_type == "apikey"
-    ):
+    if auth_settings is None or auth_settings.auth_type == "apikey":
         api_key = query_param or header_param
         if not api_key:
             raise HTTPException(
@@ -125,20 +118,9 @@ async def verify_project_auth(
 
         return user
 
-    # Get the first user
-    if not settings_service.auth_settings.SUPERUSER:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Missing superuser username in auth settings",
-        )
-    # For MCP endpoints, always fall back to username lookup when no API key is provided
-    result = await get_user_by_username(db, settings_service.auth_settings.SUPERUSER)
-    if result:
-        logger.warning(AUTO_LOGIN_WARNING)
-        return result
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
-        detail="Invalid user",
+        detail="Unsupported auth type",
     )
 
 
@@ -700,26 +682,16 @@ async def install_mcp_config(
 
         # Determine if we need to generate an API key
         should_generate_api_key = False
-        if not get_settings_service().settings.mcp_composer_enabled:
-            # When MCP_COMPOSER is disabled, check auth settings or fallback to auto_login setting
-            settings_service = get_settings_service()
-            if project.auth_settings:
-                # Project has auth settings - check if it requires API key
-                if project.auth_settings.get("auth_type") == "apikey":
-                    should_generate_api_key = True
-            elif not settings_service.auth_settings.AUTO_LOGIN:
-                # No project auth settings but auto_login is disabled - generate API key
-                should_generate_api_key = True
-        elif project.auth_settings:
-            # When MCP_COMPOSER is enabled, only generate if auth_type is "apikey"
+        if project.auth_settings:
+            # Project has explicit auth settings - generate a key only when auth_type is "apikey"
             if project.auth_settings.get("auth_type") == "apikey":
                 should_generate_api_key = True
+        elif not get_settings_service().settings.mcp_composer_enabled:
+            # No project auth + MCP composer disabled → default to apikey
+            should_generate_api_key = True
 
         # Get settings service to build the SSE URL
         settings_service = get_settings_service()
-        if settings_service.auth_settings.AUTO_LOGIN and not settings_service.auth_settings.SUPERUSER:
-            # Without a superuser fallback, require API key auth for MCP installs.
-            should_generate_api_key = True
         settings = settings_service.settings
         host = settings.host or None
         port = settings.port or None
@@ -1439,35 +1411,33 @@ async def init_mcp_servers():
             for project in projects:
                 try:
                     # Auto-enable API key auth for projects without auth settings or with "none" auth
-                    # when AUTO_LOGIN is false
-                    if not settings_service.auth_settings.AUTO_LOGIN:
-                        should_update_to_apikey = False
+                    should_update_to_apikey = False
 
-                        if not project.auth_settings:
-                            # No auth settings at all
-                            should_update_to_apikey = True
-                        # Check if existing auth settings have auth_type "none"
-                        elif project.auth_settings.get("auth_type") == "none":
-                            should_update_to_apikey = True
+                    if not project.auth_settings:
+                        # No auth settings at all
+                        should_update_to_apikey = True
+                    # Check if existing auth settings have auth_type "none"
+                    elif project.auth_settings.get("auth_type") == "none":
+                        should_update_to_apikey = True
 
-                        if should_update_to_apikey:
-                            default_auth = {"auth_type": "apikey"}
-                            project.auth_settings = encrypt_auth_settings(default_auth)
-                            session.add(project)
-                            await logger.ainfo(
-                                f"Auto-enabled API key authentication for existing project {project.name} "
-                                f"({project.id}) due to AUTO_LOGIN=false"
-                            )
+                    if should_update_to_apikey:
+                        default_auth = {"auth_type": "apikey"}
+                        project.auth_settings = encrypt_auth_settings(default_auth)
+                        session.add(project)
+                        await logger.ainfo(
+                            f"Auto-enabled API key authentication for existing project {project.name} "
+                            f"({project.id})"
+                        )
 
                     # WARN: If oauth projects exist in the database and the MCP Composer is disabled,
-                    # these projects will be reset to "apikey" or "none" authentication, erasing all oauth settings.
+                    # these projects will be reset to "apikey" authentication, erasing all oauth settings.
                     if (
                         not settings_service.settings.mcp_composer_enabled
                         and project.auth_settings
                         and project.auth_settings.get("auth_type") == "oauth"
                     ):
-                        # Reset OAuth projects to appropriate auth type based on AUTO_LOGIN setting
-                        fallback_auth_type = "apikey" if not settings_service.auth_settings.AUTO_LOGIN else "none"
+                        # Reset OAuth projects to apikey auth when MCP Composer is disabled.
+                        fallback_auth_type = "apikey"
                         clean_auth = AuthSettings(auth_type=fallback_auth_type)
                         project.auth_settings = clean_auth.model_dump(exclude_none=True)
                         session.add(project)
