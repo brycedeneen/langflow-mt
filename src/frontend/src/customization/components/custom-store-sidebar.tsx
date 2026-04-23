@@ -8,7 +8,7 @@ export const CustomStoreSidebar = (
 
   if (hasApiKey) {
     items.push({
-      title: "Langflow API Keys",
+      title: "Amplify API Keys",
       href: "/settings/api-keys",
       icon: (
         <ForwardedIconComponent

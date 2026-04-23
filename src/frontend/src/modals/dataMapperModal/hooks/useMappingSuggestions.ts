@@ -138,7 +138,7 @@ export function useMappingSuggestions({ config }: UseMappingSuggestionsArgs): Us
       const anyErr = err as { response?: { status?: number }; message?: string };
       if (anyErr?.response?.status === 404) {
         setError(
-          "Auto-mapping isn't available in this environment. Ask your admin to update Langflow.",
+          "Auto-mapping isn't available in this environment. Ask your admin to update Amplify.",
         );
       } else if (
         anyErr?.response?.status === 401 ||

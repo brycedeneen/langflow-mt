@@ -195,7 +195,7 @@ export default function ChatView({
               <div className="flex grow w-full flex-col items-center justify-center">
                 <div className="flex flex-col items-center justify-center gap-4 p-8">
                   <LangflowLogo
-                    title="Langflow logo"
+                    title="Amplify logo"
                     className="h-10 w-10 scale-[1.5]"
                   />
                   <div className="flex flex-col items-center justify-center">

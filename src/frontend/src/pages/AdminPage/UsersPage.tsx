@@ -265,7 +265,7 @@ export default function UsersPage() {
                 />
               </h2>
               <p className="text-sm text-muted-foreground">
-                Manage user accounts for this Langflow instance.
+                Manage user accounts for this Amplify instance.
               </p>
             </div>
             <div className="shrink-0">

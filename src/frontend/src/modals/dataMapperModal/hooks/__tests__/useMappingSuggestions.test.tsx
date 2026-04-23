@@ -87,7 +87,7 @@ describe("useMappingSuggestions", () => {
     await act(async () => { await result.current.run(); });
 
     expect(result.current.state).toBe("error");
-    expect(result.current.error).toMatch(/not available|update Langflow/i);
+    expect(result.current.error).toMatch(/not available|update Amplify/i);
   });
 
   it("cancel() reverts state to idle and aborts", async () => {

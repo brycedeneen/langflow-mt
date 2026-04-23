@@ -430,7 +430,7 @@ export default function IOModal({
                       className="w-full !rounded-xl shadow-lg"
                     >
                       <LangflowLogoColor />
-                      <div className="text-sm">Built with Langflow</div>
+                      <div className="text-sm">Built with Amplify</div>
                     </Button>
                   </div>
                 )}
@@ -441,7 +441,7 @@ export default function IOModal({
                 <ShadTooltip
                   styleClasses="z-50"
                   side="right"
-                  content="Built with Langflow"
+                  content="Built with Amplify"
                 >
                   <Button
                     variant="primary"
