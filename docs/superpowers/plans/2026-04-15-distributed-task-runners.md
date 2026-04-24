@@ -2599,7 +2599,9 @@ git commit -m "chore(runs): docker-compose workers; remove celery/rabbitmq/flowe
 
 ### Task 30: Helm chart + KEDA `ScaledObject`
 
-**Files:**
+> **DEFERRED — cross-repo handoff.** The Helm chart lives in a separate repo (not `langflow-ai/langflow`). The concrete work below is captured here as the spec for whoever takes the handoff; none of it is performed in this repo. Track as a cross-repo issue.
+
+**Files (in the Helm repo, not this one):**
 - Modify or create: `deploy/helm/langflow/templates/worker-deployment.yaml`
 - Create: `deploy/helm/langflow/templates/worker-scaledobject.yaml`
 - Modify: `deploy/helm/langflow/values.yaml`
@@ -2718,10 +2720,12 @@ git commit -m "chore(runs): remove legacy celery scaffold"
 
 ### Task 32: End-to-end smoke test
 
-**Files:**
-- Create: `src/backend/tests/e2e/test_runs_e2e.py`
+> **COMPLETE.** Implementation lives at `src/backend/tests/integration/e2e/test_runs_e2e.py` (placed under `tests/integration/e2e/` rather than `tests/e2e/` so it can override the parent integration conftest's autouse `_start_app` fixture). Covers enqueue → `execute_run` → poll → logs (one extra step beyond the original sketch).
 
-- [ ] **Step 1: Write test**
+**Files:**
+- Create: `src/backend/tests/integration/e2e/test_runs_e2e.py`
+
+- [x] **Step 1: Write test**
 
 ```python
 import pytest, asyncio
@@ -2744,15 +2748,15 @@ async def test_full_roundtrip(client, api_key_headers, seeded_flow, redis_servic
     assert resp.json()["status"] == "succeeded"
 ```
 
-- [ ] **Step 2: Run — must pass**
+- [x] **Step 2: Run — must pass**
 
-Run: `pytest src/backend/tests/e2e/test_runs_e2e.py -v`
+Run: `pytest src/backend/tests/integration/e2e/test_runs_e2e.py -v`
 Expected: PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
-git add src/backend/tests/e2e/test_runs_e2e.py
+git add src/backend/tests/integration/e2e/test_runs_e2e.py
 git commit -m "test(runs): end-to-end roundtrip"
 ```
 
@@ -2788,9 +2792,9 @@ git commit -m "test(runs): end-to-end roundtrip"
 | Trigger wiring (webhook/schedule/MCP) behind flag | Task 27 |
 | `langflow worker` CLI | Task 28 |
 | docker-compose | Task 29 |
-| Helm + KEDA | Task 30 |
+| Helm + KEDA | Task 30 _(deferred — separate Helm repo)_ |
 | Celery scaffold removal | Task 31 |
-| E2E smoke | Task 32 |
+| E2E smoke | Task 32 _(complete — `tests/integration/e2e/test_runs_e2e.py`)_ |
 
 All spec sections are covered.
 

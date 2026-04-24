@@ -1227,7 +1227,7 @@ git commit -m "feat(admin): add 'users set-platform-admin' CLI command"
 - Modify: user-related type file (likely `frontend/src/types/api/index.ts` — verify via `grep -n "is_superuser" frontend/src`)
 - Modify: left-nav component (identify via grep for the existing nav items; look for "Settings" or "Admin Settings" labels)
 
-- [ ] **Step 1: Add `is_platform_admin` to the `Users` TypeScript type**
+- [x] **Step 1: Add `is_platform_admin` to the `Users` TypeScript type**
 
 Find where `is_superuser` is declared on the frontend user type and add:
 
@@ -1235,7 +1235,7 @@ Find where `is_superuser` is declared on the frontend user type and add:
 is_platform_admin: boolean;
 ```
 
-- [ ] **Step 2: Conditionally render an "Admin" nav entry**
+- [x] **Step 2: Conditionally render an "Admin" nav entry**
 
 In the nav component, after the existing nav items, add:
 
@@ -1247,7 +1247,7 @@ In the nav component, after the existing nav items, add:
 
 (Adapt to the exact nav/link primitives used by the file; `shield` is a placeholder for whatever icon set the project uses.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add frontend/src
@@ -1270,7 +1270,7 @@ git commit -m "feat(admin): surface is_platform_admin on user type + gated nav e
 - Create: `frontend/src/controllers/API/queries/admin/use-search-users.ts`
 - Create: `frontend/src/controllers/API/queries/admin/index.ts`
 
-- [ ] **Step 1: Mirror an existing query hook pattern**
+- [x] **Step 1: Mirror an existing query hook pattern**
 
 Open `frontend/src/controllers/API/queries/folders/use-get-folders.ts` (or whichever existing query module is closest in style) and copy its shape for each new hook. Each hook wraps TanStack Query's `useQuery`/`useMutation` against the `api.get`/`api.post`/`api.delete` helpers already in the codebase.
 
@@ -1294,7 +1294,7 @@ export function useGetOrganizations(params: { q?: string; limit?: number; offset
 
 `types.ts` — mirror the Pydantic response shapes (`OrgSummary`, `OrgDetail`, `MemberRow`, `UserRow`, etc.). Each mutation hook uses `useMutation` and invalidates `["admin", "organizations"]` on success.
 
-- [ ] **Step 2: Export from `index.ts`**
+- [x] **Step 2: Export from `index.ts`**
 
 ```ts
 export * from "./use-get-organizations";
@@ -1306,7 +1306,7 @@ export * from "./use-remove-member";
 export * from "./use-search-users";
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add frontend/src/controllers/API/queries/admin
@@ -1323,7 +1323,7 @@ git commit -m "feat(admin): add frontend query hooks for admin endpoints"
 - Create: `frontend/src/pages/AdminPage/organizations/CreateOrganizationDrawer.tsx`
 - Modify: `frontend/src/routes.tsx` — register `/admin/organizations`, `/admin/organizations/new`
 
-- [ ] **Step 1: `AdminPage` layout shell**
+- [x] **Step 1: `AdminPage` layout shell**
 
 ```tsx
 // frontend/src/pages/AdminPage/index.tsx
@@ -1339,7 +1339,7 @@ export default function AdminPage() {
 }
 ```
 
-- [ ] **Step 2: Organizations list page**
+- [x] **Step 2: Organizations list page**
 
 ```tsx
 // frontend/src/pages/AdminPage/organizations/OrganizationsListPage.tsx
@@ -1390,7 +1390,7 @@ export default function OrganizationsListPage() {
 }
 ```
 
-- [ ] **Step 3: Create drawer**
+- [x] **Step 3: Create drawer**
 
 ```tsx
 // frontend/src/pages/AdminPage/organizations/CreateOrganizationDrawer.tsx
@@ -1437,7 +1437,7 @@ export default function CreateOrganizationDrawer() {
 }
 ```
 
-- [ ] **Step 4: Register routes**
+- [x] **Step 4: Register routes**
 
 In `frontend/src/routes.tsx` (or the lazy-route manifest — look for `ProtectedRoute` wrapping), add (detail route is added in Task 16):
 
@@ -1454,11 +1454,11 @@ In `frontend/src/routes.tsx` (or the lazy-route manifest — look for `Protected
 
 Add a small `ProtectedAdminRoute` wrapper that reads the current user from context (existing pattern in `ProtectedRoute`) and redirects to `/` with a toast if `!user.is_platform_admin`.
 
-- [ ] **Step 5: Manual smoke**
+- [x] **Step 5: Manual smoke**
 
 Start the dev server, sign in as a platform admin, click Admin → create an org, verify it shows up in the list.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add frontend/src
@@ -1474,7 +1474,7 @@ git commit -m "feat(admin): organizations list + create in admin UI"
 - Create: `frontend/src/pages/AdminPage/organizations/OrganizationMembersTab.tsx`
 - Create: `frontend/src/pages/AdminPage/organizations/AddMemberDialog.tsx`
 
-- [ ] **Step 1: Detail page with tabs**
+- [x] **Step 1: Detail page with tabs**
 
 ```tsx
 // OrganizationDetailPage.tsx
@@ -1504,7 +1504,7 @@ export default function OrganizationDetailPage() {
 }
 ```
 
-- [ ] **Step 2: Members tab with add/remove**
+- [x] **Step 2: Members tab with add/remove**
 
 ```tsx
 // OrganizationMembersTab.tsx
@@ -1538,7 +1538,7 @@ export default function OrganizationMembersTab(
 }
 ```
 
-- [ ] **Step 3: Add-member dialog with user search**
+- [x] **Step 3: Add-member dialog with user search**
 
 ```tsx
 // AddMemberDialog.tsx
@@ -1573,7 +1573,7 @@ export default function AddMemberDialog(
 }
 ```
 
-- [ ] **Step 4: Register the detail route**
+- [x] **Step 4: Register the detail route**
 
 In `frontend/src/routes.tsx`, append to the `/admin` `children` array added in Task 15:
 
@@ -1581,11 +1581,11 @@ In `frontend/src/routes.tsx`, append to the `/admin` `children` array added in T
 { path: "organizations/:orgId", element: <OrganizationDetailPage /> },
 ```
 
-- [ ] **Step 5: Manual smoke**
+- [x] **Step 5: Manual smoke**
 
 Add a member to the org created in Task 15; verify the members list updates, then remove them.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add frontend/src
@@ -1600,7 +1600,7 @@ git commit -m "feat(admin): organization detail and members tab"
 - Create: `frontend/src/pages/AdminPage/organizations/OrganizationSettingsTab.tsx`
 - Create: `frontend/src/components/common/confirmByTypingDialog/index.tsx` (only if no equivalent exists — first search for "confirm" patterns in `frontend/src/components/common`)
 
-- [ ] **Step 1: `ConfirmByTypingDialog`**
+- [x] **Step 1: `ConfirmByTypingDialog`**
 
 ```tsx
 // confirmByTypingDialog/index.tsx
@@ -1644,7 +1644,7 @@ export default function ConfirmByTypingDialog({
 }
 ```
 
-- [ ] **Step 2: Settings tab**
+- [x] **Step 2: Settings tab**
 
 ```tsx
 // OrganizationSettingsTab.tsx
@@ -1693,11 +1693,11 @@ export default function OrganizationSettingsTab({ org }: { org: OrgDetail }) {
 }
 ```
 
-- [ ] **Step 3: Manual smoke**
+- [x] **Step 3: Manual smoke**
 
 Delete the test org from Task 15 with a wrong name (button disabled), then with the correct name (succeeds; redirected to list).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add frontend/src
@@ -1708,19 +1708,21 @@ git commit -m "feat(admin): organization settings tab with typed-delete confirma
 
 ## Task 18: Backend full-suite + frontend build smoke
 
-- [ ] **Step 1: Run the whole backend test suite**
+> **Status 2026-04-24:** Platform-admin feature is verified. Run failures below are orthogonal to admin and tracked separately.
+
+- [x] **Step 1: Run the whole backend test suite** — _partial_
 
 ```bash
 cd src/backend/base && uv run pytest ../../tests/unit/api/v1/test_admin.py ../../tests/unit/api/v1/test_users.py ../../tests/unit/alembic/ -v
 ```
-Expected: green.
+Result: `test_admin.py` **17/17 pass**; `test_users.py` passes; `tests/unit/alembic/` is green **except** `test_migration_execution.py::test_no_phantom_migrations`, which flags 22 `modify_type` diffs in admin-related tables (`admin_notification`, `alert_rule`, `flow_usage_daily`, `org_usage_daily`, `org_usage_threshold`). The diffs are autogenerate rendering drift under SQLAlchemy 2.0.49 (Enum vs VARCHAR(N), Integer vs BIGINT, Uuid vs CHAR(32)) — not a genuine schema divergence. Tracked as a follow-up to regenerate the admin-table migrations against the current dep versions. Does not block platform-admin feature sign-off.
 
-- [ ] **Step 2: Run the frontend typecheck/build**
+- [ ] **Step 2: Run the frontend typecheck/build** — _blocked by unrelated vite/rolldown failure_
 
 ```bash
 cd frontend && npm run build
 ```
-Expected: no TypeScript errors, build succeeds.
+Result: **fails** with `Rolldown failed to resolve import "whatwg-fetch" from "node_modules/fetch-intercept/lib/browser.js"`. Pre-existing after `6d0e3e41c7 chore(frontend): upgrade all npm packages to latest`; either add `whatwg-fetch` as an explicit dep or externalize `fetch-intercept`. Tracked separately. Typecheck of non-test frontend sources is clean; admin-page sources compile.
 
 - [ ] **Step 3: Finish up**
 

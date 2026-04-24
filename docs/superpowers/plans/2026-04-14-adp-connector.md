@@ -1731,25 +1731,35 @@ uv run langflow run
 
 - [ ] **Step 2: Open the UI at `http://localhost:7860`, create a new flow**
 
-Verify the **ADP** bundle appears in the component sidebar with three components: ADP Auth, ADP API Request, ADP MCP.
+Verify the **ADP** bundle appears in the component sidebar. As of 2026-04-24 the bundle exports **33 components** (foundation: `ADP Auth`, `ADP API Request`, `ADP MCP`, `ADP Trigger`; plus 29 WFN tile tool-components — Worker*, Pay*, Time*, Talent, Benefits, JobRequisitions, JobApplicants, ApplicantOnboarding, DataCollectionEntries, DeductionConfigurations, USTaxProfiles, WorkSchedules, TeamTimeCards, TimeCards, TimeOff).
 
 - [ ] **Step 3: Smoke the Auth → API Request wire**
 
 Drop **ADP Auth** and **ADP API Request**. Connect Auth's `Connection` output to API Request's `ADP Connection` input. Confirm the wire accepts the connection (UI type check on `input_types=["ADPConnection"]`).
 
-- [ ] **Step 4: Verify dropdown behavior**
+- [ ] **Step 4: Verify Auth v2 fields**
 
-On API Request, toggle `Endpoint` between `Workers`, `Pay Statements`, and `Other (custom path)`. The `custom_path` field should only be visible for `Other`.
+On ADP Auth, confirm four secret/file fields render: `Client ID`, `Client Secret` (both `SecretStrInput` — reveal/hide button), and `Client Certificate (PEM)`, `Client Key (PEM)` (both `TextFileSecretInput` — paste or upload). The old `Cert Source` File-Path/PEM toggle was removed in v2; if you see it, the loaded component is stale — force a reload.
 
-*Note:* Field show/hide for API Request's endpoint is not yet wired through `update_build_config`. If `custom_path` is always visible, file a follow-up — this is cosmetic and not blocking for v1.
+Paste dummy but PEM-shaped values (e.g. `-----BEGIN CERTIFICATE-----\nAAAA\n-----END CERTIFICATE-----`) into `cert_pem` and `key_pem`, plus any string into client_id/client_secret. Trigger a build. Expected: no crypto crash on validation (token fetch will fail at runtime against ADP — that's fine; we're verifying field plumbing, not reachability).
 
-- [ ] **Step 5: Verify Auth cert-source toggle**
+- [ ] **Step 5: Verify API Request dropdown behavior**
 
-On ADP Auth, toggle `Cert Source` between `File Path` and `PEM`. The path and pem fields should swap visibility.
+On API Request, toggle `Endpoint` through the catalog (`Workers`, `Worker Demographics`, `Pay Statements`, `Time Cards`, `Jobs`, `Meta`, `Other (custom path)`). The `custom_path` field should only be meaningful for `Other`.
 
-- [ ] **Step 6: Document outcome**
+*Known deferred cosmetic:* Field show/hide for `custom_path` is not yet wired through `update_build_config` (TODO comment at `adp_api_request.py:71`). `custom_path` will always be visible today — not blocking for v1. If you find it actually show/hides, great; otherwise no action.
 
-No commit for this step. If you find UI bugs (not failures), capture them as follow-ups in the PR description.
+- [ ] **Step 6: Verify MCP component**
+
+Drop **ADP MCP**. Connect Auth's `Connection` to its `ADP Connection` input. Confirm the `MCP URL` and `Tool Filter` fields render and `Tools` output is available.
+
+- [ ] **Step 7: Sanity check a WFN tile tool-component**
+
+Drop any one `ADP*ToolsComponent` (e.g. `ADP Worker Tools`). Connect Auth's `Connection`. Confirm inputs render and no import/validation error fires. This verifies the `_shared.py` + per-tile dispatch plumbing at least loads in the UI.
+
+- [ ] **Step 8: Document outcome**
+
+No commit for this step. If you find UI bugs (not failures), capture them as follow-ups in the PR description. Expected outcome: all 4 foundation + 1 tile component drop, wire, and build without tracebacks.
 
 ---
 
