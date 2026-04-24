@@ -2,7 +2,6 @@
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { BorderTrail } from "@/components/core/border-trail";
 import { useToolDurations } from "@/components/core/playgroundComponent/chat-view/chat-messages/hooks/use-tool-durations";
 import {
   formatTime,
@@ -74,16 +73,6 @@ export function ContentBlockDisplay({
         }}
         className={cn("relative rounded-lg bg-transparent", "overflow-hidden")}
       >
-        {isLoading && (
-          <BorderTrail
-            size={100}
-            transition={{
-              repeat: Infinity,
-              duration: 10,
-              ease: "linear",
-            }}
-          />
-        )}
         {!hideHeader && (
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-2 align-baseline">

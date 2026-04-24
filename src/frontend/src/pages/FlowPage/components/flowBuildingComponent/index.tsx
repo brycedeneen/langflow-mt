@@ -4,7 +4,6 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { normalizeTimeString } from "@/CustomNodes/GenericNode/components/NodeStatus/utils/format-run-time";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import { BorderTrail } from "@/components/core/border-trail";
 import { Button } from "@/components/ui/button";
 import { TextShimmer } from "@/components/ui/TextShimmer";
 import { BuildStatus } from "@/constants/enums";
@@ -139,16 +138,6 @@ export default function FlowBuildingComponent() {
             <AnimatePresence mode="wait">
               {(isBuilding || buildInfo?.error || buildInfo?.success) && (
                 <>
-                  {isBuilding && (
-                    <BorderTrail
-                      size={100}
-                      transition={{
-                        repeat: Infinity,
-                        duration: 10,
-                        ease: "linear",
-                      }}
-                    />
-                  )}
                   <div className="flex min-h-10 w-full items-center justify-between gap-2">
                     <AnimatePresence mode="wait">
                       <div>
