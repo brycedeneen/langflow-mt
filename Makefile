@@ -1064,6 +1064,25 @@ docs_serve: docs_build ## build and serve documentation locally
 include Makefile.frontend
 
 ######################
+# FRONTEND BOUNDARY-VALIDATION SCHEMAS
+######################
+
+# Tested 2026-04-24: emits 136 paths + 188 component schemas; bootstraps without env vars.
+# Six duplicate-operation-ID warnings appear from MCP streamable routes — the gen-schemas
+# post-process (scripts/gen-schemas.mjs) dedupes the resulting schema names so the build
+# is unblocked while a separate backend ticket fixes the underlying duplicate registrations.
+.PHONY: openapi_json
+openapi_json: ## Dump the backend OpenAPI schema to scripts/openapi.json
+	@mkdir -p scripts
+	uv run --no-sync python -c "import json; from langflow.main import create_app; a = create_app(); print(json.dumps(a.openapi(), indent=2))" > scripts/openapi.json
+	@echo "Wrote scripts/openapi.json ($$(wc -l < scripts/openapi.json) lines)"
+
+.PHONY: gen_frontend_schemas
+gen_frontend_schemas: openapi_json ## Regenerate src/frontend/src/schemas/api/*.ts from OpenAPI
+	cd src/frontend && node scripts/gen-schemas.mjs ../../scripts/openapi.json
+	cd src/frontend && npx biome format --write src/schemas/api
+
+######################
 # VERSIONING
 ######################
 
