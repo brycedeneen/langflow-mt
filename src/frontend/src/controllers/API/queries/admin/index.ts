@@ -8,3 +8,7 @@ export * from "./use-add-member";
 export * from "./use-remove-member";
 export * from "./use-search-users";
 export * from "./use-update-member-role";
+export * from "./use-list-tags-admin";
+export * from "./use-create-tag";
+export * from "./use-update-tag";
+export * from "./use-delete-tag";
