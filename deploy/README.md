@@ -124,9 +124,8 @@ Only the vars that actually affect deployment are listed. All backend/worker var
 | `LANGFLOW_SECRET_KEY` | Recommended (prod) | auto-generated and persisted to `CONFIG_DIR/secret_key` | HS256 signing key for JWTs. Provide explicitly so it's stable across restarts. |
 | `LANGFLOW_ALGORITHM` | No | `HS256` | `HS256`, `RS256`, or `RS512`. RS* auto-manages RSA keys in `CONFIG_DIR`. |
 | `LANGFLOW_PRIVATE_KEY` / `LANGFLOW_PUBLIC_KEY` | No | auto-generated | PEM-encoded RSA keys for RS256/RS512 |
-| `LANGFLOW_AUTO_LOGIN` | No | `true` | **Set to `false` in production.** Bypasses auth with superuser creds when true. |
-| `LANGFLOW_SUPERUSER` | If `AUTO_LOGIN=false` | `langflow` | Bootstrap admin username |
-| `LANGFLOW_SUPERUSER_PASSWORD` | If `AUTO_LOGIN=false` | `langflow` | Bootstrap admin password |
+| `LANGFLOW_SUPERUSER` | **Yes** | — | Bootstrap admin username. The application fails to start without this. |
+| `LANGFLOW_SUPERUSER_PASSWORD` | **Yes** | — | Bootstrap admin password. The application fails to start without this. |
 | `LANGFLOW_NEW_USER_IS_ACTIVE` | No | `false` | Whether self-registered users start active |
 | `LANGFLOW_ENABLE_SUPERUSER_CLI` | No | `true` | **Set to `false` in production.** Gates the `langflow superuser` CLI. |
 | `LANGFLOW_API_KEY_SOURCE` | No | `db` | `db` validates against the api_keys table; `env` validates against `LANGFLOW_API_KEY` |

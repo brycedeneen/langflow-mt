@@ -58,9 +58,10 @@ export class BackEndCluster extends Construct {
         logGroup: props.backendLogGroup,
       }),
       environment:{
-        "LANGFLOW_AUTO_LOGIN" : process.env.LANGFLOW_AUTO_LOGIN ?? 'false',
-        "LANGFLOW_SUPERUSER" : process.env.LANGFLOW_SUPERUSER ?? "admin",
-        "LANGFLOW_SUPERUSER_PASSWORD" : process.env.LANGFLOW_SUPERUSER_PASSWORD ?? "123456"
+        // LANGFLOW_SUPERUSER and LANGFLOW_SUPERUSER_PASSWORD are required;
+        // Langflow fails to start without them.
+        "LANGFLOW_SUPERUSER" : process.env.LANGFLOW_SUPERUSER ?? (() => { throw new Error("LANGFLOW_SUPERUSER env var is required"); })(),
+        "LANGFLOW_SUPERUSER_PASSWORD" : process.env.LANGFLOW_SUPERUSER_PASSWORD ?? (() => { throw new Error("LANGFLOW_SUPERUSER_PASSWORD env var is required"); })()
       },
       portMappings: [
           {

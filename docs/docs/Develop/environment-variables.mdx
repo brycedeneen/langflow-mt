@@ -85,7 +85,6 @@ If it detects a supported environment variable, then it automatically adopts the
 
     ```text
     DO_NOT_TRACK=True
-    LANGFLOW_AUTO_LOGIN=False
     LANGFLOW_AUTO_SAVING=True
     LANGFLOW_AUTO_SAVING_INTERVAL=1000
     LANGFLOW_BACKEND_ONLY=False
@@ -163,7 +162,6 @@ Create or edit a `.env` file in the root directory of your application or Langfl
 
 ```text title=".env"
 DO_NOT_TRACK=True
-LANGFLOW_AUTO_LOGIN=False
 LANGFLOW_AUTO_SAVING=True
 LANGFLOW_AUTO_SAVING_INTERVAL=1000
 LANGFLOW_BACKEND_ONLY=False
@@ -208,7 +206,6 @@ To add environment variables, create or edit a service configuration file and ad
 ```ini title="override.conf"
 [Service]
 Environment="DO_NOT_TRACK=true"
-Environment="LANGFLOW_AUTO_LOGIN=false"
 Environment="LANGFLOW_AUTO_SAVING=true"
 Environment="LANGFLOW_AUTO_SAVING_INTERVAL=1000"
 Environment="LANGFLOW_BACKEND_ONLY=false"
@@ -260,7 +257,6 @@ Create or edit the `.vscode/tasks.json` file in your project root.
     "options": {
         "env": {
             "DO_NOT_TRACK": "true",
-            "LANGFLOW_AUTO_LOGIN": "false",
             "LANGFLOW_AUTO_SAVING": "true",
             "LANGFLOW_AUTO_SAVING_INTERVAL": "1000",
             "LANGFLOW_BACKEND_ONLY": "false",
@@ -431,9 +427,9 @@ See [Telemetry](/contributing-telemetry).
 |----------|--------|---------|-------------|
 | `LANGFLOW_AUTO_SAVING` | Boolean | `True` | Whether to automatically save flows. |
 | `LANGFLOW_AUTO_SAVING_INTERVAL` | Integer | `1000` | Set the auto-save interval in milliseconds if `LANGFLOW_AUTO_SAVING=True`. |
-| `LANGFLOW_BUNDLE_URLS` | List[String] | `[]` | A list of URLs from which to load custom bundles. Supports GitHub URLs. If `LANGFLOW_AUTO_LOGIN=True`, flows from these bundles are loaded into the database. |
+| `LANGFLOW_BUNDLE_URLS` | List[String] | `[]` | A list of URLs from which to load custom bundles. Supports GitHub URLs. |
 | `LANGFLOW_COMPONENTS_PATH` | String | Not set | Path to a directory containing custom components. Typically used if you have local custom components or you are building a Docker image with custom components. |
-| `LANGFLOW_LOAD_FLOWS_PATH` | String | Not set | Path to a directory containing flow JSON files to be loaded on startup. Typically used when creating a Docker image with prepackaged flows. Requires `LANGFLOW_AUTO_LOGIN=True`. |
+| `LANGFLOW_LOAD_FLOWS_PATH` | String | Not set | Path to a directory containing flow JSON files to be loaded on startup. Typically used when creating a Docker image with prepackaged flows. |
 | `LANGFLOW_CREATE_STARTER_PROJECTS` | Boolean | `True` | Whether to create templates during initialization. If `false`, Langflow doesn't create templates, and `LANGFLOW_UPDATE_STARTER_PROJECTS` is treated as `false`. |
 | `LANGFLOW_UPDATE_STARTER_PROJECTS` | Boolean | `True` | Whether to update templates with the latest component versions when initializing after an upgrade. |
 | `LANGFLOW_LAZY_LOAD_COMPONENTS` | Boolean | `False` | If `true`, Langflow only partially loads components at startup and fully loads them on demand. This significantly reduces startup time but can cause a slight delay when a component is first used. |

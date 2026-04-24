@@ -9,7 +9,7 @@ import Icon from "@site/src/components/icon";
 
 :::warning
 Never expose Langflow ports directly to the internet without proper security measures.
-Set `LANGFLOW_AUTO_LOGIN=False`, use a non-default `LANGFLOW_SECRET_KEY`, and deploy your Langflow server behind a reverse proxy with authentication enabled.
+Use a non-default `LANGFLOW_SECRET_KEY`, and deploy your Langflow server behind a reverse proxy with authentication enabled.
 For more information, see [Start a Langflow server with authentication enabled](#start-a-langflow-server-with-authentication-enabled).
 :::
 
@@ -68,7 +68,6 @@ In this case, you must create API keys with the Langflow CLI.
 1. Recommended: [Start your Langflow server with authentication enabled](#start-a-langflow-server-with-authentication-enabled).
 
     The Langflow team recommends enabling authentication for security reasons to prevent unauthorized creation of API keys and superusers, especially in production environments.
-    If authentication isn't enabled (`LANGFLOW_AUTO_LOGIN=True`), all users are effectively superusers, and they can create API keys with the Langflow CLI.
 
 2. Create an API key with [`langflow api-key`](/configuration-cli#langflow-api-key):
 
@@ -152,39 +151,8 @@ You can use the [`.env.example`](https://github.com/langflow-ai/langflow/blob/ma
 
 For JWT authentication configuration, including algorithm selection and key management, see [JWT authentication](/jwt-authentication).
 
-### LANGFLOW_AUTO_LOGIN {#langflow-auto-login}
-
-This variable controls whether authentication is required to access your Langflow server, including the visual editor, API, and Langflow CLI:
-
-* If `LANGFLOW_AUTO_LOGIN=False`, automatic login is disabled. Users must sign in to the visual editor, authenticate as a superuser to run certain Langflow CLI commands, and use a Langflow API key for Langflow API requests.
-If `false`, the Langflow team recommends that you also explicitly set [`LANGFLOW_SUPERUSER` and `LANGFLOW_SUPERUSER_PASSWORD`](#langflow-superuser) to avoid using the insecure default values.
-
-* If `LANGFLOW_AUTO_LOGIN=True` (default), all API requests require authentication with a Langflow API key, but the visual editor automatically signs in all users as superusers, and Langflow uses _only_ the default [superuser credentials](/api-keys-and-authentication#langflow-superuser).
-All users access the same visual editor environment without password protection, they can run all Langflow CLI commands as superusers, and Langflow automatically authenticates internal requests between the backend and frontend based on the users' superuser privileges.
-If you also want to bypass authentication for Langflow API requests in addition to other bypassed authentication, see [`LANGFLOW_SKIP_AUTH_AUTO_LOGIN`](/api-keys-and-authentication#langflow-skip-auth-auto-login).
-
 Langflow doesn't allow users to simultaneously edit the same flow in real time.
 If two users edit the same flow, Langflow saves only the work of the most recent editor based on the state of that user's [workspace](/concepts-overview#workspace). Any changes made by the other user in the interim are overwritten.
-
-#### Default authentication enforcement and LANGFLOW_SKIP_AUTH_AUTO_LOGIN {#langflow-skip-auth-auto-login}
-
-In Langflow version 1.6, the default settings are `LANGFLOW_AUTO_LOGIN=True` and `LANGFLOW_SKIP_AUTH_AUTO_LOGIN=False`.
-This enforces authentication for API requests only, as explained in the preceding section.
-
-For temporary backwards compatibility, you can revert to the fully unauthenticated behavior from earlier versions by setting both variables to `true`.
-However, a future release will set `LANGFLOW_AUTO_LOGIN=False` and remove `LANGFLOW_SKIP_AUTH_AUTO_LOGIN`.
-At that point, Langflow will strictly enforce API key authentication for API requests, and you can manually disable authentication for some features, like the visual editor, by setting `LANGFLOW_AUTO_LOGIN=True`.
-
-<details>
-<summary>Authentication enforcement in earlier versions</summary>
-
-Langflow version 1.5 was the first version that could enforce authentication for Langflow API requests, regardless of the value of `LANGFLOW_AUTO_LOGIN`.
-As a temporary bypass for backwards compatibility, this version added the `LANGFLOW_SKIP_AUTH_AUTO_LOGIN` environment variable and set both variables to `true` by default to preserve the fully unauthenticated behavior from earlier versions.
-This allowed users to upgrade to version 1.5 with no change in the authentication behavior.
-
-In Langflow versions earlier than 1.5, Langflow API requests didn't require authentication.
-Additionally, the default setting of `LANGFLOW_AUTO_LOGIN=True` automatically granted all users superuser privileges in the visual editor, and it allowed all users to run all Langflow CLI commands as superusers.
-</details>
 
 ### LANGFLOW_ENABLE_SUPERUSER_CLI {#langflow-enable-superuser-cli}
 
@@ -201,11 +169,7 @@ LANGFLOW_SUPERUSER=administrator
 LANGFLOW_SUPERUSER_PASSWORD=securepassword
 ```
 
-They are required if `LANGFLOW_AUTO_LOGIN=False`.
-Otherwise, they aren't relevant.
-
-When you [start a Langflow server with authentication enabled](#start-a-langflow-server-with-authentication-enabled), if these variables are required but _not_ set, then Langflow uses the default values of `langflow` and `langflow`.
-These defaults don't apply when using the Langflow CLI command [`langflow superuser`](/configuration-cli#langflow-superuser).
+These variables are **required**. Langflow fails to start without them.
 
 ### LANGFLOW_SECRET_KEY {#langflow-secret-key}
 
@@ -488,7 +452,6 @@ Additionally, you must sign in as a superuser to manage users and [create a Lang
 1. Create a `.env` file with the following variables:
 
     ```text
-    LANGFLOW_AUTO_LOGIN=False
     LANGFLOW_SUPERUSER=
     LANGFLOW_SUPERUSER_PASSWORD=
     LANGFLOW_SECRET_KEY=
@@ -513,7 +476,6 @@ Additionally, you must sign in as a superuser to manage users and [create a Lang
 4. Save your `.env` file with the populated variables. For example:
 
     ```text
-    LANGFLOW_AUTO_LOGIN=False
     LANGFLOW_SUPERUSER=administrator
     LANGFLOW_SUPERUSER_PASSWORD=securepassword
     LANGFLOW_SECRET_KEY=dBuu...2kM2_fb

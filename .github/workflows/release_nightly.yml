@@ -211,6 +211,9 @@ jobs:
           make build base=true args="--no-sources --wheel"
 
       - name: Test Langflow Base CLI
+        env:
+          LANGFLOW_SUPERUSER: langflow
+          LANGFLOW_SUPERUSER_PASSWORD: langflow
         run: |
           # TODO: Unsure why the whl is not built in src/backend/base/dist
           mkdir src/backend/base/dist
@@ -221,7 +224,7 @@ jobs:
           uv run python -m langflow run --host localhost --port 7860 --backend-only &
           SERVER_PID=$!
           # Wait for the server to start
-          timeout 120 bash -c 'until curl -f http://localhost:7860/api/v1/auto_login; do sleep 2; done' || (echo "Server did not start in time" && kill $SERVER_PID && exit 1)
+          timeout 120 bash -c 'until curl -f http://localhost:7860/health; do sleep 2; done' || (echo "Server did not start in time" && kill $SERVER_PID && exit 1)
           # Terminate the server
           kill $SERVER_PID || (echo "Failed to terminate the server" && exit 1)
           sleep 20 # give the server some time to terminate

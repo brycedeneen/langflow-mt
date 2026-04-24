@@ -76,7 +76,6 @@ Langflow versions `1.6.0` through `1.6.3` have a critical bug where environment 
 **Potential security impact:**
 
 - Environment variables from `.env` files are not read.
-- Security configurations like `AUTO_LOGIN=false` may not be applied, potentially allowing users to log in as the default superuser.
 - Database credentials, API keys, and other sensitive configuration may not be loaded.
 
 **DO NOT** upgrade to Langflow versions `1.6.0` through `1.6.3` if you use `.env` files for configuration. Instead, upgrade to version `1.6.4`, which includes a fix for this bug.
@@ -109,15 +108,6 @@ For more information, see [LangChain bundle documentation](https://docs.langflow
 **CVE:** [CVE-2024-21513](https://nvd.nist.gov/vuln/detail/CVE-2024-21513) (langchain-experimental arbitrary code execution).
 **Fixed in**: Langflow >= 1.8.0
 
-### No API key required if running Langflow with `LANGFLOW_AUTO_LOGIN=true` and `LANGFLOW_SKIP_AUTH_AUTO_LOGIN=true`
-
-In Langflow versions earlier than 1.5, if `LANGFLOW_AUTO_LOGIN=true`, then Langflow automatically logs users in as a superuser without requiring authentication. In this case, API requests don't require a Langflow API key.
-
-In Langflow version 1.5, a Langflow API key is required to authenticate requests.
-Setting `LANGFLOW_SKIP_AUTH_AUTO_LOGIN=true` and `LANGFLOW_AUTO_LOGIN=true` skips authentication for API requests. However, the `LANGFLOW_SKIP_AUTH_AUTO_LOGIN` option will be removed in v1.6.
-
-`LANGFLOW_SKIP_AUTH_AUTO_LOGIN=true` is the default behavior, so users do not need to change existing workflows in 1.5. To update your workflows to require authentication, set `LANGFLOW_SKIP_AUTH_AUTO_LOGIN=false`.
-
 For more information, see [API keys and authentication](https://docs.langflow.org/api-keys-and-authentication).
 
 ## Security Configuration Guidelines
@@ -130,7 +120,7 @@ The `langflow superuser` CLI command can present a privilege escalation risk if 
 
 1. **Authentication Required in Production**
 
-   - When `LANGFLOW_AUTO_LOGIN=false`, superuser creation requires authentication
+   - Superuser creation requires authentication
    - Use `--auth-token` parameter with a valid superuser API key or JWT token
 
 2. **Disable CLI Superuser Creation**
@@ -138,15 +128,10 @@ The `langflow superuser` CLI command can present a privilege escalation risk if 
    - Set `LANGFLOW_ENABLE_SUPERUSER_CLI=false` to disable the command entirely
    - Strongly recommended for production environments
 
-3. **Secure AUTO_LOGIN Setting**
-   - Default is `true` for <=1.5. This may change in a future release.
-   - When `true`, creates default superuser `langflow/langflow` - **ONLY USE IN DEVELOPMENT**
-
 #### Production Security Configuration
 
 ```bash
 # Recommended production settings
-export LANGFLOW_AUTO_LOGIN=false
 export LANGFLOW_ENABLE_SUPERUSER_CLI=false
 export LANGFLOW_SUPERUSER="<your-superuser-username>"
 export LANGFLOW_SUPERUSER_PASSWORD="<your-superuser-password>"

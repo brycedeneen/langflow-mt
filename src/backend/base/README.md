@@ -26,7 +26,6 @@ Overridable make vars:
 | `host` | `0.0.0.0` | Bind host |
 | `port` | `7860` | Bind port |
 | `workers` | `1` | Uvicorn worker count (disables `--reload` when >1) |
-| `login` | unset | If set to `true`/`false`, forces `LANGFLOW_AUTO_LOGIN` for this run |
 
 Example:
 ```shell
@@ -52,8 +51,7 @@ LANGFLOW_DATABASE_URL=postgresql+psycopg://langflow:langflow@localhost:5432/lang
 LANGFLOW_DISTRIBUTED_EXECUTION=true
 LANGFLOW_REDIS_URL=redis://localhost:6379/0
 
-# Auth — fine as-is for solo dev; lock down in prod
-LANGFLOW_AUTO_LOGIN=true
+# Auth — required; the app will fail to start without these. Lock down in prod.
 LANGFLOW_SUPERUSER=admin
 LANGFLOW_SUPERUSER_PASSWORD=admin
 

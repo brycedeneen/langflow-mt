@@ -281,19 +281,8 @@ setup_env: ## set up the environment
 
 backend: setup_env install_backend ## run the backend in development mode
 	@-kill -9 $$(lsof -t -i:7860) || true
-ifdef login
-	@echo "Running backend autologin is $(login)";
-	LANGFLOW_AUTO_LOGIN=$(login) uv run uvicorn \
-		--factory langflow.main:create_app \
-		--host 0.0.0.0 \
-		--port $(port) \
-		$(if $(filter-out 1,$(workers)),, --reload) \
-		--env-file $(env) \
-		--loop asyncio \
-		$(if $(workers),--workers $(workers),)
-else
 	@echo "Running backend respecting the $(env) file";
-	uv run uvicorn \
+	LANGFLOW_SUPERUSER=langflow LANGFLOW_SUPERUSER_PASSWORD=langflow uv run uvicorn \
 		--factory langflow.main:create_app \
 		--host 0.0.0.0 \
 		--port $(port) \
@@ -301,7 +290,6 @@ else
 		--env-file $(env) \
 		--loop asyncio \
 		$(if $(workers),--workers $(workers),)
-endif
 
 build_and_run: setup_env ## build the project and run it
 	$(call CLEAR_DIRS,dist src/backend/base/dist)
