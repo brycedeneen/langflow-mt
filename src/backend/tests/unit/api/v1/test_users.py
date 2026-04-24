@@ -161,6 +161,103 @@ async def test_patch_user_self_deactivation_forbidden_superuser(
     assert "can't deactivate your own user account" in result["detail"]
 
 
+async def test_patch_user_cannot_self_escalate_platform_admin(
+    client: AsyncClient, logged_in_headers, active_user
+):
+    """A non-admin user cannot flip is_platform_admin on themselves via PATCH /users/{id}."""
+    user_id = str(active_user.id)
+    response = await client.patch(
+        f"api/v1/users/{user_id}",
+        json={"is_platform_admin": True},
+        headers=logged_in_headers,
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "platform-admin" in response.json()["detail"].lower()
+
+    whoami = await client.get("api/v1/users/whoami", headers=logged_in_headers)
+    assert whoami.json()["is_platform_admin"] is False
+
+
+async def test_patch_user_superuser_cannot_set_platform_admin_via_self_service(
+    client: AsyncClient, logged_in_headers_super_user, active_super_user
+):
+    """Even superusers must use the dedicated admin endpoint, not the self-service PATCH."""
+    basic_case = {"username": "pa_target_via_self_service", "password": "password123"}
+    created = await client.post("api/v1/users/", json=basic_case, headers=logged_in_headers_super_user)
+    assert created.status_code == status.HTTP_201_CREATED
+    target_id = created.json()["id"]
+
+    response = await client.patch(
+        f"api/v1/users/{target_id}",
+        json={"is_platform_admin": True},
+        headers=logged_in_headers_super_user,
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+async def test_platform_admin_endpoint_requires_admin(client: AsyncClient, logged_in_headers, active_user):
+    """Non-platform-admins are rejected by the dedicated endpoint."""
+    user_id = str(active_user.id)
+    response = await client.patch(
+        f"api/v1/admin/users/{user_id}/platform-admin",
+        json={"is_platform_admin": True},
+        headers=logged_in_headers,
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+async def test_platform_admin_endpoint_sets_flag(
+    client: AsyncClient, logged_in_headers_super_user
+):
+    """Platform admins can grant and revoke the flag via the dedicated endpoint."""
+    basic_case = {"username": "pa_grant_target", "password": "password123"}
+    created = await client.post("api/v1/users/", json=basic_case, headers=logged_in_headers_super_user)
+    assert created.status_code == status.HTTP_201_CREATED
+    target_id = created.json()["id"]
+
+    grant = await client.patch(
+        f"api/v1/admin/users/{target_id}/platform-admin",
+        json={"is_platform_admin": True},
+        headers=logged_in_headers_super_user,
+    )
+    assert grant.status_code == status.HTTP_200_OK
+    assert grant.json()["is_platform_admin"] is True
+
+    revoke = await client.patch(
+        f"api/v1/admin/users/{target_id}/platform-admin",
+        json={"is_platform_admin": False},
+        headers=logged_in_headers_super_user,
+    )
+    assert revoke.status_code == status.HTTP_200_OK
+    assert revoke.json()["is_platform_admin"] is False
+
+
+async def test_platform_admin_endpoint_blocks_self_demotion(
+    client: AsyncClient, logged_in_headers_super_user, active_super_user
+):
+    """A platform admin cannot remove their own platform-admin flag."""
+    user_id = str(active_super_user.id)
+    response = await client.patch(
+        f"api/v1/admin/users/{user_id}/platform-admin",
+        json={"is_platform_admin": False},
+        headers=logged_in_headers_super_user,
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+async def test_patch_user_superuser_self_demotion_forbidden(
+    client: AsyncClient, logged_in_headers_super_user, active_super_user
+):
+    """Superusers cannot demote their own is_superuser flag via self-patch (mirrors is_active guard)."""
+    user_id = str(active_super_user.id)
+    response = await client.patch(
+        f"api/v1/users/{user_id}",
+        json={"is_superuser": False},
+        headers=logged_in_headers_super_user,
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
 async def test_patch_user_deactivate_other_user_allowed(client: AsyncClient, logged_in_headers_super_user):
     """Test that a superuser can deactivate another user's account."""
     # Create a new user

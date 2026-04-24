@@ -86,12 +86,24 @@ async def patch_user(
     """Update an existing user's data."""
     update_password = bool(user_update.password)
 
+    # Platform-admin status is managed via the dedicated admin endpoint,
+    # never through the self-service PATCH, regardless of caller role.
+    if user_update.is_platform_admin is not None:
+        raise HTTPException(
+            status_code=400,
+            detail="Use PATCH /api/v1/admin/users/{user_id}/platform-admin to change platform-admin status",
+        )
+
     # Prevent users from deactivating their own account to avoid lockout
     if user.id == user_id and user_update.is_active is False:
         raise HTTPException(status_code=403, detail="You can't deactivate your own user account")
 
     if not user.is_superuser and user_update.is_superuser:
         raise HTTPException(status_code=403, detail="Permission denied")
+
+    # Prevent superusers from demoting themselves via self-patch; mirrors the is_active guard above.
+    if user.id == user_id and user_update.is_superuser is False:
+        raise HTTPException(status_code=403, detail="You can't remove your own superuser status")
 
     if not user.is_superuser and user.id != user_id:
         raise HTTPException(status_code=403, detail="Permission denied")
