@@ -18,11 +18,6 @@ jest.mock("@/utils/cookie-manager", () => ({
   })),
 }));
 
-jest.mock(
-  "@/stores/authStore",
-  () => jest.fn((selector) => false), // autoLogin = false
-);
-
 jest.mock("@/controllers/API/api", () => ({
   api: {
     post: jest.fn(),

@@ -15,7 +15,6 @@ export const URLs = {
   LOGOUT: `logout`,
   LOGIN: `login`,
   SESSION: `session`,
-  AUTOLOGIN: "auto_login",
   REFRESH: "refresh",
   BUILD: `build`,
   CUSTOM_COMPONENT: `custom_component`,

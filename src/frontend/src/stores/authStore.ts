@@ -16,7 +16,6 @@ const useAuthStore = create<AuthStoreType>((set, get) => ({
   isAuthenticated: false,
   accessToken: null,
   userData: null,
-  autoLogin: null,
   apiKey: null,
   authenticationErrorCount: 0,
 
@@ -24,7 +23,6 @@ const useAuthStore = create<AuthStoreType>((set, get) => ({
   setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
   setAccessToken: (accessToken) => set({ accessToken }),
   setUserData: (userData) => set({ userData }),
-  setAutoLogin: (autoLogin) => set({ autoLogin }),
   setApiKey: (apiKey) => set({ apiKey }),
   setAuthenticationErrorCount: (authenticationErrorCount) =>
     set({ authenticationErrorCount }),
@@ -44,7 +42,6 @@ const useAuthStore = create<AuthStoreType>((set, get) => ({
       userData: null,
       accessToken: null,
       isAuthenticated: false,
-      autoLogin: false,
       apiKey: null,
     });
   },

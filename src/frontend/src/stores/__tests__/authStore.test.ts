@@ -70,7 +70,6 @@ describe("useAuthStore", () => {
       isAuthenticated: false,
       accessToken: null,
       userData: null,
-      autoLogin: null,
       apiKey: null,
       authenticationErrorCount: 0,
     });
@@ -84,7 +83,6 @@ describe("useAuthStore", () => {
       expect(result.current.isAuthenticated).toBe(false);
       expect(result.current.accessToken).toBeNull();
       expect(result.current.userData).toBeNull();
-      expect(result.current.autoLogin).toBeNull();
       expect(result.current.apiKey).toBeNull();
       expect(result.current.authenticationErrorCount).toBe(0);
     });
@@ -188,22 +186,6 @@ describe("useAuthStore", () => {
       expect(result.current.userData).toBeNull();
     });
 
-    it("should update autoLogin state", () => {
-      const { result } = renderHook(() => useAuthStore());
-
-      act(() => {
-        result.current.setAutoLogin(true);
-      });
-
-      expect(result.current.autoLogin).toBe(true);
-
-      act(() => {
-        result.current.setAutoLogin(false);
-      });
-
-      expect(result.current.autoLogin).toBe(false);
-    });
-
     it("should update apiKey state", () => {
       const { result } = renderHook(() => useAuthStore());
 
@@ -256,7 +238,6 @@ describe("useAuthStore", () => {
           create_at: new Date(),
           updated_at: new Date(),
         });
-        result.current.setAutoLogin(true);
       });
 
       // Verify state is set
@@ -265,7 +246,6 @@ describe("useAuthStore", () => {
       expect(result.current.accessToken).toBe("access-token");
       expect(result.current.apiKey).toBe("api-key");
       expect(result.current.userData).toBeTruthy();
-      expect(result.current.autoLogin).toBe(true);
 
       // Perform logout
       await act(async () => {
@@ -278,7 +258,6 @@ describe("useAuthStore", () => {
       expect(result.current.accessToken).toBeNull();
       expect(result.current.apiKey).toBeNull();
       expect(result.current.userData).toBeNull();
-      expect(result.current.autoLogin).toBe(false);
     });
   });
 
@@ -295,20 +274,6 @@ describe("useAuthStore", () => {
       expect(result.current.accessToken).toBeNull();
       expect(result.current.userData).toBeNull();
       expect(result.current.apiKey).toBeNull();
-    });
-
-    it("should handle boolean edge cases for autoLogin", () => {
-      const { result } = renderHook(() => useAuthStore());
-
-      act(() => {
-        result.current.setAutoLogin(true);
-      });
-      expect(result.current.autoLogin).toBe(true);
-
-      act(() => {
-        result.current.setAutoLogin(false);
-      });
-      expect(result.current.autoLogin).toBe(false);
     });
 
     it("should handle authenticationErrorCount edge cases", () => {

@@ -2,7 +2,6 @@ import { createContext, useEffect, useState } from "react";
 import {
   LANGFLOW_ACCESS_TOKEN,
   LANGFLOW_API_TOKEN,
-  LANGFLOW_AUTO_LOGIN_OPTION,
   LANGFLOW_REFRESH_TOKEN,
 } from "@/constants/constants";
 import { useGetUserData } from "@/controllers/API/queries/auth";
@@ -64,13 +63,8 @@ export function AuthProvider({ children }): React.ReactElement {
     );
   }
 
-  function login(
-    newAccessToken: string,
-    autoLogin: string,
-    refreshToken?: string,
-  ) {
+  function login(newAccessToken: string, refreshToken?: string) {
     cookieManager.set(LANGFLOW_ACCESS_TOKEN, newAccessToken);
-    cookieManager.set(LANGFLOW_AUTO_LOGIN_OPTION, autoLogin);
     setLocalStorage(LANGFLOW_ACCESS_TOKEN, newAccessToken);
 
     if (refreshToken) {

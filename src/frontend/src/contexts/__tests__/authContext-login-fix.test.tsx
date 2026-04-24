@@ -158,7 +158,7 @@ describe("AuthContext - Login Fix for Race Condition", () => {
 
       // Start login
       act(() => {
-        result.current.login(accessToken, "login", refreshToken);
+        result.current.login(accessToken, refreshToken);
       });
 
       // Advance timers to trigger the verifyAndProceed function
@@ -216,7 +216,7 @@ describe("AuthContext - Login Fix for Race Condition", () => {
 
       // Start login
       act(() => {
-        result.current.login(accessToken, "login");
+        result.current.login(accessToken);
       });
 
       // Advance timers to trigger the verifyAndProceed function
@@ -257,7 +257,7 @@ describe("AuthContext - Login Fix for Race Condition", () => {
 
       // Start login
       act(() => {
-        result.current.login(accessToken, "login");
+        result.current.login(accessToken);
       });
 
       // Advance timers to trigger the verifyAndProceed function
@@ -296,11 +296,11 @@ describe("AuthContext - Login Fix for Race Condition", () => {
       });
 
       act(() => {
-        result.current.login(accessToken, "login", refreshToken);
+        result.current.login(accessToken, refreshToken);
       });
 
       // Verify cookies were set BEFORE mutations started
-      expect(mockCookiesInstance.set).toHaveBeenCalledTimes(3); // access, auto_login, refresh
+      expect(mockCookiesInstance.set).toHaveBeenCalledTimes(2); // access, refresh
 
       // Advance timers to trigger the verifyAndProceed function
       act(() => {
@@ -335,7 +335,7 @@ describe("AuthContext - Login Fix for Race Condition", () => {
 
       // Login
       act(() => {
-        result.current.login(accessToken, "login");
+        result.current.login(accessToken);
       });
 
       // Advance timers to trigger the verifyAndProceed function
@@ -371,18 +371,13 @@ describe("AuthContext - Login Fix for Race Condition", () => {
       const refreshToken = "refresh_token_456";
 
       act(() => {
-        result.current.login(accessToken, "login", refreshToken);
+        result.current.login(accessToken, refreshToken);
       });
 
       // Verify all cookies were set (with options parameter)
       expect(mockCookiesInstance.set).toHaveBeenCalledWith(
         "access_token_lf",
         accessToken,
-        expect.any(Object),
-      );
-      expect(mockCookiesInstance.set).toHaveBeenCalledWith(
-        "auto_login_lf",
-        "login",
         expect.any(Object),
       );
       expect(mockCookiesInstance.set).toHaveBeenCalledWith(
@@ -396,16 +391,15 @@ describe("AuthContext - Login Fix for Race Condition", () => {
       const { result } = renderHook(() => useTestContext(), { wrapper });
 
       act(() => {
-        result.current.login("access_token_123", "login");
+        result.current.login("access_token_123");
       });
 
-      // Should only set access_token and auto_login cookies
+      // Should only set access_token cookie
       const setCallArgs = mockCookiesInstance.set.mock.calls.map(
         (call) => call[0],
       );
 
       expect(setCallArgs).toContain("access_token_lf");
-      expect(setCallArgs).toContain("auto_login_lf");
       expect(setCallArgs).not.toContain("refresh_token_lf");
     });
   });
@@ -434,11 +428,11 @@ describe("AuthContext - Login Fix for Race Condition", () => {
 
       // Step 1: Start login
       act(() => {
-        result.current.login(accessToken, "login", refreshToken);
+        result.current.login(accessToken, refreshToken);
       });
 
       // Verify cookies set
-      expect(mockCookiesInstance.set).toHaveBeenCalledTimes(3);
+      expect(mockCookiesInstance.set).toHaveBeenCalledTimes(2);
 
       // Verify isAuthenticated NOT set yet
       expect(mockSetIsAuthenticated).not.toHaveBeenCalled();
@@ -490,9 +484,9 @@ describe("AuthContext - Login Fix for Race Condition", () => {
 
       // Rapidly call login multiple times
       act(() => {
-        result.current.login("token1", "login");
-        result.current.login("token2", "login");
-        result.current.login("token3", "login");
+        result.current.login("token1");
+        result.current.login("token2");
+        result.current.login("token3");
       });
 
       // Advance timers to trigger the verifyAndProceed function for all logins
@@ -505,18 +499,5 @@ describe("AuthContext - Login Fix for Race Condition", () => {
       expect(mockMutateGetGlobalVariables).toHaveBeenCalledTimes(3);
     });
 
-    it("should handle login with auto-login option", async () => {
-      const { result } = renderHook(() => useTestContext(), { wrapper });
-
-      act(() => {
-        result.current.login("auto_token", "auto");
-      });
-
-      expect(mockCookiesInstance.set).toHaveBeenCalledWith(
-        "auto_login_lf",
-        "auto",
-        expect.any(Object),
-      );
-    });
   });
 });
