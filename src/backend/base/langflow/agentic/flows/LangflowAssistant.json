@@ -712,16 +712,6 @@
                     },
                     "name": "__enable_provider_Ollama__",
                     "provider": "Ollama"
-                  },
-                  {
-                    "category": "IBM WatsonX",
-                    "icon": "IBM",
-                    "metadata": {
-                      "is_disabled_provider": true,
-                      "variable_name": "WATSONX_APIKEY"
-                    },
-                    "name": "__enable_provider_IBM WatsonX__",
-                    "provider": "IBM WatsonX"
                   }
                 ],
                 "override_skip": false,
@@ -1424,16 +1414,6 @@
                     },
                     "name": "__enable_provider_Ollama__",
                     "provider": "Ollama"
-                  },
-                  {
-                    "category": "IBM WatsonX",
-                    "icon": "IBM",
-                    "metadata": {
-                      "is_disabled_provider": true,
-                      "variable_name": "WATSONX_APIKEY"
-                    },
-                    "name": "__enable_provider_IBM WatsonX__",
-                    "provider": "IBM WatsonX"
                   }
                 ],
                 "override_skip": false,
@@ -3194,16 +3174,6 @@
                     },
                     "name": "__enable_provider_Ollama__",
                     "provider": "Ollama"
-                  },
-                  {
-                    "category": "IBM WatsonX",
-                    "icon": "IBM",
-                    "metadata": {
-                      "is_disabled_provider": true,
-                      "variable_name": "WATSONX_APIKEY"
-                    },
-                    "name": "__enable_provider_IBM WatsonX__",
-                    "provider": "IBM WatsonX"
                   }
                 ],
                 "override_skip": false,

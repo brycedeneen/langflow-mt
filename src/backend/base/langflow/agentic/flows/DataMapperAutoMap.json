@@ -902,16 +902,6 @@
                     },
                     "name": "__enable_provider_Ollama__",
                     "provider": "Ollama"
-                  },
-                  {
-                    "category": "IBM WatsonX",
-                    "icon": "WatsonxAI",
-                    "metadata": {
-                      "is_disabled_provider": true,
-                      "variable_name": null
-                    },
-                    "name": "__enable_provider_IBM WatsonX__",
-                    "provider": "IBM WatsonX"
                   }
                 ],
                 "override_skip": false,

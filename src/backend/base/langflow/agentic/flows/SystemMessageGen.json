@@ -1153,7 +1153,6 @@
                   "Anthropic",
                   "Google Generative AI",
                   "OpenAI",
-                  "IBM watsonx.ai",
                   "Ollama"
                 ],
                 "options_metadata": [
@@ -1165,9 +1164,6 @@
                   },
                   {
                     "icon": "OpenAI"
-                  },
-                  {
-                    "icon": "WatsonxAI"
                   },
                   {
                     "icon": "Ollama"
