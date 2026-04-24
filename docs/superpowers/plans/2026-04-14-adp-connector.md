@@ -57,7 +57,7 @@
 - Create: `src/lfx/tests/unit/components/adp/__init__.py`
 - Create: `src/lfx/tests/unit/components/adp/test_shared.py`
 
-- [ ] **Step 1: Write failing test for `ADPConnection` dataclass shape**
+- [x] **Step 1: Write failing test for `ADPConnection` dataclass shape**
 
 Create `src/lfx/tests/unit/components/adp/__init__.py` as an empty file.
 
@@ -115,12 +115,12 @@ def test_adp_connection_token_fields_mutable():
     assert conn.token_expires_at == now
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `uv run --directory src/lfx pytest tests/unit/components/adp/test_shared.py -v`
 Expected: FAIL with `ModuleNotFoundError: No module named 'lfx.components.adp'`
 
-- [ ] **Step 3: Create bundle `__init__.py` and `_shared.py` with `ADPConnection`**
+- [x] **Step 3: Create bundle `__init__.py` and `_shared.py` with `ADPConnection`**
 
 Create `src/lfx/src/lfx/components/adp/__init__.py`:
 
@@ -168,12 +168,12 @@ class ADPConnection:
     token_expires_at: datetime | None = None
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `uv run --directory src/lfx pytest tests/unit/components/adp/test_shared.py -v`
 Expected: 3 passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/adp/__init__.py \
@@ -191,7 +191,7 @@ git commit -m "feat(adp): scaffold bundle with ADPConnection dataclass"
 - Modify: `src/lfx/src/lfx/components/adp/_shared.py`
 - Modify: `src/lfx/tests/unit/components/adp/test_shared.py`
 
-- [ ] **Step 1: Write failing test for `build_mtls_httpx_client` with file-path certs**
+- [x] **Step 1: Write failing test for `build_mtls_httpx_client` with file-path certs**
 
 Append to `src/lfx/tests/unit/components/adp/test_shared.py`:
 
@@ -236,12 +236,12 @@ def test_build_mtls_client_requires_both_paths():
         build_mtls_httpx_client(conn)
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run: `uv run --directory src/lfx pytest tests/unit/components/adp/test_shared.py -v`
 Expected: 2 FAIL with `ImportError` for `build_mtls_httpx_client`
 
-- [ ] **Step 3: Implement `build_mtls_httpx_client`**
+- [x] **Step 3: Implement `build_mtls_httpx_client`**
 
 Append to `src/lfx/src/lfx/components/adp/_shared.py`:
 
@@ -314,12 +314,12 @@ def _write_secure_tempfile(content: str, *, suffix: str) -> Path:
     return path
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `uv run --directory src/lfx pytest tests/unit/components/adp/test_shared.py -v`
 Expected: 5 passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/adp/_shared.py src/lfx/tests/unit/components/adp/test_shared.py
@@ -334,7 +334,7 @@ git commit -m "feat(adp): add mTLS httpx client builder (file-path source)"
 - Modify: `src/lfx/tests/unit/components/adp/test_shared.py`
 - (`_shared.py` already supports PEM from Task 2; this task locks in the behavior with tests.)
 
-- [ ] **Step 1: Write failing tests for PEM source and cleanup behavior**
+- [x] **Step 1: Write failing tests for PEM source and cleanup behavior**
 
 Append to `src/lfx/tests/unit/components/adp/test_shared.py`:
 
@@ -388,12 +388,12 @@ def test_build_mtls_client_unknown_source():
         build_mtls_httpx_client(conn)
 ```
 
-- [ ] **Step 2: Run tests to verify they pass (implementation already exists from Task 2)**
+- [x] **Step 2: Run tests to verify they pass (implementation already exists from Task 2)**
 
 Run: `uv run --directory src/lfx pytest tests/unit/components/adp/test_shared.py -v`
 Expected: 8 passed
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/lfx/tests/unit/components/adp/test_shared.py
@@ -408,7 +408,7 @@ git commit -m "test(adp): cover PEM-paste mTLS source and temp-file cleanup"
 - Modify: `src/lfx/src/lfx/components/adp/_shared.py`
 - Modify: `src/lfx/tests/unit/components/adp/test_shared.py`
 
-- [ ] **Step 1: Write failing tests for `fetch_token`**
+- [x] **Step 1: Write failing tests for `fetch_token`**
 
 Append to `src/lfx/tests/unit/components/adp/test_shared.py`:
 
@@ -504,12 +504,12 @@ async def test_fetch_token_surfaces_adp_error_body(tmp_path):
             await fetch_token(conn)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `uv run --directory src/lfx pytest tests/unit/components/adp/test_shared.py -v`
 Expected: 5 new FAILs (ImportError for `fetch_token`)
 
-- [ ] **Step 3: Implement `fetch_token` + `_post_token_request`**
+- [x] **Step 3: Implement `fetch_token` + `_post_token_request`**
 
 Append to `src/lfx/src/lfx/components/adp/_shared.py`:
 
@@ -570,12 +570,12 @@ async def _post_token_request(client: httpx.AsyncClient, conn: ADPConnection) ->
 
 Also ensure `datetime, timezone` are imported at top of `_shared.py` (should already be used in tests; add to module imports).
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `uv run --directory src/lfx pytest tests/unit/components/adp/test_shared.py -v`
 Expected: 13 passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/adp/_shared.py src/lfx/tests/unit/components/adp/test_shared.py
@@ -590,7 +590,7 @@ git commit -m "feat(adp): add token fetch with 55-min cache and force refresh"
 - Create: `src/lfx/src/lfx/components/adp/adp_auth.py`
 - Create: `src/lfx/tests/unit/components/adp/test_adp_auth.py`
 
-- [ ] **Step 1: Write failing tests for `ADPAuthComponent`**
+- [x] **Step 1: Write failing tests for `ADPAuthComponent`**
 
 Create `src/lfx/tests/unit/components/adp/test_adp_auth.py`:
 
@@ -684,12 +684,12 @@ async def test_auth_component_path_mode_missing_cert_raises():
         await component.build_connection()
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `uv run --directory src/lfx pytest tests/unit/components/adp/test_adp_auth.py -v`
 Expected: FAIL with `ModuleNotFoundError: No module named 'lfx.components.adp.adp_auth'`
 
-- [ ] **Step 3: Implement `ADPAuthComponent`**
+- [x] **Step 3: Implement `ADPAuthComponent`**
 
 Create `src/lfx/src/lfx/components/adp/adp_auth.py`:
 
@@ -817,12 +817,12 @@ class ADPAuthComponent(Component):
         return build_config
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `uv run --directory src/lfx pytest tests/unit/components/adp/test_adp_auth.py -v`
 Expected: 4 passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/adp/adp_auth.py src/lfx/tests/unit/components/adp/test_adp_auth.py
@@ -838,7 +838,7 @@ git commit -m "feat(adp): add ADPAuthComponent with cert-source toggle"
 - Create: `src/lfx/tests/unit/components/adp/conftest.py`
 - Create: `src/lfx/tests/unit/components/adp/test_adp_api_request.py`
 
-- [ ] **Step 1: Write shared fixture**
+- [x] **Step 1: Write shared fixture**
 
 Create `src/lfx/tests/unit/components/adp/conftest.py`:
 
@@ -868,7 +868,7 @@ def adp_connection(tmp_path) -> ADPConnection:
     return conn
 ```
 
-- [ ] **Step 2: Write failing tests for endpoint resolution and single request**
+- [x] **Step 2: Write failing tests for endpoint resolution and single request**
 
 Create `src/lfx/tests/unit/components/adp/test_adp_api_request.py`:
 
@@ -955,12 +955,12 @@ async def test_make_request_top_20_single_call(adp_connection):
     assert result.data["status_code"] == 200
 ```
 
-- [ ] **Step 3: Run tests to verify they fail**
+- [x] **Step 3: Run tests to verify they fail**
 
 Run: `uv run --directory src/lfx pytest tests/unit/components/adp/test_adp_api_request.py -v`
 Expected: FAIL with `ModuleNotFoundError`
 
-- [ ] **Step 4: Implement `ADPAPIRequestComponent` skeleton**
+- [x] **Step 4: Implement `ADPAPIRequestComponent` skeleton**
 
 Create `src/lfx/src/lfx/components/adp/adp_api_request.py`:
 
@@ -1192,12 +1192,12 @@ class ADPAPIRequestComponent(Component):
         )
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `uv run --directory src/lfx pytest tests/unit/components/adp/test_adp_api_request.py -v`
 Expected: 7 passed
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/adp/adp_api_request.py \
@@ -1214,7 +1214,7 @@ git commit -m "feat(adp): add ADPAPIRequestComponent with endpoint resolution an
 - Modify: `src/lfx/src/lfx/components/adp/adp_api_request.py`
 - Modify: `src/lfx/tests/unit/components/adp/test_adp_api_request.py`
 
-- [ ] **Step 1: Write failing tests for pagination and 401 retry**
+- [x] **Step 1: Write failing tests for pagination and 401 retry**
 
 Append to `src/lfx/tests/unit/components/adp/test_adp_api_request.py`:
 
@@ -1296,12 +1296,12 @@ async def test_make_request_401_twice_still_fails(adp_connection):
     assert mock_exec.call_count == 2
 ```
 
-- [ ] **Step 2: Run tests to verify pagination and advanced 401 tests fail**
+- [x] **Step 2: Run tests to verify pagination and advanced 401 tests fail**
 
 Run: `uv run --directory src/lfx pytest tests/unit/components/adp/test_adp_api_request.py -v`
 Expected: 2 pagination tests FAIL (current impl only runs once in "All" mode). 401 tests may pass or partially pass.
 
-- [ ] **Step 3: Replace `make_api_request` with pagination-aware version**
+- [x] **Step 3: Replace `make_api_request` with pagination-aware version**
 
 In `src/lfx/src/lfx/components/adp/adp_api_request.py`, replace the existing `make_api_request` method body with:
 
@@ -1414,12 +1414,12 @@ In `src/lfx/src/lfx/components/adp/adp_api_request.py`, replace the existing `ma
         return Data(data={"source": url, "status_code": response.status_code, "result": body})
 ```
 
-- [ ] **Step 4: Run full test file**
+- [x] **Step 4: Run full test file**
 
 Run: `uv run --directory src/lfx pytest tests/unit/components/adp/test_adp_api_request.py -v`
 Expected: 11 passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/adp/adp_api_request.py \
@@ -1437,13 +1437,13 @@ git commit -m "feat(adp): auto-paginate All mode and retry on 401 with forced to
 
 **Context for implementer:** The existing `MCPStreamableHttpClient` in `src/lfx/src/lfx/base/mcp/util.py` (line 1262+) does not currently accept a custom httpx client for mTLS. For v1 we call it with auth headers and document the mTLS limitation; a follow-up can extend the base client. If, while reading `util.py`, you find that `MCPStreamableHttpClient` already accepts an `httpx_client` or `ssl_context`, wire mTLS through that path and update the test accordingly.
 
-- [ ] **Step 1: Read the existing MCP client to confirm the interface**
+- [x] **Step 1: Read the existing MCP client to confirm the interface**
 
 Run: `grep -n "def _connect_to_server\|class MCPStreamableHttpClient\|async def connect_to_server" src/lfx/src/lfx/base/mcp/util.py`
 
 Note the exact signature and what headers param it accepts. If the signature differs materially from what this plan assumes, update Step 3 below to match — but keep the test shape.
 
-- [ ] **Step 2: Write failing tests for `ADPMCPComponent`**
+- [x] **Step 2: Write failing tests for `ADPMCPComponent`**
 
 Create `src/lfx/tests/unit/components/adp/test_adp_mcp.py`:
 
@@ -1535,7 +1535,7 @@ async def test_mcp_component_401_triggers_force_refresh(adp_connection):
     assert tools[0]["name"] == "list_workers"
 ```
 
-- [ ] **Step 3: Implement `ADPMCPComponent`**
+- [x] **Step 3: Implement `ADPMCPComponent`**
 
 Create `src/lfx/src/lfx/components/adp/adp_mcp.py`:
 
@@ -1640,12 +1640,12 @@ class ADPMCPComponent(Component):
 
 **Implementer note:** If `_connect_to_server`'s actual return shape differs from what's handled above, adapt the normalization in `_list_tools`. Tests mock this method entirely, so the component logic is decoupled from that detail.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `uv run --directory src/lfx pytest tests/unit/components/adp/test_adp_mcp.py -v`
 Expected: 4 passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/adp/adp_mcp.py src/lfx/tests/unit/components/adp/test_adp_mcp.py
@@ -1659,7 +1659,7 @@ git commit -m "feat(adp): add ADPMCPComponent with Bearer auth and 401 retry"
 **Files:**
 - Modify: `src/lfx/src/lfx/components/adp/__init__.py`
 
-- [ ] **Step 1: Write failing test for bundle-level imports**
+- [x] **Step 1: Write failing test for bundle-level imports**
 
 Create `src/lfx/tests/unit/components/adp/test_bundle_init.py`:
 
@@ -1676,12 +1676,12 @@ def test_bundle_exports_all_components():
     assert ADPMCPComponent.name == "ADPMCP"
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run: `uv run --directory src/lfx pytest tests/unit/components/adp/test_bundle_init.py -v`
 Expected: FAIL — `ImportError: cannot import name 'ADPAuthComponent'`
 
-- [ ] **Step 3: Update `__init__.py` to re-export**
+- [x] **Step 3: Update `__init__.py` to re-export**
 
 Replace `src/lfx/src/lfx/components/adp/__init__.py` with:
 
@@ -1699,17 +1699,17 @@ __all__ = [
 ]
 ```
 
-- [ ] **Step 4: Run the entire ADP test suite**
+- [x] **Step 4: Run the entire ADP test suite**
 
 Run: `uv run --directory src/lfx pytest tests/unit/components/adp -v`
 Expected: all tests passed across 5 test files (≈24 tests total)
 
-- [ ] **Step 5: Run repo linters on the new bundle**
+- [x] **Step 5: Run repo linters on the new bundle**
 
 Run: `uv run --directory src/lfx ruff check src/lfx/components/adp tests/unit/components/adp`
 Fix any reported issues; common cases: unused imports, long lines.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/adp/__init__.py src/lfx/tests/unit/components/adp/test_bundle_init.py
@@ -1776,3 +1776,86 @@ No commit for this step. If you find UI bugs (not failures), capture them as fol
 - `ADPConnection.cert_source` is `"path" | "pem"` everywhere; Auth component translates from `"File Path" | "PEM"` UI labels to these values explicitly.
 - `connection.access_token` always accessed through the connection object — no separate token plumbing.
 - `fetch_token` signature `(conn, *, force=False)` consistent across all callers.
+
+---
+
+## WFN tile-component buildout — status as of 2026-04-24
+
+Tasks 1–9 of this plan shipped the foundation (Auth / API Request / MCP / bundle registration). Subsequent work has built **per-tile agent-tool components** wrapping the ADP WFN API Explorer tiles. Each tile lives under `src/lfx/src/lfx/components/adp/` as an `ADP*ToolsComponent`; spec harvest lives under `docs/adp-api-specs/<domain>/<tile>/<version>/` (swagger + resolved schemas + REPORT.md + optional `har-samples.json` of sanitized request payloads).
+
+**Patterns in use:**
+- Reads consolidated with optional `{entity}_id` (list vs. detail in one tool) when shape allows.
+- Writes consolidated via `action` / `scope` / `kind` / `view` literals across related endpoints.
+- Narrow structured pydantic args where per-kind shape is uniform; `fields: dict[str, Any]` escape hatches for divergent per-kind payloads, with the tool description enumerating the ADP-documented fields per kind.
+- Every mutation is gated behind `enable_mutations: bool = False`.
+- `_post_event` helper on every component does a single 401 → `fetch_token(force=True)` retry.
+
+### Built tiles (39 total)
+
+**HR domain**
+- [x] `hr/workers v2` — `ADPWorkerToolsComponent` (9 read tools: name/addresses/contact/job/compensation/ids/dates/status/business-communication).
+- [x] `hr/workers-biological-data-management v2` — `ADPWorkerBiologicalToolsComponent`.
+- [x] `hr/workers-business-communication-management v2` — `ADPWorkerBusinessCommunicationToolsComponent` (15 endpoints consolidated).
+- [x] `hr/workers-compensation-management v2` — `ADPWorkerCompensationToolsComponent`.
+- [x] `hr/workers-demographic-data-management v2` — `ADPWorkerDemographicToolsComponent`.
+- [x] `hr/workers-identification-management v2` — `ADPWorkerIdentificationToolsComponent`.
+- [x] `hr/workers-lifecycle-management v2` — `ADPWorkerLifecycleToolsComponent`.
+- [x] `hr/workers-personal-communication-management v2` — `ADPWorkerPersonalCommunicationToolsComponent`.
+- [x] `hr/workers-work-assignment-management v2` — `ADPWorkerAssignmentToolsComponent`.
+- [x] `hr/hr-work-assignment-management v3` — `ADPWorkerAssignmentV3ToolsComponent`.
+- [x] `hr/hr-worker-profiles v1` — `ADPWorkerHrProfilesToolsComponent`.
+- [x] `hr/worker-leaves v2` — `ADPWorkerLeavesToolsComponent`.
+- [x] `hr/workers-work-deployment-management v2` — `ADPWorkerDeploymentToolsComponent`.
+
+**Payroll domain**
+- [x] `payroll/pay-data-input v1` — `ADPPayDataInputToolsComponent`.
+- [x] `payroll/pay-distributions v2` — `ADPPayDistributionsToolsComponent` (read + consolidated add/update/inactivate/remove-all).
+- [x] `payroll/pay-statements v1` — `ADPPayStatementsToolsComponent` (list+detail + binary image fetch).
+- [x] `payroll/us-tax-profiles v1` + `v2` — `ADPUSTaxProfilesToolsComponent` (federal/state/local × add/change/remove consolidated).
+- [x] `payroll/worker-payroll-instructions v1` — `ADPWorkerPayrollInstructionsToolsComponent` (read + start/change/stop general-deduction consolidated).
+- [x] `payroll/deduction-configurations v3` — `ADPDeductionConfigurationsToolsComponent` (catalog read).
+
+**Staffing domain**
+- [x] `staffing/applicant-onboarding v2` — `ADPApplicantOnboardingToolsComponent`.
+- [x] `staffing/job-requisitions v1` — `ADPJobRequisitionsToolsComponent` (list+detail).
+- [x] `staffing/job-applicants v2` — `ADPJobApplicantsToolsComponent` (screening-agency integration: initiate/status updates + package publish).
+
+**Time domain**
+- [x] `time/data-collection-entries v1` — `ADPDataCollectionEntriesToolsComponent`.
+- [x] `time/team-time-cards v2` — `ADPTeamTimeCardsToolsComponent`.
+- [x] `time/time-cards v2` — `ADPTimeCardsToolsComponent`.
+- [x] `time/time-off-requests v2` + `v3` + `time-off-balances v3` — `ADPTimeOffToolsComponent` (3 consolidated tools across 3 tiles).
+- [x] `time/work-schedules v1` — `ADPWorkSchedulesToolsComponent` (v2 after HAR-sample review corrected the envelope shape).
+
+**Talent domain**
+- [x] All 7 associate-KSAOC tiles consolidated into single `ADPTalentToolsComponent`: `certifications`, `competencies`, `educational-degrees`, `languages`, `licenses`, `memberships`, `recognitions`. Two tools, `kind` literal picks entity.
+
+**Benefits domain**
+- [x] `benefits/beneficiaries v1` + `dependents v1` + `external-plans v1` — `ADPBenefitsToolsComponent` (2 reads + 2 gated passthrough writes for the PascalCase carrier-feed).
+
+### Lower-priority — HAR samples would verify swagger-inferred envelopes
+
+No current bug, but real payloads would catch any shape drift:
+
+- [ ] `payroll/us-tax-profiles v1` — HAR for federal + local add/change/remove events.
+- [ ] `payroll/us-tax-profiles v2` — HAR for state add/change events.
+- [ ] `time/time-off-balances v3` — HAR for `time-off-balances.modify` event.
+- [ ] `time/data-collection-entries v1` — HAR for `data-collection-entries.process` event.
+- [ ] `talent/associate-languages v2` — HAR for language add/change/remove (currently inferred).
+- [ ] `talent/associate-competencies v2` — HAR for competency add/change/remove (currently inferred).
+
+### Blocked — require ADP authenticated access (public HAR won't help)
+
+These tiles are behind ADP's logged-in developer portal, so neither swagger nor examples are fetchable without creds:
+
+- [ ] `hcm/wfn-codelists v3`
+- [ ] `payroll/pay-statements v2` (v1 shipped; v2 only viewable by an authenticated account)
+- [ ] `time/work-schedule-entry-uploads v2`
+- [ ] `benefits/spending-account-plans v1`
+- [ ] `benefits/spending-account-enrollments v1`
+
+### Supporting infrastructure
+
+- `scripts/adp_spec_harvester.py` — downloads each tile's swagger + resolves external `$ref`s, writes `REPORT.md` with per-operation schema size + split recommendations. Maintains a master `docs/adp-api-specs/README.md` index.
+- HAR-sample extraction — raw developer-portal HAR captures (`developers.adp.com*.har`) are gitignored; the sanitized request-payload extracts (`har-samples.json` per tile) are committed.
+- Test suite — 383 tests across the ADP bundle (from 40-ish at end of Task 9), all passing.
