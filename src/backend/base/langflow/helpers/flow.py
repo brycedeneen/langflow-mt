@@ -400,19 +400,17 @@ async def get_flow_by_id_or_endpoint_name(flow_id_or_name: str, user_id: str | U
     """Resolve a flow by UUID or by endpoint_name.
 
     When ``flow_id_or_name`` is a UUID, authorization happens at the route layer
-    (via `check_flow_user_permission` on the flow's ``organization_id``), so this
-    function returns the row unscoped.
+    (via ``check_flow_user_permission`` on the flow's ``organization_id``), so
+    this function returns the row unscoped.
 
-    When it is an endpoint_name: ``user_id`` narrows the lookup to a single user's
-    flows. That parameter is preserved because the ``flow.endpoint_name`` unique
-    constraint is still per-user (``unique_flow_endpoint_name`` on
-    ``("user_id", "endpoint_name")``). Without it, two users with the same
-    endpoint_name would collide and ``.first()`` would be non-deterministic.
-
-    Follow-up: once endpoint_name uniqueness migrates to per-org (tracked in the
-    Phase 6 worklist), drop ``user_id`` here and switch the endpoint_name branch
-    to ``Flow.organization_id == org_id``.
+    When it's an endpoint_name, uniqueness is enforced at the DB level per org
+    (see the ``unique_flow_endpoint_name_per_org`` constraint). ``user_id`` is
+    used here only to resolve the caller's organization — the actual SELECT
+    filters on ``Flow.organization_id`` so the lookup is deterministic within
+    that org.
     """
+    from langflow.services.database.models.membership.model import Membership
+
     async with session_scope() as session:
         try:
             flow_id = UUID(flow_id_or_name)
@@ -422,7 +420,15 @@ async def get_flow_by_id_or_endpoint_name(flow_id_or_name: str, user_id: str | U
             stmt = select(Flow).where(Flow.endpoint_name == endpoint_name)
             if user_id:
                 uuid_user_id = UUID(user_id) if isinstance(user_id, str) else user_id
-                stmt = stmt.where(Flow.user_id == uuid_user_id)
+                org_id = (
+                    await session.exec(
+                        select(Membership.organization_id).where(
+                            Membership.user_id == uuid_user_id
+                        )
+                    )
+                ).first()
+                if org_id is not None:
+                    stmt = stmt.where(Flow.organization_id == org_id)
             flow = (await session.exec(stmt)).first()
         if flow is None:
             raise HTTPException(status_code=404, detail=f"Flow identifier {flow_id_or_name} not found")

@@ -235,8 +235,10 @@ class Flow(FlowBase, table=True):  # type: ignore[call-arg]
         return Data(data=data)
 
     __table_args__ = (
-        UniqueConstraint("user_id", "name", name="unique_flow_name"),
-        UniqueConstraint("user_id", "endpoint_name", name="unique_flow_endpoint_name"),
+        UniqueConstraint("organization_id", "name", name="unique_flow_name_per_org"),
+        UniqueConstraint(
+            "organization_id", "endpoint_name", name="unique_flow_endpoint_name_per_org"
+        ),
     )
 
 
