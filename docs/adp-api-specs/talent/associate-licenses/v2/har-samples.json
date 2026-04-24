@@ -1,0 +1,145 @@
+{
+  "tile": "talent/associate-licenses/v2",
+  "samples": [
+    {
+      "filename": "Removes_an_associate_license_Provide_Example_license.remove_request_4067.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "associateLicense": {
+                  "itemID": "{{associateLicenseID}}"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "{{employeeAOID}}"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "educationalDegree.remove"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Adds_a_license_for_an_associate_Provide_Example_license.add_request_4025.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateLicense": {
+                  "licenseNameCode": {
+                    "codeValue": "CPA",
+                    "longName": "Professional Engineer"
+                  },
+                  "licenseID": {
+                    "idValue": "1856"
+                  },
+                  "categoryCode": {
+                    "codeValue": "L",
+                    "longName": "License"
+                  },
+                  "issuingParty": {
+                    "nameCode": {
+                      "codeValue": "test"
+                    }
+                  },
+                  "comments": "abc",
+                  "employerPaidAmount": {
+                    "amountValue": 23456,
+                    "currencyCode": {
+                      "codeValue": "USD",
+                      "longName": "United States Dollor"
+                    }
+                  },
+                  "renewalComments": "renewal post9",
+                  "firstIssueDate": "2019-09-25",
+                  "expirationDate": "2020-09-18"
+                }
+              },
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}"
+              }
+            },
+            "actor": {
+              "associateOID": "{{employeeAOID}}"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "associate.ksaoc.certification.add"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Updates_an_associate_license_Provide_Example_license.change_request_4066.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateLicense": {
+                  "licenseNameCode": {
+                    "codeValue": "CPA",
+                    "longName": "Professional Engineer"
+                  },
+                  "licenseID": {
+                    "idValue": "185"
+                  },
+                  "categoryCode": {
+                    "codeValue": "L",
+                    "longName": "License"
+                  },
+                  "issuingParty": {
+                    "nameCode": {
+                      "codeValue": "test123"
+                    }
+                  },
+                  "comments": "abc",
+                  "employerPaidAmount": {
+                    "amountValue": 23456,
+                    "currencyCode": {
+                      "codeValue": "USD",
+                      "longName": "United States Dollor"
+                    }
+                  },
+                  "renewalComments": "renewal ",
+                  "firstIssueDate": "2019-09-25",
+                  "expirationDate": "2020-09-18"
+                }
+              },
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "associateLicense": {
+                  "itemID": "{{associateLicenseID}}"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "{{employeeAOID}}"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "associate.ksaoc.certification.change"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

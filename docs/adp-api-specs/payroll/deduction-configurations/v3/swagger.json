@@ -1,0 +1,1560 @@
+{
+  "openapi": "3.0.1",
+  "servers": [
+    {
+      "url": "https://__host__/"
+    }
+  ],
+  "info": {
+    "contact": {
+      "name": "Lavanya Chirla",
+      "email": "LAVANYA.CHIRLA@ADP.COM"
+    },
+    "description": "The list of general deductions that have been set up for a given client",
+    "title": "Deduction Configuration Management",
+    "version": "3.0.1"
+  },
+  "x-adpSpecData": {
+    "domain": "Payroll",
+    "specId": "cc73013b-2f96-4291-95fb-beb7960f10ff",
+    "canonicalSpecId": "9863dff9-09be-41a1-83b1-94bc3d7c64a5",
+    "specStatusCode": "publishing",
+    "specTypeCode": "REST",
+    "specStateCode": "active",
+    "nonStandardIndicator": false,
+    "visibilityCodes": [
+      "internal",
+      "external"
+    ],
+    "filename": "deduction-configurations-swagger_v3-merged.json",
+    "serviceProviderId": "Vantage",
+    "resourcePath": "payroll/deduction-configurations/v3",
+    "libraryVersion": "",
+    "publicationContext": {
+      "products": [
+        {
+          "productId": "hcm-offrg-wfn",
+          "productName": "workforce now",
+          "marketplaceProductName": "ADP Workforce Now\u00ae"
+        }
+      ]
+    },
+    "specCategoryCode": ""
+  },
+  "tags": [
+    {
+      "name": "Deduction Configuration Details",
+      "description": "Manage deduction configurations (extended version)"
+    }
+  ],
+  "paths": {
+    "/payroll/v3/deduction-configurations": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "payrollConfigurationDetailManagement",
+        "functionCode": "deductionConfigurationManagement",
+        "serviceCode": "payrollManagement",
+        "serviceCategoryCode": "payroll",
+        "canonicalName": "Deduction Configurations Details"
+      },
+      "get": {
+        "summary": "Manage Deduction Configurations",
+        "x-adpOperationData": {
+          "asaFeatureCodes": [
+            "MobilePSSPayrollConfigurationDetails",
+            "MobileADMPayrollConfigurationDetails"
+          ],
+          "canonicalUri": "payroll/payrollManagement/payrollConfigurationDetailManagement/deductionConfigurationManagement/deductionConfigurations.read",
+          "operationCode": "deductionConfigurations.read",
+          "roleCodes": [
+            "practitioner",
+            "administrator"
+          ],
+          "scenarios": [
+            {
+              "summary": "<span>The client practitioner can view the Deduction Configurations in the ADP Workforce Now UI by selecting&nbsp;</span><strong>Setup &gt;&nbsp;Tools &gt; Validation Tables &gt; Payroll &gt; Deductions &gt; Deductions, Deposits and Fringe Benefits</strong><span>.</span>",
+              "name": "Deduction Configuration Code List",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset"
+                  },
+                  "code": "200",
+                  "description": "Returns list of deduction codes configured for a specified company code.\n\nAPI: /payroll/v3/deduction-configurations?$filter=companyCode eq 'BOQ'",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Deduction_Configuration_Code_List_Custom_Example_deductionConfigurations.read_200_601947.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>The client practitioner can view the Deduction Configurations in the ADP Workforce Now UI by selecting&nbsp;</span><strong>Setup &gt;&nbsp;Tools &gt; Validation Tables &gt; Payroll &gt; Deductions &gt; Deductions, Deposits and Fringe Benefits</strong><span>.</span>"
+            }
+          ],
+          "globalViewDevPortalIndicator": true,
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "sorRequestTimeoutPolicies": {
+            "cachedTimeout": 3,
+            "notCachedTimeout": 10
+          },
+          "operationDataAttributeSensitivitylevels": [
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/deductionValue/calculationFactor/basisCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/deductionTypeCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/deductionCategoryCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/_confirmMessage/resourceMessages/messages/alternateMessageTexts/languageCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/garnishmentDeductionConfiguration/lienTypeCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/disbursementTypeCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/payrollItemGroups/payrollItemGroupCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/actions/actionDataTags/tagCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/configurationStatusCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/processingPriorityCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/retirementDeductionConfiguration/contributionTiers/contributionTierRange/maximumPercentage/basisCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/retirementDeductionConfiguration/contributionTiers/contributionTierRange/minimumPercentage/basisCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/payrollFeatures/payrollFeatureStatusCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/payCycleCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/_confirmMessage/messages/alternateMessageTexts/languageCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/payrollAccumulators/accumulatorStatusCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/deductionCode/alternateNames/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/retirementDeductionConfiguration/contributionTiers/annualContributionPercentage/basisCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/lienSubTypeCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/deductionCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/garnishmentDeductionConfiguration/disbursementTypeCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/financialParty/branchNameCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/financialParty/routingTransitID/scheme/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/lienTypeCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/payrollFeatures/payrollFeatureCode/alternateNames/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/garnishmentDeductionConfiguration/lienSubTypeCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/payrollAccumulators/accumulatorCode/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/payrollAccumulators/accumulatorCode/alternateNames/name",
+              "dataSensitivityLevelCode": 2
+            },
+            {
+              "dataSensitivityCategory": "NA",
+              "attributeName": "/deductionConfigurations/payrollFeatures/payrollFeatureCode/name",
+              "dataSensitivityLevelCode": 2
+            }
+          ],
+          "operationId": "e6d44d07-2c10-43c1-913b-2d67ab3ce72a",
+          "performAuthIndicator": true,
+          "dataSensitivityLevelCode": 2,
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ]
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "ADP-Acting-Session-Expires": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "sm_transactionid": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "ADP-Acting-SessionID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Request the list of all available deduction configurations that the requester is authorized to view",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/deduction-configurations-schema_v03.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "412": {
+            "$ref": "#/components/responses/412"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "413": {
+            "$ref": "#/components/responses/413"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "304": {
+            "$ref": "#/components/responses/304"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "405": {
+            "$ref": "#/components/responses/405"
+          },
+          "406": {
+            "$ref": "#/components/responses/406"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "operationId": "e6d44d07-2c10-43c1-913b-2d67ab3ce72a",
+        "description": "Request the list of all available deduction configurations that the requester is authorized to view",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-AssociateOID",
+            "description": "Associate OID of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORUri",
+            "description": "Actual Uri within the SOR",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_user",
+            "description": "SiteMinder user ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_user: JJohns@Abc",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_auth_level",
+            "description": "SiteMinder autorization level.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_auth_level: 10",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORContext",
+            "description": "Context within an SOR that the call should be routed to",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "ISI",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "realm",
+            "description": "The identity management realm, e.g. ISI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header should be passed in all calls.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to - usuall injected by the API proxy, with few exceptions",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_userdn",
+            "description": "SiteMinder user LDAP distinguished name.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_userdn: uid=JJohns@Abc,ou=Users,o=Abc",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADPX-RegionCode",
+            "description": "A service provider defined and set by the client identifier needed to properly route incoming requests to the appropriate instance serving the given region",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-AssociateOID",
+            "description": "Associate OID for the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "asOfDate",
+            "description": "Indicative data as of this effective date.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "$filter",
+            "description": "The OData $filter parameter MUST be used to specify the filter criterion",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Acting-SessionID",
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_serversessionid",
+            "description": "SiteMinder session ID.   Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_serversessionid: SoFpy8UMyhtXY6YsEumvXJbznFA=",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "$select",
+            "description": "The OData $select parameter MUST be used to specify the select projection",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "$skip",
+            "description": "The OData $skip parameter MUST be used to specify the number of pages to skip while fetching records.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_transactionid",
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "$top",
+            "description": "The OData $top parameter MUST be used to specify the number of records to fetch from the collection.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        ],
+        "tags": [
+          "Deduction Configuration Details"
+        ]
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "400": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "412": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Precondition Failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "500": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "413": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Request Entity Too Large",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "403": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "304": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Modified"
+      },
+      "404": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "503": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Service Unavailable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "405": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Method Not Allowed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "406": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Acceptable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "429": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Too Many Requests",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

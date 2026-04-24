@@ -3,13 +3,21 @@ def test_bundle_exports_all_components():
         ADPAPIRequestComponent,
         ADPApplicantOnboardingToolsComponent,
         ADPAuthComponent,
+        ADPBenefitsToolsComponent,
+        ADPDataCollectionEntriesToolsComponent,
+        ADPDeductionConfigurationsToolsComponent,
         ADPJobApplicantsToolsComponent,
         ADPJobRequisitionsToolsComponent,
         ADPMCPComponent,
         ADPPayDataInputToolsComponent,
         ADPPayDistributionsToolsComponent,
+        ADPTalentToolsComponent,
         ADPTeamTimeCardsToolsComponent,
+        ADPTimeCardsToolsComponent,
+        ADPTimeOffToolsComponent,
         ADPTriggerComponent,
+        ADPUSTaxProfilesToolsComponent,
+        ADPWorkerBusinessCommunicationToolsComponent,
         ADPWorkerAssignmentToolsComponent,
         ADPWorkerAssignmentV3ToolsComponent,
         ADPWorkerBiologicalToolsComponent,
@@ -29,6 +37,14 @@ def test_bundle_exports_all_components():
     assert ADPJobApplicantsToolsComponent.name == "ADPJobApplicantsTools"
     assert ADPJobRequisitionsToolsComponent.name == "ADPJobRequisitionsTools"
     assert ADPTeamTimeCardsToolsComponent.name == "ADPTeamTimeCardsTools"
+    assert ADPTalentToolsComponent.name == "ADPTalentTools"
+    assert ADPBenefitsToolsComponent.name == "ADPBenefitsTools"
+    assert ADPDataCollectionEntriesToolsComponent.name == "ADPDataCollectionEntriesTools"
+    assert ADPDeductionConfigurationsToolsComponent.name == "ADPDeductionConfigurationsTools"
+    assert ADPTimeCardsToolsComponent.name == "ADPTimeCardsTools"
+    assert ADPTimeOffToolsComponent.name == "ADPTimeOffTools"
+    assert ADPUSTaxProfilesToolsComponent.name == "ADPUSTaxProfilesTools"
+    assert ADPWorkerBusinessCommunicationToolsComponent.name == "ADPWorkerBusinessCommunicationTools"
     assert ADPAPIRequestComponent.name == "ADPAPIRequest"
     assert ADPApplicantOnboardingToolsComponent.name == "ADPApplicantOnboardingTools"
     assert ADPMCPComponent.name == "ADPMCP"

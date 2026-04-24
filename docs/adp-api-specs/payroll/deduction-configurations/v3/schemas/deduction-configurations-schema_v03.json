@@ -1,0 +1,2213 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"title": "PayGroupDeductions",
+	"description": "The list of general deductions that have been set up for a given client. A deduction is something that is never added to gross and never deducted from net. A general deduction is an deduction that is not associated to a payroll feature. General deductions are informational and not taxed. deductions that are associated to payroll features may or may not be taxed depending on the rules of that feature",
+	"type": "object",
+	"definitions": {
+		"simpleCodeType_v01": {
+			"title": "SimpleCodeType",
+			"description": "A simple (string) code.  Can have a code list reference in meta.",
+			"type": "string",
+			"pattern": "^[a-zA-Z0-9.#-_/ ]+$"
+		},
+		"languageCodeType_v01": {
+			"title": "LanguageCodeType",
+			"description": "The language locale. Composed of:The ISO-639 alpha-2 language code and The ISO-3166 alpha-2 country code",
+			"type": "string",
+			"minLength": 2,
+			"maxLength": 5,
+			"pattern": "^[a-z]{2}(?:-(?:[A-Z]{2}))?$",
+			"default": "en-US"
+		},
+		"currencyCodeType_v01": {
+			"title": "CurrencyCodeType",
+			"description": "The currency code as per ISO 4217",
+			"type": "string"
+		},
+		"simpleIDType_v01": {
+			"title": "SimpleIDType",
+			"description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+			"type": "string",
+			"pattern": "^[a-zA-Z0-9.$\\-_/ :]+$"
+		},
+		"indicatorType_v01": {
+			"title": "IndicatorType",
+			"description": "Boolean value, typically used to represent an indicator style attribute",
+			"type": "boolean"
+		},
+		"dateType_v01": {
+			"title": "DateType",
+			"description": "The string representation of the date value using the ISO-8601:2000 format",
+			"type": "string",
+			"format": "date"
+		},
+		"canonicalUriType_v01": {
+			"title": "CanonicalUriType",
+			"description": "The canonical URI of the related operation / ca[ability, e.g. /domain/service/feature/function/operation.  Supports hyphens in all components and '.' or guid in the operation.",
+			"type": "string",
+			"pattern": "(/?((/[a-zA-Z0-9_.-]+)+|/))$"
+		},
+		"uriType_v01": {
+			"title": "UriType",
+			"description": "The URI of the related entity, typically used to represent any internet or social network address",
+			"type": "string",
+			"format": "uri"
+		},
+		"sequenceType_v01": {
+			"title": "SequenceType",
+			"description": "Sequence of a related entity when included in the collection or a group",
+			"type": "integer"
+		},
+		"messageTypeCodeType_v01": {
+			"title": "MessageTypeCodeType",
+			"description": "Type of the message, e.g. success, failure, warning, info",
+			"type": "string",
+			"enum": [
+				"success",
+				"error",
+				"warning",
+				"info"
+			]
+		},
+		"dateTimeType_v01": {
+			"title": "DateTimeType",
+			"description": "The string representation of the date-time value using the ISO-8601:2000 format",
+			"type": "string",
+			"format": "date-time"
+		},
+		"itemIDType_v01": {
+			"title": "ItemIDType",
+			"description": "Unique identifier of an object within a collection. Usually a system generated ID that does not carry any business meaning.",
+			"type": "string",
+			"readOnly": true
+		}
+	},
+	"additionalProperties": false,
+	"properties": {
+		"deductionConfigurations": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"description": "Client / paygroup deduction configuration",
+				"additionalProperties": false,
+				"properties": {
+					"itemID": {
+						"$ref": "#/definitions/itemIDType_v01",
+						"description": "The unique identifier of the object in a collection"
+					},
+					"deductionID": {
+						"$ref": "#/definitions/simpleIDType_v01",
+						"description": "Unique identifier of the deduction"
+					},
+					"deductionCode": {
+						"description": "The deduction code of the deduction. The code can be user defined or a statutory deduction.",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"code": {
+								"$ref": "#/definitions/simpleCodeType_v01",
+								"description": "The code for the related entity"
+							},
+							"name": {
+								"description": "The short description of the related code used as a coded name",
+								"type": "string"
+							},
+							"description": {
+								"description": "Long description to provide additonal details for the related code",
+								"type": "string"
+							},
+							"alternateNames": {
+								"description": "The set of configuration tags relevant to the associaed payroll deduction item",
+								"type": "array",
+								"items": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"languageCode": {
+											"$ref": "#/definitions/languageCodeType_v01",
+											"description": "The code describing the language of the description"
+										},
+										"name": {
+											"description": "Short description",
+											"type": "string"
+										},
+										"description": {
+											"description": "long description",
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					},
+					"deductionValue": {
+						"description": "The amount of the deduction related to this pay period",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"percentDeductionIndicator": {
+								"description": "Indicates whether the deduction value is a percent deduction",
+								"type": "boolean"
+							},
+							"calculationFactor": {
+								"description": "Representation of a percentage value",
+								"type": "object",
+								"additionalProperties": false,
+								"properties": {
+									"percentage": {
+										"description": "The numeric value associated to the percentage rate. In the example of 20 percent of annual sales, the percentage value would be 20.",
+										"type": "number"
+									},
+									"basisCode": {
+										"description": "The baseUnitCode is used to define the denominator of the percentage rate, or percentage rate over what. In the example of 20 percent of annual sales, the baseUnitCode would equate to annual sales.",
+										"type": "object",
+										"additionalProperties": false,
+										"properties": {
+											"code": {
+												"$ref": "#/definitions/simpleCodeType_v01",
+												"description": "The code for the related entity"
+											},
+											"name": {
+												"description": "The short description of the related code used as a coded name",
+												"type": "string"
+											}
+										}
+									}
+								}
+							},
+							"calculatedAmountValue": {
+								"description": "Representation of a monetary value along with the optional currency code",
+								"type": "object",
+								"required": [
+									"amount"
+								],
+								"additionalProperties": false,
+								"properties": {
+									"amount": {
+										"description": "The monetary value of the object in which the amount is associated",
+										"type": "number"
+									},
+									"currencyCode": {
+										"$ref": "#/definitions/currencyCodeType_v01",
+										"description": "A Standard currency code as per ISO 4217"
+									}
+								}
+							}
+						}
+					},
+					"deductionTypeCode": {
+						"description": "The type of the deduction, e.g deferred compensation, lien, medicare, etc.",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"code": {
+								"$ref": "#/definitions/simpleCodeType_v01",
+								"description": "The code for the related entity"
+							},
+							"name": {
+								"description": "The short description of the related code used as a coded name",
+								"type": "string"
+							}
+						}
+					},
+					"deductionCategoryCode": {
+						"description": "The category of the deduction, e.g. benefit, garnishment, general, etc.",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"code": {
+								"$ref": "#/definitions/simpleCodeType_v01",
+								"description": "The code for the related entity"
+							},
+							"name": {
+								"description": "The short description of the related code used as a coded name",
+								"type": "string"
+							}
+						}
+					},
+					"deductionInArrearsIndicator": {
+						"$ref": "#/definitions/indicatorType_v01",
+						"description": "This indicates that the associated deduction is subject to arrears processing. If a given payee's net pay amount is not able to support a given deduction, that deduction can go into arrears - meaning that the deduction will be taken in a future payroll"
+					},
+					"deductionInArrearsMaxAmount": {
+						"description": "This is the maximum amount that can be taken out in a given payroll for a deduction that is in arrears",
+						"type": "object",
+						"required": [
+							"amount"
+						],
+						"additionalProperties": false,
+						"properties": {
+							"amount": {
+								"description": "The monetary value of the object in which the amount is associated",
+								"type": "number"
+							},
+							"currencyCode": {
+								"$ref": "#/definitions/currencyCodeType_v01",
+								"description": "A Standard currency code as per ISO 4217"
+							}
+						}
+					},
+					"deductionInArrearsMaxFactorAmount": {
+						"description": "This is the maximum factor against which a deduction can be calculated in a given payroll for a deduction that is in arrears",
+						"type": "object",
+						"required": [
+							"amount"
+						],
+						"additionalProperties": false,
+						"properties": {
+							"amount": {
+								"description": "The monetary value of the object in which the amount is associated",
+								"type": "number"
+							},
+							"currencyCode": {
+								"$ref": "#/definitions/currencyCodeType_v01",
+								"description": "A Standard currency code as per ISO 4217"
+							}
+						}
+					},
+					"preTaxIndicator": {
+						"description": "Indicates whether deduction is taken pre tax. If there is no current period earning and only a year to date amount the pre tax indicator is irrelevant and should not be passed.",
+						"type": "boolean",
+						"default": false
+					},
+					"fundsDisbursementIndicator": {
+						"description": "Indicates whether funds has been disbursed.",
+						"type": "boolean",
+						"default": false
+					},
+					"financialParty": {
+						"description": "Basic details about a finanical institution, such as a bank, building society, credit union, stock brokerage, or similar business, established primarily to provide financial services and financial transactions",
+						"type": "object",
+						"properties": {
+							"financialPartyID": {
+								"$ref": "#/definitions/simpleIDType_v01",
+								"description": "Unique identifier of the associated party, e.g bank code"
+							},
+							"financialPartyName": {
+								"description": "Name of the related financial institution",
+								"type": "string"
+							},
+							"branchNameCode": {
+								"description": "Branch code / number used to compose the routing id, along with the name if applicable",
+								"type": "object",
+								"additionalProperties": false,
+								"properties": {
+									"code": {
+										"$ref": "#/definitions/simpleCodeType_v01",
+										"description": "The code for the related entity"
+									},
+									"name": {
+										"description": "The short description of the related code used as a coded name",
+										"type": "string"
+									}
+								}
+							},
+							"routingTransitID": {
+								"description": "A routing (transit) number is a bank code used to facilitate automated monetary transfers, e.g. as issued by the American Bankers Association or the Canadian Payments Association or EU",
+								"type": "object",
+								"additionalProperties": false,
+								"properties": {
+									"id": {
+										"$ref": "#/definitions/simpleIDType_v01",
+										"description": "actual ID value"
+									},
+									"scheme": {
+										"description": "The scheme code describing a related ID",
+										"type": "object",
+										"additionalProperties": false,
+										"properties": {
+											"code": {
+												"$ref": "#/definitions/simpleCodeType_v01",
+												"description": "The code for the related entity"
+											},
+											"name": {
+												"description": "The short description of the related code used as a coded name",
+												"type": "string"
+											}
+										}
+									},
+									"schemeAgency": {
+										"description": "The agency that issues the ID",
+										"type": "string"
+									}
+								}
+							}
+						}
+					},
+					"processingPriorityCode": {
+						"description": "This indicated the processing sequence of the related deduction, e.g. '1' as the highest priority and '999' as the lowest priority",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"code": {
+								"$ref": "#/definitions/simpleCodeType_v01",
+								"description": "The code for the related entity"
+							},
+							"name": {
+								"description": "The short description of the related code used as a coded name",
+								"type": "string"
+							}
+						}
+					},
+					"configurationStatusCode": {
+						"description": "The status of the configuration.",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"code": {
+								"$ref": "#/definitions/simpleCodeType_v01",
+								"description": "The code for the related entity"
+							},
+							"name": {
+								"description": "The short description of the related code used as a coded name",
+								"type": "string"
+							}
+						}
+					},
+					"configurationStartDate": {
+						"$ref": "#/definitions/dateType_v01",
+						"description": "The start date of the associated entity. Follows the ISO-8601:2000 format"
+					},
+					"configurationEndDate": {
+						"$ref": "#/definitions/dateType_v01",
+						"description": "The end date of the associated entity. Follows the ISO-8601:2000 format"
+					},
+					"configurationTags": {
+						"description": "These are used to configure the associated payroll entity, e.g. clearing logic rules for a payroll accumulator, processing rules for a deduction, tax rules for a feature.",
+						"type": "array",
+						"items": {
+							"description": "Configuration tag used in the payroll domain",
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"tagCode": {
+									"$ref": "#/definitions/simpleCodeType_v01",
+									"description": "The code identifying the tag"
+								},
+								"tagValues": {
+									"description": "A list of the tag values",
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								},
+								"tagType": {
+									"description": "The tag type represented by codes for its data type, currency and format",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"dataTypeCode": {
+											"$ref": "#/definitions/simpleCodeType_v01",
+											"description": "The code identifying the type of data"
+										},
+										"formatCode": {
+											"$ref": "#/definitions/simpleCodeType_v01",
+											"description": "The code identifying the tag format.  Possible values are date, date-time, and uri"
+										}
+									}
+								}
+							}
+						}
+					},
+					"payrollFeatures": {
+						"description": "The payroll features to which this payroll item code is associated",
+						"type": "array",
+						"items": {
+							"description": "Representation of the payroll feature",
+							"type": "object",
+							"properties": {
+								"featureID": {
+									"$ref": "#/definitions/simpleIDType_v01",
+									"description": "The unique identifier of the payroll feature"
+								},
+								"payrollFeatureStatusCode": {
+									"description": "Used to identify status code of the payroll feature active / inactive / pending",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"code": {
+											"$ref": "#/definitions/simpleCodeType_v01",
+											"description": "The code for the related entity"
+										},
+										"name": {
+											"description": "The short description of the related code used as a coded name",
+											"type": "string"
+										}
+									}
+								},
+								"payrollFeatureCode": {
+									"description": "The code of the payroll feature",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"code": {
+											"$ref": "#/definitions/simpleCodeType_v01",
+											"description": "The code for the related entity"
+										},
+										"name": {
+											"description": "The short description of the related code used as a coded name",
+											"type": "string"
+										},
+										"description": {
+											"description": "Long description to provide additonal details for the related code",
+											"type": "string"
+										},
+										"alternateNames": {
+											"description": "The set of configuration tags relevant to the associaed payroll deduction item",
+											"type": "array",
+											"items": {
+												"type": "object",
+												"additionalProperties": false,
+												"properties": {
+													"languageCode": {
+														"$ref": "#/definitions/languageCodeType_v01",
+														"description": "The code describing the language of the description"
+													},
+													"name": {
+														"description": "Short description",
+														"type": "string"
+													},
+													"description": {
+														"description": "long description",
+														"type": "string"
+													}
+												}
+											}
+										}
+									}
+								},
+								"links": {
+									"type": "array",
+									"items": {
+										"description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema) documents, and use of this format can be declared by referencing the normative link description schema as the schema for the data structure that uses the links.",
+										"type": "object",
+										"required": [
+											"href"
+										],
+										"additionalProperties": false,
+										"properties": {
+											"linkID": {
+												"description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+												"type": "string",
+												"pattern": "^[a-zA-Z0-9.$-_/]+$"
+											},
+											"href": {
+												"description": "The URI of the related entity, typically used to represent any internet or social network address",
+												"type": "string",
+												"format": "uri"
+											},
+											"rel": {
+												"description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+												"type": "string",
+												"enum": [
+													"alternate",
+													"canonical",
+													"create",
+													"describedby",
+													"edit-form",
+													"enclosure",
+													"first",
+													"full",
+													"last",
+													"latest-version",
+													"next",
+													"previous",
+													"related",
+													"root",
+													"self",
+													"search",
+													"successor-version",
+													"up",
+													"/adp/attachment",
+													"/adp/callback",
+													"/adp/codelist",
+													"/adp/confirm-message",
+													"/adp/deeplink",
+													"/adp/event",
+													"/adp/externalLink",
+													"/adp/image",
+													"/adp/invoke",
+													"/adp/payroll/voided-payment-calculation",
+													"/adp/processing-status",
+													"/adp/request-result",
+													"/adp/template",
+													"/adp/validation",
+													"/adp/workflow",
+													"/adp/status-monitor"
+												]
+											},
+											"canonicalUri": {
+												"$ref": "#/definitions/canonicalUriType_v01",
+												"description": "A unique identifier of the feature/function/operation that the link points to"
+											},
+											"title": {
+												"description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+												"type": "string"
+											},
+											"mediaType": {
+												"description": "The media type that the linked resource will return (Response) in",
+												"type": "string",
+												"enum": [
+													"application/gzip",
+													"application/json",
+													"application/msword",
+													"application/pdf",
+													"application/postscript",
+													"application/vnd.ms-excel",
+													"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+													"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+													"application/xml",
+													"application/x-www-form-urlencoded",
+													"image/gif",
+													"image/jpeg",
+													"image/png",
+													"image/tiff",
+													"multipart/mixed",
+													"text/html",
+													"text/plain",
+													"application/vnd.visio",
+													"image/bmp",
+													"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+													"application/vnd.ms-powerpoint",
+													"video/mp4",
+													"audio/mpeg",
+													"video/x-msvideo",
+													"video/x-ms-wmv",
+													"application/rtf",
+													"application/vnd.ms-outlook",
+													"text/csv",
+													"video/quicktime",
+													"application/zip",
+													"application/illustrator",
+													"text/xml",
+													"application/x-shockwave-flash",
+													"multipart/form-data",
+													"application/merge-patch+json"
+												]
+											},
+											"method": {
+												"description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT, PATCH or DELETE)",
+												"type": "string",
+												"enum": [
+													"GET",
+													"POST",
+													"PUT",
+													"PATCH",
+													"DELETE"
+												]
+											},
+											"payloadArguments": {
+												"type": "array",
+												"items": {
+													"type": "object",
+													"required": [
+														"argumentValue"
+													],
+													"additionalProperties": false,
+													"properties": {
+														"argumentTypeCode": {
+															"description": "Argument type / location",
+															"type": "string",
+															"enum": [
+																"header",
+																"path",
+																"query",
+																"body"
+															]
+														},
+														"argumentName": {
+															"description": "Argument name to be passed in",
+															"type": "string"
+														},
+														"argumentPath": {
+															"description": "Argument path, if referenced from within the body",
+															"type": "string"
+														},
+														"argumentValue": {
+															"description": "Argument name to be passed in",
+															"type": "string"
+														}
+													}
+												}
+											},
+											"linkTags": {
+												"description": "Collection of tags to indicate additional natures or aspects of the link. User agents MAY use these tags when presenting the link to the user to provide visual cues of the link's purpose",
+												"type": "array",
+												"items": {
+													"description": "Basic common representation of a tag",
+													"type": "object",
+													"additionalProperties": false,
+													"properties": {
+														"tagCode": {
+															"$ref": "#/definitions/simpleCodeType_v01",
+															"description": "The code identifying the tag"
+														},
+														"tagValues": {
+															"description": "A list of the tag values",
+															"type": "array",
+															"items": {
+																"type": "string"
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"payrollAccumulators": {
+						"type": "array",
+						"items": {
+							"description": "Representation of a payroll accumulator",
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"accumulatorID": {
+									"$ref": "#/definitions/simpleIDType_v01",
+									"description": "The unique identifier of the payroll accumulator"
+								},
+								"accumulatorCode": {
+									"description": "The accumulator code",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"code": {
+											"$ref": "#/definitions/simpleCodeType_v01",
+											"description": "The code for the related entity"
+										},
+										"name": {
+											"description": "The short description of the related code used as a coded name",
+											"type": "string"
+										},
+										"description": {
+											"description": "Long description to provide additonal details for the related code",
+											"type": "string"
+										},
+										"alternateNames": {
+											"description": "The set of configuration tags relevant to the associaed payroll deduction item",
+											"type": "array",
+											"items": {
+												"type": "object",
+												"additionalProperties": false,
+												"properties": {
+													"languageCode": {
+														"$ref": "#/definitions/languageCodeType_v01",
+														"description": "The code describing the language of the description"
+													},
+													"name": {
+														"description": "Short description",
+														"type": "string"
+													},
+													"description": {
+														"description": "long description",
+														"type": "string"
+													}
+												}
+											}
+										}
+									}
+								},
+								"accumulatorDescription": {
+									"description": "The accumulator description",
+									"type": "string"
+								},
+								"accumulatorStatusCode": {
+									"description": "The status of the accumulator, e.g. active or inactive",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"code": {
+											"$ref": "#/definitions/simpleCodeType_v01",
+											"description": "The code for the related entity"
+										},
+										"name": {
+											"description": "The short description of the related code used as a coded name",
+											"type": "string"
+										}
+									}
+								},
+								"accumulatorStartDate": {
+									"$ref": "#/definitions/dateType_v01",
+									"description": "The start date of the associated entity using the ISO-8601:2000 format"
+								},
+								"accumulatorEndDate": {
+									"$ref": "#/definitions/dateType_v01",
+									"description": "The end date of the associated entity using the ISO-8601:2000 format"
+								},
+								"configurationTags": {
+									"description": "The set of configuratio tags for the accumulator, e.g. display rules, relevant downloads, and clearing logic rules",
+									"type": "array",
+									"items": {
+										"description": "Configuration tag used in the payroll domain",
+										"type": "object",
+										"additionalProperties": false,
+										"properties": {
+											"tagCode": {
+												"$ref": "#/definitions/simpleCodeType_v01",
+												"description": "The code identifying the tag"
+											},
+											"tagValues": {
+												"description": "A list of the tag values",
+												"type": "array",
+												"items": {
+													"type": "string"
+												}
+											},
+											"tagType": {
+												"description": "The tag type represented by codes for its data type, currency and format",
+												"type": "object",
+												"additionalProperties": false,
+												"properties": {
+													"dataTypeCode": {
+														"$ref": "#/definitions/simpleCodeType_v01",
+														"description": "The code identifying the type of data"
+													},
+													"formatCode": {
+														"$ref": "#/definitions/simpleCodeType_v01",
+														"description": "The code identifying the tag format.  Possible values are date, date-time, and uri"
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"payrollItemGroups": {
+						"description": "The payroll item groups to which this payroll item code is associated",
+						"type": "array",
+						"items": {
+							"description": "Representation of a payroll item group",
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"groupID": {
+									"$ref": "#/definitions/simpleIDType_v01",
+									"description": "The unique identifier of the payroll item group"
+								},
+								"payrollItemGroupCode": {
+									"description": "The code of the payroll item group",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"code": {
+											"$ref": "#/definitions/simpleCodeType_v01",
+											"description": "The code for the related entity"
+										},
+										"name": {
+											"description": "The short description of the related code used as a coded name",
+											"type": "string"
+										},
+										"alternateNames": {
+											"description": "The list of alternate names in languages other than the default requested language",
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"languageCode": {
+														"$ref": "#/definitions/simpleCodeType_v01",
+														"description": "The code identifying the language"
+													},
+													"shortName": {
+														"description": "The short description of the related code",
+														"type": "string"
+													},
+													"longName": {
+														"description": "The long description of the related code",
+														"type": "string"
+													}
+												}
+											}
+										}
+									}
+								},
+								"links": {
+									"type": "array",
+									"items": {
+										"description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema) documents, and use of this format can be declared by referencing the normative link description schema as the schema for the data structure that uses the links.",
+										"type": "object",
+										"required": [
+											"href"
+										],
+										"additionalProperties": false,
+										"properties": {
+											"linkID": {
+												"description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+												"type": "string",
+												"pattern": "^[a-zA-Z0-9.$-_/]+$"
+											},
+											"href": {
+												"description": "The URI of the related entity, typically used to represent any internet or social network address",
+												"type": "string",
+												"format": "uri"
+											},
+											"rel": {
+												"description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+												"type": "string",
+												"enum": [
+													"alternate",
+													"canonical",
+													"create",
+													"describedby",
+													"edit-form",
+													"enclosure",
+													"first",
+													"full",
+													"last",
+													"latest-version",
+													"next",
+													"previous",
+													"related",
+													"root",
+													"self",
+													"search",
+													"successor-version",
+													"up",
+													"/adp/attachment",
+													"/adp/callback",
+													"/adp/codelist",
+													"/adp/confirm-message",
+													"/adp/deeplink",
+													"/adp/event",
+													"/adp/externalLink",
+													"/adp/image",
+													"/adp/invoke",
+													"/adp/payroll/voided-payment-calculation",
+													"/adp/processing-status",
+													"/adp/request-result",
+													"/adp/template",
+													"/adp/validation",
+													"/adp/workflow",
+													"/adp/status-monitor"
+												]
+											},
+											"canonicalUri": {
+												"$ref": "#/definitions/canonicalUriType_v01",
+												"description": "A unique identifier of the feature/function/operation that the link points to"
+											},
+											"title": {
+												"description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+												"type": "string"
+											},
+											"mediaType": {
+												"description": "The media type that the linked resource will return (Response) in",
+												"type": "string",
+												"enum": [
+													"application/gzip",
+													"application/json",
+													"application/msword",
+													"application/pdf",
+													"application/postscript",
+													"application/vnd.ms-excel",
+													"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+													"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+													"application/xml",
+													"application/x-www-form-urlencoded",
+													"image/gif",
+													"image/jpeg",
+													"image/png",
+													"image/tiff",
+													"multipart/mixed",
+													"text/html",
+													"text/plain",
+													"application/vnd.visio",
+													"image/bmp",
+													"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+													"application/vnd.ms-powerpoint",
+													"video/mp4",
+													"audio/mpeg",
+													"video/x-msvideo",
+													"video/x-ms-wmv",
+													"application/rtf",
+													"application/vnd.ms-outlook",
+													"text/csv",
+													"video/quicktime",
+													"application/zip",
+													"application/illustrator",
+													"text/xml",
+													"application/x-shockwave-flash",
+													"multipart/form-data",
+													"application/merge-patch+json"
+												]
+											},
+											"method": {
+												"description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT, PATCH or DELETE)",
+												"type": "string",
+												"enum": [
+													"GET",
+													"POST",
+													"PUT",
+													"PATCH",
+													"DELETE"
+												]
+											},
+											"payloadArguments": {
+												"type": "array",
+												"items": {
+													"type": "object",
+													"required": [
+														"argumentValue"
+													],
+													"additionalProperties": false,
+													"properties": {
+														"argumentTypeCode": {
+															"description": "Argument type / location",
+															"type": "string",
+															"enum": [
+																"header",
+																"path",
+																"query",
+																"body"
+															]
+														},
+														"argumentName": {
+															"description": "Argument name to be passed in",
+															"type": "string"
+														},
+														"argumentPath": {
+															"description": "Argument path, if referenced from within the body",
+															"type": "string"
+														},
+														"argumentValue": {
+															"description": "Argument name to be passed in",
+															"type": "string"
+														}
+													}
+												}
+											},
+											"linkTags": {
+												"description": "Collection of tags to indicate additional natures or aspects of the link. User agents MAY use these tags when presenting the link to the user to provide visual cues of the link's purpose",
+												"type": "array",
+												"items": {
+													"description": "Basic common representation of a tag",
+													"type": "object",
+													"additionalProperties": false,
+													"properties": {
+														"tagCode": {
+															"$ref": "#/definitions/simpleCodeType_v01",
+															"description": "The code identifying the tag"
+														},
+														"tagValues": {
+															"description": "A list of the tag values",
+															"type": "array",
+															"items": {
+																"type": "string"
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"retirementDeductionConfiguration": {
+						"description": "Retirement deduction specific configuration attributes",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"employerMatchIndicator": {
+								"$ref": "#/definitions/indicatorType_v01",
+								"description": "Indicates if the employer contribution is offered"
+							},
+							"catchupContributionMatchIndicator": {
+								"$ref": "#/definitions/indicatorType_v01",
+								"description": "Employer Contribution on catchup contribution"
+							},
+							"contributionTiers": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"annualContributionPercentage": {
+											"description": "Employer match percent",
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"percentage": {
+													"description": "The numeric value associated to the percentage rate. In the example of 20 percent of annual sales, the percentage value would be 20.",
+													"type": "number"
+												},
+												"basisCode": {
+													"description": "The baseUnitCode is used to define the denominator of the percentage rate, or percentage rate over what. In the example of 20 percent of annual sales, the baseUnitCode would equate to annual sales.",
+													"type": "object",
+													"additionalProperties": false,
+													"properties": {
+														"code": {
+															"$ref": "#/definitions/simpleCodeType_v01",
+															"description": "The code for the related entity"
+														},
+														"name": {
+															"description": "The short description of the related code used as a coded name",
+															"type": "string"
+														}
+													}
+												}
+											}
+										},
+										"contributionTierRange": {
+											"description": "Employer contribution tier lower and upper limits, e.g. 0% to 50%, 51% to 100%",
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"minimumPercentage": {
+													"description": "contribution low bound percent to use this employer match scheme",
+													"type": "object",
+													"additionalProperties": false,
+													"properties": {
+														"percentage": {
+															"description": "The numeric value associated to the percentage rate. In the example of 20 percent of annual sales, the percentage value would be 20.",
+															"type": "number"
+														},
+														"basisCode": {
+															"description": "The baseUnitCode is used to define the denominator of the percentage rate, or percentage rate over what. In the example of 20 percent of annual sales, the baseUnitCode would equate to annual sales.",
+															"type": "object",
+															"additionalProperties": false,
+															"properties": {
+																"code": {
+																	"$ref": "#/definitions/simpleCodeType_v01",
+																	"description": "The code for the related entity"
+																},
+																"name": {
+																	"description": "The short description of the related code used as a coded name",
+																	"type": "string"
+																}
+															}
+														}
+													}
+												},
+												"maximumPercentage": {
+													"description": "contribution upper bound percent to use this employer match scheme",
+													"type": "object",
+													"additionalProperties": false,
+													"properties": {
+														"percentage": {
+															"description": "The numeric value associated to the percentage rate. In the example of 20 percent of annual sales, the percentage value would be 20.",
+															"type": "number"
+														},
+														"basisCode": {
+															"description": "The baseUnitCode is used to define the denominator of the percentage rate, or percentage rate over what. In the example of 20 percent of annual sales, the baseUnitCode would equate to annual sales.",
+															"type": "object",
+															"additionalProperties": false,
+															"properties": {
+																"code": {
+																	"$ref": "#/definitions/simpleCodeType_v01",
+																	"description": "The code for the related entity"
+																},
+																"name": {
+																	"description": "The short description of the related code used as a coded name",
+																	"type": "string"
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							},
+							"annualMatchLimitAmount": {
+								"description": "Annual match limit",
+								"type": "object",
+								"required": [
+									"amount"
+								],
+								"additionalProperties": false,
+								"properties": {
+									"amount": {
+										"description": "The monetary value of the object in which the amount is associated",
+										"type": "number"
+									},
+									"currencyCode": {
+										"$ref": "#/definitions/currencyCodeType_v01",
+										"description": "A Standard currency code as per ISO 4217"
+									}
+								}
+							},
+							"additionalConfigurationTags": {
+								"description": "Additional configuration, e.g. scheduled pay periods or tax forms (W2) indicator and literal",
+								"type": "object",
+								"additionalProperties": false,
+								"properties": {
+									"tagCode": {
+										"$ref": "#/definitions/simpleCodeType_v01",
+										"description": "The code identifying the tag"
+									},
+									"tagValues": {
+										"description": "A list of the tag values",
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					},
+					"garnishmentDeductionConfiguration": {
+						"description": "Wage garnishment deduction specific configuration attributes",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"lienTypeCode": {
+								"description": "The type of lien",
+								"type": "object",
+								"additionalProperties": false,
+								"properties": {
+									"code": {
+										"$ref": "#/definitions/simpleCodeType_v01",
+										"description": "The code for the related entity"
+									},
+									"name": {
+										"description": "The short description of the related code used as a coded name",
+										"type": "string"
+									}
+								}
+							},
+							"lienSubTypeCode": {
+								"description": "The sub-typing of a lien, e.g. Alternate, Federal, Federal Student Loan, Mandatory, Private, Regular, State, State Student Loan, etc",
+								"type": "object",
+								"additionalProperties": false,
+								"properties": {
+									"code": {
+										"$ref": "#/definitions/simpleCodeType_v01",
+										"description": "The code for the related entity"
+									},
+									"name": {
+										"description": "The short description of the related code used as a coded name",
+										"type": "string"
+									}
+								}
+							},
+							"disbursementTypeCode": {
+								"description": "Pay disbursement method available to user;  Direct Deposit, Pay card etc.",
+								"type": "object",
+								"additionalProperties": false,
+								"properties": {
+									"code": {
+										"$ref": "#/definitions/simpleCodeType_v01",
+										"description": "The code for the related entity"
+									},
+									"name": {
+										"description": "The short description of the related code used as a coded name",
+										"type": "string"
+									}
+								}
+							},
+							"additionalConfigurationTags": {
+								"description": "Additional configuration, e.g. scheduled pay periods or tax forms (W2) indicator and literal",
+								"type": "object",
+								"additionalProperties": false,
+								"properties": {
+									"tagCode": {
+										"$ref": "#/definitions/simpleCodeType_v01",
+										"description": "The code identifying the tag"
+									},
+									"tagValues": {
+										"description": "A list of the tag values",
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					},
+					"payCycleCode": {
+						"description": "Pay frequency code.  e.g Bi-Weekly, Monthly etc",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"code": {
+								"$ref": "#/definitions/simpleCodeType_v01",
+								"description": "The code for the related entity"
+							},
+							"name": {
+								"description": "The short description of the related code used as a coded name",
+								"type": "string"
+							}
+						}
+					},
+					"lienTypeCode": {
+						"description": "The type of lien",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"code": {
+								"$ref": "#/definitions/simpleCodeType_v01",
+								"description": "The code for the related entity"
+							},
+							"name": {
+								"description": "The short description of the related code used as a coded name",
+								"type": "string"
+							}
+						}
+					},
+					"lienSubTypeCode": {
+						"description": "The sub-typing of a lien, e.g. Alternate, Federal, Federal Student Loan, Mandatory, Private, Regular, State, State Student Loan, etc",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"code": {
+								"$ref": "#/definitions/simpleCodeType_v01",
+								"description": "The code for the related entity"
+							},
+							"name": {
+								"description": "The short description of the related code used as a coded name",
+								"type": "string"
+							}
+						}
+					},
+					"disbursementTypeCode": {
+						"description": "Pay disbursement method available to user;  Direct Deposit, Pay card etc.",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"code": {
+								"$ref": "#/definitions/simpleCodeType_v01",
+								"description": "The code for the related entity"
+							},
+							"name": {
+								"description": "The short description of the related code used as a coded name",
+								"type": "string"
+							}
+						}
+					},
+					"allowDeductionChangesIndicator": {
+						"description": "USE ACTIONS INSTEAD.  Indicator specifies if worker is allowed to modify deduction value",
+						"type": "boolean",
+						"deprecated": true
+					},
+					"actions": {
+						"description": "Actions that could be performed on the given configuraton",
+						"type": "array",
+						"items": {
+							"description": "Base representation of an action the user is allowed to initiate against the related entity",
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"actionID": {
+									"$ref": "#/definitions/simpleIDType_v01",
+									"description": "Identifies the operation of an action"
+								},
+								"actionTitle": {
+									"description": "The descriptive title of the action, when applicable",
+									"type": "string"
+								},
+								"actionMessage": {
+									"description": "The descriptive message / subtitle of the action, when applicable",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"messageText": {
+											"description": "Insight message text",
+											"type": "string"
+										},
+										"messageArguments": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"description": "Argument Type",
+												"required": [
+													"argumentValue",
+													"formatString"
+												],
+												"additionalProperties": false,
+												"properties": {
+													"argumentName": {
+														"description": "Argument name to be passed in",
+														"type": "string"
+													},
+													"argumentPath": {
+														"$ref": "#/definitions/uriType_v01",
+														"description": "Argument path if referenced within the same schema"
+													},
+													"argumentValue": {
+														"description": "Argument name to be passed in",
+														"type": "string"
+													},
+													"formatString": {
+														"description": "String describng the format, e.g. HTML tags, pre-defined formats, etc.",
+														"type": "string"
+													}
+												}
+											}
+										}
+									}
+								},
+								"sequence": {
+									"$ref": "#/definitions/sequenceType_v01",
+									"description": "The sequence in which the related action should be exectuted"
+								},
+								"actionDataTags": {
+									"description": "Collection of tags to hold additional data related to the action",
+									"type": "array",
+									"items": {
+										"description": "Basic common representation of a tag",
+										"type": "object",
+										"additionalProperties": false,
+										"properties": {
+											"tagCode": {
+												"description": "The code identifying the tag",
+												"type": "object",
+												"additionalProperties": false,
+												"properties": {
+													"code": {
+														"$ref": "#/definitions/simpleCodeType_v01",
+														"description": "The code for the related entity"
+													},
+													"name": {
+														"description": "The short description of the related code used as a coded name",
+														"type": "string"
+													}
+												}
+											},
+											"tagValues": {
+												"description": "A list of the tag values",
+												"type": "array",
+												"items": {
+													"type": "string"
+												}
+											}
+										}
+									}
+								},
+								"links": {
+									"description": "Links to the related action to be exectuted",
+									"type": "array",
+									"items": {
+										"description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema) documents, and use of this format can be declared by referencing the normative link description schema as the schema for the data structure that uses the links.",
+										"type": "object",
+										"required": [
+											"href"
+										],
+										"additionalProperties": false,
+										"properties": {
+											"linkID": {
+												"description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+												"type": "string",
+												"pattern": "^[a-zA-Z0-9.$-_/]+$"
+											},
+											"href": {
+												"description": "The URI of the related entity, typically used to represent any internet or social network address",
+												"type": "string",
+												"format": "uri"
+											},
+											"rel": {
+												"description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+												"type": "string",
+												"enum": [
+													"alternate",
+													"canonical",
+													"create",
+													"describedby",
+													"edit-form",
+													"enclosure",
+													"first",
+													"full",
+													"last",
+													"latest-version",
+													"next",
+													"previous",
+													"related",
+													"root",
+													"self",
+													"search",
+													"successor-version",
+													"up",
+													"/adp/attachment",
+													"/adp/callback",
+													"/adp/codelist",
+													"/adp/confirm-message",
+													"/adp/deeplink",
+													"/adp/event",
+													"/adp/externalLink",
+													"/adp/image",
+													"/adp/invoke",
+													"/adp/payroll/voided-payment-calculation",
+													"/adp/processing-status",
+													"/adp/request-result",
+													"/adp/template",
+													"/adp/validation",
+													"/adp/workflow",
+													"/adp/status-monitor"
+												]
+											},
+											"canonicalUri": {
+												"$ref": "#/definitions/canonicalUriType_v01",
+												"description": "A unique identifier of the feature/function/operation that the link points to"
+											},
+											"title": {
+												"description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+												"type": "string"
+											},
+											"mediaType": {
+												"description": "The media type that the linked resource will return (Response) in",
+												"type": "string",
+												"enum": [
+													"application/gzip",
+													"application/json",
+													"application/msword",
+													"application/pdf",
+													"application/postscript",
+													"application/vnd.ms-excel",
+													"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+													"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+													"application/xml",
+													"application/x-www-form-urlencoded",
+													"image/gif",
+													"image/jpeg",
+													"image/png",
+													"image/tiff",
+													"multipart/mixed",
+													"text/html",
+													"text/plain",
+													"application/vnd.visio",
+													"image/bmp",
+													"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+													"application/vnd.ms-powerpoint",
+													"video/mp4",
+													"audio/mpeg",
+													"video/x-msvideo",
+													"video/x-ms-wmv",
+													"application/rtf",
+													"application/vnd.ms-outlook",
+													"text/csv",
+													"video/quicktime",
+													"application/zip",
+													"application/illustrator",
+													"text/xml",
+													"application/x-shockwave-flash",
+													"multipart/form-data",
+													"application/merge-patch+json"
+												]
+											},
+											"method": {
+												"description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT, PATCH or DELETE)",
+												"type": "string",
+												"enum": [
+													"GET",
+													"POST",
+													"PUT",
+													"PATCH",
+													"DELETE"
+												]
+											},
+											"payloadArguments": {
+												"type": "array",
+												"items": {
+													"type": "object",
+													"required": [
+														"argumentValue"
+													],
+													"additionalProperties": false,
+													"properties": {
+														"argumentTypeCode": {
+															"description": "Argument type / location",
+															"type": "string",
+															"enum": [
+																"header",
+																"path",
+																"query",
+																"body"
+															]
+														},
+														"argumentName": {
+															"description": "Argument name to be passed in",
+															"type": "string"
+														},
+														"argumentPath": {
+															"description": "Argument path, if referenced from within the body",
+															"type": "string"
+														},
+														"argumentValue": {
+															"description": "Argument name to be passed in",
+															"type": "string"
+														}
+													}
+												}
+											},
+											"linkTags": {
+												"description": "Collection of tags to indicate additional natures or aspects of the link. User agents MAY use these tags when presenting the link to the user to provide visual cues of the link's purpose",
+												"type": "array",
+												"items": {
+													"description": "Basic common representation of a tag",
+													"type": "object",
+													"additionalProperties": false,
+													"properties": {
+														"tagCode": {
+															"$ref": "#/definitions/simpleCodeType_v01",
+															"description": "The code identifying the tag"
+														},
+														"tagValues": {
+															"description": "A list of the tag values",
+															"type": "array",
+															"items": {
+																"type": "string"
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"_meta": {
+			"description": "Meta contains the metadata associated with a response.  A GET response may include metadata to support pagination",
+			"type": "object",
+			"properties": {
+				"startSequence": {
+					"$ref": "#/definitions/sequenceType_v01",
+					"description": "The instance resource sequence (number) identifying the first resource returned in the response. The server generates this sequence.  It is used by the client to determine the start sequence of the subsequent Get request"
+				},
+				"completeIndicator": {
+					"$ref": "#/definitions/indicatorType_v01",
+					"description": "Indicates whether the response completes the return of all of the resources of the instance resource set to the requesting system"
+				},
+				"number": {
+					"description": "Number of instance resources in the response",
+					"type": "integer"
+				},
+				"totalNumber": {
+					"description": "Number of total instance resources in an instance resource set. Note: An instance resource set is a set of instance resources that is determined by a server to satisfy the sets membership criteria (i.e., selection, filter, expansion and search criteria) of a resource management operation (e.g. GET request) upon a collection resource",
+					"type": "integer"
+				},
+				"resourceSetID": {
+					"$ref": "#/definitions/simpleIDType_v01",
+					"description": "Unique identifier of the instance resource set.  It is generated by the server as a result of the original Get request"
+				},
+				"links": {
+					"type": "array",
+					"items": {
+						"description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema) documents, and use of this format can be declared by referencing the normative link description schema as the schema for the data structure that uses the links.",
+						"type": "object",
+						"required": [
+							"href"
+						],
+						"additionalProperties": false,
+						"properties": {
+							"linkID": {
+								"description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+								"type": "string",
+								"pattern": "^[a-zA-Z0-9.$-_/]+$"
+							},
+							"href": {
+								"description": "The URI of the related entity, typically used to represent any internet or social network address",
+								"type": "string",
+								"format": "uri"
+							},
+							"rel": {
+								"description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+								"type": "string",
+								"enum": [
+									"alternate",
+									"canonical",
+									"create",
+									"describedby",
+									"edit-form",
+									"enclosure",
+									"first",
+									"full",
+									"last",
+									"latest-version",
+									"next",
+									"previous",
+									"related",
+									"root",
+									"self",
+									"search",
+									"successor-version",
+									"up",
+									"/adp/attachment",
+									"/adp/callback",
+									"/adp/codelist",
+									"/adp/confirm-message",
+									"/adp/deeplink",
+									"/adp/event",
+									"/adp/externalLink",
+									"/adp/image",
+									"/adp/invoke",
+									"/adp/payroll/voided-payment-calculation",
+									"/adp/processing-status",
+									"/adp/request-result",
+									"/adp/template",
+									"/adp/validation",
+									"/adp/workflow",
+									"/adp/status-monitor"
+								]
+							},
+							"canonicalUri": {
+								"$ref": "#/definitions/canonicalUriType_v01",
+								"description": "A unique identifier of the feature/function/operation that the link points to"
+							},
+							"title": {
+								"description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+								"type": "string"
+							},
+							"mediaType": {
+								"description": "The media type that the linked resource will return (Response) in",
+								"type": "string",
+								"enum": [
+									"application/gzip",
+									"application/json",
+									"application/msword",
+									"application/pdf",
+									"application/postscript",
+									"application/vnd.ms-excel",
+									"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+									"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+									"application/xml",
+									"application/x-www-form-urlencoded",
+									"image/gif",
+									"image/jpeg",
+									"image/png",
+									"image/tiff",
+									"multipart/mixed",
+									"text/html",
+									"text/plain",
+									"application/vnd.visio",
+									"image/bmp",
+									"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+									"application/vnd.ms-powerpoint",
+									"video/mp4",
+									"audio/mpeg",
+									"video/x-msvideo",
+									"video/x-ms-wmv",
+									"application/rtf",
+									"application/vnd.ms-outlook",
+									"text/csv",
+									"video/quicktime",
+									"application/zip",
+									"application/illustrator",
+									"text/xml",
+									"application/x-shockwave-flash",
+									"multipart/form-data",
+									"application/merge-patch+json"
+								]
+							},
+							"method": {
+								"description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT, PATCH or DELETE)",
+								"type": "string",
+								"enum": [
+									"GET",
+									"POST",
+									"PUT",
+									"PATCH",
+									"DELETE"
+								]
+							},
+							"payloadArguments": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"required": [
+										"argumentValue"
+									],
+									"additionalProperties": false,
+									"properties": {
+										"argumentTypeCode": {
+											"description": "Argument type / location",
+											"type": "string",
+											"enum": [
+												"header",
+												"path",
+												"query",
+												"body"
+											]
+										},
+										"argumentName": {
+											"description": "Argument name to be passed in",
+											"type": "string"
+										},
+										"argumentPath": {
+											"description": "Argument path, if referenced from within the body",
+											"type": "string"
+										},
+										"argumentValue": {
+											"description": "Argument name to be passed in",
+											"type": "string"
+										}
+									}
+								}
+							},
+							"linkTags": {
+								"description": "Collection of tags to indicate additional natures or aspects of the link. User agents MAY use these tags when presenting the link to the user to provide visual cues of the link's purpose",
+								"type": "array",
+								"items": {
+									"description": "Basic common representation of a tag",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"tagCode": {
+											"$ref": "#/definitions/simpleCodeType_v01",
+											"description": "The code identifying the tag"
+										},
+										"tagValues": {
+											"description": "A list of the tag values",
+											"type": "array",
+											"items": {
+												"type": "string"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"_confirmMessage": {
+			"description": "The confirm message contains the processing results for the corresponding request.  A request may have its processing reported as: succeeded, partially failed, or failed.",
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"processingStatus": {
+					"description": "The processing results status code for the request",
+					"type": "string",
+					"enum": [
+						"received",
+						"validated",
+						"started",
+						"in-progress",
+						"completed"
+					]
+				},
+				"requestStatus": {
+					"description": "The process results status code for the request",
+					"type": "string",
+					"enum": [
+						"success",
+						"partial-success",
+						"partial-failure",
+						"failure"
+					]
+				},
+				"applicationID": {
+					"$ref": "#/definitions/simpleIDType_v01",
+					"description": "An identifier of the applicaiton that issued the confirm message"
+				},
+				"messageID": {
+					"$ref": "#/definitions/simpleIDType_v01",
+					"description": "An identifier of the confirm message instance"
+				},
+				"messageDateTime": {
+					"$ref": "#/definitions/dateTimeType_v01",
+					"description": "Timestamp of the confirm message"
+				},
+				"requestID": {
+					"$ref": "#/definitions/simpleIDType_v01",
+					"description": "A process identifier if one is available, like a batch ID"
+				},
+				"messages": {
+					"description": "Processing messages related to the request; multiple messages may be communicated about the request",
+					"type": "array",
+					"items": {
+						"type": "object",
+						"description": "Basic details of the user or developer message.",
+						"additionalProperties": false,
+						"properties": {
+							"messageCode": {
+								"$ref": "#/definitions/simpleCodeType_v01",
+								"description": "The code associated with the message."
+							},
+							"messageTypeCode": {
+								"$ref": "#/definitions/messageTypeCodeType_v01",
+								"description": "Process message instances may be of type: success, warning, error, or info."
+							},
+							"messageText": {
+								"description": "The content of the message. The content language is identified by the Content-Language header.",
+								"type": "string"
+							},
+							"messageTargetCode": {
+								"description": "Indicates the audience, the message is targeted to, e.g. developer, user, etc.",
+								"type": "string",
+								"enum": [
+									"developer",
+									"user"
+								]
+							},
+							"processMessageIndicator": {
+								"description": "Indicates if the message is not related to any given resource, but rather applies to the entire process.  If set to 'true', the resource related attributes should not be used.",
+								"type": "boolean"
+							},
+							"resourceID": {
+								"$ref": "#/definitions/simpleIDType_v01",
+								"description": "An identifier for a resource in the request"
+							},
+							"resourceStatus": {
+								"description": "The process results status code for the request",
+								"type": "string",
+								"enum": [
+									"success",
+									"partial-success",
+									"partial-failure",
+									"failure"
+								]
+							},
+							"alternateMessageTexts": {
+								"description": "The content of the message expressed in an alternate language. The content language is identified by the languageCode property",
+								"type": "array",
+								"items": {
+									"description": "Text is a character string such as a set of characters in the form of words of a language.",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"text": {
+											"description": "The text character string.",
+											"type": "string"
+										},
+										"languageCode": {
+											"description": "A standard language code as per ISO 639.",
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"code": {
+													"$ref": "#/definitions/simpleCodeType_v01",
+													"description": "The code for the related entity"
+												},
+												"name": {
+													"description": "The short description of the related code used as a coded name",
+													"type": "string"
+												}
+											}
+										}
+									}
+								}
+							},
+							"resourceReference": {
+								"description": "A path expression used to specify the part of a resource representation that corresponds to the message.",
+								"type": "string"
+							},
+							"messageArguments": {
+								"description": "Parameter and argument pairs associated with a message.",
+								"type": "array",
+								"items": {
+									"description": "Argument Type",
+									"type": "object",
+									"required": [
+										"argumentValue"
+									],
+									"additionalProperties": false,
+									"properties": {
+										"argumentName": {
+											"description": "Argument name to be passed in",
+											"type": "string"
+										},
+										"argumentPath": {
+											"$ref": "#/definitions/uriType_v01",
+											"description": "Argument path if referenced within the same schema"
+										},
+										"argumentValue": {
+											"description": "Argument name to be passed in",
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"resourceMessages": {
+					"description": "Resource messages contain the resource-specific processing results for resources being managed in the request. In the case of a request that manages multiple resources, each array item would correspond to one of the resources",
+					"type": "array",
+					"items": {
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"resourceID": {
+								"$ref": "#/definitions/simpleIDType_v01",
+								"description": "An identifier for a resource in the request"
+							},
+							"resourceReference": {
+								"description": "A path expression used to specify the part of a resource representation that corresponds to the message.",
+								"type": "string"
+							},
+							"resourceStatus": {
+								"description": "The processing results status code for a resource",
+								"type": "string",
+								"enum": [
+									"succeeded",
+									"failed"
+								]
+							},
+							"messages": {
+								"description": "Processing messages related to the resource; multiple messages may be communicated about a resource",
+								"type": "array",
+								"items": {
+									"type": "object",
+									"description": "Basic details of the user or developer message.",
+									"additionalProperties": false,
+									"properties": {
+										"messageCode": {
+											"$ref": "#/definitions/simpleCodeType_v01",
+											"description": "The code associated with the message."
+										},
+										"messageTypeCode": {
+											"$ref": "#/definitions/messageTypeCodeType_v01",
+											"description": "Process message instances may be of type: success, warning, error, or info."
+										},
+										"messageText": {
+											"description": "The content of the message. The content language is identified by the Content-Language header.",
+											"type": "string"
+										},
+										"alternateMessageTexts": {
+											"description": "The content of the message expressed in an alternate language. The content language is identified by the languageCode property",
+											"type": "array",
+											"items": {
+												"description": "Text is a character string such as a set of characters in the form of words of a language.",
+												"type": "object",
+												"additionalProperties": false,
+												"properties": {
+													"text": {
+														"description": "The text character string.",
+														"type": "string"
+													},
+													"languageCode": {
+														"description": "A standard language code as per ISO 639.",
+														"type": "object",
+														"additionalProperties": false,
+														"properties": {
+															"code": {
+																"$ref": "#/definitions/simpleCodeType_v01",
+																"description": "The code for the related entity"
+															},
+															"name": {
+																"description": "The short description of the related code used as a coded name",
+																"type": "string"
+															}
+														}
+													}
+												}
+											}
+										},
+										"messageArguments": {
+											"description": "Parameter and argument pairs associated with a message.",
+											"type": "array",
+											"items": {
+												"description": "Argument Type",
+												"type": "object",
+												"required": [
+													"argumentValue"
+												],
+												"additionalProperties": false,
+												"properties": {
+													"argumentName": {
+														"description": "Argument name to be passed in",
+														"type": "string"
+													},
+													"argumentPath": {
+														"$ref": "#/definitions/uriType_v01",
+														"description": "Argument path if referenced within the same schema"
+													},
+													"argumentValue": {
+														"description": "Argument name to be passed in",
+														"type": "string"
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"links": {
+					"type": "array",
+					"items": {
+						"description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema) documents, and use of this format can be declared by referencing the normative link description schema as the schema for the data structure that uses the links.",
+						"type": "object",
+						"required": [
+							"href"
+						],
+						"additionalProperties": false,
+						"properties": {
+							"linkID": {
+								"description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+								"type": "string",
+								"pattern": "^[a-zA-Z0-9.$-_/]+$"
+							},
+							"href": {
+								"description": "The URI of the related entity, typically used to represent any internet or social network address",
+								"type": "string",
+								"format": "uri"
+							},
+							"rel": {
+								"description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+								"type": "string",
+								"enum": [
+									"alternate",
+									"canonical",
+									"create",
+									"describedby",
+									"edit-form",
+									"enclosure",
+									"first",
+									"full",
+									"last",
+									"latest-version",
+									"next",
+									"previous",
+									"related",
+									"root",
+									"self",
+									"search",
+									"successor-version",
+									"up",
+									"/adp/attachment",
+									"/adp/callback",
+									"/adp/codelist",
+									"/adp/confirm-message",
+									"/adp/deeplink",
+									"/adp/event",
+									"/adp/externalLink",
+									"/adp/image",
+									"/adp/invoke",
+									"/adp/payroll/voided-payment-calculation",
+									"/adp/processing-status",
+									"/adp/request-result",
+									"/adp/template",
+									"/adp/validation",
+									"/adp/workflow",
+									"/adp/status-monitor"
+								]
+							},
+							"canonicalUri": {
+								"$ref": "#/definitions/canonicalUriType_v01",
+								"description": "A unique identifier of the feature/function/operation that the link points to"
+							},
+							"title": {
+								"description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+								"type": "string"
+							},
+							"mediaType": {
+								"description": "The media type that the linked resource will return (Response) in",
+								"type": "string",
+								"enum": [
+									"application/gzip",
+									"application/json",
+									"application/msword",
+									"application/pdf",
+									"application/postscript",
+									"application/vnd.ms-excel",
+									"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+									"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+									"application/xml",
+									"application/x-www-form-urlencoded",
+									"image/gif",
+									"image/jpeg",
+									"image/png",
+									"image/tiff",
+									"multipart/mixed",
+									"text/html",
+									"text/plain",
+									"application/vnd.visio",
+									"image/bmp",
+									"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+									"application/vnd.ms-powerpoint",
+									"video/mp4",
+									"audio/mpeg",
+									"video/x-msvideo",
+									"video/x-ms-wmv",
+									"application/rtf",
+									"application/vnd.ms-outlook",
+									"text/csv",
+									"video/quicktime",
+									"application/zip",
+									"application/illustrator",
+									"text/xml",
+									"application/x-shockwave-flash",
+									"multipart/form-data",
+									"application/merge-patch+json"
+								]
+							},
+							"method": {
+								"description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT, PATCH or DELETE)",
+								"type": "string",
+								"enum": [
+									"GET",
+									"POST",
+									"PUT",
+									"PATCH",
+									"DELETE"
+								]
+							},
+							"payloadArguments": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"required": [
+										"argumentValue"
+									],
+									"additionalProperties": false,
+									"properties": {
+										"argumentTypeCode": {
+											"description": "Argument type / location",
+											"type": "string",
+											"enum": [
+												"header",
+												"path",
+												"query",
+												"body"
+											]
+										},
+										"argumentName": {
+											"description": "Argument name to be passed in",
+											"type": "string"
+										},
+										"argumentPath": {
+											"description": "Argument path, if referenced from within the body",
+											"type": "string"
+										},
+										"argumentValue": {
+											"description": "Argument name to be passed in",
+											"type": "string"
+										}
+									}
+								}
+							},
+							"linkTags": {
+								"description": "Collection of tags to indicate additional natures or aspects of the link. User agents MAY use these tags when presenting the link to the user to provide visual cues of the link's purpose",
+								"type": "array",
+								"items": {
+									"description": "Basic common representation of a tag",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"tagCode": {
+											"$ref": "#/definitions/simpleCodeType_v01",
+											"description": "The code identifying the tag"
+										},
+										"tagValues": {
+											"description": "A list of the tag values",
+											"type": "array",
+											"items": {
+												"type": "string"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

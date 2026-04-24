@@ -1,7 +1,7 @@
 # ADP Workforce Now API specs — harvester output
 
-- Tiles attempted: **1**
-- Tiles harvested: **1**
+- Tiles attempted: **4**
+- Tiles harvested: **4**
 - Tiles gated / errored: **0**
 
 Re-run: `uv run python scripts/adp_spec_harvester.py`
@@ -10,7 +10,10 @@ Re-run: `uv run python scripts/adp_spec_harvester.py`
 
 | Domain | Tile | Version | Operations | Largest response (B) | Total report |
 |---|---|---|---|---|---|
-| staffing | job-applicants | v2 | 4 | 97,691 | [report](staffing/job-applicants/v2/REPORT.md) |
+| benefits | dependents | v1 | 1 | 102,052 | [report](benefits/dependents/v1/REPORT.md) |
+| hr | workers-business-communication-management | v2 | 15 | 60,672 | [report](hr/workers-business-communication-management/v2/REPORT.md) |
+| payroll | deduction-configurations | v3 | 1 | 80,043 | [report](payroll/deduction-configurations/v3/REPORT.md) |
+| talent | associate-recognitions | v2 | 8 | 98,009 | [report](talent/associate-recognitions/v2/REPORT.md) |
 
 ## Split heuristic
 

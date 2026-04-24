@@ -3,13 +3,21 @@
 from .adp_api_request import ADPAPIRequestComponent
 from .adp_applicant_onboarding_tools import ADPApplicantOnboardingToolsComponent
 from .adp_auth import ADPAuthComponent
+from .adp_benefits_tools import ADPBenefitsToolsComponent
+from .adp_data_collection_entries_tools import ADPDataCollectionEntriesToolsComponent
+from .adp_deduction_configurations_tools import ADPDeductionConfigurationsToolsComponent
 from .adp_job_applicants_tools import ADPJobApplicantsToolsComponent
 from .adp_job_requisitions_tools import ADPJobRequisitionsToolsComponent
 from .adp_mcp import ADPMCPComponent
 from .adp_pay_data_input_tools import ADPPayDataInputToolsComponent
 from .adp_pay_distributions_tools import ADPPayDistributionsToolsComponent
+from .adp_talent_tools import ADPTalentToolsComponent
 from .adp_team_time_cards_tools import ADPTeamTimeCardsToolsComponent
+from .adp_time_cards_tools import ADPTimeCardsToolsComponent
+from .adp_time_off_tools import ADPTimeOffToolsComponent
 from .adp_trigger import ADPTriggerComponent
+from .adp_us_tax_profiles_tools import ADPUSTaxProfilesToolsComponent
+from .adp_worker_business_communication_tools import ADPWorkerBusinessCommunicationToolsComponent
 from .adp_worker_assignment_tools import ADPWorkerAssignmentToolsComponent
 from .adp_worker_assignment_v3_tools import ADPWorkerAssignmentV3ToolsComponent
 from .adp_worker_biological_tools import ADPWorkerBiologicalToolsComponent
@@ -28,13 +36,21 @@ __all__ = [
     "ADPAPIRequestComponent",
     "ADPApplicantOnboardingToolsComponent",
     "ADPAuthComponent",
+    "ADPBenefitsToolsComponent",
+    "ADPDataCollectionEntriesToolsComponent",
+    "ADPDeductionConfigurationsToolsComponent",
     "ADPJobApplicantsToolsComponent",
     "ADPJobRequisitionsToolsComponent",
     "ADPMCPComponent",
     "ADPPayDataInputToolsComponent",
     "ADPPayDistributionsToolsComponent",
+    "ADPTalentToolsComponent",
     "ADPTeamTimeCardsToolsComponent",
+    "ADPTimeCardsToolsComponent",
+    "ADPTimeOffToolsComponent",
     "ADPTriggerComponent",
+    "ADPUSTaxProfilesToolsComponent",
+    "ADPWorkerBusinessCommunicationToolsComponent",
     "ADPWorkerAssignmentToolsComponent",
     "ADPWorkerAssignmentV3ToolsComponent",
     "ADPWorkerBiologicalToolsComponent",

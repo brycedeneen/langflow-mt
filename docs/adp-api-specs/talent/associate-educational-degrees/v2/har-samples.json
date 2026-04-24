@@ -1,0 +1,935 @@
+{
+  "tile": "talent/associate-educational-degrees/v2",
+  "samples": [
+    {
+      "filename": "1._Adding_a_educational_degree_for_an_associate._Provide_Example_educationalDegree.add_request_4588.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateEducationalDegree": {
+                  "nameCode": {
+                    "codeValue": "AA",
+                    "longName": "Bachelor"
+                  },
+                  "startDate": "2017-09-4",
+                  "expectedCompletionDate": "2019-09-25 ",
+                  "actualCompletionDate": "2019-09-25",
+                  "completionDuration": "P2Y2M ",
+                  "majorProgramNameCodes": [
+                    {
+                      "codeValue": "0001",
+                      "longName": "Carepentry"
+                    },
+                    {
+                      "codeValue": "0020",
+                      "longName": "Chemistry"
+                    }
+                  ],
+                  "minorProgramNameCodes": [
+                    {
+                      "codeValue": "0001",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "honorsProgramNameCodes": [
+                    {
+                      "codeValue": "0060",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "educationalInstitutionAttendances": [
+                    {
+                      "educationalInstitution": {
+                        "nameCode": {
+                          "codeValue": "CA063",
+                          "longName": "Canadore College"
+                        }
+                      }
+                    }
+                  ],
+                  "academicCreditsCompleted": "2",
+                  "academicScore": {
+                    "unitCode": {
+                      "codeValue": "CEU",
+                      "longName": "Canadore College"
+                    },
+                    "scoreCode": {
+                      "codeValue": "9",
+                      "longName": "Canadore College"
+                    }
+                  },
+                  "verificationDate": "",
+                  "comments": "Testing from change post non redbox test 3 wfnui",
+                  "employerPaidAmount": {
+                    "amountValue": 178000,
+                    "currencyCode": {
+                      "codeValue": "USD",
+                      "longName": "United States Dollor"
+                    }
+                  }
+                }
+              },
+              "eventContext": {
+                "associateOID": "G34YJ69EMRR7N4VJ"
+              }
+            },
+            "actor": {
+              "associateOID": "G34YJ69EMRR7N4VJ"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "educationalDegree.add"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "2._Adding_an_educational_degree_with_invalid_associateEducationalDegree._Provide_Example_educationalDegree.add_request_4589.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateEducationalDegree": {
+                  "nameCode": {
+                    "codeValue": "$#%",
+                    "longName": "Bachelor"
+                  },
+                  "startDate": "2017-09-25",
+                  "expectedCompletionDate": "2019-09-25 ",
+                  "actualCompletionDate": "2019-09-25",
+                  "completionDuration": "P2Y2M ",
+                  "majorProgramNameCodes": [
+                    {
+                      "codeValue": "0001",
+                      "longName": "Carepentry"
+                    },
+                    {
+                      "codeValue": "0020",
+                      "longName": "Chemistry"
+                    }
+                  ],
+                  "minorProgramNameCodes": [
+                    {
+                      "codeValue": "0001",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "honorsProgramNameCodes": [
+                    {
+                      "codeValue": "0060",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "educationalInstitutionAttendances": [
+                    {
+                      "educationalInstitution": {
+                        "nameCode": {
+                          "codeValue": "CA063",
+                          "longName": "Canadore College"
+                        }
+                      }
+                    }
+                  ],
+                  "academicCreditsCompleted": "2",
+                  "academicScore": {
+                    "unitCode": {
+                      "codeValue": "CEU",
+                      "longName": "Canadore College"
+                    },
+                    "scoreCode": {
+                      "codeValue": "9",
+                      "longName": "Canadore College"
+                    }
+                  },
+                  "verificationDate": "",
+                  "comments": "Testing from change post non redbox test 3 wfnui",
+                  "employerPaidAmount": {
+                    "amountValue": 178000,
+                    "currencyCode": {
+                      "codeValue": "USD",
+                      "longName": "United States Dollor"
+                    }
+                  }
+                }
+              },
+              "eventContext": {
+                "associateOID": "G34YJ69EMRR7N4VJ"
+              }
+            },
+            "actor": {
+              "associateOID": "G34YJ69EMRR7N4VJ"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "educationalDegree.add"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "3._Adding_an_educational_degree_with_invalid_major_program_code._Provide_Example_educationalDegree.add_request_4590.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateEducationalDegree": {
+                  "nameCode": {
+                    "codeValue": "AA",
+                    "longName": "Bachelor"
+                  },
+                  "startDate": "2017-09-13",
+                  "expectedCompletionDate": "2019-09-25 ",
+                  "actualCompletionDate": "2019-09-25",
+                  "completionDuration": "P2Y2M ",
+                  "majorProgramNameCodes": [
+                    {
+                      "codeValue": "^&FYDET^@$#",
+                      "longName": " "
+                    },
+                    {
+                      "codeValue": "020",
+                      "longName": "Chemistry"
+                    }
+                  ],
+                  "minorProgramNameCodes": [
+                    {
+                      "codeValue": "0001",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "honorsProgramNameCodes": [
+                    {
+                      "codeValue": "0060",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "educationalInstitutionAttendances": [
+                    {
+                      "educationalInstitution": {
+                        "nameCode": {
+                          "codeValue": "CA063",
+                          "longName": "Canadore College"
+                        }
+                      }
+                    }
+                  ],
+                  "academicCreditsCompleted": "2",
+                  "academicScore": {
+                    "unitCode": {
+                      "codeValue": "CEU",
+                      "longName": "Canadore College"
+                    },
+                    "scoreCode": {
+                      "codeValue": "9",
+                      "longName": "Canadore College"
+                    }
+                  },
+                  "verificationDate": "",
+                  "comments": "Testing from change post non redbox test 3 wfnui",
+                  "employerPaidAmount": {
+                    "amountValue": 178000,
+                    "currencyCode": {
+                      "codeValue": "USD",
+                      "longName": "United States Dollor"
+                    }
+                  }
+                }
+              },
+              "eventContext": {
+                "associateOID": "G34YJ69EMRR7N4VJ"
+              }
+            },
+            "actor": {
+              "associateOID": "G34YJ69EMRR7N4VJ"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "educationalDegree.add"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "4._Adding_an_educational_degree_with_invalid_educational_institution._Provide_Example_educationalDegree.add_request_4591.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateEducationalDegree": {
+                  "nameCode": {
+                    "codeValue": "AA",
+                    "longName": "Bachelor"
+                  },
+                  "typeCode": {
+                    "codeValue": "BIO",
+                    "longName": "Biology"
+                  },
+                  "startDate": "2017-10-5",
+                  "expectedCompletionDate": "2019-09-25 ",
+                  "actualCompletionDate": "2019-09-25",
+                  "completionDuration": "P2Y2M ",
+                  "majorProgramNameCodes": [
+                    {
+                      "codeValue": "0001",
+                      "longName": "Carepentry"
+                    },
+                    {
+                      "codeValue": "0020",
+                      "longName": "Chemistry"
+                    }
+                  ],
+                  "minorProgramNameCodes": [
+                    {
+                      "codeValue": "0001",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "honorsProgramNameCodes": [
+                    {
+                      "codeValue": "0060",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "educationalInstitutionAttendances": [
+                    {
+                      "educationalInstitution": {
+                        "nameCode": {
+                          "codeValue": "&%^&",
+                          "longName": "Canadore College"
+                        }
+                      }
+                    }
+                  ],
+                  "academicCreditsCompleted": "2",
+                  "academicScore": {
+                    "unitCode": {
+                      "codeValue": "CEU",
+                      "longName": "Canadore College"
+                    },
+                    "scoreCode": {
+                      "codeValue": "9",
+                      "longName": "Canadore College"
+                    }
+                  },
+                  "verificationDate": "",
+                  "comments": "Testing from change post non redbox test 3 wfnui",
+                  "employerPaidAmount": {
+                    "amountValue": 178000,
+                    "currencyCode": {
+                      "codeValue": "USD",
+                      "longName": "United States Dollor"
+                    }
+                  }
+                }
+              },
+              "eventContext": {
+                "associateOID": "G34YJ69EMRR7N4VJ"
+              }
+            },
+            "actor": {
+              "associateOID": "G34YJ69EMRR7N4VJ"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "educationalDegree.add"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "5._Adding_an_educational_degree_with_invalid_currency_code._Provide_Example_educationalDegree.add_request_4592.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateEducationalDegree": {
+                  "nameCode": {
+                    "codeValue": "AA",
+                    "longName": "Bachelor"
+                  },
+                  "typeCode": {
+                    "codeValue": "BIO",
+                    "longName": "Biology"
+                  },
+                  "startDate": "2018-09-20",
+                  "expectedCompletionDate": "2019-09-20 ",
+                  "actualCompletionDate": "2019-09-20",
+                  "completionDuration": "P2Y2M ",
+                  "majorProgramNameCodes": [
+                    {
+                      "codeValue": "0001",
+                      "longName": "Carepentry"
+                    },
+                    {
+                      "codeValue": "0020",
+                      "longName": "Chemistry"
+                    }
+                  ],
+                  "minorProgramNameCodes": [
+                    {
+                      "codeValue": "0001",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "honorsProgramNameCodes": [
+                    {
+                      "codeValue": "0060",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "educationalInstitutionAttendances": [
+                    {
+                      "educationalInstitution": {
+                        "nameCode": {
+                          "codeValue": "C63",
+                          "longName": "Canadore College"
+                        }
+                      }
+                    }
+                  ],
+                  "academicCreditsCompleted": "2",
+                  "academicScore": {
+                    "unitCode": {
+                      "codeValue": "CEU",
+                      "longName": "Canadore College"
+                    },
+                    "scoreCode": {
+                      "codeValue": "9",
+                      "longName": "Canadore College"
+                    }
+                  },
+                  "verificationDate": "2019-12-20",
+                  "comments": "Testing from change post non redbox test 3 wfnui",
+                  "employerPaidAmount": {
+                    "amountValue": 178000,
+                    "currencyCode": {
+                      "codeValue": "^^%Chd",
+                      "longName": "United States Dollor"
+                    }
+                  }
+                }
+              },
+              "eventContext": {
+                "associateOID": "G34YJ69EMRR7N4VJ"
+              }
+            },
+            "actor": {
+              "associateOID": "G34YJ69EMRR7N4VJ"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "educationalDegree.add"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "1._Changing_the_Educational_Degree_details_of_an_employee_with_valid_item_ID_and_AOID_Provide_Example_educationalDegree.change_request_4593.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateEducationalDegree": {
+                  "nameCode": {
+                    "codeValue": "AA",
+                    "longName": "Bachelor"
+                  },
+                  "startDate": "2017-08-22",
+                  "expectedCompletionDate": "2019-09-26",
+                  "actualCompletionDate": "2019-09-30",
+                  "completionDuration": "P1Y2M",
+                  "majorProgramNameCodes": [
+                    {
+                      "codeValue": "MM01080",
+                      "longName": "Carepentry"
+                    },
+                    {
+                      "codeValue": "0020",
+                      "longName": "Chemistry"
+                    }
+                  ],
+                  "minorProgramNameCodes": [
+                    {
+                      "codeValue": "0020",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "honorsProgramNameCodes": [
+                    {
+                      "codeValue": "00",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "educationalInstitutionAttendances": [
+                    {
+                      "educationalInstitution": {
+                        "nameCode": {
+                          "codeValue": "CA063",
+                          "longName": "Canadore College"
+                        }
+                      }
+                    }
+                  ],
+                  "academicCreditsCompleted": "3",
+                  "academicScore": {
+                    "unitCode": {
+                      "codeValue": "CEU",
+                      "longName": "Canadore College"
+                    },
+                    "scoreCode": {
+                      "codeValue": "9",
+                      "longName": "Canadore College"
+                    }
+                  },
+                  "verificationDate": "2019-10-12",
+                  "comments": "Testing from change post non redbox test 3 wfnui",
+                  "employerPaidAmount": {
+                    "amountValue": 178000,
+                    "currencyCode": {
+                      "codeValue": "USD",
+                      "longName": "United States Dollor"
+                    }
+                  }
+                }
+              },
+              "eventContext": {
+                "associateOID": "G34YJ69EMRR7N4VJ",
+                "associateEducationalDegree": {
+                  "itemID": "169740215951_1"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "G34YJ69EMRR7N4VJ"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "educationalDegree.change"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "2._changing_education_degree_with_invalid_educational_institution_Provide_Example_educationalDegree.change_request_4594.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateEducationalDegree": {
+                  "nameCode": {
+                    "codeValue": "AA",
+                    "longName": "Bachelor"
+                  },
+                  "startDate": "2017-09-26",
+                  "expectedCompletionDate": "2019-09-27",
+                  "actualCompletionDate": "2019-09-29",
+                  "completionDuration": "P2Y2M ",
+                  "majorProgramNameCodes": [
+                    {
+                      "codeValue": "MM01080",
+                      "longName": "Carepentry"
+                    },
+                    {
+                      "codeValue": "0020",
+                      "longName": "Chemistry"
+                    }
+                  ],
+                  "minorProgramNameCodes": [
+                    {
+                      "codeValue": "0020",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "honorsProgramNameCodes": [
+                    {
+                      "codeValue": "00",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "educationalInstitutionAttendances": [
+                    {
+                      "educationalInstitution": {
+                        "nameCode": {
+                          "codeValue": "%^#@#1",
+                          "longName": "e College"
+                        }
+                      }
+                    }
+                  ],
+                  "academicCreditsCompleted": "3",
+                  "academicScore": {
+                    "unitCode": {
+                      "codeValue": "CEU",
+                      "longName": "Canadore College"
+                    },
+                    "scoreCode": {
+                      "codeValue": "9",
+                      "longName": "Canadore College"
+                    }
+                  },
+                  "verificationDate": "2019-10-12",
+                  "comments": "Testing from change post non redbox test 3 wfnui",
+                  "employerPaidAmount": {
+                    "amountValue": 178000,
+                    "currencyCode": {
+                      "codeValue": "USD",
+                      "longName": "United States Dollor"
+                    }
+                  }
+                }
+              },
+              "eventContext": {
+                "associateOID": "G34YJ69EMRR7N4VJ",
+                "associateEducationalDegree": {
+                  "itemID": "169740215951_1"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "G34YJ69EMRR7N4VJ"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "educationalDegree.change"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "3._changing_education_degree_with_invalid_major_name_code_Provide_Example_educationalDegree.change_request_4595.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateEducationalDegree": {
+                  "nameCode": {
+                    "codeValue": "AA",
+                    "longName": "Bachelor"
+                  },
+                  "startDate": "2017-09-26",
+                  "expectedCompletionDate": "2019-09-27",
+                  "actualCompletionDate": "2019-09-29",
+                  "completionDuration": "P2Y2M ",
+                  "majorProgramNameCodes": [
+                    {
+                      "codeValue": "*&^&$??",
+                      "longName": "nsdbhg"
+                    },
+                    {
+                      "codeValue": "0020",
+                      "longName": "Chemistry"
+                    }
+                  ],
+                  "minorProgramNameCodes": [
+                    {
+                      "codeValue": "0020",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "honorsProgramNameCodes": [
+                    {
+                      "codeValue": "00",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "educationalInstitutionAttendances": [
+                    {
+                      "educationalInstitution": {
+                        "nameCode": {
+                          "codeValue": "CA063",
+                          "longName": "Canadore College"
+                        }
+                      }
+                    }
+                  ],
+                  "academicCreditsCompleted": "3",
+                  "academicScore": {
+                    "unitCode": {
+                      "codeValue": "CEU",
+                      "longName": "Canadore College"
+                    },
+                    "scoreCode": {
+                      "codeValue": "9",
+                      "longName": "Canadore College"
+                    }
+                  },
+                  "verificationDate": "2019-10-12",
+                  "comments": "Testing from change post non redbox test 3 wfnui",
+                  "employerPaidAmount": {
+                    "amountValue": 178000,
+                    "currencyCode": {
+                      "codeValue": "USD",
+                      "longName": "United States Dollor"
+                    }
+                  }
+                }
+              },
+              "eventContext": {
+                "associateOID": "G34YJ69EMRR7N4VJ",
+                "associateEducationalDegree": {
+                  "itemID": "169740215951_1"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "G34YJ69EMRR7N4VJ"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "educationalDegree.change"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "4._changing_education_degree_with_invalid_minor_name_code_Provide_Example_educationalDegree.change_request_4596.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateEducationalDegree": {
+                  "nameCode": {
+                    "codeValue": "AA",
+                    "longName": "Bachelor"
+                  },
+                  "startDate": "2017-09-26",
+                  "expectedCompletionDate": "2019-09-27",
+                  "actualCompletionDate": "2019-09-29",
+                  "completionDuration": "P2Y2M ",
+                  "majorProgramNameCodes": [
+                    {
+                      "codeValue": "MM01080",
+                      "longName": "Carepentry"
+                    },
+                    {
+                      "codeValue": "0020",
+                      "longName": "Chemistry"
+                    }
+                  ],
+                  "minorProgramNameCodes": [
+                    {
+                      "codeValue": "abq10",
+                      "longName": " "
+                    }
+                  ],
+                  "honorsProgramNameCodes": [
+                    {
+                      "codeValue": "00",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "educationalInstitutionAttendances": [
+                    {
+                      "educationalInstitution": {
+                        "nameCode": {
+                          "codeValue": "CA063",
+                          "longName": "Canadore College"
+                        }
+                      }
+                    }
+                  ],
+                  "academicCreditsCompleted": "3",
+                  "academicScore": {
+                    "unitCode": {
+                      "codeValue": "CEU",
+                      "longName": "Canadore College"
+                    },
+                    "scoreCode": {
+                      "codeValue": "9",
+                      "longName": "Canadore College"
+                    }
+                  },
+                  "verificationDate": "2019-10-12",
+                  "comments": "Testing from change post non redbox test 3 wfnui",
+                  "employerPaidAmount": {
+                    "amountValue": 178000,
+                    "currencyCode": {
+                      "codeValue": "USD",
+                      "longName": "United States Dollor"
+                    }
+                  }
+                }
+              },
+              "eventContext": {
+                "associateOID": "G34YJ69EMRR7N4VJ",
+                "associateEducationalDegree": {
+                  "itemID": "169740215951_1"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "G34YJ69EMRR7N4VJ"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "educationalDegree.change"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "5._Changing_Educational_Degree_details_with_invalid_associateEducationalDegree(Education)_Provide_Example_educationalDegree.change_request_4597.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateEducationalDegree": {
+                  "nameCode": {
+                    "codeValue": "%@#%",
+                    "longName": "Bachelor"
+                  },
+                  "startDate": "2017-09-26",
+                  "expectedCompletionDate": "2019-09-27",
+                  "actualCompletionDate": "2019-09-29",
+                  "completionDuration": "P2Y2M ",
+                  "majorProgramNameCodes": [
+                    {
+                      "codeValue": "MM01080",
+                      "longName": "Carepentry"
+                    },
+                    {
+                      "codeValue": "0020",
+                      "longName": "Chemistry"
+                    }
+                  ],
+                  "minorProgramNameCodes": [
+                    {
+                      "codeValue": "0020",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "honorsProgramNameCodes": [
+                    {
+                      "codeValue": "00",
+                      "longName": "Carpentry"
+                    }
+                  ],
+                  "educationalInstitutionAttendances": [
+                    {
+                      "educationalInstitution": {
+                        "nameCode": {
+                          "codeValue": "CA063",
+                          "longName": "Canadore College"
+                        }
+                      }
+                    }
+                  ],
+                  "academicCreditsCompleted": "3",
+                  "academicScore": {
+                    "unitCode": {
+                      "codeValue": "CEU",
+                      "longName": "Canadore College"
+                    },
+                    "scoreCode": {
+                      "codeValue": "9",
+                      "longName": "Canadore College"
+                    }
+                  },
+                  "verificationDate": "2019-10-12",
+                  "comments": "Testing from change post non redbox test 3 wfnui",
+                  "employerPaidAmount": {
+                    "amountValue": 178000,
+                    "currencyCode": {
+                      "codeValue": "USD",
+                      "longName": "United States Dollor"
+                    }
+                  }
+                }
+              },
+              "eventContext": {
+                "associateOID": "G34YJ69EMRR7N4VJ",
+                "associateEducationalDegree": {
+                  "itemID": "169740215951_1"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "G34YJ69EMRR7N4VJ"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "educationalDegree.change"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Removing_an_employee's_educational_degree._Provide_Example_educationalDegree.remove_request_4598.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "G34YJ69EMRR7N4VJ",
+                "associateEducationalDegree": {
+                  "itemID": "169742015869_1"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "G34YJ69EMRR7N4VJ"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "educationalDegree.remove"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "tile": "talent/associate-certifications/v2",
+  "samples": [
+    {
+      "filename": "Adds_certification_for_an_associate_Provide_Example_certification.add_request_4275.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateCertification": {
+                  "certificationNameCode": {
+                    "codeValue": "CPR",
+                    "longName": "Certified to Perfon CPR"
+                  },
+                  "certificationID": {
+                    "idValue": "124577"
+                  },
+                  "categoryCode": {
+                    "codeValue": "C",
+                    "longName": "Certification"
+                  },
+                  "issuingParty": {
+                    "nameCode": {
+                      "codeValue": "test"
+                    }
+                  },
+                  "employerPaidAmount": {
+                    "amountValue": "367560",
+                    "currencyCode": {
+                      "codeValue": "USD",
+                      "longName": "United States Dollor"
+                    }
+                  },
+                  "firstIssueDate": "2019-09-21",
+                  "expirationDate": "2020-09-25",
+                  "renewalComments": "testing requiremen",
+                  "comments": "testing certificaion renewal from post add"
+                }
+              },
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}"
+              }
+            },
+            "actor": {
+              "associateOID": "{{employeeAOID}}"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "associate.ksaoc.certification.add"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Updates_as_associates_certification_Provide_Example_certification.change_request_4276.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateCertification": {
+                  "certificationNameCode": {
+                    "codeValue": "CPR",
+                    "longName": "Certified to Perfon CPR"
+                  },
+                  "certificationID": {
+                    "idValue": "124588"
+                  },
+                  "categoryCode": {
+                    "codeValue": "M",
+                    "longName": "Certification"
+                  },
+                  "issuingParty": {
+                    "nameCode": {
+                      "codeValue": "test12"
+                    }
+                  },
+                  "employerPaidAmount": {
+                    "amountValue": "36756",
+                    "currencyCode": {
+                      "codeValue": "USD",
+                      "longName": "United States Dollor"
+                    }
+                  },
+                  "firstIssueDate": "20-09-2018",
+                  "expirationDate": "2020-09-25",
+                  "renewalComments": "testing ",
+                  "comments": "testing certificaion renewal from  add"
+                }
+              },
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "associateCertification": {
+                  "itemID": "169740212245_520"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "{{employeeAOID}}"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "associate.ksaoc.certification.change"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Remove_an_associates_data_Provide_Example_certification.remove_request_4277.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "associateCertification": {
+                  "itemID": "169740568292_183"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "{{employeeAOID}}"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "educationalDegree.remove"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

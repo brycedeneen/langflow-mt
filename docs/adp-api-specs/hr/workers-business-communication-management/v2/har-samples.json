@@ -1,0 +1,359 @@
+{
+  "tile": "hr/workers-business-communication-management/v2",
+  "samples": [
+    {
+      "filename": "workers_business_email_Provide_Example_worker.businessCommunication.email.add_request_3817.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "businessCommunication": {
+                    "email": {
+                      "emailUri": "Asciber@adp.com"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "workers_fax_Provide_Example_worker.businessCommunication.fax.add_request_3818.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "businessCommunication": {
+                    "fax": {
+                      "areaDialing": "973",
+                      "dialNumber": "5553246"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "persons_landline_Provide_Example_worker.businessCommunication.landline.add_request_3819.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "businessCommunication": {
+                    "landline": {
+                      "areaDialing": "973",
+                      "dialNumber": "5553247"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "workers_mobile_number_Provide_Example_worker.businessCommunication.mobile.add_request_3820.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "businessCommunication": {
+                    "mobile": {
+                      "areaDialing": "973",
+                      "dialNumber": "7133456"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Adding_workers_business_pager_Custom_Example_worker.businessCommunication.pager.add_request_36264.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "businessCommunication": {
+                    "pager": {
+                      "countryDialing": "1",
+                      "areaDialing": "222",
+                      "dialNumber": "4567896"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Change_business_communication_email_requestSample_3_worker.businessCommunication.email.change_request_3855.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "businessCommunication": {
+                    "email": {
+                      "emailUri": "Testing2@test.com"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "workers_business_fax_number_Provide_Example_worker.businessCommunication.fax.change_request_3821.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "businessCommunication": {
+                    "fax": {
+                      "areaDialing": "973",
+                      "dialNumber": "5553247"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "workers_business_landline_Provide_Example_worker.businessCommunication.landline.change_request_3822.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "businessCommunication": {
+                    "landline": {
+                      "areaDialing": "973",
+                      "dialNumber": "5553246"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "workers_business_mobile_Provide_Example_worker.businessCommunication.mobile.change_request_3823.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "businessCommunication": {
+                    "mobile": {
+                      "areaDialing": "973",
+                      "dialNumber": "7133458"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "workers_business_pager_Provide_Example_worker.businessCommunication.pager.change_request_3824.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "businessCommunication": {
+                    "pager": {
+                      "areaDialing": "241",
+                      "dialNumber": "5678964"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "business_communication_email_Provide_Example_worker.businessCommunication.email.remove_request_3825.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "workers_business_fax_Provide_Example_worker.businessCommunication.fax.remove_request_3826.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Business_landline_Provide_Example_worker.businessCommunication.landline.remove_request_3827.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "workers_business_mobile_Provide_Example_worker.businessCommunication.mobile.remove_request_3828.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "workers_business_pager_Provide_Example_worker.businessCommunication.pager.remove_request_3829.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

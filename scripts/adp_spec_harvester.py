@@ -38,6 +38,7 @@ TILES: list[tuple[str, str, str]] = [
     ("hr", "workers-work-assignment-management", "v2"),
     ("hr", "workers-demographic-data-management", "v2"),
     ("hr", "workers-biological-data-management", "v2"),
+    ("hr", "workers-business-communication-management", "v2"),
     ("hr", "workers-lifecycle-management", "v2"),
     ("hr", "worker-leaves", "v2"),
     ("hr", "hr-worker-profiles", "v1"),
@@ -52,6 +53,7 @@ TILES: list[tuple[str, str, str]] = [
     ("payroll", "pay-data-input", "v1"),
     ("payroll", "us-tax-profiles", "v1"),
     ("payroll", "us-tax-profiles", "v2"),
+    ("payroll", "deduction-configurations", "v3"),
     ("payroll", "pay-distributions", "v2"),
     ("payroll", "pay-statements", "v1"),
     ("payroll", "pay-statements", "v2"),  # 403 gated
@@ -71,8 +73,10 @@ TILES: list[tuple[str, str, str]] = [
     ("talent", "associate-educational-degrees", "v2"),
     ("talent", "associate-memberships", "v2"),
     ("talent", "associate-licenses", "v2"),
+    ("talent", "associate-recognitions", "v2"),
     # Benefits
     ("benefits", "beneficiaries", "v1"),
+    ("benefits", "dependents", "v1"),
     ("benefits", "external-plans", "v1"),
     ("benefits", "spending-account-plans", "v1"),
     ("benefits", "spending-account-enrollments", "v1"),

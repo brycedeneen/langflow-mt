@@ -1,0 +1,564 @@
+{
+  "tile": "hr/workers-personal-communication-management/v2",
+  "samples": [
+    {
+      "filename": "Workers_Address_Provide_Example_worker.legalAddress.add_request_3801.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "person": {
+                    "legalAddress": {
+                      "lineOne": "129 Holly Hill Road",
+                      "lineTwo": "TEST",
+                      "cityName": "Andover",
+                      "countryCode": "US",
+                      "postalCode": "01810",
+                      "countrySubdivisionLevel1": {
+                        "codeValue": "MA"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "worker_address_Provide_Example_worker.personalAddress.add_request_3802.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "person": {
+                    "personalAddress": {
+                      "lineOne": "129-129 Holly Hill Road",
+                      "lineTwo": "TEST",
+                      "cityName": "Andover",
+                      "countryCode": "US",
+                      "postalCode": "01810",
+                      "countrySubdivisionLevel1": {
+                        "codeValue": "MA"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Adding_workers_personal_email_address_Custom_Example_worker.personalCommunication.email.add_request_31917.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "person": {
+                    "communication": {
+                      "email": {
+                        "emailUri": "testing12@gmail.com"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Adding_a_workers_personal_fax_number_Custom_Example_worker.personalCommunication.fax.add_request_31919.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "person": {
+                    "communication": {
+                      "fax": {
+                        "areaDialing": "244",
+                        "dialNumber": "4567895"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "worker_personal_communication_Provide_Example_worker.personalCommunication.landline.add_request_3803.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "person": {
+                    "communication": {
+                      "landline": {
+                        "areaDialing": "240",
+                        "dialNumber": "4567896"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "links": []
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Adding_workers_personal_mobile_number_Custom_Example_worker.personalCommunication.mobile.add_request_31922.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "person": {
+                    "communication": {
+                      "mobile": {
+                        "areaDialing": "409",
+                        "dialNumber": "8713422"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "workers_personal_pager_number_Provide_Example_worker.personalCommunication.pager.add_request_3804.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "person": {
+                    "communication": {
+                      "pager": {
+                        "areaDialing": "409",
+                        "dialNumber": "8713422"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Change_the_workers_legal_address_Custom_Example_worker.legalAddress.change_request_31912.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "person": {
+                    "legalAddress": {
+                      "lineOne": "160 park ave",
+                      "lineTwo": "",
+                      "cityName": "Pleasantville",
+                      "countrySubdivisionLevel1": {
+                        "codeValue": "NJ"
+                      },
+                      "countryCode": "US",
+                      "postalCode": "07060"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Personal_address_Provide_Example_worker.personalAddress.change_request_3805.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}",
+                  "person": {
+                    "personalAddress": {
+                      "itemID": "139454712973_1"
+                    }
+                  }
+                }
+              },
+              "transform": {
+                "worker": {
+                  "person": {
+                    "personalAddress": {
+                      "lineOne": "129 Holly Hill Road",
+                      "lineTwo": "TEST",
+                      "cityName": "Andover",
+                      "countryCode": "US",
+                      "postalCode": "01810",
+                      "countrySubdivisionLevel1": {
+                        "codeValue": "MA"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Changes_a_workers_personal_email_address_Custom_Example_worker.personalCommunication.email.change_request_31918.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "person": {
+                    "communication": {
+                      "email": {
+                        "emailUri": "testchangeemail@gmail.com"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Workers_personal_fax_Provide_Example_worker.personalCommunication.fax.change_request_3806.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "person": {
+                    "communication": {
+                      "fax": {
+                        "areaDialing": "244",
+                        "dialNumber": "4567896"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "workers_landline_number_Provide_Example_worker.personalCommunication.landline.change_request_3807.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "person": {
+                    "communication": {
+                      "landline": {
+                        "areaDialing": "240",
+                        "dialNumber": "5678964"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "links": []
+          }
+        ]
+      }
+    },
+    {
+      "filename": "persons_personal_mobile_communication_Provide_Example_worker.personalCommunication.mobile.change_request_3808.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "person": {
+                    "communication": {
+                      "mobile": {
+                        "nameCode": {
+                          "codeValue": "Personal Cell",
+                          "shortName": "Personal Cell"
+                        },
+                        "countryDialing": "1",
+                        "areaDialing": "409",
+                        "dialNumber": "8714425",
+                        "access": "1",
+                        "formattedNumber": "(409) 871-4425"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Personal_communication_pager_Provide_Example_worker.personalCommunication.pager.change_request_3809.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              },
+              "transform": {
+                "worker": {
+                  "person": {
+                    "communication": {
+                      "pager": {
+                        "areaDialing": "409",
+                        "dialNumber": "8713423"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "workers_legal_address_Provide_Example_worker.legalAddress.remove_request_3810.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "workers_personal_address_Provide_Example_worker.personalAddress.remove_request_3811.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}",
+                  "person": {
+                    "personalAddress": {
+                      "itemID": "139496049274_1"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Remove_workers_email_Provide_Example_worker.personalCommunication.email.remove_request_3812.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "workers_fax_Provide_Example_worker.personalCommunication.fax.remove_request_3813.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "workers_personal_landline_Provide_Example_worker.personalCommunication.landline.remove_request_3814.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              }
+            },
+            "links": []
+          }
+        ]
+      }
+    },
+    {
+      "filename": "workers_personal_mobile_Provide_Example_worker.personalCommunication.mobile.remove_request_3815.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "personal_communication_Provide_Example_worker.personalCommunication.pager.remove_request_3816.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

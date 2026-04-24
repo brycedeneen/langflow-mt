@@ -1,0 +1,392 @@
+{
+  "tile": "talent/associate-recognitions/v2",
+  "samples": [
+    {
+      "filename": "1._Adding_an_Associate's_Recognitions_Custom_Example_recognition.add_request_31871.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateRecognition": {
+                  "nameCode": {
+                    "codeValue": "TEST",
+                    "longName": "TEST2"
+                  },
+                  "typeCode": {
+                    "codeValue": "AWARD1"
+                  },
+                  "issuingParty": {
+                    "nameCode": {
+                      "codeValue": "AWD",
+                      "shortName": "Award1"
+                    }
+                  },
+                  "issueDate": "2019-10-22"
+                }
+              },
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}"
+              }
+            },
+            "actor": {
+              "associateOID": "{{employeeAOID}}"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "associate.ksaoc.recognition.add"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "1._Updating_an_Associate's_Recognitions_Custom_Example_recognition.change_request_31874.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateRecognition": {
+                  "nameCode": {
+                    "codeValue": "TEST",
+                    "longName": "TEST2"
+                  },
+                  "issuingParty": {
+                    "nameCode": {
+                      "codeValue": "AWD",
+                      "shortName": "Award1"
+                    }
+                  },
+                  "issueDate": "2019-10-22",
+                  "typeCode": {
+                    "codeValue": "AWARD2"
+                  }
+                }
+              },
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "associateRecognition": {
+                  "itemID": "169739352511_58"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "{{employeeAOID}}"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "associate.ksaoc.recognition.change"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "1._Removing_an_Associate's_Recognitions_Custom_Example_recognition.remove_request_31878.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "associateRecognition": {
+                  "itemID": "169739352511_58"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "{{employeeAOID}}"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "associate.ksaoc.recognition.remove"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "2._Remove_an_award_for_an_employee_with_invalid_item_ID_Custom_Example_recognition.remove_request_31886.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "associateRecognition": {
+                  "itemID": "169739352511_58"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "{{employeeAOID}}"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "associate.ksaoc.recognition.remove"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "3._Remove_an_award_for_an_invalid_employee_Custom_Example_recognition.remove_request_31887.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "associateRecognition": {
+                  "itemID": "169739432703_1"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "{{employeeAOID}}"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "associate.ksaoc.recognition.remove"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "2._Update_an_award_for_an_employee_with_invalid_itemID_Custom_Example_recognition.change_request_31875.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateRecognition": {
+                  "nameCode": {
+                    "codeValue": "TEST",
+                    "longName": "TEST2"
+                  },
+                  "issuingParty": {
+                    "nameCode": {
+                      "codeValue": "AWD",
+                      "shortName": "Award1"
+                    }
+                  },
+                  "issueDate": "2019-10-22",
+                  "typeCode": {
+                    "codeValue": "AWARD1"
+                  }
+                }
+              },
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "associateRecognition": {
+                  "itemID": "169739352511_5"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "{{employeeAOID}}"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "associate.ksaoc.recognition.change"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "3._Update_an_award_for_an_employee_with_invalid_Award_Type_Custom_Example_recognition.change_request_31876.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateRecognition": {
+                  "nameCode": {
+                    "codeValue": "TEST11",
+                    "longName": "TEST2"
+                  },
+                  "issuingParty": {
+                    "nameCode": {
+                      "codeValue": "AWD",
+                      "shortName": "Award1"
+                    }
+                  },
+                  "issueDate": "2019-10-22",
+                  "typeCode": {
+                    "codeValue": "AWARD11"
+                  }
+                }
+              },
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "associateRecognition": {
+                  "itemID": "169739432703_1"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "{{employeeAOID}}"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "associate.ksaoc.recognition.change"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "4._Update_an_award_for_invalid_employee_Custom_Example_recognition.change_request_31877.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateRecognition": {
+                  "nameCode": {
+                    "codeValue": "TEST11",
+                    "longName": "TEST2"
+                  },
+                  "issuingParty": {
+                    "nameCode": {
+                      "codeValue": "AWD",
+                      "shortName": "Award1"
+                    }
+                  },
+                  "issueDate": "2019-10-22",
+                  "typeCode": {
+                    "codeValue": "AWARD1"
+                  }
+                }
+              },
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "associateRecognition": {
+                  "itemID": "169739432703_1"
+                }
+              }
+            },
+            "actor": {
+              "associateOID": "{{employeeAOID}}"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "associate.ksaoc.recognition.change"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "2._Add_an_award_with_invalid_award_type_for_an_employee_Custom_Example_recognition.add_request_31872.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateRecognition": {
+                  "nameCode": {
+                    "codeValue": "TEST",
+                    "longName": "TEST2"
+                  },
+                  "typeCode": {
+                    "codeValue": "AWARD11"
+                  },
+                  "issuingParty": {
+                    "nameCode": {
+                      "codeValue": "AWD",
+                      "shortName": "Award1"
+                    }
+                  },
+                  "issueDate": "2019-10-22"
+                }
+              },
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}"
+              }
+            },
+            "actor": {
+              "associateOID": "{{employeeAOID}}"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "associate.ksaoc.recognition.add"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "3._Add_an_award_with_invalid_date_format_Custom_Example_recognition.add_request_31873.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "transform": {
+                "associateRecognition": {
+                  "nameCode": {
+                    "codeValue": "TEST",
+                    "longName": "TEST2"
+                  },
+                  "typeCode": {
+                    "codeValue": "AWARD1"
+                  },
+                  "issuingParty": {
+                    "nameCode": {
+                      "codeValue": "123awd",
+                      "shortName": "Award1"
+                    }
+                  },
+                  "issueDate": "10-22-2019"
+                }
+              },
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}"
+              }
+            },
+            "actor": {
+              "associateOID": "{{employeeAOID}}"
+            },
+            "serviceCategoryCode": {
+              "codeValue": "workerTalentManagement"
+            },
+            "eventNameCode": {
+              "codeValue": "associate.ksaoc.recognition.add"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
