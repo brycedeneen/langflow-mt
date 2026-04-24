@@ -1,0 +1,31 @@
+worker:
+  enabled: true
+  replicas: 1
+  concurrency: 8
+  queues:
+    - "runs:default"
+    - "runs:high"
+    - "webhooks"
+  # Leave resources empty to inherit cluster defaults, or set requests/limits
+  # here. Example:
+  #   resources:
+  #     requests:
+  #       cpu: "500m"
+  #       memory: "1Gi"
+  #     limits:
+  #       cpu: "2"
+  #       memory: "4Gi"
+  resources: {}
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 10
+    redis:
+      # Host[:port]. Must match the LANGFLOW_REDIS_URL the worker reads.
+      address: "redis:6379"
+      # The queue the ScaledObject watches. If you run multiple queue
+      # Deployments, create one ScaledObject per queue.
+      queueName: "runs:default"
+      # Target queue length per replica. KEDA scales toward
+      # ceil(queue_length / listLength) replicas, within minReplicas/maxReplicas.
+      listLength: "100"

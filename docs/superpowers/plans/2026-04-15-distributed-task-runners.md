@@ -2599,7 +2599,7 @@ git commit -m "chore(runs): docker-compose workers; remove celery/rabbitmq/flowe
 
 ### Task 30: Helm chart + KEDA `ScaledObject`
 
-> **DEFERRED — cross-repo handoff.** The Helm chart lives in a separate repo (not `langflow-ai/langflow`). The concrete work below is captured here as the spec for whoever takes the handoff; none of it is performed in this repo. Track as a cross-repo issue.
+> **DEFERRED — cross-repo handoff.** The Helm chart lives in a separate repo (not `langflow-ai/langflow`). A concrete starter with the three templates this plan spec'd out now lives in-tree at `deploy/helm/worker-starter/` (see that directory's README). Whoever owns the external Helm repo can lift those files; none of it is applied here.
 
 **Files (in the Helm repo, not this one):**
 - Modify or create: `deploy/helm/langflow/templates/worker-deployment.yaml`

@@ -1,0 +1,20 @@
+{{- if and .Values.worker.enabled .Values.worker.autoscaling.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "langflow.fullname" . }}-worker
+  labels:
+    {{- include "langflow.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  scaleTargetRef:
+    name: {{ include "langflow.fullname" . }}-worker
+  minReplicaCount: {{ .Values.worker.autoscaling.minReplicas }}
+  maxReplicaCount: {{ .Values.worker.autoscaling.maxReplicas }}
+  triggers:
+    - type: redis
+      metadata:
+        address: {{ .Values.worker.autoscaling.redis.address | quote }}
+        listName: "arq:queue:{{ .Values.worker.autoscaling.redis.queueName }}"
+        listLength: {{ .Values.worker.autoscaling.redis.listLength | quote }}
+{{- end }}
