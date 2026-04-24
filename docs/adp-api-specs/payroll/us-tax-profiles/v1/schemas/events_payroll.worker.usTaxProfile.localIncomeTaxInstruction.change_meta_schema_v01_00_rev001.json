@@ -1,0 +1,1282 @@
+{
+  "title": "WorkerUSLocalIncomeTaxIntructionChangeEventMeta",
+  "type": "object",
+  "description": "An instance to capture an event when a worker's local income tax instruction is changed, either by a practitioner or as the result of the worker submitting a completed W4 form - Meta",
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "description": "Event meta data",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "/serviceCategoryCode/codeValue": {
+          "description": "The service domain, e.g HR, Payroll, Benefits, etc. This field is always present and valued based on a standard codelist.",
+          "type": "string",
+          "enum": [
+            "payroll"
+          ]
+        },
+        "/eventNameCode/codeValue": {
+          "description": "This is the canonical name of the event, e.g. dependent.add, worker.hire. This field is always present and valued based on a standard codelist.",
+          "type": "string",
+          "enum": [
+            "worker.usTaxProfile.locallncomeTaxInstruction.change"
+          ]
+        },
+        "queryCriteria": {
+          "description": "A collection of query criteria",
+          "type": "array",
+          "additionalProperties": false,
+          "items": {
+            "title": "workerusTaxProfile.locallncomeTaxInstruction.changeQueryCriterion",
+            "description": "A single query parameter",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "queryOptionCode": {
+                "description": "A code identifying the supported query option",
+                "$ref": "#/definitions/simpleCodeType_v02"
+              },
+              "obligationCode": {
+                "description": "A Code identifying whether the parameter is required, optional, conditional",
+                "$ref": "#/definitions/simpleCodeType_v02"
+              },
+              "queryOptionTypeCode": {
+                "description": "A Code identifying the type of option.  Examples are standard, OData, clientCustom, userCustom",
+                "$ref": "#/definitions/simpleCodeType_v02"
+              },
+              "defaultNumberValue": {
+                "description": "The default number value",
+                "type": "number"
+              },
+              "defaultStringValue": {
+                "description": "The default string value",
+                "type": "string"
+              },
+              "resourcePathMax": {
+                "description": "Maximum number of resource paths supported",
+                "type": "integer"
+              },
+              "pattern": {
+                "description": "Indicates a regular expression on the required pattern for the value",
+                "type": "string"
+              },
+              "resourcePaths": {
+                "description": "A collection of acceptable resource paths to pass to the query option",
+                "type": "array",
+                "additionalProperties": false,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "excludedResourcePaths": {
+                "description": "A collection of resource paths which may not be passed to the query option.  An example use of this is where you allow all paths except 1 or 2.  You would want to only specify those which are excluded",
+                "type": "array",
+                "additionalProperties": false,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "queryValueCodeList": {
+                "description": "A reference to the codeList which returns the possible values for the query option",
+                "$ref": "#/definitions/codeListType_v03"
+              },
+              "logicalOperators": {
+                "description": "A collection of logical operators",
+                "type": "array",
+                "additionalProperties": false,
+                "items": {
+                  "description": "A logical operation",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "logicalOperatorCode": {
+                      "description": "A coded identifying the supported query options",
+                      "$ref": "#/definitions/simpleCodeType_v02"
+                    },
+                    "mutuallyExclusiveIndicator": {
+                      "description": "The URI of the related entity",
+                      "$ref": "#/definitions/indicatorType_v01"
+                    },
+                    "mutuallyExclusiveLogicalOperatorCodes": {
+                      "description": "A list of mutually exclusive operator codes.",
+                      "type": "array",
+                      "items": {
+                        "description": "Mutually exclusive logical operator code.",
+                        "title": "MutuallyExclusiveLogicalOperatorCode",
+                        "$ref": "#/definitions/simpleCodeType_v02",
+                        "additionalProperties": false
+                      }
+                    }
+                  }
+                }
+              },
+              "itemID": {
+                "description": "The unique identifier of the array",
+                "$ref": "#/definitions/itemIDType_v01"
+              }
+            }
+          }
+        },
+        "/data/eventContext": {
+          "description": "Validation rules for the event context",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "/contextExpressionID": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/worker": {
+              "$ref": "#/definitions/objectType_v01"
+            },
+            "/worker/associateOID": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/usTaxProfile": {
+              "$ref": "#/definitions/objectType_v01"
+            },
+            "/usTaxProfile/payrollRegionCode": {
+              "$ref": "#/definitions/stringCodeListType_v02"
+            },
+            "/usTaxProfile/payrollRegionCode/codeValue": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/usTaxProfile/payrollRegionCode/shortName": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/usTaxProfile/payrollRegionCode/longName": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/usTaxProfile/payrollGroupCode": {
+              "$ref": "#/definitions/stringCodeListType_v02"
+            },
+            "/usTaxProfile/payrollGroupCode/codeValue": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/usTaxProfile/payrollGroupCode/shortName": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/usTaxProfile/payrollGroupCode/longName": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/usTaxProfile/payrollFileNumber": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/usTaxProfile/itemID": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/usTaxProfile/taxYear": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/usTaxProfile/usLocalTaxInstruction": {
+              "$ref": "#/definitions/objectType_v01"
+            },
+            "/usTaxProfile/usLocalTaxInstruction/itemID": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/usTaxProfile/usLocalTaxInstruction/stateCode": {
+              "$ref": "#/definitions/stringCodeListType_v02"
+            },
+            "/usTaxProfile/usLocalTaxInstruction/stateCode/codeValue": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/usTaxProfile/usLocalTaxInstruction/stateCode/shortName": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/usTaxProfile/usLocalTaxInstruction/stateCode/longName": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/usTaxProfile/usLocalTaxInstruction/localCode": {
+              "$ref": "#/definitions/stringCodeListType_v02"
+            },
+            "/usTaxProfile/usLocalTaxInstruction/localCode/codeValue": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/usTaxProfile/usLocalTaxInstruction/localCode/shortName": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/usTaxProfile/usLocalTaxInstruction/localCode/longName": {
+              "$ref": "#/definitions/stringType_v01"
+            }
+          }
+        },
+        "/data/transforms": {
+          "description": "A collection of transform rules",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "itemID": {
+                "description": "The unique identifier of the collection.",
+                "type": "string"
+              },
+              "/eventReasonCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/eventReasonCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/eventReasonCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/eventReasonCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/eventStatusCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/eventStatusCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/eventStatusCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/eventStatusCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/effectiveDateTime": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/notificationIndicator": {
+                "$ref": "#/definitions/booleanType_v01"
+              },
+              "/usLocalTaxInstruction": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/usLocalTaxInstruction/stateCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/usLocalTaxInstruction/stateCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/stateCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/stateCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/localCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/usLocalTaxInstruction/localCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/localCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/localCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/primaryWorkedInJurisdictionIndicator": {
+                "$ref": "#/definitions/booleanType_v01"
+              },
+              "/usLocalTaxInstruction/workedInJurisdictionIndicator": {
+                "$ref": "#/definitions/booleanType_v01"
+              },
+              "/usLocalTaxInstruction/livedInJurisdictionIndicator": {
+                "$ref": "#/definitions/booleanType_v01"
+              },
+              "/usLocalTaxInstruction/taxTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/usLocalTaxInstruction/taxTypeCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/taxTypeCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/taxTypeCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/taxWithholdingStatus": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/usLocalTaxInstruction/taxWithholdingStatus/statusCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/usLocalTaxInstruction/taxWithholdingStatus/statusCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/taxWithholdingStatus/statusCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/taxWithholdingStatus/statusCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/taxWithholdingStatus/reasonCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/usLocalTaxInstruction/taxWithholdingStatus/reasonCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/taxWithholdingStatus/reasonCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/taxWithholdingStatus/reasonCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/taxWithholdingStatus/effectiveDate": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/taxFilingStatusCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/usLocalTaxInstruction/taxFilingStatusCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/taxFilingStatusCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/taxFilingStatusCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/taxAllowanceQuantity": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/usLocalTaxInstruction/taxAllowances": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/usLocalTaxInstruction/taxAllowances/allowanceTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/usLocalTaxInstruction/taxAllowances/allowanceTypeCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/taxAllowances/allowanceTypeCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/taxAllowances/allowanceTypeCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/taxAllowances/taxAllowanceQuantity": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/usLocalTaxInstruction/taxAllowances/taxAllowancePercentage": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/usLocalTaxInstruction/taxAllowances/taxAllowanceAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/usLocalTaxInstruction/taxAllowances/taxAllowanceAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/usLocalTaxInstruction/taxAllowances/taxAllowanceAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/usLocalTaxInstruction/taxAllowances/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/additionalTaxPercentage": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/usLocalTaxInstruction/additionalTaxAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/usLocalTaxInstruction/additionalTaxAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/usLocalTaxInstruction/additionalTaxAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/usLocalTaxInstruction/reducedTaxPercentage": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/usLocalTaxInstruction/reducedTaxAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/usLocalTaxInstruction/reducedTaxAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/usLocalTaxInstruction/reducedTaxAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/usLocalTaxInstruction/overrideTaxPercentage": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/usLocalTaxInstruction/overrideTaxAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/usLocalTaxInstruction/overrideTaxAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/usLocalTaxInstruction/overrideTaxAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/usLocalTaxInstruction/workedInAllocationPercentage": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/usLocalTaxInstruction/additionalStatutoryInputs": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/usLocalTaxInstruction/additionalStatutoryInputs/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/usLocalTaxInstruction/additionalStatutoryInputs/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/usLocalTaxInstruction/additionalStatutoryInputs/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/usLocalTaxInstruction/additionalStatutoryInputs/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/usLocalTaxInstruction/approvalStatus": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/usLocalTaxInstruction/approvalStatus/statusCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/usLocalTaxInstruction/approvalStatus/statusCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/approvalStatus/statusCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/approvalStatus/statusCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/approvalStatus/reasonCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/usLocalTaxInstruction/approvalStatus/reasonCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/approvalStatus/reasonCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/approvalStatus/reasonCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/usLocalTaxInstruction/approvalStatus/effectiveDate": {
+                "$ref": "#/definitions/stringType_v01"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "/serviceCategoryCode/codeValue",
+        "/eventNameCode/codeValue"
+      ]
+    }
+  },
+  "definitions": {
+    "simpleCodeType_v02": {
+      "description": "A simple (string) code.  Can have a code list reference",
+      "type": "string"
+    },
+    "codeListType_v03": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeListTitle": {
+          "description": "Code list title",
+          "type": "string"
+        },
+        "exclusiveIndicator": {
+          "description": "False indicates that the user may enter their own value for the code.  That is, the codeList is supported and extensions are also supported.  True means that only the codeList values are supported. If value is false then the UI will allow a dialog box for the shortName.  The system will generate a key (codeValue) for the user entered value.  The system would need to manage these user defined values.",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": true
+        },
+        "listItems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/codeListItemType_v02"
+          }
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      }
+    },
+    "indicatorType_v01": {
+      "description": "Boolean expression",
+      "type": "boolean"
+    },
+    "codeListItemType_v02": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        },
+        "itemID": {
+          "description": "Unique identifier of an item in the collection",
+          "$ref": "#/definitions/itemIDType_v01"
+        },
+        "valueDescription": {
+          "description": "Additional list item description",
+          "type": "string"
+        },
+        "foreignKey": {
+          "description": "Allows for filtering the code list",
+          "type": "string"
+        },
+        "inactiveIndicator": {
+          "description": "Indicates if the current item is inactive.  The code is considered 'active' if the value is 'false' or the entire field is omitted",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "defaultIndicator": {
+          "description": "Indicates if the current value is a default (pre-selected)",
+          "$ref": "#/definitions/indicatorType_v01"
+        }
+      }
+    },
+    "itemIDType_v01": {
+      "description": "The unique identifier of the object in a collection",
+      "$ref": "#/definitions/simpleIDType_v02"
+    },
+    "simpleIDType_v02": {
+      "description": "The simple (string) identifier of an object",
+      "type": "string"
+    },
+    "linkType_v02": {
+      "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "href": {
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "rel": {
+          "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+          "type": "string",
+          "enum": [
+            "alternate",
+            "create",
+            "canonical",
+            "describedby",
+            "edit-form",
+            "enclosure",
+            "full",
+            "related",
+            "root",
+            "self",
+            "up",
+            "search",
+            "first",
+            "last",
+            "next",
+            "previous",
+            "/adp/invoke",
+            "/adp/image",
+            "/adp/confirm-message",
+            "/adp/status-monitor",
+            "/adp/codelist",
+            "/adp/template",
+            "/adp/externalLink",
+            "/adp/validation",
+            "/adp/deeplink",
+            "/adp/attachment",
+            "/adp/workflow"
+          ]
+        },
+        "canonicalUri": {
+          "description": "A unique identifier of the feature/function/operation, the link poins to",
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "title": {
+          "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user",
+          "type": "string"
+        },
+        "targetSchema": {
+          "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation",
+          "type": "string"
+        },
+        "mediaType": {
+          "description": "The media type that the linked resource will return (Response)",
+          "type": "string",
+          "enum": [
+            "application/gzip",
+            "application/json",
+            "application/msword",
+            "application/pdf",
+            "application/postscript",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/xml",
+            "application/x-www-form-urlencoded",
+            "image/gif",
+            "image/jpeg",
+            "image/png",
+            "image/tiff",
+            "multipart/mixed",
+            "text/html",
+            "text/plain",
+            "application/vnd.visio",
+            "image/bmp",
+            "image/x-ms-bmp",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/vnd.ms-powerpoint",
+            "video/mp4",
+            "audio/mpeg",
+            "video/x-msvideo",
+            "video/x-ms-wmv",
+            "application/rtf",
+            "application/vnd.ms-outlook",
+            "text/csv",
+            "video/quicktime",
+            "application/zip",
+            "application/illustrator",
+            "text/xml"
+          ]
+        },
+        "method": {
+          "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "DELETE",
+            "PUT"
+          ]
+        },
+        "encType": {
+          "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+          "type": "string",
+          "enum": [
+            "application/json",
+            "application/x-www-form-urlencoded"
+          ]
+        },
+        "schema": {
+          "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body",
+          "type": "string"
+        },
+        "payLoadArguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "argumentPath": {
+                "description": "Code value (typically a key field) of the code list item",
+                "type": "string"
+              },
+              "argumentValue": {
+                "description": "Code value (typically a key field) of the code list item",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "URIType_v01": {
+      "description": "The URI of the related entity",
+      "type": "string",
+      "format": "uri"
+    },
+    "stringType_v01": {
+      "type": "object",
+      "properties": {
+        "readOnly": {
+          "description": "True indicates that the property is marked read only in the given context",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": false
+        },
+        "optional": {
+          "description": "True indicates that this property does not need to be valued",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": false
+        },
+        "hidden": {
+          "description": "True indicates that the property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": false
+        },
+        "sequence": {
+          "description": "A number which provides the sequence that this property should be presented in relation to other properties",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "disallow": {
+          "description": "Specified on a target property.  If the passed conditions are true then this property is disallowed and therefore, not presented to a user",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/disallowItemType_v01"
+          }
+        },
+        "shortLabelName": {
+          "description": "Provides a client defined UI label for the property which is less than an average of 20 characters in length",
+          "type": "string"
+        },
+        "longLabelName": {
+          "description": "Provides a client defined UI long label for the property",
+          "type": "string"
+        },
+        "minLength": {
+          "description": "Indicates the minimum length required for a property",
+          "type": "integer"
+        },
+        "maxLength": {
+          "description": "Indicates the maximum length supported for a property",
+          "type": "integer"
+        },
+        "default": {
+          "description": "Indicates the default value which should be populated by default",
+          "type": "string"
+        },
+        "pattern": {
+          "description": "Indicates a regular expression on the required pattern for the value",
+          "type": "string"
+        },
+        "masking": {
+          "description": "A reference to the masking rules",
+          "$ref": "#/definitions/maskingRuleType_v02"
+        },
+        "equals": {
+          "description": "Provides 1 to many properties which the value of this property must be equal to.  If the property is equal to any of the value of the properties then the validation is successful",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "greaterThan": {
+          "description": "The value of the related property must be greater than the value of  all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lessThan": {
+          "description": "The value of the related property must be less than the value of all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "valueSet": {
+          "$ref": "#/definitions/valueSetType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "objectType_v01": {
+      "type": "object",
+      "properties": {
+        "readOnly": {
+          "description": "True indicates that the property is marked read only in the given context",
+          "type": "boolean",
+          "default": false
+        },
+        "optional": {
+          "description": "True indicates that this property does not need to be valued",
+          "type": "boolean",
+          "default": true
+        },
+        "hidden": {
+          "description": "True indicates that the property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "type": "boolean",
+          "default": false
+        },
+        "sequence": {
+          "description": "A number which provides the sequence that this property should be presented in relation to other properties",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "disallow": {
+          "description": "Specified on a target property.  If the passed conditions are true then this property is disallowed and therefore, not presented to a user",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/disallowItemType_v01"
+          }
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "stringCodeListType_v02": {
+      "type": "object",
+      "properties": {
+        "codeList": {
+          "description": "A reference to the codeList",
+          "$ref": "#/definitions/codeListType_v03"
+        },
+        "readOnly": {
+          "description": "True indicates that the property is marked read only in the given context",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": false
+        },
+        "optional": {
+          "description": "True indicates that this property does not need to be valued",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": false
+        },
+        "hidden": {
+          "description": "True indicates that the property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": false
+        },
+        "sequence": {
+          "description": "A number which provides the sequence that this property should be presented in relation to other properties",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "disallow": {
+          "description": "Specified on a target property.  If the passed conditions are true then this property is disallowed and therefore, not presented to a user",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/disallowItemType_v01"
+          }
+        },
+        "shortLabelName": {
+          "description": "Provides a client defined UI label for the property which is less than an average of 20 characters in length",
+          "type": "string"
+        },
+        "longLabelName": {
+          "description": "Provides a client defined UI long label for the property",
+          "type": "string"
+        },
+        "minLength": {
+          "description": "Indicates the minimum length required for a property",
+          "type": "integer"
+        },
+        "maxLength": {
+          "description": "Indicates the maximum length supported for a property",
+          "type": "integer"
+        },
+        "default": {
+          "description": "Indicates the default value which should be populated by default",
+          "type": "string"
+        },
+        "pattern": {
+          "description": "Indicates a regular expression on the required pattern for the value",
+          "type": "string"
+        },
+        "masking": {
+          "description": "A reference to the masking rules",
+          "$ref": "#/definitions/maskingRuleType_v02"
+        },
+        "equals": {
+          "description": "Provides 1 to many properties which the value of this property must be equal to.  If the property is equal to any of the value of the properties then the validation is successful",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "greaterThan": {
+          "description": "The value of the related property must be greater than the value of  all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lessThan": {
+          "description": "The value of the related property must be less than the value of all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "valueSet": {
+          "$ref": "#/definitions/valueSetType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "booleanType_v01": {
+      "type": "object",
+      "properties": {
+        "readOnly": {
+          "description": "True indicates that the property is marked read only in the given context",
+          "type": "boolean",
+          "default": false
+        },
+        "optional": {
+          "description": "True indicates that this property does not need to be valued",
+          "type": "boolean",
+          "default": false
+        },
+        "hidden": {
+          "description": "True indicates that the property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "type": "boolean"
+        },
+        "sequence": {
+          "description": "A number which provides the sequence that this property should be presented in relation to other properties",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "disallow": {
+          "description": "Specified on a target property.  If the passed conditions are true then this property is disallowed and therefore, not presented to a user",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/disallowItemType_v01"
+          }
+        },
+        "shortLabelName": {
+          "description": "Provides a client defined UI label for the property which is less than an average of 20 characters in length",
+          "type": "string"
+        },
+        "longLabelName": {
+          "description": "Provides a client defined UI long label for the property",
+          "type": "string"
+        },
+        "default": {
+          "description": "Indicates the default value which should be populated by default",
+          "type": "boolean"
+        },
+        "equals": {
+          "description": "Provides 1 to many properties which the value of this property must be equal to.  If the property is equal to any of the value of the properties then the validation is successful",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      }
+    },
+    "numberType_v01": {
+      "type": "object",
+      "properties": {
+        "readOnly": {
+          "description": "True indicates that the property is marked read only in the given context",
+          "type": "boolean",
+          "default": false
+        },
+        "optional": {
+          "description": "True indicates that this property does not need to be valued",
+          "type": "boolean",
+          "default": false
+        },
+        "hidden": {
+          "description": "True indicates that the property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "type": "boolean",
+          "default": false
+        },
+        "sequence": {
+          "description": "A number which provides the sequence that this property should be presented in relation to other properties",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "disallow": {
+          "description": "Specified on a target property.  If the passed conditions are true then this property is disallowed and therefore, not presented to a user",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/disallowItemType_v01"
+          }
+        },
+        "shortLabelName": {
+          "description": "Provides a client defined UI label for the property which is less than an average of 20 characters in length",
+          "type": "string"
+        },
+        "longLabelName": {
+          "description": "Provides a client defined UI long label for the property",
+          "type": "string"
+        },
+        "minLength": {
+          "description": "Indicates the minimum length required for a property",
+          "type": "integer"
+        },
+        "maxLength": {
+          "description": "Indicates the maximum length supported for a property",
+          "type": "integer"
+        },
+        "minValue": {
+          "description": "Indicates the minimum value required for a property",
+          "type": "number"
+        },
+        "maxValue": {
+          "description": "Indicates the maximum value supported for a property",
+          "type": "number"
+        },
+        "multipleOf": {
+          "description": "Indicates that the value must be a multiple of this value or divisible by this value",
+          "type": "number"
+        },
+        "default": {
+          "description": "Indicates the default value which should be populated by default",
+          "type": "number"
+        },
+        "pattern": {
+          "description": "Indicates a regular expression on the required pattern for the value",
+          "type": "string"
+        },
+        "masking": {
+          "description": "A reference to the masking rules",
+          "$ref": "#/definitions/maskingRuleType_v02"
+        },
+        "equals": {
+          "description": "Provides 1 to many properties which the value of this property must be equal to.  If the property is equal to any of the value of the properties then the validation is successful",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "greaterThan": {
+          "description": "The value of the related property must be greater than the value of  all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lessThan": {
+          "description": "The value of the related property must be less than the value of all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "arrayType_v01": {
+      "type": "object",
+      "properties": {
+        "minItems": {
+          "description": "Indicates the minimum items required for an array type.  This is only relevant if the given property is an array",
+          "type": "integer"
+        },
+        "maxItems": {
+          "description": "Indicates the maximum items supported for an array type.  This is only relevant if the given property is an array",
+          "type": "integer"
+        },
+        "hidden": {
+          "description": "True indicates that the array property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "type": "boolean"
+        },
+        "sameValueProperties": {
+          "description": "A list of properties which must have the exact same value within the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "uniqueProperties": {
+          "description": "A list of properties which together must be unique",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "uniqueItems": {
+          "description": "True indicates that the entire item must be unique within the array",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "amountValueType_v01": {
+      "title": "ContextNumberAmountValueType",
+      "description": "Context rules for a given object",
+      "type": "object",
+      "properties": {
+        "readOnly": {
+          "description": "True indicates that the property is marked read only in the given context",
+          "type": "boolean",
+          "default": false
+        },
+        "optional": {
+          "description": "True indicates that this property does not need to be valued",
+          "type": "boolean",
+          "default": false
+        },
+        "hidden": {
+          "description": "True indicates that the property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "type": "boolean",
+          "default": false
+        },
+        "sequence": {
+          "description": "A number which provides the sequence that this property should be presented in relation to other properties",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "disallow": {
+          "description": "Specified on a target property.  If the passed conditions are true then this property is disallowed and therefore, not presented to a user",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/disallowItemType_v01"
+          }
+        },
+        "shortLabelName": {
+          "description": "Provides a client defined UI label for the property which is less than an average of 20 characters in length",
+          "type": "string"
+        },
+        "longLabelName": {
+          "description": "Provides a client defined UI long label for the property",
+          "type": "string"
+        },
+        "minLength": {
+          "description": "Indicates the minimum length required for a property",
+          "type": "integer"
+        },
+        "maxLength": {
+          "description": "Indicates the maximum length supported for a property",
+          "type": "integer"
+        },
+        "minAmountValue": {
+          "description": "Indicates the minimum amout value required for a property",
+          "type": "number"
+        },
+        "maxAmountValue": {
+          "description": "Indicates the maximum amount value supported for a property",
+          "type": "number"
+        },
+        "minValue": {
+          "description": "Indicates the minimum value required for a property",
+          "type": "number"
+        },
+        "maxValue": {
+          "description": "Indicates the maximum value supported for a property",
+          "type": "number"
+        },
+        "multipleOf": {
+          "description": "Indicates that the value must be a multiple of this value or divisible by this value",
+          "type": "number"
+        },
+        "default": {
+          "description": "Indicates the default value which should be populated by default",
+          "type": "number"
+        },
+        "pattern": {
+          "description": "Indicates a regular expression on the required pattern for the value",
+          "type": "string"
+        },
+        "masking": {
+          "description": "A reference to the masking rules",
+          "$ref": "#/definitions/maskingRuleType_v02"
+        },
+        "equals": {
+          "description": "Provides 1 to many properties which the value of this property must be equal to.  If the property is equal to any of the value of the properties then the validation is successful",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "greaterThan": {
+          "description": "The value of the related property must be greater than the value of  all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lessThan": {
+          "description": "The value of the related property must be less than the value of all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

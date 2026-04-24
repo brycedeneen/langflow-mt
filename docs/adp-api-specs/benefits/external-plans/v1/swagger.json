@@ -1,0 +1,456 @@
+{
+  "openapi": "3.0.1",
+  "servers": [
+    {
+      "url": "https://__host__/"
+    }
+  ],
+  "info": {
+    "contact": {
+      "name": "Rachel Powers",
+      "email": "rachel.powers@adp.com"
+    },
+    "description": "External Benefit Plans API",
+    "title": "External Benefit Plans",
+    "version": "1.0.0"
+  },
+  "x-adpSpecData": {
+    "domain": "Benefits",
+    "specId": "e9958b47-d5d2-4b42-b301-c3b24f417748",
+    "canonicalSpecId": "439d1654-b721-4b5b-8a86-220c90841d01",
+    "specStatusCode": "published",
+    "specTypeCode": "REST",
+    "specStateCode": "active",
+    "nonStandardIndicator": false,
+    "visibilityCodes": [
+      "internal",
+      "external"
+    ],
+    "filename": "external-plans-swagger_v1-merged.json",
+    "serviceProviderId": "WFN",
+    "resourcePath": "sor/wfn/limra/external-plans/v1",
+    "libraryVersion": "",
+    "publicationContext": {
+      "products": [
+        {
+          "productId": "hcm-offrg-wfn",
+          "productName": "workforce now",
+          "marketplaceProductName": "ADP Workforce Now\u00ae"
+        }
+      ]
+    },
+    "specCategoryCode": ""
+  },
+  "tags": [
+    {
+      "name": "External Benefit Plans",
+      "description": "Provide one or more employee benefits plans as per LIMRA WBEDX specification"
+    }
+  ],
+  "paths": {
+    "/benefits/v1/external-partner/benefit-plans": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "externalBenefitsManagement",
+        "functionCode": "benefitsPlanManagement",
+        "serviceCode": "benefitsManagement",
+        "serviceCategoryCode": "benefits",
+        "canonicalName": "External Benefit Plans"
+      },
+      "post": {
+        "summary": "External benefit Plans update",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobilePSSExternalWFNBenefits"
+          ],
+          "canonicalUri": "benefits/benefitsManagement/externalBenefitsManagement/benefitsPlanManagement/benefitPlan.add",
+          "operationCode": "benefitPlan.add",
+          "operationId": "1d41d5e6-9f26-4de7-b38b-03e27730ad26",
+          "roleCodes": [
+            "practitioner"
+          ],
+          "performAuthIndicator": true,
+          "scenarios": [
+            {
+              "summary": "Carrier t<span>riggers the API-based data exchange between your application and ADP Workforce Now that creates or updates a benefits plan.</span>",
+              "name": "Scenario 1",
+              "responses": [
+                {
+                  "code": "201",
+                  "description": "Succeeded",
+                  "content": {
+                    "*/*": {
+                      "externalValue": "./examples/Scenario_1_Custom_Example_benefitPlan.add_201_308251.json"
+                    }
+                  }
+                }
+              ],
+              "description": "Carrier t<span>riggers the API-based data exchange between your application and ADP Workforce Now that creates or updates a benefits plan.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/Scenario_1_Custom_Example_benefitPlan.add_request_27828.json"
+                }
+              }
+            }
+          ],
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ],
+          "globalViewDevPortalIndicator": false
+        },
+        "requestBody": {
+          "description": "External benefit Plans payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas/plan-design-schema_v1.json"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Succeeded",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "../../common/schemas/confirm-message-schema_v03.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "412": {
+            "$ref": "#/components/responses/412"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "description": "<span>The External Benefit Plans API&nbsp;</span><span>allows carriers to create benefit plans in Workforce Now. Plans created using the API are initially in an in-progress state. The practitioner or plan administrator reviews the in-progress plans and provides the necessary information to complete the plan setup.</span>",
+        "operationId": "1d41d5e6-9f26-4de7-b38b-03e27730ad26",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "Accept-Language:language|*;q=qvalue. Specifies the language(s) that are acceptable for the response. The optional qvalue represents a quality level for acceptable languages.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header will be passed in all calls. When coming from Myself capabilities rolecode=employee. When coming from Team capabilities roleCode=manager. When coming from Practitioner capabilities roleCode=practitioner.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "External Benefit Plans"
+        ]
+      }
+    },
+    "/event-notifications/benefits/v1/external-benefit-plan.data.confirm": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "externalBenefitsManagement",
+        "functionCode": "benefitsPlanManagement",
+        "serviceCode": "benefitsManagement",
+        "serviceCategoryCode": "benefits",
+        "canonicalName": "External Benefit Plans"
+      },
+      "post": {
+        "summary": "External benefit Plans response",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobilePSSExternalWFNBenefits"
+          ],
+          "canonicalUri": "benefits/benefitsManagement/externalBenefitsManagement/benefitsPlanManagement/benefitPlan.response.eventNotify",
+          "operationCode": "benefitPlan.response.eventNotify",
+          "operationId": "a6730d23-589d-4680-954c-0d3a77e3a831",
+          "roleCodes": [
+            "practitioner"
+          ],
+          "performAuthIndicator": true,
+          "visibilityCodes": [
+            "internal"
+          ],
+          "globalViewDevPortalIndicator": false
+        },
+        "requestBody": {
+          "description": "External benefit Plans Status payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas/plan-status-schema_v1.json"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Succeeded",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "../../common/schemas/confirm-message-schema_v03.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "412": {
+            "$ref": "#/components/responses/412"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "description": "API to return response for external benefit plan",
+        "operationId": "a6730d23-589d-4680-954c-0d3a77e3a831",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "Accept-Language:language|*;q=qvalue. Specifies the language(s) that are acceptable for the response. The optional qvalue represents a quality level for acceptable languages.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header will be passed in all calls. When coming from Myself capabilities rolecode=employee. When coming from Team capabilities roleCode=manager. When coming from Practitioner capabilities roleCode=practitioner.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "External Benefit Plans"
+        ]
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "404": {
+        "description": "Not Found",
+        "content": {
+          "application/json": {},
+          "*/*": {
+            "schema": {
+              "$ref": "../../common/schemas/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "503": {
+        "description": "Service Unavailable",
+        "content": {
+          "application/json": {},
+          "*/*": {
+            "schema": {
+              "$ref": "../../common/schemas/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Bad Request",
+        "content": {
+          "application/json": {},
+          "*/*": {
+            "schema": {
+              "$ref": "../../common/schemas/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "412": {
+        "description": "Precondition Failed",
+        "content": {
+          "application/json": {},
+          "*/*": {
+            "schema": {
+              "$ref": "../../common/schemas/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {},
+          "*/*": {
+            "schema": {
+              "$ref": "../../common/schemas/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Forbidden",
+        "content": {
+          "application/json": {},
+          "*/*": {
+            "schema": {
+              "$ref": "../../common/schemas/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

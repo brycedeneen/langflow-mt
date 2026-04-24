@@ -1,0 +1,801 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "PayStatements",
+  "description": "Pay statements is a list of summary information on the pay statements of an associate and a reference to the detail.",
+  "type": "object",
+  "properties": {
+    "retirementPlanIndicator": {
+      "description": "True indicates that the user has the retirement plan feature.  If payroll system knows that the user has retirement plan feature then the value is 'true'.  The value is 'false' If the payroll system does not know whether the user has retirement plans feature",
+      "$ref": "#/definitions/indicatorType_v01"
+    },
+    "meta": {
+      "description": "Metadata of the related entity",
+      "type": "object",
+      "properties": {
+        "excludeYTDAmountsIndicator": {
+          "description": "Indicates if all YTD amounts are excluded from the response.  'True' by default for Celergo, 'False' for all other payroll engines",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "signatureEnabledIndicator": {
+          "description": "Indicates if the pay statements could be digitally signed",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "signatureDisagreementEnabledIndicator": {
+          "description": "Indicates if signature option of 'signed with no agreement' is allowed",
+          "$ref": "#/definitions/indicatorType_v01"
+        }
+      }
+    },
+    "payStatements": {
+      "description": " Pay statements is a list of summary information on the pay statements of an associate and a reference to the detail.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$comment": "Added for backwards compatibility only",
+            "description": "The unique identifier of the related pay statement within a collection",
+            "$ref": "#/definitions/itemIDType_v01"
+          },
+          "itemID": {
+            "description": "The unique identifier of the related pay statement within a collection",
+            "$ref": "#/definitions/itemIDType_v01"
+          },
+          "employerName": {
+            "description": "The name of the employer",
+            "type": "string"
+          },
+          "positionRef": {
+            "description": "Data which provides reference to a position",
+            "type": "object",
+            "properties": {
+              "positionID": {
+                "description": "Position identifier a person may enter time against",
+                "$ref": "#/definitions/IDType_v00"
+              },
+              "title": {
+                "description": "The title of the position",
+                "type": "string"
+              }
+            },
+            "required": [
+              "positionID"
+            ],
+            "additionalProperties": false
+          },
+          "payDate": {
+            "description": "Pay Date is the date on which the monies (i.e. payment) are available",
+            "$ref": "#/definitions/dateType_v01"
+          },
+          "payPeriod": {
+            "description": "The Time Period which the pay covers",
+            "type": "object",
+            "properties": {
+              "payPeriodID": {
+                "description": "The Identifier of the given instance of a pay period",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "payPeriodLabelName": {
+                "description": "Label / description of the associated pay period",
+                "type": "string"
+              },
+              "startDate": {
+                "description": "The start date of the time period",
+                "$ref": "#/definitions/dateType_v01"
+              },
+              "endDate": {
+                "description": "The end date of the time period",
+                "$ref": "#/definitions/dateType_v01"
+              }
+            },
+            "required": [
+              "endDate"
+            ],
+            "additionalProperties": false
+          },
+          "adjustmentIndicator": {
+            "description": "To indicate if a given statement represents an adjustment.  The regular statement is assumed if the indicator is omitted",
+            "$ref": "#/definitions/indicatorType_v01"
+          },
+          "commentIndicator": {
+            "description": "To indicate if a given statement has comments",
+            "$ref": "#/definitions/indicatorType_v01"
+          },
+          "netPayAmount": {
+            "description": "The Amount paid after all deductions are taken out",
+            "$ref": "#/definitions/amountType_v02"
+          },
+          "grossPayAmount": {
+            "description": "The Amount paid before any deductions are taken out",
+            "$ref": "#/definitions/amountType_v02"
+          },
+          "grossPayYTDAmount": {
+            "description": "The Year To Date Amount paid before any deductions are taken out.  This may not be shown on the pay statement or it may be zero or some value",
+            "$ref": "#/definitions/amountType_v02"
+          },
+          "totalHours": {
+            "description": "The total duration in hours for the related pay",
+            "type": "number",
+            "multipleOf": 0.001
+          },
+          "payDetailUri": {
+            "description": "The URI to the detail of a paystatement.  The detail shows all deductions, earnings, direct deposit, etc.",
+            "$ref": "#/definitions/URIType_v00"
+          },
+          "statementImageUri": {
+            "description": "The URI to the image of the pay statement e.g. pdf. This should be the relative uri",
+            "$ref": "#/definitions/URIType_v00"
+          },
+          "eSignature": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "signatureIndicator": {
+                "description": "indicates if the document was digitally signed",
+                "$ref": "#/definitions/indicatorType_v01"
+              },
+              "signatureDate": {
+                "$ref": "#/definitions/dateTimeType_v01"
+              },
+              "signatureTypeCode": {
+                "description": "Type code to support multiple levels of electronic signature, e.g., signed, signed w/o agreement",
+                "$ref": "#/definitions/simpleCodeType_v02"
+              },
+              "comment": {
+                "description": "The user comment. Required if signed without agreement",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "confirmMessage": {
+      "$ref": "#/definitions/confirmMessageType_v01"
+    }
+  },
+  "required": [
+    "payStatements"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "indicatorType_v01": {
+      "description": "Boolean expression",
+      "type": "boolean"
+    },
+    "itemIDType_v01": {
+      "description": "The unique identifier of the object in a collection",
+      "$ref": "#/definitions/simpleIDType_v02"
+    },
+    "simpleIDType_v02": {
+      "description": "The simple (string) identifier of an object",
+      "type": "string"
+    },
+    "IDType_v00": {
+      "description": "The unique identifier of the related entity ",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "An ID",
+          "type": "string"
+        },
+        "schemeName": {
+          "description": "The type of ID",
+          "type": "string"
+        },
+        "schemeAgencyName": {
+          "description": "The agency that issues the ID",
+          "type": "string"
+        }
+      }
+    },
+    "dateType_v01": {
+      "description": "The string representation of the date value. Follows the ISO-8601:2000 format",
+      "type": "string",
+      "format": "date"
+    },
+    "amountType_v02": {
+      "description": "A representation of a monetary value",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "amountValue": {
+          "description": "The monetary value of the object in which the amount is associated",
+          "type": "number"
+        },
+        "currencyCode": {
+          "description": "Standard currency code as per ISO 4212",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        }
+      }
+    },
+    "simpleCodeType_v02": {
+      "description": "A simple (string) code.  Can have a code list reference",
+      "type": "string"
+    },
+    "URIType_v00": {
+      "description": "The URI of the related entity",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "href": {
+          "$ref": "#/definitions/URIType_v01"
+        }
+      }
+    },
+    "URIType_v01": {
+      "description": "The URI of the related entity",
+      "type": "string",
+      "format": "uri"
+    },
+    "dateTimeType_v01": {
+      "description": "The string reprersentation of the date-time value. Follows the ISO-8601:2000 format",
+      "type": "string",
+      "format": "date-time"
+    },
+    "confirmMessageType_v01": {
+      "description": "The ConfirmMessage contains the processing results for the corresponding request.  A request may have its processing reported as: succeeded, partially failed, or failed.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "confirmMessageID": {
+          "description": "An identifier for the instance of the confirm message.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "createDateTime": {
+          "description": "The date & time that the message instance was generated.; follows the ISO-8601:2000 format: 2008-05-11T15:30:00-06:00.",
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "requestReceiptDateTime": {
+          "description": "The date & time that the request submitted by the client was received. Note, this timestamp may not be the same as the time the client actually submitted the request if there is a queuing mechanism between the client and server processing the request; it follows the ISO-8601:2000 format: 2008-05-11T15:30:00-06:00.",
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "protocolStatusCode": {
+          "description": "Protocol-specific response status code.",
+          "$ref": "#/definitions/codeType_v01"
+        },
+        "protocolCode": {
+          "description": "Code that identifies the protocol used for the request.",
+          "$ref": "#/definitions/codeType_v01"
+        },
+        "requestID": {
+          "description": "The identifier of the request that generated this response.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "requestStatusCode": {
+          "description": "The process results status code for the request.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "succeeded",
+                "partiallyFailed",
+                "failed"
+              ]
+            }
+          }
+        },
+        "requestMethodCode": {
+          "description": "The method that was used on the request corresponding to this message instance.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "GET",
+                "PUT",
+                "POST",
+                "PATCH",
+                "DELETE"
+              ]
+            }
+          }
+        },
+        "sessionID": {
+          "description": "A session identifier if one is available.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "requestETag": {
+          "description": "The entity tag of the entity in the request.",
+          "type": "string"
+        },
+        "requestLink": {
+          "description": "The link of the request that generated this response.",
+          "$ref": "#/definitions/linkType_v02"
+        },
+        "processingStatusCode": {
+          "description": "Processing status of the related request message.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "received",
+                "validated",
+                "started",
+                "in-progress",
+                "completed"
+              ]
+            }
+          }
+        },
+        "processMessages": {
+          "description": "processMessage is optional and contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).  Most often there will be a single instance for an associated request or resource, but this structure allows for more than one if needed, for example, if multiple errors exist for a single resource. ",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/processMessage_v01"
+          }
+        },
+        "resourceMessages": {
+          "description": "resource Message contains the resource-specific processing results for resources being managed in the request.  A resource may have its processing reported as:  succeeded or failed.  It must be used to represent resource-specific messages.  In the case of a request managing multiple resources and resource-specific messages are to be returned, then this array will contain one object for each such resource of the request.",
+          "type": "array",
+          "items": {
+            "description": "Each object contains detailed information for a resource referenced in the original request.",
+            "type": "object",
+            "properties": {
+              "resourceMessageID": {
+                "description": "An identifier for the instance of the resource message.",
+                "$ref": "#/definitions/IDType_v01"
+              },
+              "resourceStatusCode": {
+                "description": "The processing results status code of the resource of the request.",
+                "type": "object",
+                "additionalProperties": false,
+                "title": "ResourceMessageResourceStatus",
+                "properties": {
+                  "shortName": {
+                    "description": "Short description of the related code",
+                    "type": "string"
+                  },
+                  "longName": {
+                    "description": "Long description of the related code",
+                    "type": "string"
+                  },
+                  "codeValue": {
+                    "description": "The code for the related entity.",
+                    "type": "string",
+                    "enum": [
+                      "succeeded",
+                      "failed",
+                      "warning"
+                    ]
+                  }
+                }
+              },
+              "resourceLink": {
+                "description": "The link of the request that generated this response.",
+                "$ref": "#/definitions/linkType_v02"
+              },
+              "processMessages": {
+                "description": "processMessage is optional and contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).  Most often there will be a single instance for an associated request or resource, but this structure allows for more than one if needed, for example, if multiple errors exist for a single resource. ",
+                "type": "array",
+                "items": {
+                  "title": "ProcessMessageWithResourceStatusCode",
+                  "description": "Each object contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "processMessageID": {
+                      "description": "An identifier for the instance of the process message.",
+                      "$ref": "#/definitions/IDType_v01"
+                    },
+                    "messageTypeCode": {
+                      "description": "Process Message instances may be of type: success, warning, error, or info.",
+                      "$ref": "#/definitions/messageTypeCodeType_v01"
+                    },
+                    "sourceLocationExpression": {
+                      "description": "Expression that provides the location (or source) of content in a message instance that is associated with a process message. Examples of expression languages include: XPath, XQuery, JSON Pointer.",
+                      "type": "string"
+                    },
+                    "expressionLanguageCode": {
+                      "description": "Identifies the language used for expressions communicated in this message.",
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "shortName": {
+                          "description": "Short description of the related code",
+                          "type": "string"
+                        },
+                        "longName": {
+                          "description": "Long description of the related code",
+                          "type": "string"
+                        },
+                        "codeValue": {
+                          "description": "The code for the related entity.",
+                          "type": "string",
+                          "enum": [
+                            "jPath"
+                          ]
+                        }
+                      }
+                    },
+                    "links": {
+                      "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/linkType_v02"
+                      }
+                    },
+                    "userMessage": {
+                      "description": "Message returned to the user",
+                      "$ref": "#/definitions/messageType_v01"
+                    },
+                    "developerMessage": {
+                      "description": "Message returned to the user",
+                      "$ref": "#/definitions/messageType_v01"
+                    },
+                    "clientActionTypeCode": {
+                      "description": "Code that identifies the action to be taken by the client application upon receiving the message",
+                      "$ref": "#/definitions/simpleCodeType_v02"
+                    },
+                    "resourceStatusCode": {
+                      "description": "DEPRECATED - Use messageTypeCode instead. The processing results status code of the resource of the request.",
+                      "$ref": "#/definitions/codeType_v01"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "IDType_v01": {
+      "description": "The unique identifier of the related entity ",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "idValue": {
+          "description": "An ID",
+          "type": "string"
+        },
+        "schemeName": {
+          "description": "The type of ID",
+          "type": "string"
+        },
+        "schemeAgencyName": {
+          "description": "The agency that issues the ID",
+          "type": "string"
+        }
+      }
+    },
+    "codeType_v01": {
+      "description": "The code for the related entity",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity.",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code not to exceed 25 characters",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        }
+      }
+    },
+    "linkType_v02": {
+      "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "linkID": {
+          "description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9.$-_/]+$"
+        },
+        "href": {
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "rel": {
+          "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+          "type": "string",
+          "enum": [
+            "alternate",
+            "canonical",
+            "create",
+            "describedby",
+            "edit-form",
+            "enclosure",
+            "first",
+            "full",
+            "last",
+            "latest-version",
+            "next",
+            "previous",
+            "related",
+            "root",
+            "search",
+            "self",
+            "successor-version",
+            "up",
+            "/adp/attachment",
+            "/adp/callback",
+            "/adp/codelist",
+            "/adp/confirm-message",
+            "/adp/consent",
+            "/adp/deeplink",
+            "/adp/event",
+            "/adp/externalLink",
+            "/adp/image",
+            "/adp/invoke",
+            "/adp/payroll/voided-payment-calculation",
+            "/adp/processing-status",
+            "/adp/request-result",
+            "/adp/status-monitor",
+            "/adp/template",
+            "/adp/validation",
+            "/adp/workflow"
+          ]
+        },
+        "canonicalUri": {
+          "description": "A unique identifier of the feature/function/operation, the link poins to",
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "title": {
+          "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user",
+          "type": "string"
+        },
+        "targetSchema": {
+          "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation",
+          "type": "string"
+        },
+        "mediaType": {
+          "description": "The media type that the linked resource will return (Response)",
+          "type": "string",
+          "enum": [
+            "application/gzip",
+            "application/json",
+            "application/msword",
+            "application/pdf",
+            "application/postscript",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/xml",
+            "application/x-www-form-urlencoded",
+            "image/gif",
+            "image/jpeg",
+            "image/png",
+            "image/tiff",
+            "multipart/mixed",
+            "multipart/form-data",
+            "text/html",
+            "text/plain",
+            "application/vnd.visio",
+            "image/bmp",
+            "image/x-ms-bmp",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/vnd.ms-powerpoint",
+            "video/mp4",
+            "audio/mpeg",
+            "video/x-msvideo",
+            "video/x-ms-wmv",
+            "application/rtf",
+            "application/vnd.ms-outlook",
+            "text/csv",
+            "video/quicktime",
+            "application/zip",
+            "application/illustrator",
+            "text/xml"
+          ]
+        },
+        "method": {
+          "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "DELETE",
+            "PUT",
+            "PATCH"
+          ]
+        },
+        "encType": {
+          "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+          "type": "string",
+          "enum": [
+            "application/json",
+            "application/x-www-form-urlencoded"
+          ]
+        },
+        "schema": {
+          "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body",
+          "type": "string"
+        },
+        "payLoadArguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "argumentPath": {
+                "description": "Code value (typically a key field) of the code list item",
+                "type": "string"
+              },
+              "argumentValue": {
+                "description": "Code value (typically a key field) of the code list item",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "processMessage_v01": {
+      "description": "Each object contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "processMessageID": {
+          "description": "An identifier for the instance of the process message.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "messageTypeCode": {
+          "description": "Process Message instances may be of type: success, warning, error, or info.",
+          "$ref": "#/definitions/messageTypeCodeType_v01"
+        },
+        "sourceLocationExpression": {
+          "description": "Expression that provides the location (or source) of content in a message instance that is associated with a process message. Examples of expression languages include: XPath, XQuery, JSON Pointer.",
+          "type": "string"
+        },
+        "expressionLanguageCode": {
+          "description": "Identifies the language used for expressions communicated in this message.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "jPath"
+              ]
+            }
+          }
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        },
+        "userMessage": {
+          "description": "Message returned to the user",
+          "$ref": "#/definitions/messageType_v01"
+        },
+        "developerMessage": {
+          "description": "Message returned to the user",
+          "$ref": "#/definitions/messageType_v01"
+        },
+        "clientActionTypeCode": {
+          "description": "Code that identifies the action to be taken by the client application upon receiving the message",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        }
+      }
+    },
+    "messageTypeCodeType_v01": {
+      "description": "Schema describing the type of the user or developer message",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        },
+        "codeValue": {
+          "description": "The code for the related entity.",
+          "type": "string",
+          "enum": [
+            "success",
+            "warning",
+            "error",
+            "info"
+          ]
+        }
+      }
+    },
+    "messageType_v01": {
+      "description": "Representation of a message.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code associated with the message description.",
+          "type": "string"
+        },
+        "title": {
+          "description": "Title of the message description.",
+          "type": "string"
+        },
+        "messageTxt": {
+          "description": "The value/content of the message description.",
+          "type": "string"
+        },
+        "messageArguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "argumentName": {
+                "description": "Argument name to be passed in",
+                "type": "string"
+              },
+              "argumentPath": {
+                "description": "Argument path if referenced within the same schema",
+                "type": "string"
+              },
+              "argumentValue": {
+                "description": "Argument name to be passed in",
+                "type": "string"
+              }
+            },
+            "required": [
+              "argumentValue"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        },
+        "messageTypeCode": {
+          "$ref": "#/definitions/messageTypeCodeType_v01"
+        }
+      }
+    }
+  }
+}

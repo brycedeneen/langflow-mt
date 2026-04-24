@@ -6,12 +6,39 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from lfx.components.adp.adp_worker_tools import ADPWorkerToolsComponent, extract_name, extract_addresses, extract_contact_information, extract_job, extract_compensation
+from lfx.components.adp.adp_worker_tools import (
+    ADPWorkerToolsComponent,
+    extract_addresses,
+    extract_business_communication,
+    extract_compensation,
+    extract_contact_information,
+    extract_dates,
+    extract_ids,
+    extract_job,
+    extract_name,
+    extract_status,
+)
 
 SAMPLE_WORKER_RESPONSE = {
     "workers": [
         {
             "associateOID": "G3ABC",
+            "workerID": {"idValue": "E12345", "schemeCode": {"codeValue": "Employee ID"}},
+            "alternateIDs": [
+                {"idValue": "X-999", "schemeCode": {"codeValue": "Badge"}},
+            ],
+            "workerDates": {
+                "firstHireDate": "2019-05-01",
+                "originalHireDate": "2019-05-01",
+                "rehireDate": None,
+                "terminationDate": None,
+                "retirementDate": None,
+            },
+            "businessCommunication": {
+                "emails": [{"emailUri": "jane.work@example.com", "nameCode": {"codeValue": "Work"}}],
+                "landlines": [{"formattedNumber": "555-2000", "nameCode": {"codeValue": "Work"}}],
+                "mobiles": [],
+            },
             "person": {
                 "legalName": {
                     "givenName": "Jane",
@@ -42,7 +69,11 @@ SAMPLE_WORKER_RESPONSE = {
                     ],
                 },
             },
-            "workerStatus": {"statusCode": {"codeValue": "Active"}},
+            "workerStatus": {
+                "statusCode": {"codeValue": "Active"},
+                "reasonCode": {"codeValue": "New Hire"},
+                "effectiveDate": "2019-05-01",
+            },
             "workAssignments": [
                 {
                     "jobTitle": "Software Engineer",
@@ -193,6 +224,77 @@ def test_extract_compensation_missing_assignment(adp_connection):
     }
 
 
+def test_extract_ids(adp_connection):
+    worker = SAMPLE_WORKER_RESPONSE["workers"][0]
+    result = extract_ids(worker)
+    assert result == {
+        "associateOID": "G3ABC",
+        "workerID": {"idValue": "E12345", "schemeCode": "Employee ID"},
+        "alternateIDs": [{"idValue": "X-999", "schemeCode": "Badge"}],
+    }
+
+
+def test_extract_ids_missing(adp_connection):
+    worker = {"associateOID": "G3ABC"}
+    result = extract_ids(worker)
+    assert result == {
+        "associateOID": "G3ABC",
+        "workerID": None,
+        "alternateIDs": [],
+    }
+
+
+def test_extract_dates(adp_connection):
+    worker = SAMPLE_WORKER_RESPONSE["workers"][0]
+    result = extract_dates(worker)
+    assert result["firstHireDate"] == "2019-05-01"
+    assert result["originalHireDate"] == "2019-05-01"
+    assert result["terminationDate"] is None
+    # All expected lifecycle fields present, even if None
+    assert "rehireDate" in result
+    assert "retirementDate" in result
+    assert "leaveOfAbsenceReturnDate" in result
+
+
+def test_extract_dates_missing(adp_connection):
+    worker = {}
+    result = extract_dates(worker)
+    assert result["firstHireDate"] is None
+    assert result["terminationDate"] is None
+
+
+def test_extract_status(adp_connection):
+    worker = SAMPLE_WORKER_RESPONSE["workers"][0]
+    result = extract_status(worker)
+    assert result == {
+        "statusCode": "Active",
+        "reasonCode": "New Hire",
+        "effectiveDate": "2019-05-01",
+    }
+
+
+def test_extract_status_missing(adp_connection):
+    worker = {}
+    result = extract_status(worker)
+    assert result == {"statusCode": None, "reasonCode": None, "effectiveDate": None}
+
+
+def test_extract_business_communication(adp_connection):
+    worker = SAMPLE_WORKER_RESPONSE["workers"][0]
+    result = extract_business_communication(worker)
+    assert result == {
+        "emails": [{"emailUri": "jane.work@example.com", "nameCode": {"codeValue": "Work"}}],
+        "landlines": [{"formattedNumber": "555-2000", "nameCode": {"codeValue": "Work"}}],
+        "mobiles": [],
+    }
+
+
+def test_extract_business_communication_missing(adp_connection):
+    worker = {}
+    result = extract_business_communication(worker)
+    assert result == {"emails": [], "landlines": [], "mobiles": []}
+
+
 @pytest.mark.asyncio
 async def test_fetch_worker_happy_path(adp_connection):
     c = _make_component(adp_connection)
@@ -291,11 +393,11 @@ async def test_fetch_worker_empty_workers_returns_not_found(adp_connection):
 
 
 @pytest.mark.asyncio
-async def test_build_tools_returns_five_tools(adp_connection):
+async def test_build_tools_returns_nine_tools(adp_connection):
     c = _make_component(adp_connection)
     tools = await c.build_tools()
 
-    assert len(tools) == 5
+    assert len(tools) == 9
     names = {t.name for t in tools}
     assert names == {
         "get_employee_name",
@@ -303,6 +405,10 @@ async def test_build_tools_returns_five_tools(adp_connection):
         "get_employee_contact_information",
         "get_employee_job",
         "get_employee_compensation",
+        "get_employee_ids",
+        "get_employee_dates",
+        "get_employee_status",
+        "get_employee_business_communication",
     }
     for tool in tools:
         assert tool.description

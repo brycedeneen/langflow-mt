@@ -1,0 +1,2750 @@
+{
+  "openapi": "3.0.1",
+  "servers": [
+    {
+      "url": "https://__host__/"
+    }
+  ],
+  "info": {
+    "contact": {
+      "name": "Michele Esposito",
+      "email": "michael.esposito@adp.com"
+    },
+    "description": "<p>ADP Workforce Now enables users to create or append a Pay Data batch for a payroll cycle to include the following:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursements</li><li>Reportable Earnings and Benefits</li><li>Temporary Cost Number</li><li>Temporary Department Number</li><li>Allocations</li><li>Cancel Automatic Payment&nbsp;</li><li>Tax Frequency&nbsp;</li><li>Shift</li></ul><p>The Payroll Data Input Application Programming Interface (API) enables you to build a data connector application to transmit data that is sourced in your application to a specific Pay Data batch in ADP Workforce Now. For more information, see <a href=\"https://developers.adp.com/articles/guides/payroll-data-input-api--guide-for-adp-workforce-now/\" rel=\"noopener noreferrer\" target=\"_blank\">Payroll Data Input API Guide for ADP Workforce Now</a>.</p>",
+    "title": "Pay Data Input",
+    "version": "1.0.0"
+  },
+  "x-adpSpecData": {
+    "domain": "Payroll",
+    "specId": "c6f2d7f7-ae34-46ae-b91f-624ffd11e5fe",
+    "canonicalSpecId": "b3c44c7d-1eb5-491a-b9dd-5c69036722b7",
+    "specStatusCode": "publishing",
+    "specTypeCode": "REST",
+    "specStateCode": "active",
+    "nonStandardIndicator": false,
+    "visibilityCodes": [
+      "internal",
+      "external"
+    ],
+    "filename": "pay-data-input-swagger_v1-merged.json",
+    "serviceProviderId": "null",
+    "resourcePath": "payroll/pay-data-input/v1",
+    "libraryVersion": "",
+    "businessRules": [
+      {
+        "rule": "R3.3",
+        "ruleTitle": "/data/output communicates the result of the event instance.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.4",
+        "ruleTitle": "If there is no effective date from a business perspective then the effective date should be set equal to the record date time.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R4.0",
+        "ruleTitle": "All envelope data is set by the System of Record (e.g. event.ID, creationDateTime, recordDateTime, event.status.code, etc\u2026",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R0.1",
+        "ruleTitle": "If request contains ADP-Act-As-OrgOID, ADP-Act-As-AssociateOID and ADP-Acting-SessionID header values, SOR MUST use ADP-Act-As-AssociateOID header value to authorize the data requested, NOT associateoid header value to authorize the data.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R8.2",
+        "ruleTitle": "An event notification does not include the transform or meta objects.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R0.2",
+        "ruleTitle": "If request contains ADP-On-Behalf-Of-OrgOID, ADP-On-Behalf-Of-AssociateOID and ADP-Acting-SessionID header values, SOR MUST use ADP-On-Behalf-Of-AssociateOID header value to authorize the data requested, NOT associateoid header value to authorize the data.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R5.0",
+        "ruleTitle": "Meta returns the context rules for each data section",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R6.0",
+        "ruleTitle": "An event instance may be created by a System of record for a user to complete. This event instance will have a event.status.code=created",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.2",
+        "ruleTitle": "The recordDateTime is the date time which the event is recorded in the system of record with an event.status.code=complete",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.2",
+        "ruleTitle": "/data/transform is only used during the recording of the event.  The transform is the data that is provided by a user/machine to complete the recording of the event.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.6",
+        "ruleTitle": "An event which is being recorded includes the /data/eventContext and the /data/transform during the composition phase (i.e. recording of the event).",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R5.1",
+        "ruleTitle": "The only information that must be valued in the meta for the events header are the standard codelist references for priorityCode, eventStatusCode, and serviceCategoryCode",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.3",
+        "ruleTitle": "effectiveDateTime is the date that the event is effective from a business perspective",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R8.1",
+        "ruleTitle": "An event notification includes the /data/eventContext and /data/output objects.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.0",
+        "ruleTitle": "/data/schemaContext communicates the keys and properties that relate the event instance to a concrete concept (e.g. associate).",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.4",
+        "ruleTitle": "/data/output may be provided during the recording of the event showing the intermediary results.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.1",
+        "ruleTitle": "If the event is declared by an actor then the creationDateTime is the date time when the first call is made to the System of Record.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R8.3",
+        "ruleTitle": "A self link is included in the /data/links with 1 links item with the following 2 properties: rel=\u201dself\u201d href=\u201d/events-notifications/{domain}/v1/{event-name}/{eventID}\u201d",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.1",
+        "ruleTitle": "/data/input is optional.  Input communicates data that is needed to complete recording the event instance.  An example is a benefits.enroll event.  The input communicates the benefitOfferings (the choices) that the user has to make which are communicated in the transform.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R1.0",
+        "ruleTitle": "event.id is generated once an event is recorded with a event.status.code=complete",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R6.2",
+        "ruleTitle": "An event instance which has been recorded has an event.status.code=complete",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R0.3",
+        "ruleTitle": "For Act-As or On-Behalf-Of requests, header 'Cache-Control: no-store' MUST be set to indicate on server or on UI the response object SHOULD not be cached",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.5",
+        "ruleTitle": "A complete event has /data/eventContext and /data/output",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.0",
+        "ruleTitle": "creationDateTime is the date that the event is created.  If a System of Record creates the event instance then it sets the creationDateTime.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R6.1",
+        "ruleTitle": "An event instance which is being \u201cworked on\u201d has an event.status.code=inprogress",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R15.1",
+        "ruleTitle": "An SOR may return an HTTP 503 when they are down for a scheduled maintenance or for an outage.If an SOR is planning a maintenance window then they should plan on having an end point available to return the 503 with a standard confirmMessage.  The confirmMessage will contain a message stating the date and timeframe that the maintenance window is for.The SOR should return the Retry-After response-header field with the Date and Time when they expect the system to be available.  E.g. \u00a7  Retry-After: Fri, 31 Dec 1999 23:59:59 GMT  This does not need to be handled dynamically.  They can set the time that their maintenance window ends.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      }
+    ],
+    "testCaseCollection": {
+      "example": {
+        "href": "WFN_CG_PayDataInput.postman_collection.json"
+      },
+      "description": "WFN_CG_PayDataInput.postman_collection"
+    },
+    "publicationContext": {
+      "products": [
+        {
+          "productId": "hcm-offrg-wfn",
+          "productName": "workforce now",
+          "marketplaceProductName": "ADP Workforce Now\u00ae"
+        }
+      ]
+    },
+    "specCategoryCode": ""
+  },
+  "tags": [
+    {
+      "name": "Pay Data Input Modify",
+      "description": "Modify pay data input event management"
+    }
+  ],
+  "paths": {
+    "/events/payroll/v1/pay-data-input.modify": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "payrollProcessing",
+        "functionCode": "payDataInputManagement",
+        "serviceCode": "payrollManagement",
+        "serviceCategoryCode": "payroll",
+        "canonicalName": "Pay Data Input Modify"
+      },
+      "post": {
+        "summary": "Modify Pay Data Input",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobilePSSPayrollProcessing"
+          ],
+          "sorRequestTimeoutPolicies": {
+            "cachedTimeout": 3,
+            "notCachedTimeout": 10
+          },
+          "canonicalUri": "payroll/payrollManagement/payrollProcessing/payDataInputManagement/pay-data-input.modify",
+          "operationCode": "pay-data-input.modify",
+          "operationId": "1616325c-2826-44d6-876b-a806a99700a5",
+          "performAuthIndicator": true,
+          "roleCodes": [
+            "practitioner"
+          ],
+          "scenarios": [
+            {
+              "summary": "<p>This use case sends entries to a Payroll worksheet batch. It is commonly used to send the following data from a different system or application to the ADP Workforce Now&nbsp;<strong>process</strong> &gt; <strong>payroll worksheet</strong> page:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursement</li><li>Bonus Shift differential</li><li>Reportable Earnings and Benefits</li><li>Temporary Department Number</li></ul>",
+              "name": "14 Pay Data Input modify shift code",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Pay Data Input for shift code is modified.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/14_Pay_Data_Input_modify_shift_code_Custom_Example_pay-data-input.modify_200_398887.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>This use case sends entries to a Payroll worksheet batch. It is commonly used to send the following data from a different system or application to the ADP Workforce Now&nbsp;<strong>process</strong> &gt; <strong>payroll worksheet</strong> page:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursement</li><li>Bonus Shift differential</li><li>Reportable Earnings and Benefits</li><li>Temporary Department Number</li></ul>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/14_Pay_Data_Input_modify_shift_code_Custom_Example_pay-data-input.modify_request_36213.json"
+                }
+              }
+            },
+            {
+              "summary": "Simple registration and overtime append modify.",
+              "name": "2 Pay Data Input - Simple Reg & OT - Append",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Simple registration and overtime append modify.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/2_Pay_Data_Input_-_Simple_Reg_&_OT_-_Append_Custom_Example_pay-data-input.modify_200_398896.json"
+                    }
+                  }
+                }
+              ],
+              "description": "Simple registration and overtime append modify.",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/2_Pay_Data_Input_-_Simple_Reg_&_OT_-_Append_Custom_Example_pay-data-input.modify_request_36222.json"
+                }
+              }
+            },
+            {
+              "summary": "<p>This use case sends entries to a Payroll worksheet batch. It is commonly used to send the following data from a different system or application to the ADP Workforce Now&nbsp;<strong>process</strong> &gt; <strong>payroll worksheet</strong> page:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursement</li><li>Bonus Shift differential</li><li>Reportable Earnings and Benefits</li><li>Temporary Department Number</li></ul>",
+              "name": "11 Pay Data Input - Mulitple Pay Numbers",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Pay Data Input for multiple pay numbers is updated",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/11_Pay_Data_Input_-_Mulitple_Pay_Numbers_Custom_Example_pay-data-input.modify_200_398890.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>This use case sends entries to a Payroll worksheet batch. It is commonly used to send the following data from a different system or application to the ADP Workforce Now&nbsp;<strong>process</strong> &gt; <strong>payroll worksheet</strong> page:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursement</li><li>Bonus Shift differential</li><li>Reportable Earnings and Benefits</li><li>Temporary Department Number</li></ul>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/11_Pay_Data_Input_-_Mulitple_Pay_Numbers_Custom_Example_pay-data-input.modify_request_36216.json"
+                }
+              }
+            },
+            {
+              "summary": "<p>This use case sends entries to a Payroll worksheet batch. It is commonly used to send the following data from a different system or application to the ADP Workforce Now <strong>process</strong> &gt; <strong>payroll worksheet</strong> page:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursement</li><li>Bonus Shift differential</li><li>Reportable Earnings and Benefits</li><li>Temporary Department Number</li></ul>",
+              "name": "9 Pay Data Input - Hours/Earnings/Temp Rate/FLSA Work Week",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Pay data input for Hours/Earnings/Temp Rate/FLSA Work Week is modified.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/9_Pay_Data_Input_-_Hours/Earnings/Temp_Rate/FLSA_Work_Week_Custom_Example_pay-data-input.modify_200_398900.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>This use case sends entries to a Payroll worksheet batch. It is commonly used to send the following data from a different system or application to the ADP Workforce Now <strong>process</strong> &gt; <strong>payroll worksheet</strong> page:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursement</li><li>Bonus Shift differential</li><li>Reportable Earnings and Benefits</li><li>Temporary Department Number</li></ul>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/9_Pay_Data_Input_-_Hours/Earnings/Temp_Rate/FLSA_Work_Week_Custom_Example_pay-data-input.modify_request_36226.json"
+                }
+              }
+            },
+            {
+              "summary": "<p>This use case sends entries to a Payroll worksheet batch. It is commonly used to send the following data from a different system or application to the ADP Workforce Now&nbsp;<strong>process</strong> &gt; <strong>payroll worksheet</strong> page:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursement</li><li>Bonus Shift differential</li><li>Reportable Earnings and Benefits</li><li>Temporary Department Number</li></ul>",
+              "name": "10 Pay Data Input - Deduction code",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Pay Data Input to Deduction Code is updated.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/10_Pay_Data_Input_-_Deduction_code_Custom_Example_pay-data-input.modify_200_398891.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>This use case sends entries to a Payroll worksheet batch. It is commonly used to send the following data from a different system or application to the ADP Workforce Now&nbsp;<strong>process</strong> &gt; <strong>payroll worksheet</strong> page:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursement</li><li>Bonus Shift differential</li><li>Reportable Earnings and Benefits</li><li>Temporary Department Number</li></ul>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/10_Pay_Data_Input_-_Deduction_code_Custom_Example_pay-data-input.modify_request_36217.json"
+                }
+              }
+            },
+            {
+              "summary": "Modify pay data input simple Reg &amp; OT W/ FLSA work week.",
+              "name": "3 Pay Data Input - Simplay Reg & OT W/ FLSA work week",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Modify pay data input simple Reg & OT W/ FLSA work week.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/3_Pay_Data_Input_-_Simplay_Reg_&_OT_W/_FLSA_work_week_Custom_Example_pay-data-input.modify_200_398895.json"
+                    }
+                  }
+                }
+              ],
+              "description": "Modify pay data input simple Reg &amp; OT W/ FLSA work week.",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/3_Pay_Data_Input_-_Simplay_Reg_&_OT_W/_FLSA_work_week_Custom_Example_pay-data-input.modify_request_36221.json"
+                }
+              }
+            },
+            {
+              "summary": "<p>This use case sends entries to a Payroll worksheet batch. It is commonly used to send the following data from a different system or application to the ADP Workforce Now&nbsp;<strong>process</strong> &gt; <strong>payroll worksheet</strong> page:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursement</li><li>Bonus Shift differential</li><li>Reportable Earnings and Benefits</li><li>Temporary Department Number</li></ul>",
+              "name": "13 Pay Data Input - TIPS",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Note: the amount in reportableEarningAndBenefitInputs does not return in the response.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/13_Pay_Data_Input_-_TIPS_Custom_Example_pay-data-input.modify_200_398888.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>This use case sends entries to a Payroll worksheet batch. It is commonly used to send the following data from a different system or application to the ADP Workforce Now&nbsp;<strong>process</strong> &gt; <strong>payroll worksheet</strong> page:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursement</li><li>Bonus Shift differential</li><li>Reportable Earnings and Benefits</li><li>Temporary Department Number</li></ul>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/13_Pay_Data_Input_-_TIPS_Custom_Example_pay-data-input.modify_request_36214.json"
+                }
+              }
+            },
+            {
+              "summary": "<p>This use case sends entries to a Payroll worksheet batch. It is commonly used to send the following data from a different system or application to the ADP Workforce Now&nbsp;<strong>process</strong> &gt; <strong>payroll worksheet</strong> page:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursement</li><li>Bonus Shift differential</li><li>Reportable Earnings and Benefits</li><li>Temporary Department Number</li></ul>",
+              "name": "12 Pay Data Input - Memo Code",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Pay Data Input for memo code is updated",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/12_Pay_Data_Input_-_Memo_Code_Custom_Example_pay-data-input.modify_200_398889.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>This use case sends entries to a Payroll worksheet batch. It is commonly used to send the following data from a different system or application to the ADP Workforce Now&nbsp;<strong>process</strong> &gt; <strong>payroll worksheet</strong> page:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursement</li><li>Bonus Shift differential</li><li>Reportable Earnings and Benefits</li><li>Temporary Department Number</li></ul>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/12_Pay_Data_Input_-_Memo_Code_Custom_Example_pay-data-input.modify_request_36215.json"
+                }
+              }
+            },
+            {
+              "summary": "<p>This use case sends entries to a Payroll worksheet batch. It is commonly used to send the following data from a different system or application to the ADP Workforce Now&nbsp;<strong>process</strong> &gt; <strong>payroll worksheet</strong> page:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursement</li><li>Bonus Shift differential</li><li>Reportable Earnings and Benefits</li><li>Temporary Department Number</li></ul>",
+              "name": "8. Pay Data Input - Hours/Earnings/Temp Rate",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Modify pay data input information",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/8._Pay_Data_Input_-_Hours/Earnings/Temp_Rate_Custom_Example_pay-data-input.modify_200_144650.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>This use case sends entries to a Payroll worksheet batch. It is commonly used to send the following data from a different system or application to the ADP Workforce Now&nbsp;<strong>process</strong> &gt; <strong>payroll worksheet</strong> page:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursement</li><li>Bonus Shift differential</li><li>Reportable Earnings and Benefits</li><li>Temporary Department Number</li></ul>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/8._Pay_Data_Input_-_Hours/Earnings/Temp_Rate_Custom_Example_pay-data-input.modify_request_13090.json"
+                }
+              }
+            },
+            {
+              "summary": "<p>This use case sends entries to a Payroll worksheet batch. It is commonly used to send the following data from a different system or application to the ADP Workforce Now&nbsp;<strong>process</strong> &gt; <strong>payroll worksheet</strong> page:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursement</li><li>Bonus Shift differential</li><li>Reportable Earnings and Benefits</li><li>Temporary Department Number</li></ul>",
+              "name": "15 Pay Data Input modify for Tax Frequency",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Pay Data Input for Tax Frequency is modified.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/15_Pay_Data_Input_modify_for_Tax_Frequency_Custom_Example_pay-data-input.modify_200_398886.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>This use case sends entries to a Payroll worksheet batch. It is commonly used to send the following data from a different system or application to the ADP Workforce Now&nbsp;<strong>process</strong> &gt; <strong>payroll worksheet</strong> page:</p><ul><li>Earnings</li><li>Deductions</li><li>Reimbursement</li><li>Bonus Shift differential</li><li>Reportable Earnings and Benefits</li><li>Temporary Department Number</li></ul>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/15_Pay_Data_Input_modify_for_Tax_Frequency_Custom_Example_pay-data-input.modify_request_36212.json"
+                }
+              }
+            },
+            {
+              "summary": "Adds a new pay data batch.",
+              "name": "1 Pay Data Input - Simple Reg & OT",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "New pay data batch.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/1_Pay_Data_Input_-_Simple_Reg_&_OT_Custom_Example_pay-data-input.modify_200_398897.json"
+                    }
+                  }
+                }
+              ],
+              "description": "Adds a new pay data batch.",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/1_Pay_Data_Input_-_Simple_Reg_&_OT_Custom_Example_pay-data-input.modify_request_36223.json"
+                }
+              }
+            },
+            {
+              "summary": "Modify pay data input Simple Registration+Overtime+Temp Allocation Cost Number",
+              "name": "5 Pay Data Input - Simple Reg+OT+Temp Allocation Cost Number",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Modify pay data input Simple Registration+Overtime+Temp Allocation Cost Number",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/5_Pay_Data_Input_-_Simple_Reg+OT+Temp_Allocation_Cost_Number_Custom_Example_pay-data-input.modify_200_398898.json"
+                    }
+                  }
+                }
+              ],
+              "description": "Modify pay data input Simple Registration+Overtime+Temp Allocation Cost Number",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/5_Pay_Data_Input_-_Simple_Reg+OT+Temp_Allocation_Cost_Number_Custom_Example_pay-data-input.modify_request_36224.json"
+                }
+              }
+            },
+            {
+              "summary": "Modify pay data input Hours and earnings.",
+              "name": "7 Pay Data Input - Hours and earnings",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Modify pay data input Hours and earnings",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/7_Pay_Data_Input_-_Hours_and_earnings_Custom_Example_pay-data-input.modify_200_398893.json"
+                    }
+                  }
+                }
+              ],
+              "description": "Modify pay data input Hours and earnings.",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/7_Pay_Data_Input_-_Hours_and_earnings_Custom_Example_pay-data-input.modify_request_36219.json"
+                }
+              }
+            },
+            {
+              "summary": "Modify pay data input Simple Registration+OverTime+Temp Allocation Department.",
+              "name": "6 Pay Data Input - Simple Reg+OT+Temp Allocation Department",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Modify pay data input Simple Registration+OverTime+Temp Allocation Department.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/6_Pay_Data_Input_-_Simple_Reg+OT+Temp_Allocation_Department_Custom_Example_pay-data-input.modify_200_398899.json"
+                    }
+                  }
+                }
+              ],
+              "description": "Modify pay data input Simple Registration+OverTime+Temp Allocation Department.",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/6_Pay_Data_Input_-_Simple_Reg+OT+Temp_Allocation_Department_Custom_Example_pay-data-input.modify_request_36225.json"
+                }
+              }
+            },
+            {
+              "summary": "Modify pay data input registration overtime multipays.",
+              "name": "4 Pay Data Input - Reg/OT/ Multiple Pays",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Modify pay data input registration overtime multipays.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/4_Pay_Data_Input_-_Reg/OT/_Multiple_Pays_Custom_Example_pay-data-input.modify_200_398894.json"
+                    }
+                  }
+                }
+              ],
+              "description": "Modify pay data input registration overtime multipays.",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/4_Pay_Data_Input_-_Reg/OT/_Multiple_Pays_Custom_Example_pay-data-input.modify_request_36220.json"
+                }
+              }
+            }
+          ],
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ],
+          "globalViewDevPortalIndicator": true
+        },
+        "requestBody": {
+          "description": "posted contents",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas/events_payroll.payDataInput.modify_schema_v01_00_rev005.json"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "ADP-Acting-Session-Expires": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "sm_transactionid": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ADP-Acting-SessionID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Modify pay data input information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/events_payroll.payDataInput.modify_schema_v01_00_rev005.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "202": {
+            "$ref": "#/components/responses/202"
+          },
+          "412": {
+            "$ref": "#/components/responses/412"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "405": {
+            "$ref": "#/components/responses/405"
+          },
+          "504": {
+            "$ref": "#/components/responses/504"
+          },
+          "406": {
+            "$ref": "#/components/responses/406"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Modify pay data input information",
+        "operationId": "1616325c-2826-44d6-876b-a806a99700a5",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_userdn",
+            "description": "SiteMinder user LDAP distinguished name.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_userdn: uid=JJohns@Abc,ou=Users,o=Abc",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_user",
+            "description": "SiteMinder user ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_user: JJohns@Abc",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to - usuall injected by the API proxy, with few exceptions",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_auth_level",
+            "description": "SiteMinder autorization level.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_auth_level: 10",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_serversessionid",
+            "description": "SiteMinder session ID.   Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_serversessionid: SoFpy8UMyhtXY6YsEumvXJbznFA=",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORContext",
+            "description": "Context within an SOR that the call should be routed to",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-AssociateOID",
+            "description": "Associate OID of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-AssociateOID",
+            "description": "Associate OID for the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header should be passed in all calls.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "ISI",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "realm",
+            "description": "The identity management realm, e.g. ISI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_transactionid",
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Acting-SessionID",
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORUri",
+            "description": "Actual Uri within the SOR",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Prefer",
+            "description": "Used to indicate that particular server behaviors are preferred by the consumer.  Prefer:[preference]=[value], e.g.  respond-async, return=representation, return=minimal, etc.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        ],
+        "tags": [
+          "Pay Data Input Modify"
+        ]
+      }
+    },
+    "/events/payroll/v1/pay-data-input.modify/meta": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "payrollProcessing",
+        "functionCode": "payDataInputManagement",
+        "serviceCode": "payrollManagement",
+        "serviceCategoryCode": "payroll",
+        "canonicalName": "Pay Data Input Modify"
+      },
+      "get": {
+        "summary": "Modify Pay Data Input Meta",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobilePSSPayrollProcessing"
+          ],
+          "sorRequestTimeoutPolicies": {
+            "cachedTimeout": 3,
+            "notCachedTimeout": 10
+          },
+          "canonicalUri": "payroll/payrollManagement/payrollProcessing/payDataInputManagement/pay-data-input.modify",
+          "operationCode": "pay-data-input.modify",
+          "operationId": "f149b8b5-443d-484f-9c04-a60da170f90a",
+          "performAuthIndicator": true,
+          "roleCodes": [
+            "practitioner"
+          ],
+          "scenarios": [
+            {
+              "summary": "<p>The Meta call not only provides information to help with the structure of the call you will make for <span style=\"color: rgb(65, 65, 65); font-family: sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;\">/events/payroll/v1/pay-data-input.modify</span> but it will also provide information on things like pay codes, deduction codes, departments and cost numbers that are setup in the client&#39;s WFN instance. The sequence for using this API should be as follows:</p><ol><li>Your consumer application makes a request for /events/payroll/v1/pay-data-input.modify/meta.&nbsp;</li><li>The ADP API endpoint responds to your consumer application with the meta payload.</li><li>&nbsp;Your consumer application processes the meta payload to validate data included in the payload and then you can compose the payload for the /events/payroll/v1/pay-data-input.modify request.&nbsp;</li></ol><p>The following filter can also be used for meta API call to retrieve the codes like deductions, earnings etc based on company code or file number or both (ex. /events/payroll/v1/pay-data-input.modify/meta?companyCode=94N&amp;fileNumber=078765)</p>",
+              "name": "Meta Data Call",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Returns metadata for all company codes in the client instance.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Meta_Data_Call_Provide_Example_pay-data-input.modify_200_44089.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Returns an event metadata when parameters are used to get specific data by company code and file number. (ex. /events/payroll/v1/pay-data-input.modify/meta?companyCode=94N&fileNumber=078765)",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Meta_Data_Call_Provide_Example_pay-data-input.modify_200_44090.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>The Meta call not only provides information to help with the structure of the call you will make for <span style=\"color: rgb(65, 65, 65); font-family: sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;\">/events/payroll/v1/pay-data-input.modify</span> but it will also provide information on things like pay codes, deduction codes, departments and cost numbers that are setup in the client&#39;s WFN instance. The sequence for using this API should be as follows:</p><ol><li>Your consumer application makes a request for /events/payroll/v1/pay-data-input.modify/meta.&nbsp;</li><li>The ADP API endpoint responds to your consumer application with the meta payload.</li><li>&nbsp;Your consumer application processes the meta payload to validate data included in the payload and then you can compose the payload for the /events/payroll/v1/pay-data-input.modify request.&nbsp;</li></ol><p>The following filter can also be used for meta API call to retrieve the codes like deductions, earnings etc based on company code or file number or both (ex. /events/payroll/v1/pay-data-input.modify/meta?companyCode=94N&amp;fileNumber=078765)</p>"
+            }
+          ],
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ],
+          "globalViewDevPortalIndicator": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "ADP-Acting-Session-Expires": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "sm_transactionid": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ADP-Acting-SessionID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Returns an event metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/events_payroll.payDataInput.modify_meta_schema_v01_00_rev005.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "412": {
+            "$ref": "#/components/responses/412"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "413": {
+            "$ref": "#/components/responses/413"
+          },
+          "304": {
+            "$ref": "#/components/responses/304"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "405": {
+            "$ref": "#/components/responses/405"
+          },
+          "406": {
+            "$ref": "#/components/responses/406"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Returns an event metadata",
+        "operationId": "f149b8b5-443d-484f-9c04-a60da170f90a",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_userdn",
+            "description": "SiteMinder user LDAP distinguished name.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_userdn: uid=JJohns@Abc,ou=Users,o=Abc",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_user",
+            "description": "SiteMinder user ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_user: JJohns@Abc",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to - usuall injected by the API proxy, with few exceptions",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_auth_level",
+            "description": "SiteMinder autorization level.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_auth_level: 10",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_serversessionid",
+            "description": "SiteMinder session ID.   Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_serversessionid: SoFpy8UMyhtXY6YsEumvXJbznFA=",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORContext",
+            "description": "Context within an SOR that the call should be routed to",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-AssociateOID",
+            "description": "Associate OID of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "$filter",
+            "description": "The OData $filter parameter MUST be used to specify the filter criterion.  Please refer RESTful Web API Design Standard document for this query parameter specification details.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-AssociateOID",
+            "description": "Associate OID for the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header should be passed in all calls.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "ISI",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "realm",
+            "description": "The identity management realm, e.g. ISI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_transactionid",
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Acting-SessionID",
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORUri",
+            "description": "Actual Uri within the SOR",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        ],
+        "tags": [
+          "Pay Data Input Modify"
+        ]
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "400": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "202": {
+        "description": "Accepted",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "412": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Precondition Failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "500": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "413": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Request Entity Too Large",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "403": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "304": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Modified"
+      },
+      "503": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Service Unavailable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "404": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "405": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Method Not Allowed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "504": {
+        "headers": {
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Gateway Timeout",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "406": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Acceptable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "429": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Too Many Requests",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,2040 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "PaidTimeOffRequestResponse",
+    "type": "object",
+    "properties": {
+        "paidTimeOffRequest": {
+            "description": "Paid Time Off Request.",
+            "type": "object",
+            "properties": {
+                "positionRef": {
+                    "description": "Data which provides reference to a position",
+                    "type": "object",
+                    "properties": {
+                        "positionID": {
+                            "description": "Position identifier a person may enter time against.  ",
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "description": "Is the Identifier of the given instance of an entity.",
+                                    "type": "string"
+                                },
+                                "schemeName": {
+                                    "description": "name of the identification scheme",
+                                    "type": "string"
+                                },
+                                "schemeAgencyName": {
+                                    "description": "Agency responsible for the maintenance and definition of the identification scheme",
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "title": {
+                            "description": "The title of the position",
+                            "type": "string"
+                        }
+                    }
+                },
+                "requestID": {
+                    "description": "URI of a related resource",
+                    "type": "string"
+                },
+                "requestUri": {
+                    "description": "URI of a related resource",
+                    "type": "object",
+                    "properties": {
+                        "href": {
+                            "type": "string",
+                            "format": "uri"
+                        }
+                    }
+                },
+                "entryDateTime": {
+                    "description": "The date time of the entry. Data Representation Standard: Temporal Data Specification which follows the ISO-8601:2000 format YYYY-MM-DDThh:mm:ss+-hh:mm.  The lexical representation of a time zone is a string of the form: (('+' | '-') hh ':' mm) | 'Z', where hh is a two-digit numeral (with leading zeros as required) that represents the hours, mm is a two-digit numeral that represents the minutes, '+' indicates a nonnegative duration, '-' indicates a non-positive duration. 'Z' indicates the UTC time zone",
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "approvalDueDate": {
+                    "description": "The date that the approval is needed by",
+                    "type": "string",
+                    "format": "date"
+                },
+                "requestStatus": {
+                    "description": "The status of the request for time off.",
+                    "type": "object",
+                    "properties": {
+                        "code": {
+                            "description": "code identifying the status",
+                            "type": "string",
+                            "enum": [
+                                "userentry",
+                                "usersubmitted",
+                                "userentrycancelled",
+                                "usercancelled",
+                                "inprogress",
+                                "submitted",
+                                "pending",
+                                "approved",
+                                "denied",
+                                "partiallyDenied",
+                                "taken",
+                                "cancelled"
+                            ]
+                        },
+                        "labelName": {
+                            "description": "Label to be shown on the UI",
+                            "type": "string"
+                        }
+                    }
+                },
+                "requestorComment": {
+                    "description": "Comment from the requestor (i.e. Worker)",
+                    "type": "object",
+                    "properties": {
+                        "entryDateTime": {
+                            "description": "The date time of the entry. Data Representation Standard: Temporal Data Specification which follows the ISO-8601:2000 format YYYY-MM-DDThh:mm:ss+-hh:mm.  The lexical representation of a time zone is a string of the form: (('+' | '-') hh ':' mm) | 'Z', where hh is a two-digit numeral (with leading zeros as required) that represents the hours, mm is a two-digit numeral that represents the minutes, '+' indicates a nonnegative duration, '-' indicates a non-positive duration. 'Z' indicates the UTC time zone",
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "commentTxt": {
+                            "description": "The string entered by the user",
+                            "type": "string",
+                            "maxLength": 250
+                        }
+                    }
+                },
+                "comments": {
+                    "description": "The list of comments in reverse chronological order of those managing the request (i.e. Approvers)",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "userName": {
+                                "description": "user name which entered comment",
+                                "type": "string"
+                            },
+                            "entryDateTime": {
+                                "description": "The date time of the entry. Data Representation Standard: Temporal Data Specification which follows the ISO-8601:2000 format YYYY-MM-DDThh:mm:ss+-hh:mm.  The lexical representation of a time zone is a string of the form: (('+' | '-') hh ':' mm) | 'Z', where hh is a two-digit numeral (with leading zeros as required) that represents the hours, mm is a two-digit numeral that represents the minutes, '+' indicates a nonnegative duration, '-' indicates a non-positive duration. 'Z' indicates the UTC time zone",
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "commentTxt": {
+                                "description": "The string entered by the user",
+                                "type": "string",
+                                "maxLength": 250
+                            }
+                        }
+                    }
+                },
+                "totalQuantity": {
+                    "description": "The total quantity of hours.  These may be positive or negative ",
+                    "type": "object",
+                    "properties": {
+                        "valueNumber": {
+                            "description": "A positive or negative number indicating the quantity",
+                            "type": "number"
+                        },
+                        "unitTimeCode": {
+                            "description": "The units in which the quantity is communicated.",
+                            "type": "string",
+                            "enum": [
+                                "hour",
+                                "day",
+                                "minute",
+                                "week"
+                            ]
+                        },
+                        "labelName": {
+                            "description": "The label to be shown on the UI",
+                            "type": "string"
+                        }
+                    }
+                },
+                "totalTime": {
+                    "type": "object",
+                    "description": "Total Time represented as hh:mm",
+                    "properties": {
+                        "timeValue": {
+                            "description": "Total Time represented as +-hh:mm",
+                            "type": "string",
+                            "pattern": "-?(2[0-3]|[0-1]?[0-9]):([0-5][0-9])"
+                        },
+                        "labelName": {
+                            "description": "The label which will be shown in the UI for the policy.",
+                            "type": "string"
+                        }
+                    }
+                },
+                "meta": {
+                    "description": "Metadata of the related entity.  Communicates permissions at the reqest level.  ",
+                    "type": "object",
+                    "properties": {
+                        "metadataEntitlementCodes": {
+                            "description": "Code describing the data entitlements the user for the request.  These are r - read, u - update, d- delete, k - cancel.  Read is the default value. If the associate can not see the entry it will not be returned in the JSON.  u - update indicates that the user can change the comments and/or the approval date if supported.  The d - indicates that there is a Delete button with the request.  If the user taps on Delete a Delete request will be issued.  k - indicates that the request can be Canceled.  If the user Taps on Cancel - a Put on the request will be issued which changes the status to cancelled.",
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "r",
+                                    "u",
+                                    "d",
+                                    "k"
+                                ]
+                            }
+                        },
+                        "multiPeriodRequestIndicator": {
+                            "description": "True indicates that the System of Record supports multiple periods in a request",
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "actions": {
+                            "description": "Actions which the user is allowed to initiate against the related entity.  ",
+                            "type": "array",
+                            "minItems": 1,
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "operationID": {
+                                        "description": "Identifies the operation",
+                                        "type": "string",
+                                        "enum": [
+                                            "timeOffRequest.review",
+                                            "timeOffRequest.partialSubmit",
+                                            "timeOffRequest.view",
+                                            "timeOffRequest.update",
+                                            "timeOffRequest.delete",
+                                            "timeOffRequest.create"
+                                        ]
+                                    },
+                                    "actionTypeCode": {
+                                        "description": "Identifies the type of action to be taken to fulfill the request.  Action can be a callback to a service to complete the action.  A callback requires the methodCode and uris to be returned.  An external link i.e. open a web page - requires the uris of the external link; An object reference is a reference to a related object within the application.  This is a canonical name which represents the object.  Based on this identifier, the application knows what view it needs to open.  The uris returns the data for the view.  For an object reference, the objectRefID, methodCode, and uris are required . modify indicates that a property is being modified.",
+                                        "type": "string",
+                                        "enum": [
+                                            "callback",
+                                            "externalLink",
+                                            "objectReference",
+                                            "modify"
+                                        ]
+                                    },
+                                    "requestConfirmationIndicator": {
+                                        "description": "True indicates that the application will prompt the user to confirm the selected action. False indicates that the action will be executed once selected by the user.",
+                                        "type": "boolean",
+                                        "default": false
+                                    },
+                                    "commentIndicator": {
+                                        "description": "True indicates that the SOR supports adding a comment when taking an action.",
+                                        "type": "boolean",
+                                        "default": false
+                                    },
+                                    "defaultIndicator": {
+                                        "description": "True indicates that this is the default action.",
+                                        "type": "boolean",
+                                        "default": false
+                                    },
+                                    "colorCode": {
+                                        "description": "Code identifying the color to associate to the action.  A positive action should be green (e.g. Approval) a negative action (e.g. Denial) should be red); red=FF0000, yellow=FFFF00, green=80FF00 using RGB codes.",
+                                        "type": "string",
+                                        "default": "80FF00",
+                                        "enum": [
+                                            "FF0000",
+                                            "FFFF00",
+                                            "80FF00"
+                                        ]
+                                    },
+                                    "attestation": {
+                                        "description": "Optional text provided to the user when they take an action to affirm to be correct, true, or genuine. Requires confirmation indicator to be set to true.",
+                                        "type": "object",
+                                        "properties": {
+                                            "messageTxt": {
+                                                "description": "message to present to the user.  This is mutuallly exclusive with the messageUri which is an external link to the message.  If the text is sizable and fairly static then it should be an external link which may be cached.",
+                                                "type": "string"
+                                            },
+                                            "messageUri": {
+                                                "description": "URI of the attestation message, should be used instead of the messageTxt property if it can be cached",
+                                                "type": "object",
+                                                "properties": {
+                                                    "href": {
+                                                        "type": "string",
+                                                        "format": "uri"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "links": {
+                                        "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "rel": {
+                                                    "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "create",
+                                                        "full",
+                                                        "self",
+                                                        "up",
+                                                        "/adp/invoke",
+                                                        "/adp/modify"
+                                                    ]
+                                                },
+                                                "href": {
+                                                    "description": " The value of the href link description property is a template used to determine the target URI of the related resource.  The value of the instance property SHOULD be resolved as a URI-Reference per RFC 3986 [RFC3986] and MAY be a relative reference to a URI.",
+                                                    "type": "string",
+                                                    "format": "uri"
+                                                },
+                                                "method": {
+                                                    "description": "The HTTP method to use to traverse the link (GET, POST, PUT or DELETE).",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "GET",
+                                                        "POST",
+                                                        "DELETE",
+                                                        "PUT"
+                                                    ]
+                                                },
+                                                "mediaType": {
+                                                    "description": "The media type that the linked resource will return (Response)",
+                                                    "type": "string",
+                                                    "default": "application/json",
+                                                    "enum": [
+                                                        "application/json",
+                                                        "text/html",
+                                                        "application/pdf",
+                                                        "image/jpeg",
+                                                        "image/gif"
+                                                    ]
+                                                },
+                                                "encType": {
+                                                    "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+                                                    "type": "string",
+                                                    "default": "application/json",
+                                                    "enum": [
+                                                        "application/json",
+                                                        "application/x-www-form-urlencoded"
+                                                    ]
+                                                },
+                                                "schema": {
+                                                    "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body.",
+                                                    "type": "string"
+                                                },
+                                                "targetSchema": {
+                                                    "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation.",
+                                                    "type": "string"
+                                                },
+                                                "title": {
+                                                    "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+                                                    "type": "string"
+                                                },
+                                                "arguments": {
+                                                    "description": "A map that may be used as the basis for any data (arguments or properties) required to follow the link. ",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "propertyUri": {
+                                                                "description": "URI of the property",
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "href": {
+                                                                        "type": "string",
+                                                                        "format": "uri",
+                                                                        "enum": [
+                                                                            "/requestStatus/code",
+                                                                            "/requestRevID/idValue",
+                                                                            "/requestRevID/schemeName",
+                                                                            "/associateID/idValue",
+                                                                            "/associateID/schemeName",
+                                                                            "/associateID/schemeAgencyName"
+                                                                        ]
+                                                                    }
+                                                                }
+                                                            },
+                                                            "propertyValue": {
+                                                                "description": "The value of the property.",
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "paidTimeOffEntries": {
+                    "description": "The entries which make up the quantity for the balance type",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "paidTimeOffID": {
+                                "description": "The entries which make up the quantity for the balance type",
+                                "type": "string"
+                            },
+                            "paidTimeOffPolicy": {
+                                "description": "code identifying the time off policy.  A system may have 1 policy per earning type.  If there earning type has only 1 earning type then the paidTimeOffPolicycode should be equal to the earningTypeCode. If there is a policy with multiple earning Types then the user must first select the policy.  If there are multiple possible earning types then the user is presented with the list to select from.  The list is presented in the order which it is sent in the JSON.  The first one is the default presented.",
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "description": "code identifying the policy"
+                                    },
+                                    "labelName": {
+                                        "description": "The label which will be shown in the UI for the policy.",
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "entryStatus": {
+                                "description": "The status of the entry",
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "description": "code identifying the status",
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "approved",
+                                            "denied"
+                                        ]
+                                    },
+                                    "labelName": {
+                                        "description": "Label to be shown on the UI",
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "earningType": {
+                                "description": "The type of earning",
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "description": "Code identifying the type of earning",
+                                        "type": "string"
+                                    },
+                                    "labelName": {
+                                        "description": "The label to show on the UI",
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "timePeriod": {
+                                "description": "Time period of the paid time off.  If single day then startDate and endDate are equivalent.  If a full day then the time component is truncated.,",
+                                "type": "object",
+                                "properties": {
+                                    "startDateTime": {
+                                        "description": "The start date time of the time period. Data Representation Standard: Temporal Data Specification which follows the ISO-8601:2000 format YYYY-MM-DDThh:mm:ss+-hh:mm.  The lexical representation of a time zone is a string of the form: (('+' | '-') hh ':' mm) | 'Z', where hh is a two-digit numeral (with leading zeros as required) that represents the hours, mm is a two-digit numeral that represents the minutes, '+' indicates a nonnegative duration, '-' indicates a non-positive duration. 'Z' indicates the UTC time zone",
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "endDateTime": {
+                                        "description": "The end date time of the time period. Data Representation Standard: Temporal Data Specification which follows the ISO-8601:2000 format YYYY-MM-DDThh:mm:ss+-hh:mm.  The lexical representation of a time zone is a string of the form: (('+' | '-') hh ':' mm) | 'Z', where hh is a two-digit numeral (with leading zeros as required) that represents the hours, mm is a two-digit numeral that represents the minutes, '+' indicates a nonnegative duration, '-' indicates a non-positive duration. 'Z' indicates the UTC time zone",
+                                        "type": "string",
+                                        "format": "date-time"
+                                    }
+                                }
+                            },
+                            "startTime": {
+                                "description": "The startTime represented as hh:mm. This is communicated in military notation and presented in the UI based on the timeNotationCode.  This is only used with the datePeriodStartTimeDuration",
+                                "type": "string"
+                            },
+                            "dailyQuantity": {
+                                "description": "The quantity of time for a given day.  Only applicable for entryType/code=datePeriodStartTimeDuration.  These may be positive or negative ",
+                                "type": "object",
+                                "properties": {
+                                    "valueNumber": {
+                                        "description": "A positive or negative number indicating the quantity",
+                                        "type": "number"
+                                    },
+                                    "unitTimeCode": {
+                                        "description": "The units in which the quantity is communicated.",
+                                        "type": "string",
+                                        "enum": [
+                                            "hour",
+                                            "day",
+                                            "minute",
+                                            "week"
+                                        ]
+                                    },
+                                    "labelName": {
+                                        "description": "The label which will be shown in the UI",
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "totalQuantity": {
+                                "description": "The total quantity of hours.  These may be positive or negative ",
+                                "type": "object",
+                                "properties": {
+                                    "valueNumber": {
+                                        "description": "A positive or negative number indicating the quantity",
+                                        "type": "number"
+                                    },
+                                    "unitTimeCode": {
+                                        "description": "The units in which the quantity is communicated.",
+                                        "type": "string",
+                                        "enum": [
+                                            "hour",
+                                            "day",
+                                            "minute",
+                                            "week"
+                                        ]
+                                    },
+                                    "labelName": {
+                                        "description": "The label which will be shown in the UI",
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "dailyTime": {
+                                "type": "object",
+                                "description": "Daily Time represented as hh:mm.  It is the time per day which a person is requesting.",
+                                "properties": {
+                                    "timeValue": {
+                                        "description": "Total Time represented as +-hh:mm",
+                                        "type": "string",
+                                        "pattern": "-?(2[0-3]|[0-1]?[0-9]):([0-5][0-9])"
+                                    },
+                                    "labelName": {
+                                        "description": "The label which will be shown in the UI for the policy.",
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "totalTime": {
+                                "type": "object",
+                                "description": "Total Time represented as hh:mm",
+                                "properties": {
+                                    "timeValue": {
+                                        "description": "Total Time represented as +-hh:mm",
+                                        "type": "string",
+                                        "pattern": "-?(2[0-3]|[0-1]?[0-9]):([0-5][0-9])"
+                                    },
+                                    "labelName": {
+                                        "description": "The label which will be shown in the UI for the policy.",
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "durationType": {
+                                "description": "The list of permissable duration types which only go with the entryTypeCodes = datePeriodStartTimeDuration",
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "description": "code identifying the type of duration",
+                                        "type": "string",
+                                        "enum": [
+                                            "fullday",
+                                            "halfday",
+                                            "quantity",
+                                            "dailyQuantity",
+                                            "firstHalfDay",
+                                            "secondHalfDay"
+                                        ]
+                                    },
+                                    "labelName": {
+                                        "description": "The label which will be shown in the UI",
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "startDateDayPeriod": {
+                                "description": "The dayPeriod which was selected along with the startDate.  This property is only relevant when the entryTypesCodes is datePeriodDayPeriod.  ",
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "description": "code identifying the periods of the day",
+                                        "type": "string"
+                                    },
+                                    "labelName": {
+                                        "description": "The label which will be shown in the UI",
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "endDateDayPeriod": {
+                                "description": "The dayPeriod which was selected along with the endDate. This property is only relevant when the entryTypesCodes is datePeriodDayPeriod.  ",
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "description": "code identifying the periods of the day",
+                                        "type": "string"
+                                    },
+                                    "labelName": {
+                                        "description": "The label which will be shown in the UI",
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "meta": {
+                                "description": "Metadata of the related entity.  Communicates permissions at the entry level and what the allowed entryTypeCodes when managing this entry.",
+                                "type": "object",
+                                "properties": {
+                                    "metadataEntitlementCodes": {
+                                        "description": "Code describing the data entitlements the user has on the entry.  These are r - read, u - update, d- delete, k - cancel.  Read is the default value. If the associate can not see the entry it will not be returned in the JSON.  ",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "enum": [
+                                                "r",
+                                                "u",
+                                                "d",
+                                                "k"
+                                            ]
+                                        }
+                                    },
+                                    "entryTypeCodes": {
+                                        "description": "A list of  types of entries supported for the entry type.  An earning type may be entered in varying ways depending on whether it is a single day or a period. dateDuration represents a date and number of hours.  timePeriod represents a startDateTime and endDateTime.  endDateTime is optional.  datePeriod represents a startDate and an endDate.  The endDate is optional. dateTime represents a date with optional time.  A date alone indicates a full day.  A dateTime can also be a date with a start time and an end time.  There may be a combination of types in the case where one rule applies for a single day or a time period. datePeriodHalfDay indicates that a half day is taken each day in the specified period.  The System of Record calculates what is considered a half day for the worker.",
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "maxItems": 2,
+                                        "items": {
+                                            "type": "string",
+                                            "enum": [
+                                                "dateDuration",
+                                                "timePeriod",
+                                                "datePeriod",
+                                                "dateTime",
+                                                "startDateTimeDuration",
+                                                "datePeriodStartTimeDuration",
+                                                "datePeriodHalfDay",
+                                                "datePeriodDayPeriod",
+                                                "dayPeriod"
+                                            ]
+                                        }
+                                    },
+                                    "actions": {
+                                        "description": "Actions which the user is allowed to initiate against the related entity.  ",
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "operationID": {
+                                                    "description": "Identifies the operation",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "timeOffRequest.review",
+                                                        "timeOffRequest.partialSubmit",
+                                                        "timeOffRequest.view",
+                                                        "timeOffRequest.update",
+                                                        "timeOffRequest.delete",
+                                                        "timeOffRequest.create"
+                                                    ]
+                                                },
+                                                "actionTypeCode": {
+                                                    "description": "Identifies the type of action to be taken to fulfill the request.  Action can be a callback to a service to complete the action.  A callback requires the methodCode and uris to be returned.  An external link i.e. open a web page - requires the uris of the external link; An object reference is a reference to a related object within the application.  This is a canonical name which represents the object.  Based on this identifier, the application knows what view it needs to open.  The uris returns the data for the view.  For an object reference, the objectRefID, methodCode, and uris are required . modify indicates that a property is being modified.",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "callback",
+                                                        "externalLink",
+                                                        "objectReference",
+                                                        "modify"
+                                                    ]
+                                                },
+                                                "requestConfirmationIndicator": {
+                                                    "description": "True indicates that the application will prompt the user to confirm the selected action. False indicates that the action will be executed once selected by the user.",
+                                                    "type": "boolean",
+                                                    "default": false
+                                                },
+                                                "commentIndicator": {
+                                                    "description": "True indicates that the SOR supports adding a comment when taking an action.",
+                                                    "type": "boolean",
+                                                    "default": false
+                                                },
+                                                "defaultIndicator": {
+                                                    "description": "True indicates that this is the default action.",
+                                                    "type": "boolean",
+                                                    "default": false
+                                                },
+                                                "colorCode": {
+                                                    "description": "Code identifying the color to associate to the action.  A positive action should be green (e.g. Approval) a negative action (e.g. Denial) should be red); red=FF0000, yellow=FFFF00, green=80FF00 using RGB codes.",
+                                                    "type": "string",
+                                                    "default": "80FF00",
+                                                    "enum": [
+                                                        "FF0000",
+                                                        "FFFF00",
+                                                        "80FF00"
+                                                    ]
+                                                },
+                                                "attestation": {
+                                                    "description": "Optional text provided to the user when they take an action to affirm to be correct, true, or genuine. Requires confirmation indicator to be set to true.",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "messageTxt": {
+                                                            "description": "message to present to the user.  This is mutuallly exclusive with the messageUri which is an external link to the message.  If the text is sizable and fairly static then it should be an external link which may be cached.",
+                                                            "type": "string"
+                                                        },
+                                                        "messageUri": {
+                                                            "description": "URI of the attestation message, should be used instead of the messageTxt property if it can be cached",
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "href": {
+                                                                    "type": "string",
+                                                                    "format": "uri"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "links": {
+                                                    "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "rel": {
+                                                                "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "create",
+                                                                    "full",
+                                                                    "self",
+                                                                    "up",
+                                                                    "/adp/invoke",
+                                                                    "/adp/modify"
+                                                                ]
+                                                            },
+                                                            "href": {
+                                                                "description": " The value of the href link description property is a template used to determine the target URI of the related resource.  The value of the instance property SHOULD be resolved as a URI-Reference per RFC 3986 [RFC3986] and MAY be a relative reference to a URI.",
+                                                                "type": "string",
+                                                                "format": "uri"
+                                                            },
+                                                            "method": {
+                                                                "description": "The HTTP method to use to traverse the link (GET, POST, PUT or DELETE).",
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "GET",
+                                                                    "POST",
+                                                                    "DELETE",
+                                                                    "PUT"
+                                                                ]
+                                                            },
+                                                            "mediaType": {
+                                                                "description": "The media type that the linked resource will return (Response)",
+                                                                "type": "string",
+                                                                "default": "application/json",
+                                                                "enum": [
+                                                                    "application/json",
+                                                                    "text/html",
+                                                                    "application/pdf",
+                                                                    "image/jpeg",
+                                                                    "image/gif"
+                                                                ]
+                                                            },
+                                                            "encType": {
+                                                                "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+                                                                "type": "string",
+                                                                "default": "application/json",
+                                                                "enum": [
+                                                                    "application/json",
+                                                                    "application/x-www-form-urlencoded"
+                                                                ]
+                                                            },
+                                                            "schema": {
+                                                                "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body.",
+                                                                "type": "string"
+                                                            },
+                                                            "targetSchema": {
+                                                                "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation.",
+                                                                "type": "string"
+                                                            },
+                                                            "title": {
+                                                                "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+                                                                "type": "string"
+                                                            },
+                                                            "arguments": {
+                                                                "description": "A map that may be used as the basis for any data (arguments or properties) required to follow the link. ",
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "propertyUri": {
+                                                                            "description": "URI of the property",
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "href": {
+                                                                                    "type": "string",
+                                                                                    "format": "uri",
+                                                                                    "enum": [
+                                                                                        "/entryStatus/code",
+                                                                                        "/timeOffEntryRevID/idValue",
+                                                                                        "/timeOffEntryRevID/schemeName"
+                                                                                    ]
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        "propertyValue": {
+                                                                            "description": "The value of the property.",
+                                                                            "type": "string"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "confirmMessage": {
+            "description": "The ConfirmMessage contains the processing results for the corresponding request.  A request may have its processing reported as: succeeded, partially failed, or failed.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "confirmMessageID": {
+                    "description": "An identifier for the instance of the confirm message.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "idValue": {
+                            "description": "An ID",
+                            "type": "string"
+                        },
+                        "schemeName": {
+                            "description": "The type of ID",
+                            "type": "string"
+                        },
+                        "schemeAgencyName": {
+                            "description": "The agency that issues the ID",
+                            "type": "string"
+                        }
+                    }
+                },
+                "createDateTime": {
+                    "description": "The date & time that the message instance was generated.; follows the ISO-8601:2000 format: 2008-05-11T15:30:00-06:00.",
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "requestReceiptDateTime": {
+                    "description": "The date & time that the request submitted by the client was received. Note, this timestamp may not be the same as the time the client actually submitted the request if there is a queuing mechanism between the client and server processing the request; it follows the ISO-8601:2000 format: 2008-05-11T15:30:00-06:00.",
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "protocolStatusCode": {
+                    "description": "Protocol-specific response status code.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "codeValue": {
+                            "description": "The code for the related entity.",
+                            "type": "string"
+                        },
+                        "shortName": {
+                            "description": "Short description of the related code not to exceed 25 characters",
+                            "type": "string"
+                        },
+                        "longName": {
+                            "description": "Long description of the related code",
+                            "type": "string"
+                        }
+                    }
+                },
+                "protocolCode": {
+                    "description": "Code that identifies the protocol used for the request.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "codeValue": {
+                            "description": "The code for the related entity.",
+                            "type": "string"
+                        },
+                        "shortName": {
+                            "description": "Short description of the related code not to exceed 25 characters",
+                            "type": "string"
+                        },
+                        "longName": {
+                            "description": "Long description of the related code",
+                            "type": "string"
+                        }
+                    }
+                },
+                "requestID": {
+                    "description": "The identifier of the request that generated this response.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "idValue": {
+                            "description": "An ID",
+                            "type": "string"
+                        },
+                        "schemeName": {
+                            "description": "The type of ID",
+                            "type": "string"
+                        },
+                        "schemeAgencyName": {
+                            "description": "The agency that issues the ID",
+                            "type": "string"
+                        }
+                    }
+                },
+                "requestStatusCode": {
+                    "description": "The process results status code for the request.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "shortName": {
+                            "description": "Short description of the related code",
+                            "type": "string"
+                        },
+                        "longName": {
+                            "description": "Long description of the related code",
+                            "type": "string"
+                        },
+                        "codeValue": {
+                            "description": "The code for the related entity.",
+                            "type": "string",
+                            "enum": [
+                                "succeeded",
+                                "partiallyFailed",
+                                "failed"
+                            ]
+                        }
+                    }
+                },
+                "requestMethodCode": {
+                    "description": "The method that was used on the request corresponding to this message instance.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "shortName": {
+                            "description": "Short description of the related code",
+                            "type": "string"
+                        },
+                        "longName": {
+                            "description": "Long description of the related code",
+                            "type": "string"
+                        },
+                        "codeValue": {
+                            "description": "The code for the related entity.",
+                            "type": "string",
+                            "enum": [
+                                "GET",
+                                "PUT",
+                                "POST",
+                                "PATCH",
+                                "DELETE"
+                            ]
+                        }
+                    }
+                },
+                "sessionID": {
+                    "description": "A session identifier if one is available.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "idValue": {
+                            "description": "An ID",
+                            "type": "string"
+                        },
+                        "schemeName": {
+                            "description": "The type of ID",
+                            "type": "string"
+                        },
+                        "schemeAgencyName": {
+                            "description": "The agency that issues the ID",
+                            "type": "string"
+                        }
+                    }
+                },
+                "requestETag": {
+                    "description": "The entity tag of the entity in the request.",
+                    "type": "string"
+                },
+                "requestLink": {
+                    "description": "The link of the request that generated this response.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "href": {
+                            "description": "The URI of the related entity",
+                            "type": "string",
+                            "format": "uri"
+                        },
+                        "rel": {
+                            "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+                            "type": "string",
+                            "enum": [
+                                "alternate",
+                                "create",
+                                "canonical",
+                                "describedby",
+                                "edit-form",
+                                "enclosure",
+                                "full",
+                                "related",
+                                "root",
+                                "self",
+                                "up",
+                                "search",
+                                "first",
+                                "last",
+                                "next",
+                                "previous",
+                                "/adp/invoke",
+                                "/adp/image",
+                                "/adp/confirm-message",
+                                "/adp/status-monitor",
+                                "/adp/codelist",
+                                "/adp/template",
+                                "/adp/externalLink"
+                            ]
+                        },
+                        "title": {
+                            "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+                            "type": "string"
+                        },
+                        "targetSchema": {
+                            "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation.",
+                            "type": "string"
+                        },
+                        "mediaType": {
+                            "description": "The media type that the linked resource will return (Response)",
+                            "type": "string",
+                            "enum": [
+                                "application/json",
+                                "text/html",
+                                "text/plain",
+                                "image/jpeg",
+                                "image/gif",
+                                "image/png",
+                                "image/tiff",
+                                "application/pdf",
+                                "application/postscript",
+                                "application/msword",
+                                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                "application/vnd.ms-excel",
+                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                            ]
+                        },
+                        "method": {
+                            "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+                            "type": "string",
+                            "enum": [
+                                "GET",
+                                "POST",
+                                "DELETE",
+                                "PUT"
+                            ]
+                        },
+                        "encType": {
+                            "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+                            "type": "string",
+                            "enum": [
+                                "application/json",
+                                "application/x-www-form-urlencoded"
+                            ]
+                        },
+                        "schema": {
+                            "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body.",
+                            "type": "string"
+                        }
+                    }
+                },
+                "processingStatusCode": {
+                    "description": "Processing status of the related request message.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "shortName": {
+                            "description": "Short description of the related code",
+                            "type": "string"
+                        },
+                        "longName": {
+                            "description": "Long description of the related code",
+                            "type": "string"
+                        },
+                        "codeValue": {
+                            "description": "The code for the related entity.",
+                            "type": "string",
+                            "enum": [
+                                "received",
+                                "validated",
+                                "started",
+                                "completed"
+                            ]
+                        }
+                    }
+                },
+                "processMessages": {
+                    "description": "processMessage is optional and contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).  Most often there will be a single instance for an associated request or resource, but this structure allows for more than one if needed, for example, if multiple errors exist for a single resource. ",
+                    "type": "array",
+                    "items": {
+                        "description": "Each object contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).",
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                            "processMessageID": {
+                                "description": "An identifier for the instance of the process message.",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "idValue": {
+                                        "description": "An ID",
+                                        "type": "string"
+                                    },
+                                    "schemeName": {
+                                        "description": "The type of ID",
+                                        "type": "string"
+                                    },
+                                    "schemeAgencyName": {
+                                        "description": "The agency that issues the ID",
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "messageTypeCode": {
+                                "description": "Process Message instances may be of type: success, warning, error, or info.",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "shortName": {
+                                        "description": "Short description of the related code",
+                                        "type": "string"
+                                    },
+                                    "longName": {
+                                        "description": "Long description of the related code",
+                                        "type": "string"
+                                    },
+                                    "codeValue": {
+                                        "description": "The code for the related entity.",
+                                        "type": "string",
+                                        "enum": [
+                                            "success",
+                                            "warning",
+                                            "error",
+                                            "info"
+                                        ]
+                                    }
+                                }
+                            },
+                            "sourceLocationExpression": {
+                                "description": "Expression that provides the location (or source) of content in a message instance that is associated with a process message. Examples of expression languages include: XPath, XQuery, JSON Pointer.",
+                                "type": "string"
+                            },
+                            "expressionLanguageCode": {
+                                "description": "Identifies the language used for expressions communicated in this message.",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "shortName": {
+                                        "description": "Short description of the related code",
+                                        "type": "string"
+                                    },
+                                    "longName": {
+                                        "description": "Long description of the related code",
+                                        "type": "string"
+                                    },
+                                    "codeValue": {
+                                        "description": "The code for the related entity.",
+                                        "type": "string",
+                                        "enum": [
+                                            "jPath"
+                                        ]
+                                    }
+                                }
+                            },
+                            "links": {
+                                "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+                                "type": "array",
+                                "items": {
+                                    "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "href": {
+                                            "description": "The URI of the related entity",
+                                            "type": "string",
+                                            "format": "uri"
+                                        },
+                                        "rel": {
+                                            "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+                                            "type": "string",
+                                            "enum": [
+                                                "alternate",
+                                                "create",
+                                                "canonical",
+                                                "describedby",
+                                                "edit-form",
+                                                "enclosure",
+                                                "full",
+                                                "related",
+                                                "root",
+                                                "self",
+                                                "up",
+                                                "search",
+                                                "first",
+                                                "last",
+                                                "next",
+                                                "previous",
+                                                "/adp/invoke",
+                                                "/adp/image",
+                                                "/adp/confirm-message",
+                                                "/adp/status-monitor",
+                                                "/adp/codelist",
+                                                "/adp/template",
+                                                "/adp/externalLink"
+                                            ]
+                                        },
+                                        "title": {
+                                            "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+                                            "type": "string"
+                                        },
+                                        "targetSchema": {
+                                            "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation.",
+                                            "type": "string"
+                                        },
+                                        "mediaType": {
+                                            "description": "The media type that the linked resource will return (Response)",
+                                            "type": "string",
+                                            "enum": [
+                                                "application/json",
+                                                "text/html",
+                                                "text/plain",
+                                                "image/jpeg",
+                                                "image/gif",
+                                                "image/png",
+                                                "image/tiff",
+                                                "application/pdf",
+                                                "application/postscript",
+                                                "application/msword",
+                                                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                                "application/vnd.ms-excel",
+                                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                            ]
+                                        },
+                                        "method": {
+                                            "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+                                            "type": "string",
+                                            "enum": [
+                                                "GET",
+                                                "POST",
+                                                "DELETE",
+                                                "PUT"
+                                            ]
+                                        },
+                                        "encType": {
+                                            "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+                                            "type": "string",
+                                            "enum": [
+                                                "application/json",
+                                                "application/x-www-form-urlencoded"
+                                            ]
+                                        },
+                                        "schema": {
+                                            "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body.",
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "userMessage": {
+                                "description": "Message returned to the user",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "codeValue": {
+                                        "description": "The code associated with the message description.",
+                                        "type": "string"
+                                    },
+                                    "title": {
+                                        "description": "Title of the message description.",
+                                        "type": "string"
+                                    },
+                                    "messageTxt": {
+                                        "description": "The value/content of the message description.",
+                                        "type": "string"
+                                    },
+                                    "links": {
+                                        "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+                                        "type": "array",
+                                        "items": {
+                                            "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "properties": {
+                                                "href": {
+                                                    "description": "The URI of the related entity",
+                                                    "type": "string",
+                                                    "format": "uri"
+                                                },
+                                                "rel": {
+                                                    "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "alternate",
+                                                        "create",
+                                                        "canonical",
+                                                        "describedby",
+                                                        "edit-form",
+                                                        "enclosure",
+                                                        "full",
+                                                        "related",
+                                                        "root",
+                                                        "self",
+                                                        "up",
+                                                        "search",
+                                                        "first",
+                                                        "last",
+                                                        "next",
+                                                        "previous",
+                                                        "/adp/invoke",
+                                                        "/adp/image",
+                                                        "/adp/confirm-message",
+                                                        "/adp/status-monitor",
+                                                        "/adp/codelist",
+                                                        "/adp/template",
+                                                        "/adp/externalLink"
+                                                    ]
+                                                },
+                                                "title": {
+                                                    "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+                                                    "type": "string"
+                                                },
+                                                "targetSchema": {
+                                                    "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation.",
+                                                    "type": "string"
+                                                },
+                                                "mediaType": {
+                                                    "description": "The media type that the linked resource will return (Response)",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "application/json",
+                                                        "text/html",
+                                                        "text/plain",
+                                                        "image/jpeg",
+                                                        "image/gif",
+                                                        "image/png",
+                                                        "image/tiff",
+                                                        "application/pdf",
+                                                        "application/postscript",
+                                                        "application/msword",
+                                                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                                        "application/vnd.ms-excel",
+                                                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                                    ]
+                                                },
+                                                "method": {
+                                                    "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "GET",
+                                                        "POST",
+                                                        "DELETE",
+                                                        "PUT"
+                                                    ]
+                                                },
+                                                "encType": {
+                                                    "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "application/json",
+                                                        "application/x-www-form-urlencoded"
+                                                    ]
+                                                },
+                                                "schema": {
+                                                    "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body.",
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "developerMessage": {
+                                "description": "Message returned to the user",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "codeValue": {
+                                        "description": "The code associated with the message description.",
+                                        "type": "string"
+                                    },
+                                    "title": {
+                                        "description": "Title of the message description.",
+                                        "type": "string"
+                                    },
+                                    "messageTxt": {
+                                        "description": "The value/content of the message description.",
+                                        "type": "string"
+                                    },
+                                    "links": {
+                                        "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+                                        "type": "array",
+                                        "items": {
+                                            "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "properties": {
+                                                "href": {
+                                                    "description": "The URI of the related entity",
+                                                    "type": "string",
+                                                    "format": "uri"
+                                                },
+                                                "rel": {
+                                                    "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "alternate",
+                                                        "create",
+                                                        "canonical",
+                                                        "describedby",
+                                                        "edit-form",
+                                                        "enclosure",
+                                                        "full",
+                                                        "related",
+                                                        "root",
+                                                        "self",
+                                                        "up",
+                                                        "search",
+                                                        "first",
+                                                        "last",
+                                                        "next",
+                                                        "previous",
+                                                        "/adp/invoke",
+                                                        "/adp/image",
+                                                        "/adp/confirm-message",
+                                                        "/adp/status-monitor",
+                                                        "/adp/codelist",
+                                                        "/adp/template",
+                                                        "/adp/externalLink"
+                                                    ]
+                                                },
+                                                "title": {
+                                                    "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+                                                    "type": "string"
+                                                },
+                                                "targetSchema": {
+                                                    "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation.",
+                                                    "type": "string"
+                                                },
+                                                "mediaType": {
+                                                    "description": "The media type that the linked resource will return (Response)",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "application/json",
+                                                        "text/html",
+                                                        "text/plain",
+                                                        "image/jpeg",
+                                                        "image/gif",
+                                                        "image/png",
+                                                        "image/tiff",
+                                                        "application/pdf",
+                                                        "application/postscript",
+                                                        "application/msword",
+                                                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                                        "application/vnd.ms-excel",
+                                                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                                    ]
+                                                },
+                                                "method": {
+                                                    "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "GET",
+                                                        "POST",
+                                                        "DELETE",
+                                                        "PUT"
+                                                    ]
+                                                },
+                                                "encType": {
+                                                    "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "application/json",
+                                                        "application/x-www-form-urlencoded"
+                                                    ]
+                                                },
+                                                "schema": {
+                                                    "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body.",
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "resourceMessages": {
+                    "description": "resource Message contains the resource-specific processing results for resources being managed in the request.  A resource may have its processing reported as:  succeeded or failed.  It must be used to represent resource-specific messages.  In the case of a request managing multiple resources and resource-specific messages are to be returned, then this array will contain one object for each such resource of the request.",
+                    "type": "array",
+                    "items": {
+                        "description": "Each object contains detailed information for a resource referenced in the original request.",
+                        "type": "object",
+                        "properties": {
+                            "resourceMessageID": {
+                                "description": "An identifier for the instance of the resource message.",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "idValue": {
+                                        "description": "An ID",
+                                        "type": "string"
+                                    },
+                                    "schemeName": {
+                                        "description": "The type of ID",
+                                        "type": "string"
+                                    },
+                                    "schemeAgencyName": {
+                                        "description": "The agency that issues the ID",
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "resourceStatusCode": {
+                                "description": "The processing results status code of the resource of the request.",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "title": "ResourceMessageResourceStatus",
+                                "properties": {
+                                    "shortName": {
+                                        "description": "Short description of the related code",
+                                        "type": "string"
+                                    },
+                                    "longName": {
+                                        "description": "Long description of the related code",
+                                        "type": "string"
+                                    },
+                                    "codeValue": {
+                                        "description": "The code for the related entity.",
+                                        "type": "string",
+                                        "enum": [
+                                            "succeeded",
+                                            "failed",
+                                            "warning"
+                                        ]
+                                    }
+                                }
+                            },
+                            "resourceLink": {
+                                "description": "The link of the request that generated this response.",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "href": {
+                                        "description": "The URI of the related entity",
+                                        "type": "string",
+                                        "format": "uri"
+                                    },
+                                    "rel": {
+                                        "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+                                        "type": "string",
+                                        "enum": [
+                                            "alternate",
+                                            "create",
+                                            "canonical",
+                                            "describedby",
+                                            "edit-form",
+                                            "enclosure",
+                                            "full",
+                                            "related",
+                                            "root",
+                                            "self",
+                                            "up",
+                                            "search",
+                                            "first",
+                                            "last",
+                                            "next",
+                                            "previous",
+                                            "/adp/invoke",
+                                            "/adp/image",
+                                            "/adp/confirm-message",
+                                            "/adp/status-monitor",
+                                            "/adp/codelist",
+                                            "/adp/template",
+                                            "/adp/externalLink"
+                                        ]
+                                    },
+                                    "title": {
+                                        "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+                                        "type": "string"
+                                    },
+                                    "targetSchema": {
+                                        "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation.",
+                                        "type": "string"
+                                    },
+                                    "mediaType": {
+                                        "description": "The media type that the linked resource will return (Response)",
+                                        "type": "string",
+                                        "enum": [
+                                            "application/json",
+                                            "text/html",
+                                            "text/plain",
+                                            "image/jpeg",
+                                            "image/gif",
+                                            "image/png",
+                                            "image/tiff",
+                                            "application/pdf",
+                                            "application/postscript",
+                                            "application/msword",
+                                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                            "application/vnd.ms-excel",
+                                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                        ]
+                                    },
+                                    "method": {
+                                        "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+                                        "type": "string",
+                                        "enum": [
+                                            "GET",
+                                            "POST",
+                                            "DELETE",
+                                            "PUT"
+                                        ]
+                                    },
+                                    "encType": {
+                                        "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+                                        "type": "string",
+                                        "enum": [
+                                            "application/json",
+                                            "application/x-www-form-urlencoded"
+                                        ]
+                                    },
+                                    "schema": {
+                                        "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body.",
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "processMessages": {
+                                "description": "processMessage is optional and contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).  Most often there will be a single instance for an associated request or resource, but this structure allows for more than one if needed, for example, if multiple errors exist for a single resource. ",
+                                "type": "array",
+                                "items": {
+                                    "title": "ProcessMessageWithResourceStatusCode",
+                                    "description": "Each object contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "processMessageID": {
+                                            "description": "An identifier for the instance of the process message.",
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "properties": {
+                                                "idValue": {
+                                                    "description": "An ID",
+                                                    "type": "string"
+                                                },
+                                                "schemeName": {
+                                                    "description": "The type of ID",
+                                                    "type": "string"
+                                                },
+                                                "schemeAgencyName": {
+                                                    "description": "The agency that issues the ID",
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        "messageTypeCode": {
+                                            "description": "Process Message instances may be of type: success, warning, error, or info.",
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "properties": {
+                                                "shortName": {
+                                                    "description": "Short description of the related code",
+                                                    "type": "string"
+                                                },
+                                                "longName": {
+                                                    "description": "Long description of the related code",
+                                                    "type": "string"
+                                                },
+                                                "codeValue": {
+                                                    "description": "The code for the related entity.",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "success",
+                                                        "warning",
+                                                        "error",
+                                                        "info"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "sourceLocationExpression": {
+                                            "description": "Expression that provides the location (or source) of content in a message instance that is associated with a process message. Examples of expression languages include: XPath, XQuery, JSON Pointer.",
+                                            "type": "string"
+                                        },
+                                        "expressionLanguageCode": {
+                                            "description": "Identifies the language used for expressions communicated in this message.",
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "properties": {
+                                                "shortName": {
+                                                    "description": "Short description of the related code",
+                                                    "type": "string"
+                                                },
+                                                "longName": {
+                                                    "description": "Long description of the related code",
+                                                    "type": "string"
+                                                },
+                                                "codeValue": {
+                                                    "description": "The code for the related entity.",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "jPath"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "links": {
+                                            "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+                                            "type": "array",
+                                            "items": {
+                                                "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+                                                "type": "object",
+                                                "additionalProperties": false,
+                                                "properties": {
+                                                    "href": {
+                                                        "description": "The URI of the related entity",
+                                                        "type": "string",
+                                                        "format": "uri"
+                                                    },
+                                                    "rel": {
+                                                        "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "alternate",
+                                                            "create",
+                                                            "canonical",
+                                                            "describedby",
+                                                            "edit-form",
+                                                            "enclosure",
+                                                            "full",
+                                                            "related",
+                                                            "root",
+                                                            "self",
+                                                            "up",
+                                                            "search",
+                                                            "first",
+                                                            "last",
+                                                            "next",
+                                                            "previous",
+                                                            "/adp/invoke",
+                                                            "/adp/image",
+                                                            "/adp/confirm-message",
+                                                            "/adp/status-monitor",
+                                                            "/adp/codelist",
+                                                            "/adp/template",
+                                                            "/adp/externalLink"
+                                                        ]
+                                                    },
+                                                    "title": {
+                                                        "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+                                                        "type": "string"
+                                                    },
+                                                    "targetSchema": {
+                                                        "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation.",
+                                                        "type": "string"
+                                                    },
+                                                    "mediaType": {
+                                                        "description": "The media type that the linked resource will return (Response)",
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "application/json",
+                                                            "text/html",
+                                                            "text/plain",
+                                                            "image/jpeg",
+                                                            "image/gif",
+                                                            "image/png",
+                                                            "image/tiff",
+                                                            "application/pdf",
+                                                            "application/postscript",
+                                                            "application/msword",
+                                                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                                            "application/vnd.ms-excel",
+                                                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                                        ]
+                                                    },
+                                                    "method": {
+                                                        "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "GET",
+                                                            "POST",
+                                                            "DELETE",
+                                                            "PUT"
+                                                        ]
+                                                    },
+                                                    "encType": {
+                                                        "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "application/json",
+                                                            "application/x-www-form-urlencoded"
+                                                        ]
+                                                    },
+                                                    "schema": {
+                                                        "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body.",
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "userMessage": {
+                                            "description": "Message returned to the user",
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "properties": {
+                                                "codeValue": {
+                                                    "description": "The code associated with the message description.",
+                                                    "type": "string"
+                                                },
+                                                "title": {
+                                                    "description": "Title of the message description.",
+                                                    "type": "string"
+                                                },
+                                                "messageTxt": {
+                                                    "description": "The value/content of the message description.",
+                                                    "type": "string"
+                                                },
+                                                "links": {
+                                                    "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+                                                        "type": "object",
+                                                        "additionalProperties": false,
+                                                        "properties": {
+                                                            "href": {
+                                                                "description": "The URI of the related entity",
+                                                                "type": "string",
+                                                                "format": "uri"
+                                                            },
+                                                            "rel": {
+                                                                "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "alternate",
+                                                                    "create",
+                                                                    "canonical",
+                                                                    "describedby",
+                                                                    "edit-form",
+                                                                    "enclosure",
+                                                                    "full",
+                                                                    "related",
+                                                                    "root",
+                                                                    "self",
+                                                                    "up",
+                                                                    "search",
+                                                                    "first",
+                                                                    "last",
+                                                                    "next",
+                                                                    "previous",
+                                                                    "/adp/invoke",
+                                                                    "/adp/image",
+                                                                    "/adp/confirm-message",
+                                                                    "/adp/status-monitor",
+                                                                    "/adp/codelist",
+                                                                    "/adp/template",
+                                                                    "/adp/externalLink"
+                                                                ]
+                                                            },
+                                                            "title": {
+                                                                "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+                                                                "type": "string"
+                                                            },
+                                                            "targetSchema": {
+                                                                "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation.",
+                                                                "type": "string"
+                                                            },
+                                                            "mediaType": {
+                                                                "description": "The media type that the linked resource will return (Response)",
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "application/json",
+                                                                    "text/html",
+                                                                    "text/plain",
+                                                                    "image/jpeg",
+                                                                    "image/gif",
+                                                                    "image/png",
+                                                                    "image/tiff",
+                                                                    "application/pdf",
+                                                                    "application/postscript",
+                                                                    "application/msword",
+                                                                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                                                    "application/vnd.ms-excel",
+                                                                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                                                ]
+                                                            },
+                                                            "method": {
+                                                                "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "GET",
+                                                                    "POST",
+                                                                    "DELETE",
+                                                                    "PUT"
+                                                                ]
+                                                            },
+                                                            "encType": {
+                                                                "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "application/json",
+                                                                    "application/x-www-form-urlencoded"
+                                                                ]
+                                                            },
+                                                            "schema": {
+                                                                "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body.",
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "developerMessage": {
+                                            "description": "Message returned to the user",
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "properties": {
+                                                "codeValue": {
+                                                    "description": "The code associated with the message description.",
+                                                    "type": "string"
+                                                },
+                                                "title": {
+                                                    "description": "Title of the message description.",
+                                                    "type": "string"
+                                                },
+                                                "messageTxt": {
+                                                    "description": "The value/content of the message description.",
+                                                    "type": "string"
+                                                },
+                                                "links": {
+                                                    "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+                                                        "type": "object",
+                                                        "additionalProperties": false,
+                                                        "properties": {
+                                                            "href": {
+                                                                "description": "The URI of the related entity",
+                                                                "type": "string",
+                                                                "format": "uri"
+                                                            },
+                                                            "rel": {
+                                                                "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "alternate",
+                                                                    "create",
+                                                                    "canonical",
+                                                                    "describedby",
+                                                                    "edit-form",
+                                                                    "enclosure",
+                                                                    "full",
+                                                                    "related",
+                                                                    "root",
+                                                                    "self",
+                                                                    "up",
+                                                                    "search",
+                                                                    "first",
+                                                                    "last",
+                                                                    "next",
+                                                                    "previous",
+                                                                    "/adp/invoke",
+                                                                    "/adp/image",
+                                                                    "/adp/confirm-message",
+                                                                    "/adp/status-monitor",
+                                                                    "/adp/codelist",
+                                                                    "/adp/template",
+                                                                    "/adp/externalLink"
+                                                                ]
+                                                            },
+                                                            "title": {
+                                                                "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+                                                                "type": "string"
+                                                            },
+                                                            "targetSchema": {
+                                                                "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation.",
+                                                                "type": "string"
+                                                            },
+                                                            "mediaType": {
+                                                                "description": "The media type that the linked resource will return (Response)",
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "application/json",
+                                                                    "text/html",
+                                                                    "text/plain",
+                                                                    "image/jpeg",
+                                                                    "image/gif",
+                                                                    "image/png",
+                                                                    "image/tiff",
+                                                                    "application/pdf",
+                                                                    "application/postscript",
+                                                                    "application/msword",
+                                                                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                                                    "application/vnd.ms-excel",
+                                                                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                                                ]
+                                                            },
+                                                            "method": {
+                                                                "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "GET",
+                                                                    "POST",
+                                                                    "DELETE",
+                                                                    "PUT"
+                                                                ]
+                                                            },
+                                                            "encType": {
+                                                                "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "application/json",
+                                                                    "application/x-www-form-urlencoded"
+                                                                ]
+                                                            },
+                                                            "schema": {
+                                                                "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body.",
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "resourceStatusCode": {
+                                            "description": "DEPRECATED - Use messageTypeCode instead. The processing results status code of the resource of the request.",
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "properties": {
+                                                "codeValue": {
+                                                    "description": "The code for the related entity.",
+                                                    "type": "string"
+                                                },
+                                                "shortName": {
+                                                    "description": "Short description of the related code not to exceed 25 characters",
+                                                    "type": "string"
+                                                },
+                                                "longName": {
+                                                    "description": "Long description of the related code",
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

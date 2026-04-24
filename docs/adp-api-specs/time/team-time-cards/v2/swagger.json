@@ -1,0 +1,1858 @@
+{
+  "openapi": "3.0.1",
+  "servers": [
+    {
+      "url": "https://__host__/"
+    }
+  ],
+  "info": {
+    "contact": {
+      "name": "MarketplaceImport System",
+      "email": "mpimport.mpuser@adp.com"
+    },
+    "description": "The Team Time Cards Application Programming Interface (API) gets all the time cards for the members of a worker&#39;s team. The worker is identified by workers/{associateOID}. For more info please refer <a href=\"https://developers.adp.com/articles/guides/team-time-cards-api-guide-foradp-workforce-now/\" rel=\"noopener noreferrer\" target=\"_blank\">Team Time Cards API Guide for ADP Workforce Now</a>.",
+    "title": "Team Time Cards",
+    "version": "2.0.5"
+  },
+  "x-adpSpecData": {
+    "domain": "Time",
+    "specId": "4cf58215-0c72-41fe-99c6-5c55ac37f84e",
+    "canonicalSpecId": "74d001d4-6ec3-49ac-b0b3-e497632030e8",
+    "specStatusCode": "publishing",
+    "specTypeCode": "REST",
+    "specStateCode": "active",
+    "nonStandardIndicator": false,
+    "visibilityCodes": [
+      "internal",
+      "external"
+    ],
+    "filename": "team-time-cards-swagger_v2-merged.json",
+    "serviceProviderId": "null",
+    "resourcePath": "time/team-time-cards/v2",
+    "libraryVersion": "",
+    "businessRules": [
+      {
+        "rule": "R11.1",
+        "ruleTitle": "'associateoid' in the uri pattern should match the 'associateoid' in the request header parameter",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R0.2",
+        "ruleTitle": "If request contains ADP-On-Behalf-Of-OrgOID, ADP-On-Behalf-Of-AssociateOID and ADP-Acting-SessionID header values, SOR MUST use ADP-On-Behalf-Of-AssociateOID header value to authorize the data requested, NOT associateoid header value to authorize the data.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R15.1",
+        "ruleTitle": "An SOR may return an HTTP 503 when they are down for a scheduled maintenance or for an outage.If an SOR is planning a maintenance window then they should plan on having an end point available to return the 503 with a standard confirmMessage.  The confirmMessage will contain a message stating the date and timeframe that the maintenance window is for.The SOR should return the Retry-After response-header field with the Date and Time when they expect the system to be available.  E.g. \u00a7  Retry-After: Fri, 31 Dec 1999 23:59:59 GMT  This does not need to be handled dynamically.  They can set the time that their maintenance window ends.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R0.1",
+        "ruleTitle": "If request contains ADP-Act-As-OrgOID, ADP-Act-As-AssociateOID and ADP-Acting-SessionID header values, SOR MUST use ADP-Act-As-AssociateOID header value to authorize the data requested, NOT associateoid header value to authorize the data.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R0.3",
+        "ruleTitle": "For Act-As or On-Behalf-Of requests, header 'Cache-Control: no-store' MUST be set to indicate on server or on UI the response object SHOULD not be cached",
+        "visibilityCodes": [
+          "internal"
+        ]
+      }
+    ],
+    "testCaseCollection": {
+      "example": {
+        "href": "WFN_Team_Time_Cards.postman_collection.json"
+      },
+      "description": "Team Time Cards"
+    },
+    "publicationContext": {
+      "products": [
+        {
+          "productId": "hcm-offrg-wfn",
+          "productName": "workforce now",
+          "marketplaceProductName": "ADP Workforce Now\u00ae"
+        }
+      ]
+    },
+    "specCategoryCode": ""
+  },
+  "tags": [
+    {
+      "name": "Team Time Cards",
+      "description": "Get a worker's team's timecards.  That is all the time cards for the worker's team members.  The worker is identified by workers/{associateOID}"
+    }
+  ],
+  "paths": {
+    "/time/v2/workers/{aoid}/team-time-cards": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "timeEntryManagement",
+        "functionCode": "timeSheetManagement",
+        "serviceCode": "timeLaborManagement",
+        "serviceCategoryCode": "time",
+        "canonicalName": "Team Time Cards"
+      },
+      "get": {
+        "summary": "Team Time Cards",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobilePSSTimeSheet",
+            "MobileMSSTimeSheet",
+            "MobileESSTimeSheet"
+          ],
+          "sorRequestTimeoutPolicies": {
+            "cachedTimeout": 3,
+            "notCachedTimeout": 10
+          },
+          "canonicalUri": "time/timeLaborManagement/timeEntryManagement/timeSheetManagement/timeSheet.read",
+          "operationCode": "timeSheet.read",
+          "operationId": "60adf481-ff04-48ef-bf76-f84dcf2fc503",
+          "roleCodes": [
+            "practitioner",
+            "manager",
+            "employee"
+          ],
+          "performAuthIndicator": true,
+          "scenarios": [
+            {
+              "summary": "This use case gets all the time cards for a supervisor or manager. The worker is identified by workers/{associateOID}.\nImportant:\nPlease make sure that the person calling this API is a manager as well as supervisor.\nYou can know a worker's manager by calling  \"hr/v2/workers\" API . The manager details are found under reportsTo field of every worker.\nTo make sure that the manager is also a supervisor,  you can check if the employee is a supervisor or not under Employment profile > Time and attendance.",
+              "name": "Getting Team Time Card Details for All Employees using different filter conditions",
+              "responses": [
+                {
+                  "code": "200",
+                  "description": "Retrieves records when there is no TeamTimeCard present.\nSyntax: /time/v2/workers/{aoid}/team-time-cards?$filter=teamTime Cards/timeCards/associateOID eq '{aoid}'",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Getting_Team_Time_Card_Details_for_All_Employees_using_different_filter_conditions_teamTimeCard-emptyRecords-200.response_timeSheet.read_200_44064.json"
+                    }
+                  }
+                },
+                {
+                  "code": "200",
+                  "description": "Retrieves a set of time cards for the specific employee based on the filter applied.\nSyntax: /time/v2/workers/{aoid}/team-time-cards?$filter=teamTime Cards/timeCards/associateOID eq '{aoid}'",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Getting_Team_Time_Card_Details_for_All_Employees_using_different_filter_conditions_teamTimeCard-associate-200.response_timeSheet.read_200_44059.json"
+                    }
+                  }
+                },
+                {
+                  "code": "200",
+                  "description": "Exception: It display the timecard data which has hard exceptions indicator off (missed in and out punch)\nUsage of Filter: Filter by exception indicator (i.e. timeCards/exceptionsIndicator+eq+'true')\nSyntax: /time/v2/workers/{aoid}/team-time-cards?$filter=teamTime Cards/timeCards/exceptionsIndicator",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Getting_Team_Time_Card_Details_for_All_Employees_using_different_filter_conditions_teamTimeCard-exceptions-indicator-false-200.response_timeSheet.read_200_44061.json"
+                    }
+                  }
+                },
+                {
+                  "code": "200",
+                  "description": "Employee approval: It display employee timecard data which are approved by employee\nUsage of Filter: Filter by Review Status of the Timecard (\"managerApproved\", \"workerApproved\", etc. - timeCards/reviewStatusCode/codeValue+eq+'managerApproved')\nSyntax: /time/v2/workers/{aoid}/team-time-cards?$filter=teamTime Cards/timeCards/reviewStatusCode/codeValue",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Getting_Team_Time_Card_Details_for_All_Employees_using_different_filter_conditions_teamTimeCard-employee-approved-200.response_timeSheet.read_200_44060.json"
+                    }
+                  }
+                },
+                {
+                  "code": "200",
+                  "description": "Supervisor Approval: It display the employee timecard data which are approved by TLM supervisor\nUsage of Filter: Filter by Review Status of the Timecard (\"managerApproved\", \"workerApproved\", etc. - timeCards/reviewStatusCode/codeValue+eq+'managerApproved')\nSyntax: /time/v2/workers/{aoid}/team-time-cards?$filter=teamTime Cards/timeCards/reviewStatusCode/codeValue",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Getting_Team_Time_Card_Details_for_All_Employees_using_different_filter_conditions_teamTimeCard-manager-approved-200.response_timeSheet.read_200_44055.json"
+                    }
+                  }
+                },
+                {
+                  "code": "200",
+                  "description": "Retrieves a set of time cards for the employees under a Manager or Supervisor.\nAdding the $expand=dayEntries query string argument enables you to obtain the Time Card Exceptions associated with the Time Entries (Time Pairs) in the payload.\nFor example, the exceptions can be found in the response JavaScript Object Notation (JSON) payload here: \n\nteamTimeCards.timeCards. dayEntries.timeEntries. exceptions\nThe exceptionsIndicator flag is only used for filtering timecards based upon the exceptions that might exist. It won't, necessarily, return exceptions unless the $expand query string argument is added.\nSyntax: /time/v2/workers/{aoid}/team-time-cards?$expand=dayEntries",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Getting_Team_Time_Card_Details_for_All_Employees_using_different_filter_conditions_team-time-cards-http-200-response_timeSheet.read_200_44056.json"
+                    }
+                  }
+                },
+                {
+                  "code": "200",
+                  "description": "Retrieves a set of time cards for the previous cycle filter applied.\nSyntax: /time/v2/workers/{aoid}/team-time-cards?$filter=timeCards/periodCode/codeValue eq 'previous'",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Getting_Team_Time_Card_Details_for_All_Employees_using_different_filter_conditions_teamTimeCard-previousCycle-200.response_timeSheet.read_200_44054.json"
+                    }
+                  }
+                },
+                {
+                  "code": "200",
+                  "description": "Retrieves a set of time cards for the current cycle filter applied.\nSyntax: /time/v2/workers/{aoid}/team-time-cards?$filter=timeCards/periodCode/codeValue eq 'current'",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Getting_Team_Time_Card_Details_for_All_Employees_using_different_filter_conditions_teamTimeCard-currentCycle-200.response_timeSheet.read_200_44065.json"
+                    }
+                  }
+                },
+                {
+                  "code": "200",
+                  "description": "Retrieves set of time cards based on the filter start date applied.\nSyntax: /time/v2/workers/{aoid}/team-time-cards?$filter=timeCards/timePeriod/startDate eq '2018-11-26'",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Getting_Team_Time_Card_Details_for_All_Employees_using_different_filter_conditions_teamTimeCard-startDate-200-response_timeSheet.read_200_44062.json"
+                    }
+                  }
+                },
+                {
+                  "code": "200",
+                  "description": "Exception: It display the timecard data which has hard exceptions indicator on (missed in and out punch)\nUsage of Filter: Filter by exception indicator (i.e. timeCards/exceptionsIndicator+eq+'true')\nSyntax: /time/v2/workers/{aoid}/team-time-cards?$filter=teamTime Cards/timeCards/exceptionsIndicator",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Getting_Team_Time_Card_Details_for_All_Employees_using_different_filter_conditions_teamTimeCard-exceptions-indicator-true-200.response_timeSheet.read_200_44063.json"
+                    }
+                  }
+                },
+                {
+                  "code": "200",
+                  "description": "Retrieves a set of time cards for the next cycle filter applied.\nSyntax: /time/v2/workers/{aoid}/team-time-cards?$filter=timeCards/periodCode/codeValue eq 'next'",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Getting_Team_Time_Card_Details_for_All_Employees_using_different_filter_conditions_teamTimeCard-NextCycle-200.response_timeSheet.read_200_44057.json"
+                    }
+                  }
+                },
+                {
+                  "code": "400",
+                  "description": "Invalid associate ID\nSyntax: /time/v2/workers/{aoid}/team-time-cards?$filter=teamTime Cards/timeCards/associateOID eq '{aoid}'",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Getting_Team_Time_Card_Details_for_All_Employees_using_different_filter_conditions_teamTimeCard-Invalid-AssociateID-500.response_timeSheet.read_400_44053.json"
+                    }
+                  }
+                },
+                {
+                  "code": "400",
+                  "description": "Invalid filter field in the request end point. (This is not supported in cloud)\nSyntax: /time/v2/workers/{aoid}/team-time-cards?$expand=dayEntries",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Getting_Team_Time_Card_Details_for_All_Employees_using_different_filter_conditions_teamTimeCard-Invalid-Filter-400.response_timeSheet.read_400_44058.json"
+                    }
+                  }
+                }
+              ],
+              "description": "This use case gets all the time cards for a supervisor or manager. The worker is identified by workers/{associateOID}.\nImportant:\nPlease make sure that the person calling this API is a manager as well as supervisor.\nYou can know a worker's manager by calling  \"hr/v2/workers\" API . The manager details are found under reportsTo field of every worker.\nTo make sure that the manager is also a supervisor,  you can check if the employee is a supervisor or not under Employment profile > Time and attendance."
+            }
+          ],
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ],
+          "globalViewDevPortalIndicator": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "ADP-Acting-Session-Expires": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "sm_transactionid": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ADP-Acting-SessionID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Get a worker's team's timecards.  That is all the time cards for the worker's team members.  The worker is identified by workers/{associateOID}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/teamTimeCards_schema_v02_00_rev009.json"
+                }
+              }
+            }
+          },
+          "202": {
+            "$ref": "#/components/responses/202"
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "412": {
+            "$ref": "#/components/responses/412"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "413": {
+            "$ref": "#/components/responses/413"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "304": {
+            "$ref": "#/components/responses/304"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "405": {
+            "$ref": "#/components/responses/405"
+          },
+          "406": {
+            "$ref": "#/components/responses/406"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Get a worker's team's timecards.  That is all the time cards for the worker's team members.  The worker is identified by workers/{aoid}",
+        "operationId": "60adf481-ff04-48ef-bf76-f84dcf2fc503",
+        "parameters": [
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header should be passed in all calls.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "ISI",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "realm",
+            "description": "The identity management realm, e.g. ISI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORContext",
+            "description": "Context within an SOR that the call should be routed to",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-AssociateOID",
+            "description": "Associate OID for the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-AssociateOID",
+            "description": "Associate OID of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_user",
+            "description": "SiteMinder user ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_user: JJohns@Abc",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "$top",
+            "description": "The OData $top parameter MUST be used to specify the maximum number criterion",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_serversessionid",
+            "description": "SiteMinder session ID.   Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_serversessionid: SoFpy8UMyhtXY6YsEumvXJbznFA=",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "aoid",
+            "description": "Associate OID",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "$skip",
+            "description": "The OData $skip parameter MUST be used to specify the start sequence criterion",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_transactionid",
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "$expand",
+            "description": "The OData $expand parameter MUST be used to specify the expansion criterion. Please refer \\\\\"RESTful Web API Design Standard\\\\\" for more details.\n\n*   $expand=dayEntries\n    *   $expand is conditional.\n    *   Condition: If the caller wants the dayEntries to be returned in the result set, they will use $expand=dayEntries. The default behavior is dayEntries will not be returned in the response.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "myCustomFilter",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "customFilter",
+            "description": "This filtername points to a hyperfind query configured in SOR. This filter will provide a list of employees based on the filter criteria",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORUri",
+            "description": "Actual Uri within the SOR",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Acting-SessionID",
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "indirectReportees",
+            "description": "When set to true, it includes both direct and indirect workers, if its false, it retrieves only directs.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to - usuall injected by the API proxy, with few exceptions",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_userdn",
+            "description": "SiteMinder user LDAP distinguished name.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_userdn: uid=JJohns@Abc,ou=Users,o=Abc",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "$select",
+            "description": "The OData $select parameter MUST be used to specify the selection criterion",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "Public",
+              "type": "string",
+              "enum": [
+                "Public",
+                " Private"
+              ]
+            },
+            "in": "query",
+            "name": "visibilityCode",
+            "description": "Specifies the visibility scope (public vs. private) of the timecards",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "$filter",
+            "description": "The OData $filter parameter MUST be used to specify the filter criterion.  Please refer \"RESTful Web API Design Standard\" for more details.  Example: /core/v1/associates/{associateoid}/documents?$filter=(documents/modifiers/modifierAOID eq \u2018G2O73G9Z62SL2NF2\u2019 or documents/fileTypeCode/codeValue eq \u2018xls\u2019) and documents/categoryCode/codeValue eq \u20181006003\u2019",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_auth_level",
+            "description": "SiteMinder autorization level.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_auth_level: 10",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        ],
+        "tags": [
+          "Team Time Cards"
+        ]
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "202": {
+        "headers": {
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Accepted",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "./schemas/teamTimeCardsAsyncConfirm_schema_v01_00_rev001.json"
+            }
+          }
+        }
+      },
+      "400": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "412": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Precondition Failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "500": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "413": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Request Entity Too Large",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "403": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "304": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Modified"
+      },
+      "503": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Service Unavailable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "404": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "405": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Method Not Allowed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "406": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Acceptable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "429": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Too Many Requests",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1663 @@
+{
+  "title": "WorkScheduleDayAddEvent",
+  "type": "object",
+  "description": "An instance to capture an addition of a day to the worker schedule",
+  "additionalProperties": false,
+  "properties": {
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "eventID": {
+            "description": "The unique identifier of the event instance. This is set by the system of record once an event is recorded as in progress or complete",
+            "type": "string"
+          },
+          "serviceCategoryCode": {
+            "description": "The service domain, e.g. HR, Payroll, Benefits, etc. This field is always present and valued based on a standard codelist",
+            "$ref": "#/definitions/codeType_v02"
+          },
+          "eventNameCode": {
+            "description": "This is the canonical name of the event, e.g. dependent.add, worker.hire. This field is always present and valued based on a standard codelist",
+            "$ref": "#/definitions/codeType_v02"
+          },
+          "eventTitle": {
+            "description": "The event title offers a way to describe a particular instance of an event at a level more granular than the event name, e.g. 2014 Annual Enrollment",
+            "type": "string"
+          },
+          "eventSubTitle": {
+            "description": "The event sub title provides event instance summary details, e.g. All Annual Enrollment elections become effective on January 1, 2014",
+            "type": "string"
+          },
+          "eventReasonCode": {
+            "description": "This allows for further refinement of the associated event. For example, for a worker.maritalStatus.change event, the reason code could be used to describe whether it is a Marriage or Divorce. This is optional and valued as defined by the system of record",
+            "$ref": "#/definitions/codeType_v02"
+          },
+          "eventStatusCode": {
+            "description": "This identifies the status of the event. An event that has been initiated by the system of record will have an event status code of created. An event that is saved in a work in progress state will have an event status code of inProgress. An event that has been recorded will have an event status code of complete. These values are set by the system of record and valued based on a standard codeslist",
+            "$ref": "#/definitions/codeType_v02"
+          },
+          "priorityCode": {
+            "description": "This allows the system of record to prioritize events and is valued based on a standard codelist",
+            "$ref": "#/definitions/codeType_v02"
+          },
+          "recordDateTime": {
+            "description": "This is the date time the event is recorded in the system of record with an event status code equal to complete. This value is set by the system of record",
+            "$ref": "#/definitions/dateTimeType_v01"
+          },
+          "creationDateTime": {
+            "description": "This is the date time the event is created. If a system of record creates the event instance, as in the case of an annual enrollment for example, then is sets the creation date time. If a user declares an event, then this is set to the date time when the first call is made to the system of record",
+            "$ref": "#/definitions/dateTimeType_v01"
+          },
+          "effectiveDateTime": {
+            "description": "This is the effective date, or effective date time fo the event from a business perspective. In some systems, this may be referred to as the Event Date. For example, for a birth event, this is the date of birth. If there is no effective date from a business perspective, this is set equal to the record date time",
+            "$ref": "#/definitions/dateTimeType_v01"
+          },
+          "expirationDateTime": {
+            "description": "This value is set by the system of record and used to term the life cycle of an event instance. ",
+            "$ref": "#/definitions/dateTimeType_v01"
+          },
+          "dueDateTime": {
+            "description": "This value is set by the system of record and allows for the presentation of a date by which the system of record would like the user to complete the event",
+            "$ref": "#/definitions/dateTimeType_v01"
+          },
+          "notificationIndicator": {
+            "description": "True indicates that the requestor wants notifications on the status of the request",
+            "$ref": "#/definitions/indicatorType_v01"
+          },
+          "originator": {
+            "description": "An originator is a user, machine or event that triggered the event",
+            "$ref": "#/definitions/eventOriginatorType_v01"
+          },
+          "actor": {
+            "description": "The actor is the party that completed the recording of the event",
+            "$ref": "#/definitions/eventActorType_v01"
+          },
+          "actAsParty": {
+            "description": "The party (client employee) information that the actor is acting as to complete the recording of the event. Example:  An ADP Support User (principal A = Actor) views data within an ADP Application as a client employee (principal B) in read only mode.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "applicationID": {
+                "description": "The unique identifier of the application which originated the event.",
+                "$ref": "#/definitions/IDType_v02"
+              },
+              "associateOID": {
+                "description": "The unique identifier of an associate who originated the event or a process",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "personOID": {
+                "description": "The unique identifier of a person who originated the event or a process",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "formattedName": {
+                "description": "Human readable name of the actor",
+                "type": "string"
+              },
+              "deviceID": {
+                "description": "The unique identifier of the device, e.g. a time clock, door entry beam.",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "geoCoordinate": {
+                "description": "The coordinates of the location of the actor",
+                "$ref": "#/definitions/coordinateType_v02"
+              },
+              "deviceUserAgentID": {
+                "description": "Identifier of the user agent of the device used by the actor who worked on the event or process",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "assignedGroups": {
+                "description": "An event instance",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "title": "AssignedGroup",
+                  "properties": {
+                    "groupID": {
+                      "description": "The unique identifier of the group",
+                      "$ref": "#/definitions/simpleIDType_v02"
+                    },
+                    "groupName": {
+                      "description": "The name of the group",
+                      "type": "string"
+                    },
+                    "assignedGroupMembers": {
+                      "description": "Associates that are part of the group(s) assigned to the review event.  The actor is the member that actually completes the event.",
+                      "type": "array",
+                      "items": {
+                        "description": "An instance of an Associate that is part of the group(s) assigned to the review event.  The actor is the member that actually completes the event.",
+                        "type": "object",
+                        "additionalProperties": false,
+                        "title": "AssignedGroupMember",
+                        "properties": {
+                          "associateOID": {
+                            "description": "The unique identifier of an associate who originated the event or a process",
+                            "$ref": "#/definitions/simpleIDType_v02"
+                          },
+                          "formattedName": {
+                            "description": "Human readable name of the actor",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "organizationOID": {
+                "description": "A unique identifier of a client employee's organization id",
+                "$ref": "#/definitions/OIDType_v02"
+              }
+            }
+          },
+          "onBehalfOfParty": {
+            "description": "The party (client employee) that the actor is acting on behalf of to complete the recording of the event. Example:  An ADP Support User (principal A = Actor) views data within an ADP Application as a client employee (principal B) and can take action on that person's behalf.  The Actor may have access to certain features or screens that the Client Employee cannot view, e.g. diagnostics screens.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "applicationID": {
+                "description": "The unique identifier of the application which originated the event.",
+                "$ref": "#/definitions/IDType_v02"
+              },
+              "associateOID": {
+                "description": "The unique identifier of an associate who originated the event or a process",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "personOID": {
+                "description": "The unique identifier of a person who originated the event or a process",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "formattedName": {
+                "description": "Human readable name of the actor",
+                "type": "string"
+              },
+              "deviceID": {
+                "description": "The unique identifier of the device, e.g. a time clock, door entry beam.",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "geoCoordinate": {
+                "description": "The coordinates of the location of the actor",
+                "$ref": "#/definitions/coordinateType_v02"
+              },
+              "deviceUserAgentID": {
+                "description": "Identifier of the user agent of the device used by the actor who worked on the event or process",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "assignedGroups": {
+                "description": "An event instance",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "title": "AssignedGroup",
+                  "properties": {
+                    "groupID": {
+                      "description": "The unique identifier of the group",
+                      "$ref": "#/definitions/simpleIDType_v02"
+                    },
+                    "groupName": {
+                      "description": "The name of the group",
+                      "type": "string"
+                    },
+                    "assignedGroupMembers": {
+                      "description": "Associates that are part of the group(s) assigned to the review event.  The actor is the member that actually completes the event.",
+                      "type": "array",
+                      "items": {
+                        "description": "An instance of an Associate that is part of the group(s) assigned to the review event.  The actor is the member that actually completes the event.",
+                        "type": "object",
+                        "additionalProperties": false,
+                        "title": "AssignedGroupMember",
+                        "properties": {
+                          "associateOID": {
+                            "description": "The unique identifier of an associate who originated the event or a process",
+                            "$ref": "#/definitions/simpleIDType_v02"
+                          },
+                          "formattedName": {
+                            "description": "Human readable name of the actor",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "organizationOID": {
+                "description": "A unique identifier of a client employee's organization id",
+                "$ref": "#/definitions/OIDType_v02"
+              }
+            }
+          },
+          "eTag": {
+            "description": "The entity tag of the entity in the request",
+            "type": "string"
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/linkType_v02"
+            }
+          },
+          "data": {
+            "description": "Event Data",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "eventContext": {
+                "description": "Data which sets the context for the event.  That is, the keys which set context",
+                "properties": {
+                  "associateOID": {
+                    "description": "Unique identifier of an associate",
+                    "$ref": "#/definitions/associateOIDType_v02"
+                  },
+                  "workAssignmentID": {
+                    "description": "Unique identification of the worker work assignment",
+                    "$ref": "#/definitions/simpleIDType_v02"
+                  },
+                  "scheduleID": {
+                    "description": "A unique identification of the schedule",
+                    "$ref": "#/definitions/simpleIDType_v02"
+                  },
+                  "schedulePeriod": {
+                    "description": "A date period the schedule covers",
+                    "$ref": "#/definitions/datePeriodType_v01"
+                  },
+                  "contextExpressionID": {
+                    "description": "A globally unique (GUID) identifier of the context expression. This conveys the context of the associated data. For example, if the context is set to Germany, the data would adhere to the business rules and formatting rules relevant to Germany",
+                    "$ref": "#/definitions/simpleIDType_v02"
+                  },
+                  "allowedExceptions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "exceptionCode": {
+                          "$ref": "#/definitions/codeType_v02"
+                        },
+                        "exceptionTypeCode": {
+                          "$ref": "#/definitions/codeType_v02"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "transform": {
+                "description": "Data which is transformed as a result of the event",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "eventReasonCode": {
+                    "description": "This allows for further refinement of the associated event. For example, for a worker.maritalStatus.change event, the reason code could be used to describe whether it is a Marriage vs. Divorce vs. Separation",
+                    "$ref": "#/definitions/codeType_v02"
+                  },
+                  "eventStatusCode": {
+                    "description": "This identifies the status of the event. An event that has been created, either by the system of record or as the result of a user, will have an event status code of Created. An event that is saved in a work in progress state (as determined by the permissable state codes), will have an event status code of InProgress. An event that has been recorded, will have an event status code of Complete. This value is set by the system of record",
+                    "$ref": "#/definitions/codeType_v02"
+                  },
+                  "effectiveDateTime": {
+                    "description": "This is the effective date, or effective date time fo the event from a business perspective. In some systems, this may be referred to as the Event Date. For example, for a birth event, this is the date of birth. If there is no effective date from a business perspective, this is set equal to the record date time",
+                    "$ref": "#/definitions/dateTimeType_v01"
+                  },
+                  "notificationIndicator": {
+                    "description": "True indicates that the requestor wants notifications on the status of the request",
+                    "$ref": "#/definitions/indicatorType_v01"
+                  },
+                  "scheduleDay": {
+                    "description": "A day within the schedule",
+                    "$ref": "#/definitions/scheduleDayType_v02"
+                  }
+                }
+              },
+              "output": {
+                "description": "Result of the event",
+                "$ref": "#/definitions/workScheduleEventOutputBaseType_v02"
+              }
+            }
+          }
+        }
+      }
+    },
+    "confirmMessage": {
+      "$ref": "#/definitions/confirmMessageType_v01"
+    },
+    "meta": {
+      "description": "Meta contains the metadata associated with a response.  A GET response may include metadata to support pagination",
+      "$ref": "#/definitions/metaType_v02"
+    }
+  },
+  "definitions": {
+    "codeType_v02": {
+      "description": "The code for the related entity.  If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        }
+      }
+    },
+    "dateTimeType_v01": {
+      "description": "The string reprersentation of the date-time value. Follows the ISO-8601:2000 format",
+      "type": "string",
+      "format": "date-time"
+    },
+    "indicatorType_v01": {
+      "description": "Boolean expression",
+      "type": "boolean"
+    },
+    "eventOriginatorType_v01": {
+      "description": "Base structure for event originator",
+      "$ref": "#/definitions/originatorType_v02"
+    },
+    "originatorType_v02": {
+      "description": "Base structure for event or process originator",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "applicationID": {
+          "description": "The unique identifier of the application which originated the event or a process",
+          "$ref": "#/definitions/IDType_v02"
+        },
+        "associateOID": {
+          "description": "The unique identifier of an associate who originated the event.",
+          "type": "string"
+        },
+        "personOID": {
+          "description": "The unique identifier of a person who originated the event or a process",
+          "type": "string"
+        },
+        "formattedName": {
+          "description": "Human readable name of the event originator",
+          "type": "string"
+        },
+        "eventID": {
+          "description": "The unique identifier of the event instance. This is generated once an event is recorded with an event status code equal to Complete. This value is set by the system of record.",
+          "type": "string"
+        },
+        "eventNameCode": {
+          "description": "This is the canonical name of the event, e.g. dependent.add, worker.hire",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "deviceID": {
+          "description": "The unique identifier of the device, e.g. a time clock, door entry beam",
+          "type": "string"
+        },
+        "deviceName": {
+          "description": "The device name given to device by users.  e.g. front-door clock, back-door clock etc",
+          "type": "string"
+        }
+      }
+    },
+    "IDType_v02": {
+      "description": "The unique identifier of the related entity ",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "idValue": {
+          "description": "An actual ID value",
+          "type": "string"
+        },
+        "schemeCode": {
+          "description": "The scheme code",
+          "$ref": "#/definitions/codeType_v02"
+        }
+      }
+    },
+    "eventActorType_v01": {
+      "description": "Base structure for event actor",
+      "$ref": "#/definitions/actorType_v02"
+    },
+    "actorType_v02": {
+      "description": "Base structure for  actor",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "applicationID": {
+          "description": "The unique identifier of the application which originated the event.",
+          "$ref": "#/definitions/IDType_v02"
+        },
+        "associateOID": {
+          "description": "The unique identifier of an associate who originated the event or a process",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "personOID": {
+          "description": "The unique identifier of a person who originated the event or a process",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "formattedName": {
+          "description": "Human readable name of the actor",
+          "type": "string"
+        },
+        "deviceID": {
+          "description": "The unique identifier of the device, e.g. a time clock, door entry beam.",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "geoCoordinate": {
+          "description": "The coordinates of the location of the actor",
+          "$ref": "#/definitions/coordinateType_v02"
+        },
+        "deviceUserAgentID": {
+          "description": "Identifier of the user agent of the device used by the actor who worked on the event or process",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "assignedGroups": {
+          "description": "An event instance",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "title": "AssignedGroup",
+            "properties": {
+              "groupID": {
+                "description": "The unique identifier of the group",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "groupName": {
+                "description": "The name of the group",
+                "type": "string"
+              },
+              "assignedGroupMembers": {
+                "description": "Associates that are part of the group(s) assigned to the review event.  The actor is the member that actually completes the event.",
+                "type": "array",
+                "items": {
+                  "description": "An instance of an Associate that is part of the group(s) assigned to the review event.  The actor is the member that actually completes the event.",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "title": "AssignedGroupMember",
+                  "properties": {
+                    "associateOID": {
+                      "description": "The unique identifier of an associate who originated the event or a process",
+                      "$ref": "#/definitions/simpleIDType_v02"
+                    },
+                    "formattedName": {
+                      "description": "Human readable name of the actor",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "simpleIDType_v02": {
+      "description": "The simple (string) identifier of an object",
+      "type": "string"
+    },
+    "coordinateType_v02": {
+      "description": "The coordinates of the location",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "latitude": {
+          "description": "The angle, in degrees, of a position on Earth above the equator. (Latitude is negative for a place below the equator.) specified in decimal degrees",
+          "type": "number"
+        },
+        "longitude": {
+          "description": "The angle, in degrees, of a position on Earth around the equator from the Greenwich Meridian specified in decimal degrees",
+          "type": "number"
+        }
+      }
+    },
+    "OIDType_v02": {
+      "description": "The unique identifier - UUID",
+      "type": "string"
+    },
+    "linkType_v02": {
+      "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "linkID": {
+          "description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9.$-_/]+$"
+        },
+        "href": {
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "rel": {
+          "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+          "type": "string",
+          "enum": [
+            "alternate",
+            "create",
+            "canonical",
+            "describedby",
+            "edit-form",
+            "enclosure",
+            "full",
+            "related",
+            "root",
+            "self",
+            "up",
+            "search",
+            "first",
+            "last",
+            "next",
+            "previous",
+            "/adp/invoke",
+            "/adp/image",
+            "/adp/confirm-message",
+            "/adp/status-monitor",
+            "/adp/codelist",
+            "/adp/template",
+            "/adp/externalLink",
+            "/adp/validation",
+            "/adp/deeplink",
+            "/adp/attachment",
+            "/adp/workflow",
+            "/adp/consent"
+          ]
+        },
+        "canonicalUri": {
+          "description": "A unique identifier of the feature/function/operation, the link poins to",
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "title": {
+          "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user",
+          "type": "string"
+        },
+        "targetSchema": {
+          "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation",
+          "type": "string"
+        },
+        "mediaType": {
+          "description": "The media type that the linked resource will return (Response)",
+          "type": "string",
+          "enum": [
+            "application/gzip",
+            "application/json",
+            "application/msword",
+            "application/pdf",
+            "application/postscript",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/xml",
+            "application/x-www-form-urlencoded",
+            "image/gif",
+            "image/jpeg",
+            "image/png",
+            "image/tiff",
+            "multipart/mixed",
+            "multipart/form-data",
+            "text/html",
+            "text/plain",
+            "application/vnd.visio",
+            "image/bmp",
+            "image/x-ms-bmp",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/vnd.ms-powerpoint",
+            "video/mp4",
+            "audio/mpeg",
+            "video/x-msvideo",
+            "video/x-ms-wmv",
+            "application/rtf",
+            "application/vnd.ms-outlook",
+            "text/csv",
+            "video/quicktime",
+            "application/zip",
+            "application/illustrator",
+            "text/xml"
+          ]
+        },
+        "method": {
+          "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "DELETE",
+            "PUT"
+          ]
+        },
+        "encType": {
+          "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+          "type": "string",
+          "enum": [
+            "application/json",
+            "application/x-www-form-urlencoded"
+          ]
+        },
+        "schema": {
+          "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body",
+          "type": "string"
+        },
+        "payLoadArguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "argumentPath": {
+                "description": "Code value (typically a key field) of the code list item",
+                "type": "string"
+              },
+              "argumentValue": {
+                "description": "Code value (typically a key field) of the code list item",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "URIType_v01": {
+      "description": "The URI of the related entity",
+      "type": "string",
+      "format": "uri"
+    },
+    "associateOIDType_v02": {
+      "description": "The unique identifier of an assoicate",
+      "$ref": "#/definitions/simpleIDType_v02"
+    },
+    "datePeriodType_v01": {
+      "description": "The string reprersentation of the date range. Used to specify effective period.  Follows the ISO-8601:2000 format",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "startDate": {
+          "$ref": "#/definitions/dateType_v01"
+        },
+        "endDate": {
+          "$ref": "#/definitions/dateType_v01"
+        }
+      }
+    },
+    "dateType_v01": {
+      "description": "The string representation of the date value. Follows the ISO-8601:2000 format",
+      "type": "string",
+      "format": "date"
+    },
+    "scheduleDayType_v02": {
+      "description": "Schedule day type, which includes a collection of entries (shifts, paycode, etc.)",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "daySequenceNumber": {
+          "description": "A day sequence in the schedule",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "dayOfWeekCode": {
+          "description": "A day of week, e.g,, Mon, Tue, etc.",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "scheduleDayDate": {
+          "description": "A date identifying the schedule day",
+          "$ref": "#/definitions/dateType_v01"
+        },
+        "scheduleEntries": {
+          "description": "A collection of entries within a single day, e.g. shifts, paycode entries, etc.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/scheduleEntryType_v02"
+          }
+        },
+        "appliedTempateID": {
+          "description": "A unique identification of the template applied if any",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "scheduledHours": {
+          "description": "The total number of hours per given schedule day",
+          "$ref": "#/definitions/standardHoursType_v02"
+        },
+        "exceptions": {
+          "description": "Any exceptions (informational msgs, warnings, errors) associated with the schedule day",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/exceptionType_v01"
+          }
+        }
+      }
+    },
+    "sequenceType_v01": {
+      "description": "Sequence of a related entity when included in the collection or a group",
+      "type": "integer"
+    },
+    "scheduleEntryType_v02": {
+      "description": "Schedule entry type",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "entryTypeCode": {
+          "description": "The type of an entry, depending on the context, e.g. shift vs. paycode, overtime / extra work type, etc.",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "payCode": {
+          "description": "The type of payroll item (e.g. paycode) applicable to the time entry, e.g. vacation, personal, etc.",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "entryStatusCode": {
+          "description": "The status of the entry",
+          "$ref": "#/definitions/statusType_v02"
+        },
+        "dateTimePeriod": {
+          "$ref": "#/definitions/dateTimePeriodType_v01"
+        },
+        "datePeriod": {
+          "$ref": "#/definitions/datePeriodType_v02"
+        },
+        "totalQuantity": {
+          "description": "The total quantity of of the time expressed in the units as per unit type",
+          "$ref": "#/definitions/quantityTimeType_v02"
+        },
+        "totalTime": {
+          "description": "Total time represented as hh:mm",
+          "type": "object",
+          "additionalProperties": false,
+          "title": "TotalTimeEntry",
+          "properties": {
+            "timeValue": {
+              "$ref": "#/definitions/timeType_v01"
+            },
+            "nameCode": {
+              "$ref": "#/definitions/codeType_v02"
+            }
+          }
+        },
+        "durationTypeCode": {
+          "description": "The permissable duration type which only go with the entryTypeCode = datePeriodStartTimeDuration",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "localizedDateTimePeriod": {
+          "description": "The date/time period for the schedule entry localized to the worker's time zone (expressed as tz offset following ISO8601)",
+          "$ref": "#/definitions/dateTimePeriodType_v01"
+        },
+        "categoryTypeCode": {
+          "description": "The entry type, e.g. shift, paycode, etc.",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "dayPeriodCode": {
+          "description": "Used when the day period associated to an earning code, e.g. morning, day, evening, etc.",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "shiftTypeCode": {
+          "description": "Regular, Break, Transfer, Unavailable and Off",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "shiftCode": {
+          "description": "The coded value that identifies the associated shift",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "shiftEntrySource": {
+          "description": "The source of an shift entry, depending on the context, e.g. Template, AutoSchedule , Manual daily shift etc.",
+          "type": "object",
+          "title": "ShiftEntrySourceType",
+          "additionalProperties": false,
+          "properties": {
+            "shiftEntrySourceID": {
+              "$ref": "#/definitions/simpleIDType_v02"
+            },
+            "entrySourceTypeCode": {
+              "description": "The code describing the type of shift entry source",
+              "$ref": "#/definitions/codeType_v02"
+            }
+          }
+        },
+        "excludedFromOptimizationIndicator": {
+          "description": "Indicates if any work shifts is excluded from any kind of optimization",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "duration": {
+          "$ref": "#/definitions/durationType_v01"
+        },
+        "earningAllocations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "title": "EarningAllocationType",
+            "additionalProperties": false,
+            "properties": {
+              "allocationCode": {
+                "description": "The code identifying the allocation",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "allocationTypeCode": {
+                "description": "The type of allocation",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "allocationCategoryTypeCode": {
+                "description": "Identifies category of allocation Type e.g. Buissness Structure, Labor Category",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              }
+            }
+          }
+        },
+        "workerKSAOCs": {
+          "type": "array",
+          "description": "Worker KSAOC allocations are used to indicate the requirements needed to fulfill work expectations (e.g. knowledge, skills, languages, licences, trainings, certifications, etc.)",
+          "items": {
+            "$ref": "#/definitions/workerKSAOCAllocationType_v01"
+          }
+        },
+        "entryComments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "textValue": {
+                "description": "The text entered by the user",
+                "type": "string"
+              },
+              "commentTypeCode": {
+                "description": "The comment type",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "appliesToCode": {
+                "description": "The scope identifier, the note applies to",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "privateIndicator": {
+                "description": "The private note indicator",
+                "$ref": "#/definitions/indicatorType_v01"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              }
+            }
+          }
+        },
+        "scheduleEntryID": {
+          "description": "A unique identification of the entry",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "shiftGroupID": {
+          "description": "Shift group identifier to group schedule entries under single shift",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "overrideWholeShiftIndicator": {
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "overridePartialShiftIndicator": {
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "defaultEarningAllocations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "title": "EarningAllocationType",
+            "additionalProperties": false,
+            "properties": {
+              "allocationCode": {
+                "description": "The code identifying the allocation",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "allocationTypeCode": {
+                "description": "The type of allocation",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "allocationCategoryTypeCode": {
+                "description": "Identifies category of allocation Type e.g. Buissness Structure, Labor Category",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              }
+            }
+          },
+          "description": "Specifies the default earning allocation codes to apply to a work schedule entry"
+        },
+        "entryOverrideCodes": {
+          "description": "Codes that represent overrides that a user may select for the entry,e.g. if the worker is requesting to override the standard meal deduction for this entry, the code would identify the rule.  Example is that the worker is scheduled for lunch, but is working through lunch.  This tells the system that the worker is working through lunch and to not count the regularly scheduled lunch time",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/entryOverrideType_v01"
+          }
+        },
+        "exceptions": {
+          "description": "Any exceptions (informational msgs, warnings, errors) associated with the schedule entry",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/exceptionType_v01"
+          }
+        }
+      }
+    },
+    "statusType_v02": {
+      "description": "Status to include the status code and effective date (ISO-8601:2000 format)",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        },
+        "effectiveDate": {
+          "$ref": "#/definitions/dateType_v01"
+        }
+      }
+    },
+    "dateTimePeriodType_v01": {
+      "description": "The string reprersentation of the date range. Used to specify effective period.  Follows the ISO-8601:2000 format.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "startDateTime": {
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "endDateTime": {
+          "$ref": "#/definitions/dateTimeType_v01"
+        }
+      }
+    },
+    "datePeriodType_v02": {
+      "description": "The string reprersentation of the date range. Used to specify effective period.  Follows the ISO-8601:2000 format",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "startDate": {
+          "$ref": "#/definitions/dateType_v01"
+        },
+        "startTime": {
+          "description": "The startTime represented as hh:mm. This is communicated in military notation and presented in the UI based on the timeNotationCode",
+          "type": "string"
+        },
+        "endDate": {
+          "$ref": "#/definitions/dateType_v01"
+        },
+        "endTime": {
+          "description": "The endTime represented as hh:mm. This is communicated in military notation and presented in the UI based on the timeNotationCode. ",
+          "type": "string"
+        }
+      }
+    },
+    "quantityTimeType_v02": {
+      "description": "Quantity of time (unit based)",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "quantityValue": {
+          "description": "Quantity value",
+          "type": "number"
+        },
+        "unitTimeCode": {
+          "description": "Units the quantity is based upon",
+          "$ref": "#/definitions/codeType_v02"
+        }
+      }
+    },
+    "timeType_v01": {
+      "description": "The string reprersentation of the time value usually expressed as hh:mm",
+      "type": "string"
+    },
+    "durationType_v01": {
+      "description": "Represents the duration of time as represented by ISO 8601. Where the value space is a six dimensional space where the coordinates designate the Gregorian year, month, day, hour, minute, and second. The number of seconds can include decimal digits to arbitary pecision. PnYn MnDTnH nMnS, where: [n] is replaced by the value for each of the date and time elements that follow the [n]. Leading zeros are not required, but the maximum number of digits for each element should be agreed to by the communicating parties. The capital letters 'P', 'Y', 'M', 'W', 'D', 'T', 'H', 'M', and 'S' are designators for each of the date and time elements and are not replaced. P is the duration designator (historically called 'period') placed at the start of the duration representation. Y is the year designator that follows the value for the number of years. M is the month designator that follows the value for the number of months. D is the day designator that follows the value for the number of days. T is the time designator that precedes the time components of the representation. H is the hour designator that follows the value for the number of hours. M is the minute designator that follows the value for the number of minutes. S is the second designator that follows the value for the number of seconds. The number of seconds can include decimal digits to arbitrary precision",
+      "type": "string"
+    },
+    "itemIDType_v01": {
+      "description": "The unique identifier of the object in a collection",
+      "$ref": "#/definitions/simpleIDType_v02"
+    },
+    "workerKSAOCAllocationType_v01": {
+      "description": "A worker KSAOC allocation is used to indicate the requirements needed to fulfill work expectations (e.g. knowledge, skills, languages, licences, trainings, certifications, etc.)",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allocationID": {
+          "description": "The code identifying the allocation",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "allocationCode": {
+          "description": "The code identifying the allocation",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "allocationTypeCode": {
+          "description": "The type of allocation",
+          "$ref": "#/definitions/codeType_v02"
+        }
+      }
+    },
+    "entryOverrideType_v01": {
+      "description": "Represents an override that a user may select for the entry,e.g. if the worker is requesting to override the standard meal deduction for this entry, the code would identify the rule.  Example is that the worker is scheduled for lunch, but is working through lunch.  This tells the system that the worker is working through lunch and to not count the regularly scheduled lunch time",
+      "type": "object",
+      "properties": {
+        "overrideID": {
+          "description": "Unique identifier of the related override in the collection",
+          "$ref": "#/definitions/itemIDType_v01"
+        },
+        "overrideCode": {
+          "description": "The code identifying the entry override",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "overrideTypeCode": {
+          "description": "The type of override (i.e. cancelmealdeduct, workrule)",
+          "$ref": "#/definitions/codeType_v02"
+        }
+      }
+    },
+    "exceptionType_v01": {
+      "description": "Provides detailed information regarding exceptions that occur when processing time card or schedule data",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "exceptionID": {
+          "description": "Unique identifier of the related exception in the collection",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "exceptionCode": {
+          "description": "The code identifying the exception",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "exceptionTypeCode": {
+          "description": "The code identifying the type of exception",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "exceptionDescription": {
+          "description": "The verbose description explaining the exception, Note: Defaulted to English language",
+          "type": "string"
+        },
+        "exceptionDataElements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "elementID": {
+                "description": "The unique identifier of a exception type",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "elementValue": {
+                "description": "Value of the exception type",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "standardHoursType_v02": {
+      "description": "The standard number of hours of work associated to a position, typically used to drive the definition of a full time assignment, e.g. 40 in the US, 37.5 in the UK, 35 in FR. This number is usually expressed based on a week. The unitCode is used to convey that measurement.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "hoursQuantity": {
+          "description": "The number of hours",
+          "type": "number"
+        },
+        "unitCode": {
+          "description": "The unit associated to the number of hours, e.g. week.",
+          "$ref": "#/definitions/codeType_v02"
+        }
+      }
+    },
+    "workScheduleEventOutputBaseType_v02": {
+      "description": "Work schedule event output base including the associate / work assignment ID and the complete schedule object",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workSchedule": {
+          "description": "Worker schedule affected by the event action. Includes multiple days",
+          "title": "ScheduleOutput",
+          "$ref": "#/definitions/workerWorkScheduleType_v02"
+        }
+      }
+    },
+    "workerWorkScheduleType_v02": {
+      "description": "Worker schedule type, which includes a collection of days for a given worker",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scheduleName": {
+          "description": "A descriptive name of the schedule",
+          "type": "string"
+        },
+        "schedulePeriod": {
+          "description": "A date period the schedule covers",
+          "$ref": "#/definitions/datePeriodType_v01"
+        },
+        "scheduleDays": {
+          "description": "A collection of days within the schedule",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "daySequenceNumber": {
+                "description": "A day sequence in the schedule",
+                "$ref": "#/definitions/sequenceType_v01"
+              },
+              "dayOfWeekCode": {
+                "description": "A day of week, e.g,, Mon, Tue, etc.",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "scheduleDayDate": {
+                "description": "A date identifying the schedule day",
+                "$ref": "#/definitions/dateType_v01"
+              },
+              "scheduleEntries": {
+                "description": "A collection of entries within a single day, e.g. shifts, paycode entries, etc.",
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/scheduleEntryType_v02"
+                }
+              },
+              "appliedTempateID": {
+                "description": "A unique identification of the template applied if any",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "scheduledHours": {
+                "description": "The total number of hours per given schedule day",
+                "$ref": "#/definitions/standardHoursType_v02"
+              },
+              "exceptions": {
+                "description": "Any exceptions (informational msgs, warnings, errors) associated with the schedule day",
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/exceptionType_v01"
+                }
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              }
+            }
+          }
+        },
+        "scheduleID": {
+          "description": "A unique identification of the schedule",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "appliedTemplateID": {
+          "description": "A unique identification of the template applied if any",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "scheduledHours": {
+          "description": "The total number of hours per given schedule",
+          "$ref": "#/definitions/standardHoursType_v02"
+        },
+        "exceptions": {
+          "description": "Any exceptions (informational msgs, warnings, errors) associated with the schedule",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/exceptionType_v01"
+          }
+        },
+        "associateOID": {
+          "description": "A unique identifier of a worker the schedule is related to",
+          "$ref": "#/definitions/associateOIDType_v02"
+        },
+        "workAssignmentID": {
+          "description": "A unique identification of the worker work assignment",
+          "$ref": "#/definitions/simpleIDType_v02"
+        }
+      }
+    },
+    "confirmMessageType_v01": {
+      "description": "The ConfirmMessage contains the processing results for the corresponding request.  A request may have its processing reported as: succeeded, partially failed, or failed.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "confirmMessageID": {
+          "description": "An identifier for the instance of the confirm message.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "createDateTime": {
+          "description": "The date & time that the message instance was generated.; follows the ISO-8601:2000 format: 2008-05-11T15:30:00-06:00.",
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "requestReceiptDateTime": {
+          "description": "The date & time that the request submitted by the client was received. Note, this timestamp may not be the same as the time the client actually submitted the request if there is a queuing mechanism between the client and server processing the request; it follows the ISO-8601:2000 format: 2008-05-11T15:30:00-06:00.",
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "protocolStatusCode": {
+          "description": "Protocol-specific response status code.",
+          "$ref": "#/definitions/codeType_v01"
+        },
+        "protocolCode": {
+          "description": "Code that identifies the protocol used for the request.",
+          "$ref": "#/definitions/codeType_v01"
+        },
+        "requestID": {
+          "description": "The identifier of the request that generated this response.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "requestStatusCode": {
+          "description": "The process results status code for the request.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "succeeded",
+                "partiallyFailed",
+                "failed"
+              ]
+            }
+          }
+        },
+        "requestMethodCode": {
+          "description": "The method that was used on the request corresponding to this message instance.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "GET",
+                "PUT",
+                "POST",
+                "PATCH",
+                "DELETE"
+              ]
+            }
+          }
+        },
+        "sessionID": {
+          "description": "A session identifier if one is available.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "requestETag": {
+          "description": "The entity tag of the entity in the request.",
+          "type": "string"
+        },
+        "requestLink": {
+          "description": "The link of the request that generated this response.",
+          "$ref": "#/definitions/linkType_v02"
+        },
+        "processingStatusCode": {
+          "description": "Processing status of the related request message.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "received",
+                "validated",
+                "started",
+                "in-progress",
+                "completed"
+              ]
+            }
+          }
+        },
+        "processMessages": {
+          "description": "processMessage is optional and contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).  Most often there will be a single instance for an associated request or resource, but this structure allows for more than one if needed, for example, if multiple errors exist for a single resource. ",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/processMessage_v01"
+          }
+        },
+        "resourceMessages": {
+          "description": "resource Message contains the resource-specific processing results for resources being managed in the request.  A resource may have its processing reported as:  succeeded or failed.  It must be used to represent resource-specific messages.  In the case of a request managing multiple resources and resource-specific messages are to be returned, then this array will contain one object for each such resource of the request.",
+          "type": "array",
+          "items": {
+            "description": "Each object contains detailed information for a resource referenced in the original request.",
+            "type": "object",
+            "properties": {
+              "resourceMessageID": {
+                "description": "An identifier for the instance of the resource message.",
+                "$ref": "#/definitions/IDType_v01"
+              },
+              "resourceStatusCode": {
+                "description": "The processing results status code of the resource of the request.",
+                "type": "object",
+                "additionalProperties": false,
+                "title": "ResourceMessageResourceStatus",
+                "properties": {
+                  "shortName": {
+                    "description": "Short description of the related code",
+                    "type": "string"
+                  },
+                  "longName": {
+                    "description": "Long description of the related code",
+                    "type": "string"
+                  },
+                  "codeValue": {
+                    "description": "The code for the related entity.",
+                    "type": "string",
+                    "enum": [
+                      "succeeded",
+                      "failed",
+                      "warning"
+                    ]
+                  }
+                }
+              },
+              "resourceLink": {
+                "description": "The link of the request that generated this response.",
+                "$ref": "#/definitions/linkType_v02"
+              },
+              "processMessages": {
+                "description": "processMessage is optional and contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).  Most often there will be a single instance for an associated request or resource, but this structure allows for more than one if needed, for example, if multiple errors exist for a single resource. ",
+                "type": "array",
+                "items": {
+                  "title": "ProcessMessageWithResourceStatusCode",
+                  "description": "Each object contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "processMessageID": {
+                      "description": "An identifier for the instance of the process message.",
+                      "$ref": "#/definitions/IDType_v01"
+                    },
+                    "messageTypeCode": {
+                      "description": "Process Message instances may be of type: success, warning, error, or info.",
+                      "$ref": "#/definitions/messageTypeCodeType_v01"
+                    },
+                    "sourceLocationExpression": {
+                      "description": "Expression that provides the location (or source) of content in a message instance that is associated with a process message. Examples of expression languages include: XPath, XQuery, JSON Pointer.",
+                      "type": "string"
+                    },
+                    "expressionLanguageCode": {
+                      "description": "Identifies the language used for expressions communicated in this message.",
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "shortName": {
+                          "description": "Short description of the related code",
+                          "type": "string"
+                        },
+                        "longName": {
+                          "description": "Long description of the related code",
+                          "type": "string"
+                        },
+                        "codeValue": {
+                          "description": "The code for the related entity.",
+                          "type": "string",
+                          "enum": [
+                            "jPath"
+                          ]
+                        }
+                      }
+                    },
+                    "links": {
+                      "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/linkType_v02"
+                      }
+                    },
+                    "userMessage": {
+                      "description": "Message returned to the user",
+                      "$ref": "#/definitions/messageType_v01"
+                    },
+                    "developerMessage": {
+                      "description": "Message returned to the user",
+                      "$ref": "#/definitions/messageType_v01"
+                    },
+                    "clientActionTypeCode": {
+                      "description": "Code that identifies the action to be taken by the client application upon receiving the message",
+                      "$ref": "#/definitions/simpleCodeType_v02"
+                    },
+                    "resourceStatusCode": {
+                      "description": "DEPRECATED - Use messageTypeCode instead. The processing results status code of the resource of the request.",
+                      "$ref": "#/definitions/codeType_v01"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "IDType_v01": {
+      "description": "The unique identifier of the related entity ",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "idValue": {
+          "description": "An ID",
+          "type": "string"
+        },
+        "schemeName": {
+          "description": "The type of ID",
+          "type": "string"
+        },
+        "schemeAgencyName": {
+          "description": "The agency that issues the ID",
+          "type": "string"
+        }
+      }
+    },
+    "codeType_v01": {
+      "description": "The code for the related entity",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity.",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code not to exceed 25 characters",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        }
+      }
+    },
+    "processMessage_v01": {
+      "description": "Each object contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "processMessageID": {
+          "description": "An identifier for the instance of the process message.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "messageTypeCode": {
+          "description": "Process Message instances may be of type: success, warning, error, or info.",
+          "$ref": "#/definitions/messageTypeCodeType_v01"
+        },
+        "sourceLocationExpression": {
+          "description": "Expression that provides the location (or source) of content in a message instance that is associated with a process message. Examples of expression languages include: XPath, XQuery, JSON Pointer.",
+          "type": "string"
+        },
+        "expressionLanguageCode": {
+          "description": "Identifies the language used for expressions communicated in this message.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "jPath"
+              ]
+            }
+          }
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        },
+        "userMessage": {
+          "description": "Message returned to the user",
+          "$ref": "#/definitions/messageType_v01"
+        },
+        "developerMessage": {
+          "description": "Message returned to the user",
+          "$ref": "#/definitions/messageType_v01"
+        },
+        "clientActionTypeCode": {
+          "description": "Code that identifies the action to be taken by the client application upon receiving the message",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        }
+      }
+    },
+    "messageTypeCodeType_v01": {
+      "description": "Schema describing the type of the user or developer message",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        },
+        "codeValue": {
+          "description": "The code for the related entity.",
+          "type": "string",
+          "enum": [
+            "success",
+            "warning",
+            "error",
+            "info"
+          ]
+        }
+      }
+    },
+    "messageType_v01": {
+      "description": "Representation of a message.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code associated with the message description.",
+          "type": "string"
+        },
+        "title": {
+          "description": "Title of the message description.",
+          "type": "string"
+        },
+        "messageTxt": {
+          "description": "The value/content of the message description.",
+          "type": "string"
+        },
+        "messageArguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "argumentName": {
+                "description": "Argument name to be passed in",
+                "type": "string"
+              },
+              "argumentPath": {
+                "description": "Argument path if referenced within the same schema",
+                "type": "string"
+              },
+              "argumentValue": {
+                "description": "Argument name to be passed in",
+                "type": "string"
+              }
+            },
+            "required": [
+              "argumentValue"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        },
+        "messageTypeCode": {
+          "$ref": "#/definitions/messageTypeCodeType_v01"
+        }
+      }
+    },
+    "simpleCodeType_v02": {
+      "description": "A simple (string) code.  Can have a code list reference",
+      "type": "string"
+    },
+    "metaType_v02": {
+      "description": "Meta contains the metadata associated with a response.  A GET response may include metadata to support pagination",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "startSequence": {
+          "description": "The instance resource sequence (number) identifying the first resource returned in the response. The server generates this sequence.  It is used by the client to determine the start sequence of the subsequent Get request",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "completeIndicator": {
+          "description": "Indicates whether the response completes the return of all of the resources of the instance resource set to the requesting system",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "number": {
+          "description": "Number of instance resources in the response",
+          "type": "integer"
+        },
+        "totalNumber": {
+          "description": "Number of total instance resources in an instance resource set. Note: An instance resource set is a set of instance resources that is determined by a server to satisfy the sets membership criteria (i.e., selection, filter, expansion and search criteria) of a resource management operation (e.g. GET request) upon a collection resource",
+          "type": "integer"
+        },
+        "resourceSetID": {
+          "description": "Unique identifier of the instance resource set.  It is generated by the server as a result of the original Get request",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      }
+    }
+  }
+}

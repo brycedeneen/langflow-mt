@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 import httpx
 from langchain_core.tools import StructuredTool
@@ -11,6 +11,7 @@ from lfx.field_typing import Tool
 from pydantic import BaseModel, Field
 
 from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
+from lfx.custom.custom_component.changelog import ChangelogEntry
 from lfx.custom.custom_component.component import Component
 from lfx.io import HandleInput, Output
 
@@ -115,6 +116,64 @@ def extract_job(worker: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _id_value(id_obj: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not id_obj:
+        return None
+    scheme = id_obj.get("schemeCode") or {}
+    return {
+        "idValue": id_obj.get("idValue"),
+        "schemeCode": scheme.get("codeValue") if isinstance(scheme, dict) else scheme,
+    }
+
+
+def extract_ids(worker: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "associateOID": worker.get("associateOID"),
+        "workerID": _id_value(worker.get("workerID")),
+        "alternateIDs": [_id_value(a) for a in worker.get("alternateIDs", []) if a],
+    }
+
+
+_WORKER_DATE_FIELDS = (
+    "firstHireDate",
+    "originalHireDate",
+    "rehireDate",
+    "adjustedServiceDate",
+    "creditedServiceDate",
+    "acquisitionDate",
+    "earlyRetirementDate",
+    "retirementDate",
+    "terminationDate",
+    "expectedTerminationDate",
+    "leaveOfAbsenceReturnDate",
+)
+
+
+def extract_dates(worker: dict[str, Any]) -> dict[str, Any]:
+    dates = worker.get("workerDates") or {}
+    return {field: dates.get(field) for field in _WORKER_DATE_FIELDS}
+
+
+def extract_status(worker: dict[str, Any]) -> dict[str, Any]:
+    status = worker.get("workerStatus") or {}
+    status_code = status.get("statusCode") or {}
+    reason_code = status.get("reasonCode") or {}
+    return {
+        "statusCode": status_code.get("codeValue") if isinstance(status_code, dict) else None,
+        "reasonCode": reason_code.get("codeValue") if isinstance(reason_code, dict) else None,
+        "effectiveDate": status.get("effectiveDate"),
+    }
+
+
+def extract_business_communication(worker: dict[str, Any]) -> dict[str, Any]:
+    comm = worker.get("businessCommunication") or {}
+    return {
+        "emails": comm.get("emails", []),
+        "landlines": comm.get("landlines", []),
+        "mobiles": comm.get("mobiles", []),
+    }
+
+
 def extract_compensation(worker: dict[str, Any]) -> dict[str, Any]:
     assignments = worker.get("workAssignments", [])
     if not assignments:
@@ -162,6 +221,24 @@ class ADPWorkerToolsComponent(Component):
     )
     icon = "Users"
     name = "ADPWorkerTools"
+    version: int = 2
+    changelog: ClassVar[list[ChangelogEntry]] = [
+        ChangelogEntry(
+            version=1,
+            changes=(
+                "Initial release — 5 tools exposing `GET /hr/v2/workers/{aoid}`: "
+                "name, addresses, contact information, job, compensation."
+            ),
+        ),
+        ChangelogEntry(
+            version=2,
+            changes=(
+                "Added 4 agent tools covering the remaining Workers v2 top-level groups: "
+                "`get_employee_ids`, `get_employee_dates`, `get_employee_status`, "
+                "`get_employee_business_communication`."
+            ),
+        ),
+    ]
 
     inputs = [
         HandleInput(
@@ -252,6 +329,30 @@ class ADPWorkerToolsComponent(Component):
                 return worker
             return extract_compensation(worker)
 
+        async def _get_employee_ids(associate_oid: str) -> dict[str, Any]:
+            worker = await component._fetch_worker(conn, associate_oid)
+            if "error" in worker:
+                return worker
+            return extract_ids(worker)
+
+        async def _get_employee_dates(associate_oid: str) -> dict[str, Any]:
+            worker = await component._fetch_worker(conn, associate_oid)
+            if "error" in worker:
+                return worker
+            return extract_dates(worker)
+
+        async def _get_employee_status(associate_oid: str) -> dict[str, Any]:
+            worker = await component._fetch_worker(conn, associate_oid)
+            if "error" in worker:
+                return worker
+            return extract_status(worker)
+
+        async def _get_employee_business_communication(associate_oid: str) -> dict[str, Any]:
+            worker = await component._fetch_worker(conn, associate_oid)
+            if "error" in worker:
+                return worker
+            return extract_business_communication(worker)
+
         tools = [
             StructuredTool.from_function(
                 name="get_employee_name",
@@ -281,6 +382,39 @@ class ADPWorkerToolsComponent(Component):
                 name="get_employee_compensation",
                 description="Get an employee's compensation details (base pay, additional remunerations) by their ADP associate OID.",
                 coroutine=_get_employee_compensation,
+                args_schema=WorkerToolInput,
+            ),
+            StructuredTool.from_function(
+                name="get_employee_ids",
+                description="Get an employee's identifiers (associateOID, workerID, alternateIDs) by their ADP associate OID.",
+                coroutine=_get_employee_ids,
+                args_schema=WorkerToolInput,
+            ),
+            StructuredTool.from_function(
+                name="get_employee_dates",
+                description=(
+                    "Get an employee's lifecycle dates (first hire, original hire, rehire, "
+                    "termination, retirement, leave-return, etc.) by their ADP associate OID."
+                ),
+                coroutine=_get_employee_dates,
+                args_schema=WorkerToolInput,
+            ),
+            StructuredTool.from_function(
+                name="get_employee_status",
+                description=(
+                    "Get an employee's current worker status (active/terminated/leave), "
+                    "status reason, and effective date by their ADP associate OID."
+                ),
+                coroutine=_get_employee_status,
+                args_schema=WorkerToolInput,
+            ),
+            StructuredTool.from_function(
+                name="get_employee_business_communication",
+                description=(
+                    "Get an employee's business communication channels (work email, work phone, "
+                    "work mobile) by their ADP associate OID. Distinct from personal contact info."
+                ),
+                coroutine=_get_employee_business_communication,
                 args_schema=WorkerToolInput,
             ),
         ]

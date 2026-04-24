@@ -1,0 +1,958 @@
+{
+  "openapi": "3.0.1",
+  "servers": [
+    {
+      "url": "https://__host__/"
+    }
+  ],
+  "info": {
+    "contact": {
+      "name": "Lavanya Appa",
+      "email": "LAVANYA.APPA@ADP.COM"
+    },
+    "description": "<span><span>Employee Job Change Application Programming Interface (API) <strong>adds a new position</strong> for an employee and <strong>updates the primary position</strong> of an employee</span><span>&nbsp;in ADP Workforce Now. For more info refer&nbsp;</span></span><a href=\"https://developers.adp.com/articles/guides/employee-job-change-api-guide-for-adp-workforce-now/\" rel=\"noopener noreferrer\" target=\"_blank\"><span><span>Employee Job Change API Guide for ADP Workforce Now</span></span></a><span><span>.</span></span>",
+    "title": "Work Assignment Management",
+    "version": "3.0.1"
+  },
+  "x-adpSpecData": {
+    "domain": "HR",
+    "specId": "bb2586fa-d6d5-496a-8f6e-17696bda3783",
+    "canonicalSpecId": "346b8efb-054a-4244-80a4-23c53ec0fe4b",
+    "specStatusCode": "publishing",
+    "specTypeCode": "REST",
+    "specStateCode": "active",
+    "nonStandardIndicator": false,
+    "visibilityCodes": [
+      "internal",
+      "external"
+    ],
+    "filename": "hr-work-assignment-management-swagger_v3-merged.json",
+    "serviceProviderId": "WFN",
+    "resourcePath": "hr/work-assignment-management/v3",
+    "libraryVersion": "",
+    "testCaseCollection": {
+      "example": {
+        "href": "WFN_CG_Work_Assignment_Management.postman_collection.json"
+      },
+      "description": "Work Assignment Management Postman Collection"
+    },
+    "publicationContext": {
+      "products": [
+        {
+          "productId": "hcm-offrg-wfn",
+          "productName": "workforce now",
+          "marketplaceProductName": "ADP Workforce Now\u00ae"
+        }
+      ]
+    },
+    "specCategoryCode": ""
+  },
+  "tags": [
+    {
+      "name": "Add Work Assignment",
+      "description": "Add a new work assignment"
+    }
+  ],
+  "paths": {
+    "/hr/v3/workers/{aoid}/work-assignments": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "workerManagement",
+        "functionCode": "workAssignmentManagement",
+        "serviceCode": "workerInformationManagement",
+        "serviceCategoryCode": "hr",
+        "canonicalName": "Add Work Assignment"
+      },
+      "post": {
+        "summary": "Create worker's work assignment",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobileMSSWorkerProfile",
+            "MobilePSSWorkerProfile"
+          ],
+          "sorRequestTimeoutPolicies": {
+            "cachedTimeout": 3,
+            "notCachedTimeout": 10
+          },
+          "canonicalUri": "hr/workerInformationManagement/workerManagement/workAssignmentManagement/worker.workAssignment.add",
+          "operationCode": "worker.workAssignment.add",
+          "operationId": "58e328f3-49c9-4527-a280-3a244db6f858",
+          "roleCodes": [
+            "manager",
+            "practitioner"
+          ],
+          "performAuthIndicator": true,
+          "scenarios": [
+            {
+              "summary": "<span>Add a new position for Non Paid employee</span>",
+              "name": "2. Adding a new position for Non Paid employee",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "unset",
+                    "Location": "unset"
+                  },
+                  "code": "201",
+                  "description": "Successful response of Adding a new position for Non Paid employee",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/2._Adding_a_new_position_for_Non_Paid_employee_Provide_Example_worker.workAssignment.add_201_44525.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>Add a new position for Non Paid employee</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/2._Adding_a_new_position_for_Non_Paid_employee_Provide_Example_worker.workAssignment.add_request_3892.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>This use case adds a new position for an employee in ADP workforce now.</span>",
+              "name": "5. Adding a new position for an existing employee with duplicated department code",
+              "responses": [
+                {
+                  "headers": {
+                    "Content-Language": "unset",
+                    "Last-Modified": "unset"
+                  },
+                  "code": "400",
+                  "description": "The below message is returned in the response.\n\n\"messageText\": \"Label not found, missing following key: Exception in the requestQuery did not return a unique result: x results were returned\",\n\nHere department : 100000 is same for No Company and BOS. So it is a duplicated value hence we got this error.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/5._Adding_a_new_position_for_an_existing_employee_with_duplicated_department_code_Custom_Example_worker.workAssignment.add_400_547278.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>This use case adds a new position for an employee in ADP workforce now.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/5._Adding_a_new_position_for_an_existing_employee_with_duplicated_department_code_Custom_Example_worker.workAssignment.add_request_51745.json"
+                }
+              }
+            },
+            {
+              "summary": "<p><span>Adds a new position for an employee.</span></p><p><span><strong>Note:</strong></span></p><ul><li><span><strong>{associateoid}&nbsp;</strong>can be obtained by making hr/v2/workers API call.</span></li></ul>",
+              "name": "1. Adding a new position for an existing employee",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "unset",
+                    "Location": "unset"
+                  },
+                  "code": "201",
+                  "description": "Successful response for Adding a new position for an existing associate",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/1._Adding_a_new_position_for_an_existing_employee_Provide_Example_worker.workAssignment.add_201_44524.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "Content-Language": "unset",
+                    "Last-Modified": "unset"
+                  },
+                  "code": "400",
+                  "description": "Bad Request of Adding a \"Non paid\" position for an employee",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/1._Adding_a_new_position_for_an_existing_employee_Provide_Example_worker.workAssignment.add_400_44528.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p><span>Adds a new position for an employee.</span></p><p><span><strong>Note:</strong></span></p><ul><li><span><strong>{associateoid}&nbsp;</strong>can be obtained by making hr/v2/workers API call.</span></li></ul>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/1._Adding_a_new_position_for_an_existing_employee_Provide_Example_worker.workAssignment.add_request_3891.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>Add a new position with position start date as future dated</span>",
+              "name": "3. Adding a new position with position start date as future dated",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "unset",
+                    "Location": "unset"
+                  },
+                  "code": "201",
+                  "description": "Successful response of Adding a new position with position start date as future dated",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/3._Adding_a_new_position_with_position_start_date_as_future_dated_Provide_Example_worker.workAssignment.add_201_44526.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>Add a new position with position start date as future dated</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/3._Adding_a_new_position_with_position_start_date_as_future_dated_Provide_Example_worker.workAssignment.add_request_3893.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>Add a new position for a terminated employee</span>",
+              "name": "4. Adding a new position for a terminated employee",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "unset",
+                    "Location": "unset"
+                  },
+                  "code": "201",
+                  "description": "Successful response of Adding a new position for a terminated employee",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/4._Adding_a_new_position_for_a_terminated_employee_Provide_Example_worker.workAssignment.add_201_44527.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>Add a new position for a terminated employee</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/4._Adding_a_new_position_for_a_terminated_employee_Provide_Example_worker.workAssignment.add_request_3894.json"
+                }
+              }
+            }
+          ],
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ],
+          "globalViewDevPortalIndicator": true
+        },
+        "requestBody": {
+          "description": "Representation of the worker's work assignment",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas/work-assignment-create-request-schema_v03.json"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "description": "Operation to create work assignment for a worker",
+        "operationId": "58e328f3-49c9-4527-a280-3a244db6f858",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "aoid",
+            "description": "Unique worker associate OID as generated by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "Accept-Language:language|*;q=qvalue. Specifies the language(s) that are acceptable for the response. The optional qvalue represents a quality level for acceptable languages.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header will be passed in all calls. When coming from Myself capabilities rolecode=employee. When coming from Team capabilities roleCode=manager. When coming from Practitioner capabilities roleCode=practitioner.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Add Work Assignment"
+        ]
+      }
+    },
+    "/hr/v3/workers/{aoid}/work-assignments/meta": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "workerManagement",
+        "functionCode": "workAssignmentManagement",
+        "serviceCode": "workerInformationManagement",
+        "serviceCategoryCode": "hr",
+        "canonicalName": "Work Assignment Meta"
+      },
+      "get": {
+        "summary": "Returns a meta for Work assignment, Pass method parameter to reterive appropriate response",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobilePSSWorkerProfile",
+            "MobileMSSWorkerProfile"
+          ],
+          "sorRequestTimeoutPolicies": {
+            "cachedTimeout": 3,
+            "notCachedTimeout": 10
+          },
+          "canonicalUri": "hr/workerInformationManagement/workerManagement/workAssignmentManagement/worker.workAssignment.meta.read",
+          "operationCode": "worker.workAssignment.meta.read",
+          "operationId": "47d98b18-3dc7-4d06-923d-f08ca1f67518",
+          "roleCodes": [
+            "practitioner",
+            "manager"
+          ],
+          "performAuthIndicator": true,
+          "scenarios": [
+            {
+              "summary": "<p><span>Retrieves the meta information.</span></p><p>Below retrieves the meta information based on payrollGroupCode and payrollProcessingStatusCode.</p><p>hr/v3/workers/G310YGK80NSS9D2N/work-assignments/meta?$filter=meta/workAssignment/payrollProfile/payrollGroupCode eq &#39;94N&#39; and meta/workAssignment/PayrollProfile/payrollProcessingStatusCode eq &#39;true&#39;</p>",
+              "name": "Retrieving the meta information",
+              "responses": [
+                {
+                  "headers": {
+                    "ETag": "unset",
+                    "Content-Language": "unset",
+                    "Last-Modified": "unset"
+                  },
+                  "code": "200",
+                  "description": "Retrieves the meta information based on payrollGroupCode and payrollProcessingStatusCode.\n\nhr/v3/workers/G310YGK80NSS9D2N/work-assignments/meta?$filter=meta/workAssignment/payrollProfile/payrollGroupCode eq '94N' and meta/workAssignment/PayrollProfile/payrollProcessingStatusCode eq 'true'",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Retrieving_the_meta_information_Provide_Example_worker.workAssignment.meta.read_200_44530.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ETag": "unset",
+                    "Content-Language": "unset",
+                    "Last-Modified": "unset"
+                  },
+                  "code": "200",
+                  "description": "Meta response",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Retrieving_the_meta_information_Provide_Example_worker.workAssignment.meta.read_200_44529.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p><span>Retrieves the meta information.</span></p><p>Below retrieves the meta information based on payrollGroupCode and payrollProcessingStatusCode.</p><p>hr/v3/workers/G310YGK80NSS9D2N/work-assignments/meta?$filter=meta/workAssignment/payrollProfile/payrollGroupCode eq &#39;94N&#39; and meta/workAssignment/PayrollProfile/payrollProcessingStatusCode eq &#39;true&#39;</p>"
+            }
+          ],
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ],
+          "globalViewDevPortalIndicator": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Language": {
+                "schema": {
+                  "type": "string"
+                },
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Last-Modified": {
+                "schema": {
+                  "type": "string"
+                },
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/work-assignment-create-request-meta-schema_v03.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          }
+        },
+        "description": "Returns a meta for Work assignment",
+        "operationId": "47d98b18-3dc7-4d06-923d-f08ca1f67518",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "aoid",
+            "description": "Unique worker associate OID as generated by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "Accept-Language:language|*;q=qvalue. Specifies the language(s) that are acceptable for the response. The optional qvalue represents a quality level for acceptable languages.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header will be passed in all calls. When coming from Myself capabilities rolecode=employee. When coming from Team capabilities roleCode=manager. When coming from Practitioner capabilities roleCode=practitioner.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "$filter",
+            "description": "The OData $filter parameter MUST be used to specify the filter criterion to limit the resultset",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string",
+              "enum": [
+                "GET",
+                " POST",
+                " PATCH",
+                " PUT",
+                " DELETE"
+              ]
+            },
+            "in": "query",
+            "name": "$method",
+            "description": "The $method parameter should be used to specify the HTTP method the meta is requested for",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Add Work Assignment"
+        ]
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "404": {
+        "headers": {
+          "Content-Language": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Last-Modified": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "503": {
+        "headers": {
+          "Content-Language": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Last-Modified": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Service Unavailable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "400": {
+        "headers": {
+          "Content-Language": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Last-Modified": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "401": {
+        "headers": {
+          "Content-Language": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Last-Modified": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "500": {
+        "headers": {
+          "Content-Language": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Last-Modified": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "403": {
+        "headers": {
+          "Content-Language": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Last-Modified": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

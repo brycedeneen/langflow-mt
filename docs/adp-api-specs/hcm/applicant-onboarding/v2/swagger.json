@@ -1,0 +1,1885 @@
+{
+  "openapi": "3.0.1",
+  "servers": [
+    {
+      "url": "https://__host__/"
+    }
+  ],
+  "info": {
+    "contact": {
+      "name": "Lavanya Appa",
+      "email": "LAVANYA.APPA@ADP.COM"
+    },
+    "description": "The Applicant Onboarding v2 APIs are used to manage the process of transfering the applicant data into HCM systems, including reading the API metadata. ADP Workforce Now enables client practitioners to add new employees using the New Hire Template. The Applicant Onboard V2 Application Programming Interface (API) posts an applicant as an <strong>In-Progress</strong> and <strong>completed</strong> hire into ADP Workforce Now. This enables a practitioner to complete the hire by logging into ADP Workforce Now and add the new hire data. For more information refer <a href=\"https://developers.adp.com/articles/guides/applicant-onboard-v2-api-guide-for-workforce-now/\" rel=\"noopener noreferrer\" target=\"_blank\">Applicant Onboard V2 API Guide for ADP Workforce Now</a>.",
+    "title": "Applicant Onboarding",
+    "version": "2.0.1"
+  },
+  "x-adpSpecData": {
+    "domain": "HCM",
+    "specId": "a0d18d20-3d21-482e-b257-7e59c9a33feb",
+    "canonicalSpecId": "1d8a3771-a45c-45d2-9d55-8e59a91e177a",
+    "specStatusCode": "publishing",
+    "specTypeCode": "REST",
+    "specStateCode": "active",
+    "nonStandardIndicator": false,
+    "visibilityCodes": [
+      "internal",
+      "external"
+    ],
+    "filename": "applicant-onboarding-swagger_v2-merged.json",
+    "serviceProviderId": "WFN",
+    "resourcePath": "hcm/applicant-onboarding/v2",
+    "libraryVersion": "",
+    "testCaseCollection": {
+      "example": {
+        "href": "ApplicantOnboarding_WFNCurrentGen.postman_collection.json"
+      },
+      "description": "Applicant Onboard Postman Collection"
+    },
+    "publicationContext": {
+      "products": [
+        {
+          "productId": "hcm-offrg-wfn",
+          "productName": "workforce now",
+          "marketplaceProductName": "ADP Workforce Now\u00ae"
+        }
+      ]
+    },
+    "specCategoryCode": ""
+  },
+  "tags": [
+    {
+      "name": "Onboarding API Metadata",
+      "description": "APIs to obtain the applicant onboarding APIs metadata"
+    },
+    {
+      "name": "Onboarding Process Management",
+      "description": "APIs to manage the applicant onboarding process"
+    }
+  ],
+  "paths": {
+    "/hcm/v2/applicant.onboard/meta": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "applicantOnboardingManagement",
+        "functionCode": "onboardingProcessManagement",
+        "serviceCode": "integrationManagement",
+        "serviceCategoryCode": "hcm",
+        "canonicalName": "Applicant Onboarding API Metadata"
+      },
+      "get": {
+        "summary": "Initiate New Applicant Onboarding Metadata",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobileADMApplicantOnboard",
+            "MobilePSSApplicantOnboard"
+          ],
+          "sorRequestTimeoutPolicies": {
+            "cachedTimeout": 3,
+            "notCachedTimeout": 10
+          },
+          "canonicalUri": "hcm/integrationManagement/applicantOnboardingManagement/onboardingProcessManagement/applicant.onboard.meta.read",
+          "operationCode": "applicant.onboard.meta.read",
+          "operationId": "de9a8c8b-fb90-4737-b068-ff96b2cc3283",
+          "roleCodes": [
+            "administrator",
+            "practitioner"
+          ],
+          "performAuthIndicator": true,
+          "scenarios": [
+            {
+              "summary": "<span>Returns an applicant&#39;s metadata for International Client</span>",
+              "headers": {
+                "ADP-Context-ExpressionID": "country=INT"
+              },
+              "name": "3. Returning an applicant's metadata for International Client",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Retrieves the template code available for the US client. /hcm/v2/applicant.onboard/meta?$filter=meta/applicantOnboarding/onboardingTemplateCode/code eq '{ItemID}'\n\nIn this example country code passed was 'GB'",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/3._Returning_an_applicant's_metadata_for_International_Client_Custom_Example_applicant.onboard.meta.read_200_353701.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Retrieves the template code available for the International client.\n/hcm/v2/applicant.onboard/meta?$filter=meta/applicantOnboarding/onboardingTemplateCode/code eq '{templateCode}' and meta/applicantOnboarding/countryCode eq '{countryCode}'",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/3._Returning_an_applicant's_metadata_for_International_Client_Custom_Example_applicant.onboard.meta.read_200_353700.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>Returns an applicant&#39;s metadata for International Client</span>",
+              "parameters": {
+                "$filter": "meta/applicantOnboarding/onboardingTemplateCode/code eq '9360972_1439' and meta/applicantOnboarding/countryCode eq 'GB'"
+              }
+            },
+            {
+              "summary": "<p><span>Returns an applicant&#39;s metadata for US client.</span></p><p><span>Important:</span></p><p>1. Whenever there is a change or update to any of the existing Custom template setup at ADP WorkForce Now side, the respective template Code&nbsp;in the API meta response gets updated.</p><p>2. It is recommended to call meta API (/hcm/v2/applicant.onboard/meta) to verify the template Codes before trying to onboard an employee using custom templates.</p>",
+              "name": "1. Returning an applicant's metadata for US Client",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Returns an API metadata for US Client",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/1._Returning_an_applicant's_metadata_for_US_Client_Provide_Example_applicant.onboard.meta.read_200_44555.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Retrieves the template code available for the US client.\n/hcm/v2/applicant.onboard/meta?$filter=meta/applicantOnboarding/onboardingTemplateCode/code eq '{ItemID}'",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/1._Returning_an_applicant's_metadata_for_US_Client_Provide_Example_applicant.onboard.meta.read_200_44558.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p><span>Returns an applicant&#39;s metadata for US client.</span></p><p><span>Important:</span></p><p>1. Whenever there is a change or update to any of the existing Custom template setup at ADP WorkForce Now side, the respective template Code&nbsp;in the API meta response gets updated.</p><p>2. It is recommended to call meta API (/hcm/v2/applicant.onboard/meta) to verify the template Codes before trying to onboard an employee using custom templates.</p>",
+              "parameters": {
+                "$filter": "meta/applicantOnboarding/onboardingTemplateCode/code eq '{{onboardingTemplateCode}}'"
+              }
+            },
+            {
+              "summary": "<p><span>Returns an applicant&#39;s metadata for Canada Template.</span></p><p><span>Important:</span></p><p>1. Whenever there is a change or update to any of the existing Custom template setup at ADP WorkForce Now side, the respective template Code&nbsp;in the API meta response gets updated.</p><p>2. It is recommended to call meta API (/hcm/v2/applicant.onboard/meta) to verify the template Codes before trying to onboard an employee using custom templates.</p>",
+              "headers": {
+                "ADP-Context-ExpressionID": "country=CA"
+              },
+              "name": "2. Returns an applicant's metadata for CANADA template.",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Retrieves the template code available for the US client. /hcm/v2/applicant.onboard/meta?$filter=meta/applicantOnboarding/onboardingTemplateCode/code eq '{ItemID}'",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/2._Returns_an_applicant's_metadata_for_CANADA_template._Custom_Example_applicant.onboard.meta.read_200_353697.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Returns an API metadata including the list of minimum fields to create an in progress hire and the list of client hire templates",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/2._Returns_an_applicant's_metadata_for_CANADA_template._Custom_Example_applicant.onboard.meta.read_200_353696.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p><span>Returns an applicant&#39;s metadata for Canada Template.</span></p><p><span>Important:</span></p><p>1. Whenever there is a change or update to any of the existing Custom template setup at ADP WorkForce Now side, the respective template Code&nbsp;in the API meta response gets updated.</p><p>2. It is recommended to call meta API (/hcm/v2/applicant.onboard/meta) to verify the template Codes before trying to onboard an employee using custom templates.</p>"
+            }
+          ],
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ],
+          "globalViewDevPortalIndicator": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "ADP-Acting-Session-Expires": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "sm_transactionid": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ADP-Acting-SessionID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Returns an API metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/applicant-onboarding-meta-schema_v02.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "412": {
+            "$ref": "#/components/responses/412"
+          },
+          "413": {
+            "$ref": "#/components/responses/413"
+          },
+          "304": {
+            "$ref": "#/components/responses/304"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "405": {
+            "$ref": "#/components/responses/405"
+          },
+          "406": {
+            "$ref": "#/components/responses/406"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Returns an API metadata",
+        "operationId": "de9a8c8b-fb90-4737-b068-ff96b2cc3283",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Acting-SessionID",
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORContext",
+            "description": "Context within an SOR that the call should be routed to.  Set up / overwritten by the infrastructure (API PRoxy) based on the user profile settings.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to.  Set up / overwritten by the infrastructure (API PRoxy) based on the user profile settings.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-AssociateOID",
+            "description": "Associate OID for the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "$filter",
+            "description": "The OData $filter parameter MUST be used to specify the filter criteria. The usage sample is below. Various criteria could be combined using and/or operands and () to set the operand precedence. Please refer \"RESTful Web API Design Standard\" for more details",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-AssociateOID",
+            "description": "Associate OID of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "Accept-Language:language|*;q=qvalue. Specifies the language(s) that are acceptable for the response. The optional qvalue represents a quality level for acceptable languages.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header should be set by the API consumer otherwise it will be defaulted to the lowest value based on the user profile settings.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Onboarding API Metadata"
+        ]
+      }
+    },
+    "/hcm/v2/applicant.onboard": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "applicantOnboardingManagement",
+        "functionCode": "onboardingProcessManagement",
+        "serviceCode": "integrationManagement",
+        "serviceCategoryCode": "hcm",
+        "canonicalName": "Applicant Onboarding"
+      },
+      "post": {
+        "summary": "Initiate New Applicant Onboarding",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobileADMApplicantOnboard",
+            "MobilePSSApplicantOnboard"
+          ],
+          "sorRequestTimeoutPolicies": {
+            "cachedTimeout": 3,
+            "notCachedTimeout": 10
+          },
+          "canonicalUri": "hcm/integrationManagement/applicantOnboardingManagement/onboardingProcessManagement/applicant.onboard",
+          "operationCode": "applicant.onboard",
+          "operationId": "c2fe03be-a3ba-470a-88fe-ec02b2216905",
+          "roleCodes": [
+            "administrator",
+            "practitioner"
+          ],
+          "performAuthIndicator": true,
+          "scenarios": [
+            {
+              "summary": "When Legal address 1 is not passed in the request",
+              "headers": {
+                "ADP-Context-ExpressionID": "country=US"
+              },
+              "name": "18. Bad Request - [Complete] - When Legal address 1 is not passed in the request",
+              "responses": [
+                {
+                  "headers": {
+                    "Content-Language": "unset",
+                    "Last-Modified": "unset"
+                  },
+                  "code": "400",
+                  "description": "Response when legal address 1 is not passed in the request payload.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/18._Bad_Request_-_[Complete]_-_When_Legal_address_1_is_not_passed_in_the_request_Custom_Example_applicant.onboard_400_495159.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "Content-Language": "",
+                    "Last-Modified": ""
+                  },
+                  "code": "400",
+                  "description": "Response when Applicant Onboarding Data is required.\n\nRefer the payload values for creating a proper request.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/18._Bad_Request_-_[Complete]_-_When_Legal_address_1_is_not_passed_in_the_request_Custom_Example_applicant.onboard_400_495164.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "Content-Language": "unset",
+                    "Last-Modified": "unset"
+                  },
+                  "code": "400",
+                  "description": "Response when Secondary address city is not passed in the request.\n\nRefer the payload values for creating a proper request.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/18._Bad_Request_-_[Complete]_-_When_Legal_address_1_is_not_passed_in_the_request_Custom_Example_applicant.onboard_400_495160.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "Content-Language": "unset",
+                    "Last-Modified": "unset"
+                  },
+                  "code": "400",
+                  "description": "Response when payroll group code is not passed in the request.\n\nRefer the payload values for creating a proper request.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/18._Bad_Request_-_[Complete]_-_When_Legal_address_1_is_not_passed_in_the_request_Custom_Example_applicant.onboard_400_495163.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "Content-Language": "unset",
+                    "Last-Modified": "unset"
+                  },
+                  "code": "400",
+                  "description": "Response when hire date is not passed in the request.\n\nRefer the payload values for creating a proper request.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/18._Bad_Request_-_[Complete]_-_When_Legal_address_1_is_not_passed_in_the_request_Custom_Example_applicant.onboard_400_495162.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "Content-Language": "unset",
+                    "Last-Modified": "unset"
+                  },
+                  "code": "400",
+                  "description": "Response when federal taxFilingstatusCode is invalid in the request.\n\nRefer the payload values for creating a proper request.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/18._Bad_Request_-_[Complete]_-_When_Legal_address_1_is_not_passed_in_the_request_Custom_Example_applicant.onboard_400_495161.json"
+                    }
+                  }
+                }
+              ],
+              "description": "When Legal address 1 is not passed in the request",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/18._Bad_Request_-_[Complete]_-_When_Legal_address_1_is_not_passed_in_the_request_Custom_Example_applicant.onboard_request_46242.json"
+                }
+              }
+            },
+            {
+              "summary": "<p>SOC Code should be mandatory for New Hire Applicant Onboard API if SUI/SDI Tax Codes are below</p><ul><li>Indiana</li><li>Louisiana</li><li>South Carolina</li><li>Washington</li><li>West Virginia</li></ul>",
+              "name": "20. Hiring an employee completely for the US Client With SOC Code",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "unset",
+                    "Location": "unset"
+                  },
+                  "code": "201",
+                  "description": "Successful response of applicant onboard process of Complete state for US Client with SOC required.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/20._Hiring_an_employee_completely_for_the_US_Client_With_SOC_Code_Custom_Example_applicant.onboard_201_497840.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>SOC Code should be mandatory for New Hire Applicant Onboard API if SUI/SDI Tax Codes are below</p><ul><li>Indiana</li><li>Louisiana</li><li>South Carolina</li><li>Washington</li><li>West Virginia</li></ul>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/20._Hiring_an_employee_completely_for_the_US_Client_With_SOC_Code_Custom_Example_applicant.onboard_request_47069.json"
+                }
+              }
+            },
+            {
+              "summary": "<strong>US Clients</strong><span>&nbsp;- Response using&nbsp;</span><strong>templateNameCode</strong><span>&nbsp;as <strong>HR + Payroll (System)</strong> in the request.</span>",
+              "headers": {
+                "ADP-Context-ExpressionID": "country=US"
+              },
+              "name": "04. Hiring an employee completely for the US Client - Full Payload",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "",
+                    "Location": ""
+                  },
+                  "code": "201",
+                  "description": "Successful response of applicant onboard process of Complete state for US Client.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/04._Hiring_an_employee_completely_for_the_US_Client_-_Full_Payload_Custom_Example_applicant.onboard_201_44566.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<strong>US Clients</strong><span>&nbsp;- Response using&nbsp;</span><strong>templateNameCode</strong><span>&nbsp;as <strong>HR + Payroll (System)</strong> in the request.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/04._Hiring_an_employee_completely_for_the_US_Client_-_Full_Payload_Custom_Example_applicant.onboard_request_3907.json"
+                }
+              }
+            },
+            {
+              "summary": "Hiring an employee completely for the US Client with Ohio(OH) School District- Full Payload",
+              "name": "10. Hiring an employee completely for the US Client with Ohio(OH) School District- Full Payload",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "unset",
+                    "Location": "unset"
+                  },
+                  "code": "201",
+                  "description": "Response of complete hire with OH school district - US",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/10._Hiring_an_employee_completely_for_the_US_Client_with_Ohio(OH)_School_District-_Full_Payload_Custom_Example_applicant.onboard_201_479278.json"
+                    }
+                  }
+                }
+              ],
+              "description": "Hiring an employee completely for the US Client with Ohio(OH) School District- Full Payload",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/10._Hiring_an_employee_completely_for_the_US_Client_with_Ohio(OH)_School_District-_Full_Payload_Custom_Example_applicant.onboard_request_43679.json"
+                }
+              }
+            },
+            {
+              "summary": "Prehire an employee for the US Client(InProgress)",
+              "name": "12. Prehire an employee for the US Client(InProgress)",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "",
+                    "Location": ""
+                  },
+                  "code": "201",
+                  "description": "Response of Prehire an employee for the US Client(InProgress)",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/12._Prehire_an_employee_for_the_US_Client(InProgress)_Custom_Example_applicant.onboard_201_479280.json"
+                    }
+                  }
+                }
+              ],
+              "description": "Prehire an employee for the US Client(InProgress)",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/12._Prehire_an_employee_for_the_US_Client(InProgress)_Custom_Example_applicant.onboard_request_43681.json"
+                }
+              }
+            },
+            {
+              "summary": "<strong>INTERNATIONAL Clients -&nbsp;</strong><span>Response using&nbsp;</span><strong>templateNameCode</strong><span>&nbsp;as <strong>International (System)</strong> in the request.</span>",
+              "headers": {
+                "ADP-Context-ExpressionID": "country=INT"
+              },
+              "name": "06. Hiring an employee completely for the International Client - Full Payload",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "",
+                    "Location": ""
+                  },
+                  "code": "201",
+                  "description": "Successful response of applicant onboard process of Complete state for International Client.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/06._Hiring_an_employee_completely_for_the_International_Client_-_Full_Payload_Custom_Example_applicant.onboard_201_44568.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<strong>INTERNATIONAL Clients -&nbsp;</strong><span>Response using&nbsp;</span><strong>templateNameCode</strong><span>&nbsp;as <strong>International (System)</strong> in the request.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/06._Hiring_an_employee_completely_for_the_International_Client_-_Full_Payload_Custom_Example_applicant.onboard_request_3909.json"
+                }
+              }
+            },
+            {
+              "summary": "<strong>US Clients</strong><span>&nbsp;- Response when using&nbsp;</span><strong>templateNameCode</strong><span>&nbsp;as Applicant Onboard in the request.</span>",
+              "headers": {
+                "ADP-Context-ExpressionID": "country=US"
+              },
+              "name": "01. Starts the applicant onboarding process (Inprogress state) for US Client - Minimal payload",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "",
+                    "Location": ""
+                  },
+                  "code": "201",
+                  "description": "Successful response of applicant onboard process of inprogress state for US Client.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/01._Starts_the_applicant_onboarding_process_(Inprogress_state)_for_US_Client_-_Minimal_payload_Provide_Example_applicant.onboard_201_44563.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<strong>US Clients</strong><span>&nbsp;- Response when using&nbsp;</span><strong>templateNameCode</strong><span>&nbsp;as Applicant Onboard in the request.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/01._Starts_the_applicant_onboarding_process_(Inprogress_state)_for_US_Client_-_Minimal_payload_Provide_Example_applicant.onboard_request_3904.json"
+                }
+              }
+            },
+            {
+              "summary": "<p>Hiring an employee completely for the US Client with Indiana for any of below field- Full Payload</p><ol><li>worked in state or</li><li>lived in state or</li><li>SUI/SDI</li></ol><p>Job Title For Compliance Reporting and SOC Code are must pass to complete the Hire for Indiana.</p>",
+              "headers": {
+                "ADP-Context-ExpressionID": "country=US"
+              },
+              "name": "19. Hiring an employee completely for the US Client with Indiana - Full Payload",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "unset",
+                    "Location": "unset"
+                  },
+                  "code": "201",
+                  "description": "Successful response of applicant onboard process of Complete state for US Client.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/19._Hiring_an_employee_completely_for_the_US_Client_with_Indiana_-_Full_Payload_Custom_Example_applicant.onboard_201_497438.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>Hiring an employee completely for the US Client with Indiana for any of below field- Full Payload</p><ol><li>worked in state or</li><li>lived in state or</li><li>SUI/SDI</li></ol><p>Job Title For Compliance Reporting and SOC Code are must pass to complete the Hire for Indiana.</p>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/19._Hiring_an_employee_completely_for_the_US_Client_with_Indiana_-_Full_Payload_Custom_Example_applicant.onboard_request_46897.json"
+                }
+              }
+            },
+            {
+              "summary": "<strong>INTERNATIONAL Clients</strong><span>&nbsp;- Response when using&nbsp;</span><strong>templateNameCode</strong><span>&nbsp;as <strong>International (System)</strong></span>",
+              "headers": {
+                "ADP-Context-ExpressionID": "country=INT"
+              },
+              "name": "03. Starts the applicant onboarding process (Inprogress state) for International Client - Minimal Payload",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "",
+                    "Location": ""
+                  },
+                  "code": "201",
+                  "description": "Successful response of applicant onboard process of Inprogress state for International Client.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/03._Starts_the_applicant_onboarding_process_(Inprogress_state)_for_International_Client_-_Minimal_Payload_Custom_Example_applicant.onboard_201_44564.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<strong>INTERNATIONAL Clients</strong><span>&nbsp;- Response when using&nbsp;</span><strong>templateNameCode</strong><span>&nbsp;as <strong>International (System)</strong></span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/03._Starts_the_applicant_onboarding_process_(Inprogress_state)_for_International_Client_-_Minimal_Payload_Custom_Example_applicant.onboard_request_3906.json"
+                }
+              }
+            },
+            {
+              "summary": "<strong>CANADA Clients</strong><span>&nbsp;- Response when using custom&nbsp;</span><strong>templateNameCode</strong><span>&nbsp;with steps Personal, Employment, Payroll, and Tax.</span>",
+              "headers": {
+                "ADP-Context-ExpressionID": "country=CA"
+              },
+              "name": "02. Starts the applicant onboarding process (Inprogress state) for CANADA Client - Minimal Payload",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "",
+                    "Location": ""
+                  },
+                  "code": "201",
+                  "description": "Successful response of applicant onboard process of Inprogress state for CANADA Client.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/02._Starts_the_applicant_onboarding_process_(Inprogress_state)_for_CANADA_Client_-_Minimal_Payload_Custom_Example_applicant.onboard_201_44562.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<strong>CANADA Clients</strong><span>&nbsp;- Response when using custom&nbsp;</span><strong>templateNameCode</strong><span>&nbsp;with steps Personal, Employment, Payroll, and Tax.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/02._Starts_the_applicant_onboarding_process_(Inprogress_state)_for_CANADA_Client_-_Minimal_Payload_Custom_Example_applicant.onboard_request_3905.json"
+                }
+              }
+            },
+            {
+              "summary": "<strong>CANADA Clients -&nbsp;</strong><span>Response using&nbsp;</span><strong>templateNameCode</strong><span>&nbsp;as <strong>Applicant Onboard</strong> in the request.</span>",
+              "headers": {
+                "ADP-Context-ExpressionID": "country=CA"
+              },
+              "name": "05. Hiring an employee completely for the CANADA Client - Full Payload",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "",
+                    "Location": ""
+                  },
+                  "code": "201",
+                  "description": "Successful response of applicant onboard process of Complete state for CANADA Client.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/05._Hiring_an_employee_completely_for_the_CANADA_Client_-_Full_Payload_Custom_Example_applicant.onboard_201_44567.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<strong>CANADA Clients -&nbsp;</strong><span>Response using&nbsp;</span><strong>templateNameCode</strong><span>&nbsp;as <strong>Applicant Onboard</strong> in the request.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/05._Hiring_an_employee_completely_for_the_CANADA_Client_-_Full_Payload_Custom_Example_applicant.onboard_request_3908.json"
+                }
+              }
+            },
+            {
+              "summary": "US Clients - Response when using <strong>templateNameCode</strong> as <strong>HR + Payroll (System)</strong> in the request.",
+              "headers": {
+                "ADP-Context-ExpressionID": "country=US"
+              },
+              "name": "07. Starts the applicant onboarding process (Inprogress state) for US templates -Full Payload with minimal fields populated",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "",
+                    "Location": ""
+                  },
+                  "code": "201",
+                  "description": "Applicant record is created",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/07._Starts_the_applicant_onboarding_process_(Inprogress_state)_for_US_templates_-Full_Payload_with_minimal_fields_populated_Custom_Example_applicant.onboard_201_353695.json"
+                    }
+                  }
+                }
+              ],
+              "description": "US Clients - Response when using <strong>templateNameCode</strong> as <strong>HR + Payroll (System)</strong> in the request.",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/07._Starts_the_applicant_onboarding_process_(Inprogress_state)_for_US_templates_-Full_Payload_with_minimal_fields_populated_Custom_Example_applicant.onboard_request_32327.json"
+                }
+              }
+            },
+            {
+              "summary": "Worked-In County should be Mandatory if the SUI/SDI Tax Code is West Virginia",
+              "name": "21. Hiring an Employee completely for the US client with Worked in County",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "unset",
+                    "Location": "unset"
+                  },
+                  "code": "201",
+                  "description": "Successful response of applicant onboard process of complete state for US Client when SUI code is Worked in County",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/21._Hiring_an_Employee_completely_for_the_US_client_with_Worked_in_County_Custom_Example_applicant.onboard_201_497841.json"
+                    }
+                  }
+                }
+              ],
+              "description": "Worked-In County should be Mandatory if the SUI/SDI Tax Code is West Virginia",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/21._Hiring_an_Employee_completely_for_the_US_client_with_Worked_in_County_Custom_Example_applicant.onboard_request_47070.json"
+                }
+              }
+            },
+            {
+              "summary": "CA Template - Response when using a custom <strong>templateNameCode</strong> as configured with Personal, Employment, Payroll, Tax steps.",
+              "headers": {
+                "ADP-Context-ExpressionID": "country=CA"
+              },
+              "name": "08. Starts the applicant onboarding process (Inprogress state) for CA Template - Full Payload with minimal fields populated",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "",
+                    "Location": ""
+                  },
+                  "code": "201",
+                  "description": "Applicant record is created",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/08._Starts_the_applicant_onboarding_process_(Inprogress_state)_for_CA_Template_-_Full_Payload_with_minimal_fields_populated_Custom_Example_applicant.onboard_201_353698.json"
+                    }
+                  }
+                }
+              ],
+              "description": "CA Template - Response when using a custom <strong>templateNameCode</strong> as configured with Personal, Employment, Payroll, Tax steps.",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/08._Starts_the_applicant_onboarding_process_(Inprogress_state)_for_CA_Template_-_Full_Payload_with_minimal_fields_populated_Custom_Example_applicant.onboard_request_32328.json"
+                }
+              }
+            },
+            {
+              "summary": "Bad Request when pre-hire is true, but only mandatory fields are passed in the request.",
+              "headers": {
+                "ADP-Context-ExpressionID": "country=US"
+              },
+              "name": "16. Bad Request - when pre-hire is true, but only mandatory fields are passed in the request.",
+              "responses": [
+                {
+                  "headers": {
+                    "Content-Language": "unset",
+                    "Last-Modified": "unset"
+                  },
+                  "code": "400",
+                  "description": "Response When pre-hire is true, but only mandatory fields are passed in the request",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/16._Bad_Request_-_when_pre-hire_is_true,_but_only_mandatory_fields_are_passed_in_the_request._Custom_Example_applicant.onboard_400_495147.json"
+                    }
+                  }
+                }
+              ],
+              "description": "Bad Request when pre-hire is true, but only mandatory fields are passed in the request.",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/16._Bad_Request_-_when_pre-hire_is_true,_but_only_mandatory_fields_are_passed_in_the_request._Custom_Example_applicant.onboard_request_46237.json"
+                }
+              }
+            },
+            {
+              "summary": "Starts the applicant onboarding process (Inprogress state) with Ohio(OH) School District for US Client",
+              "name": "11. Starts the applicant onboarding process (Inprogress state) with Ohio(OH) School District for US Client",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "unset",
+                    "Location": "unset"
+                  },
+                  "code": "201",
+                  "description": "Response of (Inprogress state) with Ohio(OH) School District for US Client",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/11._Starts_the_applicant_onboarding_process_(Inprogress_state)_with_Ohio(OH)_School_District_for_US_Client_Custom_Example_applicant.onboard_201_479279.json"
+                    }
+                  }
+                }
+              ],
+              "description": "Starts the applicant onboarding process (Inprogress state) with Ohio(OH) School District for US Client",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/11._Starts_the_applicant_onboarding_process_(Inprogress_state)_with_Ohio(OH)_School_District_for_US_Client_Custom_Example_applicant.onboard_request_43680.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>International Template - using&nbsp;</span><strong>templateNameCode</strong><span>&nbsp;as&nbsp;</span><strong>International (System)</strong><span>&nbsp;in the request.</span>",
+              "headers": {
+                "ADP-Context-ExpressionID": "country=INT"
+              },
+              "name": "09. Starts the applicant onboarding process (Inprogress state) for International Templates -Full Payload with minimal fields populated",
+              "responses": [
+                {
+                  "headers": {
+                    "Retry-After": "",
+                    "Location": ""
+                  },
+                  "code": "201",
+                  "description": "Applicant record is created",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/09._Starts_the_applicant_onboarding_process_(Inprogress_state)_for_International_Templates_-Full_Payload_with_minimal_fields_populated_Custom_Example_applicant.onboard_201_353699.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>International Template - using&nbsp;</span><strong>templateNameCode</strong><span>&nbsp;as&nbsp;</span><strong>International (System)</strong><span>&nbsp;in the request.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/09._Starts_the_applicant_onboarding_process_(Inprogress_state)_for_International_Templates_-Full_Payload_with_minimal_fields_populated_Custom_Example_applicant.onboard_request_32329.json"
+                }
+              }
+            },
+            {
+              "summary": "When first name is not passed in the request payload.",
+              "name": "17. Bad Request - [in progress] - When first name is not passed in the request",
+              "responses": [
+                {
+                  "headers": {
+                    "Content-Language": "unset",
+                    "Last-Modified": "unset"
+                  },
+                  "code": "400",
+                  "description": "Response when when non-supported template name code is passed in the request.\n\nRefer the payload values for creating a proper request",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/17._Bad_Request_-_[in_progress]_-_When_first_name_is_not_passed_in_the_request_Custom_Example_applicant.onboard_400_495151.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "Content-Language": "unset",
+                    "Last-Modified": "unset"
+                  },
+                  "code": "400",
+                  "description": "Response when first name is not passed in the request",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/17._Bad_Request_-_[in_progress]_-_When_first_name_is_not_passed_in_the_request_Custom_Example_applicant.onboard_400_495148.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "Content-Language": "unset",
+                    "Last-Modified": "unset"
+                  },
+                  "code": "400",
+                  "description": "Response when when expected, start date is not passed in the request.\n\nRefer the payload values for creating a proper request",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/17._Bad_Request_-_[in_progress]_-_When_first_name_is_not_passed_in_the_request_Custom_Example_applicant.onboard_400_495150.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "Content-Language": "unset",
+                    "Last-Modified": "unset"
+                  },
+                  "code": "400",
+                  "description": "Response when last name is not passed in the request.\n\nRefer the payload values for creating a proper request",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/17._Bad_Request_-_[in_progress]_-_When_first_name_is_not_passed_in_the_request_Custom_Example_applicant.onboard_400_495149.json"
+                    }
+                  }
+                }
+              ],
+              "description": "When first name is not passed in the request payload.",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/17._Bad_Request_-_[in_progress]_-_When_first_name_is_not_passed_in_the_request_Custom_Example_applicant.onboard_request_46238.json"
+                }
+              }
+            }
+          ],
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ],
+          "globalViewDevPortalIndicator": true
+        },
+        "requestBody": {
+          "description": "Request to initiate the onboarding",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas/applicant-onboarding-schema_v02.json"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Language": {
+                "schema": {
+                  "type": "string"
+                },
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Last-Modified": {
+                "schema": {
+                  "type": "string"
+                },
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Applicant onboarding confirmation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/applicant-onboarding-response-schema_v02.json"
+                }
+              }
+            }
+          },
+          "201": {
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Applicant record is created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "412": {
+            "$ref": "#/components/responses/412"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "405": {
+            "$ref": "#/components/responses/405"
+          },
+          "406": {
+            "$ref": "#/components/responses/406"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Data related to the applicant onboarding request",
+        "operationId": "c2fe03be-a3ba-470a-88fe-ec02b2216905",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Acting-SessionID",
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORContext",
+            "description": "Context within an SOR that the call should be routed to.  Set up / overwritten by the infrastructure (API PRoxy) based on the user profile settings.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to.  Set up / overwritten by the infrastructure (API PRoxy) based on the user profile settings.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-AssociateOID",
+            "description": "Associate OID for the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Action-Reason",
+            "description": "Free format to indicate a reason for the current request",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-AssociateOID",
+            "description": "Associate OID of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "Accept-Language:language|*;q=qvalue. Specifies the language(s) that are acceptable for the response. The optional qvalue represents a quality level for acceptable languages.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header should be set by the API consumer otherwise it will be defaulted to the lowest value based on the user profile settings.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Onboarding Process Management"
+        ]
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "400": {
+        "headers": {
+          "Content-Language": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Last-Modified": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "500": {
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "412": {
+        "headers": {
+          "Content-Language": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Last-Modified": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Precondition Failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "413": {
+        "headers": {
+          "Content-Language": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Last-Modified": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Request Entity Too Large",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "304": {
+        "description": "Not Modified"
+      },
+      "403": {
+        "headers": {
+          "Content-Language": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Last-Modified": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "503": {
+        "description": "Service Unavailable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "405": {
+        "headers": {
+          "Content-Language": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Last-Modified": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Method Not Allowed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "406": {
+        "headers": {
+          "Content-Language": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Last-Modified": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Acceptable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      },
+      "429": {
+        "headers": {
+          "Content-Language": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Last-Modified": {
+            "schema": {
+              "type": "string"
+            },
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Too Many Requests",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/shared/confirm-message-schema_v03.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

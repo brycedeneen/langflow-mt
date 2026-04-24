@@ -1,0 +1,2739 @@
+{
+  "title": "PayrollInstructions",
+  "description": "A set of payroll instructions",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "payrollInstructions": {
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "payrollRegionCode": {
+            "description": "The region in which the payroll is processed",
+            "$ref": "#/definitions/codeType_v02"
+          },
+          "payrollGroupCode": {
+            "description": "The payroll group relevant to payroll processing",
+            "$ref": "#/definitions/codeType_v02"
+          },
+          "payrollFileNumber": {
+            "description": "The payroll file number",
+            "$ref": "#/definitions/simpleIDType_v02"
+          },
+          "payrollProfileID": {
+            "description": "The payroll profile ID",
+            "$ref": "#/definitions/simpleIDType_v02"
+          },
+          "itemID": {
+            "description": "The unique identifier of the payroll instruction item in a collection",
+            "$ref": "#/definitions/itemIDType_v01"
+          },
+          "workAssignmentStatus": {
+            "description": "The status of the work assignment",
+            "$ref": "#/definitions/statusType_v03"
+          },
+          "generalDeductionInstructions": {
+            "description": "An array of instructions for general deductions",
+            "type": "array",
+            "items": {
+              "additionalProperties": false,
+              "type": "object",
+              "title": "PayrollGeneralDeductionInstruction",
+              "properties": {
+                "deductionCode": {
+                  "description": "The code of the deduction. The code can be user defined or a statutory deduction",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "deductionRate": {
+                  "description": "The value of the associated deduction, e.g. the deduction amount or the deduction percentage",
+                  "$ref": "#/definitions/rateType_v03"
+                },
+                "deductionAmount": {
+                  "description": "The amount of the deduction calculated from the specified deduction rate",
+                  "$ref": "#/definitions/amountType_v02"
+                },
+                "deductionStartDate": {
+                  "description": "The date the associated instruction should start",
+                  "$ref": "#/definitions/dateType_v01"
+                },
+                "deductionGoal": {
+                  "description": "A deduction goal",
+                  "$ref": "#/definitions/deductionGoalType_v02"
+                },
+                "effectiveDate": {
+                  "description": "The effective date of the deduction. Follows the ISO-8601:2000 format",
+                  "$ref": "#/definitions/dateType_v01"
+                },
+                "effectiveEndDate": {
+                  "description": "The effective end date of the deduction. Follows the ISO-8601:2000 format",
+                  "$ref": "#/definitions/dateType_v01"
+                },
+                "inactiveIndicator": {
+                  "description": "Indicates if the deduction is inactive",
+                  "$ref": "#/definitions/indicatorType_v01"
+                },
+                "necEligibilityIndicator": {
+                  "description": "Indicates whether employee is eligible for the NEC (Non elective contribution) or profit Sharing contribution",
+                  "$ref": "#/definitions/indicatorType_v01"
+                },
+                "payrollCalculationOptions": {
+                  "description": "Options / configuration factors impacting how the payroll is calculated for a given deduction",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "calculatePreTax401kEmployerMatchIndicator": {
+                      "description": "Indicates if the pre-tax 401k employer match should be calculated for part-time employees eligible for 401k.  Ignored for full-time employees.",
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "calculateAfterTax401kEmployerMatchIndicator": {
+                      "description": "Indicates if the after-tax 401k employer match should be calculated for part-time employees eligible for 401k.  Ignored for full-time employees.",
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "calculateRoth401kEmployerMatchIndicator": {
+                      "description": "Indicates if the Roth 401k employer match should be calculated for part-time employees eligible for 401k.  Ignored for full-time employees.",
+                      "type": "boolean",
+                      "default": true
+                    }
+                  }
+                },
+                "comments": {
+                  "description": "A list of comments for the related instruction",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/commentType_v03"
+                  }
+                },
+                "itemID": {
+                  "$ref": "#/definitions/itemIDType_v01"
+                },
+                "actions": {
+                  "description": "Actions which the user is allowed to initiate against the related instance.",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/actionType_v02"
+                  }
+                }
+              }
+            }
+          },
+          "garnishmentInstructions": {
+            "description": "An array of instructions for garnishment deductions",
+            "type": "array",
+            "items": {
+              "additionalProperties": false,
+              "type": "object",
+              "properties": {
+                "calculationFactorCode": {
+                  "description": "The calculation factor code to be used for the related deduction",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "workedInJurisdiction": {
+                  "description": "Employee worked in jurusdiction (state in U.S.)",
+                  "$ref": "#/definitions/jurisdictionBaseType_v01"
+                },
+                "taxYear": {
+                  "description": "The year associated with the garnishment instruction",
+                  "type": "string",
+                  "minLength": 4,
+                  "maxLength": 4
+                },
+                "garnishmentGoal": {
+                  "description": "A deduction goal",
+                  "$ref": "#/definitions/deductionGoalType_v02"
+                },
+                "garnishmentAmount": {
+                  "description": "The amount of the deduction related to this pay period",
+                  "$ref": "#/definitions/amountType_v02"
+                },
+                "garnishmentPercentage": {
+                  "description": "Identifies the percentage",
+                  "$ref": "#/definitions/percentageType_v02"
+                },
+                "garnishmentAmountDetails": {
+                  "description": "Details of the garnishment amount related to this pay period",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "childSupportAmount": {
+                      "description": "The amount of the current child support related to given pay period",
+                      "$ref": "#/definitions/amountType_v02"
+                    },
+                    "childSupportPastDueAmount": {
+                      "description": "The past due amount (arrearages) of the child support related to a given pay period",
+                      "$ref": "#/definitions/amountType_v02"
+                    },
+                    "medicalSupportAmount": {
+                      "description": "The amount of the cash medical support related to a given pay period",
+                      "$ref": "#/definitions/amountType_v02"
+                    },
+                    "medicalSupportPastDueAmount": {
+                      "description": "The past due amount of the medical support related to a given pay period",
+                      "$ref": "#/definitions/amountType_v02"
+                    },
+                    "spousalSupportAmount": {
+                      "description": "The amount of the current spousal support related to a given pay period",
+                      "$ref": "#/definitions/amountType_v02"
+                    },
+                    "spousalSupportPastDueAmount": {
+                      "description": "The past due amount of the spousal support related to a given pay period",
+                      "$ref": "#/definitions/amountType_v02"
+                    },
+                    "otherGarnishmentAmount": {
+                      "description": "Additional / other amount related to a given pay period",
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "amountValue": {
+                          "description": "The monetary value of the object in which the amount is associated",
+                          "type": "number"
+                        },
+                        "currencyCode": {
+                          "description": "Standard currency code as per ISO 4212",
+                          "$ref": "#/definitions/simpleCodeType_v02"
+                        },
+                        "amountTypeCode": {
+                          "description": "Code / name describing the other type of garnishment amount",
+                          "$ref": "#/definitions/simpleCodeType_v02"
+                        }
+                      }
+                    }
+                  }
+                },
+                "garnishmentStartDate": {
+                  "description": "The date the amount should begin being deducted. This can also be a future date",
+                  "$ref": "#/definitions/dateType_v01"
+                },
+                "garnishmentEndDate": {
+                  "description": "The date the amount should stop being deducted",
+                  "$ref": "#/definitions/dateType_v01"
+                },
+                "deductionCode": {
+                  "description": "Deduction code",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "excludedEarningCodes": {
+                  "description": "Allows specific earnings to be excluded from the garnishment",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/codeType_v02"
+                  }
+                },
+                "excludedDeductionCodes": {
+                  "description": "Allows specific deductions to be excluded from the garnishment",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/codeType_v02"
+                  }
+                },
+                "administrativeGarnishmentIndicator": {
+                  "description": "Denotes a debt collection process that allows a federal agency to order a non-federal employer to withhold up to 15 percent of an employee's disposable income to pay a delinquent non-tax debt owed to the agency",
+                  "$ref": "#/definitions/indicatorType_v01"
+                },
+                "ccpaPercentage": {
+                  "description": "CCPA-Consumer Credit Protection Act percentage",
+                  "$ref": "#/definitions/percentageType_v02"
+                },
+                "additionalCustomIndicators": {
+                  "description": "Addtional custom indicators (some required by certain jurisdications), e.g. PublicAssistanceOverpaymentDeduction,UnemploymentInsuranceBenefitDeduction,MedicalDebtDeduction,UnemploymentBenefitsDebtorNoticeForAmbulanceServiceDeduction,NoticeOfExtension,EarningWithholdingOrderForElder,DependentAdultFinancialAbuse",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "nameCode": {
+                        "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "categoryCode": {
+                        "description": "The type of the associated field.  If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "indicatorValue": {
+                        "$ref": "#/definitions/indicatorType_v01"
+                      },
+                      "jurisdiction": {
+                        "description": "Jurusdiction requiring a related indicator",
+                        "$ref": "#/definitions/jurisdictionBaseType_v01"
+                      }
+                    }
+                  }
+                },
+                "itemID": {
+                  "description": "The unique identifier of the garnishment deduction instruction object in a collection",
+                  "$ref": "#/definitions/itemIDType_v01"
+                },
+                "workerLien": {
+                  "description": "Worker lien",
+                  "type": "object",
+                  "title": "WorkerLienOutput",
+                  "additionalProperties": false,
+                  "properties": {
+                    "lienDocumentID": {
+                      "description": "The ID of the lien document",
+                      "$ref": "#/definitions/simpleIDType_v02"
+                    },
+                    "lienStatusCode": {
+                      "description": "The status of the lien",
+                      "$ref": "#/definitions/statusType_v02"
+                    },
+                    "lienIssuanceDate": {
+                      "description": "The date the lien was issued",
+                      "$ref": "#/definitions/dateType_v01"
+                    },
+                    "lienRegistrationDate": {
+                      "description": "The date that the employing company is notified of, or receives information on, the lien",
+                      "$ref": "#/definitions/dateType_v01"
+                    },
+                    "lienMaritalStatusCode": {
+                      "description": "Typically, this is the marital status code that payee wishes to claim for the purpose of calculating the associated tax. This codelist values vary widely for this between federal and state levels, and is not relevant to all taxing jurisdications, e.g. Ohio",
+                      "$ref": "#/definitions/codeType_v02"
+                    },
+                    "allowanceQuantity": {
+                      "description": "The number of employee's exemptions claimed",
+                      "type": "integer"
+                    },
+                    "additionalAllowanceQuantity": {
+                      "description": "Additional exemptions, caused by the certification,.e.g. 'Blind' or 'Over 65'",
+                      "type": "integer"
+                    },
+                    "lienNumber": {
+                      "description": "The sequential number of the lien for a given worker",
+                      "type": "integer"
+                    },
+                    "lienTypeCode": {
+                      "description": "The type of lien",
+                      "$ref": "#/definitions/codeType_v02"
+                    },
+                    "lienSubTypeCode": {
+                      "description": "A sub-typing of a lien, e.g. Alternate, Federal, Federal Student Loan, Mandatory, Private, Regular, State, State Student Loan, etc",
+                      "$ref": "#/definitions/codeType_v02"
+                    },
+                    "lienReturnDate": {
+                      "description": "There are specific states that require a return date be entered and for the Interrogatory Letter to not be produced until that time",
+                      "$ref": "#/definitions/dateType_v01"
+                    },
+                    "courtOrder": {
+                      "description": "The court order the lien is based on",
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "orderID": {
+                          "description": "A unique identifier of a court order",
+                          "$ref": "#/definitions/IDType_v02"
+                        },
+                        "supportTypeCode": {
+                          "description": "Distinguishes child support type, e.g. Current or Arrears",
+                          "$ref": "#/definitions/codeType_v02"
+                        },
+                        "caseNumber": {
+                          "description": "The case number of the lien order",
+                          "$ref": "#/definitions/simpleIDType_v02"
+                        },
+                        "courtName": {
+                          "description": "The court name that issued the lien",
+                          "type": "string"
+                        },
+                        "issuingJurisdiction": {
+                          "description": "The jurisdiction that issued the lien",
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "cityName": {
+                              "description": "A city in the context of an address",
+                              "type": "string"
+                            },
+                            "countrySubdivisionLevel1": {
+                              "description": "A country subdivision correlating to a administrative level one level below country. For example, in the United States, this would be a state",
+                              "$ref": "#/definitions/countrySubdivisionType_v02"
+                            },
+                            "countrySubdivisionLevel2": {
+                              "description": "A country subdivision correlating to a administrative level two levels below country. For example, in the United States, this might be a county",
+                              "$ref": "#/definitions/countrySubdivisionType_v02"
+                            },
+                            "postalCode": {
+                              "description": "The string of characters used to identify the postal code",
+                              "$ref": "#/definitions/simpleCodeType_v02"
+                            },
+                            "countryCode": {
+                              "$ref": "#/definitions/simpleCodeType_v02"
+                            },
+                            "jurisdictionCode": {
+                              "description": "A coded name of the associated jurisdiction.  If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "jurisdictionTypeCode": {
+                              "description": "The type of the jurisdiction, e.g. county, state, federal, etc.",
+                              "$ref": "#/definitions/codeType_v02"
+                            }
+                          }
+                        },
+                        "issuingAgency": {
+                          "description": "Agency issued Child Support order that will help to determine if the order came from State Disbursement unit or Court or Attorney",
+                          "$ref": "#/definitions/partyBaseType_v02"
+                        },
+                        "FIPSCode": {
+                          "description": "The Federal Information Processing Standard code used to identify the child enforcement agency that issued the order. Not all support orders specify a FIPs code",
+                          "$ref": "#/definitions/codeType_v02"
+                        },
+                        "multipleSupportOrderIndicator": {
+                          "description": "Indicates that the worker has more than one child support lien",
+                          "$ref": "#/definitions/indicatorType_v01"
+                        },
+                        "executionNumber": {
+                          "description": "Execution Number for Writs of Garnishment, which is separate from the case id #, while an additional case id is utilized, when a state/lien type requires more than one case id to be remitted on all letters and payments",
+                          "$ref": "#/definitions/simpleIDType_v02"
+                        },
+                        "supportOrderInArrearsIndicator": {
+                          "description": "This field denotes the employee is 12 or more week in arrears.  If a given payee's net pay amount is not able to support a given deduction, that deduction can go into arrears - meaning that the deduction will be taken in a future payroll",
+                          "$ref": "#/definitions/indicatorType_v01"
+                        },
+                        "orderReleaseIndicator": {
+                          "description": "The release date and release indicator are required to track if the order was released and when.  The indicator allows the order to be prioritized",
+                          "$ref": "#/definitions/indicatorType_v01"
+                        },
+                        "orderReleaseDate": {
+                          "description": "The date that the lien is released from the garnishment requirements",
+                          "$ref": "#/definitions/dateType_v01"
+                        },
+                        "orderIndexOnlyIndicator": {
+                          "description": "Index only indicator",
+                          "$ref": "#/definitions/indicatorType_v01"
+                        }
+                      }
+                    },
+                    "medicalInsuranceOfferedIndicator": {
+                      "description": "Indicates that the medical insurance is offered by the employer",
+                      "$ref": "#/definitions/indicatorType_v01"
+                    },
+                    "fundsDisbursement": {
+                      "description": "Lien funds disbursement information necessary for garnishment processing for payroll",
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "remittanceID": {
+                          "description": "Unique identifier of the fund disbursement transaction",
+                          "$ref": "#/definitions/simpleIDType_v02"
+                        },
+                        "payee": {
+                          "description": "The payee of the lien funds whether a person or an organization",
+                          "$ref": "#/definitions/partyType_v02"
+                        },
+                        "obligee": {
+                          "description": "The receiver of the lien funds whether a person or an organization (name on the check)",
+                          "$ref": "#/definitions/partyType_v02"
+                        },
+                        "paymentToPayeeIndicator": {
+                          "description": "Indicates if the lien payee is the ultimate receiver of the funds.  For most instances of Garnishments (when both payee and obligee are available) the check needs to be sent to court (payee) but they do not cash, they send on to who the recipient of funds per case (obligee).  This indicator overrides the default behavior",
+                          "$ref": "#/definitions/indicatorType_v01"
+                        },
+                        "paymentSchedule": {
+                          "description": "Denotes when payment should be remitted",
+                          "type": "object",
+                          "additionalProperties": false,
+                          "title": "PaymentScheduleLienFundsDisbursement",
+                          "properties": {
+                            "scheduleTypeCode": {
+                              "description": "Denotes when payment should be remitted, e.g. Dollars Accrued, Day of Month, Every Number Days, Day of Next Month, Paydate + Days, Every Number Weeks, etc.",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "accruedPaymentAmount": {
+                              "description": "The amount to be accrued before payment should be remitted.  Used in conjunction with Payment Schedule",
+                              "$ref": "#/definitions/amountType_v02"
+                            },
+                            "adjustmentValue": {
+                              "description": "The numeric value associated to the adjustment, e.g if  scheduleCode is 'paydate + days' and adjustmentValue = 3, then Payment will be remitted on paydate + 3 days",
+                              "type": "number"
+                            },
+                            "unitTimeCode": {
+                              "description": "For any given adjustment the unitCode is present. In the example 3 bags of rice per month, currencyCode would not be present, and the unitCode would be bags of rice. In the example, 20 percent of annual sales, the unitCode would be percent",
+                              "$ref": "#/definitions/codeType_v02"
+                            }
+                          }
+                        },
+                        "disbursementFees": {
+                          "description": "A list of any disbursement fees",
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/feeType_v02"
+                          }
+                        },
+                        "disbursementMessages": {
+                          "description": "A message related to the disbursement, e.g. a message on the check",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "textValue": {
+                                "description": "The text entered by the user",
+                                "type": "string"
+                              },
+                              "messageTypeCode": {
+                                "description": "A type of the message, e.g. check, additional, agency, etc.",
+                                "$ref": "#/definitions/codeType_v02"
+                              },
+                              "showOnCheckIndicator": {
+                                "description": "To indicate if the message should be shown on the check",
+                                "$ref": "#/definitions/indicatorType_v01"
+                              }
+                            }
+                          }
+                        },
+                        "paymentMethodCode": {
+                          "description": "The method by which the  is made, e.g. Direct Deposit, Check, Cash, etc.",
+                          "$ref": "#/definitions/codeType_v02"
+                        },
+                        "depositAccount": {
+                          "description": "The disbursement target, e.g. bank account info",
+                          "$ref": "#/definitions/depositAccountType_v02"
+                        },
+                        "lumpSumWithholdingIndicator": {
+                          "description": "Indicates lien should only be deducted from a Bonus or LumpSum type of Pay",
+                          "$ref": "#/definitions/indicatorType_v01"
+                        }
+                      }
+                    },
+                    "lienExemptAmount": {
+                      "description": "The minimum net pay the worker must get in a paycheck before any garnishment can be executed, or lien exempt amount",
+                      "$ref": "#/definitions/amountType_v02"
+                    },
+                    "disposableWagesAmount": {
+                      "description": "Calculated as Gross minus Taxes",
+                      "$ref": "#/definitions/amountType_v02"
+                    },
+                    "stateServiceChargeAmount": {
+                      "description": "US Only - states sometime issue service charges",
+                      "$ref": "#/definitions/amountType_v02"
+                    },
+                    "stateServiceChargePayee": {
+                      "description": "Payee for the states service charges",
+                      "$ref": "#/definitions/partyType_v02"
+                    },
+                    "stateServiceChargeObligee": {
+                      "description": "The receiver of the states service charges whether a person or an organization (name on the check)",
+                      "$ref": "#/definitions/partyType_v02"
+                    },
+                    "fullServiceClientIndicator": {
+                      "description": "Indicates that current garnishment should be processed as for a full serice client",
+                      "$ref": "#/definitions/indicatorType_v01"
+                    },
+                    "studentLoanIndicator": {
+                      "description": "Indicates if the garnishment is related to the student loan repayment",
+                      "$ref": "#/definitions/indicatorType_v01"
+                    },
+                    "dependentCounts": {
+                      "description": "Provides collection of counts for dependents by age",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "countType": {
+                            "description": "A code indicating the dependent type, e.g. under_16, etc.",
+                            "$ref": "#/definitions/codeType_v02"
+                          },
+                          "countValue": {
+                            "description": "The dependent count value",
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "itemID": {
+                      "description": "The unique identifier of the related worker lien within a collection",
+                      "$ref": "#/definitions/itemIDType_v01"
+                    },
+                    "lienTotalAccumulatedAmount": {
+                      "description": "Lien accumulated to date (accumulated amount for the life of lien)",
+                      "$ref": "#/definitions/amountType_v02"
+                    }
+                  }
+                },
+                "actions": {
+                  "description": "Actions which the user is allowed to initiate against the related instance.",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/actionType_v02"
+                  }
+                }
+              }
+            }
+          },
+          "memoInstructions": {
+            "description": "An array of instructions for memos",
+            "type": "array",
+            "items": {
+              "additionalProperties": false,
+              "type": "object",
+              "properties": {
+                "memoCode": {
+                  "description": "The code of the memo",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "memoAmount": {
+                  "description": "The amount of the associated memo",
+                  "$ref": "#/definitions/amountType_v02"
+                },
+                "memoQuantity": {
+                  "description": "The quantity of the associate memo",
+                  "$ref": "#/definitions/quantityType_v03"
+                },
+                "calculationFactorCode": {
+                  "description": "The calculation factor code to be used for the related memo",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "effectiveDate": {
+                  "description": "The effective date of the memo Follows the ISO-8601:2000 format",
+                  "$ref": "#/definitions/dateType_v01"
+                },
+                "inactiveIndicator": {
+                  "description": "Indicates if the memo is inactive",
+                  "$ref": "#/definitions/indicatorType_v01"
+                },
+                "itemID": {
+                  "$ref": "#/definitions/itemIDType_v01"
+                },
+                "actions": {
+                  "description": "Actions which the user is allowed to initiate against the related instance",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/actionType_v02"
+                  }
+                }
+              }
+            }
+          },
+          "earningInstructions": {
+            "description": "An array of instructions for earnings",
+            "type": "array",
+            "items": {
+              "additionalProperties": false,
+              "type": "object",
+              "properties": {
+                "earningCode": {
+                  "description": "Identifies the Hours/Earnings Code. The typeCode attribute is used to further refine the EarningCode with the Hours/Earnings Field Number.",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "payRate": {
+                  "description": "The amount an individual is paid over time",
+                  "$ref": "#/definitions/rateType_v02"
+                },
+                "earningAmount": {
+                  "description": "The amount of the earning related to this pay period",
+                  "$ref": "#/definitions/amountType_v02"
+                },
+                "earningCategoryCode": {
+                  "description": "The category of the associated earning",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "calculationFactorCode": {
+                  "description": "The calculation factor code to be used for the related earning",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "effectiveDate": {
+                  "description": "The effective date of the earning. Follows the ISO-8601:2000 format",
+                  "$ref": "#/definitions/dateType_v01"
+                },
+                "effectiveEndDate": {
+                  "description": "The effective end date of the earning. Follows the ISO-8601:2000 format",
+                  "$ref": "#/definitions/dateType_v01"
+                },
+                "inactiveIndicator": {
+                  "description": "Indicates if the earning is inactive",
+                  "$ref": "#/definitions/indicatorType_v01"
+                },
+                "comments": {
+                  "description": "A list of comments for the related instruction",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/commentType_v03"
+                  }
+                },
+                "itemID": {
+                  "$ref": "#/definitions/itemIDType_v01"
+                },
+                "actions": {
+                  "description": "Actions which the user is allowed to initiate against the related instance",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/actionType_v02"
+                  }
+                }
+              }
+            }
+          },
+          "benefitInstructions": {
+            "description": "An array of instructions for general deductions",
+            "type": "array",
+            "items": {
+              "additionalProperties": false,
+              "type": "object",
+              "properties": {
+                "deductionRate": {
+                  "description": "The value of the associated deduction, e.g. the deduction amount",
+                  "$ref": "#/definitions/rateType_v03"
+                },
+                "deductionGoal": {
+                  "description": "A deduction goal",
+                  "$ref": "#/definitions/deductionGoalType_v02"
+                },
+                "benefitCoverages": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "title": "BenefitInstructionCoverageItem",
+                    "additionalProperties": false,
+                    "properties": {
+                      "itemID": {
+                        "$ref": "#/definitions/itemIDType_v01"
+                      },
+                      "benefitAreaCode": {
+                        "description": "The type of the benefit, e.g. Medical or Dental",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "coverageLevelCode": {
+                        "description": "The coverage tier of the associated option, e.g. Single, Family, etc.",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "effectiveTimePeriod": {
+                        "description": "The effective time period which covers the related benefit coverage",
+                        "$ref": "#/definitions/dateTimePeriodType_v01"
+                      },
+                      "coverageAmount": {
+                        "description": "The amount of coverage.",
+                        "$ref": "#/definitions/effectiveDatedAmountType_v02"
+                      },
+                      "individualCoverages": {
+                        "description": "List of individuals eligible to be covered in the associated plan offering with the individual coverage amounts",
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "title": "IndividualCoverageItem",
+                          "additionalProperties": false,
+                          "properties": {
+                            "individualID": {
+                              "description": "An identifier for an individual. The scheme code is used to identify the type of identifier, e.g. a dependent ID or a worker associate OID.",
+                              "$ref": "#/definitions/IDType_v02"
+                            },
+                            "relationshipTypeCode": {
+                              "description": "The relationship of the eligible individual to the subscriber, e.g. Self, Spouse, etc.",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "coverageAmount": {
+                              "description": "The amount of coverage.",
+                              "$ref": "#/definitions/effectiveDatedAmountType_v02"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "deductionCode": {
+                  "description": "The code of the deduction. The code can be user defined or a statutory deduction",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "deductionStartDate": {
+                  "description": "The date the associated instruction should start",
+                  "$ref": "#/definitions/dateType_v01"
+                },
+                "itemID": {
+                  "$ref": "#/definitions/itemIDType_v01"
+                },
+                "actions": {
+                  "description": "Actions which the user is allowed to initiate against the related instance.",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/actionType_v02"
+                  }
+                }
+              }
+            }
+          },
+          "retirementPlanInstructions": {
+            "description": "An array of instructions for retirement plans",
+            "type": "array",
+            "items": {
+              "additionalProperties": false,
+              "type": "object",
+              "properties": {
+                "deductionCode": {
+                  "description": "Deduction code",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "calculationFactorCode": {
+                  "description": "The calculation factor code to be used for the related deduction",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "contributionRate": {
+                  "description": "The value of the associated contribution",
+                  "$ref": "#/definitions/rateType_v03"
+                },
+                "contributionGoal": {
+                  "description": "A contribution goal",
+                  "$ref": "#/definitions/deductionGoalType_v02"
+                },
+                "payrollCalculationOptions": {
+                  "description": "Options / configuration factors impacting how the payroll is calculated for a given deduction",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "calculatePreTax401kEmployerMatchIndicator": {
+                      "description": "Indicates if the pre-tax 401k employer match should be calculated for part-time employees eligible for 401k.  Ignored for full-time employees.",
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "calculateAfterTax401kEmployerMatchIndicator": {
+                      "description": "Indicates if the after-tax 401k employer match should be calculated for part-time employees eligible for 401k.  Ignored for full-time employees.",
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "calculateRoth401kEmployerMatchIndicator": {
+                      "description": "Indicates if the Roth 401k employer match should be calculated for part-time employees eligible for 401k.  Ignored for full-time employees.",
+                      "type": "boolean",
+                      "default": true
+                    }
+                  }
+                },
+                "contributionStartDate": {
+                  "description": "The date the associated instruction should start",
+                  "$ref": "#/definitions/dateType_v01"
+                },
+                "itemID": {
+                  "description": "The unique identifier of the deferred compensation  instruction object in a collection",
+                  "$ref": "#/definitions/itemIDType_v01"
+                },
+                "actions": {
+                  "description": "Actions which the user is allowed to initiate against the related instance.",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/actionType_v02"
+                  }
+                }
+              }
+            }
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/linkType_v02"
+            }
+          }
+        }
+      }
+    },
+    "meta": {
+      "description": "Meta contains the metadata associated with a response.  A GET response may include metadata to support pagination",
+      "$ref": "#/definitions/metaType_v02"
+    },
+    "confirmMessage": {
+      "$ref": "#/definitions/confirmMessageType_v01"
+    }
+  },
+  "definitions": {
+    "codeType_v02": {
+      "description": "The code for the related entity.  If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        }
+      }
+    },
+    "simpleIDType_v02": {
+      "description": "The simple (string) identifier of an object",
+      "type": "string"
+    },
+    "itemIDType_v01": {
+      "description": "The unique identifier of the object in a collection",
+      "$ref": "#/definitions/simpleIDType_v02"
+    },
+    "statusType_v03": {
+      "description": "Status to include the status code and effective date / time (ISO-8601:2000 format)",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        },
+        "effectiveDateTime": {
+          "$ref": "#/definitions/dateTimeType_v01"
+        }
+      }
+    },
+    "dateTimeType_v01": {
+      "description": "The string reprersentation of the date-time value. Follows the ISO-8601:2000 format",
+      "type": "string",
+      "format": "date-time"
+    },
+    "rateType_v03": {
+      "description": "A representation of a quantity",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rateValue": {
+          "description": "The numeric value associated to the rate. In the example 5 US dollars per hour, the number 5 is the rate value. In the example 3 bags of rice per month, the number 3 is the rate value. In the example, 20 percent of annual sales, the amountValue would be 20",
+          "type": "number"
+        },
+        "currencyCode": {
+          "description": "List of standard currency codes ISO 4217 For any given rate, either the currencyCode or the unitCode is present. In the example 5 US dollars per hour, the unitCode would not be present, and the currency code would be USD",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "unitCode": {
+          "description": "For any given rate, either the currencyCode or the unitCode is present. In the example 3 bags of rice per month, currencyCode would not be present, and the unitCode would be bags of rice. In the example, 20 percent of annual sales, the unitCode would be percent",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "baseUnitCode": {
+          "description": "For any given rate, the baseUnitCode is used to define the denominator of the rate, or rate over what. In the example 5 US dollars per hour, the baseUnitCode is hour. In the example 3 bags of rice per month, the baseUnitCode is month. If for example, the rate was 10 US dollars for every widget produced, the baseUnitCode would be widget. In the example, 20 percent of annual sales, the baseUnitCode would equate to annual sales",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "baseMultiplierValue": {
+          "description": "For any given rate, the base rate value is presumed to be 1, e.g. per one hour, per one month. If for example, the rate was 10 US dollars for every widget produced, the base rate value is presumed to be one and there is no need to communicate a baseMultiplierValue. If however, the rate was 10 US Dollars for every 3 widgets produced, the baseMultiplierValue would be 3",
+          "type": "number"
+        }
+      }
+    },
+    "simpleCodeType_v02": {
+      "description": "A simple (string) code.  Can have a code list reference",
+      "type": "string"
+    },
+    "amountType_v02": {
+      "description": "A representation of a monetary value",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "amountValue": {
+          "description": "The monetary value of the object in which the amount is associated",
+          "type": "number"
+        },
+        "currencyCode": {
+          "description": "Standard currency code as per ISO 4212",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        }
+      }
+    },
+    "dateType_v01": {
+      "description": "The string representation of the date value. Follows the ISO-8601:2000 format",
+      "type": "string",
+      "format": "date"
+    },
+    "deductionGoalType_v02": {
+      "description": "The deduction goal",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "goalStartDate": {
+          "description": "The date when the deduction goal was set",
+          "$ref": "#/definitions/dateType_v01"
+        },
+        "goalLimitAmount": {
+          "description": "The value that cannot be exceeded - e.g  the targeted goal amount",
+          "$ref": "#/definitions/amountType_v02"
+        },
+        "goalID": {
+          "description": "The unique identifier of the goal",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "goalBalanceAmount": {
+          "description": "The value that still needs to be paid until the goal is met",
+          "$ref": "#/definitions/amountType_v02"
+        },
+        "goalAccruedAmount": {
+          "description": "The value that has been added to the goal thus far",
+          "$ref": "#/definitions/amountType_v02"
+        }
+      }
+    },
+    "indicatorType_v01": {
+      "description": "Boolean expression",
+      "type": "boolean"
+    },
+    "commentType_v03": {
+      "description": "Schema describing the user comments",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "textValue": {
+          "description": "The text entered by the user",
+          "type": "string"
+        },
+        "visibilityScope": {
+          "description": "Who can see this comment.  May inlcude the collection of circles identified by the codes and/or individuals",
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "scopeCodes": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/codeType_v02"
+              }
+            }
+          }
+        },
+        "commentCode": {
+          "description": "Type of the related time entry note, one of the pre-defined by the backend SOR",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "commentSourceCode": {
+          "description": "The source of the comment",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "appliesToCode": {
+          "description": "Type of the related time entry note, one of the pre-defined by the backend SOR",
+          "type": "string"
+        },
+        "mentions": {
+          "type": "array",
+          "items": {
+            "description": "A reaction, e.g. Like associated with the current post",
+            "additionalProperties": false,
+            "type": "object",
+            "title": "CommentBaseMentionPost",
+            "properties": {
+              "mentionCode": {
+                "description": "@name - of the mentioned",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "author": {
+                "description": "The autor of the comment",
+                "$ref": "#/definitions/commentAuthorType_v01"
+              },
+              "links": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/linkType_v02"
+                }
+              }
+            }
+          }
+        },
+        "attachments": {
+          "description": "The attachments related to the comment",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "title": "CommentBaseAttachment",
+            "additionalProperties": false,
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "attachmentLink": {
+                "description": "A link to the related attachment",
+                "$ref": "#/definitions/linkType_v02"
+              },
+              "textValue": {
+                "description": "A text representation of the related attachment",
+                "type": "string"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              }
+            }
+          }
+        },
+        "entryDateTime": {
+          "description": "The date time of the entry",
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "author": {
+          "description": "The author of the comment",
+          "$ref": "#/definitions/commentAuthorType_v01"
+        }
+      }
+    },
+    "commentAuthorType_v01": {
+      "description": "Feed item author",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "associateOID": {
+          "description": "The unique identifier of the associate",
+          "$ref": "#/definitions/associateOIDType_v02"
+        },
+        "roleCode": {
+          "description": "The code describing the role of the the associated person",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "formattedName": {
+          "description": "The formatted name of the associate",
+          "type": "string"
+        }
+      }
+    },
+    "associateOIDType_v02": {
+      "description": "The unique identifier of an assoicate",
+      "$ref": "#/definitions/simpleIDType_v02"
+    },
+    "linkType_v02": {
+      "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "linkID": {
+          "description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9.$-_/]+$"
+        },
+        "href": {
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "rel": {
+          "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+          "type": "string",
+          "enum": [
+            "alternate",
+            "create",
+            "canonical",
+            "describedby",
+            "edit-form",
+            "enclosure",
+            "full",
+            "related",
+            "root",
+            "self",
+            "up",
+            "search",
+            "first",
+            "last",
+            "next",
+            "previous",
+            "/adp/invoke",
+            "/adp/image",
+            "/adp/confirm-message",
+            "/adp/status-monitor",
+            "/adp/codelist",
+            "/adp/template",
+            "/adp/externalLink",
+            "/adp/validation",
+            "/adp/deeplink",
+            "/adp/attachment",
+            "/adp/workflow",
+            "/adp/consent"
+          ]
+        },
+        "canonicalUri": {
+          "description": "A unique identifier of the feature/function/operation, the link poins to",
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "title": {
+          "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user",
+          "type": "string"
+        },
+        "targetSchema": {
+          "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation",
+          "type": "string"
+        },
+        "mediaType": {
+          "description": "The media type that the linked resource will return (Response)",
+          "type": "string",
+          "enum": [
+            "application/gzip",
+            "application/json",
+            "application/msword",
+            "application/pdf",
+            "application/postscript",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/xml",
+            "application/x-www-form-urlencoded",
+            "image/gif",
+            "image/jpeg",
+            "image/png",
+            "image/tiff",
+            "multipart/mixed",
+            "multipart/form-data",
+            "text/html",
+            "text/plain",
+            "application/vnd.visio",
+            "image/bmp",
+            "image/x-ms-bmp",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/vnd.ms-powerpoint",
+            "video/mp4",
+            "audio/mpeg",
+            "video/x-msvideo",
+            "video/x-ms-wmv",
+            "application/rtf",
+            "application/vnd.ms-outlook",
+            "text/csv",
+            "video/quicktime",
+            "application/zip",
+            "application/illustrator",
+            "text/xml"
+          ]
+        },
+        "method": {
+          "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "DELETE",
+            "PUT"
+          ]
+        },
+        "encType": {
+          "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+          "type": "string",
+          "enum": [
+            "application/json",
+            "application/x-www-form-urlencoded"
+          ]
+        },
+        "schema": {
+          "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body",
+          "type": "string"
+        },
+        "payLoadArguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "argumentPath": {
+                "description": "Code value (typically a key field) of the code list item",
+                "type": "string"
+              },
+              "argumentValue": {
+                "description": "Code value (typically a key field) of the code list item",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "URIType_v01": {
+      "description": "The URI of the related entity",
+      "type": "string",
+      "format": "uri"
+    },
+    "actionType_v02": {
+      "description": "Actions which the user is allowed to initiate against the related entity",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operationID": {
+          "description": "Identifies the operation of an action",
+          "type": "string"
+        },
+        "canonicalUri": {
+          "description": "A unique identifier of the feature/function/operation",
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "actionTypeCode": {
+          "description": "Identifies the type of action to be taken to fulfill the request.  Action can be a callback to a service to complete the action.  A callback requires the methodCode and uris to be returned.  An external link i.e. open a web page - requires the uris of the external link; An object reference is a reference to a related object within the application.  This is a canonical name which represents the object.  Based on this identifier, the application knows what view it needs to open.  The uris returns the data for the view.  For an object reference, the objectRefID, methodCode, and uris are required . modify indicates that a property is being modified",
+          "type": "string",
+          "enum": [
+            "callback",
+            "externalLink",
+            "objectReference",
+            "modify"
+          ]
+        },
+        "confirmationRequiredIndicator": {
+          "description": "True indicates that the application will prompt the user to confirm the action before it takes the action. False indicates that the action will be executed once selected by the user.",
+          "$ref": "#/definitions/indicatorDefaultType_v01"
+        },
+        "commentAllowedIndicator": {
+          "description": "True indicates that the SOR supports adding a comment when taking an action.",
+          "$ref": "#/definitions/indicatorDefaultType_v01"
+        },
+        "defaultIndicator": {
+          "description": "True indicates that this is the default action",
+          "$ref": "#/definitions/indicatorDefaultType_v01"
+        },
+        "sequence": {
+          "description": "Sequence indicates that the item in the array must be in a sequence in relation to the other items in the sequence.  The action must not ocurr before another action with a lower sequence",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "attestation": {
+          "description": "Optional text provided to the user when they take an action to affirm to be correct, true, or genuine. Requires confirmation indicator to be set to true.",
+          "$ref": "#/definitions/attestationType_v02"
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      }
+    },
+    "indicatorDefaultType_v01": {
+      "description": "Boolean expression",
+      "type": "boolean",
+      "default": false
+    },
+    "sequenceType_v01": {
+      "description": "Sequence of a related entity when included in the collection or a group",
+      "type": "integer"
+    },
+    "attestationType_v02": {
+      "description": "Optional text provided to the user when they take an action to affirm to be correct, true, or genuine. Requires confirmation indicator to be set to true",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "actionBlockIndicator": {
+          "description": "Action blocking flag.  True indicates that the user must acknowledge the text as specified in the attestation message, before the action can be taken.  False indicates that the action will be executed once selected by the user.",
+          "$ref": "#/definitions/indicatorDefaultType_v01"
+        },
+        "messageTxt": {
+          "description": "Message to present to the user.  This is mutuallly exclusive with the messageUri which is an external link to the message.  If the text is sizable and fairly static then it should be an external link which may be cached",
+          "type": "string"
+        },
+        "messageUri": {
+          "description": "URI of the attestation message, should be used instead of the messageTxt property if it can be cached",
+          "$ref": "#/definitions/URIType_v01"
+        }
+      }
+    },
+    "jurisdictionBaseType_v01": {
+      "description": "Jurisdiction Base Type",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "countryCode": {
+          "description": "A simple (string) code.  Can have a code list reference",
+          "$ref": "#/definitions/countryCodeType_v02"
+        },
+        "countrySubdivisionLevel1": {
+          "description": "A country subdivision correlating to a administrative level one level below country. For example, in the United States, this would be a state",
+          "$ref": "#/definitions/countrySubdivisionType_v02"
+        },
+        "countrySubdivisionLevel2": {
+          "description": "A country subdivision correlating to a administrative level one level below country. For example, in the United States, this would be a state",
+          "$ref": "#/definitions/countrySubdivisionType_v02"
+        },
+        "jurisdictionCode": {
+          "description": "The code identifying the type of jurisdiction.",
+          "$ref": "#/definitions/codeType_v02"
+        }
+      }
+    },
+    "countryCodeType_v02": {
+      "description": "The 2 character country code. As per ISO 3166-1 Alpha 2",
+      "type": "string"
+    },
+    "countrySubdivisionType_v02": {
+      "description": "A country sub-division correlating to a administrative level one or two levels below country. For example, in the United States, this might be a state or a county",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        },
+        "subdivisionType": {
+          "description": "The type of a country sub-division, e.g. state, county",
+          "type": "string"
+        }
+      }
+    },
+    "percentageType_v02": {
+      "description": "A representation of a monetary value",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "percentageValue": {
+          "description": "The percentage value",
+          "type": "number"
+        },
+        "basisCode": {
+          "description": "Percentage basis code, e.g. G gross or D disposable, etc.",
+          "$ref": "#/definitions/codeType_v01"
+        }
+      }
+    },
+    "codeType_v01": {
+      "description": "The code for the related entity",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity.",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code not to exceed 25 characters",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        }
+      }
+    },
+    "statusType_v02": {
+      "description": "Status to include the status code and effective date (ISO-8601:2000 format)",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        },
+        "effectiveDate": {
+          "$ref": "#/definitions/dateType_v01"
+        }
+      }
+    },
+    "IDType_v02": {
+      "description": "The unique identifier of the related entity ",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "idValue": {
+          "description": "An actual ID value",
+          "type": "string"
+        },
+        "schemeCode": {
+          "description": "The scheme code",
+          "$ref": "#/definitions/codeType_v02"
+        }
+      }
+    },
+    "partyBaseType_v02": {
+      "description": "Schema describing the details of a party - an agency, bureau, or other organization issuing the associated document; the body or persons exercising power or command. An issuing party is often is a government agency or official authority, but sometimes might be a private organization",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nameCode": {
+          "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "codeValue": {
+              "description": "The code for the related entity",
+              "type": "string"
+            },
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "alternateID": {
+              "description": "Alternate (identified by the scheme code) identification of the entity",
+              "$ref": "#/definitions/IDType_v02"
+            }
+          }
+        },
+        "address": {
+          "description": "The address of the party",
+          "$ref": "#/definitions/organizationAddressType_v02"
+        }
+      }
+    },
+    "organizationAddressType_v02": {
+      "description": "organization address objects / components",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nameCode": {
+          "description": "A descriptive coded name of the address",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "attentionOfName": {
+          "description": "Attention of Name",
+          "type": "string"
+        },
+        "careOfName": {
+          "description": "Care Of Name",
+          "type": "string"
+        },
+        "lineOne": {
+          "description": "Line One of Street Address Information",
+          "type": "string"
+        },
+        "lineTwo": {
+          "description": "Line Two of Street Address Information",
+          "type": "string"
+        },
+        "lineThree": {
+          "description": "Line Three of Street Address Information",
+          "type": "string"
+        },
+        "cityName": {
+          "description": "A city in the context of an address",
+          "type": "string"
+        },
+        "countrySubdivisionLevel1": {
+          "description": "A country subdivision correlating to a administrative level one level below country. For example, in the United States, this would be a state",
+          "$ref": "#/definitions/countrySubdivisionType_v02"
+        },
+        "countryCode": {
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "postalCode": {
+          "description": "The string of characters used to identify the postal code",
+          "type": "string"
+        },
+        "geoCoordinate": {
+          "description": "The coordinates of the location of the address",
+          "$ref": "#/definitions/coordinateType_v02"
+        },
+        "scriptCode": {
+          "description": "The type of script the in which the associated entity is represented. Associated codelist is ISO15924-A. Use the alpha-4 representation versus the single digit numeric representation. Format is lowercase with initial letter capitalized. For example, Cyrillic is Cyrl",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "lineFour": {
+          "description": "Line Four of Street Address Information",
+          "type": "string"
+        },
+        "lineFive": {
+          "description": "Line Five of Street Address Information",
+          "type": "string"
+        },
+        "buildingNumber": {
+          "description": "The number of a building in the context of a physical address, e.g. House Number",
+          "type": "string"
+        },
+        "buildingNumberExtension": {
+          "description": "Additional value to supplememnt number of a building in the context of a physical address, e.g. section, etc.",
+          "type": "string"
+        },
+        "buildingName": {
+          "description": "The name of a building in the context of a physical address, e.g. Rockefeller Center",
+          "type": "string"
+        },
+        "blockName": {
+          "description": "The name the block",
+          "type": "string"
+        },
+        "streetName": {
+          "description": "The name of the street",
+          "type": "string"
+        },
+        "streetTypeCode": {
+          "description": "The type of street, e.g. Lane, Passage, Way",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "unit": {
+          "description": "A unit in the context of an address, e.g. an Apartment Number or an Office",
+          "type": "string"
+        },
+        "floor": {
+          "description": "A floor in the context of an address",
+          "type": "string"
+        },
+        "stairCase": {
+          "description": "A reference to a particular staircase in the context of an address",
+          "type": "string"
+        },
+        "door": {
+          "description": "A reference to a particular door in the context of an address. e.g. Apartment Number",
+          "type": "string"
+        },
+        "postOfficeBox": {
+          "description": "A post office box",
+          "type": "string"
+        },
+        "deliveryPoint": {
+          "description": "A way to identify a specific delivery location, e.g. a mail-stop",
+          "type": "string"
+        },
+        "plotID": {
+          "description": "A way to identify a building plot, e.g. a specific building construction site",
+          "type": "string"
+        },
+        "countrySubdivisionLevel2": {
+          "description": "A country subdivision correlating to a administrative level two levels below country. For example, in the United States, this might be a county",
+          "$ref": "#/definitions/countrySubdivisionType_v02"
+        }
+      }
+    },
+    "coordinateType_v02": {
+      "description": "The coordinates of the location",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "latitude": {
+          "description": "The angle, in degrees, of a position on Earth above the equator. (Latitude is negative for a place below the equator.) specified in decimal degrees",
+          "type": "number"
+        },
+        "longitude": {
+          "description": "The angle, in degrees, of a position on Earth around the equator from the Greenwich Meridian specified in decimal degrees",
+          "type": "number"
+        }
+      }
+    },
+    "partyType_v02": {
+      "description": "Object describing the details of a party, either person or organization",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nameCode": {
+          "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "codeValue": {
+              "description": "The code for the related entity",
+              "type": "string"
+            },
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "alternateID": {
+              "description": "Alternate (identified by the scheme code) identification of the entity",
+              "$ref": "#/definitions/IDType_v02"
+            }
+          }
+        },
+        "address": {
+          "description": "The address of the party",
+          "$ref": "#/definitions/organizationAddressType_v02"
+        },
+        "partyID": {
+          "description": "The unique identifier of a party",
+          "$ref": "#/definitions/IDType_v02"
+        },
+        "partyTypeCode": {
+          "description": "The type of party as per the context",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "governmentIDs": {
+          "description": "A list of government identifiers",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/governmentIDItemType_v02"
+          }
+        },
+        "legalName": {
+          "description": "The name of the party",
+          "type": "string"
+        },
+        "contactName": {
+          "description": "The name of the contact, if applicable",
+          "$ref": "#/definitions/personNameType_v02"
+        },
+        "contactCommunication": {
+          "description": "A container of communication mechanisms for the relevant contact",
+          "$ref": "#/definitions/communicationType_v02"
+        }
+      }
+    },
+    "governmentIDItemType_v02": {
+      "description": "A government identifier, e.g. a national identity number or a social insurance number",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "idValue": {
+          "description": "An actual ID",
+          "type": "string"
+        },
+        "nameCode": {
+          "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "countryCode": {
+          "description": "Country in which the Address is in. ISO_3166-1-alpha-2 code list",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "statusCode": {
+          "description": "The status of the associated  government ID",
+          "$ref": "#/definitions/statusType_v02"
+        },
+        "expirationDate": {
+          "description": "The date of the related entity. Follows the ISO-8601:2000 format",
+          "$ref": "#/definitions/dateType_v01"
+        },
+        "itemID": {
+          "$ref": "#/definitions/itemIDType_v01"
+        }
+      }
+    },
+    "personNameType_v02": {
+      "description": "Object describing the details of a person name",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "givenName": {
+          "description": "The first name of the person",
+          "type": "string"
+        },
+        "middleName": {
+          "description": "Person middle name or initial",
+          "type": "string"
+        },
+        "familyName1": {
+          "description": "Person family name 1",
+          "type": "string"
+        },
+        "familyName2": {
+          "description": "Person family name 2",
+          "type": "string"
+        },
+        "formattedName": {
+          "description": "A formatted version of the person name",
+          "type": "string"
+        },
+        "nameCode": {
+          "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "scriptCode": {
+          "description": "The type of script the name is in. Associated codelist is ISO15924-A. Use the alpha-4 representation versus the single digit numeric representation. Format is lowercase with inital letter capitalized. For example, Cyrillic is Cyrl",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "preferredSalutations": {
+          "description": "A list of preferred salutations",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/salutationType_v02"
+          }
+        },
+        "titlePrefixCodes": {
+          "description": "Person title Prefix Codes",
+          "type": "array",
+          "items": {
+            "description": "Person title Prefix Codes",
+            "$ref": "#/definitions/titleAffixType_v02"
+          }
+        },
+        "nickName": {
+          "description": "A preferred name, e.g. a nickname",
+          "type": "string"
+        },
+        "generationAffixCode": {
+          "description": "The generational affix of the person name, e.g. Jr, Sr",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "qualificationAffixCode": {
+          "description": "The qualification affix of the person name",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "titleAffixCodes": {
+          "description": "Person titles",
+          "type": "array",
+          "items": {
+            "description": "Person titles",
+            "$ref": "#/definitions/titleAffixType_v02"
+          }
+        },
+        "familyName1Prefix": {
+          "description": "Person family name pre-fix",
+          "type": "string"
+        },
+        "familyName2Prefix": {
+          "description": "Person family name pre-fix",
+          "type": "string"
+        },
+        "initials": {
+          "description": "Person initials",
+          "type": "string"
+        }
+      }
+    },
+    "salutationType_v02": {
+      "description": "A preferred salutation, e.g. Mr., Dr., etc.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "salutationCode": {
+          "description": "The saluation code",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "typeCode": {
+          "description": "The type of salutation, e.g. Professional, Social",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "sequenceNumber": {
+          "description": "The sequence or order of the salutation",
+          "$ref": "#/definitions/sequenceType_v01"
+        }
+      }
+    },
+    "titleAffixType_v02": {
+      "description": "Person titles, e.g. social, professional, generational, etc.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "affixCode": {
+          "description": "The title affix of the person name",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "sequenceNumber": {
+          "description": "The sequence or order of the title",
+          "$ref": "#/definitions/sequenceType_v01"
+        }
+      }
+    },
+    "communicationType_v02": {
+      "description": "Communication objects to include various communication mechanisms, e,g, phone, email, etc.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "landlines": {
+          "description": "A list of land-line telephone numbers",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "countryDialing": {
+                "description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country.  ",
+                "type": "string"
+              },
+              "areaDialing": {
+                "description": "The local area dialing code for a telephone number.",
+                "type": "string"
+              },
+              "dialNumber": {
+                "description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+                "type": "string"
+              },
+              "extension": {
+                "description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+                "type": "string"
+              },
+              "access": {
+                "description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1.",
+                "type": "string"
+              },
+              "formattedNumber": {
+                "description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as defined by the regex format specified.  Please note that \\ is used as an escape character in regex, but a double \\ is needed to escape within the json schema.  The regex will accept +CC NNNNNNNNNNNNNN where + is the symbol indicating the caller to enter their country specific code to call from outside the country.  CC is the country code for an international number (optional), and the area code and dial number.  The local access code (i.e. 1 (201) 333 4444. 1 is the access code in US) is not passed.  The UI will present the phone number following its own presentation convention",
+                "type": "string"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              },
+              "notificationIndicator": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "mobiles": {
+          "description": "A list of mobile telephone numbers",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "countryDialing": {
+                "description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country.  ",
+                "type": "string"
+              },
+              "areaDialing": {
+                "description": "The local area dialing code for a telephone number.",
+                "type": "string"
+              },
+              "dialNumber": {
+                "description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+                "type": "string"
+              },
+              "extension": {
+                "description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+                "type": "string"
+              },
+              "access": {
+                "description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1.",
+                "type": "string"
+              },
+              "formattedNumber": {
+                "description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as defined by the regex format specified.  Please note that \\ is used as an escape character in regex, but a double \\ is needed to escape within the json schema.  The regex will accept +CC NNNNNNNNNNNNNN where + is the symbol indicating the caller to enter their country specific code to call from outside the country.  CC is the country code for an international number (optional), and the area code and dial number.  The local access code (i.e. 1 (201) 333 4444. 1 is the access code in US) is not passed.  The UI will present the phone number following its own presentation convention",
+                "type": "string"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              },
+              "notificationIndicator": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "emails": {
+          "description": "A list of email addresses",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "title": "EmailContactCommunicationType",
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "emailUri": {
+                "description": "The URI of the associated email address",
+                "$ref": "#/definitions/emailUriType_v02"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              },
+              "notificationIndicator": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "socialNetworks": {
+          "description": "A list of social networks addresses",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "title": "SocialNetworkContactCommunicationType",
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "uri": {
+                "description": "The URI of the associated email address",
+                "$ref": "#/definitions/URIType_v01"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              },
+              "notificationIndicator": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "faxes": {
+          "description": "A list of fax telephone numbers",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "countryDialing": {
+                "description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country.  ",
+                "type": "string"
+              },
+              "areaDialing": {
+                "description": "The local area dialing code for a telephone number.",
+                "type": "string"
+              },
+              "dialNumber": {
+                "description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+                "type": "string"
+              },
+              "extension": {
+                "description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+                "type": "string"
+              },
+              "access": {
+                "description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1.",
+                "type": "string"
+              },
+              "formattedNumber": {
+                "description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as defined by the regex format specified.  Please note that \\ is used as an escape character in regex, but a double \\ is needed to escape within the json schema.  The regex will accept +CC NNNNNNNNNNNNNN where + is the symbol indicating the caller to enter their country specific code to call from outside the country.  CC is the country code for an international number (optional), and the area code and dial number.  The local access code (i.e. 1 (201) 333 4444. 1 is the access code in US) is not passed.  The UI will present the phone number following its own presentation convention",
+                "type": "string"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              },
+              "notificationIndicator": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "pagers": {
+          "description": "A list of pager telephone numbers",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "countryDialing": {
+                "description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country.  ",
+                "type": "string"
+              },
+              "areaDialing": {
+                "description": "The local area dialing code for a telephone number.",
+                "type": "string"
+              },
+              "dialNumber": {
+                "description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+                "type": "string"
+              },
+              "extension": {
+                "description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+                "type": "string"
+              },
+              "access": {
+                "description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1.",
+                "type": "string"
+              },
+              "formattedNumber": {
+                "description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as defined by the regex format specified.  Please note that \\ is used as an escape character in regex, but a double \\ is needed to escape within the json schema.  The regex will accept +CC NNNNNNNNNNNNNN where + is the symbol indicating the caller to enter their country specific code to call from outside the country.  CC is the country code for an international number (optional), and the area code and dial number.  The local access code (i.e. 1 (201) 333 4444. 1 is the access code in US) is not passed.  The UI will present the phone number following its own presentation convention",
+                "type": "string"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              },
+              "notificationIndicator": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "internetAddresses": {
+          "description": "A list of internet URIs",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "title": "InternetAddressWithItemID",
+            "additionalProperties": false,
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "uri": {
+                "description": "The URI of the associated email address",
+                "$ref": "#/definitions/URIType_v01"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              }
+            }
+          }
+        },
+        "instantMessages": {
+          "description": "A list of instant messages URIs",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "uri": {
+                "description": "The URI of the associated email address",
+                "$ref": "#/definitions/URIType_v01"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              },
+              "notificationIndicator": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "emailUriType_v02": {
+      "description": "The email URI of the related entity",
+      "type": "string",
+      "format": "email"
+    },
+    "feeType_v02": {
+      "description": "A representation of a fee amount",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "amountValue": {
+          "description": "The monetary value of the object in which the amount is associated",
+          "type": "number"
+        },
+        "currencyCode": {
+          "description": "Standard currency code as per ISO 4212",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "unitTimeCode": {
+          "description": "The unit of time, the amount applies to",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "nameCode": {
+          "description": "The type of fee",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "percentage": {
+          "description": "An percentage representation as per a lien",
+          "$ref": "#/definitions/percentageType_v02"
+        },
+        "percentageBasisCode": {
+          "description": "A code representation of the basis amount on which the associated percentage should be based, e.g. gross earnings, net earnings, etc",
+          "$ref": "#/definitions/codeType_v02"
+        }
+      }
+    },
+    "depositAccountType_v02": {
+      "description": "Bank account info",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountID": {
+          "description": "An account ID, other than an account number, used for varios purposes, e.g. alias, etc.",
+          "$ref": "#/definitions/IDType_v02"
+        },
+        "BBAN": {
+          "description": "Basic Bank Account Number. The BBAN format is decided by each national banking community under the restriction that it must be of a fixed length of case-insensitive alphanumeric characters. It includes the domestic bank account number, branch identifier, and potential routing information",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "IBAN": {
+          "description": "International Bank Account Number. The IBAN consists of up to 34 alphanumeric characters: first the two-letter ISO 3166-1 alpha-2 country code, then two check digits, and finally a country-specific Basic Bank Account Number (BBAN). The check digits enable a sanity check of the bank account number to confirm its integrity even before submitting a transaction. ",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "UPIC": {
+          "description": "Universal Payment Identification Code. A UPIC is an identifier (or banking address) for a bank account in the United States used to receive electronic credit payments. A UPIC acts exactly like a US bank account number and protects your sensitive banking information. The actual bank account number, including the bank's routing transit number, is masked by the UPIC. Only credit transactions to an account can be initiated with a UPIC. All direct debits are blocked which should mitigate unauthorized transactions to an account.",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "financialParty": {
+          "description": "The account where the moneis are to be distributed",
+          "$ref": "#/definitions/financialPartyType_v02"
+        },
+        "financialAccount": {
+          "description": "The account where the moneis are to be distributed",
+          "$ref": "#/definitions/financialAccountType_v02"
+        }
+      }
+    },
+    "financialPartyType_v02": {
+      "description": "An institution, such as a bank, building society, credit union, stock brokerage, or similar business; established primarily to provide financial services and financial transactions",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nameCode": {
+          "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "codeValue": {
+              "description": "The code for the related entity",
+              "type": "string"
+            },
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "alternateID": {
+              "description": "Alternate (identified by the scheme code) identification of the entity",
+              "$ref": "#/definitions/IDType_v02"
+            }
+          }
+        },
+        "address": {
+          "description": "The address of the party",
+          "$ref": "#/definitions/organizationAddressType_v02"
+        },
+        "financialPartyID": {
+          "description": "The unique identifier of the associated party entity",
+          "$ref": "#/definitions/IDType_v02"
+        },
+        "SWIFTCode": {
+          "description": "Identifies a standard format of Business Identifier Codes approved by the International Organization for Standardization (ISO). It is a unique identification code for both financial and non-financial institutions. The acronym SWIFT stands for the Society for Worldwide Interbank Financial Telecommunication.  The SWIFT code consists of 8 or 11 characters. When 8-digits code is given, it refers to the primary office. First 4 characters - bank code (only letters), next 2 characters - ISO 3166-1 alpha-2 country code (only letters), next 2 characters - location code (letters and digits) (passive participant will have 1 in the second character). Last 3 characters - branch code",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "branchNameCode": {
+          "description": "Branch code / number used to compose the routing id, along with the name if applicable",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "routingTransitID": {
+          "description": "A routing (transit) number is a bank code used to facilitate automated monetary transfers, e.g. as issued by the American Bankers Association or the Canadian Payments Association or EU",
+          "$ref": "#/definitions/IDType_v02"
+        },
+        "communication": {
+          "description": "Communication mechanisms, e,g, phone, email, etc",
+          "$ref": "#/definitions/communicationType_v02"
+        }
+      }
+    },
+    "financialAccountType_v02": {
+      "description": "Bank account info",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountNumber": {
+          "description": "The unique identifier of the account where the moneis are to be distributed",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "accountName": {
+          "description": "The name of the related account",
+          "type": "string"
+        },
+        "typeCode": {
+          "description": "The type of account, e.g. checking, savings, credit union, GL, etc.",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "currencyCode": {
+          "description": "The default account currency code. As per ISO 4212",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "rollNumber": {
+          "description": "Roll numbers are used in the United Kingdom to identify individual accounts at a financial institution other than a bank, typically a building society or credit union, this is in addition to account number. ",
+          "$ref": "#/definitions/simpleIDType_v02"
+        }
+      }
+    },
+    "quantityType_v03": {
+      "description": "Quantity (unit based)",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "quantityValue": {
+          "description": "Quantity value",
+          "type": "number"
+        },
+        "unitCode": {
+          "description": "Units the quantity is based upon",
+          "$ref": "#/definitions/codeType_v01"
+        }
+      }
+    },
+    "rateType_v02": {
+      "description": "A representation of a rate value",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "amountValue": {
+          "description": "The numeric value associated to the rate. In the example 5 US dollars per hour, the number 5 is the rate value. In the example 3 bags of rice per month, the number 3 is the rate value. In the example, 20 percent of annual sales, the amountValue would be 20",
+          "type": "number"
+        },
+        "currencyCode": {
+          "description": "List of standard currency codes ISO 4217 For any given rate, either the currencyCode or the unitCode is present. In the example 5 US dollars per hour, the unitCode would not be present, and the currency code would be USD",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "unitCode": {
+          "description": "For any given rate, either the currencyCode or the unitCode is present. In the example 3 bags of rice per month, currencyCode would not be present, and the unitCode would be bags of rice. In the example, 20 percent of annual sales, the unitCode would be percent",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "baseUnitCode": {
+          "description": "For any given rate, the baseUnitCode is used to define the denominator of the rate, or rate over what. In the example 5 US dollars per hour, the baseUnitCode is hour. In the example 3 bags of rice per month, the baseUnitCode is month. If for example, the rate was 10 US dollars for every widget produced, the baseUnitCode would be widget. In the example, 20 percent of annual sales, the baseUnitCode would equate to annual sales",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "baseMultiplierValue": {
+          "description": "For any given rate, the base rate value is presumed to be 1, e.g. per one hour, per one month. If for example, the rate was 10 US dollars for every widget produced, the base rate value is presumed to be one and there is no need to communicate a baseMultiplierValue. If however, the rate was 10 US Dollars for every 3 widgets produced, the baseMultiplierValue would be 3",
+          "type": "number"
+        }
+      }
+    },
+    "dateTimePeriodType_v01": {
+      "description": "The string reprersentation of the date range. Used to specify effective period.  Follows the ISO-8601:2000 format.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "startDateTime": {
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "endDateTime": {
+          "$ref": "#/definitions/dateTimeType_v01"
+        }
+      }
+    },
+    "effectiveDatedAmountType_v02": {
+      "description": "Type to include the code and effective date (ISO-8601:2000 format)",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "amountValue": {
+          "description": "The monetary value of the object in which the amount is associated",
+          "type": "number"
+        },
+        "currencyCode": {
+          "description": "Standard currency code as per ISO 4212",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "effectiveDate": {
+          "$ref": "#/definitions/dateType_v01"
+        }
+      }
+    },
+    "metaType_v02": {
+      "description": "Meta contains the metadata associated with a response.  A GET response may include metadata to support pagination",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "startSequence": {
+          "description": "The instance resource sequence (number) identifying the first resource returned in the response. The server generates this sequence.  It is used by the client to determine the start sequence of the subsequent Get request",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "completeIndicator": {
+          "description": "Indicates whether the response completes the return of all of the resources of the instance resource set to the requesting system",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "number": {
+          "description": "Number of instance resources in the response",
+          "type": "integer"
+        },
+        "totalNumber": {
+          "description": "Number of total instance resources in an instance resource set. Note: An instance resource set is a set of instance resources that is determined by a server to satisfy the sets membership criteria (i.e., selection, filter, expansion and search criteria) of a resource management operation (e.g. GET request) upon a collection resource",
+          "type": "integer"
+        },
+        "resourceSetID": {
+          "description": "Unique identifier of the instance resource set.  It is generated by the server as a result of the original Get request",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      }
+    },
+    "confirmMessageType_v01": {
+      "description": "The ConfirmMessage contains the processing results for the corresponding request.  A request may have its processing reported as: succeeded, partially failed, or failed.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "confirmMessageID": {
+          "description": "An identifier for the instance of the confirm message.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "createDateTime": {
+          "description": "The date & time that the message instance was generated.; follows the ISO-8601:2000 format: 2008-05-11T15:30:00-06:00.",
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "requestReceiptDateTime": {
+          "description": "The date & time that the request submitted by the client was received. Note, this timestamp may not be the same as the time the client actually submitted the request if there is a queuing mechanism between the client and server processing the request; it follows the ISO-8601:2000 format: 2008-05-11T15:30:00-06:00.",
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "protocolStatusCode": {
+          "description": "Protocol-specific response status code.",
+          "$ref": "#/definitions/codeType_v01"
+        },
+        "protocolCode": {
+          "description": "Code that identifies the protocol used for the request.",
+          "$ref": "#/definitions/codeType_v01"
+        },
+        "requestID": {
+          "description": "The identifier of the request that generated this response.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "requestStatusCode": {
+          "description": "The process results status code for the request.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "succeeded",
+                "partiallyFailed",
+                "failed"
+              ]
+            }
+          }
+        },
+        "requestMethodCode": {
+          "description": "The method that was used on the request corresponding to this message instance.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "GET",
+                "PUT",
+                "POST",
+                "PATCH",
+                "DELETE"
+              ]
+            }
+          }
+        },
+        "sessionID": {
+          "description": "A session identifier if one is available.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "requestETag": {
+          "description": "The entity tag of the entity in the request.",
+          "type": "string"
+        },
+        "requestLink": {
+          "description": "The link of the request that generated this response.",
+          "$ref": "#/definitions/linkType_v02"
+        },
+        "processingStatusCode": {
+          "description": "Processing status of the related request message.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "received",
+                "validated",
+                "started",
+                "completed"
+              ]
+            }
+          }
+        },
+        "processMessages": {
+          "description": "processMessage is optional and contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).  Most often there will be a single instance for an associated request or resource, but this structure allows for more than one if needed, for example, if multiple errors exist for a single resource. ",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/processMessage_v01"
+          }
+        },
+        "resourceMessages": {
+          "description": "resource Message contains the resource-specific processing results for resources being managed in the request.  A resource may have its processing reported as:  succeeded or failed.  It must be used to represent resource-specific messages.  In the case of a request managing multiple resources and resource-specific messages are to be returned, then this array will contain one object for each such resource of the request.",
+          "type": "array",
+          "items": {
+            "description": "Each object contains detailed information for a resource referenced in the original request.",
+            "type": "object",
+            "properties": {
+              "resourceMessageID": {
+                "description": "An identifier for the instance of the resource message.",
+                "$ref": "#/definitions/IDType_v01"
+              },
+              "resourceStatusCode": {
+                "description": "The processing results status code of the resource of the request.",
+                "type": "object",
+                "additionalProperties": false,
+                "title": "ResourceMessageResourceStatus",
+                "properties": {
+                  "shortName": {
+                    "description": "Short description of the related code",
+                    "type": "string"
+                  },
+                  "longName": {
+                    "description": "Long description of the related code",
+                    "type": "string"
+                  },
+                  "codeValue": {
+                    "description": "The code for the related entity.",
+                    "type": "string",
+                    "enum": [
+                      "succeeded",
+                      "failed",
+                      "warning"
+                    ]
+                  }
+                }
+              },
+              "resourceLink": {
+                "description": "The link of the request that generated this response.",
+                "$ref": "#/definitions/linkType_v02"
+              },
+              "processMessages": {
+                "description": "processMessage is optional and contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).  Most often there will be a single instance for an associated request or resource, but this structure allows for more than one if needed, for example, if multiple errors exist for a single resource. ",
+                "type": "array",
+                "items": {
+                  "title": "ProcessMessageWithResourceStatusCode",
+                  "description": "Each object contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "processMessageID": {
+                      "description": "An identifier for the instance of the process message.",
+                      "$ref": "#/definitions/IDType_v01"
+                    },
+                    "messageTypeCode": {
+                      "description": "Process Message instances may be of type: success, warning, error, or info.",
+                      "$ref": "#/definitions/messageTypeCodeType_v01"
+                    },
+                    "sourceLocationExpression": {
+                      "description": "Expression that provides the location (or source) of content in a message instance that is associated with a process message. Examples of expression languages include: XPath, XQuery, JSON Pointer.",
+                      "type": "string"
+                    },
+                    "expressionLanguageCode": {
+                      "description": "Identifies the language used for expressions communicated in this message.",
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "shortName": {
+                          "description": "Short description of the related code",
+                          "type": "string"
+                        },
+                        "longName": {
+                          "description": "Long description of the related code",
+                          "type": "string"
+                        },
+                        "codeValue": {
+                          "description": "The code for the related entity.",
+                          "type": "string",
+                          "enum": [
+                            "jPath"
+                          ]
+                        }
+                      }
+                    },
+                    "links": {
+                      "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/linkType_v02"
+                      }
+                    },
+                    "userMessage": {
+                      "description": "Message returned to the user",
+                      "$ref": "#/definitions/messageType_v01"
+                    },
+                    "developerMessage": {
+                      "description": "Message returned to the user",
+                      "$ref": "#/definitions/messageType_v01"
+                    },
+                    "clientActionTypeCode": {
+                      "description": "Code that identifies the action to be taken by the client application upon receiving the message",
+                      "$ref": "#/definitions/simpleCodeType_v02"
+                    },
+                    "resourceStatusCode": {
+                      "description": "DEPRECATED - Use messageTypeCode instead. The processing results status code of the resource of the request.",
+                      "$ref": "#/definitions/codeType_v01"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "IDType_v01": {
+      "description": "The unique identifier of the related entity ",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "idValue": {
+          "description": "An ID",
+          "type": "string"
+        },
+        "schemeName": {
+          "description": "The type of ID",
+          "type": "string"
+        },
+        "schemeAgencyName": {
+          "description": "The agency that issues the ID",
+          "type": "string"
+        }
+      }
+    },
+    "processMessage_v01": {
+      "description": "Each object contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "processMessageID": {
+          "description": "An identifier for the instance of the process message.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "messageTypeCode": {
+          "description": "Process Message instances may be of type: success, warning, error, or info.",
+          "$ref": "#/definitions/messageTypeCodeType_v01"
+        },
+        "sourceLocationExpression": {
+          "description": "Expression that provides the location (or source) of content in a message instance that is associated with a process message. Examples of expression languages include: XPath, XQuery, JSON Pointer.",
+          "type": "string"
+        },
+        "expressionLanguageCode": {
+          "description": "Identifies the language used for expressions communicated in this message.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "jPath"
+              ]
+            }
+          }
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        },
+        "userMessage": {
+          "description": "Message returned to the user",
+          "$ref": "#/definitions/messageType_v01"
+        },
+        "developerMessage": {
+          "description": "Message returned to the user",
+          "$ref": "#/definitions/messageType_v01"
+        },
+        "clientActionTypeCode": {
+          "description": "Code that identifies the action to be taken by the client application upon receiving the message",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        }
+      }
+    },
+    "messageTypeCodeType_v01": {
+      "description": "Schema describing the type of the user or developer message",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        },
+        "codeValue": {
+          "description": "The code for the related entity.",
+          "type": "string",
+          "enum": [
+            "success",
+            "warning",
+            "error",
+            "info"
+          ]
+        }
+      }
+    },
+    "messageType_v01": {
+      "description": "Representation of a message.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code associated with the message description.",
+          "type": "string"
+        },
+        "title": {
+          "description": "Title of the message description.",
+          "type": "string"
+        },
+        "messageTxt": {
+          "description": "The value/content of the message description.",
+          "type": "string"
+        },
+        "messageArguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "argumentName": {
+                "description": "Argument name to be passed in",
+                "type": "string"
+              },
+              "argumentPath": {
+                "description": "Argument path if referenced within the same schema",
+                "type": "string"
+              },
+              "argumentValue": {
+                "description": "Argument name to be passed in",
+                "type": "string"
+              }
+            },
+            "required": [
+              "argumentValue"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        },
+        "messageTypeCode": {
+          "$ref": "#/definitions/messageTypeCodeType_v01"
+        }
+      }
+    }
+  }
+}

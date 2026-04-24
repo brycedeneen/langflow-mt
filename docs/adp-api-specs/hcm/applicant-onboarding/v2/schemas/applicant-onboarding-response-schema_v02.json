@@ -1,0 +1,725 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"title": "ApplicantOnboardingResponse",
+	"description": "Applicant onboarding response data",
+	"type": "object",
+	"definitions": {
+		"simpleCodeType_v01": {
+			"title": "SimpleCodeType",
+			"description": "A simple (string) code.  Can have a code list reference in meta.",
+			"type": "string",
+			"pattern": "^[a-zA-Z0-9.#-_/ ]+$"
+		},
+		"messageTypeCodeType_v01": {
+			"title": "MessageTypeCodeType",
+			"description": "Type of the message, e.g. success, failure, warning, info",
+			"type": "string",
+			"enum": [
+				"success",
+				"error",
+				"warning",
+				"info"
+			]
+		},
+		"uriType_v01": {
+			"title": "UriType",
+			"description": "The URI of the related entity, typically used to represent any internet or social network address",
+			"type": "string",
+			"format": "uri"
+		},
+		"canonicalUriType_v01": {
+			"title": "CanonicalUriType",
+			"description": "The canonical URI of the related operation / ca[ability, e.g. /domain/service/feature/function/operation.  Supports hyphens in all components and '.' or guid in the operation.",
+			"type": "string",
+			"pattern": "(/?((/[a-zA-Z0-9_.-]+)+|/))$"
+		},
+		"simpleIDType_v01": {
+			"title": "SimpleIDType",
+			"description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+			"type": "string",
+			"pattern": "^[a-zA-Z0-9.$-_/ ]+$"
+		},
+		"dateTimeType_v01": {
+			"title": "DateTimeType",
+			"description": "The string representation of the date-time value using the ISO-8601:2000 format",
+			"type": "string",
+			"format": "date-time"
+		},
+		"sequenceType_v01": {
+			"title": "SequenceType",
+			"description": "Sequence of a related entity when included in the collection or a group",
+			"type": "integer"
+		},
+		"indicatorType_v01": {
+			"title": "IndicatorType",
+			"description": "Boolean value, typically used to represent an indicator style attribute",
+			"type": "boolean"
+		},
+		"associateOIDType_v01": {
+			"title": "AssociateOIDType",
+			"description": "The unique identifier of an associate as provisioned in the ADP registry",
+			"type": "string",
+			"pattern": "^[a-zA-Z0-9]+$",
+			"minLength": 10,
+			"maxLength": 16
+		}
+	},
+	"additionalProperties": false,
+	"properties": {
+		"alternateIDs": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"applicantID": {
+					"$ref": "#/definitions/simpleIDType_v01",
+					"description": "Unique identifier of the applicant as per the relevant ATS"
+				},
+				"associateOID": {
+					"$ref": "#/definitions/associateOIDType_v01"
+				}
+			}
+		},
+		"_confirmMessage": {
+			"description": "The confirm message contains the processing results for the corresponding request.  A request may have its processing reported as: succeeded, partially failed, or failed.",
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"processingStatus": {
+					"description": "The processing results status code for the request",
+					"type": "string",
+					"enum": [
+						"received",
+						"validated",
+						"started",
+						"in-progress",
+						"completed"
+					]
+				},
+				"requestStatus": {
+					"description": "The process results status code for the request",
+					"type": "string",
+					"enum": [
+						"success",
+						"partial-success",
+						"partial-failure",
+						"failure"
+					]
+				},
+				"applicationID": {
+					"$ref": "#/definitions/simpleIDType_v01",
+					"description": "An identifier of the applicaiton that issued the confirm message"
+				},
+				"messageID": {
+					"$ref": "#/definitions/simpleIDType_v01",
+					"description": "An identifier of the confirm message instance"
+				},
+				"messageDateTime": {
+					"$ref": "#/definitions/dateTimeType_v01",
+					"description": "Timestamp of the confirm message"
+				},
+				"requestID": {
+					"$ref": "#/definitions/simpleIDType_v01",
+					"description": "A process identifier if one is available, like a batch ID"
+				},
+				"messages": {
+					"description": "Processing messages related to the request; multiple messages may be communicated about the request",
+					"type": "array",
+					"items": {
+						"type": "object",
+						"description": "Basic details of the user or developer message.",
+						"additionalProperties": false,
+						"properties": {
+							"messageCode": {
+								"$ref": "#/definitions/simpleCodeType_v01",
+								"description": "The code associated with the message."
+							},
+							"messageTypeCode": {
+								"$ref": "#/definitions/messageTypeCodeType_v01",
+								"description": "Process message instances may be of type: success, warning, error, or info."
+							},
+							"messageText": {
+								"description": "The content of the message. The content language is identified by the Content-Language header.",
+								"type": "string"
+							},
+							"messageTargetCode": {
+								"description": "Indicates the audience, the message is targeted to, e.g. developer, user, etc.",
+								"type": "string",
+								"enum": [
+									"developer",
+									"user"
+								]
+							},
+							"processMessageIndicator": {
+								"description": "Indicates if the message is not related to any given resource, but rather applies to the entire process.  If set to 'true', the resource related attributes should not be used.",
+								"type": "boolean"
+							},
+							"resourceID": {
+								"$ref": "#/definitions/simpleIDType_v01",
+								"description": "An identifier for a resource in the request"
+							},
+							"resourceStatus": {
+								"description": "The process results status code for the request",
+								"type": "string",
+								"enum": [
+									"success",
+									"partial-success",
+									"partial-failure",
+									"failure"
+								]
+							},
+							"alternateMessageTexts": {
+								"description": "The content of the message expressed in an alternate language. The content language is identified by the languageCode property",
+								"type": "array",
+								"items": {
+									"description": "Text is a character string such as a set of characters in the form of words of a language.",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"text": {
+											"description": "The text character string.",
+											"type": "string"
+										},
+										"languageCode": {
+											"description": "A standard language code as per ISO 639.",
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"code": {
+													"$ref": "#/definitions/simpleCodeType_v01",
+													"description": "The code for the related entity"
+												},
+												"name": {
+													"description": "The short description of the related code used as a coded name",
+													"type": "string"
+												}
+											}
+										}
+									}
+								}
+							},
+							"resourceReference": {
+								"description": "A path expression used to specify the part of a resource representation that corresponds to the message.",
+								"type": "string"
+							},
+							"messageArguments": {
+								"description": "Parameter and argument pairs associated with a message.",
+								"type": "array",
+								"items": {
+									"description": "Argument Type",
+									"type": "object",
+									"required": [
+										"argumentValue"
+									],
+									"additionalProperties": false,
+									"properties": {
+										"argumentName": {
+											"description": "Argument name to be passed in",
+											"type": "string"
+										},
+										"argumentPath": {
+											"$ref": "#/definitions/uriType_v01",
+											"description": "Argument path if referenced within the same schema"
+										},
+										"argumentValue": {
+											"description": "Argument name to be passed in",
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"resourceMessages": {
+					"description": "Resource messages contain the resource-specific processing results for resources being managed in the request. In the case of a request that manages multiple resources, each array item would correspond to one of the resources",
+					"type": "array",
+					"items": {
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"resourceID": {
+								"$ref": "#/definitions/simpleIDType_v01",
+								"description": "An identifier for a resource in the request"
+							},
+							"resourceReference": {
+								"description": "A path expression used to specify the part of a resource representation that corresponds to the message.",
+								"type": "string"
+							},
+							"resourceStatus": {
+								"description": "The processing results status code for a resource",
+								"type": "string",
+								"enum": [
+									"succeeded",
+									"failed"
+								]
+							},
+							"messages": {
+								"description": "Processing messages related to the resource; multiple messages may be communicated about a resource",
+								"type": "array",
+								"items": {
+									"type": "object",
+									"description": "Basic details of the user or developer message.",
+									"additionalProperties": false,
+									"properties": {
+										"messageCode": {
+											"$ref": "#/definitions/simpleCodeType_v01",
+											"description": "The code associated with the message."
+										},
+										"messageTypeCode": {
+											"$ref": "#/definitions/messageTypeCodeType_v01",
+											"description": "Process message instances may be of type: success, warning, error, or info."
+										},
+										"messageText": {
+											"description": "The content of the message. The content language is identified by the Content-Language header.",
+											"type": "string"
+										},
+										"alternateMessageTexts": {
+											"description": "The content of the message expressed in an alternate language. The content language is identified by the languageCode property",
+											"type": "array",
+											"items": {
+												"description": "Text is a character string such as a set of characters in the form of words of a language.",
+												"type": "object",
+												"additionalProperties": false,
+												"properties": {
+													"text": {
+														"description": "The text character string.",
+														"type": "string"
+													},
+													"languageCode": {
+														"description": "A standard language code as per ISO 639.",
+														"type": "object",
+														"additionalProperties": false,
+														"properties": {
+															"code": {
+																"$ref": "#/definitions/simpleCodeType_v01",
+																"description": "The code for the related entity"
+															},
+															"name": {
+																"description": "The short description of the related code used as a coded name",
+																"type": "string"
+															}
+														}
+													}
+												}
+											}
+										},
+										"messageArguments": {
+											"description": "Parameter and argument pairs associated with a message.",
+											"type": "array",
+											"items": {
+												"description": "Argument Type",
+												"type": "object",
+												"required": [
+													"argumentValue"
+												],
+												"additionalProperties": false,
+												"properties": {
+													"argumentName": {
+														"description": "Argument name to be passed in",
+														"type": "string"
+													},
+													"argumentPath": {
+														"$ref": "#/definitions/uriType_v01",
+														"description": "Argument path if referenced within the same schema"
+													},
+													"argumentValue": {
+														"description": "Argument name to be passed in",
+														"type": "string"
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"links": {
+					"type": "array",
+					"items": {
+						"description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema) documents, and use of this format can be declared by referencing the normative link description schema as the schema for the data structure that uses the links.",
+						"type": "object",
+						"required": [
+							"href"
+						],
+						"additionalProperties": false,
+						"properties": {
+							"linkID": {
+								"description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+								"type": "string",
+								"pattern": "^[a-zA-Z0-9.$-_/]+$"
+							},
+							"href": {
+								"description": "The URI of the related entity, typically used to represent any internet or social network address",
+								"type": "string",
+								"format": "uri"
+							},
+							"rel": {
+								"description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+								"type": "string",
+								"enum": [
+									"alternate",
+									"canonical",
+									"create",
+									"describedby",
+									"edit-form",
+									"enclosure",
+									"first",
+									"full",
+									"last",
+									"latest-version",
+									"next",
+									"previous",
+									"related",
+									"root",
+									"self",
+									"search",
+									"successor-version",
+									"up",
+									"/adp/attachment",
+									"/adp/callback",
+									"/adp/codelist",
+									"/adp/confirm-message",
+									"/adp/deeplink",
+									"/adp/event",
+									"/adp/externalLink",
+									"/adp/image",
+									"/adp/invoke",
+									"/adp/payroll/voided-payment-calculation",
+									"/adp/processing-status",
+									"/adp/request-result",
+									"/adp/template",
+									"/adp/validation",
+									"/adp/workflow",
+									"/adp/status-monitor"
+								]
+							},
+							"canonicalUri": {
+								"$ref": "#/definitions/canonicalUriType_v01",
+								"description": "A unique identifier of the feature/function/operation that the link points to"
+							},
+							"title": {
+								"description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+								"type": "string"
+							},
+							"mediaType": {
+								"description": "The media type that the linked resource will return (Response) in",
+								"type": "string",
+								"enum": [
+									"application/gzip",
+									"application/json",
+									"application/msword",
+									"application/pdf",
+									"application/postscript",
+									"application/vnd.ms-excel",
+									"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+									"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+									"application/xml",
+									"application/x-www-form-urlencoded",
+									"image/gif",
+									"image/jpeg",
+									"image/png",
+									"image/tiff",
+									"multipart/mixed",
+									"text/html",
+									"text/plain",
+									"application/vnd.visio",
+									"image/bmp",
+									"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+									"application/vnd.ms-powerpoint",
+									"video/mp4",
+									"audio/mpeg",
+									"video/x-msvideo",
+									"video/x-ms-wmv",
+									"application/rtf",
+									"application/vnd.ms-outlook",
+									"text/csv",
+									"video/quicktime",
+									"application/zip",
+									"application/illustrator",
+									"text/xml",
+									"application/x-shockwave-flash",
+									"multipart/form-data",
+									"application/merge-patch+json"
+								]
+							},
+							"method": {
+								"description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT, PATCH or DELETE)",
+								"type": "string",
+								"enum": [
+									"GET",
+									"POST",
+									"PUT",
+									"PATCH",
+									"DELETE"
+								]
+							},
+							"payloadArguments": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"required": [
+										"argumentValue"
+									],
+									"additionalProperties": false,
+									"properties": {
+										"argumentTypeCode": {
+											"description": "Argument type / location",
+											"type": "string",
+											"enum": [
+												"header",
+												"path",
+												"query",
+												"body"
+											]
+										},
+										"argumentName": {
+											"description": "Argument name to be passed in",
+											"type": "string"
+										},
+										"argumentPath": {
+											"description": "Argument path, if referenced from within the body",
+											"type": "string"
+										},
+										"argumentValue": {
+											"description": "Argument name to be passed in",
+											"type": "string"
+										}
+									}
+								}
+							},
+							"linkTags": {
+								"description": "Collection of tags to indicate additional natures or aspects of the link. User agents MAY use these tags when presenting the link to the user to provide visual cues of the link's purpose",
+								"type": "array",
+								"items": {
+									"description": "Basic common representation of a tag",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"tagCode": {
+											"$ref": "#/definitions/simpleCodeType_v01",
+											"description": "The code identifying the tag"
+										},
+										"tagValues": {
+											"description": "A list of the tag values",
+											"type": "array",
+											"items": {
+												"type": "string"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"_meta": {
+			"description": "Meta contains the metadata associated with a response.  A GET response may include metadata to support pagination.",
+			"type": "object",
+			"properties": {
+				"startSequence": {
+					"$ref": "#/definitions/sequenceType_v01",
+					"description": "The instance resource sequence (number) identifying the first resource returned in the response. The server generates this sequence.  It is used by the client to determine the start sequence of the subsequent Get request"
+				},
+				"completeIndicator": {
+					"$ref": "#/definitions/indicatorType_v01",
+					"description": "Indicates whether the response completes the return of all of the resources of the instance resource set to the requesting system"
+				},
+				"number": {
+					"description": "Number of instance resources in the response",
+					"type": "integer"
+				},
+				"totalNumber": {
+					"description": "Number of total instance resources in an instance resource set. Note: An instance resource set is a set of instance resources that is determined by a server to satisfy the sets membership criteria (i.e., selection, filter, expansion and search criteria) of a resource management operation (e.g. GET request) upon a collection resource",
+					"type": "integer"
+				},
+				"resourceSetID": {
+					"$ref": "#/definitions/simpleIDType_v01",
+					"description": "Unique identifier of the instance resource set.  It is generated by the server as a result of the original Get request"
+				},
+				"links": {
+					"type": "array",
+					"items": {
+						"description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema) documents, and use of this format can be declared by referencing the normative link description schema as the schema for the data structure that uses the links.",
+						"type": "object",
+						"required": [
+							"href"
+						],
+						"additionalProperties": false,
+						"properties": {
+							"linkID": {
+								"description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+								"type": "string",
+								"pattern": "^[a-zA-Z0-9.$-_/]+$"
+							},
+							"href": {
+								"description": "The URI of the related entity, typically used to represent any internet or social network address",
+								"type": "string",
+								"format": "uri"
+							},
+							"rel": {
+								"description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+								"type": "string",
+								"enum": [
+									"alternate",
+									"canonical",
+									"create",
+									"describedby",
+									"edit-form",
+									"enclosure",
+									"first",
+									"full",
+									"last",
+									"latest-version",
+									"next",
+									"previous",
+									"related",
+									"root",
+									"self",
+									"search",
+									"successor-version",
+									"up",
+									"/adp/attachment",
+									"/adp/callback",
+									"/adp/codelist",
+									"/adp/confirm-message",
+									"/adp/deeplink",
+									"/adp/event",
+									"/adp/externalLink",
+									"/adp/image",
+									"/adp/invoke",
+									"/adp/payroll/voided-payment-calculation",
+									"/adp/processing-status",
+									"/adp/request-result",
+									"/adp/template",
+									"/adp/validation",
+									"/adp/workflow",
+									"/adp/status-monitor"
+								]
+							},
+							"canonicalUri": {
+								"$ref": "#/definitions/canonicalUriType_v01",
+								"description": "A unique identifier of the feature/function/operation that the link points to"
+							},
+							"title": {
+								"description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+								"type": "string"
+							},
+							"mediaType": {
+								"description": "The media type that the linked resource will return (Response) in",
+								"type": "string",
+								"enum": [
+									"application/gzip",
+									"application/json",
+									"application/msword",
+									"application/pdf",
+									"application/postscript",
+									"application/vnd.ms-excel",
+									"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+									"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+									"application/xml",
+									"application/x-www-form-urlencoded",
+									"image/gif",
+									"image/jpeg",
+									"image/png",
+									"image/tiff",
+									"multipart/mixed",
+									"text/html",
+									"text/plain",
+									"application/vnd.visio",
+									"image/bmp",
+									"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+									"application/vnd.ms-powerpoint",
+									"video/mp4",
+									"audio/mpeg",
+									"video/x-msvideo",
+									"video/x-ms-wmv",
+									"application/rtf",
+									"application/vnd.ms-outlook",
+									"text/csv",
+									"video/quicktime",
+									"application/zip",
+									"application/illustrator",
+									"text/xml",
+									"application/x-shockwave-flash",
+									"multipart/form-data",
+									"application/merge-patch+json"
+								]
+							},
+							"method": {
+								"description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT, PATCH or DELETE)",
+								"type": "string",
+								"enum": [
+									"GET",
+									"POST",
+									"PUT",
+									"PATCH",
+									"DELETE"
+								]
+							},
+							"payloadArguments": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"required": [
+										"argumentValue"
+									],
+									"additionalProperties": false,
+									"properties": {
+										"argumentTypeCode": {
+											"description": "Argument type / location",
+											"type": "string",
+											"enum": [
+												"header",
+												"path",
+												"query",
+												"body"
+											]
+										},
+										"argumentName": {
+											"description": "Argument name to be passed in",
+											"type": "string"
+										},
+										"argumentPath": {
+											"description": "Argument path, if referenced from within the body",
+											"type": "string"
+										},
+										"argumentValue": {
+											"description": "Argument name to be passed in",
+											"type": "string"
+										}
+									}
+								}
+							},
+							"linkTags": {
+								"description": "Collection of tags to indicate additional natures or aspects of the link. User agents MAY use these tags when presenting the link to the user to provide visual cues of the link's purpose",
+								"type": "array",
+								"items": {
+									"description": "Basic common representation of a tag",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"tagCode": {
+											"$ref": "#/definitions/simpleCodeType_v01",
+											"description": "The code identifying the tag"
+										},
+										"tagValues": {
+											"description": "A list of the tag values",
+											"type": "array",
+											"items": {
+												"type": "string"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

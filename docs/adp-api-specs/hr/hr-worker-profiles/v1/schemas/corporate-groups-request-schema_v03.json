@@ -1,0 +1,1945 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"title": "Corporate Groups",
+	"description": "Corporate Groups related to a given work assignment",
+	"type": "object",
+	"definitions": {
+		"simpleCodeType_v01": {
+			"title": "SimpleCodeType",
+			"description": "A simple (string) code.  Can have a code list reference in meta.",
+			"type": "string",
+			"pattern": "^[a-zA-Z0-9.#-_/ ]+$"
+		},
+		"dateTimeType_v01": {
+			"title": "DateTimeType",
+			"description": "The string representation of the date-time value using the ISO-8601:2000 format",
+			"type": "string",
+			"format": "date-time"
+		},
+		"simpleIDType_v01": {
+			"title": "SimpleIDType",
+			"description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+			"type": "string",
+			"pattern": "^[a-zA-Z0-9.$\\-_/ :]+$"
+		},
+		"subdivisionCodeType_v01": {
+			"title": "SubdivisionCodeType",
+			"description": "A country subdivision correlating to an administrative level below country. For example, in the US, this might be a state (level 1) or county (level 2)",
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"code": {
+					"description": "Code of the related subdivision",
+					"type": "string",
+					"pattern": "^[a-zA-Z0-9.$-_/]+$"
+				},
+				"name": {
+					"description": "The short description of the related subdivision",
+					"type": "string"
+				},
+				"subdivisionType": {
+					"description": "The type of a country sub-division, e.g. state, county, province, etc.",
+					"type": "string",
+					"pattern": "^[a-zA-Z0-9.$-_/]+$"
+				}
+			}
+		},
+		"countryCodeType_v01": {
+			"title": "CountryCodeType",
+			"description": "The 2 character country code. As per ISO 3166-1 Alpha 2",
+			"type": "string",
+			"maxLength": 2,
+			"minLength": 2
+		},
+		"postalCodeType_v01": {
+			"title": "PostalCodeType",
+			"description": "Postal code formatted according to the related locale rules",
+			"type": "string"
+		},
+		"coordinatesType_v01": {
+			"title": "CoordinatesType",
+			"description": "The geographical coordinates of the location described by a related address, foramtted as degrees/minutes/seconds: DMS[N/S] DMS[E/W]",
+			"type": "string"
+		},
+		"canonicalUriType_v01": {
+			"title": "CanonicalUriType",
+			"description": "The canonical URI of the related operation / ca[ability, e.g. /domain/service/feature/function/operation.  Supports hyphens in all components and '.' or guid in the operation.",
+			"type": "string",
+			"pattern": "(/?((/[a-zA-Z0-9_.-]+)+|/))$"
+		},
+		"emailUriType_v01": {
+			"title": "EmailUriType",
+			"description": "The email URI of the related entity, e.g. email address",
+			"type": "string",
+			"format": "email"
+		},
+		"uriType_v01": {
+			"title": "UriType",
+			"description": "The URI of the related entity, typically used to represent any internet or social network address",
+			"type": "string",
+			"format": "uri"
+		},
+		"indicatorType_v01": {
+			"title": "IndicatorType",
+			"description": "Boolean value, typically used to represent an indicator style attribute",
+			"type": "boolean"
+		},
+		"dateType_v02": {
+			"title": "DateType",
+			"description": "The string representation of the date value using the ISO-8601:2000 format.  Supports complete date YYYY-MM-DD or partial, e.g. YYYY or MM-DD",
+			"type": "string",
+			"pattern": "^([12]\\d{3}(-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[0-1]))?)|(([12]\\d{3}-)?(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[0-1]))$"
+		},
+		"dateType_v01": {
+			"title": "DateType",
+			"description": "The string representation of the date value using the ISO-8601:2000 format",
+			"type": "string",
+			"format": "date"
+		}
+	},
+	"additionalProperties": false,
+	"properties": {
+		"groupStatus": {
+			"description": "Corporate group status and the reason for the status",
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"statusCode": {
+					"description": "The status of the work assignment, e.g. active, inactive",
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"code": {
+							"$ref": "#/definitions/simpleCodeType_v01",
+							"description": "The code for the related entity"
+						},
+						"name": {
+							"description": "The short description of the related code used as a coded name",
+							"type": "string"
+						}
+					}
+				},
+				"reasonCode": {
+					"description": "The reason associated to the correlating status, e.g. new hire, rehire, termination, etc.",
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"code": {
+							"$ref": "#/definitions/simpleCodeType_v01",
+							"description": "The code for the related entity"
+						},
+						"name": {
+							"description": "The short description of the related code used as a coded name",
+							"type": "string"
+						}
+					}
+				},
+				"effectiveDateTime": {
+					"$ref": "#/definitions/dateTimeType_v01",
+					"description": "The effective date of the related entity in ISO-8601:2000 format"
+				}
+			}
+		},
+		"homeWorkLocation": {
+			"description": "The home work location is the location out of which the work assignment is based. It does not necessarily mean that the worker is physically located in that location. This data becomes relevant for affirmative action reasons. In the US for example, if a worker works from home or a location where there is not an EEO-1 form/location, then the worker is accounted for based on the location of the reports to manager or work unit. Additionally, other things like market salaries, taxes, etc. would be aligned to home office location",
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"locationID": {
+					"$ref": "#/definitions/simpleIDType_v01"
+				},
+				"nameCode": {
+					"description": "The location type code and description, e.g. HDQ, headquarters",
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"code": {
+							"$ref": "#/definitions/simpleCodeType_v01",
+							"description": "The code for the related entity"
+						},
+						"name": {
+							"description": "The short description of the related code used as a coded name",
+							"type": "string"
+						}
+					}
+				},
+				"address": {
+					"description": "The address of the party",
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"nameCode": {
+							"description": "Descriptive coded name of the address",
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"code": {
+									"$ref": "#/definitions/simpleCodeType_v01",
+									"description": "The code for the related entity"
+								},
+								"name": {
+									"description": "The short description of the related code used as a coded name",
+									"type": "string"
+								}
+							}
+						},
+						"attentionOfName": {
+							"description": "Attention of name",
+							"type": "string"
+						},
+						"careOfName": {
+							"description": "Care of name",
+							"type": "string"
+						},
+						"scriptCode": {
+							"description": "The code for the related entity.  If this is a coded value, both code and name should be used. If this is just a string value, only name is necessary.",
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"code": {
+									"$ref": "#/definitions/simpleCodeType_v01",
+									"description": "The code for the related entity"
+								},
+								"name": {
+									"description": "The short description of the related code used as a coded name",
+									"type": "string"
+								}
+							}
+						},
+						"lineFour": {
+							"description": "Line Four of Street Address Information",
+							"type": "string"
+						},
+						"lineFive": {
+							"description": "Line Five of Street Address Information",
+							"type": "string"
+						},
+						"buildingNumber": {
+							"description": "The number of a building in the context of a physical address",
+							"type": "string"
+						},
+						"buildingNumberExtension": {
+							"description": "Additional value to supplememnt number of a building in the context of a physical address, e.g. section, etc.",
+							"type": "string"
+						},
+						"buildingName": {
+							"description": "The name of a building in the context of a physical address, e.g. Rockefeller Center",
+							"type": "string"
+						},
+						"blockName": {
+							"description": "The name the block",
+							"type": "string"
+						},
+						"streetName": {
+							"description": "The name of the street",
+							"type": "string"
+						},
+						"streetTypeCode": {
+							"description": "The type of street, e.g. lane, passage, way, etc.",
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"code": {
+									"$ref": "#/definitions/simpleCodeType_v01",
+									"description": "The code for the related entity"
+								},
+								"name": {
+									"description": "The short description of the related code used as a coded name",
+									"type": "string"
+								}
+							}
+						},
+						"unit": {
+							"description": "A unit in the context of an address, e.g. an Apartment Number or an Office",
+							"type": "string"
+						},
+						"floor": {
+							"description": "A floor in the context of an address",
+							"type": "string"
+						},
+						"stairCase": {
+							"description": "A reference to a particular staircase in the context of an address",
+							"type": "string"
+						},
+						"door": {
+							"description": "A reference to a particular door in the context of an address. e.g. Apartment Number",
+							"type": "string"
+						},
+						"postOfficeBox": {
+							"description": "A post office box",
+							"type": "string"
+						},
+						"deliveryPoint": {
+							"description": "A way to identify a specific delivery location, e.g. a mail-stop",
+							"type": "string"
+						},
+						"plotID": {
+							"description": "A way to identify a building plot, e.g. a specific building construction site",
+							"type": "string"
+						},
+						"geoCoordinates": {
+							"$ref": "#/definitions/coordinatesType_v01",
+							"description": "The coordinates of the location of the address"
+						},
+						"sameAsAddressLink": {
+							"description": "This link is used in conjunction with the sameAsAddressIndicator. If a given system support same as address functionality, this link will point to the address that a user has selected as being the same as the one in context. For example, if the address in context is a dependent address, and the user has indicated that the dependent address is the same as the legal address of the worker, this link would point to worker/id/person/legalAddress.",
+							"type": "object",
+							"required": [
+								"href"
+							],
+							"additionalProperties": false,
+							"properties": {
+								"linkID": {
+									"description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+									"type": "string",
+									"pattern": "^[a-zA-Z0-9.$-_/]+$"
+								},
+								"href": {
+									"description": "The URI of the related entity, typically used to represent any internet or social network address",
+									"type": "string",
+									"format": "uri"
+								},
+								"rel": {
+									"description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+									"type": "string",
+									"enum": [
+										"alternate",
+										"canonical",
+										"create",
+										"describedby",
+										"edit-form",
+										"enclosure",
+										"first",
+										"full",
+										"last",
+										"latest-version",
+										"next",
+										"previous",
+										"related",
+										"root",
+										"self",
+										"search",
+										"successor-version",
+										"up",
+										"/adp/attachment",
+										"/adp/callback",
+										"/adp/codelist",
+										"/adp/confirm-message",
+										"/adp/deeplink",
+										"/adp/event",
+										"/adp/externalLink",
+										"/adp/image",
+										"/adp/invoke",
+										"/adp/payroll/voided-payment-calculation",
+										"/adp/processing-status",
+										"/adp/request-result",
+										"/adp/template",
+										"/adp/validation",
+										"/adp/workflow",
+										"/adp/status-monitor"
+									]
+								},
+								"canonicalUri": {
+									"$ref": "#/definitions/canonicalUriType_v01",
+									"description": "A unique identifier of the feature/function/operation that the link points to"
+								},
+								"title": {
+									"description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+									"type": "string"
+								},
+								"mediaType": {
+									"description": "The media type that the linked resource will return (Response) in",
+									"type": "string",
+									"enum": [
+										"application/gzip",
+										"application/json",
+										"application/msword",
+										"application/pdf",
+										"application/postscript",
+										"application/vnd.ms-excel",
+										"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+										"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+										"application/xml",
+										"application/x-www-form-urlencoded",
+										"image/gif",
+										"image/jpeg",
+										"image/png",
+										"image/tiff",
+										"multipart/mixed",
+										"text/html",
+										"text/plain",
+										"application/vnd.visio",
+										"image/bmp",
+										"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+										"application/vnd.ms-powerpoint",
+										"video/mp4",
+										"audio/mpeg",
+										"video/x-msvideo",
+										"video/x-ms-wmv",
+										"application/rtf",
+										"application/vnd.ms-outlook",
+										"text/csv",
+										"video/quicktime",
+										"application/zip",
+										"application/illustrator",
+										"text/xml",
+										"application/x-shockwave-flash",
+										"multipart/form-data",
+										"application/merge-patch+json"
+									]
+								},
+								"method": {
+									"description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT, PATCH or DELETE)",
+									"type": "string",
+									"enum": [
+										"GET",
+										"POST",
+										"PUT",
+										"PATCH",
+										"DELETE"
+									]
+								},
+								"payloadArguments": {
+									"type": "array",
+									"items": {
+										"type": "object",
+										"required": [
+											"argumentValue"
+										],
+										"additionalProperties": false,
+										"properties": {
+											"argumentTypeCode": {
+												"description": "Argument type / location",
+												"type": "string",
+												"enum": [
+													"header",
+													"path",
+													"query",
+													"body"
+												]
+											},
+											"argumentName": {
+												"description": "Argument name to be passed in",
+												"type": "string"
+											},
+											"argumentPath": {
+												"description": "Argument path, if referenced from within the body",
+												"type": "string"
+											},
+											"argumentValue": {
+												"description": "Argument name to be passed in",
+												"type": "string"
+											}
+										}
+									}
+								},
+								"linkTags": {
+									"description": "Collection of tags to indicate additional natures or aspects of the link. User agents MAY use these tags when presenting the link to the user to provide visual cues of the link's purpose",
+									"type": "array",
+									"items": {
+										"description": "Basic common representation of a tag",
+										"type": "object",
+										"additionalProperties": false,
+										"properties": {
+											"tagCode": {
+												"$ref": "#/definitions/simpleCodeType_v01",
+												"description": "The code identifying the tag"
+											},
+											"tagValues": {
+												"description": "A list of the tag values",
+												"type": "array",
+												"items": {
+													"type": "string"
+												}
+											}
+										}
+									}
+								}
+							}
+						},
+						"addressID": {
+							"$ref": "#/definitions/simpleIDType_v01"
+						},
+						"typeCode": {
+							"description": "The code for the related entity.  If this is a coded value, both code and name should be used. If this is just a string value, only name is necessary.",
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"code": {
+									"$ref": "#/definitions/simpleCodeType_v01",
+									"description": "The code for the related entity"
+								},
+								"name": {
+									"description": "The short description of the related code used as a coded name",
+									"type": "string"
+								}
+							}
+						},
+						"lineOne": {
+							"description": "Line One of Street Address Information",
+							"type": "string"
+						},
+						"lineTwo": {
+							"description": "Line Two of Street Address Information",
+							"type": "string"
+						},
+						"lineThree": {
+							"description": "Line Three of Street Address Information",
+							"type": "string"
+						},
+						"cityName": {
+							"description": "A city in the context of an address",
+							"type": "string"
+						},
+						"subdivisionCode": {
+							"$ref": "#/definitions/subdivisionCodeType_v01",
+							"description": "A country subdivision correlating to a administrative level below country. e.g. in the US, this would be a state"
+						},
+						"subdivisionCode2": {
+							"$ref": "#/definitions/subdivisionCodeType_v01",
+							"description": "A country subdivision correlating to a administrative level two levels below country. e.g. in the US, this would be a county"
+						},
+						"countryCode": {
+							"$ref": "#/definitions/countryCodeType_v01"
+						},
+						"postalCode": {
+							"$ref": "#/definitions/postalCodeType_v01"
+						},
+						"formattedAddress": {
+							"description": "Indicates the formatted Address Information",
+							"type": "string"
+						}
+					}
+				},
+				"communication": {
+					"description": "Complete representation of comminication mechanisms for the related person or organization",
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"faxes": {
+							"description": "A list of fax telephone numbers",
+							"type": "array",
+							"items": {
+								"description": "The telephone (fax, pager) of the related entity",
+								"type": "object",
+								"additionalProperties": false,
+								"properties": {
+									"nameCode": {
+										"description": "A coded name or descriptive label of the associated phone number",
+										"type": "object",
+										"additionalProperties": false,
+										"properties": {
+											"code": {
+												"$ref": "#/definitions/simpleCodeType_v01",
+												"description": "The code for the related entity"
+											},
+											"name": {
+												"description": "The short description of the related code used as a coded name",
+												"type": "string"
+											}
+										}
+									},
+									"countryDialing": {
+										"description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country",
+										"type": "string"
+									},
+									"areaDialing": {
+										"description": "The local area dialing code for a telephone number",
+										"type": "string"
+									},
+									"dialNumber": {
+										"description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+										"type": "string"
+									},
+									"extension": {
+										"description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+										"type": "string"
+									},
+									"access": {
+										"description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1",
+										"type": "string"
+									},
+									"formattedNumber": {
+										"description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as per the given locale rules",
+										"type": "string"
+									}
+								}
+							}
+						},
+						"pagers": {
+							"description": "A list of pager telephone numbers",
+							"type": "array",
+							"items": {
+								"description": "The telephone (fax, pager) of the related entity",
+								"type": "object",
+								"additionalProperties": false,
+								"properties": {
+									"nameCode": {
+										"description": "A coded name or descriptive label of the associated phone number",
+										"type": "object",
+										"additionalProperties": false,
+										"properties": {
+											"code": {
+												"$ref": "#/definitions/simpleCodeType_v01",
+												"description": "The code for the related entity"
+											},
+											"name": {
+												"description": "The short description of the related code used as a coded name",
+												"type": "string"
+											}
+										}
+									},
+									"countryDialing": {
+										"description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country",
+										"type": "string"
+									},
+									"areaDialing": {
+										"description": "The local area dialing code for a telephone number",
+										"type": "string"
+									},
+									"dialNumber": {
+										"description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+										"type": "string"
+									},
+									"extension": {
+										"description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+										"type": "string"
+									},
+									"access": {
+										"description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1",
+										"type": "string"
+									},
+									"formattedNumber": {
+										"description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as per the given locale rules",
+										"type": "string"
+									}
+								}
+							}
+						},
+						"internetAddresses": {
+							"description": "A list of internet URIs",
+							"type": "array",
+							"items": {
+								"description": "The Internet address of the related entity to represent an associated website or social network",
+								"type": "object",
+								"required": [
+									"uri"
+								],
+								"additionalProperties": false,
+								"properties": {
+									"nameCode": {
+										"description": "A coded name or descriptive label of the associated internet address address",
+										"type": "object",
+										"additionalProperties": false,
+										"properties": {
+											"code": {
+												"$ref": "#/definitions/simpleCodeType_v01",
+												"description": "The code for the related entity"
+											},
+											"name": {
+												"description": "The short description of the related code used as a coded name",
+												"type": "string"
+											}
+										}
+									},
+									"uri": {
+										"$ref": "#/definitions/uriType_v01",
+										"description": "The URI of the associated website or social network"
+									}
+								}
+							}
+						},
+						"instantMessages": {
+							"description": "A list of instant messages URIs",
+							"type": "array",
+							"items": {
+								"description": "The Internet address of the related entity to represent an associated website or social network",
+								"type": "object",
+								"required": [
+									"uri"
+								],
+								"additionalProperties": false,
+								"properties": {
+									"nameCode": {
+										"description": "A coded name or descriptive label of the associated internet address address",
+										"type": "object",
+										"additionalProperties": false,
+										"properties": {
+											"code": {
+												"$ref": "#/definitions/simpleCodeType_v01",
+												"description": "The code for the related entity"
+											},
+											"name": {
+												"description": "The short description of the related code used as a coded name",
+												"type": "string"
+											}
+										}
+									},
+									"uri": {
+										"$ref": "#/definitions/uriType_v01",
+										"description": "The URI of the associated website or social network"
+									}
+								}
+							}
+						},
+						"landlines": {
+							"description": "A list of landline telephone numbers",
+							"type": "array",
+							"items": {
+								"title": "landline",
+								"type": "object",
+								"description": "The telephone (fax, pager) of the related entity",
+								"additionalProperties": false,
+								"properties": {
+									"notificationIndicator": {
+										"$ref": "#/definitions/indicatorType_v01",
+										"description": "Indicates if the current landline number should be used for notifications"
+									},
+									"nameCode": {
+										"description": "A coded name or descriptive label of the associated phone number",
+										"type": "object",
+										"additionalProperties": false,
+										"properties": {
+											"code": {
+												"$ref": "#/definitions/simpleCodeType_v01",
+												"description": "The code for the related entity"
+											},
+											"name": {
+												"description": "The short description of the related code used as a coded name",
+												"type": "string"
+											}
+										}
+									},
+									"countryDialing": {
+										"description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country",
+										"type": "string"
+									},
+									"areaDialing": {
+										"description": "The local area dialing code for a telephone number",
+										"type": "string"
+									},
+									"dialNumber": {
+										"description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+										"type": "string"
+									},
+									"extension": {
+										"description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+										"type": "string"
+									},
+									"access": {
+										"description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1",
+										"type": "string"
+									},
+									"formattedNumber": {
+										"description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as per the given locale rules",
+										"type": "string"
+									}
+								}
+							}
+						},
+						"mobiles": {
+							"description": "A list of mobile telephone numbers",
+							"type": "array",
+							"items": {
+								"title": "mobile",
+								"type": "object",
+								"description": "The telephone (fax, pager) of the related entity",
+								"additionalProperties": false,
+								"properties": {
+									"notificationIndicator": {
+										"$ref": "#/definitions/indicatorType_v01",
+										"description": "Indicates if the current mobile number should be used for notifications"
+									},
+									"nameCode": {
+										"description": "A coded name or descriptive label of the associated phone number",
+										"type": "object",
+										"additionalProperties": false,
+										"properties": {
+											"code": {
+												"$ref": "#/definitions/simpleCodeType_v01",
+												"description": "The code for the related entity"
+											},
+											"name": {
+												"description": "The short description of the related code used as a coded name",
+												"type": "string"
+											}
+										}
+									},
+									"countryDialing": {
+										"description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country",
+										"type": "string"
+									},
+									"areaDialing": {
+										"description": "The local area dialing code for a telephone number",
+										"type": "string"
+									},
+									"dialNumber": {
+										"description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+										"type": "string"
+									},
+									"extension": {
+										"description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+										"type": "string"
+									},
+									"access": {
+										"description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1",
+										"type": "string"
+									},
+									"formattedNumber": {
+										"description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as per the given locale rules",
+										"type": "string"
+									}
+								}
+							}
+						},
+						"emails": {
+							"description": "A list of email addresses",
+							"type": "array",
+							"items": {
+								"title": "email",
+								"type": "object",
+								"description": "The email address of the related entity",
+								"required": [
+									"emailUri"
+								],
+								"additionalProperties": false,
+								"properties": {
+									"notificationIndicator": {
+										"$ref": "#/definitions/indicatorType_v01",
+										"description": "Indicates if the current email address should be used for notifications"
+									},
+									"nameCode": {
+										"description": "A coded name or descriptive label of the associated email address",
+										"type": "object",
+										"additionalProperties": false,
+										"properties": {
+											"code": {
+												"$ref": "#/definitions/simpleCodeType_v01",
+												"description": "The code for the related entity"
+											},
+											"name": {
+												"description": "The short description of the related code used as a coded name",
+												"type": "string"
+											}
+										}
+									},
+									"emailUri": {
+										"$ref": "#/definitions/emailUriType_v01",
+										"description": "The URI of the associated email address"
+									}
+								}
+							}
+						},
+						"socialNetworks": {
+							"description": "A list of social networks addresses",
+							"type": "array",
+							"items": {
+								"description": "The Internet address of the related social network",
+								"type": "object",
+								"additionalProperties": false,
+								"properties": {
+									"nameCode": {
+										"description": "A coded name or descriptive label of the associated email address",
+										"type": "object",
+										"additionalProperties": false,
+										"properties": {
+											"code": {
+												"$ref": "#/definitions/simpleCodeType_v01",
+												"description": "The code for the related entity"
+											},
+											"name": {
+												"description": "The short description of the related code used as a coded name",
+												"type": "string"
+											}
+										}
+									},
+									"uri": {
+										"$ref": "#/definitions/uriType_v01",
+										"description": "The URI of the associated website or social network"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"homeOrganizationalUnits": {
+			"description": "A list of HOME organizational units that define the work assignments and perhaps fund them. There should only be one home organizational unit for a given type, e.g. only one home company or department.",
+			"type": "array",
+			"items": {
+				"description": "details of an organizational unit that defines the work assignmnet and perhaps funds it",
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"unitID": {
+						"$ref": "#/definitions/simpleIDType_v01",
+						"description": "Unique identifiers of the organizational unit"
+					},
+					"alternateUnitIDs": {
+						"description": "Alternate identifiers of the organizational unit",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"schemeCode": {
+								"description": "The composite ID scheme code",
+								"type": "object",
+								"additionalProperties": false,
+								"properties": {
+									"code": {
+										"$ref": "#/definitions/simpleCodeType_v01",
+										"description": "The code for the related entity"
+									},
+									"name": {
+										"description": "The short description of the related code used as a coded name",
+										"type": "string"
+									}
+								}
+							},
+							"IDs": {
+								"type": "array",
+								"items": {
+									"description": "The unique identifier of the related entity expressed as an object.  It is used when the scheme or a reference to an organzation describing a related ID is needed, e.g. ANSI, ISO, ADP, etc.",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"id": {
+											"$ref": "#/definitions/simpleIDType_v01",
+											"description": "actual ID value"
+										},
+										"scheme": {
+											"description": "The scheme code describing a related ID",
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"code": {
+													"$ref": "#/definitions/simpleCodeType_v01",
+													"description": "The code for the related entity"
+												},
+												"name": {
+													"description": "The short description of the related code used as a coded name",
+													"type": "string"
+												}
+											}
+										},
+										"schemeAgency": {
+											"description": "The agency that issues the ID",
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					},
+					"unitName": {
+						"description": "Name of the organization unit or the company",
+						"type": "string"
+					},
+					"nameCode": {
+						"description": "A coded name or descriptive label of the associated organizational unit entity",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"code": {
+								"$ref": "#/definitions/simpleCodeType_v01",
+								"description": "The code for the related entity"
+							},
+							"name": {
+								"description": "The short description of the related code used as a coded name",
+								"type": "string"
+							}
+						}
+					},
+					"typeCode": {
+						"description": "The organizational unit code and description, e.g. department code.",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"code": {
+								"$ref": "#/definitions/simpleCodeType_v01",
+								"description": "The code for the related entity"
+							},
+							"name": {
+								"description": "The short description of the related code used as a coded name",
+								"type": "string"
+							}
+						}
+					},
+					"legalName": {
+						"description": "Legal name of the organizational unit",
+						"type": "string"
+					},
+					"governmentIDs": {
+						"description": "A list of government identifiers, i.e. EIN or Tax ID, possibly for different countries",
+						"type": "array",
+						"items": {
+							"description": "A government identifier, e.g. a national identity number or a social insurance number",
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"id": {
+									"$ref": "#/definitions/simpleIDType_v01"
+								},
+								"nameCode": {
+									"description": "Coded name or descriptive label of the associated government ID",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"code": {
+											"$ref": "#/definitions/simpleCodeType_v01",
+											"description": "The code for the related entity"
+										},
+										"name": {
+											"description": "The short description of the related code used as a coded name",
+											"type": "string"
+										}
+									}
+								},
+								"jurisdiction": {
+									"description": "The basic representation of a jurisdiction",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"jurisdictionID": {
+											"$ref": "#/definitions/simpleIDType_v01",
+											"description": "Unique identifier of the associated jurisdiction, typically system generated"
+										},
+										"jurisdictionCode": {
+											"description": "The coded name of the associated jurisdiction.  If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary.",
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"code": {
+													"$ref": "#/definitions/simpleCodeType_v01",
+													"description": "The code for the related entity"
+												},
+												"name": {
+													"description": "The short description of the related code used as a coded name",
+													"type": "string"
+												}
+											}
+										},
+										"jurisdictionLevelCode": {
+											"description": "The level of the associated jurisdiction, e.g. county, state, federal, etc.",
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"code": {
+													"$ref": "#/definitions/simpleCodeType_v01",
+													"description": "The code for the related entity"
+												},
+												"name": {
+													"description": "The short description of the related code used as a coded name",
+													"type": "string"
+												}
+											}
+										},
+										"statutoryClassificationCode": {
+											"description": "The statutory jurisdiction classification. i.e LIVED_IN, WORKED_IN, BOTH",
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"code": {
+													"$ref": "#/definitions/simpleCodeType_v01",
+													"description": "The code for the related entity"
+												},
+												"name": {
+													"description": "The short description of the related code used as a coded name",
+													"type": "string"
+												}
+											}
+										},
+										"primaryWorkedInIndicator": {
+											"$ref": "#/definitions/indicatorType_v01",
+											"description": "Used in combination with WORKED_IN to indicate if jurisdiction is primary worked in"
+										}
+									}
+								},
+								"statusCode": {
+									"description": "Status of the associated  government ID",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"code": {
+											"$ref": "#/definitions/simpleCodeType_v01",
+											"description": "The code for the related entity"
+										},
+										"name": {
+											"description": "The short description of the related code used as a coded name",
+											"type": "string"
+										},
+										"effectiveDateTime": {
+											"$ref": "#/definitions/dateTimeType_v01"
+										}
+									}
+								},
+								"expirationDate": {
+									"$ref": "#/definitions/dateType_v02",
+									"description": "The date of the related entity using the ISO-8601:2000 format"
+								},
+								"alternateIDs": {
+									"description": "Collection of alternate IDs- external client ID and previous plan ID in case of renewals",
+									"type": "array",
+									"items": {
+										"description": "The unique identifier of the related entity expressed as an object.  It is used when the scheme or a reference to an organzation describing a related ID is needed, e.g. ANSI, ISO, ADP, etc.",
+										"type": "object",
+										"additionalProperties": false,
+										"properties": {
+											"id": {
+												"$ref": "#/definitions/simpleIDType_v01",
+												"description": "actual ID value"
+											},
+											"scheme": {
+												"description": "The scheme code describing a related ID",
+												"type": "object",
+												"additionalProperties": false,
+												"properties": {
+													"code": {
+														"$ref": "#/definitions/simpleCodeType_v01",
+														"description": "The code for the related entity"
+													},
+													"name": {
+														"description": "The short description of the related code used as a coded name",
+														"type": "string"
+													}
+												}
+											},
+											"schemeAgency": {
+												"description": "The agency that issues the ID",
+												"type": "string"
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"locations": {
+						"type": "array",
+						"items": {
+							"description": "Details of a particular location, e.g. headquarters, regional, etc.",
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"locationID": {
+									"$ref": "#/definitions/simpleIDType_v01"
+								},
+								"nameCode": {
+									"description": "The location type code and description, e.g. HDQ, headquarters",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"code": {
+											"$ref": "#/definitions/simpleCodeType_v01",
+											"description": "The code for the related entity"
+										},
+										"name": {
+											"description": "The short description of the related code used as a coded name",
+											"type": "string"
+										}
+									}
+								},
+								"address": {
+									"description": "The address of the party",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"nameCode": {
+											"description": "Descriptive coded name of the address",
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"code": {
+													"$ref": "#/definitions/simpleCodeType_v01",
+													"description": "The code for the related entity"
+												},
+												"name": {
+													"description": "The short description of the related code used as a coded name",
+													"type": "string"
+												}
+											}
+										},
+										"attentionOfName": {
+											"description": "Attention of name",
+											"type": "string"
+										},
+										"careOfName": {
+											"description": "Care of name",
+											"type": "string"
+										},
+										"scriptCode": {
+											"description": "The code for the related entity.  If this is a coded value, both code and name should be used. If this is just a string value, only name is necessary.",
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"code": {
+													"$ref": "#/definitions/simpleCodeType_v01",
+													"description": "The code for the related entity"
+												},
+												"name": {
+													"description": "The short description of the related code used as a coded name",
+													"type": "string"
+												}
+											}
+										},
+										"lineFour": {
+											"description": "Line Four of Street Address Information",
+											"type": "string"
+										},
+										"lineFive": {
+											"description": "Line Five of Street Address Information",
+											"type": "string"
+										},
+										"buildingNumber": {
+											"description": "The number of a building in the context of a physical address",
+											"type": "string"
+										},
+										"buildingNumberExtension": {
+											"description": "Additional value to supplememnt number of a building in the context of a physical address, e.g. section, etc.",
+											"type": "string"
+										},
+										"buildingName": {
+											"description": "The name of a building in the context of a physical address, e.g. Rockefeller Center",
+											"type": "string"
+										},
+										"blockName": {
+											"description": "The name the block",
+											"type": "string"
+										},
+										"streetName": {
+											"description": "The name of the street",
+											"type": "string"
+										},
+										"streetTypeCode": {
+											"description": "The type of street, e.g. lane, passage, way, etc.",
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"code": {
+													"$ref": "#/definitions/simpleCodeType_v01",
+													"description": "The code for the related entity"
+												},
+												"name": {
+													"description": "The short description of the related code used as a coded name",
+													"type": "string"
+												}
+											}
+										},
+										"unit": {
+											"description": "A unit in the context of an address, e.g. an Apartment Number or an Office",
+											"type": "string"
+										},
+										"floor": {
+											"description": "A floor in the context of an address",
+											"type": "string"
+										},
+										"stairCase": {
+											"description": "A reference to a particular staircase in the context of an address",
+											"type": "string"
+										},
+										"door": {
+											"description": "A reference to a particular door in the context of an address. e.g. Apartment Number",
+											"type": "string"
+										},
+										"postOfficeBox": {
+											"description": "A post office box",
+											"type": "string"
+										},
+										"deliveryPoint": {
+											"description": "A way to identify a specific delivery location, e.g. a mail-stop",
+											"type": "string"
+										},
+										"plotID": {
+											"description": "A way to identify a building plot, e.g. a specific building construction site",
+											"type": "string"
+										},
+										"geoCoordinates": {
+											"$ref": "#/definitions/coordinatesType_v01",
+											"description": "The coordinates of the location of the address"
+										},
+										"sameAsAddressLink": {
+											"description": "This link is used in conjunction with the sameAsAddressIndicator. If a given system support same as address functionality, this link will point to the address that a user has selected as being the same as the one in context. For example, if the address in context is a dependent address, and the user has indicated that the dependent address is the same as the legal address of the worker, this link would point to worker/id/person/legalAddress.",
+											"type": "object",
+											"required": [
+												"href"
+											],
+											"additionalProperties": false,
+											"properties": {
+												"linkID": {
+													"description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+													"type": "string",
+													"pattern": "^[a-zA-Z0-9.$-_/]+$"
+												},
+												"href": {
+													"description": "The URI of the related entity, typically used to represent any internet or social network address",
+													"type": "string",
+													"format": "uri"
+												},
+												"rel": {
+													"description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+													"type": "string",
+													"enum": [
+														"alternate",
+														"canonical",
+														"create",
+														"describedby",
+														"edit-form",
+														"enclosure",
+														"first",
+														"full",
+														"last",
+														"latest-version",
+														"next",
+														"previous",
+														"related",
+														"root",
+														"self",
+														"search",
+														"successor-version",
+														"up",
+														"/adp/attachment",
+														"/adp/callback",
+														"/adp/codelist",
+														"/adp/confirm-message",
+														"/adp/deeplink",
+														"/adp/event",
+														"/adp/externalLink",
+														"/adp/image",
+														"/adp/invoke",
+														"/adp/payroll/voided-payment-calculation",
+														"/adp/processing-status",
+														"/adp/request-result",
+														"/adp/template",
+														"/adp/validation",
+														"/adp/workflow",
+														"/adp/status-monitor"
+													]
+												},
+												"canonicalUri": {
+													"$ref": "#/definitions/canonicalUriType_v01",
+													"description": "A unique identifier of the feature/function/operation that the link points to"
+												},
+												"title": {
+													"description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+													"type": "string"
+												},
+												"mediaType": {
+													"description": "The media type that the linked resource will return (Response) in",
+													"type": "string",
+													"enum": [
+														"application/gzip",
+														"application/json",
+														"application/msword",
+														"application/pdf",
+														"application/postscript",
+														"application/vnd.ms-excel",
+														"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+														"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+														"application/xml",
+														"application/x-www-form-urlencoded",
+														"image/gif",
+														"image/jpeg",
+														"image/png",
+														"image/tiff",
+														"multipart/mixed",
+														"text/html",
+														"text/plain",
+														"application/vnd.visio",
+														"image/bmp",
+														"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+														"application/vnd.ms-powerpoint",
+														"video/mp4",
+														"audio/mpeg",
+														"video/x-msvideo",
+														"video/x-ms-wmv",
+														"application/rtf",
+														"application/vnd.ms-outlook",
+														"text/csv",
+														"video/quicktime",
+														"application/zip",
+														"application/illustrator",
+														"text/xml",
+														"application/x-shockwave-flash",
+														"multipart/form-data",
+														"application/merge-patch+json"
+													]
+												},
+												"method": {
+													"description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT, PATCH or DELETE)",
+													"type": "string",
+													"enum": [
+														"GET",
+														"POST",
+														"PUT",
+														"PATCH",
+														"DELETE"
+													]
+												},
+												"payloadArguments": {
+													"type": "array",
+													"items": {
+														"type": "object",
+														"required": [
+															"argumentValue"
+														],
+														"additionalProperties": false,
+														"properties": {
+															"argumentTypeCode": {
+																"description": "Argument type / location",
+																"type": "string",
+																"enum": [
+																	"header",
+																	"path",
+																	"query",
+																	"body"
+																]
+															},
+															"argumentName": {
+																"description": "Argument name to be passed in",
+																"type": "string"
+															},
+															"argumentPath": {
+																"description": "Argument path, if referenced from within the body",
+																"type": "string"
+															},
+															"argumentValue": {
+																"description": "Argument name to be passed in",
+																"type": "string"
+															}
+														}
+													}
+												},
+												"linkTags": {
+													"description": "Collection of tags to indicate additional natures or aspects of the link. User agents MAY use these tags when presenting the link to the user to provide visual cues of the link's purpose",
+													"type": "array",
+													"items": {
+														"description": "Basic common representation of a tag",
+														"type": "object",
+														"additionalProperties": false,
+														"properties": {
+															"tagCode": {
+																"$ref": "#/definitions/simpleCodeType_v01",
+																"description": "The code identifying the tag"
+															},
+															"tagValues": {
+																"description": "A list of the tag values",
+																"type": "array",
+																"items": {
+																	"type": "string"
+																}
+															}
+														}
+													}
+												}
+											}
+										},
+										"addressID": {
+											"$ref": "#/definitions/simpleIDType_v01"
+										},
+										"typeCode": {
+											"description": "The code for the related entity.  If this is a coded value, both code and name should be used. If this is just a string value, only name is necessary.",
+											"type": "object",
+											"additionalProperties": false,
+											"properties": {
+												"code": {
+													"$ref": "#/definitions/simpleCodeType_v01",
+													"description": "The code for the related entity"
+												},
+												"name": {
+													"description": "The short description of the related code used as a coded name",
+													"type": "string"
+												}
+											}
+										},
+										"lineOne": {
+											"description": "Line One of Street Address Information",
+											"type": "string"
+										},
+										"lineTwo": {
+											"description": "Line Two of Street Address Information",
+											"type": "string"
+										},
+										"lineThree": {
+											"description": "Line Three of Street Address Information",
+											"type": "string"
+										},
+										"cityName": {
+											"description": "A city in the context of an address",
+											"type": "string"
+										},
+										"subdivisionCode": {
+											"$ref": "#/definitions/subdivisionCodeType_v01",
+											"description": "A country subdivision correlating to a administrative level below country. e.g. in the US, this would be a state"
+										},
+										"subdivisionCode2": {
+											"$ref": "#/definitions/subdivisionCodeType_v01",
+											"description": "A country subdivision correlating to a administrative level two levels below country. e.g. in the US, this would be a county"
+										},
+										"countryCode": {
+											"$ref": "#/definitions/countryCodeType_v01"
+										},
+										"postalCode": {
+											"$ref": "#/definitions/postalCodeType_v01"
+										},
+										"formattedAddress": {
+											"description": "Indicates the formatted Address Information",
+											"type": "string"
+										}
+									}
+								},
+								"communication": {
+									"description": "Complete representation of comminication mechanisms for the related person or organization",
+									"type": "object",
+									"additionalProperties": false,
+									"properties": {
+										"faxes": {
+											"description": "A list of fax telephone numbers",
+											"type": "array",
+											"items": {
+												"description": "The telephone (fax, pager) of the related entity",
+												"type": "object",
+												"additionalProperties": false,
+												"properties": {
+													"nameCode": {
+														"description": "A coded name or descriptive label of the associated phone number",
+														"type": "object",
+														"additionalProperties": false,
+														"properties": {
+															"code": {
+																"$ref": "#/definitions/simpleCodeType_v01",
+																"description": "The code for the related entity"
+															},
+															"name": {
+																"description": "The short description of the related code used as a coded name",
+																"type": "string"
+															}
+														}
+													},
+													"countryDialing": {
+														"description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country",
+														"type": "string"
+													},
+													"areaDialing": {
+														"description": "The local area dialing code for a telephone number",
+														"type": "string"
+													},
+													"dialNumber": {
+														"description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+														"type": "string"
+													},
+													"extension": {
+														"description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+														"type": "string"
+													},
+													"access": {
+														"description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1",
+														"type": "string"
+													},
+													"formattedNumber": {
+														"description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as per the given locale rules",
+														"type": "string"
+													}
+												}
+											}
+										},
+										"pagers": {
+											"description": "A list of pager telephone numbers",
+											"type": "array",
+											"items": {
+												"description": "The telephone (fax, pager) of the related entity",
+												"type": "object",
+												"additionalProperties": false,
+												"properties": {
+													"nameCode": {
+														"description": "A coded name or descriptive label of the associated phone number",
+														"type": "object",
+														"additionalProperties": false,
+														"properties": {
+															"code": {
+																"$ref": "#/definitions/simpleCodeType_v01",
+																"description": "The code for the related entity"
+															},
+															"name": {
+																"description": "The short description of the related code used as a coded name",
+																"type": "string"
+															}
+														}
+													},
+													"countryDialing": {
+														"description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country",
+														"type": "string"
+													},
+													"areaDialing": {
+														"description": "The local area dialing code for a telephone number",
+														"type": "string"
+													},
+													"dialNumber": {
+														"description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+														"type": "string"
+													},
+													"extension": {
+														"description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+														"type": "string"
+													},
+													"access": {
+														"description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1",
+														"type": "string"
+													},
+													"formattedNumber": {
+														"description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as per the given locale rules",
+														"type": "string"
+													}
+												}
+											}
+										},
+										"internetAddresses": {
+											"description": "A list of internet URIs",
+											"type": "array",
+											"items": {
+												"description": "The Internet address of the related entity to represent an associated website or social network",
+												"type": "object",
+												"required": [
+													"uri"
+												],
+												"additionalProperties": false,
+												"properties": {
+													"nameCode": {
+														"description": "A coded name or descriptive label of the associated internet address address",
+														"type": "object",
+														"additionalProperties": false,
+														"properties": {
+															"code": {
+																"$ref": "#/definitions/simpleCodeType_v01",
+																"description": "The code for the related entity"
+															},
+															"name": {
+																"description": "The short description of the related code used as a coded name",
+																"type": "string"
+															}
+														}
+													},
+													"uri": {
+														"$ref": "#/definitions/uriType_v01",
+														"description": "The URI of the associated website or social network"
+													}
+												}
+											}
+										},
+										"instantMessages": {
+											"description": "A list of instant messages URIs",
+											"type": "array",
+											"items": {
+												"description": "The Internet address of the related entity to represent an associated website or social network",
+												"type": "object",
+												"required": [
+													"uri"
+												],
+												"additionalProperties": false,
+												"properties": {
+													"nameCode": {
+														"description": "A coded name or descriptive label of the associated internet address address",
+														"type": "object",
+														"additionalProperties": false,
+														"properties": {
+															"code": {
+																"$ref": "#/definitions/simpleCodeType_v01",
+																"description": "The code for the related entity"
+															},
+															"name": {
+																"description": "The short description of the related code used as a coded name",
+																"type": "string"
+															}
+														}
+													},
+													"uri": {
+														"$ref": "#/definitions/uriType_v01",
+														"description": "The URI of the associated website or social network"
+													}
+												}
+											}
+										},
+										"landlines": {
+											"description": "A list of landline telephone numbers",
+											"type": "array",
+											"items": {
+												"title": "landline",
+												"type": "object",
+												"description": "The telephone (fax, pager) of the related entity",
+												"additionalProperties": false,
+												"properties": {
+													"notificationIndicator": {
+														"$ref": "#/definitions/indicatorType_v01",
+														"description": "Indicates if the current landline number should be used for notifications"
+													},
+													"nameCode": {
+														"description": "A coded name or descriptive label of the associated phone number",
+														"type": "object",
+														"additionalProperties": false,
+														"properties": {
+															"code": {
+																"$ref": "#/definitions/simpleCodeType_v01",
+																"description": "The code for the related entity"
+															},
+															"name": {
+																"description": "The short description of the related code used as a coded name",
+																"type": "string"
+															}
+														}
+													},
+													"countryDialing": {
+														"description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country",
+														"type": "string"
+													},
+													"areaDialing": {
+														"description": "The local area dialing code for a telephone number",
+														"type": "string"
+													},
+													"dialNumber": {
+														"description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+														"type": "string"
+													},
+													"extension": {
+														"description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+														"type": "string"
+													},
+													"access": {
+														"description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1",
+														"type": "string"
+													},
+													"formattedNumber": {
+														"description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as per the given locale rules",
+														"type": "string"
+													}
+												}
+											}
+										},
+										"mobiles": {
+											"description": "A list of mobile telephone numbers",
+											"type": "array",
+											"items": {
+												"title": "mobile",
+												"type": "object",
+												"description": "The telephone (fax, pager) of the related entity",
+												"additionalProperties": false,
+												"properties": {
+													"notificationIndicator": {
+														"$ref": "#/definitions/indicatorType_v01",
+														"description": "Indicates if the current mobile number should be used for notifications"
+													},
+													"nameCode": {
+														"description": "A coded name or descriptive label of the associated phone number",
+														"type": "object",
+														"additionalProperties": false,
+														"properties": {
+															"code": {
+																"$ref": "#/definitions/simpleCodeType_v01",
+																"description": "The code for the related entity"
+															},
+															"name": {
+																"description": "The short description of the related code used as a coded name",
+																"type": "string"
+															}
+														}
+													},
+													"countryDialing": {
+														"description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country",
+														"type": "string"
+													},
+													"areaDialing": {
+														"description": "The local area dialing code for a telephone number",
+														"type": "string"
+													},
+													"dialNumber": {
+														"description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+														"type": "string"
+													},
+													"extension": {
+														"description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+														"type": "string"
+													},
+													"access": {
+														"description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1",
+														"type": "string"
+													},
+													"formattedNumber": {
+														"description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as per the given locale rules",
+														"type": "string"
+													}
+												}
+											}
+										},
+										"emails": {
+											"description": "A list of email addresses",
+											"type": "array",
+											"items": {
+												"title": "email",
+												"type": "object",
+												"description": "The email address of the related entity",
+												"required": [
+													"emailUri"
+												],
+												"additionalProperties": false,
+												"properties": {
+													"notificationIndicator": {
+														"$ref": "#/definitions/indicatorType_v01",
+														"description": "Indicates if the current email address should be used for notifications"
+													},
+													"nameCode": {
+														"description": "A coded name or descriptive label of the associated email address",
+														"type": "object",
+														"additionalProperties": false,
+														"properties": {
+															"code": {
+																"$ref": "#/definitions/simpleCodeType_v01",
+																"description": "The code for the related entity"
+															},
+															"name": {
+																"description": "The short description of the related code used as a coded name",
+																"type": "string"
+															}
+														}
+													},
+													"emailUri": {
+														"$ref": "#/definitions/emailUriType_v01",
+														"description": "The URI of the associated email address"
+													}
+												}
+											}
+										},
+										"socialNetworks": {
+											"description": "A list of social networks addresses",
+											"type": "array",
+											"items": {
+												"description": "The Internet address of the related social network",
+												"type": "object",
+												"additionalProperties": false,
+												"properties": {
+													"nameCode": {
+														"description": "A coded name or descriptive label of the associated email address",
+														"type": "object",
+														"additionalProperties": false,
+														"properties": {
+															"code": {
+																"$ref": "#/definitions/simpleCodeType_v01",
+																"description": "The code for the related entity"
+															},
+															"name": {
+																"description": "The short description of the related code used as a coded name",
+																"type": "string"
+															}
+														}
+													},
+													"uri": {
+														"$ref": "#/definitions/uriType_v01",
+														"description": "The URI of the associated website or social network"
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"workerGroups": {
+			"description": "A list of group of workers within an organization created for a specific purpose such as for an organizational program, e.g. Benefit Eligibility Group",
+			"type": "array",
+			"items": {
+				"description": "The group of workers within an organization created for a specific purpose suchas for an organizational program, e.g. Benefit Eligibility Group",
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"groupID": {
+						"$ref": "#/definitions/simpleIDType_v01",
+						"description": "The unique idenrtifier of the group code"
+					},
+					"nameCode": {
+						"description": "The coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary.",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"code": {
+								"$ref": "#/definitions/simpleCodeType_v01",
+								"description": "The code for the related entity"
+							},
+							"name": {
+								"description": "The short description of the related code used as a coded name",
+								"type": "string"
+							}
+						}
+					},
+					"groupCode": {
+						"description": "The value of the group code",
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"code": {
+								"$ref": "#/definitions/simpleCodeType_v01",
+								"description": "The code for the related entity"
+							},
+							"name": {
+								"description": "The short description of the related code used as a coded name",
+								"type": "string"
+							}
+						}
+					}
+				}
+			}
+		},
+		"laborUnion": {
+			"description": "The associated labor union",
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"laborUnionCode": {
+					"description": "The code of the associated labor union",
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"code": {
+							"$ref": "#/definitions/simpleCodeType_v01",
+							"description": "The code for the related entity"
+						},
+						"name": {
+							"description": "The short description of the related code used as a coded name",
+							"type": "string"
+						}
+					}
+				},
+				"seniorityDate": {
+					"$ref": "#/definitions/dateType_v01",
+					"description": "The seniority date of the worker in the labor union"
+				}
+			}
+		},
+		"bargainingUnit": {
+			"description": "The associated bargaining unit (local labor union)",
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"bargainingUnitCode": {
+					"description": "A bargaining unit is a group of employees who are so grouped for the purpose of collective bargaining. A bargaining unit is also known as a local labor union.",
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"code": {
+							"$ref": "#/definitions/simpleCodeType_v01",
+							"description": "The code for the related entity"
+						},
+						"name": {
+							"description": "The short description of the related code used as a coded name",
+							"type": "string"
+						}
+					}
+				},
+				"seniorityDate": {
+					"$ref": "#/definitions/dateType_v01",
+					"description": "The seniority date of the worker in the bargaining unit"
+				}
+			}
+		}
+	}
+}

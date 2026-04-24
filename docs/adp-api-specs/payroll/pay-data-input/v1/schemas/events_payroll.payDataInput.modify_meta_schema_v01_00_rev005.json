@@ -1,0 +1,3274 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "PayDataInputModifyEventMeta",
+  "type": "object",
+  "description": "An instance to capture the modification pay data for a payroll run. Whereas the 'add' event allows for the complete submission of all the data necessary for a given payroll run, and the 'replace' event allows for the complete replacement of all the data necessary for a given payroll run, the 'modify' event allow for the incremental modification of the data relevant to a given payroll run. Via this event, pay data may be added incrementally, replaced incrementally, or removed incrementally - Meta",
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "description": "Event meta data",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "/serviceCategoryCode/codeValue": {
+          "description": "The service domain, e.g HR, Payroll, Benefits, etc. This field is always present and valued based on a standard codelist.",
+          "type": "string",
+          "enum": [
+            "payroll"
+          ]
+        },
+        "/eventNameCode/codeValue": {
+          "description": "This is the canonical name of the event, e.g. dependent.add, worker.hire. This field is always present and valued based on a standard codelist.",
+          "type": "string",
+          "enum": [
+            "payDataInput.modify"
+          ]
+        },
+        "queryCriteria": {
+          "description": "A collection of query criteria",
+          "type": "array",
+          "items": {
+            "title": "payDataInputmodifyQueryCriterion",
+            "description": "A single query parameter",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "queryOptionCode": {
+                "description": "A code identifying the supported query option",
+                "$ref": "#/definitions/simpleCodeType_v02"
+              },
+              "obligationCode": {
+                "description": "A Code identifying whether the parameter is required, optional, conditional",
+                "$ref": "#/definitions/simpleCodeType_v02"
+              },
+              "queryOptionTypeCode": {
+                "description": "A Code identifying the type of option.  Examples are standard, OData, clientCustom, userCustom",
+                "$ref": "#/definitions/simpleCodeType_v02"
+              },
+              "defaultNumberValue": {
+                "description": "The default number value",
+                "type": "number"
+              },
+              "defaultStringValue": {
+                "description": "The default string value",
+                "type": "string"
+              },
+              "resourcePathMax": {
+                "description": "Maximum number of resource paths supported",
+                "type": "integer"
+              },
+              "pattern": {
+                "description": "Indicates a regular expression on the required pattern for the value",
+                "type": "string"
+              },
+              "resourcePaths": {
+                "description": "A collection of acceptable resource paths to pass to the query option",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "excludedResourcePaths": {
+                "description": "A collection of resource paths which may not be passed to the query option.  An example use of this is where you allow all paths except 1 or 2.  You would want to only specify those which are excluded",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "queryValueCodeList": {
+                "description": "A reference to the codeList which returns the possible values for the query option",
+                "$ref": "#/definitions/codeListType_v03"
+              },
+              "logicalOperators": {
+                "description": "A collection of logical operators",
+                "type": "array",
+                "items": {
+                  "description": "A logical operation",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "logicalOperatorCode": {
+                      "description": "A coded identifying the supported query options",
+                      "$ref": "#/definitions/simpleCodeType_v02"
+                    },
+                    "mutuallyExclusiveIndicator": {
+                      "description": "The URI of the related entity",
+                      "$ref": "#/definitions/indicatorType_v01"
+                    },
+                    "mutuallyExclusiveLogicalOperatorCodes": {
+                      "description": "A list of mutually exclusive operator codes.",
+                      "type": "array",
+                      "items": {
+                        "description": "Mutually exclusive logical operator code.",
+                        "title": "MutuallyExclusiveLogicalOperatorCode",
+                        "$ref": "#/definitions/simpleCodeType_v02"
+                      }
+                    }
+                  }
+                }
+              },
+              "itemID": {
+                "description": "The unique identifier of the array",
+                "$ref": "#/definitions/itemIDType_v01"
+              }
+            }
+          }
+        },
+        "/data/eventContext": {
+          "description": "Validation rules for the event context",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "/payrollRegionCode": {
+              "$ref": "#/definitions/stringCodeListType_v02"
+            },
+            "/payrollRegionCode/codeValue": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/payrollRegionCode/shortName": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/payrollRegionCode/longName": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/payrollGroupCode": {
+              "$ref": "#/definitions/stringCodeListType_v02"
+            },
+            "/payrollGroupCode/codeValue": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/payrollGroupCode/shortName": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/payrollGroupCode/longName": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/payrollWeekNumber": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/payrollRunNumber": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/payrollProcessingJobID": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/payDate": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/payrollYearNumber": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/payrollPeriodNumber": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/contextExpressionID": {
+              "$ref": "#/definitions/stringType_v01"
+            },
+            "/payDataInput": {
+              "$ref": "#/definitions/objectType_v01"
+            },
+            "/payDataInput/itemID": {
+              "$ref": "#/definitions/stringType_v01"
+            }
+          }
+        },
+        "/data/transforms": {
+          "description": "A collection of transform rules",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "itemID": {
+                "description": "The unique identifier of the collection.",
+                "type": "string"
+              },
+              "/eventReasonCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/eventReasonCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/eventReasonCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/eventReasonCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/eventStatusCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/eventStatusCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/eventStatusCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/eventStatusCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/effectiveDateTime": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/notificationIndicator": {
+                "$ref": "#/definitions/booleanType_v01"
+              },
+              "/payDataInput": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/configurationTags": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/configurationTags/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/configurationTags/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/configurationTags/tagCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/configurationTags/tagCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/configurationTags/tagCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/configurationTags/tagCode/alternateNames": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/configurationTags/tagCode/alternateNames/languageCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/configurationTags/tagCode/alternateNames/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/configurationTags/tagCode/alternateNames/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/configurationTags/tagType": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/configurationTags/tagType/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/configurationTags/tagType/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/configurationTags/tagType/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/configurationTags/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/configurationTags/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/totalAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/totalAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/totalAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/totalQuantity": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/totalQuantity/quantityValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/totalQuantity/unitTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/totalQuantity/unitTypeCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/totalQuantity/unitTypeCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/earningInputsTotals/totalQuantity/unitTypeCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/configurationTags": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/configurationTags/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/configurationTags/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/configurationTags/tagCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/configurationTags/tagCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/configurationTags/tagCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/configurationTags/tagCode/alternateNames": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/configurationTags/tagCode/alternateNames/languageCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/configurationTags/tagCode/alternateNames/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/configurationTags/tagCode/alternateNames/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/configurationTags/tagType": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/configurationTags/tagType/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/configurationTags/tagType/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/configurationTags/tagType/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/configurationTags/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/configurationTags/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/totalAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/totalAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/totalAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/totalQuantity": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/totalQuantity/quantityValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/totalQuantity/unitTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/totalQuantity/unitTypeCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/totalQuantity/unitTypeCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/memoInputsTotals/totalQuantity/unitTypeCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/configurationTags": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/configurationTags/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/configurationTags/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/configurationTags/tagCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/configurationTags/tagCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/configurationTags/tagCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/configurationTags/tagCode/alternateNames": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/configurationTags/tagCode/alternateNames/languageCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/configurationTags/tagCode/alternateNames/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/configurationTags/tagCode/alternateNames/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/configurationTags/tagType": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/configurationTags/tagType/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/configurationTags/tagType/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/configurationTags/tagType/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/configurationTags/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/configurationTags/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/totalAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/totalAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/totalAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/totalQuantity": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/totalQuantity/quantityValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/totalQuantity/unitTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/totalQuantity/unitTypeCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/totalQuantity/unitTypeCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reportableEarningAndBenefitInputsTotals/totalQuantity/unitTypeCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/configurationTags": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/configurationTags/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/configurationTags/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/configurationTags/tagCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/configurationTags/tagCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/configurationTags/tagCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/configurationTags/tagCode/alternateNames": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/configurationTags/tagCode/alternateNames/languageCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/configurationTags/tagCode/alternateNames/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/configurationTags/tagCode/alternateNames/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/configurationTags/tagType": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/configurationTags/tagType/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/configurationTags/tagType/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/configurationTags/tagType/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/configurationTags/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/configurationTags/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/totalAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/totalAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/totalAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/totalQuantity": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/totalQuantity/quantityValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/totalQuantity/unitTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/totalQuantity/unitTypeCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/totalQuantity/unitTypeCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/deductionInputsTotals/totalQuantity/unitTypeCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/configurationTags": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/configurationTags/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/configurationTags/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/configurationTags/tagCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/configurationTags/tagCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/configurationTags/tagCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/configurationTags/tagCode/alternateNames": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/configurationTags/tagCode/alternateNames/languageCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/configurationTags/tagCode/alternateNames/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/configurationTags/tagCode/alternateNames/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/configurationTags/tagType": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/configurationTags/tagType/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/configurationTags/tagType/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/configurationTags/tagType/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/configurationTags/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/configurationTags/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/totalAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/totalAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/totalAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/totalQuantity": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/totalQuantity/quantityValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/totalQuantity/unitTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/totalQuantity/unitTypeCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/totalQuantity/unitTypeCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/calculationFactorInputsTotals/totalQuantity/unitTypeCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/configurationTags": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/configurationTags/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/configurationTags/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/configurationTags/tagCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/configurationTags/tagCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/configurationTags/tagCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/configurationTags/tagCode/alternateNames": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/configurationTags/tagCode/alternateNames/languageCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/configurationTags/tagCode/alternateNames/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/configurationTags/tagCode/alternateNames/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/configurationTags/tagType": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/configurationTags/tagType/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/configurationTags/tagType/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/configurationTags/tagType/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/configurationTags/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/configurationTags/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/totalAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/totalAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/totalAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/taxJurisdiction": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/taxJurisdiction/countryCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/taxJurisdiction/countrySubdivisionLevel1": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/taxJurisdiction/countrySubdivisionLevel1/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/taxJurisdiction/countrySubdivisionLevel1/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/taxJurisdiction/countrySubdivisionLevel1/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/taxJurisdiction/countrySubdivisionLevel1/subdivisionType": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/taxJurisdiction/countrySubdivisionLevel2": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/taxJurisdiction/countrySubdivisionLevel2/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/taxJurisdiction/countrySubdivisionLevel2/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/taxJurisdiction/countrySubdivisionLevel2/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/taxJurisdiction/countrySubdivisionLevel2/subdivisionType": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/taxJurisdiction/taxJurisdictionCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/taxJurisdiction/taxJurisdictionCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/taxJurisdiction/taxJurisdictionCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/taxInputsTotals/taxJurisdiction/taxJurisdictionCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/configurationTags": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/configurationTags/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/configurationTags/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/configurationTags/tagCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/configurationTags/tagCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/configurationTags/tagCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/configurationTags/tagCode/alternateNames": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/configurationTags/tagCode/alternateNames/languageCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/configurationTags/tagCode/alternateNames/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/configurationTags/tagCode/alternateNames/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/configurationTags/tagType": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/configurationTags/tagType/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/configurationTags/tagType/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/configurationTags/tagType/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/configurationTags/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/configurationTags/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/totalAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/totalAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/totalAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/totalQuantity": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/totalQuantity/quantityValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/totalQuantity/unitTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/totalQuantity/unitTypeCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/totalQuantity/unitTypeCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payInputTotals/reimbursementInputsTotals/totalQuantity/unitTypeCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/associateOID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payeeID": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payeeID/idValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payeeID/schemeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payeeID/schemeCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payeeID/schemeCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payeeID/schemeCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payPeriodStartDate": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payPeriodEndDate": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/workWeekDatePeriod": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/workWeekDatePeriod/startDate": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/workWeekDatePeriod/endDate": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payNumber": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payTypeCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payTypeCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payTypeCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/configurationTags": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/configurationTags/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/configurationTags/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/configurationTags/tagType": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/configurationTags/tagType/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/configurationTags/tagType/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/configurationTags/tagType/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/configurationTags/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/configurationTags/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payrollProfileID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payrollFileNumber": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/cancelAutomaticPayIndicator": {
+                "$ref": "#/definitions/booleanType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/payAllocation": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/payAllocation/allocationID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/payAllocation/allocationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/payAllocation/allocationTypeCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/payAllocation/allocationTypeCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/payAllocation/allocationTypeCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/earningCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/earningCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/earningCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/earningCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/modifierCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/modifierCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/modifierCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/modifierCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/rateCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/rateCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/rateCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/rateCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/rate": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/rate/rateValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/rate/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/rate/unitCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/rate/unitCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/rate/unitCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/rate/unitCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/rate/baseUnitCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/rate/baseUnitCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/rate/baseUnitCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/rate/baseUnitCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/rate/baseMultiplierValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/numberOfHours": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/earningAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/earningAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/earningAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/earnedPayPeriodWeekNumber": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/earnedPayPeriodStartDate": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/earnedPayPeriodEndDate": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/workWeekDatePeriod": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/workWeekDatePeriod/startDate": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/workWeekDatePeriod/endDate": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/workDate": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/memoCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/memoCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/memoCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/memoCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/memoAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/memoAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/memoAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/memoQuantity": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/memoQuantity/quantityValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/memoQuantity/unitCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/memoQuantity/unitCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/memoQuantity/unitCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/memoQuantity/unitCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/configurationTags": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/configurationTags/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/configurationTags/tagType": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/configurationTags/tagType/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/configurationTags/tagType/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/configurationTags/tagType/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/memoInputs/configurationTags/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/configurationTags": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/configurationTags/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/configurationTags/tagType": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/configurationTags/tagType/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/configurationTags/tagType/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/configurationTags/tagType/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/configurationTags/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/earningInputs/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/memoCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/memoCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/memoCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/memoCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/memoAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/memoAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/memoAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/memoQuantity": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/memoQuantity/quantityValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/memoQuantity/unitCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/memoQuantity/unitCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/memoQuantity/unitCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/memoQuantity/unitCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/configurationTags": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/configurationTags/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/configurationTags/tagType": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/configurationTags/tagType/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/configurationTags/tagType/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/configurationTags/tagType/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/configurationTags/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/memoInputs/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/reportableEarningAndBenefitCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/reportableEarningAndBenefitCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/reportableEarningAndBenefitCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/reportableEarningAndBenefitCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/reportableEarningAndBenefitAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/reportableEarningAndBenefitAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/reportableEarningAndBenefitAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/reportableEarningAndBenefitQuantity": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/reportableEarningAndBenefitQuantity/quantityValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/reportableEarningAndBenefitQuantity/unitCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/reportableEarningAndBenefitQuantity/unitCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/reportableEarningAndBenefitQuantity/unitCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/reportableEarningAndBenefitQuantity/unitCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/workWeekDatePeriod": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/workWeekDatePeriod/startDate": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/workWeekDatePeriod/endDate": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/configurationTags": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/configurationTags/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/configurationTags/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/configurationTags/tagType": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/configurationTags/tagType/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/configurationTags/tagType/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/configurationTags/tagType/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reportableEarningAndBenefitInputs/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionRate": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionRate/rateValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionRate/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionRate/unitCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionRate/unitCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionRate/unitCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionRate/unitCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionRate/baseUnitCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionRate/baseUnitCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionRate/baseUnitCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionRate/baseUnitCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionRate/baseMultiplierValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/deductionAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/configurationTags": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/configurationTags/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/configurationTags/tagType": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/configurationTags/tagType/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/configurationTags/tagType/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/configurationTags/tagType/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/configurationTags/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/deductionInputs/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/calculationFactorCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/calculationFactorCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/calculationFactorCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/calculationFactorCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/calculationFactorRate": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/calculationFactorRate/rateValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/calculationFactorRate/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/calculationFactorRate/unitCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/calculationFactorRate/unitCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/calculationFactorRate/unitCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/calculationFactorRate/unitCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/calculationFactorRate/baseUnitCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/calculationFactorRate/baseUnitCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/calculationFactorRate/baseUnitCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/calculationFactorRate/baseUnitCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/calculationFactorRate/baseMultiplierValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/validityPeriod": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/validityPeriod/startDateTime": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/validityPeriod/endDateTime": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/configurationTags": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/configurationTags/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/configurationTags/tagType": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/configurationTags/tagType/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/configurationTags/tagType/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/configurationTags/tagType/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/configurationTags/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/calculationFactorInputs/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxTypeCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxTypeCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxTypeCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/countryCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/countrySubdivisionLevel1": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/countrySubdivisionLevel1/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/countrySubdivisionLevel1/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/countrySubdivisionLevel1/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/countrySubdivisionLevel1/subdivisionType": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/countrySubdivisionLevel2": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/countrySubdivisionLevel2/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/countrySubdivisionLevel2/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/countrySubdivisionLevel2/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/countrySubdivisionLevel2/subdivisionType": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/taxJurisdictionCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/taxJurisdictionCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/taxJurisdictionCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/taxJurisdictionCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/livedInIndicator": {
+                "$ref": "#/definitions/booleanType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxJurisdiction/workedInIndicator": {
+                "$ref": "#/definitions/booleanType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxCycleCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxCycleCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxCycleCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxCycleCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxRate": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxRate/rateValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxRate/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxRate/unitCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxRate/unitCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxRate/unitCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxRate/unitCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxRate/baseUnitCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxRate/baseUnitCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxRate/baseUnitCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxRate/baseUnitCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/taxRate/baseMultiplierValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/configurationTags": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/configurationTags/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/configurationTags/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/configurationTags/tagType": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/configurationTags/tagType/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/configurationTags/tagType/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/configurationTags/tagType/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/taxInputs/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs/reimbursementCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs/reimbursementCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs/reimbursementCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs/reimbursementCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs/reimbursementAmount": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs/reimbursementAmount/amountValue": {
+                "$ref": "#/definitions/amountValueType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs/reimbursementAmount/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs/configurationTags": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs/configurationTags/tagCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs/configurationTags/tagType": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs/configurationTags/tagType/dataTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs/configurationTags/tagType/currencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs/configurationTags/tagType/formatCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs/configurationTags/tagValues": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/reimbursementInputs/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/payInputs/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeEvaluationPeriod": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeEvaluationPeriod/startDate": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeEvaluationPeriod/endDate": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentStartDateTime": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentEndDateTime": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentCreditedWorkDayDate": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentDuration": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentClassifications": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentClassifications/classificationCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentClassifications/classificationCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentClassifications/classificationCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentClassifications/classificationCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentClassifications/schemeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentClassifications/schemeCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentClassifications/schemeCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentClassifications/schemeCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentClassifications/schemeAgencyCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentClassifications/schemeAgencyCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentClassifications/schemeAgencyCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentClassifications/schemeAgencyCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/laborAllocations": {
+                "$ref": "#/definitions/arrayType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/laborAllocations/allocationID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/laborAllocations/allocationCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/laborAllocations/allocationCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/laborAllocations/allocationCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/laborAllocations/allocationCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/laborAllocations/allocationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/laborAllocations/allocationTypeCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/laborAllocations/allocationTypeCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/laborAllocations/allocationTypeCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/recordedTimePeriod": {
+                "$ref": "#/definitions/masterType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/recordedTimePeriod/timePeriodID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/recordedTimePeriod/startTimeEntry": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/recordedTimePeriod/startTimeEntry/entryID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/recordedTimePeriod/startTimeEntry/entryDateTime": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/recordedTimePeriod/endTimeEntry": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/recordedTimePeriod/endTimeEntry/entryID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/recordedTimePeriod/endTimeEntry/entryDateTime": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/recordedTimePeriod/timePeriodTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/recordedTimePeriod/timePeriodTypeCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/recordedTimePeriod/timePeriodTypeCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/recordedTimePeriod/timePeriodTypeCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/recordedTimePeriod/timePeriodCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/recordedTimePeriod/timePeriodCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/recordedTimePeriod/timePeriodCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/recordedTimePeriod/timePeriodCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentQuantity": {
+                "$ref": "#/definitions/objectType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentQuantity/quantityValue": {
+                "$ref": "#/definitions/numberType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentQuantity/unitCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentQuantity/unitCode/codeValue": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentQuantity/unitCode/shortName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/timeSegments/segmentQuantity/unitCode/longName": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/timeInputs/itemID": {
+                "$ref": "#/definitions/stringType_v01"
+              },
+              "/payDataInput/payeePayInputs/payrollProfilePayInputs/_modificationTypeCode": {
+                "$ref": "#/definitions/stringCodeListType_v02"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "simpleCodeType_v02": {
+      "title": "simpleCodeType",
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9.$-_/]+$"
+    },
+    "simpleIDType_v02": {
+      "title": "simpleIDType",
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9.$-_/]+$"
+    },
+    "URIType_v01": {
+      "title": "uriType",
+      "type": "string",
+      "format": "uri"
+    },
+    "httpMethodType_v02": {
+      "title": "httpMethodType",
+      "description": "Simple (string) code identifying the http method used to invoke the API",
+      "type": "string",
+      "enum": [
+        "GET",
+        "POST",
+        "DELETE",
+        "PUT",
+        "PATCH"
+      ]
+    },
+    "sequenceType_v01": {
+      "title": "sequenceType",
+      "type": "integer",
+      "minValue": 0
+    },
+    "codeListItemType_v02": {
+      "title": "codeListType",
+      "type": "object",
+      "properties": {
+        "itemID": {
+          "description": "Unique identifier of an item in the collection",
+          "$ref": "#/definitions/itemIDType_v01"
+        },
+        "codeValue": {
+          "description": "The code value for the related entity",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "shortName": {
+          "description": "The short name for description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "The long name for description of the related code",
+          "type": "string"
+        },
+        "valueDescription": {
+          "description": "Additional list item description",
+          "type": "string"
+        },
+        "foreignKey": {
+          "description": "Allows for filtering the code list",
+          "type": "string"
+        },
+        "inactiveIndicator": {
+          "description": "Indicates if the current item is inactive.  The code is considered 'active' if the value is 'false' or the entire field is omitted",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "defaultIndicator": {
+          "description": "Indicates if the current value is a default (pre-selected)",
+          "$ref": "#/definitions/indicatorType_v01"
+        }
+      },
+      "additionalProperties": false
+    },
+    "codeListType_v03": {
+      "title": "codeListType",
+      "type": "object",
+      "properties": {
+        "codeListTitle": {
+          "description": "Code list title",
+          "type": "string"
+        },
+        "multiSelectionIndicator": {
+          "description": "True indicate user can select multiple items from list items and submits as array of codes. Default behaviour allows to select single item",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": false
+        },
+        "exclusiveIndicator": {
+          "description": "False indicates that the user may enter their own value for the code.  That is, the codeList is supported and extensions are also supported.  True means that only the codeList values are supported. If value is false then the UI will allow a dialog box for the shortName.  The system will generate a key (codeValue) for the user entered value.  The system would need to manage these user defined values",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "listItems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/codeListItemType_v02"
+          }
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "codeType_v02": {
+      "title": "codeType",
+      "type": "object",
+      "properties": {
+        "codeValue": {
+          "description": "The code value for the related entity",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "shortName": {
+          "description": "The short name for description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "The long name for description of the related code",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "helperMessageType_v01": {
+      "title": "helperMessageType",
+      "description": "Helper text provided to the user when they take an action to affirm to be correct, true, or genuine",
+      "type": "object",
+      "properties": {
+        "messageTxt": {
+          "description": "Message to present to the user",
+          "type": "string"
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "indicatorType_v01": {
+      "type": "boolean"
+    },
+    "itemIDType_v01": {
+      "title": "itemIDType",
+      "description": "A unique identifier of an object within the collection",
+      "type": "string"
+    },
+    "linkType_v02": {
+      "title": "linkType",
+      "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+      "type": "object",
+      "properties": {
+        "canonicalUri": {
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "href": {
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "rel": {
+          "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+          "type": "string",
+          "enum": [
+            "alternate",
+            "create",
+            "canonical",
+            "describedby",
+            "edit-form",
+            "enclosure",
+            "full",
+            "related",
+            "root",
+            "self",
+            "up",
+            "search",
+            "first",
+            "last",
+            "next",
+            "previous",
+            "/adp/invoke",
+            "/adp/image",
+            "/adp/confirm-message",
+            "/adp/status-monitor",
+            "/adp/codelist",
+            "/adp/template",
+            "/adp/externalLink",
+            "/adp/validation",
+            "/adp/deeplink",
+            "/adp/attachment"
+          ]
+        },
+        "title": {
+          "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user",
+          "type": "string"
+        },
+        "mediaType": {
+          "description": "The media type that the linked resource will return (Response)",
+          "type": "string",
+          "enum": [
+            "application/gzip",
+            "application/json",
+            "application/msword",
+            "application/pdf",
+            "application/postscript",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/xml",
+            "application/x-www-form-urlencoded",
+            "image/gif",
+            "image/jpeg",
+            "image/png",
+            "image/tiff",
+            "multipart/mixed",
+            "text/html",
+            "text/plain",
+            "application/vnd.visio",
+            "image/bmp",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/vnd.ms-powerpoint",
+            "video/mp4",
+            "audio/mpeg",
+            "video/x-msvideo",
+            "video/x-ms-wmv",
+            "application/rtf",
+            "application/vnd.ms-outlook",
+            "text/csv",
+            "video/quicktime",
+            "application/zip",
+            "application/illustrator",
+            "text/xml"
+          ]
+        },
+        "method": {
+          "$ref": "#/definitions/httpMethodType_v02"
+        },
+        "payloadArguments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/argumentType_v01"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "argumentType_v01": {
+      "title": "argumentType",
+      "type": "object",
+      "properties": {
+        "argumentPath": {
+          "description": "The path of the argument to be passed in",
+          "type": "string"
+        },
+        "argumentValue": {
+          "description": "The value of the argument name to be passed in",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "arrayType_v01": {
+      "type": "object",
+      "properties": {
+        "minItems": {
+          "description": "Indicates the minimum items required for an array type.  This is only relevant if the given property is an array",
+          "type": "integer"
+        },
+        "maxItems": {
+          "description": "Indicates the maximum items supported for an array type.  This is only relevant if the given property is an array",
+          "type": "integer"
+        },
+        "hidden": {
+          "description": "True indicates that the array property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "type": "boolean"
+        },
+        "sameValueProperties": {
+          "description": "A list of properties which must have the exact same value within the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "uniqueProperties": {
+          "description": "A list of properties which together must be unique",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "uniqueItems": {
+          "description": "True indicates that the entire item must be unique within the array",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "disallowItemType_v01": {
+      "type": "object",
+      "properties": {
+        "itemID": {
+          "$ref": "#/definitions/itemIDType_v01"
+        }
+      }
+    },
+    "booleanSameAsAddressIndicatorType_v01": {
+      "type": "object",
+      "properties": {
+        "readOnly": {
+          "description": "True indicates that the property is marked read only in the given context",
+          "type": "boolean",
+          "default": false
+        },
+        "optional": {
+          "description": "True indicates that this property does not need to be valued",
+          "type": "boolean",
+          "default": false
+        },
+        "hidden": {
+          "description": "True indicates that the property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "type": "boolean"
+        },
+        "sequence": {
+          "description": "A number which provides the sequence that this property should be presented in relation to other properties",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "disallow": {
+          "description": "Specified on a target property.  If the passed conditions are true then this property is disallowed and therefore, not presented to a user",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/disallowItemType_v01"
+          }
+        },
+        "shortLabelName": {
+          "description": "Provides a client defined UI label for the property which is less than an average of 20 characters in length",
+          "type": "string"
+        },
+        "longLabelName": {
+          "description": "Provides a client defined UI long label for the property",
+          "type": "string"
+        },
+        "default": {
+          "description": "Indicates the default value which should be populated by default",
+          "type": "boolean"
+        },
+        "equals": {
+          "description": "Provides 1 to many properties which the value of this property must be equal to.  If the property is equal to any of the value of the properties then the validation is successful",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "booleanType_v01": {
+      "type": "object",
+      "properties": {
+        "readOnly": {
+          "description": "True indicates that the property is marked read only in the given context",
+          "type": "boolean",
+          "default": false
+        },
+        "optional": {
+          "description": "True indicates that this property does not need to be valued",
+          "type": "boolean",
+          "default": false
+        },
+        "hidden": {
+          "description": "True indicates that the property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "type": "boolean"
+        },
+        "sequence": {
+          "description": "A number which provides the sequence that this property should be presented in relation to other properties",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "disallow": {
+          "description": "Specified on a target property.  If the passed conditions are true then this property is disallowed and therefore, not presented to a user",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/disallowItemType_v01"
+          }
+        },
+        "shortLabelName": {
+          "description": "Provides a client defined UI label for the property which is less than an average of 20 characters in length",
+          "type": "string"
+        },
+        "longLabelName": {
+          "description": "Provides a client defined UI long label for the property",
+          "type": "string"
+        },
+        "default": {
+          "description": "Indicates the default value which should be populated by default",
+          "type": "boolean"
+        },
+        "equals": {
+          "description": "Provides 1 to many properties which the value of this property must be equal to.  If the property is equal to any of the value of the properties then the validation is successful",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      }
+    },
+    "dependencyListType_v01": {
+      "description": "List conditional dependencies of supported properties (readOnly, pattern, hidden, disallow etc.) of an attribute or an object. Dependencies can be defined using oneOf (OR) / allOf (AND) object. oneOf - successful if one of the conditions satisfies, allOf - successful if all the conditions satisfies. Refer API specification for dependencies context object syntax and rules. Dependencies context cannot be validated against context schema if dependencies is defined context JSON, because the dependencies JSON structure is dynamically defined for attributes and the not defined in the context schema. Attribute level properties and dependencies properties are mutually exclusive, example - readOnly property can be set either at attribute level or inside dependencies. If both hidden and disallow properties are set inside dependencies or at attribute level, hidden property takes precedence",
+      "type": "object"
+    },
+    "maskingRuleType_v02": {
+      "type": "object",
+      "properties": {
+        "authorizationRequiredIndicator": {
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "authorizationResourceID": {
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "metaDataType_v01": {
+      "type": "string",
+      "enum": [
+        "string",
+        "number",
+        "integer",
+        "boolean",
+        "object",
+        "array",
+        "null",
+        "any",
+        "string[date-time]",
+        "string[date]",
+        "string[time]",
+        "string[duration]",
+        "string[regex]",
+        "string[phone]",
+        "string[uri]",
+        "string[email]",
+        "string[ip-address]",
+        "string[ipv6]",
+        "string[host-name]",
+        "integer[regex]",
+        "integer[utc-millisec]",
+        "number[regex]",
+        "number[utc-millisec]"
+      ]
+    },
+    "numberType_v01": {
+      "type": "object",
+      "properties": {
+        "readOnly": {
+          "description": "True indicates that the property is marked read only in the given context",
+          "type": "boolean",
+          "default": false
+        },
+        "optional": {
+          "description": "True indicates that this property does not need to be valued",
+          "type": "boolean",
+          "default": false
+        },
+        "hidden": {
+          "description": "True indicates that the property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "type": "boolean",
+          "default": false
+        },
+        "sequence": {
+          "description": "A number which provides the sequence that this property should be presented in relation to other properties",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "disallow": {
+          "description": "Specified on a target property.  If the passed conditions are true then this property is disallowed and therefore, not presented to a user",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/disallowItemType_v01"
+          }
+        },
+        "shortLabelName": {
+          "description": "Provides a client defined UI label for the property which is less than an average of 20 characters in length",
+          "type": "string"
+        },
+        "longLabelName": {
+          "description": "Provides a client defined UI long label for the property",
+          "type": "string"
+        },
+        "minLength": {
+          "description": "Indicates the minimum length required for a property",
+          "type": "integer"
+        },
+        "maxLength": {
+          "description": "Indicates the maximum length supported for a property",
+          "type": "integer"
+        },
+        "minValue": {
+          "description": "Indicates the minimum value required for a property",
+          "type": "number"
+        },
+        "maxValue": {
+          "description": "Indicates the maximum value supported for a property",
+          "type": "number"
+        },
+        "multipleOf": {
+          "description": "Indicates that the value must be a multiple of this value or divisible by this value",
+          "type": "number"
+        },
+        "default": {
+          "description": "Indicates the default value which should be populated by default",
+          "type": "number"
+        },
+        "pattern": {
+          "description": "Indicates a regular expression on the required pattern for the value",
+          "type": "string"
+        },
+        "masking": {
+          "description": "A reference to the masking rules",
+          "$ref": "#/definitions/maskingRuleType_v02"
+        },
+        "equals": {
+          "description": "Provides 1 to many properties which the value of this property must be equal to.  If the property is equal to any of the value of the properties then the validation is successful",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "greaterThan": {
+          "description": "The value of the related property must be greater than the value of  all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lessThan": {
+          "description": "The value of the related property must be less than the value of all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "stringCodeListType_v02": {
+      "type": "object",
+      "properties": {
+        "codeList": {
+          "description": "A reference to the codeList",
+          "$ref": "#/definitions/codeListType_v03"
+        },
+        "readOnly": {
+          "description": "True indicates that the property is marked read only in the given context",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": false
+        },
+        "optional": {
+          "description": "True indicates that this property does not need to be valued",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": false
+        },
+        "hidden": {
+          "description": "True indicates that the property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": false
+        },
+        "sequence": {
+          "description": "A number which provides the sequence that this property should be presented in relation to other properties",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "disallow": {
+          "description": "Specified on a target property.  If the passed conditions are true then this property is disallowed and therefore, not presented to a user",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/disallowItemType_v01"
+          }
+        },
+        "shortLabelName": {
+          "description": "Provides a client defined UI label for the property which is less than an average of 20 characters in length",
+          "type": "string"
+        },
+        "longLabelName": {
+          "description": "Provides a client defined UI long label for the property",
+          "type": "string"
+        },
+        "minLength": {
+          "description": "Indicates the minimum length required for a property",
+          "type": "integer"
+        },
+        "maxLength": {
+          "description": "Indicates the maximum length supported for a property",
+          "type": "integer"
+        },
+        "default": {
+          "description": "Indicates the default value which should be populated by default",
+          "type": "string"
+        },
+        "pattern": {
+          "description": "Indicates a regular expression on the required pattern for the value",
+          "type": "string"
+        },
+        "masking": {
+          "description": "A reference to the masking rules",
+          "$ref": "#/definitions/maskingRuleType_v02"
+        },
+        "equals": {
+          "description": "Provides 1 to many properties which the value of this property must be equal to.  If the property is equal to any of the value of the properties then the validation is successful",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "greaterThan": {
+          "description": "The value of the related property must be greater than the value of  all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lessThan": {
+          "description": "The value of the related property must be less than the value of all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "valueSet": {
+          "$ref": "#/definitions/valueSetType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "stringArrayCodeListType_v01": {
+      "type": "object",
+      "properties": {
+        "codeList": {
+          "description": "A reference to the codeList",
+          "$ref": "#/definitions/codeListType_v03"
+        },
+        "readOnly": {
+          "description": "True indicates that the property is marked read only in the given context",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": false
+        },
+        "optional": {
+          "description": "True indicates that this property does not need to be valued",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": false
+        },
+        "hidden": {
+          "description": "True indicates that the property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": false
+        },
+        "sequence": {
+          "description": "A number which provides the sequence that this property should be presented in relation to other properties",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "disallow": {
+          "description": "Specified on a target property.  If the passed conditions are true then this property is disallowed and therefore, not presented to a user",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/disallowItemType_v01"
+          }
+        },
+        "shortLabelName": {
+          "description": "Provides a client defined UI label for the property which is less than an average of 20 characters in length",
+          "type": "string"
+        },
+        "longLabelName": {
+          "description": "Provides a client defined UI long label for the property",
+          "type": "string"
+        },
+        "minLength": {
+          "description": "Indicates the minimum length required for a property",
+          "type": "integer"
+        },
+        "maxLength": {
+          "description": "Indicates the maximum length supported for a property",
+          "type": "integer"
+        },
+        "default": {
+          "description": "Indicates the default value which should be populated by default",
+          "type": "string"
+        },
+        "pattern": {
+          "description": "Indicates a regular expression on the required pattern for the value",
+          "type": "string"
+        },
+        "masking": {
+          "description": "A reference to the masking rules",
+          "$ref": "#/definitions/maskingRuleType_v02"
+        },
+        "equals": {
+          "description": "Provides 1 to many properties which the value of this property must be equal to.  If the property is equal to any of the value of the properties then the validation is successful",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "greaterThan": {
+          "description": "The value of the related property must be greater than the value of  all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lessThan": {
+          "description": "The value of the related property must be less than the value of all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "valueSet": {
+          "$ref": "#/definitions/valueSetType_v01"
+        },
+        "minItems": {
+          "description": "Indicates the minimum items required for an array type.  This is only relevant if the given property is an array",
+          "type": "integer"
+        },
+        "maxItems": {
+          "description": "Indicates the maximum items supported for an array type.  This is only relevant if the given property is an array",
+          "type": "integer"
+        },
+        "sameValueProperties": {
+          "description": "A list of properties which must have the exact same value within the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "uniqueProperties": {
+          "description": "A list of properties which together must be unique",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "uniqueItems": {
+          "description": "True indicates that the entire item must be unique within the array",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "objectType_v01": {
+      "type": "object",
+      "properties": {
+        "readOnly": {
+          "description": "True indicates that the property is marked read only in the given context",
+          "type": "boolean",
+          "default": false
+        },
+        "optional": {
+          "description": "True indicates that this property does not need to be valued",
+          "type": "boolean",
+          "default": true
+        },
+        "hidden": {
+          "description": "True indicates that the property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "type": "boolean",
+          "default": false
+        },
+        "sequence": {
+          "description": "A number which provides the sequence that this property should be presented in relation to other properties",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "disallow": {
+          "description": "Specified on a target property.  If the passed conditions are true then this property is disallowed and therefore, not presented to a user",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/disallowItemType_v01"
+          }
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "objectCodeListType_v01": {
+      "type": "object",
+      "properties": {
+        "codeList": {
+          "description": "A reference to the codeList",
+          "$ref": "#/definitions/codeListType_v03"
+        },
+        "readOnly": {
+          "description": "True indicates that the property is marked read only in the given context",
+          "type": "boolean",
+          "default": false
+        },
+        "optional": {
+          "description": "True indicates that this property does not need to be valued",
+          "type": "boolean",
+          "default": true
+        },
+        "hidden": {
+          "description": "True indicates that the property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "type": "boolean",
+          "default": false
+        },
+        "sequence": {
+          "description": "A number which provides the sequence that this property should be presented in relation to other properties",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "disallow": {
+          "description": "Specified on a target property.  If the passed conditions are true then this property is disallowed and therefore, not presented to a user",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/disallowItemType_v01"
+          }
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "stringType_v01": {
+      "type": "object",
+      "properties": {
+        "readOnly": {
+          "description": "True indicates that the property is marked read only in the given context",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": false
+        },
+        "optional": {
+          "description": "True indicates that this property does not need to be valued",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": false
+        },
+        "hidden": {
+          "description": "True indicates that the property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "$ref": "#/definitions/indicatorType_v01",
+          "default": false
+        },
+        "sequence": {
+          "description": "A number which provides the sequence that this property should be presented in relation to other properties",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "disallow": {
+          "description": "Specified on a target property.  If the passed conditions are true then this property is disallowed and therefore, not presented to a user",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/disallowItemType_v01"
+          }
+        },
+        "shortLabelName": {
+          "description": "Provides a client defined UI label for the property which is less than an average of 20 characters in length",
+          "type": "string"
+        },
+        "longLabelName": {
+          "description": "Provides a client defined UI long label for the property",
+          "type": "string"
+        },
+        "minLength": {
+          "description": "Indicates the minimum length required for a property",
+          "type": "integer"
+        },
+        "maxLength": {
+          "description": "Indicates the maximum length supported for a property",
+          "type": "integer"
+        },
+        "default": {
+          "description": "Indicates the default value which should be populated by default",
+          "type": "string"
+        },
+        "pattern": {
+          "description": "Indicates a regular expression on the required pattern for the value",
+          "type": "string"
+        },
+        "masking": {
+          "description": "A reference to the masking rules",
+          "$ref": "#/definitions/maskingRuleType_v02"
+        },
+        "equals": {
+          "description": "Provides 1 to many properties which the value of this property must be equal to.  If the property is equal to any of the value of the properties then the validation is successful",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "greaterThan": {
+          "description": "The value of the related property must be greater than the value of  all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lessThan": {
+          "description": "The value of the related property must be less than the value of all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "valueSet": {
+          "$ref": "#/definitions/valueSetType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "valueSetItemType_v01": {
+      "title": "ValueSetItemType",
+      "description": "The value set item type",
+      "type": "object",
+      "properties": {
+        "idValue": {
+          "description": "The code for the related entity",
+          "type": "string"
+        },
+        "itemDescription": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "defaultIndicator": {
+          "description": "Indicates if the current value is a default (pre-selected)",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "valueSetType_v01": {
+      "title": "valueSetType",
+      "description": "A reference to the codelist extended with values",
+      "type": "object",
+      "properties": {
+        "meta": {
+          "title": "ValueSetMeta",
+          "type": "object",
+          "properties": {
+            "idValuePath": {
+              "description": "Code value (typically a key field) of the code list item",
+              "type": "string"
+            },
+            "itemDescriptionPath": {
+              "description": "Short name field of the code list item",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "valueSetListItems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/valueSetItemType_v01"
+          }
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "amountValueType_v01": {
+      "title": "ContextNumberAmountValueType",
+      "description": "Context rules for a given object",
+      "type": "object",
+      "properties": {
+        "readOnly": {
+          "description": "True indicates that the property is marked read only in the given context",
+          "type": "boolean",
+          "default": false
+        },
+        "optional": {
+          "description": "True indicates that this property does not need to be valued",
+          "type": "boolean",
+          "default": false
+        },
+        "hidden": {
+          "description": "True indicates that the property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "type": "boolean",
+          "default": false
+        },
+        "sequence": {
+          "description": "A number which provides the sequence that this property should be presented in relation to other properties",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "disallow": {
+          "description": "Specified on a target property.  If the passed conditions are true then this property is disallowed and therefore, not presented to a user",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/disallowItemType_v01"
+          }
+        },
+        "shortLabelName": {
+          "description": "Provides a client defined UI label for the property which is less than an average of 20 characters in length",
+          "type": "string"
+        },
+        "longLabelName": {
+          "description": "Provides a client defined UI long label for the property",
+          "type": "string"
+        },
+        "minLength": {
+          "description": "Indicates the minimum length required for a property",
+          "type": "integer"
+        },
+        "maxLength": {
+          "description": "Indicates the maximum length supported for a property",
+          "type": "integer"
+        },
+        "minAmountValue": {
+          "description": "Indicates the minimum amout value required for a property",
+          "type": "number"
+        },
+        "maxAmountValue": {
+          "description": "Indicates the maximum amount value supported for a property",
+          "type": "number"
+        },
+        "minValue": {
+          "description": "Indicates the minimum value required for a property",
+          "type": "number"
+        },
+        "maxValue": {
+          "description": "Indicates the maximum value supported for a property",
+          "type": "number"
+        },
+        "multipleOf": {
+          "description": "Indicates that the value must be a multiple of this value or divisible by this value",
+          "type": "number"
+        },
+        "default": {
+          "description": "Indicates the default value which should be populated by default",
+          "type": "number"
+        },
+        "pattern": {
+          "description": "Indicates a regular expression on the required pattern for the value",
+          "type": "string"
+        },
+        "masking": {
+          "description": "A reference to the masking rules",
+          "$ref": "#/definitions/maskingRuleType_v02"
+        },
+        "equals": {
+          "description": "Provides 1 to many properties which the value of this property must be equal to.  If the property is equal to any of the value of the properties then the validation is successful",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "greaterThan": {
+          "description": "The value of the related property must be greater than the value of  all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lessThan": {
+          "description": "The value of the related property must be less than the value of all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "description": "Data type of the attribute",
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "masterType_v01": {
+      "title": "ContextMasterType",
+      "description": "Context rules for a given object",
+      "type": "object",
+      "properties": {
+        "readOnly": {
+          "description": "True indicates that the property is marked read only in the given context",
+          "type": "boolean",
+          "default": false
+        },
+        "optional": {
+          "description": "True indicates that this property does not need to be valued",
+          "type": "boolean",
+          "default": false
+        },
+        "hidden": {
+          "description": "True indicates that the property is carried in the message - to and from the System of Record, but is not exposed in the UI",
+          "type": "boolean",
+          "default": false
+        },
+        "sequence": {
+          "description": "A number which provides the sequence that this property should be presented in relation to other properties",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "disallow": {
+          "description": "Specified on a target property.  If the passed conditions are true then this property is disallowed and therefore, not presented to a user",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/disallowItemType_v01"
+          }
+        },
+        "shortLabelName": {
+          "description": "Provides a client defined UI label for the property which is less than an average of 20 characters in length",
+          "type": "string"
+        },
+        "longLabelName": {
+          "description": "Provides a client defined UI long label for the property",
+          "type": "string"
+        },
+        "masking": {
+          "description": "A reference to the masking rules",
+          "$ref": "#/definitions/maskingRuleType_v02"
+        },
+        "minItems": {
+          "description": "Indicates the minimum items required for an array type.  This is only relevant if the given property is an array",
+          "type": "integer"
+        },
+        "maxItems": {
+          "description": "Indicates the maximum items supported for an array type.  This is only relevant if the given property is an array",
+          "type": "integer"
+        },
+        "minLength": {
+          "description": "Indicates the minimum length required for a property",
+          "type": "integer"
+        },
+        "maxLength": {
+          "description": "Indicates the maximum length supported for a property",
+          "type": "integer"
+        },
+        "uniqueItems": {
+          "description": "True indicates that the entire item must be unique within the array",
+          "type": "boolean"
+        },
+        "uniqueProperties": {
+          "description": "A list of properties which together must be unique",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "minAmountValue": {
+          "description": "Indicates the minimum amout value required for a property",
+          "type": "number"
+        },
+        "maxAmountValue": {
+          "description": "Indicates the maximum amount value supported for a property",
+          "type": "number"
+        },
+        "minValue": {
+          "description": "Indicates the minimum value required for a property",
+          "type": "number"
+        },
+        "multipleOf": {
+          "description": "Indicates that the value must be a multiple of this value or divisible by this value",
+          "type": "number"
+        },
+        "default": {
+          "description": "Indicates the default value which should be populated by default",
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ]
+        },
+        "pattern": {
+          "description": "Indicates a regular expression on the required pattern for the value",
+          "type": "string"
+        },
+        "codeList": {
+          "description": "A reference to the codeList",
+          "$ref": "#/definitions/codeListType_v03"
+        },
+        "equals": {
+          "description": "Provides 1 to many properties which the value of this property must be equal to.  If the property is equal to any of the value of the properties then the validation is successful",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "greaterThan": {
+          "description": "The value of the related property must be greater than the value of  all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lessThan": {
+          "description": "The value of the related property must be less than the value of all the given properties in the array",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies": {
+          "$ref": "#/definitions/dependencyListType_v01"
+        },
+        "helperMessage": {
+          "$ref": "#/definitions/helperMessageType_v01"
+        },
+        "dataType": {
+          "$ref": "#/definitions/metaDataType_v01"
+        },
+        "valueSet": {
+          "$ref": "#/definitions/valueSetType_v01"
+        },
+        "dependencyLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "queryCriteriaType_v01": {
+      "description": "A single query parameter",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "itemID": {
+          "description": "The unique identifier of the array.",
+          "$ref": "#/definitions/itemIDType_v01"
+        },
+        "queryOptionCode": {
+          "description": "A code identifying the supported query option",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "obligationCode": {
+          "description": "A Code identifying whether the parameter is required, optional, conditional",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "queryOptionTypeCode": {
+          "description": "A Code identifying the type of option.  Examples are standard, OData, clientCustom, userCustom",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "defaultNumberValue": {
+          "description": "The default number value",
+          "type": "number"
+        },
+        "defaultStringValue": {
+          "description": "The default string value",
+          "type": "string"
+        },
+        "resourcePathMax": {
+          "description": "Maximum number of resource paths supported",
+          "type": "integer"
+        },
+        "pattern": {
+          "description": "Indicates a regular expression on the required pattern for the value",
+          "type": "string"
+        },
+        "resourcePaths": {
+          "description": "A collection of acceptable resource paths to pass to the query option",
+          "type": "array",
+          "additionalProperties": false,
+          "items": {
+            "type": "string"
+          }
+        },
+        "excludedResourcePaths": {
+          "description": "A collection of resource paths which may not be passed to the query option.  An example use of this is where you allow all paths except 1 or 2.  You would want to only specify those which are excluded",
+          "type": "array",
+          "additionalProperties": false,
+          "items": {
+            "type": "string"
+          }
+        },
+        "queryValueCodeList": {
+          "description": "A reference to the codeList which returns the possible values for the query option",
+          "$ref": "#/definitions/codeListType_v03"
+        },
+        "logicalOperators": {
+          "description": "A collection of logical operators",
+          "type": "array",
+          "additionalProperties": false,
+          "items": {
+            "$ref": "#/definitions/logicalOperatorType_v01"
+          }
+        }
+      }
+    },
+    "logicalOperatorType_v01": {
+      "title": "logicalOperator",
+      "description": "A logical operation",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "logicalOperatorCode": {
+          "description": "A coded identifying the supported query options",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "mutuallyExclusiveIndicator": {
+          "description": "The URI of the related entity",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "mutuallyExclusiveLogicalOperatorCodes": {
+          "description": "A list of mutually exclusive operator codes.",
+          "type": "array",
+          "items": {
+            "description": "Mutually exclusive logical operator code.",
+            "title": "MutuallyExclusiveLogicalOperatorCode",
+            "$ref": "#/definitions/simpleCodeType_v02"
+          }
+        }
+      }
+    }
+  }
+}

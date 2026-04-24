@@ -1,0 +1,2215 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "TeamTimeCards",
+  "description": "Collection of Time Entries for a worker over a period",
+  "additionalProperties": false,
+  "type": "object",
+  "properties": {
+    "teamTimeCards": {
+      "description": "Collection of Team Time Cards",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "associateOID": {
+            "description": "A unique identifier of an associate",
+            "$ref": "#/definitions/associateOIDType_v02"
+          },
+          "workerID": {
+            "description": "An identifier for a worker, e.g. an Employee ID",
+            "$ref": "#/definitions/IDType_v02"
+          },
+          "personLegalName": {
+            "description": "The current legal name of the person in the associated context. For example, if the context is set to Germany, this equates to the legal name of the person in Germany.",
+            "$ref": "#/definitions/personNameType_v02"
+          },
+          "timeCards": {
+            "description": "Collection of Team Time Cards",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "title": "TeamTimeCardTimeCard",
+              "properties": {
+                "submissionStatusCode": {
+                  "description": "Status of the timesheet.  E.g. Employee Approved, Manager Approved",
+                  "$ref": "#/definitions/statusType_v02"
+                },
+                "reviewStatusCode": {
+                  "description": "Status of the timesheet.  E.g. Employee Approved, Manager Approved",
+                  "$ref": "#/definitions/statusType_v02"
+                },
+                "links": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/linkType_v02"
+                  }
+                },
+                "processingStatusCode": {
+                  "description": "Timecard processing status code e.g. Processed, Error, Unprocessed, Warning ",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "periodCode": {
+                  "description": "Symbolic period name.  E.g. Current, Previous, and Next",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "periodStatusCode": {
+                  "description": "Period Status Code e.g. Open/Closed/Locked",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "timePeriod": {
+                  "type": "object",
+                  "title": "PayPeriod",
+                  "$ref": "#/definitions/datePeriodType_v01"
+                },
+                "associateOID": {
+                  "description": "A unique identifier of an associate",
+                  "$ref": "#/definitions/associateOIDType_v02"
+                },
+                "workerID": {
+                  "description": "An identifier for a worker, e.g. an Employee ID",
+                  "$ref": "#/definitions/IDType_v02"
+                },
+                "personLegalName": {
+                  "description": "The current legal name of the person in the associated context. For example, if the context is set to Germany, this equates to the legal name of the person in Germany.",
+                  "$ref": "#/definitions/personNameType_v02"
+                },
+                "positionID": {
+                  "description": "The position identifier",
+                  "$ref": "#/definitions/simpleIDType_v02"
+                },
+                "positionTitle": {
+                  "description": "The position title",
+                  "type": "string"
+                },
+                "jobCode": {
+                  "description": "The job code",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "jobTitle": {
+                  "description": "The job title",
+                  "type": "string"
+                },
+                "workAssignmentID": {
+                  "description": "Unique identifier of the workAssignment.  workAssignment.itemID",
+                  "$ref": "#/definitions/simpleIDType_v02"
+                },
+                "exceptionCounts": {
+                  "description": "A collection of counts of exceptions by exception code.  ",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "itemID": {
+                        "description": "A unique identifier of a work assignment",
+                        "$ref": "#/definitions/itemIDType_v01"
+                      },
+                      "exceptionTypeCode": {
+                        "description": "Code Identifying the type of exception",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "exceptionCode": {
+                        "description": "Code Identifying the the exception",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "totalNumber": {
+                        "description": "Number of total instance resources in an instance resource set",
+                        "type": "integer"
+                      }
+                    }
+                  }
+                },
+                "periodTotals": {
+                  "description": "A collection of totals by time period as specified by periodStartDate and periodEndDate. Multiple totals with different periods are permissible in this collection (e.g. collection includes total for week 1, total for week 2, total for pay period, total for work period, etc.) Totals should be delineated by entry code, rate code, labor allocations, etc.",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "payCode": {
+                        "description": "Code identifying the code that the entry is associated to.  This may be an earning code, pay code, expense code, etc...",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "laborAllocations": {
+                        "description": "Time may be allocated to a department, project, location, etc.",
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "allocationCode": {
+                              "description": "The code identifying the allocation",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "allocationTypeCode": {
+                              "description": "The type of allocation",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "allocationCategoryTypeCode": {
+                              "description": "Identifies category of allocation Type e.g. Buissness Structure, Labor Category",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "itemID": {
+                              "description": "The unique identifier of the object in a collection",
+                              "$ref": "#/definitions/itemIDType_v01"
+                            }
+                          }
+                        }
+                      },
+                      "rate": {
+                        "description": "Rate",
+                        "$ref": "#/definitions/rateType_v02"
+                      },
+                      "hourQuantity": {
+                        "description": "Indecimal digits to arbitrary precision",
+                        "type": "number"
+                      },
+                      "timeDuration": {
+                        "$ref": "#/definitions/durationType_v01"
+                      },
+                      "periodStartDate": {
+                        "description": "Start date of period for which total is being calculated.",
+                        "$ref": "#/definitions/dateType_v01"
+                      },
+                      "periodEndDate": {
+                        "description": "End date of period for which total is being calculated.",
+                        "$ref": "#/definitions/dateType_v01"
+                      },
+                      "periodUnitCode": {
+                        "description": "periodUnitCode could be Week, Month, Year etc",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "unitQuantity": {
+                        "description": "Unit quantity",
+                        "$ref": "#/definitions/quantityType_v03"
+                      },
+                      "amount": {
+                        "description": "The amount entered ",
+                        "$ref": "#/definitions/amountType_v02"
+                      },
+                      "totalDescription": {
+                        "description": "Describes the data that the total represents",
+                        "$ref": "#/definitions/simpleDescriptionType_v01"
+                      },
+                      "payCodeDistributions": {
+                        "description": "Collection of PayCodes identifying the code and distribution quantity for each cascading paycode of main payCode.  e.g Main PayCode could be VAC and total hours are associated with it but it can be distributed to cascading pay codes e.g. CARRYFWDVAC , BONUSTIME etc.  Total hours 8 but CARRYFWDVAC= 4 and BONUSTIME =4 . Distrubution gets calculated by system and not the user.  User entered hours are at PayCode level. ",
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "itemID": {
+                              "description": "The unique identifier of the object in a collection",
+                              "$ref": "#/definitions/itemIDType_v01"
+                            },
+                            "payCode": {
+                              "description": "Code identifying the code that the distributed quantity assoicated based on system calculation",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "hourQuantity": {
+                              "description": "Indecimal digits to arbitrary precision",
+                              "type": "number"
+                            },
+                            "timeDuration": {
+                              "$ref": "#/definitions/durationType_v01"
+                            },
+                            "unitQuantity": {
+                              "description": "Unit quantity",
+                              "$ref": "#/definitions/quantityType_v03"
+                            },
+                            "amount": {
+                              "description": "The amount associated with given paycode",
+                              "$ref": "#/definitions/amountType_v02"
+                            }
+                          }
+                        }
+                      },
+                      "itemID": {
+                        "description": "A unique identifier of a work assignment",
+                        "$ref": "#/definitions/itemIDType_v01"
+                      }
+                    }
+                  }
+                },
+                "dailyTotals": {
+                  "type": "array",
+                  "description": "Totals per day by earning code, rate code, earning allocations",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "payCode": {
+                        "description": "Code identifying the code that the entry is associated to.  This may be an earning code, pay code, expense code, etc...",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "laborAllocations": {
+                        "description": "Time may be allocated to a department, project, location, etc.",
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "allocationCode": {
+                              "description": "The code identifying the allocation",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "allocationTypeCode": {
+                              "description": "The type of allocation",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "allocationCategoryTypeCode": {
+                              "description": "Identifies category of allocation Type e.g. Buissness Structure, Labor Category",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "itemID": {
+                              "description": "The unique identifier of the object in a collection",
+                              "$ref": "#/definitions/itemIDType_v01"
+                            }
+                          }
+                        }
+                      },
+                      "rate": {
+                        "description": "Rate",
+                        "$ref": "#/definitions/rateType_v02"
+                      },
+                      "hourQuantity": {
+                        "description": "Indecimal digits to arbitrary precision",
+                        "type": "number"
+                      },
+                      "timeDuration": {
+                        "$ref": "#/definitions/durationType_v01"
+                      },
+                      "periodStartDate": {
+                        "description": "Start date of period for which total is being calculated.",
+                        "$ref": "#/definitions/dateType_v01"
+                      },
+                      "periodEndDate": {
+                        "description": "End date of period for which total is being calculated.",
+                        "$ref": "#/definitions/dateType_v01"
+                      },
+                      "periodUnitCode": {
+                        "description": "periodUnitCode could be Week, Month, Year etc",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "unitQuantity": {
+                        "description": "Unit quantity",
+                        "$ref": "#/definitions/quantityType_v03"
+                      },
+                      "amount": {
+                        "description": "The amount entered ",
+                        "$ref": "#/definitions/amountType_v02"
+                      },
+                      "totalDescription": {
+                        "description": "Describes the data that the total represents",
+                        "$ref": "#/definitions/simpleDescriptionType_v01"
+                      },
+                      "payCodeDistributions": {
+                        "description": "Collection of PayCodes identifying the code and distribution quantity for each cascading paycode of main payCode.  e.g Main PayCode could be VAC and total hours are associated with it but it can be distributed to cascading pay codes e.g. CARRYFWDVAC , BONUSTIME etc.  Total hours 8 but CARRYFWDVAC= 4 and BONUSTIME =4 . Distrubution gets calculated by system and not the user.  User entered hours are at PayCode level. ",
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "itemID": {
+                              "description": "The unique identifier of the object in a collection",
+                              "$ref": "#/definitions/itemIDType_v01"
+                            },
+                            "payCode": {
+                              "description": "Code identifying the code that the distributed quantity assoicated based on system calculation",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "hourQuantity": {
+                              "description": "Indecimal digits to arbitrary precision",
+                              "type": "number"
+                            },
+                            "timeDuration": {
+                              "$ref": "#/definitions/durationType_v01"
+                            },
+                            "unitQuantity": {
+                              "description": "Unit quantity",
+                              "$ref": "#/definitions/quantityType_v03"
+                            },
+                            "amount": {
+                              "description": "The amount associated with given paycode",
+                              "$ref": "#/definitions/amountType_v02"
+                            }
+                          }
+                        }
+                      },
+                      "itemID": {
+                        "description": "A unique identifier of a work assignment",
+                        "$ref": "#/definitions/itemIDType_v01"
+                      },
+                      "entryDate": {
+                        "description": "Date of Entry.   Data Representation Standard: Temporal Data Specification which follows the ISO-8601:2000 format YYYY-MM-DD",
+                        "$ref": "#/definitions/dateType_v01"
+                      }
+                    }
+                  }
+                },
+                "totalPeriodHourQuantity": {
+                  "description": "The total decimal hours for the given period in decimal digits to arbitrary precision",
+                  "type": "number"
+                },
+                "totalPeriodTimeDuration": {
+                  "$ref": "#/definitions/durationType_v01"
+                },
+                "homeLaborAllocations": {
+                  "description": "Home labor allocations",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "title": "TimeCardDayEntryHomeLaborAllocation",
+                    "properties": {
+                      "allocationCode": {
+                        "description": "The code identifying the allocation",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "allocationTypeCode": {
+                        "description": "The type of allocation",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "allocationCategoryTypeCode": {
+                        "description": "Identifies category of allocation Type e.g. Buissness Structure, Labor Category",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "itemID": {
+                        "description": "The unique identifier of the object in a collection",
+                        "$ref": "#/definitions/itemIDType_v01"
+                      }
+                    }
+                  }
+                },
+                "entryCommentIndicator": {
+                  "description": "True indicates that there is atleast one entry note",
+                  "$ref": "#/definitions/indicatorType_v01"
+                },
+                "dayEntries": {
+                  "description": "Entries rolled up by day",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "totalPeriodHourQuantity": {
+                        "description": "The total decimal hours for the given period in decimal digits to arbitrary precision",
+                        "type": "number"
+                      },
+                      "totalPeriodTimeDuration": {
+                        "$ref": "#/definitions/durationType_v01"
+                      },
+                      "entryDate": {
+                        "description": "Date of entry.   Data Representation Standard: Temporal Data Specification which follows the ISO-8601:2000 format YYYY-MM-DD",
+                        "$ref": "#/definitions/dateType_v01"
+                      },
+                      "exceptions": {
+                        "description": "An exceptions array which has the exception level code, exceptionMessage and corresponding solutions.  These exceptions are at day Level. No action can be taken on this exception it moslty for read only purpose",
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "title": "TimeCardDayException",
+                          "properties": {
+                            "exceptionCode": {
+                              "description": "Code Identifying the the exception",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "exceptionTypeCode": {
+                              "description": "Code Identifying the type of exception",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "exceptionDescription": {
+                              "description": "The verbose description explaining the exception.",
+                              "type": "string"
+                            },
+                            "itemID": {
+                              "description": "A unique identifier of a work assignment",
+                              "$ref": "#/definitions/itemIDType_v01"
+                            }
+                          }
+                        }
+                      },
+                      "messages": {
+                        "description": "Messages associated with timecard day entry.  This could be informational messages",
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/messageType_v01"
+                        }
+                      },
+                      "dayStatusCode": {
+                        "description": "The status of the day",
+                        "$ref": "#/definitions/statusType_v02"
+                      },
+                      "timeEntries": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "title": "TimeCardDayEntryTimeEntry",
+                          "properties": {
+                            "submissionStatusCode": {
+                              "description": "Status of the timesheet.  E.g. Employee Approved, Manager Approved",
+                              "$ref": "#/definitions/statusType_v02"
+                            },
+                            "reviewStatusCode": {
+                              "description": "Status of the timesheet.  E.g. Employee Approved, Manager Approved",
+                              "$ref": "#/definitions/statusType_v02"
+                            },
+                            "links": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/definitions/linkType_v02"
+                              }
+                            },
+                            "entryID": {
+                              "description": "Unique identifier of the entry",
+                              "$ref": "#/definitions/itemIDType_v01"
+                            },
+                            "entryGroupID": {
+                              "description": "Group ID is used to group various time entries. This is an optional element and may or may not required based on SOR requirements.",
+                              "$ref": "#/definitions/simpleIDType_v02"
+                            },
+                            "workShift": {
+                              "description": "WorkShift is shared acorss multiple time entries if they belong to same shift. This is an optional element and may or may not required based on SOR requirements.",
+                              "$ref": "#/definitions/workShiftType_v01"
+                            },
+                            "entryCode": {
+                              "description": "Code identifying the code that the entry is associated to.  This may be an earning code, pay code, expense code, etc...",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "entryStatusCode": {
+                              "description": "Processing status of the timeEntry.  E.g. Processed. Pending, Error, Warning ",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "entryTypeCode": {
+                              "description": "Code identifying the type of entry.  Examples are hours, amount, timePair.  The type of entry drives what data is relevant for the entry.",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "entryDate": {
+                              "description": "Date of Entry.   Data Representation Standard: Temporal Data Specification which follows the ISO-8601:2000 format YYYY-MM-DD",
+                              "$ref": "#/definitions/dateType_v01"
+                            },
+                            "breaks": {
+                              "type": "array",
+                              "description": "Meal times",
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "itemID": {
+                                    "description": "The unique identifier of the object in a collection",
+                                    "$ref": "#/definitions/itemIDType_v01"
+                                  },
+                                  "startTime": {
+                                    "$ref": "#/definitions/timeType_v01",
+                                    "description": "Start time of the meal"
+                                  },
+                                  "endTime": {
+                                    "description": "End time of the meal",
+                                    "$ref": "#/definitions/timeType_v01"
+                                  },
+                                  "hourQuantity": {
+                                    "description": "Indecimal digits to arbitrary precision",
+                                    "type": "number"
+                                  },
+                                  "timeDuration": {
+                                    "$ref": "#/definitions/durationType_v01"
+                                  },
+                                  "breakStatus": {
+                                    "description": "The status of the meal",
+                                    "$ref": "#/definitions/statusType_v02"
+                                  },
+                                  "breakTypeCode": {
+                                    "description": "The type of break e.g. meal, rest etc",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "overrideTypeCode": {
+                                    "description": "The type of override (i.e. cancelmealdeduct, workrule)",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  }
+                                }
+                              }
+                            },
+                            "entryOverrideCodes": {
+                              "description": "Codes that represent overrides that a user may select for the entry,e.g. if the worker is requesting to override the standard meal deduction for this entry, the code would identify the rule.  Example is that the worker is scheduled for lunch, but is working through lunch.  This tells the system that the worker is working through lunch and to not count the regularly scheduled lunch time",
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "title": "TimeCardDayEntryOverrideCode",
+                                "properties": {
+                                  "itemID": {
+                                    "description": "The unique identifier of the object in a collection",
+                                    "$ref": "#/definitions/itemIDType_v01"
+                                  },
+                                  "overrideCode": {
+                                    "description": "The code identifying the entry override",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "overrideTypeCode": {
+                                    "description": "The type of override (i.e. cancelmealdeduct, workrule)",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  }
+                                }
+                              }
+                            },
+                            "startPeriod": {
+                              "description": "the calculated amount.  If the calculated amount should be done by the server due to complex business rules then the totalAmount will be 1xthe unitValue.  The actual total amount will show up in the list of entries",
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "startEntryID": {
+                                  "description": "Unique identifier of the start period entry",
+                                  "$ref": "#/definitions/itemIDType_v01"
+                                },
+                                "startDateTime": {
+                                  "description": "The string reprersentation of the date-time value. Follows the ISO-8601:2000 format.",
+                                  "$ref": "#/definitions/dateTimeType_v01"
+                                },
+                                "entryTypeCode": {
+                                  "description": "Code identifying the type of punch entry.  Examples are MEAL_IN, MEAL_OUT, IN etc",
+                                  "$ref": "#/definitions/codeType_v02"
+                                },
+                                "entryOverrideCodes": {
+                                  "description": "Codes that represent overrides that a user may select for the entry,e.g. if the worker is requesting to override the standard meal deduction for this entry, the code would identify the rule.  Example is that the worker is scheduled for lunch, but is working through lunch.  This tells the system that the worker is working through lunch and to not count the regularly scheduled lunch time",
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "title": "StartPeriodEntryOverrideCode",
+                                    "properties": {
+                                      "itemID": {
+                                        "description": "The unique identifier of the object in a collection",
+                                        "$ref": "#/definitions/itemIDType_v01"
+                                      },
+                                      "overrideCode": {
+                                        "description": "The code identifying the entry override",
+                                        "$ref": "#/definitions/codeType_v02"
+                                      },
+                                      "overrideTypeCode": {
+                                        "description": "The type of override (i.e. cancelmealdeduct, workrule)",
+                                        "$ref": "#/definitions/codeType_v02"
+                                      }
+                                    }
+                                  }
+                                },
+                                "exceptions": {
+                                  "description": "An exceptions array which has the exception level code, exceptionMessage and corresponding solutions.  These exceptions are at the time entry level.",
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "title": "StartPeriodExceptionType",
+                                    "properties": {
+                                      "exceptionCode": {
+                                        "description": "Code Identifying the the exception",
+                                        "$ref": "#/definitions/codeType_v02"
+                                      },
+                                      "exceptionTypeCode": {
+                                        "description": "Code Identifying the type of exception",
+                                        "$ref": "#/definitions/codeType_v02"
+                                      },
+                                      "exceptionDescription": {
+                                        "description": "The verbose description explaining the exception.",
+                                        "type": "string"
+                                      },
+                                      "actions": {
+                                        "description": "Actions which the user is allowed to initiate against the related pay distribution.  The applicable actions include: payDistribution.read, payDistribution.create, payDistribution.update, payDistribution.delete, based on the context",
+                                        "type": "array",
+                                        "items": {
+                                          "description": "Actions which the user is allowed to initiate against the related entity",
+                                          "$ref": "#/definitions/actionType_v02"
+                                        }
+                                      },
+                                      "links": {
+                                        "type": "array",
+                                        "items": {
+                                          "$ref": "#/definitions/linkType_v02"
+                                        }
+                                      },
+                                      "itemID": {
+                                        "description": "A unique identifier of a work assignment",
+                                        "$ref": "#/definitions/itemIDType_v01"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "endPeriod": {
+                              "description": "the calculated amount.  If the calculated amount should be done by the server due to complex business rules then the totalAmount will be 1xthe unitValue.  The actual total amount will show up in the list of entries",
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "endEntryID": {
+                                  "description": "Unique identifier of the end period entry",
+                                  "$ref": "#/definitions/itemIDType_v01"
+                                },
+                                "entryTypeCode": {
+                                  "description": "Code identifying the type of punch entry.  Examples are MEAL_IN, MEAL_OUT, IN etc",
+                                  "$ref": "#/definitions/codeType_v02"
+                                },
+                                "endDateTime": {
+                                  "description": "The string reprersentation of the date-time value. Follows the ISO-8601:2000 format.",
+                                  "$ref": "#/definitions/dateTimeType_v01"
+                                },
+                                "entryOverrideCodes": {
+                                  "description": "Codes that represent overrides that a user may select for the entry,e.g. if the worker is requesting to override the standard meal deduction for this entry, the code would identify the rule.  Example is that the worker is scheduled for lunch, but is working through lunch.  This tells the system that the worker is working through lunch and to not count the regularly scheduled lunch time",
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "title": "EndPeriodEntryOverrideCode",
+                                    "properties": {
+                                      "itemID": {
+                                        "description": "The unique identifier of the object in a collection",
+                                        "$ref": "#/definitions/itemIDType_v01"
+                                      },
+                                      "overrideCode": {
+                                        "description": "The code identifying the entry override",
+                                        "$ref": "#/definitions/codeType_v02"
+                                      },
+                                      "overrideTypeCode": {
+                                        "description": "The type of override (i.e. cancelmealdeduct, workrule)",
+                                        "$ref": "#/definitions/codeType_v02"
+                                      }
+                                    }
+                                  }
+                                },
+                                "exceptions": {
+                                  "description": "An exceptions array which has the exception level code, exceptionMessage and corresponding solutions.  These exceptions are at the time entry level.",
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "title": "EndPeriodExceptionType",
+                                    "properties": {
+                                      "exceptionCode": {
+                                        "description": "Code Identifying the the exception",
+                                        "$ref": "#/definitions/codeType_v02"
+                                      },
+                                      "exceptionTypeCode": {
+                                        "description": "Code Identifying the type of exception",
+                                        "$ref": "#/definitions/codeType_v02"
+                                      },
+                                      "exceptionDescription": {
+                                        "description": "The verbose description explaining the exception.",
+                                        "type": "string"
+                                      },
+                                      "actions": {
+                                        "description": "Actions which the user is allowed to initiate against the related pay distribution.  The applicable actions include: payDistribution.read, payDistribution.create, payDistribution.update, payDistribution.delete, based on the context",
+                                        "type": "array",
+                                        "items": {
+                                          "description": "Actions which the user is allowed to initiate against the related entity",
+                                          "$ref": "#/definitions/actionType_v02"
+                                        }
+                                      },
+                                      "links": {
+                                        "type": "array",
+                                        "items": {
+                                          "$ref": "#/definitions/linkType_v02"
+                                        }
+                                      },
+                                      "itemID": {
+                                        "description": "A unique identifier of a work assignment",
+                                        "$ref": "#/definitions/itemIDType_v01"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "dayPeriodCode": {
+                              "description": "Code identifying the period of the day.  Examples are morning, afternoon, full day",
+                              "$ref": "#/definitions/codeType_v02"
+                            },
+                            "hourQuantity": {
+                              "description": "Indecimal digits to arbitrary precision",
+                              "type": "number"
+                            },
+                            "timeDuration": {
+                              "$ref": "#/definitions/durationType_v01"
+                            },
+                            "unitQuantity": {
+                              "description": "Unit Quantity",
+                              "$ref": "#/definitions/quantityType_v03"
+                            },
+                            "amount": {
+                              "description": "the entered amount",
+                              "$ref": "#/definitions/amountNamedType_v02"
+                            },
+                            "laborAllocations": {
+                              "description": "Time may be allocated to a department, project, location, etc...  ",
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "title": "TimeCardDayEntryLaborAllocation",
+                                "properties": {
+                                  "allocationCode": {
+                                    "description": "The code identifying the allocation",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "allocationTypeCode": {
+                                    "description": "The type of allocation",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "allocationCategoryTypeCode": {
+                                    "description": "Identifies category of allocation Type e.g. Buissness Structure, Labor Category",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "homeLaborAllocationIndicator": {
+                                    "$ref": "#/definitions/indicatorType_v01",
+                                    "description": "Indicates current allocation code is same as worker home labor allocation code"
+                                  },
+                                  "itemID": {
+                                    "description": "The unique identifier of the object in a collection",
+                                    "$ref": "#/definitions/itemIDType_v01"
+                                  }
+                                }
+                              }
+                            },
+                            "modifiedDateTime": {
+                              "description": "Date/Time last timecard modified of Entry. Follows the ISO-8601:2000 format",
+                              "$ref": "#/definitions/dateTimeType_v01"
+                            },
+                            "exceptions": {
+                              "description": "An exceptions array which has the exception level code, exceptionMessage and corresponding solutions.  These exceptions are at the time entry level.",
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "title": "TimeCardDayEntryException",
+                                "properties": {
+                                  "exceptionCode": {
+                                    "description": "Code Identifying the the exception",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "exceptionTypeCode": {
+                                    "description": "Code Identifying the type of exception",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "exceptionDescription": {
+                                    "description": "The verbose description explaining the exception.",
+                                    "type": "string"
+                                  },
+                                  "actions": {
+                                    "description": "Actions which the user is allowed to initiate against the related pay distribution.  The applicable actions include: payDistribution.read, payDistribution.create, payDistribution.update, payDistribution.delete, based on the context",
+                                    "type": "array",
+                                    "items": {
+                                      "description": "Actions which the user is allowed to initiate against the related entity",
+                                      "$ref": "#/definitions/actionType_v02"
+                                    }
+                                  },
+                                  "links": {
+                                    "type": "array",
+                                    "items": {
+                                      "$ref": "#/definitions/linkType_v02"
+                                    }
+                                  },
+                                  "itemID": {
+                                    "description": "A unique identifier of a work assignment",
+                                    "$ref": "#/definitions/itemIDType_v01"
+                                  }
+                                }
+                              }
+                            },
+                            "comments": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "title": "TimeCardDayEntryComment",
+                                "properties": {
+                                  "textValue": {
+                                    "description": "The text entered by the user",
+                                    "type": "string"
+                                  },
+                                  "commentCode": {
+                                    "description": "Type of the related time entry note, one of the pre-defined by the backend SOR",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "appliesToCode": {
+                                    "description": "Type of the related time entry note, one of the pre-defined by the backend SOR",
+                                    "type": "string"
+                                  },
+                                  "entryDateTime": {
+                                    "description": "The date time of the entry",
+                                    "$ref": "#/definitions/dateTimeType_v01"
+                                  },
+                                  "modifiedDateTime": {
+                                    "description": "The date time of the comment modified by user. This field will be empty if orignal comment not changed.  This field can be used to either report date time when note was modified or can be use to identify if comment got modified",
+                                    "$ref": "#/definitions/dateTimeType_v01"
+                                  },
+                                  "author": {
+                                    "description": "The autor of the comment",
+                                    "$ref": "#/definitions/commentAuthorType_v01"
+                                  },
+                                  "itemID": {
+                                    "description": "The unique identifier of the object in a collection",
+                                    "$ref": "#/definitions/itemIDType_v01"
+                                  },
+                                  "visibilityScope": {
+                                    "description": "Visibility scope of a given object (e.g. who can see it).  May include the collection of circles identified by the codes and/or individuals",
+                                    "$ref": "#/definitions/visibilityScopeType_v02"
+                                  }
+                                }
+                              }
+                            },
+                            "actions": {
+                              "description": "Actions which the user is allowed to initiate against the related entity",
+                              "type": "array",
+                              "items": {
+                                "description": "Action which the user is allowed to initiate against the related entity",
+                                "$ref": "#/definitions/actionType_v04"
+                              }
+                            },
+                            "entryTags": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "tagCode": {
+                                    "description": "A code identifying a tag",
+                                    "type": "string"
+                                  },
+                                  "tagType": {
+                                    "description": "The type of tag",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "dataTypeCode": {
+                                        "description": "Code identifying the type of data",
+                                        "type": "string"
+                                      },
+                                      "currencyCode": {
+                                        "description": "List of standard currency codes ISO 4212",
+                                        "$ref": "#/definitions/simpleCodeType_v02"
+                                      },
+                                      "formatCode": {
+                                        "description": "The format of the property.  Possible values are date, date-time, uri",
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "tagValues": {
+                                    "description": "The the values for the given instance",
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "appliesToCode": {
+                                    "description": "Code describing what part of the object the tags applies to, pre-defined by the backend SOR",
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            },
+                            "entryTotals": {
+                              "type": "array",
+                              "additionalProperties": false,
+                              "description": "Entry Hours distribution e.g. Overtime/ Regular/Doubl Time hours",
+                              "items": {
+                                "additionalProperties": false,
+                                "type": "object",
+                                "properties": {
+                                  "payCode": {
+                                    "description": "Code identifying the code that the entry is associated to.  This may be an earning code, pay code, expense code, etc...",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "rate": {
+                                    "description": "Rate",
+                                    "$ref": "#/definitions/rateType_v02"
+                                  },
+                                  "hourQuantity": {
+                                    "description": "Indecimal digits to arbitrary precision",
+                                    "type": "number"
+                                  },
+                                  "timeDuration": {
+                                    "$ref": "#/definitions/durationType_v01"
+                                  },
+                                  "unitQuantity": {
+                                    "description": "Unit quantity",
+                                    "$ref": "#/definitions/quantityType_v03"
+                                  },
+                                  "amount": {
+                                    "description": "The amount entered ",
+                                    "$ref": "#/definitions/amountType_v02"
+                                  },
+                                  "itemID": {
+                                    "description": "Unique identifier of the entry",
+                                    "$ref": "#/definitions/itemIDType_v01"
+                                  }
+                                }
+                              }
+                            },
+                            "messages": {
+                              "description": "Messages associated with time entry.  This could be informational messages",
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/definitions/messageType_v01"
+                              }
+                            },
+                            "reviewDetails": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "title": "ReviewRequestReviewDetail",
+                                "properties": {
+                                  "itemID": {
+                                    "$ref": "#/definitions/itemIDType_v01"
+                                  },
+                                  "reviewDateTime": {
+                                    "$ref": "#/definitions/dateTimeType_v01"
+                                  },
+                                  "reviewStatusCode": {
+                                    "description": "This identifies the approval status of the current review step or if pending",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "reviewer": {
+                                    "description": "The reviewer performing a given step",
+                                    "$ref": "#/definitions/commentAuthorType_v01"
+                                  },
+                                  "comment": {
+                                    "description": "The comment entered by the submitter or the reviewer",
+                                    "title": "ReviewDetailComment",
+                                    "$ref": "#/definitions/submittedCommentType_v02"
+                                  }
+                                }
+                              }
+                            },
+                            "entrySourceCode": {
+                              "description": "Code identifying the source of the entry.  Examples are timeclock, manual, import, etc",
+                              "$ref": "#/definitions/codeType_v02"
+                            }
+                          }
+                        }
+                      },
+                      "actions": {
+                        "description": "Actions which the user is allowed to initiate against the related pay distribution.  The applicable actions include: payDistribution.read, payDistribution.create, payDistribution.update, payDistribution.delete, based on the context",
+                        "type": "array",
+                        "items": {
+                          "description": "Action which the user is allowed to initiate against the related entity",
+                          "$ref": "#/definitions/actionType_v04"
+                        }
+                      },
+                      "links": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/linkType_v02"
+                        }
+                      },
+                      "itemID": {
+                        "description": "A unique identifier of a work assignment",
+                        "$ref": "#/definitions/itemIDType_v01"
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "description": "Messages associated with time cards.  This could be informational messages",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/messageType_v01"
+                  }
+                },
+                "comments": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "title": "TimeCardEntryComment",
+                    "properties": {
+                      "textValue": {
+                        "description": "The text entered by the user",
+                        "type": "string"
+                      },
+                      "commentCode": {
+                        "description": "Type of the related time entry note, one of the pre-defined by the backend SOR",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "appliesToCode": {
+                        "description": "Type of the related time entry note, one of the pre-defined by the backend SOR",
+                        "type": "string"
+                      },
+                      "entryDateTime": {
+                        "description": "The date time of the entry",
+                        "$ref": "#/definitions/dateTimeType_v01"
+                      },
+                      "modifiedDateTime": {
+                        "description": "The date time of the comment modified by user. This field will be empty if orignal comment not changed.  This field can be used to either report date time when note was modified or can be use to identify if comment got modified",
+                        "$ref": "#/definitions/dateTimeType_v01"
+                      },
+                      "author": {
+                        "description": "The autor of the comment",
+                        "$ref": "#/definitions/commentAuthorType_v01"
+                      },
+                      "itemID": {
+                        "description": "The unique identifier of the object in a collection",
+                        "$ref": "#/definitions/itemIDType_v01"
+                      }
+                    }
+                  }
+                },
+                "actions": {
+                  "description": "Actions which the user is allowed to initiate against the related entity",
+                  "type": "array",
+                  "items": {
+                    "description": "Action which the user is allowed to initiate against the related entity",
+                    "$ref": "#/definitions/actionType_v04"
+                  }
+                },
+                "modifiedDateTime": {
+                  "description": "Date/Time last timecard modified of Entry. Follows the ISO-8601:2000 format",
+                  "$ref": "#/definitions/dateTimeType_v01"
+                },
+                "timeCardApprovalTillDate": {
+                  "description": "Partial timecard approved till date. This feature mainly used by ESI (Europe).",
+                  "$ref": "#/definitions/dateType_v01"
+                },
+                "timeCardID": {
+                  "description": "A unique identifier of a work assignment",
+                  "$ref": "#/definitions/simpleIDType_v02"
+                },
+                "exceptionsIndicator": {
+                  "description": "True indicates that there are exceptions in the related entity",
+                  "$ref": "#/definitions/indicatorType_v01"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "meta": {
+      "description": "Meta contains the metadata associated with a response.  A GET response may include metadata to support pagination.",
+      "type": "object",
+      "additionalProperties": false,
+      "title": "TeamTimeCardDayEntries_navigationLink",
+      "properties": {
+        "startSequence": {
+          "description": "The instance resource sequence (number) identifying the first resource returned in the response. The server generates this sequence.  It is used by the client to determine the start sequence of the subsequent Get request",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "completeIndicator": {
+          "description": "Indicates whether the response completes the return of all of the resources of the instance resource set to the requesting system",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "number": {
+          "description": "Number of instance resources in the response",
+          "type": "integer"
+        },
+        "totalNumber": {
+          "description": "Number of total instance resources in an instance resource set. Note: An instance resource set is a set of instance resources that is determined by a server to satisfy the sets membership criteria (i.e., selection, filter, expansion and search criteria) of a resource management operation (e.g. GET request) upon a collection resource",
+          "type": "integer"
+        },
+        "resourceSetID": {
+          "description": "Unique identifier of the instance resource set.  It is generated by the server as a result of the original Get request",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        },
+        "timeNotationCode": {
+          "description": "The time notation code.  Possible values 12hr | 24hr",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "timeDurationFormatCode": {
+          "description": "timeDuration display and entry format.  Possible values hh.hh | hh:mm",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "dayEntries_navigationLink": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+          "$ref": "#/definitions/linkType_v02"
+        }
+      }
+    },
+    "confirmMessage": {
+      "$ref": "#/definitions/confirmMessageType_v01"
+    }
+  },
+  "definitions": {
+    "associateOIDType_v02": {
+      "description": "The unique identifier of an assoicate",
+      "$ref": "#/definitions/simpleIDType_v02"
+    },
+    "simpleIDType_v02": {
+      "description": "The simple (string) identifier of an object",
+      "type": "string"
+    },
+    "IDType_v02": {
+      "description": "The unique identifier of the related entity ",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "idValue": {
+          "description": "An actual ID value",
+          "type": "string"
+        },
+        "schemeCode": {
+          "description": "The scheme code",
+          "$ref": "#/definitions/codeType_v02"
+        }
+      }
+    },
+    "codeType_v02": {
+      "description": "The code for the related entity.  If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        }
+      }
+    },
+    "personNameType_v02": {
+      "description": "Object describing the details of a person name",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "givenName": {
+          "description": "The first name of the person",
+          "type": "string"
+        },
+        "middleName": {
+          "description": "Person middle name or initial",
+          "type": "string"
+        },
+        "familyName1": {
+          "description": "Person family name 1",
+          "type": "string"
+        },
+        "familyName2": {
+          "description": "Person family name 2",
+          "type": "string"
+        },
+        "formattedName": {
+          "description": "A formatted version of the person name",
+          "type": "string"
+        },
+        "nameCode": {
+          "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "scriptCode": {
+          "description": "The type of script the name is in. Associated codelist is ISO15924-A. Use the alpha-4 representation versus the single digit numeric representation. Format is lowercase with inital letter capitalized. For example, Cyrillic is Cyrl",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "preferredSalutations": {
+          "description": "A list of preferred salutations",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/salutationType_v02"
+          }
+        },
+        "titlePrefixCodes": {
+          "description": "Person title Prefix Codes",
+          "type": "array",
+          "items": {
+            "description": "Person title Prefix Codes",
+            "$ref": "#/definitions/titleAffixType_v02"
+          }
+        },
+        "nickName": {
+          "description": "A preferred name, e.g. a nickname",
+          "type": "string"
+        },
+        "generationAffixCode": {
+          "description": "The generational affix of the person name, e.g. Jr, Sr",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "qualificationAffixCode": {
+          "description": "The qualification affix of the person name",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "titleAffixCodes": {
+          "description": "Person titles",
+          "type": "array",
+          "items": {
+            "description": "Person titles",
+            "$ref": "#/definitions/titleAffixType_v02"
+          }
+        },
+        "familyName1Prefix": {
+          "description": "Person family name pre-fix",
+          "type": "string"
+        },
+        "familyName2Prefix": {
+          "description": "Person family name pre-fix",
+          "type": "string"
+        },
+        "initials": {
+          "description": "Person initials",
+          "type": "string"
+        }
+      }
+    },
+    "salutationType_v02": {
+      "description": "A preferred salutation, e.g. Mr., Dr., etc.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "salutationCode": {
+          "description": "The saluation code",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "typeCode": {
+          "description": "The type of salutation, e.g. Professional, Social",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "sequenceNumber": {
+          "description": "The sequence or order of the salutation",
+          "$ref": "#/definitions/sequenceType_v01"
+        }
+      }
+    },
+    "sequenceType_v01": {
+      "description": "Sequence of a related entity when included in the collection or a group",
+      "type": "integer"
+    },
+    "titleAffixType_v02": {
+      "description": "Person titles, e.g. social, professional, generational, etc.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "affixCode": {
+          "description": "The title affix of the person name",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "sequenceNumber": {
+          "description": "The sequence or order of the title",
+          "$ref": "#/definitions/sequenceType_v01"
+        }
+      }
+    },
+    "statusType_v02": {
+      "description": "Status to include the status code and effective date (ISO-8601:2000 format)",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        },
+        "effectiveDate": {
+          "$ref": "#/definitions/dateType_v01"
+        }
+      }
+    },
+    "dateType_v01": {
+      "description": "The string representation of the date value. Follows the ISO-8601:2000 format",
+      "type": "string",
+      "format": "date"
+    },
+    "linkType_v02": {
+      "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "linkID": {
+          "description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9.$-_/]+$"
+        },
+        "href": {
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "rel": {
+          "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+          "type": "string",
+          "enum": [
+            "alternate",
+            "create",
+            "canonical",
+            "describedby",
+            "edit-form",
+            "enclosure",
+            "full",
+            "related",
+            "root",
+            "self",
+            "up",
+            "search",
+            "first",
+            "last",
+            "next",
+            "previous",
+            "/adp/invoke",
+            "/adp/image",
+            "/adp/confirm-message",
+            "/adp/status-monitor",
+            "/adp/codelist",
+            "/adp/template",
+            "/adp/externalLink",
+            "/adp/validation",
+            "/adp/deeplink",
+            "/adp/attachment",
+            "/adp/workflow",
+            "/adp/consent"
+          ]
+        },
+        "canonicalUri": {
+          "description": "A unique identifier of the feature/function/operation, the link poins to",
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "title": {
+          "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user",
+          "type": "string"
+        },
+        "targetSchema": {
+          "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation",
+          "type": "string"
+        },
+        "mediaType": {
+          "description": "The media type that the linked resource will return (Response)",
+          "type": "string",
+          "enum": [
+            "application/gzip",
+            "application/json",
+            "application/msword",
+            "application/pdf",
+            "application/postscript",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/xml",
+            "application/x-www-form-urlencoded",
+            "image/gif",
+            "image/jpeg",
+            "image/png",
+            "image/tiff",
+            "multipart/mixed",
+            "multipart/form-data",
+            "text/html",
+            "text/plain",
+            "application/vnd.visio",
+            "image/bmp",
+            "image/x-ms-bmp",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/vnd.ms-powerpoint",
+            "video/mp4",
+            "audio/mpeg",
+            "video/x-msvideo",
+            "video/x-ms-wmv",
+            "application/rtf",
+            "application/vnd.ms-outlook",
+            "text/csv",
+            "video/quicktime",
+            "application/zip",
+            "application/illustrator",
+            "text/xml"
+          ]
+        },
+        "method": {
+          "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "DELETE",
+            "PUT"
+          ]
+        },
+        "encType": {
+          "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+          "type": "string",
+          "enum": [
+            "application/json",
+            "application/x-www-form-urlencoded"
+          ]
+        },
+        "schema": {
+          "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body",
+          "type": "string"
+        },
+        "payLoadArguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "argumentPath": {
+                "description": "Code value (typically a key field) of the code list item",
+                "type": "string"
+              },
+              "argumentValue": {
+                "description": "Code value (typically a key field) of the code list item",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "URIType_v01": {
+      "description": "The URI of the related entity",
+      "type": "string",
+      "format": "uri"
+    },
+    "datePeriodType_v01": {
+      "description": "The string reprersentation of the date range. Used to specify effective period.  Follows the ISO-8601:2000 format",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "startDate": {
+          "$ref": "#/definitions/dateType_v01"
+        },
+        "endDate": {
+          "$ref": "#/definitions/dateType_v01"
+        }
+      }
+    },
+    "itemIDType_v01": {
+      "description": "The unique identifier of the object in a collection",
+      "$ref": "#/definitions/simpleIDType_v02"
+    },
+    "rateType_v02": {
+      "description": "A representation of a rate value",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "amountValue": {
+          "description": "The numeric value associated to the rate. In the example 5 US dollars per hour, the number 5 is the rate value. In the example 3 bags of rice per month, the number 3 is the rate value. In the example, 20 percent of annual sales, the amountValue would be 20",
+          "type": "number"
+        },
+        "currencyCode": {
+          "description": "List of standard currency codes ISO 4217 For any given rate, either the currencyCode or the unitCode is present. In the example 5 US dollars per hour, the unitCode would not be present, and the currency code would be USD",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "unitCode": {
+          "description": "For any given rate, either the currencyCode or the unitCode is present. In the example 3 bags of rice per month, currencyCode would not be present, and the unitCode would be bags of rice. In the example, 20 percent of annual sales, the unitCode would be percent",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "baseUnitCode": {
+          "description": "For any given rate, the baseUnitCode is used to define the denominator of the rate, or rate over what. In the example 5 US dollars per hour, the baseUnitCode is hour. In the example 3 bags of rice per month, the baseUnitCode is month. If for example, the rate was 10 US dollars for every widget produced, the baseUnitCode would be widget. In the example, 20 percent of annual sales, the baseUnitCode would equate to annual sales",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "baseMultiplierValue": {
+          "description": "For any given rate, the base rate value is presumed to be 1, e.g. per one hour, per one month. If for example, the rate was 10 US dollars for every widget produced, the base rate value is presumed to be one and there is no need to communicate a baseMultiplierValue. If however, the rate was 10 US Dollars for every 3 widgets produced, the baseMultiplierValue would be 3",
+          "type": "number"
+        }
+      }
+    },
+    "simpleCodeType_v02": {
+      "description": "A simple (string) code.  Can have a code list reference",
+      "type": "string"
+    },
+    "durationType_v01": {
+      "description": "Represents the duration of time as represented by ISO 8601. Where the value space is a six dimensional space where the coordinates designate the Gregorian year, month, day, hour, minute, and second. The number of seconds can include decimal digits to arbitary pecision. PnYn MnDTnH nMnS, where: [n] is replaced by the value for each of the date and time elements that follow the [n]. Leading zeros are not required, but the maximum number of digits for each element should be agreed to by the communicating parties. The capital letters 'P', 'Y', 'M', 'W', 'D', 'T', 'H', 'M', and 'S' are designators for each of the date and time elements and are not replaced. P is the duration designator (historically called 'period') placed at the start of the duration representation. Y is the year designator that follows the value for the number of years. M is the month designator that follows the value for the number of months. D is the day designator that follows the value for the number of days. T is the time designator that precedes the time components of the representation. H is the hour designator that follows the value for the number of hours. M is the minute designator that follows the value for the number of minutes. S is the second designator that follows the value for the number of seconds. The number of seconds can include decimal digits to arbitrary precision",
+      "type": "string"
+    },
+    "quantityType_v03": {
+      "description": "Quantity (unit based)",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "quantityValue": {
+          "description": "Quantity value",
+          "type": "number"
+        },
+        "unitCode": {
+          "description": "Units the quantity is based upon",
+          "$ref": "#/definitions/codeType_v01"
+        }
+      }
+    },
+    "codeType_v01": {
+      "description": "The code for the related entity",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity.",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code not to exceed 25 characters",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        }
+      }
+    },
+    "amountType_v02": {
+      "description": "A representation of a monetary value",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "amountValue": {
+          "description": "The monetary value of the object in which the amount is associated",
+          "type": "number"
+        },
+        "currencyCode": {
+          "description": "Standard currency code as per ISO 4212",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        }
+      }
+    },
+    "simpleDescriptionType_v01": {
+      "description": "The simple (string) description of an object",
+      "type": "string"
+    },
+    "indicatorType_v01": {
+      "description": "Boolean expression",
+      "type": "boolean"
+    },
+    "messageType_v01": {
+      "description": "Representation of a message.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code associated with the message description.",
+          "type": "string"
+        },
+        "title": {
+          "description": "Title of the message description.",
+          "type": "string"
+        },
+        "messageTxt": {
+          "description": "The value/content of the message description.",
+          "type": "string"
+        },
+        "messageArguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "argumentName": {
+                "description": "Argument name to be passed in",
+                "type": "string"
+              },
+              "argumentPath": {
+                "description": "Argument path if referenced within the same schema",
+                "type": "string"
+              },
+              "argumentValue": {
+                "description": "Argument name to be passed in",
+                "type": "string"
+              }
+            },
+            "required": [
+              "argumentValue"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        },
+        "messageTypeCode": {
+          "$ref": "#/definitions/messageTypeCodeType_v01"
+        }
+      }
+    },
+    "messageTypeCodeType_v01": {
+      "description": "Schema describing the type of the user or developer message",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        },
+        "codeValue": {
+          "description": "The code for the related entity.",
+          "type": "string",
+          "enum": [
+            "success",
+            "warning",
+            "error",
+            "info"
+          ]
+        }
+      }
+    },
+    "workShiftType_v01": {
+      "description": "The work shift structure",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workShiftID": {
+          "description": "The unique ID of the actual work shift",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "startDateTime": {
+          "description": "Actual work shift start date/time",
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "endDateTime": {
+          "description": "Actual work shift end date/time",
+          "$ref": "#/definitions/dateTimeType_v01"
+        }
+      }
+    },
+    "dateTimeType_v01": {
+      "description": "The string reprersentation of the date-time value. Follows the ISO-8601:2000 format",
+      "type": "string",
+      "format": "date-time"
+    },
+    "timeType_v01": {
+      "description": "The string reprersentation of the time value usually expressed as hh:mm",
+      "type": "string"
+    },
+    "actionType_v02": {
+      "description": "Actions which the user is allowed to initiate against the related entity",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operationID": {
+          "description": "Identifies the operation of an action",
+          "type": "string"
+        },
+        "canonicalUri": {
+          "description": "A unique identifier of the feature/function/operation",
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "actionTypeCode": {
+          "description": "Identifies the type of action to be taken to fulfill the request.  Action can be a callback to a service to complete the action.  A callback requires the methodCode and uris to be returned.  An external link i.e. open a web page - requires the uris of the external link; An object reference is a reference to a related object within the application.  This is a canonical name which represents the object.  Based on this identifier, the application knows what view it needs to open.  The uris returns the data for the view.  For an object reference, the objectRefID, methodCode, and uris are required . modify indicates that a property is being modified",
+          "type": "string",
+          "enum": [
+            "callback",
+            "externalLink",
+            "objectReference",
+            "modify"
+          ]
+        },
+        "confirmationRequiredIndicator": {
+          "description": "True indicates that the application will prompt the user to confirm the action before it takes the action. False indicates that the action will be executed once selected by the user.",
+          "$ref": "#/definitions/indicatorDefaultType_v01"
+        },
+        "commentAllowedIndicator": {
+          "description": "True indicates that the SOR supports adding a comment when taking an action.",
+          "$ref": "#/definitions/indicatorDefaultType_v01"
+        },
+        "defaultIndicator": {
+          "description": "True indicates that this is the default action",
+          "$ref": "#/definitions/indicatorDefaultType_v01"
+        },
+        "sequence": {
+          "description": "Sequence indicates that the item in the array must be in a sequence in relation to the other items in the sequence.  The action must not ocurr before another action with a lower sequence",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "attestation": {
+          "description": "Optional text provided to the user when they take an action to affirm to be correct, true, or genuine. Requires confirmation indicator to be set to true.",
+          "$ref": "#/definitions/attestationType_v02"
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      }
+    },
+    "indicatorDefaultType_v01": {
+      "description": "Boolean expression",
+      "type": "boolean",
+      "default": false
+    },
+    "attestationType_v02": {
+      "description": "Optional text provided to the user when they take an action to affirm to be correct, true, or genuine. Requires confirmation indicator to be set to true",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "actionBlockIndicator": {
+          "description": "Action blocking flag.  True indicates that the user must acknowledge the text as specified in the attestation message, before the action can be taken.  False indicates that the action will be executed once selected by the user.",
+          "$ref": "#/definitions/indicatorDefaultType_v01"
+        },
+        "messageTxt": {
+          "description": "Message to present to the user.  This is mutuallly exclusive with the messageUri which is an external link to the message.  If the text is sizable and fairly static then it should be an external link which may be cached",
+          "type": "string"
+        },
+        "messageUri": {
+          "description": "URI of the attestation message, should be used instead of the messageTxt property if it can be cached",
+          "$ref": "#/definitions/URIType_v01"
+        }
+      }
+    },
+    "amountNamedType_v02": {
+      "description": "Type to include the amount and named given to amount",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "amountValue": {
+          "description": "The monetary value of the object in which the amount is associated",
+          "type": "number"
+        },
+        "currencyCode": {
+          "description": "Standard currency code as per ISO 4212",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "nameCode": {
+          "description": "The unit of time, the amount applies to",
+          "$ref": "#/definitions/codeType_v02"
+        }
+      }
+    },
+    "commentAuthorType_v01": {
+      "description": "Feed item author",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "associateOID": {
+          "description": "The unique identifier of the associate",
+          "$ref": "#/definitions/associateOIDType_v02"
+        },
+        "roleCode": {
+          "description": "The code describing the role of the the associated person",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "formattedName": {
+          "description": "The formatted name of the associate",
+          "type": "string"
+        }
+      }
+    },
+    "visibilityScopeType_v02": {
+      "description": "Vsibility scope of a given object (e.g. who can see it).  May inlcude the collection of circles identified by the codes and/or individuals",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scopeCodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/codeType_v02"
+          }
+        }
+      }
+    },
+    "actionType_v04": {
+      "description": "Actions which the user is allowed to initiate against the related entity",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operationID": {
+          "description": "Identifies the operation of an action",
+          "type": "string"
+        },
+        "canonicalUri": {
+          "description": "A unique identifier of the feature/function/operation",
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "actionTypeCode": {
+          "description": "Identifies the type of action to be taken to fulfill the request.  Action can be a callback to a service to complete the action.  A callback requires the methodCode and uris to be returned.  An external link i.e. open a web page - requires the uris of the external link; An object reference is a reference to a related object within the application.  This is a canonical name which represents the object.  Based on this identifier, the application knows what view it needs to open.  The uris returns the data for the view.  For an object reference, the objectRefID, methodCode, and uris are required . modify indicates that a property is being modified",
+          "type": "string",
+          "enum": [
+            "callback",
+            "externalLink",
+            "objectReference",
+            "modify"
+          ]
+        },
+        "confirmationRequiredIndicator": {
+          "description": "True indicates that the application will prompt the user to confirm the action before it takes the action. False indicates that the action will be executed once selected by the user.",
+          "$ref": "#/definitions/indicatorDefaultType_v01"
+        },
+        "defaultIndicator": {
+          "description": "True indicates that this is the default action",
+          "$ref": "#/definitions/indicatorDefaultType_v01"
+        },
+        "sequence": {
+          "description": "Sequence indicates that the item in the array must be in a sequence in relation to the other items in the sequence.  The action must not ocurr before another action with a lower sequence",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "attestation": {
+          "description": "Optional text provided to the user when they take an action to affirm to be correct, true, or genuine. Requires confirmation indicator to be set to true.",
+          "$ref": "#/definitions/attestationType_v03"
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      }
+    },
+    "attestationType_v03": {
+      "description": "Optional text provided to the user when they take an action to affirm to be correct, true, or genuine. Requires confirmation indicator to be set to true",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "messageTxt": {
+          "description": "Message to present to the user.  This is mutuallly exclusive with the messageUri which is an external link to the message.  If the text is sizable and fairly static then it should be an external link which may be cached",
+          "type": "string"
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        },
+        "actionBlockIndicator": {
+          "description": "Action blocking flag.  True indicates that the user must acknowledge the text as specified in the attestation message, before the action can be taken.  False indicates that the action will be executed once selected by the user.",
+          "$ref": "#/definitions/indicatorDefaultType_v01"
+        }
+      }
+    },
+    "submittedCommentType_v02": {
+      "description": "Details of the comment submitted by the actor",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "textValue": {
+          "description": "The text entered by the user",
+          "type": "string"
+        },
+        "commentCode": {
+          "description": "Code describing the comment category, often with the verbiage pre-defined by the backend SOR",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "entryDateTime": {
+          "description": "The date time of the entry",
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "author": {
+          "description": "The autor of the comment",
+          "$ref": "#/definitions/commentAuthorType_v01"
+        }
+      }
+    },
+    "confirmMessageType_v01": {
+      "description": "The ConfirmMessage contains the processing results for the corresponding request.  A request may have its processing reported as: succeeded, partially failed, or failed.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "confirmMessageID": {
+          "description": "An identifier for the instance of the confirm message.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "createDateTime": {
+          "description": "The date & time that the message instance was generated.; follows the ISO-8601:2000 format: 2008-05-11T15:30:00-06:00.",
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "requestReceiptDateTime": {
+          "description": "The date & time that the request submitted by the client was received. Note, this timestamp may not be the same as the time the client actually submitted the request if there is a queuing mechanism between the client and server processing the request; it follows the ISO-8601:2000 format: 2008-05-11T15:30:00-06:00.",
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "protocolStatusCode": {
+          "description": "Protocol-specific response status code.",
+          "$ref": "#/definitions/codeType_v01"
+        },
+        "protocolCode": {
+          "description": "Code that identifies the protocol used for the request.",
+          "$ref": "#/definitions/codeType_v01"
+        },
+        "requestID": {
+          "description": "The identifier of the request that generated this response.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "requestStatusCode": {
+          "description": "The process results status code for the request.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "succeeded",
+                "partiallyFailed",
+                "failed"
+              ]
+            }
+          }
+        },
+        "requestMethodCode": {
+          "description": "The method that was used on the request corresponding to this message instance.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "GET",
+                "PUT",
+                "POST",
+                "PATCH",
+                "DELETE"
+              ]
+            }
+          }
+        },
+        "sessionID": {
+          "description": "A session identifier if one is available.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "requestETag": {
+          "description": "The entity tag of the entity in the request.",
+          "type": "string"
+        },
+        "requestLink": {
+          "description": "The link of the request that generated this response.",
+          "$ref": "#/definitions/linkType_v02"
+        },
+        "processingStatusCode": {
+          "description": "Processing status of the related request message.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "received",
+                "validated",
+                "started",
+                "in-progress",
+                "completed"
+              ]
+            }
+          }
+        },
+        "processMessages": {
+          "description": "processMessage is optional and contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).  Most often there will be a single instance for an associated request or resource, but this structure allows for more than one if needed, for example, if multiple errors exist for a single resource. ",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/processMessage_v01"
+          }
+        },
+        "resourceMessages": {
+          "description": "resource Message contains the resource-specific processing results for resources being managed in the request.  A resource may have its processing reported as:  succeeded or failed.  It must be used to represent resource-specific messages.  In the case of a request managing multiple resources and resource-specific messages are to be returned, then this array will contain one object for each such resource of the request.",
+          "type": "array",
+          "items": {
+            "description": "Each object contains detailed information for a resource referenced in the original request.",
+            "type": "object",
+            "properties": {
+              "resourceMessageID": {
+                "description": "An identifier for the instance of the resource message.",
+                "$ref": "#/definitions/IDType_v01"
+              },
+              "resourceStatusCode": {
+                "description": "The processing results status code of the resource of the request.",
+                "type": "object",
+                "additionalProperties": false,
+                "title": "ResourceMessageResourceStatus",
+                "properties": {
+                  "shortName": {
+                    "description": "Short description of the related code",
+                    "type": "string"
+                  },
+                  "longName": {
+                    "description": "Long description of the related code",
+                    "type": "string"
+                  },
+                  "codeValue": {
+                    "description": "The code for the related entity.",
+                    "type": "string",
+                    "enum": [
+                      "succeeded",
+                      "failed",
+                      "warning"
+                    ]
+                  }
+                }
+              },
+              "resourceLink": {
+                "description": "The link of the request that generated this response.",
+                "$ref": "#/definitions/linkType_v02"
+              },
+              "processMessages": {
+                "description": "processMessage is optional and contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).  Most often there will be a single instance for an associated request or resource, but this structure allows for more than one if needed, for example, if multiple errors exist for a single resource. ",
+                "type": "array",
+                "items": {
+                  "title": "ProcessMessageWithResourceStatusCode",
+                  "description": "Each object contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "processMessageID": {
+                      "description": "An identifier for the instance of the process message.",
+                      "$ref": "#/definitions/IDType_v01"
+                    },
+                    "messageTypeCode": {
+                      "description": "Process Message instances may be of type: success, warning, error, or info.",
+                      "$ref": "#/definitions/messageTypeCodeType_v01"
+                    },
+                    "sourceLocationExpression": {
+                      "description": "Expression that provides the location (or source) of content in a message instance that is associated with a process message. Examples of expression languages include: XPath, XQuery, JSON Pointer.",
+                      "type": "string"
+                    },
+                    "expressionLanguageCode": {
+                      "description": "Identifies the language used for expressions communicated in this message.",
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "shortName": {
+                          "description": "Short description of the related code",
+                          "type": "string"
+                        },
+                        "longName": {
+                          "description": "Long description of the related code",
+                          "type": "string"
+                        },
+                        "codeValue": {
+                          "description": "The code for the related entity.",
+                          "type": "string",
+                          "enum": [
+                            "jPath"
+                          ]
+                        }
+                      }
+                    },
+                    "links": {
+                      "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/linkType_v02"
+                      }
+                    },
+                    "userMessage": {
+                      "description": "Message returned to the user",
+                      "$ref": "#/definitions/messageType_v01"
+                    },
+                    "developerMessage": {
+                      "description": "Message returned to the user",
+                      "$ref": "#/definitions/messageType_v01"
+                    },
+                    "clientActionTypeCode": {
+                      "description": "Code that identifies the action to be taken by the client application upon receiving the message",
+                      "$ref": "#/definitions/simpleCodeType_v02"
+                    },
+                    "resourceStatusCode": {
+                      "description": "DEPRECATED - Use messageTypeCode instead. The processing results status code of the resource of the request.",
+                      "$ref": "#/definitions/codeType_v01"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "IDType_v01": {
+      "description": "The unique identifier of the related entity ",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "idValue": {
+          "description": "An ID",
+          "type": "string"
+        },
+        "schemeName": {
+          "description": "The type of ID",
+          "type": "string"
+        },
+        "schemeAgencyName": {
+          "description": "The agency that issues the ID",
+          "type": "string"
+        }
+      }
+    },
+    "processMessage_v01": {
+      "description": "Each object contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "processMessageID": {
+          "description": "An identifier for the instance of the process message.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "messageTypeCode": {
+          "description": "Process Message instances may be of type: success, warning, error, or info.",
+          "$ref": "#/definitions/messageTypeCodeType_v01"
+        },
+        "sourceLocationExpression": {
+          "description": "Expression that provides the location (or source) of content in a message instance that is associated with a process message. Examples of expression languages include: XPath, XQuery, JSON Pointer.",
+          "type": "string"
+        },
+        "expressionLanguageCode": {
+          "description": "Identifies the language used for expressions communicated in this message.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "jPath"
+              ]
+            }
+          }
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        },
+        "userMessage": {
+          "description": "Message returned to the user",
+          "$ref": "#/definitions/messageType_v01"
+        },
+        "developerMessage": {
+          "description": "Message returned to the user",
+          "$ref": "#/definitions/messageType_v01"
+        },
+        "clientActionTypeCode": {
+          "description": "Code that identifies the action to be taken by the client application upon receiving the message",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        }
+      }
+    }
+  }
+}

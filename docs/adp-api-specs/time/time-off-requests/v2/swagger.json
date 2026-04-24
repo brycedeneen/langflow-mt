@@ -1,0 +1,4227 @@
+{
+  "openapi": "3.0.1",
+  "servers": [
+    {
+      "url": "https://__host__/"
+    }
+  ],
+  "info": {
+    "contact": {
+      "name": "Mary Arem",
+      "email": "MARY.AREM@ADP.COM"
+    },
+    "description": "Time Off APIs support the viewing of time off balances, and the viewing of time off requests if the worker is allowed to make requests. In addition, if the user is authorized, the APIs support requesting time off, and approving time off by a manager.<span>For more information please refer to the&nbsp;</span><a href=\"https://developers.adp.com/guides/api-guides/time-off-balances-api-guide-for-adp-workforce-now\" rel=\"noopener noreferrer\" target=\"_blank\">Time Off Balances API Guide for ADP Workforce Now</a> and <a href=\"https://developers.adp.com/guides/api-guides/time-off-request-api-guide-for-adp-workforce-now\" rel=\"noopener noreferrer\" target=\"_blank\"><span>Time Off Request API Guide for ADP Workforce Now</span></a><span>&nbsp;</span>guides.",
+    "title": "Time Off Management",
+    "version": "2.0.0"
+  },
+  "x-adpSpecData": {
+    "domain": "Time",
+    "specId": "832d62bd-38ac-4b86-a754-abc8c9eef452",
+    "canonicalSpecId": "7ac5618b-37d6-4b8a-9815-c53964dc0da0",
+    "specStatusCode": "publishing",
+    "specTypeCode": "REST",
+    "specStateCode": "active",
+    "nonStandardIndicator": false,
+    "visibilityCodes": [
+      "internal",
+      "external"
+    ],
+    "filename": "time-off-requests-swagger_v2-merged.json",
+    "serviceProviderId": "null",
+    "resourcePath": "time/time-off-requests/v2",
+    "libraryVersion": "",
+    "businessRules": [
+      {
+        "rule": "R30.1",
+        "ruleTitle": "After the initial Post the user may add periods to the request which will be a Put request.The System of Record validates the request.  The System of Record may modify the request.  The System of Record returns the entityBody (i.e. paidTimeOffRequest) in the case of a successful response.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.12.2",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is datePeriodDayPeriod then there will be 2 buttons associated with the startDate and the same 2 buttons associated with the endDate.  The label of the buttons is passed in the dayPeriods/labelName array.  They should be passed in the order they will appear from left to right.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R11.0",
+        "ruleTitle": "If clientProducts contains the SPNDACCTS product then the FSA  feature is presented to the user.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.10",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/requestTimeOffIndicator is false then this policy should not be included in the drop down when making a request.  The default is true.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R33.1",
+        "ruleTitle": "An SOR may send the timeOffEntryRevID with the actions object as an argument.  The client MUST send this back to the SOR when posting service back to the SOR.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.13",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is 'dayPeriod' then the startDate defaults to clockReferenceDateTime plus 24 hours. There should not be any endDate.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R24.7",
+        "ruleTitle": "If this is a multiPeriod request and submit has not been tapped from the Request Summary Screen and the user taps on the Cancel button then the application will present the user with a dialog box \u201cAre you sure you want to cancel the request\u201d.  If the user confirms then the application will issue a Delete request - Delete /v1_0/O/A/paidTimeOffRequest/{id}.  The application will clear the object from cache and request the paidTimeOffDetails.  The user will be returned to the request list screen.  The SOR should clean up any requests which have not been submitted after 1 hour.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.22.2",
+        "ruleTitle": "The defaultQuantity.unitTimeCode must equal hour if durationPrecision = hh, hh.hhThe defaultQuantity.unitTimeCode must equal day if durationPrecision = d, d.d",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.15",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/minimumIncrement communicates the minimum increment for a duration. E.g. a user can request 4.5 hours if the minimumIncrement is .5 and the durationPrecision is h.h (Relevant for dateDuration only).  The user could not enter 4.25 for example.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.10.4",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is 'datePeriodStartTimeDuration' Start Date and End Date default to clockReferenceDateTime plus 24 hours.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.22.1",
+        "ruleTitle": "If no defaultQuantity is set, minimumQuantity should be used as the defaultQuantity.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R38.0",
+        "ruleTitle": "If an Employee has actions and metadataEntitlementCodes=k and or d then the actions should appear first in the order sent in the json followed by the controls for the metadataEntitlementCodes",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R24.5",
+        "ruleTitle": "Each time a Put is done a subsequent Get of the request is done (see sequence diagrams) and the user returns to the request summary screen. Each time a Put is done the response to the Put is the HTTP response code and the paidTimeOffRequest object as manipulated by the SOR.  The application uses that object to create the request summary screen.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.10.8",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is 'datePeriodStartTimeDuration' the all day indicator is not available.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.12.2.4",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is datePeriodDayPeriod then the dayPeriod/defaultEndIndicator may only be true for one instance in the array.  If 2 instances in the array have the defaultEndIndicator set to true then the last one will win.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.10",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is 'datePeriodStartTimeDuration' then the application presents the user a selection of the durationTypes passed in the json (e.g. fullday, halfday, quantity (e.g. Hours), or dailyQuantity with the corresponding label shown on the button).",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.12.2.3",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is datePeriodDayPeriod then the dayPeriod/defaultStartIndicator may only be true for one instance in the array.  If 2 instances in the array have the defaultStartIndicator set to true then the last one will win.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R20.4",
+        "ruleTitle": "/paidTimeOffConfiguration/requestsIndicator equal to true indicates that the SOR supports requests for the target associate; therefore, the requests will be requested and presented to the user.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.22",
+        "ruleTitle": "If defaultQuantity is set, it must be >= minimumQuantity.  If it is NOT >= minimumQuantity then the minimumQuantity becomes the defaultQuantity.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.11",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is datePeriodHalfDay then the user must enter a start date and an end date.  The System of Record calculates what a half day represents.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.8",
+        "ruleTitle": "The period entry screen will always have an all day indicator.  If the user taps on all day (set to true) then the time is no longer visible if this is timePeriod or dateTime and if it is a dateDuration then the duration disappears.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.10.1",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is 'datePeriodStartTimeDuration' then a minimum of 1 item in durationTypes array is required, and a maximum of 3 items",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.10.3",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is 'datePeriodStartTimeDuration' the order of the buttons follows the order of the items in the durationType array.  (Recommendation: fullday, halfday, quantity, or dailyQuantity \u2013 If one is missing then follow the remaining order)",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R24.0",
+        "ruleTitle": "The /paidTimeOffRequest/meta/metadataEntitlementCodes communicate whether a request which has already been Posted to the SOR can be modified.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.5.1",
+        "ruleTitle": "For entryTypeCode=startDateTimeDuration the all day option is not available on the UI.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R37.0",
+        "ruleTitle": "For a manager actions are presented first in the order sent in the json.  If the request also has metadataEntitlementCodes= d and/or k which results in a Delete control (i.e. button) or a Cancel control (i.e. button) then the action controls (i.e. buttons) are shown first followed by the controls as a result of the metadataEntitlementCodes.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.12.2.1",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is datePeriodDayPeriod then the dayPeriod buttons associated with the startDate should default to the one which has defaultStartIndicator set to true.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.1",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is dateDuration then the user can enter a single date and a duration of time.  The durationPrecision indicates the precision of the duration.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.22.3",
+        "ruleTitle": "If SOR does not send defaultQuantity or minimumQuantity then the duration will default to 0 with the unitTimeCode of the durationPrecision.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R33.0",
+        "ruleTitle": "If a user has manager time off management authorization based on the associateAuthorization call and is authorized to manage an Associates time off (e.g. Employee).  Then the user (i.e. manager) selects time off management for a given associate.  The application knows the Organization OID/Associate OID of the target Associate from the Object Entitlements call.  The application must enrich the uri to add the Organization OID and Associate OID of the target Associate.  That is the call to Get /v2/O/A/paidTimeOffDetails.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R24.6",
+        "ruleTitle": "If the request has multiPeriodRequestIndicator set to true then the submit button is visible on the top right of the request summary screen.  Once the user is done adding or modifying periods, comments, or approval due date \u2013 the user must tap on Submit.  The Submit will do a Put of the request to the SOR with a request status of usersubmitted.  usersubmitted indicates to the SOR that the user has completed the request.  The SOR validates the request and persists the request, if valid.  The ui application will issue a Get of the list of requests and return the user to the request list page if the Put was successful. Get /v2/O/A/paidTimeOffDetails/paidTimeOffRequests",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.22.4",
+        "ruleTitle": "If the SOR does not send defaultTime then the default is 00:00",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R22.0",
+        "ruleTitle": "If multiPeriodRequestIndicator is set to false then once the user adds the first period and Saves the entry.  They are returned to the summary of the request.  The user then has to tap on the Submit button to complete the request.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R24.2",
+        "ruleTitle": "A /paidTimeOffRequest/meta/multiPeriodRequestIndicator set to true indicates that this request can support multi-period requests, therefore, if the metadataEntitlements contain u at the request level then the add a period will be visible and the user can add another period to the already created request.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R20.5",
+        "ruleTitle": "/paidTimeOffConfiguration/requestTimeOffIndicator set to true requires that the requestsIndicator be set true.  If requestTimeOffIndicator is set to true and the requestsIndicator is not set it will default to true.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.17",
+        "ruleTitle": "/paidTimeOffConfiguration/paidTimeOffPolicies/defaultIndicator of true indicates that this is the first policy in the drop down if the policy name is exposed.  This should be the most commonly used policy.  It should also be the first in the list of array. See Rule R19.8",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R20.1",
+        "ruleTitle": "If /paidTimeOffConfiguration/balancesIndicator is not present the default is that the SOR supports balances for the target associate.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.12.2.2",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is datePeriodDayPeriod then the dayPeriod buttons associated with the endDate should default to the one which has defaultEndIndicator set to true.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R31.1",
+        "ruleTitle": "If paidTimeOffConfiguration/paidTimeOffPolicies/startTimeInSummaryIndicator is passed in the json and the value is true then show the time portion (If time portion is passed in the startDateTime \u2013 If startDateTime is YYYY-MM-DD then this rule is not valid) from the timePeriod.startDateTime for timePeriod, dateTime, startDateTimeDuration, or datePeriodStartTimeDuration entry types.  This is the default behavior.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.10.9",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is 'datePeriodStartTimeDuration' and the user selects the quantity option then the startTime is represented as hh:mm. This is communicated in military notation and presented in the UI based on the timeNotationCode.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R20.2",
+        "ruleTitle": "/paidTimeOffConfiguration/balancesIndicator equal to true indicates that the SOR supports balances for the target associate; therefore, the balances will be requested and presented to the user.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R28.2",
+        "ruleTitle": "If the durationPrecision is hh, hh.hh, d, d.d then the default duration to show in the UI is the totalQuantity/dailyQuantity.  If the durationPrecision is hh:mm then the default duration shown in the UI is the totalTime/dailyTime.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R24.4",
+        "ruleTitle": "If the request has /paidTimeOffRequest/meta/metadataEntitlementCodes including u and multiPeriodRequestIndicator set to true then the user can add a period and the mobile application will set the requestStatus to userentry when it does the Put to the SOR.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R24.9",
+        "ruleTitle": "The UI application must save a paidTimeOffRequest (already created) as the initial state in the event that the user taps on Cancel from the request summary screen.  If the user taps Cancel the application will present a dialog box stating \u201cAre you sure you want to cancel the request\u201d.  If the user confirms then the application will issue a Put /v2/O/A/paidTimeOffRequest/{id} of the request which was saved from the initial get to the SOR and before the user made any changes (i.e. Put).  The request status is set to userentrycancelled.  The SOR processes the request and returns the response to the application.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes communicates the way time is entered for the associated policy.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.16",
+        "ruleTitle": "/paidTimeOffConfiguration/paidTimeOffPolicies/durationPrecision communicates what the precision for duration is hh.hh \u2013 decimal hours; hh \u2013 whole hours; hh:mm \u2013 hours minutes; d \u2013 whole days; d.d decimal days.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.20",
+        "ruleTitle": "The minimumQuantity.unitTimeCode must equal hour if durationPrecision = hh, hh.hhThe minimumQuantity.unitTimeCode must equal day if durationPrecision = d, d.d  If rule is not followed then minimumQuantity is ignored.  Value sent to SOR.  SOR should return a 400 with the user message if value is not valid.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R31.0",
+        "ruleTitle": "If paidTimeOffConfiguration/paidTimeOffPolicies/startTimeInSummaryIndicator is not passed in the json then the default behavior is to show the time portion from the timePeriod.startDateTime for timePeriod, dateTime, startDateTimeDuration, or datePeriodStartTimeDuration entry types.  This is the default behavior.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.21",
+        "ruleTitle": "The minimumIncrement.unitTimeCode must equal hour if durationPrecision = hh, hh.hhThe minimumIncrement.unitTimeCode must equal day if durationPrecision = d, d.d  If rule is not followed then minimumIncrement is ignored.  Value sent to SOR.  SOR should return a 400 with the user message if value is not valid.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R30.2",
+        "ruleTitle": "When the user Submits the request a final Post of the paidTimeOffRequest is made by the client.  The System of Record validates the request and if successful persists the request.  The entityBody (i.e. paidTimeOffrequest) is returned with the response.  The entityBody may have been modified by the System of Record.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R24.3",
+        "ruleTitle": "The /paidTimeOffRequest/requestStatus.code is set to userentry when the user enters the request in the mobile application.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.10.5",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is 'datePeriodStartTimeDuration' and the user leaves the fullday option selected then the user can only change the StartDate or the End Date.  For native the start time and hours should not show.  For web the start date, end date, start time, and hours always shows.  There should be a note under the hours box that states: \u201cStart Time and Hours are only used for the {quantity} option\u201d.  Where {quantity} is filled in with the corresponding labelName.When posting the entry to the System of Record only the timePeriod.startDateTime and the timePeriod.endDateTime, and durationType properties are sent.  The totalQuantity and startTime are not sent in the request.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R12.0",
+        "ruleTitle": "If the feature.identifier.id=MobileESSCorpDir then the following featureConfig.code values MUST always be passed in the userProfile (i.e. When server builds the userProfile).Realm=GV,ESI1,ES2,ESI3Web application:directorySearchMode, valueTxt=truedirectorySearchMinChar ,valueTxt=1 and directorySearchLimit, valueTxt=101Native application:directorySearchMode, valueTxt=falsedirectorySearchMinChar ,valueTxt=1 and directorySearchLimit, valueTxt=101Realm=RUNNote: RUN serves the Small Business Unit.  Clients have 1 to99 employees.  This is never in search mode because we know that we will never have more than 100 entries in the directory.Web application:directorySearchMode=falsedirectorySearchMinChar ,valueTxt=3Native application:directorySearchMode=falsedirectorySearchMinChar ,valueTxt=3Realm=ADP IDMNote: ADP IDM is ADP the client.  This is always in search mode because ADP the client is 40,000 employees so the Search is never sent to the SOR.Web application:directorySearchMode, valueTxt=true,directorySearchMinChar ,valueTxt=3Native application:directorySearchMode, valueTxt=true,directorySearchMinChar ,valueTxt=3Realm=ISIWeb application:directorySearchMode, valueTxt=true,directorySearchMinChar ,valueTxt=3Native application:directorySearchMode, valueTxt=false,directorySearchMinChar ,valueTxt=3",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.16.1",
+        "ruleTitle": "/paidTimeOffConfiguration/paidTimeOffPolicies/durationPrecision default value is hh \u2013 whole hours if not communicated with one of the following entry types which use duration: dateDuration, startDateTimeDuration, datePeriodStartTimeDuration",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R34.0",
+        "ruleTitle": "The Organization OID and Associate OID of the requestor which is found in the header may be different than that which is found in the uri.  This is the manager case.  The SOR must always inspect the header variables and insure tha the requestor is authorized to the resource.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.10.1.1",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is 'datePeriodStartTimeDuration' and only 1 item is passed in the durationTypes then the UI will not present any buttons to choose which duration type.  The rules will follow those for the durationType which is passed in the durationTypes array.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.18",
+        "ruleTitle": "/paidTimeOffConfiguration/paidTimeOffPolicies/earningTypes/defaultIndicator of true indicates this is the earningType to be shown first in the drop down.  This should be the most commonly used Earning Type and the first in the array. \u2013 e.g. Vacation.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.12.4",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is datePeriodDayPeriod then the dayPeriod associated with the endDate will default to the the dayPeriod.code which has defaultEndIndicator set to true.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.10.7.3",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is 'datePeriodStartTimeDuration' and the user selects dailyQuantity The SOR must return the property based on the durationPrecision to support updates.  If durationPrecision is hh, hh, d, d.d then the dailyQuantity must be returned along with the dailyTime if the SOR does the conversion.  If durationPrecision is hh:mm then the dailyTime must be returned along with the dailyQuantity if the SOR does the conversion.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.9",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is datePeriod and dateDuration then the application presents a Start Date and an End Date.  If the user enters the Start Date to be equal to the End Date then the application presents the duration as optional.  The End Date should fade away.  If the Start Date is equal to the End Date then the user should be able to enter duration.  If the user taps on the all day option then he should not be able to enter duration.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R28.1",
+        "ruleTitle": "If the SOR converts the hh:mm entered by the user to a quantity (i.e. h, h.h, d, d.d) then the SOR must return both the dailyTime/totalTime in addition to the totalQuantity/dailyQuantity. totalQuantity/dailyQuantity will be readonly.    If the user is to update the entry the user will be presented with the duration in the precision described in durationPrecision (i.e. hh:mm).  The client will not convert the totalTime to totalQuantity or vice-versa.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.20.1",
+        "ruleTitle": "If durationPrecision=hh:mm and SOR sets minimumQuantity then the minimumQuantity.unitTimeCode may be hour or minute and the minimumQuantity/valueNumber must be a whole number.If unitTimeCode=hour then the valueNumber must be greater than or equal to 1 and less than or equal to 24.  If the unitTimeCode=minute then the valueNumber must be greater than or equal to 1 and less than or equal to 59.  If rule is not followed then minimumQuantity is ignored.  Value sent to SOR.  SOR should return a 400 with the user message if value is not valid.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R23.0",
+        "ruleTitle": "On the Balance Detail Page.  A balanceType.code=\u201davailable\u201d should only drive the balance shown at the top of the screen with the clock icon.  There should not be a subsection (dark grey line) in the list.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.3",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is datePeriod then the user must enter a start date and an end date.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.11",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/forecastIndicator is set to false than this policy does not allow forecasting which means that when a user makes a request we do not show the balance in the entry screen.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R24.1",
+        "ruleTitle": "If the metadataEntitlements of the request include u then the user may update his/her comments or change the approvalDuteDate.  The metadataEntitlements at the entry level determine whether the user can update a specific entry.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.10.7.1",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is 'datePeriodStartTimeDuration' and the user selects dailyQuantity and durationPrecision is hh, hh.hh. d, d.d then the user must populate Start Date, End Date, and duration communicated as dailyQuantity.  If user selects dailyQuantity and durationPrecision is hh:mm then the user must populate Start Date, End Date, and  a duration communicated as dailyTime.  The SOR May calculate the totalQuantity or totalTime and May return it to the client in a get request.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R35.0",
+        "ruleTitle": "The call for /v2/O/A/paidTimeOffDetails/paidTimeOffConfiguration should return the configuration for the target Associate identified in the uri (O/A), but the requestTimeOffIndicator is based on whether the manager can request time off on behalf of the target associate.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R21.0",
+        "ruleTitle": "If the System of Record exposes a breakdown of the policy balance by accruals then the accrualBalances object is present in the JSON.  This is the first section (after the Available Balance with the clock icon) in the list with title Balances/Carryover.  The accrual balance breakdowns are shown after the total for the section and before the entries.  See appendix for JSON to UI mapping.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.14",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/minimumQuantity communicates the minimum a user can enter for a duration. (Relevant for dateDuration only).",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.10.7",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is 'datePeriodStartTimeDuration' and the user selects quantity option then the user must populate Start Date, End Date, Start Time and Quantity.  The Start Time is set to the defaultStartTime if it is passed in the configuration.  If not then it should default to 08:00.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.10.1.2",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is 'datePeriodStartTimeDuration' and durationTypes is not passed then the UI will not present any buttons to choose which duration type.  The rules will follow as if durationTypes=fullday.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R25.3",
+        "ruleTitle": "An entry has separate metadata entitlements.  If the metadataEntitlementCodes includes d then there will be a Delete button when the user taps in the details of an entry.  If the user taps on the Delete button the user is prompted with a message \u201cAre you sure you want to delete the entry\u201d  If the user confirms then a Put is done of the entire request.  Put /v2/O/A/paidTimeOffRequest/{id}.  requestStatus.code is userentry.  The SOR validates the request and returns the entire paidTimeOffRequest object in the response. The user is returned to the request summary screen.  The user will need to tap on Submit button to complete the request/complete the change to the request.  When the user taps on the Submit button then a Put /v2/O/A/paidTimeOffRequest/{id} is made with a requestStatus.code of usersubmitted.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R29.0",
+        "ruleTitle": "paidTimeOffRequestEntries are grouped by requestStatus.  The requestStatus should be returned in the following order: pending, approved, denied, partially denied, taken",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R32.0",
+        "ruleTitle": "A user (e.g. manager) which is authorized to approve a time off request will have a corresponding /meta/action associated to the request to take the approve action.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R30.0",
+        "ruleTitle": "When a request is first created a Post of the paidTimeOffRequest is requested by the client.  The System of Record received the request, and validates it.  The System of Record may modify the request based on its rules.  The entityBody (i.e. paidTimeOffRequest) is retunred with the response.  The uri of the request is returned in the json body as well as in the Location header variable. See Business Rules 24.5-24.9",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R27.0",
+        "ruleTitle": "If there is only 1 item in the /paidTimeOffBalances/paidTimeOffBalances/policyBalances array and the item does not have accrualBalances or paidTimeOffEntries then there is No chevron on the balances page.  That is, you cannot drill down to the next level.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.7",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes are datePeriod and dateDuration then the application presents a Start Date and an End Date.  If the user enters the Start Date to be equal to the End Date then the application presents the duration as optional.  The End Date should fade away.  If the Start Date is not equal to the End Date then the user should not be able to enter duration.  If the user taps on the all day option then he should not be able to enter duration.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R25.0",
+        "ruleTitle": "A request which comes on the list of requests, paidTimeOffRequests, which has k as the metadataEntitlementCode will have a button at the bottom of the request summary screen when the user taps Edit.  If the user taps on the Cancel Request button then a Put of the paidTimeOffRequest is done with the requestStatus set to usercancelled.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R20.6",
+        "ruleTitle": "A user may have requestsIndicator set to true but the user may not have any requests (e.g. New Hire).  If the application does not get any requests back from the SOR it will present a message to the user.  \u201cYou have no requests at this time.\u201d",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R31.2",
+        "ruleTitle": "If paidTimeOffConfiguration/paidTimeOffPolicies/startTimeInSummaryIndicator is passed in the json and the value is false then DO NOT show the time portion from the timePeriod.startDateTime for timePeriod, dateTime, startDateTimeDuration, or datePeriodStartTimeDuration entry types.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R37.1",
+        "ruleTitle": "All uris should have the Associate OID fully resolved.  E.g. /v2/O/{aoid}/paidTimeOffRequest/{id} where {aoid} is the fully resolved Associate OID of the employee whom this request is for.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.6",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes are timePeriod and dateTime then the application presents a Start Date Time and an End Date Time.  If the the Start Date (YYYY-MM-DD) portion is not equal to the End Date (YYYY-MM-DD) portion then the application automatically sets the all day option and the time disappears.  If the Start Date portion is equal to the End Date portion then the time remains.  The user may enter a start time and end time or they may tap on the all day option.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R20.3",
+        "ruleTitle": "If /paidTimeOffConfiguration/requestsIndicator is not present the default is that the SOR supports requests for the target associate.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R28.0",
+        "ruleTitle": "If durationPrecision is hh, hh.hh, d, d.d then the time is communicated as a totalQuantity and optionally dailyQuantity is communicated (depending on entry type).If durationPrecision is hh:mm then the duration is communicated as totalTime and optionally dailyTime is communicated (depending on entry type).",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R36.0",
+        "ruleTitle": "All meta/metadataEntitlementCodes are for the target associate is identified in the uri, but are based on the entitlements of the requestor (i.e. Manager).  That is, if the metadataEntitlementCodes have a u for update that means that the manager is authorized to update the request on behalf of the employee.  If the manager should not update the request then the metadataEntitlementCodes should not include u.  The same holds true for d (Delete), k (Cancel).  If the manager can not modify the request on behalf of the user then the only metadataEntitlementCodes that should be passed is r (i.e. readonly)",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R25.1",
+        "ruleTitle": "A request which comes on the list of requests, paidTimeOffRequests, which has d as the metadataEntitlementCode will have a button at the bottom of the request summary screen when the user taps Edit.  If the user taps on the Delete Request button then a Delete of the paidTimeOffRequest is done Delete /v2/O/A/paidTimeOffRequest/{id}.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.4",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is dateTime then the user must enter a date and a start time and end time",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.21.1",
+        "ruleTitle": "If durationPrecision=hh:mm and SOR sets minimumIncrement then the minimumIncrement.unitTimeCode may be hour or minute and the minimumIncrement/valueNumber must be a whole number.If unitTimeCode=hour then the valueNumber must be greater than or equal to 1 and less than or equal to 24.  If the unitTimeCode=minute then the valueNumber must be greater than or equal to 1 and less than or equal to 59.  If rule is not followed then minimumIncrement is ignored.  Value sent to SOR.  SOR should return a 400 with the user message if value is not valid.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R33.0",
+        "ruleTitle": "An SOR may send the requestRevID with the actions object as an argument.  The client MUST send this back to the SOR when posting service back to the SOR.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R32.1",
+        "ruleTitle": "A user (e.g. manager) which is authorized to deny a time off request will have a corresponding /meta/action associated to the request to take the deny action.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R25.2",
+        "ruleTitle": "The metadataEntitlement codes may include both a k and a d in which case there will be both a Cancel Request button and a Delete Request button in the request summary screen.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R29.1",
+        "ruleTitle": "The list of requests should be returned in chronological order.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.13",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/partialDayIndicator is false then the user may not enter time or duration for the given entry.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R11.1",
+        "ruleTitle": "If clientProducts does not contain the SPNDACCTS product, but the associateServiceAuthorization JSON contains MobileESSFSA then the FSA  feature is shown to the user.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.10.2",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is 'datePeriodStartTimeDuration' the default durationTypes.code is the first in the list.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R26.0",
+        "ruleTitle": "The presentation layer should save the request object which is received from the SOR as the Valid Object.  It should save (to cache) the modified request which it will send to the SOR as the working object.  Both versions are maintained in cache throughout the life of the session.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.12.1",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is datePeriodDayPeriod then the startDate defaults to clockReferenceDateTime plus 24 hours..  The endDate defaults to clockReferenceDateTime plus 24 hours (i.e. tomorrow).",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.10.6",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is 'datePeriodStartTimeDuration' and the user selects halfday option then the user only can change the Start date and the End Date.  For native they only see Start Date and End Date for Web they see all 4 properties, but have the disclaimer below hours as stated in rule R19.12.10.5.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.2",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is timePeriod then the user must enter a start date time and an end date time.  If the user taps on all day then the time disappears.  The mobile application will send the SOR the startDateTime=YYYY-MM-DD and endDateTime=YYYY-MM-DD for an all day entry.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R24.8",
+        "ruleTitle": "If this is a single period request, after the user taps Save from the period entry screen \u2013 the SOR returns the paidTimeOffRequest object which it has manipulated.  The application presents the request in the summary screen to the user.  the application will request the paidTimeOffRequest and present it in the Request Summary Screen.  If the metadataEntitlements of the request include u, d, or k then the Edit button will be at the top right of the request summary screen.  The user can modify the comments, approve by date.  The entitlements of entries determine if the user is allowed to change the entries.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.19",
+        "ruleTitle": "/paidTimeOffConfiguration/paidTimeOffPolicies/defaultStartTime and the /paidTimeOffConfiguration/paidTimeOffPolicies/defaultEndTime should be communicated in military time.  The mobile application will translate that based on the timeNotationCode for display purposes.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R28.3",
+        "ruleTitle": "If the SOR passes /paidTimeOffConfiguration/paidTimeOffPolicies/durationDisplayCode then this overrides the default behavior.  If durationDisplayCode=totalTime then the totalTime is shown on the UI.  If durationDisplayCode=totalQuantity then the totalQuantity is shown in the UI.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.10.7.2",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is 'datePeriodStartTimeDuration' and the user selects dailyQuantity the summary of the request may show the totalQuantity or totalTime depending on the durationDisplayCode.  If durationDisplayCode is not sent then the display will default to durationPrecision.  That is, if durationPrecision is hh, hh.hh, d, d.d then totalQuantity is shown.  If durationPrecision is hh:mm then the totalTime is shown.  The entry level shows the dailyQuantity/dailyTime and/or totalQuantity or totalTime.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.5",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is startDateTimeDuration indicates that the user must enter a start Date time and a duration in the units specified in the duration precision.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R19.12.12.3",
+        "ruleTitle": "If  /paidTimeOffConfiguration/paidTimeOffPolicies/entryTypeCodes is datePeriodDayPeriod then the dayPeriod associated with the startDate will default to the the dayPeriod.code which has defaultStartIndicator set to true.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      }
+    ],
+    "eventNotifications": [
+      {
+        "eventCode": "timeOffRequest.review.eventNotify.subscribe",
+        "example": {
+          "href": "event-notification-Approved-status.json"
+        }
+      },
+      {
+        "eventCode": "timeOffRequest.review.eventNotify",
+        "example": {
+          "href": "event-review-200.response.json"
+        }
+      },
+      {
+        "eventCode": "timeOffRequest.cancel.eventNotify.subscribe",
+        "example": {
+          "href": "WFNCG_TimeOffCancel-Event.json"
+        }
+      }
+    ],
+    "testCaseCollection": {
+      "example": {
+        "href": "TimeOffManagement_WFNCG_WFNNG.postman_collection.json"
+      },
+      "description": "TimeOffManagement Postman Collection"
+    },
+    "publicationContext": {
+      "products": [
+        {
+          "productId": "hcm-offrg-wfn",
+          "productName": "workforce now",
+          "marketplaceProductName": "ADP Workforce Now\u00ae"
+        }
+      ]
+    },
+    "specCategoryCode": ""
+  },
+  "tags": [
+    {
+      "name": "Paid Time Off - Requests",
+      "description": "List Time Off Requests"
+    }
+  ],
+  "paths": {
+    "/time/v2/workers/{aoid}/time-off-requests/{request-id}": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "timeOffManagement",
+        "functionCode": "timeOffRequestManagement",
+        "serviceCode": "timeLaborManagement",
+        "serviceCategoryCode": "time",
+        "canonicalName": "Time Off"
+      },
+      "put": {
+        "summary": "Paid Time Off Request - Details",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobileESSPTO",
+            "MobileMSSPTO",
+            "MobilePSSPTO"
+          ],
+          "canonicalUri": "time/timeLaborManagement/timeOffManagement/timeOffRequestManagement/timeOffRequest.update",
+          "sorRequestTimeoutPolicies": {
+            "cachedTimeout": 3,
+            "notCachedTimeout": 10
+          },
+          "operationCode": "timeOffRequest.update",
+          "operationId": "647e8a1a-602c-4639-8512-74ee148c1954",
+          "performAuthIndicator": true,
+          "roleCodes": [
+            "employee",
+            "manager",
+            "practitioner"
+          ],
+          "scenarios": [
+            {
+              "summary": "<span>This use case helps to cancel time off by practitioner.&nbsp;</span>",
+              "name": "1. Cancel a timeOff request.",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "timeOff request is cancelled successfully",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/1._Cancel_a_timeOff_request._Custom_Example_timeOffRequest.update_200_547202.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>This use case helps to cancel time off by practitioner.&nbsp;</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/1._Cancel_a_timeOff_request._Custom_Example_timeOffRequest.update_request_51715.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>This use case helps to cancel time off by practitioner.&nbsp;</span>",
+              "name": "2. Cancel a Time off request without requestID",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "500",
+                  "description": "500 Internal Server Error",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/2._Cancel_a_Time_off_request_without_requestID_Custom_Example_timeOffRequest.update_500_547205.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>This use case helps to cancel time off by practitioner.&nbsp;</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/2._Cancel_a_Time_off_request_without_requestID_Custom_Example_timeOffRequest.update_request_51716.json"
+                }
+              }
+            }
+          ],
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ],
+          "globalViewDevPortalIndicator": true
+        },
+        "requestBody": {
+          "description": "Create or Modify a Time Off Request resource",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas/paidTimeOffRequestRequest_v02_00_rev008_schema.json"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "ADP-Acting-Session-Expires": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies the date and time the representational state of the resource is considered stale. Session ID for the acting session, Act-As and act On-Behalf-Off",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ADP-Acting-SessionID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/paidTimeOffRequestResponse_v02_00_rev008_schema.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "504": {
+            "$ref": "#/components/responses/504"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Cancelling of an existing paid time off request.",
+        "operationId": "647e8a1a-602c-4639-8512-74ee148c1954",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to - usuall injected by the API proxy, with few exceptions",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Acting-SessionID",
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "ISI",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "realm",
+            "description": "The identity Management Realm, e.g. ISI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "aoid",
+            "description": "Associate ID",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-AssociateOID",
+            "description": "Associate OID of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-AssociateOID",
+            "description": "Associate OID for the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORUri",
+            "description": "Actual Uri within the SOR",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORContext",
+            "description": "Context within an SOR that the call should be routed to",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "request-id",
+            "description": "The identifier for a time off request resource",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "CONSUMERAOID",
+            "description": "CONSUMERAOID' ': ' identifier. Contains the object identifier of the application that is consuming the Web API.  Conditions: Required/applicable security standard uses this header. Internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "CONSUMEROOID",
+            "description": "CONSUMEROOID' ': ' identifier. Contains the object identifier of the organization to which the consumer application belongs.  Conditions: Required/applicable security standard uses this header.  Internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header will be passed in all calls. When coming from Myself capabilities rolecode=employee. When coming from Team capabilities roleCode=manager. When coming from Practitioner capabilities roleCode=practitioner.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Paid Time Off - Requests"
+        ]
+      }
+    },
+    "/time/v2/workers/{aoid}/time-off-details/time-off-balances": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "timeOffManagement",
+        "functionCode": "timeOffBalancesManagement",
+        "serviceCode": "timeLaborManagement",
+        "serviceCategoryCode": "time",
+        "canonicalName": "Time Off"
+      },
+      "get": {
+        "summary": "Paid Time Off - Balances",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobilePSSPTO",
+            "MobileESSPTO",
+            "MobileMSSPTO"
+          ],
+          "canonicalUri": "time/timeLaborManagement/timeOffManagement/timeOffBalancesManagement/timeOffBalance.read",
+          "sorRequestTimeoutPolicies": {
+            "cachedTimeout": 3,
+            "notCachedTimeout": 10
+          },
+          "operationCode": "timeOffBalance.read",
+          "operationId": "9a71bd46-49bf-4c8f-a88a-d98591b556d7",
+          "performAuthIndicator": true,
+          "roleCodes": [
+            "practitioner",
+            "employee",
+            "manager"
+          ],
+          "scenarios": [
+            {
+              "summary": "<span>Requests the list of time off balances and entries as of today, per the System of Record&#39;s (SOR) time, by default.</span>",
+              "name": "Requesting an employees time of balance.",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Returns time balances for an associate",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Requesting_an_employees_time_of_balance._Provide_Example_timeOffBalance.read_200_44463.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "204",
+                  "description": "When Invalid associateID is passed."
+                }
+              ],
+              "description": "<span>Requests the list of time off balances and entries as of today, per the System of Record&#39;s (SOR) time, by default.</span>"
+            }
+          ],
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ],
+          "globalViewDevPortalIndicator": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "ADP-Acting-Session-Expires": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies the date and time the representational state of the resource is considered stale. Session ID for the acting session, Act-As and act On-Behalf-Off",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ADP-Acting-SessionID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Request the list of time off balances and entries as of Today as per the System of Record\u2019s Time by default.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/paidTimeOffDetails_v02_00_rev012_schema.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "204": {
+            "$ref": "#/components/responses/204"
+          },
+          "413": {
+            "$ref": "#/components/responses/413"
+          },
+          "304": {
+            "$ref": "#/components/responses/304"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "504": {
+            "$ref": "#/components/responses/504"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Request the list of time off balances and entries as of Today as per the System of Record\u2019s Time by default.",
+        "operationId": "9a71bd46-49bf-4c8f-a88a-d98591b556d7",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to - usuall injected by the API proxy, with few exceptions",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Acting-SessionID",
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "ISI",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "realm",
+            "description": "The identity Management Realm, e.g. ISI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "aoid",
+            "description": "Associate ID",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-AssociateOID",
+            "description": "Associate OID of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "p",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "earningtypecode",
+            "description": "The earningType.code as selected by the user while making a request.  This request is asking the SOR to return the balance(s) related to the earningType.code.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-AssociateOID",
+            "description": "Associate OID for the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "2014-01-01",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "asofdate",
+            "description": "The date for which the balances should be returned. The date should be in the YYYY-MM-DD format. This will return paidTimeOff balances and entries as of the given date.  The default is today.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORUri",
+            "description": "Actual Uri within the SOR",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "PD",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "policycode",
+            "description": "The paidTimeOffPolicy.code as selected by the user while making a request.  This request is asking the SOR to return the balance(s) related to the paidTimeOffPolicy.code",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORContext",
+            "description": "Context within an SOR that the call should be routed to",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "CONSUMERAOID",
+            "description": "CONSUMERAOID' ': ' identifier. Contains the object identifier of the application that is consuming the Web API.  Conditions: Required/applicable security standard uses this header. Internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "CONSUMEROOID",
+            "description": "CONSUMEROOID' ': ' identifier. Contains the object identifier of the organization to which the consumer application belongs.  Conditions: Required/applicable security standard uses this header.  Internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header will be passed in all calls. When coming from Myself capabilities rolecode=employee. When coming from Team capabilities roleCode=manager. When coming from Practitioner capabilities roleCode=practitioner.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "11000199-1",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "pfid",
+            "description": "Position Identifier.  This property is optional.  If not passed the SOR returns all the positions which it supports.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Paid Time Off - Requests"
+        ]
+      }
+    },
+    "/time/v2/workers/{aoid}/time-off-details/time-off-configurations": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "timeOffManagement",
+        "functionCode": "timeOffRequestManagement",
+        "serviceCode": "timeLaborManagement",
+        "serviceCategoryCode": "time",
+        "canonicalName": "Time Off"
+      },
+      "get": {
+        "summary": "Paid Time Off - Configurations",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobileESSPTO",
+            "MobileMSSPTO",
+            "MobilePSSPTO"
+          ],
+          "canonicalUri": "time/timeLaborManagement/timeOffManagement/timeOffRequestManagement/timeOffConfiguration.read",
+          "sorRequestTimeoutPolicies": {
+            "cachedTimeout": 3,
+            "notCachedTimeout": 10
+          },
+          "operationCode": "timeOffConfiguration.read",
+          "operationId": "2795816c-4161-4743-9919-8b98a1fa7d1a",
+          "performAuthIndicator": true,
+          "roleCodes": [
+            "employee",
+            "manager",
+            "practitioner"
+          ],
+          "scenarios": [
+            {
+              "summary": "New description scenario for the consumer of this API to better understand this example.",
+              "name": "1. Paid Time Off - Configurations",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Returns a list of time off configurations for the associate.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/1._Paid_Time_Off_-_Configurations_Provide_Example_timeOffConfiguration.read_200_47387.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "204",
+                  "description": "When We Give The Invalid AOID info in the URI"
+                }
+              ],
+              "description": "New description scenario for the consumer of this API to better understand this example."
+            }
+          ],
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ],
+          "globalViewDevPortalIndicator": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "ADP-Acting-Session-Expires": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies the date and time the representational state of the resource is considered stale. Session ID for the acting session, Act-As and act On-Behalf-Off",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ADP-Acting-SessionID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Request the list of paid time off configuration with the O/A representing the target Associate.  The configuration may be constrained based on the authorization of the requestor (e.g. manager) which is identified by the organizationoid and associateid in the header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/paidTimeOffDetails_v02_00_rev012_schema.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "204": {
+            "$ref": "#/components/responses/204"
+          },
+          "413": {
+            "$ref": "#/components/responses/413"
+          },
+          "304": {
+            "$ref": "#/components/responses/304"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "504": {
+            "$ref": "#/components/responses/504"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Request the list of paid time off configuration with the O/A representing the target Associate.  The configuration may be constrained based on the authorization of the requestor (e.g. manager) which is identified by the organizationoid and associateid in the header.",
+        "operationId": "2795816c-4161-4743-9919-8b98a1fa7d1a",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to - usuall injected by the API proxy, with few exceptions",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Acting-SessionID",
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "ISI",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "realm",
+            "description": "The identity Management Realm, e.g. ISI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "aoid",
+            "description": "Associate ID",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-AssociateOID",
+            "description": "Associate OID of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-AssociateOID",
+            "description": "Associate OID for the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORUri",
+            "description": "Actual Uri within the SOR",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORContext",
+            "description": "Context within an SOR that the call should be routed to",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "CONSUMERAOID",
+            "description": "CONSUMERAOID' ': ' identifier. Contains the object identifier of the application that is consuming the Web API.  Conditions: Required/applicable security standard uses this header. Internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "CONSUMEROOID",
+            "description": "CONSUMEROOID' ': ' identifier. Contains the object identifier of the organization to which the consumer application belongs.  Conditions: Required/applicable security standard uses this header.  Internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header will be passed in all calls. When coming from Myself capabilities rolecode=employee. When coming from Team capabilities roleCode=manager. When coming from Practitioner capabilities roleCode=practitioner.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Paid Time Off - Requests"
+        ]
+      }
+    },
+    "/time/v2/workers/{aoid}/time-off-details/time-off-requests": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "timeOffManagement",
+        "functionCode": "timeOffRequestManagement",
+        "serviceCode": "timeLaborManagement",
+        "serviceCategoryCode": "time",
+        "canonicalName": "Time Off"
+      },
+      "get": {
+        "summary": "Paid Time Off - Requests",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobilePSSPTO",
+            "MobileESSPTO",
+            "MobileMSSPTO"
+          ],
+          "canonicalUri": "time/timeLaborManagement/timeOffManagement/timeOffRequestManagement/timeOffRequest.read",
+          "sorRequestTimeoutPolicies": {
+            "cachedTimeout": 3,
+            "notCachedTimeout": 10
+          },
+          "operationCode": "timeOffRequest.read",
+          "operationId": "282fb8d5-4746-4857-9432-e59524acc578",
+          "performAuthIndicator": true,
+          "roleCodes": [
+            "practitioner",
+            "employee",
+            "manager"
+          ],
+          "scenarios": [
+            {
+              "summary": "New description scenario for the consumer of this API to better understand this example.",
+              "name": "1. Time Off Request Details",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Requests the list of time off requests for the associate as identified by the Associate Object Identifier (AOID) in the URI. The requestor is identified by the Organization Object ID (OOID) and associate-id in the header. The list returned includes the requests, which the requestor is authorized to view.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/1._Time_Off_Request_Details_Provide_Example_timeOffRequest.read_200_47365.json"
+                    }
+                  }
+                }
+              ],
+              "description": "New description scenario for the consumer of this API to better understand this example."
+            }
+          ],
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ],
+          "globalViewDevPortalIndicator": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "ADP-Acting-Session-Expires": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies the date and time the representational state of the resource is considered stale. Session ID for the acting session, Act-As and act On-Behalf-Off",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ADP-Acting-SessionID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Request the list of time off requests for the Associate as identified by the O/A in the uri.  The requestor is identified by the organizationoid and associateid in the header.  The list returned includes the requests which the requestor is authorized to view.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/paidTimeOffDetails_v02_00_rev012_schema.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "204": {
+            "$ref": "#/components/responses/204"
+          },
+          "413": {
+            "$ref": "#/components/responses/413"
+          },
+          "304": {
+            "$ref": "#/components/responses/304"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "504": {
+            "$ref": "#/components/responses/504"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Request the list of time off requests for the Associate as identified by the O/A in the uri.  The requestor is identified by the organizationoid and associateid in the header.  The list returned includes the requests which the requestor is authorized to view.",
+        "operationId": "282fb8d5-4746-4857-9432-e59524acc578",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to - usuall injected by the API proxy, with few exceptions",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Acting-SessionID",
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "ISI",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "realm",
+            "description": "The identity Management Realm, e.g. ISI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "aoid",
+            "description": "Associate ID",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-AssociateOID",
+            "description": "Associate OID of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-AssociateOID",
+            "description": "Associate OID for the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORUri",
+            "description": "Actual Uri within the SOR",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORContext",
+            "description": "Context within an SOR that the call should be routed to",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "CONSUMERAOID",
+            "description": "CONSUMERAOID' ': ' identifier. Contains the object identifier of the application that is consuming the Web API.  Conditions: Required/applicable security standard uses this header. Internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "CONSUMEROOID",
+            "description": "CONSUMEROOID' ': ' identifier. Contains the object identifier of the organization to which the consumer application belongs.  Conditions: Required/applicable security standard uses this header.  Internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header will be passed in all calls. When coming from Myself capabilities rolecode=employee. When coming from Team capabilities roleCode=manager. When coming from Practitioner capabilities roleCode=practitioner.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Paid Time Off - Requests"
+        ]
+      }
+    },
+    "/time/v2/workers/{aoid}/time-off-requests": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "timeOffManagement",
+        "functionCode": "timeOffRequestManagement",
+        "serviceCode": "timeLaborManagement",
+        "serviceCategoryCode": "time",
+        "canonicalName": "Time Off"
+      },
+      "post": {
+        "summary": "Paid Time Off Request - Create",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobileESSPTO",
+            "MobileMSSPTO",
+            "MobilePSSPTO"
+          ],
+          "canonicalUri": "time/timeLaborManagement/timeOffManagement/timeOffRequestManagement/timeOffRequest.create",
+          "sorRequestTimeoutPolicies": {
+            "cachedTimeout": 3,
+            "notCachedTimeout": 10
+          },
+          "operationCode": "timeOffRequest.create",
+          "operationId": "f0010334-0978-41c5-9eef-837cc9350ccb",
+          "performAuthIndicator": true,
+          "roleCodes": [
+            "employee",
+            "manager",
+            "practitioner"
+          ],
+          "scenarios": [
+            {
+              "summary": "New description scenario for the consumer of this API to better understand this example.",
+              "name": "1. Create time off request",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Creating a timOff request.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/1._Create_time_off_request_Provide_Example_timeOffRequest.create_200_47389.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "400",
+                  "description": "When There Is A Existing Request Available With The Same Policy and Date & Time.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/1._Create_time_off_request_Provide_Example_timeOffRequest.create_400_47390.json"
+                    }
+                  }
+                }
+              ],
+              "description": "New description scenario for the consumer of this API to better understand this example.",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/1._Create_time_off_request_Provide_Example_timeOffRequest.create_request_4587.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>When maximum amount requested for the assigned policy(Day based Policy)</span>",
+              "name": "3. Create time off request When maximum amount requested for the assigned policy(Day based Policy)",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Response When maximum amount requested for the assigned policy(Day based Policy)",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/3._Create_time_off_request_When_maximum_amount_requested_for_the_assigned_policy(Day_based_Policy)_Custom_Example_timeOffRequest.create_400_398905.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>When maximum amount requested for the assigned policy(Day based Policy)</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/3._Create_time_off_request_When_maximum_amount_requested_for_the_assigned_policy(Day_based_Policy)_Custom_Example_timeOffRequest.create_request_36228.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>When maximum amount requested for the assigned policy(Hourly Policy)</span>",
+              "name": "2. Create time off request When maximum amount requested for the assigned policy(Hourly Policy)",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Response When maximum amount requested for the assigned policy(Hourly Policy)",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/2._Create_time_off_request_When_maximum_amount_requested_for_the_assigned_policy(Hourly_Policy)_Custom_Example_timeOffRequest.create_400_398904.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>When maximum amount requested for the assigned policy(Hourly Policy)</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/2._Create_time_off_request_When_maximum_amount_requested_for_the_assigned_policy(Hourly_Policy)_Custom_Example_timeOffRequest.create_request_36227.json"
+                }
+              }
+            }
+          ],
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ],
+          "globalViewDevPortalIndicator": true
+        },
+        "requestBody": {
+          "description": "posted contents",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas/paidTimeOffRequestRequest_v02_00_rev008_schema.json"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "ADP-Acting-Session-Expires": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies the date and time the representational state of the resource is considered stale. Session ID for the acting session, Act-As and act On-Behalf-Off",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ADP-Acting-SessionID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Create a request for paid time off.  The request is managed by the Time System.  The request is complete once successfully created.  The status of the request may be viewed in the list of paid time off details.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/paidTimeOffRequestResponse_v02_00_rev008_schema.json"
+                }
+              }
+            }
+          },
+          "201": {
+            "headers": {
+              "ADP-Acting-Session-Expires": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies the date and time the representational state of the resource is considered stale. Session ID for the acting session, Act-As and act On-Behalf-Off",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ADP-Acting-SessionID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Create a request for paid time off.  The request is managed by the Time System.  The request is complete once successfully created.  The status of the request may be viewed in the list of paid time off details.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../../../common/responses/v1/schemas/response_v1_0_schema_rev004_file.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "504": {
+            "$ref": "#/components/responses/504"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Create a request for paid time off.  The request is managed by the Time System.  The request is complete once successfully created.  The status of the request may be viewed in the list of paid time off details.",
+        "operationId": "f0010334-0978-41c5-9eef-837cc9350ccb",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to - usuall injected by the API proxy, with few exceptions",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Acting-SessionID",
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "ISI",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "realm",
+            "description": "The identity Management Realm, e.g. ISI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "aoid",
+            "description": "Associate ID",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-AssociateOID",
+            "description": "Associate OID of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-AssociateOID",
+            "description": "Associate OID for the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORUri",
+            "description": "Actual Uri within the SOR",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORContext",
+            "description": "Context within an SOR that the call should be routed to",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "CONSUMERAOID",
+            "description": "CONSUMERAOID' ': ' identifier. Contains the object identifier of the application that is consuming the Web API.  Conditions: Required/applicable security standard uses this header. Internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "CONSUMEROOID",
+            "description": "CONSUMEROOID' ': ' identifier. Contains the object identifier of the organization to which the consumer application belongs.  Conditions: Required/applicable security standard uses this header.  Internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header will be passed in all calls. When coming from Myself capabilities rolecode=employee. When coming from Team capabilities roleCode=manager. When coming from Practitioner capabilities roleCode=practitioner.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          }
+        ],
+        "tags": [
+          "Paid Time Off - Requests"
+        ]
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "400": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale. Session ID for the acting session, Act-As and act On-Behalf-Off",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/response_v1_0_schema_rev004_file.json"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "500": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale. Session ID for the acting session, Act-As and act On-Behalf-Off",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/response_v1_0_schema_rev004_file.json"
+            }
+          }
+        }
+      },
+      "204": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale. Session ID for the acting session, Act-As and act On-Behalf-Off",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "No Content"
+      },
+      "413": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale. Session ID for the acting session, Act-As and act On-Behalf-Off",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Request Entity Too Large",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/response_v1_0_schema_rev004_file.json"
+            }
+          }
+        }
+      },
+      "403": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale. Session ID for the acting session, Act-As and act On-Behalf-Off",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/response_v1_0_schema_rev004_file.json"
+            }
+          }
+        }
+      },
+      "304": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale. Session ID for the acting session, Act-As and act On-Behalf-Off",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Modified"
+      },
+      "503": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale. Session ID for the acting session, Act-As and act On-Behalf-Off",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Service Unavailable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/response_v1_0_schema_rev004_file.json"
+            }
+          }
+        }
+      },
+      "404": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale. Session ID for the acting session, Act-As and act On-Behalf-Off",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/response_v1_0_schema_rev004_file.json"
+            }
+          }
+        }
+      },
+      "504": {
+        "description": "Gateway Timeout",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "429": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale. Session ID for the acting session, Act-As and act On-Behalf-Off",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Too Many Requests",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/response_v1_0_schema_rev004_file.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

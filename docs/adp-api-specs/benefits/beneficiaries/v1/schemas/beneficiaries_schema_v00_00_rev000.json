@@ -1,0 +1,1647 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "The list of beneficiaries, describing the details of a person or organization designated as the receiver of some allocation of account proceeds in the event of the death of the account holder",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "beneficiaries": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/beneficiary"
+            }
+        },
+        "actions": {
+            "description": "The list of actions available to the user to take on this process. ",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/actionType"
+            }
+        },
+        "links": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/linkType"
+            }
+        }
+    },
+    "definitions": {
+        "URIType": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "description": "The URI of the related entity",
+            "type": "string",
+            "format": "uri"
+        },
+        "attestationType": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "description": "Optional text provided to the user when they take an action to affirm to be correct, true, or genuine. Requires confirmation indicator to be set to true",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "actionBlockIndicator": {
+                    "description": "Action blocking flag.  True indicates that the user must acknowledge the text as specified in the attestation message, before the action can be taken.  False indicates that the action will be executed once selected by the user.",
+                    "type": "boolean"
+                },
+                "messageTxt": {
+                    "description": "Message to present to the user.  This is mutuallly exclusive with the messageUri which is an external link to the message.  If the text is sizable and fairly static then it should be an external link which may be cached",
+                    "type": "string"
+                },
+                "messageUri": {
+                    "description": "URI of the attestation message, should be used instead of the messageTxt property if it can be cached",
+                    "$ref": "#/definitions/URIType"
+                }
+            }
+        },
+        "linkType": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "href": {
+                    "$ref": "#/definitions/URIType"
+                },
+                "rel": {
+                    "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+                    "type": "string",
+                    "enum": [
+                        "alternate",
+                        "create",
+                        "canonical",
+                        "describedby",
+                        "edit-form",
+                        "enclosure",
+                        "full",
+                        "related",
+                        "root",
+                        "self",
+                        "up",
+                        "search",
+                        "first",
+                        "last",
+                        "next",
+                        "previous",
+                        "/adp/invoke",
+                        "/adp/image",
+                        "/adp/confirm-message",
+                        "/adp/status-monitor",
+                        "/adp/codelist",
+                        "/adp/template",
+                        "/adp/externalLink",
+                        "/adp/benefits/benefit-summary-statement"
+                    ]
+                },
+                "title": {
+                    "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+                    "type": "string"
+                },
+                "targetSchema": {
+                    "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation.",
+                    "type": "string"
+                },
+                "mediaType": {
+                    "description": "The media type that the linked resource will return (Response)",
+                    "type": "string",
+                    "enum": [
+                        "application/json",
+                        "text/html",
+                        "text/plain",
+                        "image/jpeg",
+                        "image/gif",
+                        "image/png",
+                        "image/tiff",
+                        "application/pdf",
+                        "application/postscript",
+                        "application/msword",
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        "application/vnd.ms-excel",
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    ]
+                },
+                "method": {
+                    "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+                    "type": "string",
+                    "enum": [
+                        "GET",
+                        "POST",
+                        "DELETE",
+                        "PUT"
+                    ]
+                },
+                "encType": {
+                    "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+                    "type": "string",
+                    "enum": [
+                        "application/json",
+                        "application/x-www-form-urlencoded"
+                    ]
+                },
+                "schema": {
+                    "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body.",
+                    "type": "string"
+                }
+            }
+        },
+        "codeType": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "description": "The code for the related entity.  If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+            "type": "object",
+            "properties": {
+                "codeValue": {
+                    "description": "The code for the related entity.",
+                    "type": "string"
+                },
+                "shortName": {
+                    "description": "Short description of the related code not to exceed 25 characters",
+                    "type": "string"
+                },
+                "longName": {
+                    "description": "Long description of the related code",
+                    "type": "string"
+                }
+            }
+        },
+        "actionType": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "description": "Actions which the user is allowed to initiate against the related entity",
+            "type": "object",
+            "properties": {
+                "operationID": {
+                    "description": "Identifies the operation of an action",
+                    "type": "string"
+                },
+                "canonicalUri": {
+                    "description": "A unique identifier of the feature/function/operation",
+                    "$ref": "#/definitions/URIType"
+                },
+                "actionTypeCode": {
+                    "description": "Identifies the type of action to be taken to fulfill the request.  Action can be a callback to a service to complete the action.  A callback requires the methodCode and uris to be returned.  An external link i.e. open a web page - requires the uris of the external link; An object reference is a reference to a related object within the application.  This is a canonical name which represents the object.  Based on this identifier, the application knows what view it needs to open.  The uris returns the data for the view.  For an object reference, the objectRefID, methodCode, and uris are required . modify indicates that a property is being modified",
+                    "type": "string",
+                    "enum": [
+                        "callback",
+                        "externalLink",
+                        "objectReference",
+                        "modify"
+                    ]
+                },
+                "confirmationRequiredIndicator": {
+                    "description": "True indicates that the application will prompt the user to confirm the action before it takes the action. False indicates that the action will be executed once selected by the user.",
+                    "type": "boolean"
+                },
+                "commentAllowedIndicator": {
+                    "description": "True indicates that the SOR supports adding a comment when taking an action.",
+                    "type": "boolean"
+                },
+                "defaultIndicator": {
+                    "description": "True indicates that this is the default action",
+                    "type": "boolean"
+                },
+                "sequence": {
+                    "description": "Sequence indicates that the item in the array must be in a sequence in relation to the other items in the sequence.  The action must not ocurr before another action with a lower sequence",
+                    "type": "number"
+                },
+                "attestation": {
+                    "description": "Optional text provided to the user when they take an action to affirm to be correct, true, or genuine. Requires confirmation indicator to be set to true.",
+                    "$ref": "#/definitions/attestationType"
+                },
+                "links": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/linkType"
+                    }
+                }
+            }
+        },
+        "beneficiary": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "description": "Details of a person or organization designated as the receiver of some allocation of account proceeds in the event of the death of the account holder",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "itemID": {
+                    "description": "The unique identifier of the object in a collection",
+                    "type": "string"
+                },
+                "beneficiaryID": {
+                    "description": "An identifier for a beneficiary",
+                    "type": "string"
+                },
+                "beneficiaryPerson": {
+                    "description": "Object describing the details about a person designated as the receiver of some allocation of account proceeds in the event of the death of the account holder",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "governmentIDs": {
+                            "description": "A list of government identifiers",
+                            "type": "array",
+                            "items": {
+                                "description": "A government identifier, e.g. a national identity number or a social insurance number",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "idValue": {
+                                        "description": "An actual ID",
+                                        "type": "string"
+                                    },
+                                    "nameCode": {
+                                        "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+                                        "$ref": "#/definitions/codeType"
+                                    },
+                                    "countryCode": {
+                                        "description": "Country in which the Address is in. ISO_3166-1-alpha-2 code list",
+                                        "type": "string"
+                                    },
+                                    "statusCode": {
+                                        "description": "The status of the associated  government ID",
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "codeValue": {
+                                                "description": "The code for the related entity.",
+                                                "type": "string"
+                                            },
+                                            "shortName": {
+                                                "description": "Short description of the related code not to exceed 25 characters",
+                                                "type": "string"
+                                            },
+                                            "longName": {
+                                                "description": "Long description of the related code",
+                                                "type": "string"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The string representation of the date value. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            }
+                                        }
+                                    },
+                                    "expirationDate": {
+                                        "description": "The date of the related entity. Follows the ISO-8601:2000 format",
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "itemID": {
+                                        "description": "The unique identifier of the object in a collection",
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "legalName": {
+                            "description": "The current legal name of the person in the associated context. For example, if the context is set to Germany, this equates to the legal name of the person in Germany.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "givenName": {
+                                    "description": "The first name of the person",
+                                    "type": "string"
+                                },
+                                "middleName": {
+                                    "description": "Person middle name or initial",
+                                    "type": "string"
+                                },
+                                "familyName1": {
+                                    "description": "Person family name 1",
+                                    "type": "string"
+                                },
+                                "familyName2": {
+                                    "description": "Person family name 2",
+                                    "type": "string"
+                                },
+                                "formattedName": {
+                                    "description": "A formatted version of the person name",
+                                    "type": "string"
+                                },
+                                "nameCode": {
+                                    "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+                                    "$ref": "#/definitions/codeType"
+                                },
+                                "scriptCode": {
+                                    "description": "The type of script the name is in. Associated codelist is ISO15924-A. Use the alpha-4 representation versus the single digit numeric representation. Format is lowercase with inital letter capitalized. For example, Cyrillic is Cyrl",
+                                    "$ref": "#/definitions/codeType"
+                                },
+                                "preferredSalutations": {
+                                    "description": "A list of preferred salutations",
+                                    "type": "array",
+                                    "items": {
+                                        "description": "A preferred salutation, e.g. Mr., Dr., etc.",
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "salutationCode": {
+                                                "description": "The saluation code",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "typeCode": {
+                                                "description": "The type of salutation, e.g. Professional, Social",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "sequenceNumber": {
+                                                "description": "The sequence or order of the salutation",
+                                                "type": "integer"
+                                            }
+                                        }
+                                    }
+                                },
+                                "nickName": {
+                                    "description": "A preferred name, e.g. a nickname",
+                                    "type": "string"
+                                },
+                                "generationAffixCode": {
+                                    "description": "The generational affix of the person name, e.g. Jr, Sr",
+                                    "$ref": "#/definitions/codeType"
+                                },
+                                "qualificationAffixCode": {
+                                    "description": "The qualification affix of the person name",
+                                    "$ref": "#/definitions/codeType"
+                                },
+                                "titleAffixCodes": {
+                                    "description": "Person titles",
+                                    "type": "array",
+                                    "items": {
+                                        "description": "Person titles",
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "affixCode": {
+                                                "description": "The title affix of the person name",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "sequenceNumber": {
+                                                "description": "The sequence or order of the title",
+                                                "type": "integer"
+                                            }
+                                        }
+                                    }
+                                },
+                                "familyName1Prefix": {
+                                    "description": "Person family name pre-fix",
+                                    "type": "string"
+                                },
+                                "familyName2Prefix": {
+                                    "description": "Person family name pre-fix",
+                                    "type": "string"
+                                },
+                                "initials": {
+                                    "description": "Person initials",
+                                    "type": "string"
+                                },
+                                "effectiveDate": {
+                                    "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                    "type": "string",
+                                    "format": "date"
+                                }
+                            }
+                        },
+                        "birthDate": {
+                            "description": "The birth date of the person. Follows the ISO-8601:2000 format",
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "legalAddress": {
+                            "description": "This is the primary residential address that  is used by an organization for payroll, taxation, and benefit program eligibility",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "nameCode": {
+                                    "description": "A descriptive coded name of the address",
+                                    "$ref": "#/definitions/codeType"
+                                },
+                                "scriptCode": {
+                                    "description": "The type of script the address is in. Associated codelist is ISO15924-A. Use the alpha-4 representation versus the single digit numeric representation. Format is lowercase with inital letter capitalized. For example, Cyrillic is Cyrl",
+                                    "$ref": "#/definitions/codeType"
+                                },
+                                "attentionOfName": {
+                                    "description": "Attention of Name",
+                                    "type": "string"
+                                },
+                                "careOfName": {
+                                    "description": "Care Of Name",
+                                    "type": "string"
+                                },
+                                "lineOne": {
+                                    "description": "Line One of Street Address Information",
+                                    "type": "string"
+                                },
+                                "lineTwo": {
+                                    "description": "Line Two of Street Address Information",
+                                    "type": "string"
+                                },
+                                "lineThree": {
+                                    "description": "Line Three of Street Address Information",
+                                    "type": "string"
+                                },
+                                "lineFour": {
+                                    "description": "Line Four of Street Address Information",
+                                    "type": "string"
+                                },
+                                "lineFive": {
+                                    "description": "Line Five of Street Address Information",
+                                    "type": "string"
+                                },
+                                "buildingNumber": {
+                                    "description": "The number of a building in the context of a physical address, e.g. House Number",
+                                    "type": "string"
+                                },
+                                "buildingName": {
+                                    "description": "The name of a building in the context of a physical address, e.g. Rockefeller Center",
+                                    "type": "string"
+                                },
+                                "blockName": {
+                                    "description": "The name the block",
+                                    "type": "string"
+                                },
+                                "streetName": {
+                                    "description": "The name of the street",
+                                    "type": "string"
+                                },
+                                "streetTypeCode": {
+                                    "description": "The type of street, e.g. Lane, Passage, Way",
+                                    "$ref": "#/definitions/codeType"
+                                },
+                                "unit": {
+                                    "description": "A unit in the context of an address, e.g. an Apartment Number or an Office",
+                                    "type": "string"
+                                },
+                                "floor": {
+                                    "description": "A floor in the context of an address",
+                                    "type": "string"
+                                },
+                                "stairCase": {
+                                    "description": "A reference to a particular staircase in the context of an address",
+                                    "type": "string"
+                                },
+                                "door": {
+                                    "description": "A reference to a particular door in the context of an address. e.g. Apartment Number",
+                                    "type": "string"
+                                },
+                                "postOfficeBox": {
+                                    "description": "A post office box",
+                                    "type": "string"
+                                },
+                                "deliveryPoint": {
+                                    "description": "A way to identify a specific delivery location, e.g. a mail-stop",
+                                    "type": "string"
+                                },
+                                "plotID": {
+                                    "description": "A way to identify a building plot, e.g. a specific building construction site",
+                                    "type": "string"
+                                },
+                                "cityName": {
+                                    "description": "A city in the context of an address",
+                                    "type": "string"
+                                },
+                                "countrySubdivisionLevel1": {
+                                    "description": "A country subdivision correlating to a administrative level one level below country. For example, in the United States, this would be a state",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "codeValue": {
+                                            "description": "The code for the related entity.",
+                                            "type": "string"
+                                        },
+                                        "shortName": {
+                                            "description": "Short description of the related code not to exceed 25 characters",
+                                            "type": "string"
+                                        },
+                                        "longName": {
+                                            "description": "Long description of the related code",
+                                            "type": "string"
+                                        },
+                                        "subdivisionType": {
+                                            "description": "The type of city sub division, e.g. borough, neighborhood",
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "countrySubdivisionLevel2": {
+                                    "description": "A country subdivision correlating to a administrative level two levels below country. For example, in the United States, this might be a county",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "codeValue": {
+                                            "description": "The code for the related entity.",
+                                            "type": "string"
+                                        },
+                                        "shortName": {
+                                            "description": "Short description of the related code not to exceed 25 characters",
+                                            "type": "string"
+                                        },
+                                        "longName": {
+                                            "description": "Long description of the related code",
+                                            "type": "string"
+                                        },
+                                        "subdivisionType": {
+                                            "description": "The type of city sub division, e.g. borough, neighborhood",
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "countryCode": {
+                                    "description": "The 2 character country code. As per ISO 3166-1 Alpha 2",
+                                    "type": "string"
+                                },
+                                "postalCode": {
+                                    "description": "The string of characters used to identify the postal code",
+                                    "type": "string"
+                                },
+                                "geoCoordinate": {
+                                    "description": "The coordinates of the location of the address",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "latitude": {
+                                            "description": "The angle, in degrees, of a position on Earth above the equator. (Latitude is negative for a place below the equator.) specified in decimal degrees",
+                                            "type": "number"
+                                        },
+                                        "longitude": {
+                                            "description": "The angle, in degrees, of a position on Earth around the equator from the Greenwich Meridian specified in decimal degrees.",
+                                            "type": "number"
+                                        }
+                                    }
+                                },
+                                "effectiveDate": {
+                                    "description": "The date when the current address became effective.  Follows the ISO-8601:2000 format",
+                                    "type": "string",
+                                    "format": "date"
+                                },
+                                "sameAsAddressIndicator": {
+                                    "description": "Same as address indicator",
+                                    "type": "boolean"
+                                },
+                                "sameAsAddressLink": {
+                                    "description": "Same as address link",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "href": {
+                                            "description": "The URI of the related entity",
+                                            "type": "string",
+                                            "format": "uri"
+                                        },
+                                        "rel": {
+                                            "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+                                            "type": "string",
+                                            "enum": [
+                                                "create",
+                                                "describedby",
+                                                "full",
+                                                "related",
+                                                "root",
+                                                "self",
+                                                "up",
+                                                "/adp/invoke",
+                                                "/adp/image",
+                                                "/adp/detail"
+                                            ]
+                                        },
+                                        "title": {
+                                            "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+                                            "type": "string"
+                                        },
+                                        "targetSchema": {
+                                            "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation.",
+                                            "type": "string"
+                                        },
+                                        "mediaType": {
+                                            "description": "The media type that the linked resource will return (Response)",
+                                            "type": "string",
+                                            "enum": [
+                                                "application/json",
+                                                "text/html",
+                                                "application/pdf",
+                                                "image/jpeg",
+                                                "image/gif",
+                                                "image/png"
+                                            ]
+                                        },
+                                        "method": {
+                                            "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+                                            "type": "string",
+                                            "enum": [
+                                                "GET",
+                                                "POST",
+                                                "DELETE",
+                                                "PUT"
+                                            ]
+                                        },
+                                        "encType": {
+                                            "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+                                            "type": "string",
+                                            "enum": [
+                                                "application/json",
+                                                "application/x-www-form-urlencoded"
+                                            ]
+                                        },
+                                        "schema": {
+                                            "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body.",
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "communication": {
+                            "description": "A container of communication mechanisms",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "landlines": {
+                                    "description": "A list of land-line telephone numbers",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "nameCode": {
+                                                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "countryDialing": {
+                                                "description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country.  ",
+                                                "type": "string"
+                                            },
+                                            "areaDialing": {
+                                                "description": "The local area dialing code for a telephone number.",
+                                                "type": "string"
+                                            },
+                                            "dialNumber": {
+                                                "description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+                                                "type": "string"
+                                            },
+                                            "extension": {
+                                                "description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+                                                "type": "string"
+                                            },
+                                            "access": {
+                                                "description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1.",
+                                                "type": "string"
+                                            },
+                                            "formattedNumber": {
+                                                "description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as defined by the regex format specified.  Please note that \\ is used as an escape character in regex, but a double \\ is needed to escape within the json schema.  The regex will accept +CC NNNNNNNNNNNNNN where + is the symbol indicating the caller to enter their country specific code to call from outside the country.  CC is the country code for an international number (optional), and the area code and dial number.  The local access code (i.e. 1 (201) 333 4444. 1 is the access code in US) is not passed.  The UI will present the phone number following its own presentation convention",
+                                                "type": "string"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "itemID": {
+                                                "description": "The unique identifier of the object in a collection",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "mobiles": {
+                                    "description": "A list of mobile telephone numbers",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "nameCode": {
+                                                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "countryDialing": {
+                                                "description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country.  ",
+                                                "type": "string"
+                                            },
+                                            "areaDialing": {
+                                                "description": "The local area dialing code for a telephone number.",
+                                                "type": "string"
+                                            },
+                                            "dialNumber": {
+                                                "description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+                                                "type": "string"
+                                            },
+                                            "extension": {
+                                                "description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+                                                "type": "string"
+                                            },
+                                            "access": {
+                                                "description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1.",
+                                                "type": "string"
+                                            },
+                                            "formattedNumber": {
+                                                "description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as defined by the regex format specified.  Please note that \\ is used as an escape character in regex, but a double \\ is needed to escape within the json schema.  The regex will accept +CC NNNNNNNNNNNNNN where + is the symbol indicating the caller to enter their country specific code to call from outside the country.  CC is the country code for an international number (optional), and the area code and dial number.  The local access code (i.e. 1 (201) 333 4444. 1 is the access code in US) is not passed.  The UI will present the phone number following its own presentation convention",
+                                                "type": "string"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "itemID": {
+                                                "description": "The unique identifier of the object in a collection",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "faxes": {
+                                    "description": "A list of fax telephone numbers",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "nameCode": {
+                                                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "countryDialing": {
+                                                "description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country.  ",
+                                                "type": "string"
+                                            },
+                                            "areaDialing": {
+                                                "description": "The local area dialing code for a telephone number.",
+                                                "type": "string"
+                                            },
+                                            "dialNumber": {
+                                                "description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+                                                "type": "string"
+                                            },
+                                            "extension": {
+                                                "description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+                                                "type": "string"
+                                            },
+                                            "access": {
+                                                "description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1.",
+                                                "type": "string"
+                                            },
+                                            "formattedNumber": {
+                                                "description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as defined by the regex format specified.  Please note that \\ is used as an escape character in regex, but a double \\ is needed to escape within the json schema.  The regex will accept +CC NNNNNNNNNNNNNN where + is the symbol indicating the caller to enter their country specific code to call from outside the country.  CC is the country code for an international number (optional), and the area code and dial number.  The local access code (i.e. 1 (201) 333 4444. 1 is the access code in US) is not passed.  The UI will present the phone number following its own presentation convention",
+                                                "type": "string"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "itemID": {
+                                                "description": "The unique identifier of the object in a collection",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "pagers": {
+                                    "description": "A list of pager telephone numbers",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "nameCode": {
+                                                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "countryDialing": {
+                                                "description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country.  ",
+                                                "type": "string"
+                                            },
+                                            "areaDialing": {
+                                                "description": "The local area dialing code for a telephone number.",
+                                                "type": "string"
+                                            },
+                                            "dialNumber": {
+                                                "description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+                                                "type": "string"
+                                            },
+                                            "extension": {
+                                                "description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+                                                "type": "string"
+                                            },
+                                            "access": {
+                                                "description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1.",
+                                                "type": "string"
+                                            },
+                                            "formattedNumber": {
+                                                "description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as defined by the regex format specified.  Please note that \\ is used as an escape character in regex, but a double \\ is needed to escape within the json schema.  The regex will accept +CC NNNNNNNNNNNNNN where + is the symbol indicating the caller to enter their country specific code to call from outside the country.  CC is the country code for an international number (optional), and the area code and dial number.  The local access code (i.e. 1 (201) 333 4444. 1 is the access code in US) is not passed.  The UI will present the phone number following its own presentation convention",
+                                                "type": "string"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "itemID": {
+                                                "description": "The unique identifier of the object in a collection",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "emails": {
+                                    "description": "A list of email addresses",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "nameCode": {
+                                                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "emailUri": {
+                                                "description": "The URI of the associated email address",
+                                                "type": "string",
+                                                "format": "email"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "itemID": {
+                                                "description": "The unique identifier of the object in a collection",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "internetAddresses": {
+                                    "description": "A list of internet URIs",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "nameCode": {
+                                                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "uri": {
+                                                "description": "The URI of the associated email address",
+                                                "type": "string",
+                                                "format": "uri"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "itemID": {
+                                                "description": "The unique identifier of the object in a collection",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "instantMessages": {
+                                    "description": "A list of instant messages URIs",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "nameCode": {
+                                                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "uri": {
+                                                "description": "The URI of the associated email address",
+                                                "type": "string",
+                                                "format": "uri"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "itemID": {
+                                                "description": "The unique identifier of the object in a collection",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "socialNetworks": {
+                                    "description": "A list of social networks addresses",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "nameCode": {
+                                                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "uri": {
+                                                "description": "The URI of the associated email address",
+                                                "type": "string",
+                                                "format": "uri"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "itemID": {
+                                                "description": "The unique identifier of the object in a collection",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "links": {
+                                    "type": "array",
+                                    "items": {
+                                        "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "href": {
+                                                "description": "The URI of the related entity",
+                                                "type": "string",
+                                                "format": "uri"
+                                            },
+                                            "rel": {
+                                                "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+                                                "type": "string",
+                                                "enum": [
+                                                    "create",
+                                                    "describedby",
+                                                    "full",
+                                                    "related",
+                                                    "root",
+                                                    "self",
+                                                    "up",
+                                                    "/adp/invoke",
+                                                    "/adp/image",
+                                                    "/adp/detail"
+                                                ]
+                                            },
+                                            "title": {
+                                                "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+                                                "type": "string"
+                                            },
+                                            "targetSchema": {
+                                                "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation.",
+                                                "type": "string"
+                                            },
+                                            "mediaType": {
+                                                "description": "The media type that the linked resource will return (Response)",
+                                                "type": "string",
+                                                "enum": [
+                                                    "application/json",
+                                                    "text/html",
+                                                    "application/pdf",
+                                                    "image/jpeg",
+                                                    "image/gif",
+                                                    "image/png"
+                                                ]
+                                            },
+                                            "method": {
+                                                "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+                                                "type": "string",
+                                                "enum": [
+                                                    "GET",
+                                                    "POST",
+                                                    "DELETE",
+                                                    "PUT"
+                                                ]
+                                            },
+                                            "encType": {
+                                                "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+                                                "type": "string",
+                                                "enum": [
+                                                    "application/json",
+                                                    "application/x-www-form-urlencoded"
+                                                ]
+                                            },
+                                            "schema": {
+                                                "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body.",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "associateOID": {
+                            "description": "An identifier of an associate",
+                            "type": "string"
+                        },
+                        "dependentID": {
+                            "description": "An identifier for a dependent.",
+                            "type": "string"
+                        },
+                        "relationshipTypeCode": {
+                            "description": "The relationship of the beneficiary to the worker",
+                            "$ref": "#/definitions/codeType"
+                        },
+                        "genderCode": {
+                            "description": "The gender of a person, e.g. Male, Female",
+                            "$ref": "#/definitions/codeType"
+                        }
+                    }
+                },
+                "beneficiaryOrganization": {
+                    "description": "An organization designated as the receiver of some allocation of account proceeds in the event of the account holder's death",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "organizationOID": {
+                            "description": "The unique identifier of an organization",
+                            "type": "string"
+                        },
+                        "governmentIDs": {
+                            "description": "A list of government identifiers",
+                            "type": "array",
+                            "items": {
+                                "description": "A government identifier, e.g. a national identity number or a social insurance number",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "idValue": {
+                                        "description": "An actual ID",
+                                        "type": "string"
+                                    },
+                                    "nameCode": {
+                                        "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+                                        "$ref": "#/definitions/codeType"
+                                    },
+                                    "countryCode": {
+                                        "description": "Country in which the Address is in. ISO_3166-1-alpha-2 code list",
+                                        "type": "string"
+                                    },
+                                    "statusCode": {
+                                        "description": "The status of the associated  government ID",
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "codeValue": {
+                                                "description": "The code for the related entity.",
+                                                "type": "string"
+                                            },
+                                            "shortName": {
+                                                "description": "Short description of the related code not to exceed 25 characters",
+                                                "type": "string"
+                                            },
+                                            "longName": {
+                                                "description": "Long description of the related code",
+                                                "type": "string"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The string representation of the date value. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            }
+                                        }
+                                    },
+                                    "expirationDate": {
+                                        "description": "The date of the related entity. Follows the ISO-8601:2000 format",
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "itemID": {
+                                        "description": "The unique identifier of the object in a collection",
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "typeCode": {
+                            "description": "The type of beneficiary organization, e.g. estate, trust, charity, etc.",
+                            "$ref": "#/definitions/codeType"
+                        },
+                        "legalName": {
+                            "description": "The name of the organization",
+                            "type": "string"
+                        },
+                        "legalAddress": {
+                            "description": "This is the primary residential address that  is used by an organization for payroll, taxation, and benefit program eligibility",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "nameCode": {
+                                    "description": "A descriptive coded name of the address",
+                                    "$ref": "#/definitions/codeType"
+                                },
+                                "scriptCode": {
+                                    "description": "The type of script the address is in. Associated codelist is ISO15924-A. Use the alpha-4 representation versus the single digit numeric representation. Format is lowercase with inital letter capitalized. For example, Cyrillic is Cyrl",
+                                    "$ref": "#/definitions/codeType"
+                                },
+                                "attentionOfName": {
+                                    "description": "Attention of Name",
+                                    "type": "string"
+                                },
+                                "careOfName": {
+                                    "description": "Care Of Name",
+                                    "type": "string"
+                                },
+                                "lineOne": {
+                                    "description": "Line One of Street Address Information",
+                                    "type": "string"
+                                },
+                                "lineTwo": {
+                                    "description": "Line Two of Street Address Information",
+                                    "type": "string"
+                                },
+                                "lineThree": {
+                                    "description": "Line Three of Street Address Information",
+                                    "type": "string"
+                                },
+                                "lineFour": {
+                                    "description": "Line Four of Street Address Information",
+                                    "type": "string"
+                                },
+                                "lineFive": {
+                                    "description": "Line Five of Street Address Information",
+                                    "type": "string"
+                                },
+                                "buildingNumber": {
+                                    "description": "The number of a building in the context of a physical address, e.g. House Number",
+                                    "type": "string"
+                                },
+                                "buildingName": {
+                                    "description": "The name of a building in the context of a physical address, e.g. Rockefeller Center",
+                                    "type": "string"
+                                },
+                                "blockName": {
+                                    "description": "The name the block",
+                                    "type": "string"
+                                },
+                                "streetName": {
+                                    "description": "The name of the street",
+                                    "type": "string"
+                                },
+                                "streetTypeCode": {
+                                    "description": "The type of street, e.g. Lane, Passage, Way",
+                                    "$ref": "#/definitions/codeType"
+                                },
+                                "unit": {
+                                    "description": "A unit in the context of an address, e.g. an Apartment Number or an Office",
+                                    "type": "string"
+                                },
+                                "floor": {
+                                    "description": "A floor in the context of an address",
+                                    "type": "string"
+                                },
+                                "stairCase": {
+                                    "description": "A reference to a particular staircase in the context of an address",
+                                    "type": "string"
+                                },
+                                "door": {
+                                    "description": "A reference to a particular door in the context of an address. e.g. Apartment Number",
+                                    "type": "string"
+                                },
+                                "postOfficeBox": {
+                                    "description": "A post office box",
+                                    "type": "string"
+                                },
+                                "deliveryPoint": {
+                                    "description": "A way to identify a specific delivery location, e.g. a mail-stop",
+                                    "type": "string"
+                                },
+                                "plotID": {
+                                    "description": "A way to identify a building plot, e.g. a specific building construction site",
+                                    "type": "string"
+                                },
+                                "cityName": {
+                                    "description": "A city in the context of an address",
+                                    "type": "string"
+                                },
+                                "countrySubdivisionLevel1": {
+                                    "description": "A country subdivision correlating to a administrative level one level below country. For example, in the United States, this would be a state",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "codeValue": {
+                                            "description": "The code for the related entity.",
+                                            "type": "string"
+                                        },
+                                        "shortName": {
+                                            "description": "Short description of the related code not to exceed 25 characters",
+                                            "type": "string"
+                                        },
+                                        "longName": {
+                                            "description": "Long description of the related code",
+                                            "type": "string"
+                                        },
+                                        "subdivisionType": {
+                                            "description": "The type of city sub division, e.g. borough, neighborhood",
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "countrySubdivisionLevel2": {
+                                    "description": "A country subdivision correlating to a administrative level two levels below country. For example, in the United States, this might be a county",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "codeValue": {
+                                            "description": "The code for the related entity.",
+                                            "type": "string"
+                                        },
+                                        "shortName": {
+                                            "description": "Short description of the related code not to exceed 25 characters",
+                                            "type": "string"
+                                        },
+                                        "longName": {
+                                            "description": "Long description of the related code",
+                                            "type": "string"
+                                        },
+                                        "subdivisionType": {
+                                            "description": "The type of city sub division, e.g. borough, neighborhood",
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "countryCode": {
+                                    "description": "The 2 character country code. As per ISO 3166-1 Alpha 2",
+                                    "type": "string"
+                                },
+                                "postalCode": {
+                                    "description": "The string of characters used to identify the postal code",
+                                    "type": "string"
+                                },
+                                "geoCoordinate": {
+                                    "description": "The coordinates of the location of the address",
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "latitude": {
+                                            "description": "The angle, in degrees, of a position on Earth above the equator. (Latitude is negative for a place below the equator.) specified in decimal degrees",
+                                            "type": "number"
+                                        },
+                                        "longitude": {
+                                            "description": "The angle, in degrees, of a position on Earth around the equator from the Greenwich Meridian specified in decimal degrees.",
+                                            "type": "number"
+                                        }
+                                    }
+                                },
+                                "effectiveDate": {
+                                    "description": "The date when the current address became effective.  Follows the ISO-8601:2000 format",
+                                    "type": "string",
+                                    "format": "date"
+                                }
+                            }
+                        },
+                        "contactName": {
+                            "description": "The name of the contact",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "givenName": {
+                                    "description": "The first name of the person",
+                                    "type": "string"
+                                },
+                                "middleName": {
+                                    "description": "Person middle name or initial",
+                                    "type": "string"
+                                },
+                                "familyName1": {
+                                    "description": "Person family name 1",
+                                    "type": "string"
+                                },
+                                "familyName2": {
+                                    "description": "Person family name 2",
+                                    "type": "string"
+                                },
+                                "formattedName": {
+                                    "description": "A formatted version of the person name",
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "establishmentDate": {
+                            "description": "Get the date when this beneficiary was established, e.g. Date of Trust.  Not applicable for all types of beneficiary organizations. Follows the ISO-8601:2000 format",
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "contactCommunication": {
+                            "description": "A container of communication mechanisms",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "landlines": {
+                                    "description": "A list of land-line telephone numbers",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "nameCode": {
+                                                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "countryDialing": {
+                                                "description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country.  ",
+                                                "type": "string"
+                                            },
+                                            "areaDialing": {
+                                                "description": "The local area dialing code for a telephone number.",
+                                                "type": "string"
+                                            },
+                                            "dialNumber": {
+                                                "description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+                                                "type": "string"
+                                            },
+                                            "extension": {
+                                                "description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+                                                "type": "string"
+                                            },
+                                            "access": {
+                                                "description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1.",
+                                                "type": "string"
+                                            },
+                                            "formattedNumber": {
+                                                "description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as defined by the regex format specified.  Please note that \\ is used as an escape character in regex, but a double \\ is needed to escape within the json schema.  The regex will accept +CC NNNNNNNNNNNNNN where + is the symbol indicating the caller to enter their country specific code to call from outside the country.  CC is the country code for an international number (optional), and the area code and dial number.  The local access code (i.e. 1 (201) 333 4444. 1 is the access code in US) is not passed.  The UI will present the phone number following its own presentation convention",
+                                                "type": "string"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "itemID": {
+                                                "description": "The unique identifier of the object in a collection",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "mobiles": {
+                                    "description": "A list of mobile telephone numbers",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "nameCode": {
+                                                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "countryDialing": {
+                                                "description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country.  ",
+                                                "type": "string"
+                                            },
+                                            "areaDialing": {
+                                                "description": "The local area dialing code for a telephone number.",
+                                                "type": "string"
+                                            },
+                                            "dialNumber": {
+                                                "description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+                                                "type": "string"
+                                            },
+                                            "extension": {
+                                                "description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+                                                "type": "string"
+                                            },
+                                            "access": {
+                                                "description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1.",
+                                                "type": "string"
+                                            },
+                                            "formattedNumber": {
+                                                "description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as defined by the regex format specified.  Please note that \\ is used as an escape character in regex, but a double \\ is needed to escape within the json schema.  The regex will accept +CC NNNNNNNNNNNNNN where + is the symbol indicating the caller to enter their country specific code to call from outside the country.  CC is the country code for an international number (optional), and the area code and dial number.  The local access code (i.e. 1 (201) 333 4444. 1 is the access code in US) is not passed.  The UI will present the phone number following its own presentation convention",
+                                                "type": "string"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "itemID": {
+                                                "description": "The unique identifier of the object in a collection",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "faxes": {
+                                    "description": "A list of fax telephone numbers",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "nameCode": {
+                                                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "countryDialing": {
+                                                "description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country.  ",
+                                                "type": "string"
+                                            },
+                                            "areaDialing": {
+                                                "description": "The local area dialing code for a telephone number.",
+                                                "type": "string"
+                                            },
+                                            "dialNumber": {
+                                                "description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+                                                "type": "string"
+                                            },
+                                            "extension": {
+                                                "description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+                                                "type": "string"
+                                            },
+                                            "access": {
+                                                "description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1.",
+                                                "type": "string"
+                                            },
+                                            "formattedNumber": {
+                                                "description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as defined by the regex format specified.  Please note that \\ is used as an escape character in regex, but a double \\ is needed to escape within the json schema.  The regex will accept +CC NNNNNNNNNNNNNN where + is the symbol indicating the caller to enter their country specific code to call from outside the country.  CC is the country code for an international number (optional), and the area code and dial number.  The local access code (i.e. 1 (201) 333 4444. 1 is the access code in US) is not passed.  The UI will present the phone number following its own presentation convention",
+                                                "type": "string"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "itemID": {
+                                                "description": "The unique identifier of the object in a collection",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "pagers": {
+                                    "description": "A list of pager telephone numbers",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "nameCode": {
+                                                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "countryDialing": {
+                                                "description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country.  ",
+                                                "type": "string"
+                                            },
+                                            "areaDialing": {
+                                                "description": "The local area dialing code for a telephone number.",
+                                                "type": "string"
+                                            },
+                                            "dialNumber": {
+                                                "description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+                                                "type": "string"
+                                            },
+                                            "extension": {
+                                                "description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+                                                "type": "string"
+                                            },
+                                            "access": {
+                                                "description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1.",
+                                                "type": "string"
+                                            },
+                                            "formattedNumber": {
+                                                "description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as defined by the regex format specified.  Please note that \\ is used as an escape character in regex, but a double \\ is needed to escape within the json schema.  The regex will accept +CC NNNNNNNNNNNNNN where + is the symbol indicating the caller to enter their country specific code to call from outside the country.  CC is the country code for an international number (optional), and the area code and dial number.  The local access code (i.e. 1 (201) 333 4444. 1 is the access code in US) is not passed.  The UI will present the phone number following its own presentation convention",
+                                                "type": "string"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "itemID": {
+                                                "description": "The unique identifier of the object in a collection",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "emails": {
+                                    "description": "A list of email addresses",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "nameCode": {
+                                                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "emailUri": {
+                                                "description": "The URI of the associated email address",
+                                                "type": "string",
+                                                "format": "email"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "itemID": {
+                                                "description": "The unique identifier of the object in a collection",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "internetAddresses": {
+                                    "description": "A list of internet URIs",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "nameCode": {
+                                                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "uri": {
+                                                "description": "The URI of the associated email address",
+                                                "type": "string",
+                                                "format": "uri"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "itemID": {
+                                                "description": "The unique identifier of the object in a collection",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "instantMessages": {
+                                    "description": "A list of instant messages URIs",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "nameCode": {
+                                                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "uri": {
+                                                "description": "The URI of the associated email address",
+                                                "type": "string",
+                                                "format": "uri"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "itemID": {
+                                                "description": "The unique identifier of the object in a collection",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "socialNetworks": {
+                                    "description": "A list of social networks addresses",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "nameCode": {
+                                                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                                                "$ref": "#/definitions/codeType"
+                                            },
+                                            "uri": {
+                                                "description": "The URI of the associated email address",
+                                                "type": "string",
+                                                "format": "uri"
+                                            },
+                                            "effectiveDate": {
+                                                "description": "The effective date of the related entity. Follows the ISO-8601:2000 format.",
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "itemID": {
+                                                "description": "The unique identifier of the object in a collection",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "links": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/linkType"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "actions": {
+                    "description": "The list of actions available to the user to take on this process. ",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "$ref": "#/definitions/actionType"
+                    }
+                },
+                "links": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/linkType"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,1655 @@
+{
+  "title": "WorkerUSFederalIncomeTaxInstructionChangeEvent",
+  "type": "object",
+  "description": "An instance to capture an event when a worker federal w4 election is changed",
+  "additionalProperties": false,
+  "properties": {
+    "events": {
+      "type": "array",
+      "items": {
+        "description": "An instance to capture an event when a worker federal w4 election is changed",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "eventID": {
+            "description": "The unique identifier of the event instance. This is set by the system of record once an event is recorded as in progress or complete",
+            "type": "string"
+          },
+          "serviceCategoryCode": {
+            "description": "The service domain, e.g. HR, Payroll, Benefits, etc. This field is always present and valued based on a standard codelist",
+            "$ref": "#/definitions/codeType_v02"
+          },
+          "eventNameCode": {
+            "description": "This is the canonical name of the event, e.g. dependent.add, worker.hire. This field is always present and valued based on a standard codelist",
+            "$ref": "#/definitions/codeType_v02"
+          },
+          "eventTitle": {
+            "description": "The event title offers a way to describe a particular instance of an event at a level more granular than the event name, e.g. 2014 Annual Enrollment",
+            "type": "string"
+          },
+          "eventSubTitle": {
+            "description": "The event sub title provides event instance summary details, e.g. All Annual Enrollment elections become effective on January 1, 2014",
+            "type": "string"
+          },
+          "eventReasonCode": {
+            "description": "This allows for further refinement of the associated event. For example, for a worker.maritalStatus.change event, the reason code could be used to describe whether it is a Marriage or Divorce. This is optional and valued as defined by the system of record",
+            "$ref": "#/definitions/codeType_v02"
+          },
+          "eventStatusCode": {
+            "description": "This identifies the status of the event. An event that has been initiated by the system of record will have an event status code of created. An event that is saved in a work in progress state will have an event status code of inProgress. An event that has been recorded will have an event status code of complete. These values are set by the system of record and valued based on a standard codeslist",
+            "$ref": "#/definitions/codeType_v02"
+          },
+          "priorityCode": {
+            "description": "This allows the system of record to prioritize events and is valued based on a standard codelist",
+            "$ref": "#/definitions/codeType_v02"
+          },
+          "recordDateTime": {
+            "description": "This is the date time the event is recorded in the system of record with an event status code equal to complete. This value is set by the system of record",
+            "$ref": "#/definitions/dateTimeType_v01"
+          },
+          "creationDateTime": {
+            "description": "This is the date time the event is created. If a system of record creates the event instance, as in the case of an annual enrollment for example, then is sets the creation date time. If a user declares an event, then this is set to the date time when the first call is made to the system of record",
+            "$ref": "#/definitions/dateTimeType_v01"
+          },
+          "effectiveDateTime": {
+            "description": "This is the effective date, or effective date time fo the event from a business perspective. In some systems, this may be referred to as the Event Date. For example, for a birth event, this is the date of birth. If there is no effective date from a business perspective, this is set equal to the record date time",
+            "$ref": "#/definitions/dateTimeType_v01"
+          },
+          "expirationDateTime": {
+            "description": "This value is set by the system of record and used to term the life cycle of an event instance. ",
+            "$ref": "#/definitions/dateTimeType_v01"
+          },
+          "dueDateTime": {
+            "description": "This value is set by the system of record and allows for the presentation of a date by which the system of record would like the user to complete the event",
+            "$ref": "#/definitions/dateTimeType_v01"
+          },
+          "notificationIndicator": {
+            "description": "True indicates that the requestor wants notifications on the status of the request",
+            "$ref": "#/definitions/indicatorType_v01"
+          },
+          "originator": {
+            "description": "An originator is a user, machine or event that triggered the event",
+            "$ref": "#/definitions/eventOriginatorType_v01"
+          },
+          "actor": {
+            "description": "The actor is the party that completed the recording of the event",
+            "$ref": "#/definitions/eventActorType_v01"
+          },
+          "actAsParty": {
+            "description": "The party (client employee) information that the actor is acting as to complete the recording of the event. Example:  An ADP Support User (principal A = Actor) views data within an ADP Application as a client employee (principal B) in read only mode.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "applicationID": {
+                "description": "The unique identifier of the application which originated the event.",
+                "$ref": "#/definitions/IDType_v02"
+              },
+              "associateOID": {
+                "description": "The unique identifier of an associate who originated the event or a process",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "personOID": {
+                "description": "The unique identifier of a person who originated the event or a process",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "formattedName": {
+                "description": "Human readable name of the actor",
+                "type": "string"
+              },
+              "deviceID": {
+                "description": "The unique identifier of the device, e.g. a time clock, door entry beam.",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "geoCoordinate": {
+                "description": "The coordinates of the location of the actor",
+                "$ref": "#/definitions/coordinateType_v02"
+              },
+              "deviceUserAgentID": {
+                "description": "Identifier of the user agent of the device used by the actor who worked on the event or process",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "assignedGroups": {
+                "description": "An event instance",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "title": "AssignedGroup",
+                  "properties": {
+                    "groupID": {
+                      "description": "The unique identifier of the group",
+                      "$ref": "#/definitions/simpleIDType_v02"
+                    },
+                    "groupName": {
+                      "description": "The name of the group",
+                      "type": "string"
+                    },
+                    "assignedGroupMembers": {
+                      "description": "Associates that are part of the group(s) assigned to the review event.  The actor is the member that actually completes the event.",
+                      "type": "array",
+                      "items": {
+                        "description": "An instance of an Associate that is part of the group(s) assigned to the review event.  The actor is the member that actually completes the event.",
+                        "type": "object",
+                        "additionalProperties": false,
+                        "title": "AssignedGroupMember",
+                        "properties": {
+                          "associateOID": {
+                            "description": "The unique identifier of an associate who originated the event or a process",
+                            "$ref": "#/definitions/simpleIDType_v02"
+                          },
+                          "formattedName": {
+                            "description": "Human readable name of the actor",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "organizationOID": {
+                "description": "A unique identifier of a client employee's organization id",
+                "$ref": "#/definitions/OIDType_v02"
+              }
+            }
+          },
+          "onBehalfOfParty": {
+            "description": "The party (client employee) that the actor is acting on behalf of to complete the recording of the event. Example:  An ADP Support User (principal A = Actor) views data within an ADP Application as a client employee (principal B) and can take action on that person's behalf.  The Actor may have access to certain features or screens that the Client Employee cannot view, e.g. diagnostics screens.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "applicationID": {
+                "description": "The unique identifier of the application which originated the event.",
+                "$ref": "#/definitions/IDType_v02"
+              },
+              "associateOID": {
+                "description": "The unique identifier of an associate who originated the event or a process",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "personOID": {
+                "description": "The unique identifier of a person who originated the event or a process",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "formattedName": {
+                "description": "Human readable name of the actor",
+                "type": "string"
+              },
+              "deviceID": {
+                "description": "The unique identifier of the device, e.g. a time clock, door entry beam.",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "geoCoordinate": {
+                "description": "The coordinates of the location of the actor",
+                "$ref": "#/definitions/coordinateType_v02"
+              },
+              "deviceUserAgentID": {
+                "description": "Identifier of the user agent of the device used by the actor who worked on the event or process",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "assignedGroups": {
+                "description": "An event instance",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "title": "AssignedGroup",
+                  "properties": {
+                    "groupID": {
+                      "description": "The unique identifier of the group",
+                      "$ref": "#/definitions/simpleIDType_v02"
+                    },
+                    "groupName": {
+                      "description": "The name of the group",
+                      "type": "string"
+                    },
+                    "assignedGroupMembers": {
+                      "description": "Associates that are part of the group(s) assigned to the review event.  The actor is the member that actually completes the event.",
+                      "type": "array",
+                      "items": {
+                        "description": "An instance of an Associate that is part of the group(s) assigned to the review event.  The actor is the member that actually completes the event.",
+                        "type": "object",
+                        "additionalProperties": false,
+                        "title": "AssignedGroupMember",
+                        "properties": {
+                          "associateOID": {
+                            "description": "The unique identifier of an associate who originated the event or a process",
+                            "$ref": "#/definitions/simpleIDType_v02"
+                          },
+                          "formattedName": {
+                            "description": "Human readable name of the actor",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "organizationOID": {
+                "description": "A unique identifier of a client employee's organization id",
+                "$ref": "#/definitions/OIDType_v02"
+              }
+            }
+          },
+          "eTag": {
+            "description": "The entity tag of the entity in the request",
+            "type": "string"
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/linkType_v02"
+            }
+          },
+          "data": {
+            "description": "Event Data",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "eventContext": {
+                "description": "Data which sets the context for the event.  That is, the keys which set context",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "contextExpressionID": {
+                    "description": "A globally unique (GUID) identifier of the context expression. This conveys the context of the associated data. For example, if the context is set to Germany, the data would adhere to the business rules and formatting rules relevant to Germany",
+                    "$ref": "#/definitions/simpleIDType_v02"
+                  },
+                  "worker": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "associateOID": {
+                        "description": "A unique identifier of a covered individual when there is an AOID",
+                        "$ref": "#/definitions/associateOIDType_v02"
+                      }
+                    }
+                  },
+                  "usTaxProfiles": {
+                    "description": "A list of tax profiles",
+                    "title": "UsTaxProfileEventContext",
+                    "additionalProperties": false,
+                    "type": "object",
+                    "properties": {
+                      "payrollRegionCode": {
+                        "description": "The region in which the payroll is processed",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "payrollGroupCode": {
+                        "description": "The payroll group relevant to payroll processing",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "payrollFileNumber": {
+                        "description": "The payroll file number",
+                        "$ref": "#/definitions/simpleIDType_v02"
+                      },
+                      "itemID": {
+                        "$ref": "#/definitions/itemIDType_v01"
+                      }
+                    }
+                  }
+                }
+              },
+              "transform": {
+                "description": "Data which is transformed as a result of the event",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "eventReasonCode": {
+                    "description": "This allows for further refinement of the associated event. For example, for a worker.maritalStatus.change event, the reason code could be used to describe whether it is a Marriage vs. Divorce vs. Separation",
+                    "$ref": "#/definitions/codeType_v02"
+                  },
+                  "eventStatusCode": {
+                    "description": "This identifies the status of the event. An event that has been created, either by the system of record or as the result of a user, will have an event status code of Created. An event that is saved in a work in progress state (as determined by the permissable state codes), will have an event status code of InProgress. An event that has been recorded, will have an event status code of Complete. This value is set by the system of record",
+                    "$ref": "#/definitions/codeType_v02"
+                  },
+                  "effectiveDateTime": {
+                    "description": "This is the effective date, or effective date time fo the event from a business perspective. In some systems, this may be referred to as the Event Date. For example, for a birth event, this is the date of birth. If there is no effective date from a business perspective, this is set equal to the record date time",
+                    "$ref": "#/definitions/dateTimeType_v01"
+                  },
+                  "notificationIndicator": {
+                    "description": "True indicates that the requestor wants notifications on the status of the request",
+                    "$ref": "#/definitions/indicatorType_v01"
+                  },
+                  "usTaxProfile": {
+                    "additionalProperties": false,
+                    "title": "UsTaxProfileTransform",
+                    "type": "object",
+                    "properties": {
+                      "usFederalTaxInstruction": {
+                        "description": "Payroll instruction to communicate federal tax withholding deductions",
+                        "type": "object",
+                        "additionalProperties": false,
+                        "title": "UsFederalTaxInstructionTransform",
+                        "properties": {
+                          "federalIncomeTaxInstruction": {
+                            "description": "Information collected on the US federal W4 form that drives the calculation of federal income tax deductions",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "title": "FederalIncomeTaxInstructionTransform",
+                            "properties": {
+                              "taxWithholdingStatus": {
+                                "description": "This tells the payroll system the tax withholding rules as applicable to the associated tax. The valid values are exempt, tax block, employer paid, and fully subject to tax",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "title": "FederalIncomeTaxWithholdingStatusTransform",
+                                "properties": {
+                                  "statusCode": {
+                                    "description": "The status of the work assignment, e.g. active, inactive",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "reasonCode": {
+                                    "description": "The reason associated to the correlating status, e.g. new hire, rehire, termination, etc.",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "effectiveDate": {
+                                    "description": "The effective date of the related entity. Follows the ISO-8601:2000 format",
+                                    "$ref": "#/definitions/dateType_v01"
+                                  }
+                                }
+                              },
+                              "taxFilingStatusCode": {
+                                "description": "Typically, this is the marital status code that payee wishes to claim for the purpose of calculating the associated tax. This codelist values vary widely for this between federal and state levels, and is not relevant to all taxing jurisdications, e.g. Ohio",
+                                "$ref": "#/definitions/codeType_v02"
+                              },
+                              "taxWithholdingAllowanceQuantity": {
+                                "description": "Worker-claimed quantity on the tax form that employers used to determine how much of the worker pay to subtract from the paycheck to remit to the tax authorities. The more allowances claimed, the less income tax will be withheld from each paycheck. The fewer allowances claimed, the more income tax will be withheld from each paycheck",
+                                "$ref": "#/definitions/quantityType_v02"
+                              },
+                              "taxAllowances": {
+                                "type": "array",
+                                "items": {
+                                  "description": "Use the type attribute to determine the kind of allowance...need pre-defined values...e.g.for PR, Dependent Joint Custody, Dependent Full Custody and Total Deduction Allowances, etc",
+                                  "title": "UsTaxAllowanceItem",
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "allowanceTypeCode": {
+                                      "description": "This indicates the type of allowance, e.g. Puerto Rico has Dependent Joint Custody, Dependent Full Custody, and Total Deduction Allowances.",
+                                      "$ref": "#/definitions/codeType_v02"
+                                    },
+                                    "taxAllowanceQuantity": {
+                                      "description": "The quantity associated to the related type of tax allowance.",
+                                      "$ref": "#/definitions/quantityType_v02"
+                                    },
+                                    "taxAllowancePercentage": {
+                                      "description": "The percentage associated to the related type of tax allowance.",
+                                      "$ref": "#/definitions/percentageType_v02"
+                                    },
+                                    "taxAllowanceAmount": {
+                                      "description": "The amount associated to the related type of tax allowance.",
+                                      "$ref": "#/definitions/amountType_v02"
+                                    },
+                                    "itemID": {
+                                      "description": "A unique identifier of a tax allowance",
+                                      "$ref": "#/definitions/itemIDType_v01"
+                                    }
+                                  }
+                                }
+                              },
+                              "additionalIncomeAmount": {
+                                "description": "Income that the worker wants have taxes withheld from that is not from jobs like dividends, retirement income, etc",
+                                "$ref": "#/definitions/amountType_v02"
+                              },
+                              "additionalTaxPercentage": {
+                                "description": "A percentage representation of an additional tax amount that should be deducted from a worker paycheck",
+                                "$ref": "#/definitions/percentageType_v02"
+                              },
+                              "additionalTaxAmount": {
+                                "description": "An amount representation of an additional tax amount that should be deducted from a worker paycheck",
+                                "$ref": "#/definitions/amountType_v02"
+                              },
+                              "overrideTaxPercentage": {
+                                "description": "The rate used to calculate the tax amount that should be deducted from a worker paycheck",
+                                "$ref": "#/definitions/percentageType_v02"
+                              },
+                              "overrideTaxAmount": {
+                                "description": "The tax amount that should be deducted from a worker paycheck",
+                                "$ref": "#/definitions/amountType_v02"
+                              }
+                            }
+                          },
+                          "socialSecurityTaxInstruction": {
+                            "description": "Payroll instruction to communicate social security tax withholding deductions.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "title": "SocialSecurityTaxInstructionTransform",
+                            "properties": {
+                              "taxWithholdingStatus": {
+                                "description": "This tells the payroll system the tax withholding rules as applicable to the associated tax. The valid values are exempt, tax block, employer paid, and fully subject to tax.",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "title": "SocialSecurityTaxWithholdingStatusTransform",
+                                "properties": {
+                                  "statusCode": {
+                                    "description": "The status of the work assignment, e.g. active, inactive",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "reasonCode": {
+                                    "description": "The reason associated to the correlating status, e.g. new hire, rehire, termination, etc.",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "effectiveDate": {
+                                    "description": "The effective date of the related entity. Follows the ISO-8601:2000 format",
+                                    "$ref": "#/definitions/dateType_v01"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "medicareTaxInstruction": {
+                            "description": "Payroll instruction to communicate medicare tax withholding deductions.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "title": "MedicareTaxInstructionTransform",
+                            "properties": {
+                              "taxWithholdingStatus": {
+                                "description": "This tells the payroll system the tax withholding rules as applicable to the associated tax. The valid values are exempt, tax block, employer paid, and fully subject to tax.",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "title": "MedicareTaxWithholdingStatusTransform",
+                                "properties": {
+                                  "statusCode": {
+                                    "description": "The status of the work assignment, e.g. active, inactive",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "reasonCode": {
+                                    "description": "The reason associated to the correlating status, e.g. new hire, rehire, termination, etc.",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "effectiveDate": {
+                                    "description": "The effective date of the related entity. Follows the ISO-8601:2000 format",
+                                    "$ref": "#/definitions/dateType_v01"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "federalUnemploymentTaxInstruction": {
+                            "description": "Payroll instruction to communicate FUTA tax withholding deductions.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "title": "FederalUnemploymentTaxInstructionTransform",
+                            "properties": {
+                              "taxWithholdingStatus": {
+                                "description": "This tells the payroll system the tax withholding rules as applicable to the associated tax. The valid values are exempt, tax block, employer paid, and fully subject to tax.",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "title": "FederalUnemploymentTaxWithholdingStatusTransform",
+                                "properties": {
+                                  "statusCode": {
+                                    "description": "The status of the work assignment, e.g. active, inactive",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "reasonCode": {
+                                    "description": "The reason associated to the correlating status, e.g. new hire, rehire, termination, etc.",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "effectiveDate": {
+                                    "description": "The effective date of the related entity. Follows the ISO-8601:2000 format",
+                                    "$ref": "#/definitions/dateType_v01"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "form1099Instruction": {
+                            "description": "Payroll instruction to communicate form 1099 details.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "title": "Form1099InstructionTransform",
+                            "properties": {
+                              "distributionCodes": {
+                                "description": "Distribution codes are distributions which show up as additional forms of compensation for a worker, such as an IRA rollover.",
+                                "type": "array",
+                                "items": {
+                                  "title": "Form1099InstructionDistributionCodeTransform",
+                                  "description": "The code for the related entity.  If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+                                  "$ref": "#/definitions/codeType_v02"
+                                }
+                              },
+                              "totalDistributionIndicator": {
+                                "description": "This indicator is true when there are no further distributions payable to the worker. For example, the 1099-R issued in the year of the death of a retiree would have this set to true to indicate to the IRS that the monthly benefits paid to the retiree have ceased.",
+                                "$ref": "#/definitions/indicatorType_v01"
+                              },
+                              "individualRetirementAccountIndicator": {
+                                "description": "Indicates that the worker has an IRA.",
+                                "$ref": "#/definitions/indicatorType_v01"
+                              },
+                              "simplifiedEmployeePensionAccountIndicator": {
+                                "description": "Indicates that the worker has an SEP account.",
+                                "$ref": "#/definitions/indicatorType_v01"
+                              }
+                            }
+                          },
+                          "interimW2IssuedIndicator": {
+                            "description": "Indicates whether a W2 was issued for a worker upon termination. That is, outside the normal process that would be at the end of the year",
+                            "$ref": "#/definitions/indicatorType_v01"
+                          },
+                          "statutoryWorkerIndicator": {
+                            "description": "A statutory worker is a person in business for him or herself, but who is treated as an employee for tax purposes. Some examples of statutory employees are corporate officers and food and beverage delivery drivers",
+                            "$ref": "#/definitions/indicatorType_v01"
+                          },
+                          "qualifiedPensionPlanCoverageIndicator": {
+                            "description": "Indicates that the worker is coverd by a qualified pension plan. This is collected by payroll systems because it must be reported on the W2",
+                            "$ref": "#/definitions/indicatorType_v01"
+                          },
+                          "multipleJobIndicator": {
+                            "description": "Indicates that the person works multiple jobs",
+                            "$ref": "#/definitions/indicatorType_v01"
+                          },
+                          "additionalStatutoryInputs": {
+                            "description": "Additonal inputs, that don't fit into pre-defined data elements.  IMPORTANT: the tagCode value MUST follow the HCM model definitions",
+                            "type": "array",
+                            "items": {
+                              "title": "FederalStatutoryInputItem",
+                              "$ref": "#/definitions/inputTagType_v02"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "output": {
+                "description": "Result of the event",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "usTaxProfiles": {
+                    "additionalProperties": false,
+                    "type": "object",
+                    "title": "UsTaxProfileOutput",
+                    "properties": {
+                      "payrollRegionCode": {
+                        "description": "The region in which the payroll is processed",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "payrollGroupCode": {
+                        "description": "The payroll group relevant to payroll processing",
+                        "$ref": "#/definitions/codeType_v02"
+                      },
+                      "payrollFileNumber": {
+                        "description": "The payroll file number",
+                        "$ref": "#/definitions/simpleIDType_v02"
+                      },
+                      "itemID": {
+                        "$ref": "#/definitions/itemIDType_v01"
+                      },
+                      "usFederalTaxInstruction": {
+                        "description": "Payroll instruction to communicate federal tax withholding deductions",
+                        "type": "object",
+                        "additionalProperties": false,
+                        "title": "UsFederalTaxInstructionOutput",
+                        "properties": {
+                          "federalIncomeTaxInstruction": {
+                            "description": "Information collected on the US federal W4 form that drives the calculation of federal income tax deductions",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "title": "FederalIncomeTaxInstructionOutput",
+                            "properties": {
+                              "taxWithholdingStatus": {
+                                "description": "This tells the payroll system the tax withholding rules as applicable to the associated tax. The valid values are exempt, tax block, employer paid, and fully subject to tax",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "title": "FederalIncomeTaxWithholdingStatusOutput",
+                                "properties": {
+                                  "statusCode": {
+                                    "description": "The status of the work assignment, e.g. active, inactive",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "reasonCode": {
+                                    "description": "The reason associated to the correlating status, e.g. new hire, rehire, termination, etc.",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "effectiveDate": {
+                                    "description": "The effective date of the related entity. Follows the ISO-8601:2000 format",
+                                    "$ref": "#/definitions/dateType_v01"
+                                  }
+                                }
+                              },
+                              "taxFilingStatusCode": {
+                                "description": "Typically, this is the marital status code that payee wishes to claim for the purpose of calculating the associated tax. This codelist values vary widely for this between federal and state levels, and is not relevant to all taxing jurisdications, e.g. Ohio",
+                                "$ref": "#/definitions/codeType_v02"
+                              },
+                              "taxWithholdingAllowanceQuantity": {
+                                "description": "Worker-claimed quantity on the tax form that employers used to determine how much of the worker pay to subtract from the paycheck to remit to the tax authorities. The more allowances claimed, the less income tax will be withheld from each paycheck. The fewer allowances claimed, the more income tax will be withheld from each paycheck",
+                                "$ref": "#/definitions/quantityType_v02"
+                              },
+                              "taxAllowances": {
+                                "type": "array",
+                                "items": {
+                                  "description": "Use the type attribute to determine the kind of allowance...need pre-defined values...e.g.for PR, Dependent Joint Custody, Dependent Full Custody and Total Deduction Allowances, etc",
+                                  "title": "UsTaxAllowanceItem",
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "allowanceTypeCode": {
+                                      "description": "This indicates the type of allowance, e.g. Puerto Rico has Dependent Joint Custody, Dependent Full Custody, and Total Deduction Allowances.",
+                                      "$ref": "#/definitions/codeType_v02"
+                                    },
+                                    "taxAllowanceQuantity": {
+                                      "description": "The quantity associated to the related type of tax allowance.",
+                                      "$ref": "#/definitions/quantityType_v02"
+                                    },
+                                    "taxAllowancePercentage": {
+                                      "description": "The percentage associated to the related type of tax allowance.",
+                                      "$ref": "#/definitions/percentageType_v02"
+                                    },
+                                    "taxAllowanceAmount": {
+                                      "description": "The amount associated to the related type of tax allowance.",
+                                      "$ref": "#/definitions/amountType_v02"
+                                    },
+                                    "itemID": {
+                                      "description": "A unique identifier of a tax allowance",
+                                      "$ref": "#/definitions/itemIDType_v01"
+                                    }
+                                  }
+                                }
+                              },
+                              "additionalIncomeAmount": {
+                                "description": "Income that the worker wants have taxes withheld from that is not from jobs like dividends, retirement income, etc",
+                                "$ref": "#/definitions/amountType_v02"
+                              },
+                              "additionalTaxPercentage": {
+                                "description": "A percentage representation of an additional tax amount that should be deducted from a worker paycheck",
+                                "$ref": "#/definitions/percentageType_v02"
+                              },
+                              "additionalTaxAmount": {
+                                "description": "An amount representation of an additional tax amount that should be deducted from a worker paycheck",
+                                "$ref": "#/definitions/amountType_v02"
+                              },
+                              "overrideTaxPercentage": {
+                                "description": "The rate used to calculate the tax amount that should be deducted from a worker paycheck",
+                                "$ref": "#/definitions/percentageType_v02"
+                              },
+                              "overrideTaxAmount": {
+                                "description": "The tax amount that should be deducted from a worker paycheck",
+                                "$ref": "#/definitions/amountType_v02"
+                              }
+                            }
+                          },
+                          "socialSecurityTaxInstruction": {
+                            "description": "Payroll instruction to communicate social security tax withholding deductions.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "title": "SocialSecurityTaxInstructionOutput",
+                            "properties": {
+                              "taxWithholdingStatus": {
+                                "description": "This tells the payroll system the tax withholding rules as applicable to the associated tax. The valid values are exempt, tax block, employer paid, and fully subject to tax.",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "title": "SocialSecurityTaxWithholdingStatusOutput",
+                                "properties": {
+                                  "statusCode": {
+                                    "description": "The status of the work assignment, e.g. active, inactive",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "reasonCode": {
+                                    "description": "The reason associated to the correlating status, e.g. new hire, rehire, termination, etc.",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "effectiveDate": {
+                                    "description": "The effective date of the related entity. Follows the ISO-8601:2000 format",
+                                    "$ref": "#/definitions/dateType_v01"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "medicareTaxInstruction": {
+                            "description": "Payroll instruction to communicate medicare tax withholding deductions.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "title": "MedicareTaxInstructionOutput",
+                            "properties": {
+                              "taxWithholdingStatus": {
+                                "description": "This tells the payroll system the tax withholding rules as applicable to the associated tax. The valid values are exempt, tax block, employer paid, and fully subject to tax.",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "title": "MedicareTaxWithholdingStatusOutput",
+                                "properties": {
+                                  "statusCode": {
+                                    "description": "The status of the work assignment, e.g. active, inactive",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "reasonCode": {
+                                    "description": "The reason associated to the correlating status, e.g. new hire, rehire, termination, etc.",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "effectiveDate": {
+                                    "description": "The effective date of the related entity. Follows the ISO-8601:2000 format",
+                                    "$ref": "#/definitions/dateType_v01"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "federalUnemploymentTaxInstruction": {
+                            "description": "Payroll instruction to communicate FUTA tax withholding deductions.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "title": "FederalUnemploymentTaxInstructionOutput",
+                            "properties": {
+                              "taxWithholdingStatus": {
+                                "description": "This tells the payroll system the tax withholding rules as applicable to the associated tax. The valid values are exempt, tax block, employer paid, and fully subject to tax.",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "title": "FederalUnemploymentTaxWithholdingStatusOutput",
+                                "properties": {
+                                  "statusCode": {
+                                    "description": "The status of the work assignment, e.g. active, inactive",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "reasonCode": {
+                                    "description": "The reason associated to the correlating status, e.g. new hire, rehire, termination, etc.",
+                                    "$ref": "#/definitions/codeType_v02"
+                                  },
+                                  "effectiveDate": {
+                                    "description": "The effective date of the related entity. Follows the ISO-8601:2000 format",
+                                    "$ref": "#/definitions/dateType_v01"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "form1099Instruction": {
+                            "description": "Payroll instruction to communicate form 1099 details.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "title": "Form1099InstructionOutput",
+                            "properties": {
+                              "distributionCodes": {
+                                "description": "Distribution codes are distributions which show up as additional forms of compensation for a worker, such as an IRA rollover.",
+                                "type": "array",
+                                "items": {
+                                  "title": "Form1099InstructionDistributionCodeOutput",
+                                  "description": "The code for the related entity.  If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+                                  "$ref": "#/definitions/codeType_v02"
+                                }
+                              },
+                              "totalDistributionIndicator": {
+                                "description": "This indicator is true when there are no further distributions payable to the worker. For example, the 1099-R issued in the year of the death of a retiree would have this set to true to indicate to the IRS that the monthly benefits paid to the retiree have ceased.",
+                                "$ref": "#/definitions/indicatorType_v01"
+                              },
+                              "indiviualRetirementAccountIndicator": {
+                                "description": "Indicates that the worker has an IRA.",
+                                "$ref": "#/definitions/indicatorType_v01"
+                              },
+                              "simplifiedEmployeePensionAccountIndicator": {
+                                "description": "Indicates that the worker has an SEP account.",
+                                "$ref": "#/definitions/indicatorType_v01"
+                              }
+                            }
+                          },
+                          "interimW2IssuedIndicator": {
+                            "description": "Indicates whether a W2 was issued for a worker upon termination. That is, outside the normal process that would be at the end of the year",
+                            "$ref": "#/definitions/indicatorType_v01"
+                          },
+                          "statutoryWorkerIndicator": {
+                            "description": "A statutory worker is a person in business for him or herself, but who is treated as an employee for tax purposes. Some examples of statutory employees are corporate officers and food and beverage delivery drivers",
+                            "$ref": "#/definitions/indicatorType_v01"
+                          },
+                          "qualifiedPensionPlanCoverageIndicator": {
+                            "description": "Indicates that the worker is coverd by a qualified pension plan. This is collected by payroll systems because it must be reported on the W2",
+                            "$ref": "#/definitions/indicatorType_v01"
+                          },
+                          "multipleJobIndicator": {
+                            "description": "Indicates that the person works multiple jobs",
+                            "$ref": "#/definitions/indicatorType_v01"
+                          },
+                          "additionalStatutoryInputs": {
+                            "description": "Additonal inputs, that don't fit into pre-defined data elements.  IMPORTANT: the tagCode value MUST follow the HCM model definitions",
+                            "type": "array",
+                            "items": {
+                              "title": "FederalStatutoryInputItem",
+                              "$ref": "#/definitions/inputTagType_v02"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "meta": {
+      "description": "Meta contains the metadata associated with a response.  A GET response may include metadata to support pagination",
+      "$ref": "#/definitions/metaType_v02"
+    },
+    "confirmMessage": {
+      "$ref": "#/definitions/confirmMessageType_v01"
+    }
+  },
+  "definitions": {
+    "codeType_v02": {
+      "description": "The code for the related entity.  If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        }
+      }
+    },
+    "dateTimeType_v01": {
+      "description": "The string reprersentation of the date-time value. Follows the ISO-8601:2000 format",
+      "type": "string",
+      "format": "date-time"
+    },
+    "indicatorType_v01": {
+      "description": "Boolean expression",
+      "type": "boolean"
+    },
+    "eventOriginatorType_v01": {
+      "description": "Base structure for event originator",
+      "$ref": "#/definitions/originatorType_v02"
+    },
+    "originatorType_v02": {
+      "description": "Base structure for event or process originator",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "applicationID": {
+          "description": "The unique identifier of the application which originated the event or a process",
+          "$ref": "#/definitions/IDType_v02"
+        },
+        "associateOID": {
+          "description": "The unique identifier of an associate who originated the event.",
+          "type": "string"
+        },
+        "personOID": {
+          "description": "The unique identifier of a person who originated the event or a process",
+          "type": "string"
+        },
+        "formattedName": {
+          "description": "Human readable name of the event originator",
+          "type": "string"
+        },
+        "eventID": {
+          "description": "The unique identifier of the event instance. This is generated once an event is recorded with an event status code equal to Complete. This value is set by the system of record.",
+          "type": "string"
+        },
+        "eventNameCode": {
+          "description": "This is the canonical name of the event, e.g. dependent.add, worker.hire",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "deviceID": {
+          "description": "The unique identifier of the device, e.g. a time clock, door entry beam",
+          "type": "string"
+        }
+      }
+    },
+    "IDType_v02": {
+      "description": "The unique identifier of the related entity ",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "idValue": {
+          "description": "An actual ID value",
+          "type": "string"
+        },
+        "schemeCode": {
+          "description": "The scheme code",
+          "$ref": "#/definitions/codeType_v02"
+        }
+      }
+    },
+    "eventActorType_v01": {
+      "description": "Base structure for event actor",
+      "$ref": "#/definitions/actorType_v02"
+    },
+    "actorType_v02": {
+      "description": "Base structure for  actor",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "applicationID": {
+          "description": "The unique identifier of the application which originated the event.",
+          "$ref": "#/definitions/IDType_v02"
+        },
+        "associateOID": {
+          "description": "The unique identifier of an associate who originated the event or a process",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "personOID": {
+          "description": "The unique identifier of a person who originated the event or a process",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "formattedName": {
+          "description": "Human readable name of the actor",
+          "type": "string"
+        },
+        "deviceID": {
+          "description": "The unique identifier of the device, e.g. a time clock, door entry beam.",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "geoCoordinate": {
+          "description": "The coordinates of the location of the actor",
+          "$ref": "#/definitions/coordinateType_v02"
+        },
+        "deviceUserAgentID": {
+          "description": "Identifier of the user agent of the device used by the actor who worked on the event or process",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "assignedGroups": {
+          "description": "An event instance",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "title": "AssignedGroup",
+            "properties": {
+              "groupID": {
+                "description": "The unique identifier of the group",
+                "$ref": "#/definitions/simpleIDType_v02"
+              },
+              "groupName": {
+                "description": "The name of the group",
+                "type": "string"
+              },
+              "assignedGroupMembers": {
+                "description": "Associates that are part of the group(s) assigned to the review event.  The actor is the member that actually completes the event.",
+                "type": "array",
+                "items": {
+                  "description": "An instance of an Associate that is part of the group(s) assigned to the review event.  The actor is the member that actually completes the event.",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "title": "AssignedGroupMember",
+                  "properties": {
+                    "associateOID": {
+                      "description": "The unique identifier of an associate who originated the event or a process",
+                      "$ref": "#/definitions/simpleIDType_v02"
+                    },
+                    "formattedName": {
+                      "description": "Human readable name of the actor",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "simpleIDType_v02": {
+      "description": "The simple (string) identifier of an object",
+      "type": "string"
+    },
+    "coordinateType_v02": {
+      "description": "The coordinates of the location",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "latitude": {
+          "description": "The angle, in degrees, of a position on Earth above the equator. (Latitude is negative for a place below the equator.) specified in decimal degrees",
+          "type": "number"
+        },
+        "longitude": {
+          "description": "The angle, in degrees, of a position on Earth around the equator from the Greenwich Meridian specified in decimal degrees",
+          "type": "number"
+        }
+      }
+    },
+    "OIDType_v02": {
+      "description": "The unique identifier - UUID",
+      "type": "string"
+    },
+    "linkType_v02": {
+      "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "href": {
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "rel": {
+          "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+          "type": "string",
+          "enum": [
+            "alternate",
+            "create",
+            "canonical",
+            "describedby",
+            "edit-form",
+            "enclosure",
+            "full",
+            "related",
+            "root",
+            "self",
+            "up",
+            "search",
+            "first",
+            "last",
+            "next",
+            "previous",
+            "/adp/invoke",
+            "/adp/image",
+            "/adp/confirm-message",
+            "/adp/status-monitor",
+            "/adp/codelist",
+            "/adp/template",
+            "/adp/externalLink",
+            "/adp/validation",
+            "/adp/deeplink",
+            "/adp/attachment",
+            "/adp/workflow"
+          ]
+        },
+        "canonicalUri": {
+          "description": "A unique identifier of the feature/function/operation, the link poins to",
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "title": {
+          "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user",
+          "type": "string"
+        },
+        "targetSchema": {
+          "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation",
+          "type": "string"
+        },
+        "mediaType": {
+          "description": "The media type that the linked resource will return (Response)",
+          "type": "string",
+          "enum": [
+            "application/gzip",
+            "application/json",
+            "application/msword",
+            "application/pdf",
+            "application/postscript",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/xml",
+            "application/x-www-form-urlencoded",
+            "image/gif",
+            "image/jpeg",
+            "image/png",
+            "image/tiff",
+            "multipart/mixed",
+            "text/html",
+            "text/plain",
+            "application/vnd.visio",
+            "image/bmp",
+            "image/x-ms-bmp",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/vnd.ms-powerpoint",
+            "video/mp4",
+            "audio/mpeg",
+            "video/x-msvideo",
+            "video/x-ms-wmv",
+            "application/rtf",
+            "application/vnd.ms-outlook",
+            "text/csv",
+            "video/quicktime",
+            "application/zip",
+            "application/illustrator",
+            "text/xml"
+          ]
+        },
+        "method": {
+          "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "DELETE",
+            "PUT"
+          ]
+        },
+        "encType": {
+          "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+          "type": "string",
+          "enum": [
+            "application/json",
+            "application/x-www-form-urlencoded"
+          ]
+        },
+        "schema": {
+          "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body",
+          "type": "string"
+        },
+        "payLoadArguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "argumentPath": {
+                "description": "Code value (typically a key field) of the code list item",
+                "type": "string"
+              },
+              "argumentValue": {
+                "description": "Code value (typically a key field) of the code list item",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "URIType_v01": {
+      "description": "The URI of the related entity",
+      "type": "string",
+      "format": "uri"
+    },
+    "associateOIDType_v02": {
+      "description": "The unique identifier of an assoicate",
+      "$ref": "#/definitions/simpleIDType_v02"
+    },
+    "itemIDType_v01": {
+      "description": "The unique identifier of the object in a collection",
+      "$ref": "#/definitions/simpleIDType_v02"
+    },
+    "dateType_v01": {
+      "description": "The string representation of the date value. Follows the ISO-8601:2000 format",
+      "type": "string",
+      "format": "date"
+    },
+    "quantityType_v02": {
+      "description": "A representation of a quantity value",
+      "type": "integer"
+    },
+    "percentageType_v02": {
+      "description": "A representation of a percentage value",
+      "type": "number"
+    },
+    "amountType_v02": {
+      "description": "A representation of a monetary value",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "amountValue": {
+          "description": "The monetary value of the object in which the amount is associated",
+          "type": "number"
+        },
+        "currencyCode": {
+          "description": "Standard currency code as per ISO 4212",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        }
+      }
+    },
+    "simpleCodeType_v02": {
+      "description": "A simple (string) code.  Can have a code list reference",
+      "type": "string"
+    },
+    "inputTagType_v02": {
+      "description": "A common representation of an input tag used to provide additinal input data, that does not fit into pre-defined structure",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tagCode": {
+          "description": "Code identifying a tag",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "tagValues": {
+          "description": "The values for the given instance of the meta tag",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dataTypeCode": {
+          "description": "Code identifying the type of data",
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "integer",
+            "boolean",
+            "object",
+            "array",
+            "null",
+            "string[date-time]",
+            "string[date]",
+            "string[time]",
+            "string[regex]",
+            "string[phone]",
+            "string[uri]",
+            "string[email]",
+            "number[currency]"
+          ]
+        },
+        "formatCode": {
+          "description": "The format of the property if applicable or regex or currency code/symbol",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        }
+      }
+    },
+    "metaType_v02": {
+      "description": "Meta contains the metadata associated with a response.  A GET response may include metadata to support pagination",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "startSequence": {
+          "description": "The instance resource sequence (number) identifying the first resource returned in the response. The server generates this sequence.  It is used by the client to determine the start sequence of the subsequent Get request",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "completeIndicator": {
+          "description": "Indicates whether the response completes the return of all of the resources of the instance resource set to the requesting system",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "totalNumber": {
+          "description": "Number of total instance resources in an instance resource set. Note: An instance resource set is a set of instance resources that is determined by a server to satisfy the sets membership criteria (i.e., selection, filter, expansion and search criteria) of a resource management operation (e.g. GET request) upon a collection resource",
+          "type": "integer"
+        },
+        "resourceSetID": {
+          "description": "Unique identifier of the instance resource set.  It is generated by the server as a result of the original Get request",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      }
+    },
+    "sequenceType_v01": {
+      "description": "Sequence of a related entity when included in the collection or a group",
+      "type": "integer"
+    },
+    "confirmMessageType_v01": {
+      "description": "The ConfirmMessage contains the processing results for the corresponding request.  A request may have its processing reported as: succeeded, partially failed, or failed.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "confirmMessageID": {
+          "description": "An identifier for the instance of the confirm message.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "createDateTime": {
+          "description": "The date & time that the message instance was generated.; follows the ISO-8601:2000 format: 2008-05-11T15:30:00-06:00.",
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "requestReceiptDateTime": {
+          "description": "The date & time that the request submitted by the client was received. Note, this timestamp may not be the same as the time the client actually submitted the request if there is a queuing mechanism between the client and server processing the request; it follows the ISO-8601:2000 format: 2008-05-11T15:30:00-06:00.",
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "protocolStatusCode": {
+          "description": "Protocol-specific response status code.",
+          "$ref": "#/definitions/codeType_v01"
+        },
+        "protocolCode": {
+          "description": "Code that identifies the protocol used for the request.",
+          "$ref": "#/definitions/codeType_v01"
+        },
+        "requestID": {
+          "description": "The identifier of the request that generated this response.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "requestStatusCode": {
+          "description": "The process results status code for the request.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "succeeded",
+                "partiallyFailed",
+                "failed"
+              ]
+            }
+          }
+        },
+        "requestMethodCode": {
+          "description": "The method that was used on the request corresponding to this message instance.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "GET",
+                "PUT",
+                "POST",
+                "PATCH",
+                "DELETE"
+              ]
+            }
+          }
+        },
+        "sessionID": {
+          "description": "A session identifier if one is available.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "requestETag": {
+          "description": "The entity tag of the entity in the request.",
+          "type": "string"
+        },
+        "requestLink": {
+          "description": "The link of the request that generated this response.",
+          "$ref": "#/definitions/linkType_v02"
+        },
+        "processingStatusCode": {
+          "description": "Processing status of the related request message.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "received",
+                "validated",
+                "started",
+                "completed"
+              ]
+            }
+          }
+        },
+        "processMessages": {
+          "description": "processMessage is optional and contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).  Most often there will be a single instance for an associated request or resource, but this structure allows for more than one if needed, for example, if multiple errors exist for a single resource. ",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/processMessage_v01"
+          }
+        },
+        "resourceMessages": {
+          "description": "resource Message contains the resource-specific processing results for resources being managed in the request.  A resource may have its processing reported as:  succeeded or failed.  It must be used to represent resource-specific messages.  In the case of a request managing multiple resources and resource-specific messages are to be returned, then this array will contain one object for each such resource of the request.",
+          "type": "array",
+          "items": {
+            "description": "Each object contains detailed information for a resource referenced in the original request.",
+            "type": "object",
+            "properties": {
+              "resourceMessageID": {
+                "description": "An identifier for the instance of the resource message.",
+                "$ref": "#/definitions/IDType_v01"
+              },
+              "resourceStatusCode": {
+                "description": "The processing results status code of the resource of the request.",
+                "type": "object",
+                "additionalProperties": false,
+                "title": "ResourceMessageResourceStatus",
+                "properties": {
+                  "shortName": {
+                    "description": "Short description of the related code",
+                    "type": "string"
+                  },
+                  "longName": {
+                    "description": "Long description of the related code",
+                    "type": "string"
+                  },
+                  "codeValue": {
+                    "description": "The code for the related entity.",
+                    "type": "string",
+                    "enum": [
+                      "succeeded",
+                      "failed",
+                      "warning"
+                    ]
+                  }
+                }
+              },
+              "resourceLink": {
+                "description": "The link of the request that generated this response.",
+                "$ref": "#/definitions/linkType_v02"
+              },
+              "processMessages": {
+                "description": "processMessage is optional and contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).  Most often there will be a single instance for an associated request or resource, but this structure allows for more than one if needed, for example, if multiple errors exist for a single resource. ",
+                "type": "array",
+                "items": {
+                  "title": "ProcessMessageWithResourceStatusCode",
+                  "description": "Each object contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "processMessageID": {
+                      "description": "An identifier for the instance of the process message.",
+                      "$ref": "#/definitions/IDType_v01"
+                    },
+                    "messageTypeCode": {
+                      "description": "Process Message instances may be of type: success, warning, error, or info.",
+                      "$ref": "#/definitions/messageTypeCodeType_v01"
+                    },
+                    "sourceLocationExpression": {
+                      "description": "Expression that provides the location (or source) of content in a message instance that is associated with a process message. Examples of expression languages include: XPath, XQuery, JSON Pointer.",
+                      "type": "string"
+                    },
+                    "expressionLanguageCode": {
+                      "description": "Identifies the language used for expressions communicated in this message.",
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "shortName": {
+                          "description": "Short description of the related code",
+                          "type": "string"
+                        },
+                        "longName": {
+                          "description": "Long description of the related code",
+                          "type": "string"
+                        },
+                        "codeValue": {
+                          "description": "The code for the related entity.",
+                          "type": "string",
+                          "enum": [
+                            "jPath"
+                          ]
+                        }
+                      }
+                    },
+                    "links": {
+                      "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/linkType_v02"
+                      }
+                    },
+                    "userMessage": {
+                      "description": "Message returned to the user",
+                      "$ref": "#/definitions/messageType_v01"
+                    },
+                    "developerMessage": {
+                      "description": "Message returned to the user",
+                      "$ref": "#/definitions/messageType_v01"
+                    },
+                    "clientActionTypeCode": {
+                      "description": "Code that identifies the action to be taken by the client application upon receiving the message",
+                      "$ref": "#/definitions/simpleCodeType_v02"
+                    },
+                    "resourceStatusCode": {
+                      "description": "DEPRECATED - Use messageTypeCode instead. The processing results status code of the resource of the request.",
+                      "$ref": "#/definitions/codeType_v01"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "IDType_v01": {
+      "description": "The unique identifier of the related entity ",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "idValue": {
+          "description": "An ID",
+          "type": "string"
+        },
+        "schemeName": {
+          "description": "The type of ID",
+          "type": "string"
+        },
+        "schemeAgencyName": {
+          "description": "The agency that issues the ID",
+          "type": "string"
+        }
+      }
+    },
+    "codeType_v01": {
+      "description": "The code for the related entity",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity.",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code not to exceed 25 characters",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        }
+      }
+    },
+    "processMessage_v01": {
+      "description": "Each object contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "processMessageID": {
+          "description": "An identifier for the instance of the process message.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "messageTypeCode": {
+          "description": "Process Message instances may be of type: success, warning, error, or info.",
+          "$ref": "#/definitions/messageTypeCodeType_v01"
+        },
+        "sourceLocationExpression": {
+          "description": "Expression that provides the location (or source) of content in a message instance that is associated with a process message. Examples of expression languages include: XPath, XQuery, JSON Pointer.",
+          "type": "string"
+        },
+        "expressionLanguageCode": {
+          "description": "Identifies the language used for expressions communicated in this message.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "jPath"
+              ]
+            }
+          }
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        },
+        "userMessage": {
+          "description": "Message returned to the user",
+          "$ref": "#/definitions/messageType_v01"
+        },
+        "developerMessage": {
+          "description": "Message returned to the user",
+          "$ref": "#/definitions/messageType_v01"
+        },
+        "clientActionTypeCode": {
+          "description": "Code that identifies the action to be taken by the client application upon receiving the message",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        }
+      }
+    },
+    "messageTypeCodeType_v01": {
+      "description": "Schema describing the type of the user or developer message",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        },
+        "codeValue": {
+          "description": "The code for the related entity.",
+          "type": "string",
+          "enum": [
+            "success",
+            "warning",
+            "error",
+            "info"
+          ]
+        }
+      }
+    },
+    "messageType_v01": {
+      "description": "Representation of a message.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code associated with the message description.",
+          "type": "string"
+        },
+        "title": {
+          "description": "Title of the message description.",
+          "type": "string"
+        },
+        "messageTxt": {
+          "description": "The value/content of the message description.",
+          "type": "string"
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      }
+    }
+  }
+}

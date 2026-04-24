@@ -1,0 +1,1645 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "PaidTimeOffDetails",
+    "type": "object",
+    "properties": {
+        "paidTimeOffDetails": {
+            "description": "Paid Time Details is a combination of the paid time off configuration and the summary of a worker's paid time off.",
+            "type": "object",
+            "properties": {
+                "paidTimeOffConfiguration": {
+                    "description": "List of configurations for Paid Time Off by position",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "positionRef": {
+                                "description": "Data which provides reference to a position",
+                                "type": "object",
+                                "properties": {
+                                    "positionID": {
+                                        "description": "Position identifier a person may enter time against.  ",
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "description": "Is the Identifier of the given instance of an entity.",
+                                                "type": "string"
+                                            },
+                                            "schemeName": {
+                                                "description": "name of the identification scheme",
+                                                "type": "string",
+                                                "optional": true
+                                            },
+                                            "schemeAgencyName": {
+                                                "description": "Agency responsible for the maintenance and definition of the identification scheme",
+                                                "type": "string",
+                                                "optional": true
+                                            }
+                                        }
+                                    },
+                                    "title": {
+                                        "description": "The title of the position",
+                                        "type": "string",
+                                        "optional": true
+                                    }
+                                }
+                            },
+                            "clockReferenceDateTime": {
+                                "description": "Clock Reference to be used to record time.  This allows the application to synchronize its time with that of the server.  Data Representation Temporal Data Element Specification following ISO-8601:2000 specification.  The granularity for date-time for this API will always be the following: YYYY-MM-DDThh:mm:ss-+hh:mm.  where -+ is either minus or plus depending on whether the offset from GMT is positive or negative hours minute.",
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "timeNotationCode": {
+                                "description": "Time Notation used when displaying time on the UI",
+                                "type": "string",
+                                "enum": [
+                                    "12h",
+                                    "24h"
+                                ]
+                            },
+                            "requestTimeOffIndicator": {
+                                "description": "True indicates that the user may request this type of time off",
+                                "type": "boolean",
+                                "default": true
+                            },
+                            "forecastIndicator": {
+                                "description": "True indicates that the System of Record supports forecasting of accruals",
+                                "type": "boolean",
+                                "default": false
+                            },
+                            "approvalDateIndicator": {
+                                "description": "True indicates that the System of Record supports the user requesting an approvaldate",
+                                "type": "boolean",
+                                "default": false
+                            },
+                            "commentsIndicator": {
+                                "description": "True indicates that the System of Record supports the user entering comments.  If the value is false then the comments field will not be visible in the UI",
+                                "type": "boolean",
+                                "default": false
+                            },
+                            "multiPeriodRequestIndicator": {
+                                "description": "True indicates that the System of Record supports multiple periods in a request",
+                                "type": "boolean",
+                                "optional": true
+                            },
+                            "singlePolicyRequestIndicator": {
+                                "description": "True indicates that the user may select only 1 policy per request.  They may have multiple entries each with a different earning type.  Once the first entry is made, the policy is frozen for that request.",
+                                "type": "boolean",
+                                "default": false,
+                                "optional": true
+                            },
+                            "balancesIndicator": {
+                                "description": "True indicates that the system manages balances for the user.  The balances may be zero.  If true the application will show the balances screen.",
+                                "type": "boolean",
+                                "default": true,
+                                "optional": true
+                            },
+                            "requestsIndicator": {
+                                "description": "True indicates that the system manages requests for the user.  It is possible that the user has no requests.  e.g. A new hire which has not submitted any requests for time off yet, but may.",
+                                "type": "boolean",
+                                "default": true,
+                                "optional": true
+                            },
+                            "paidTimeOffPolicies": {
+                                "description": "A list of paid time off policies and their characteristics.  A client defines which earning type codes go with the policy, the default quantity of time to take, and whether it is taken by days or hours.  For example, an employer may create a Half Vacation Day Policy.  This would have an earningsCode of Vacation and the default quantity of 4 hours.  The user only needs to enter the day.",
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "paidTimeOffPolicy": {
+                                            "description": "code identifying the time off policy.  A system may have 1 policy per earning type.  If there earning type has only 1 earning type then the paidTimeOffPolicycode should be equal to the earningTypeCode. If there is a policy with multiple earning Types then the user must first select the policy.  If there are multiple possible earning types then the user is presented with the list to select from.  The list is presented in the order which it is sent in the JSON.  The first one is the default presented.",
+                                            "type": "object",
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "description": "code identifying the policy"
+                                                },
+                                                "labelName": {
+                                                    "description": "The label which will be shown in the UI for the policy.",
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        "defaultQuantity": {
+                                            "description": "For the request type a default quantity of hours or days may be defined.  The user may override this.",
+                                            "type": "object",
+                                            "properties": {
+                                                "valueNumber": {
+                                                    "description": "A positive or negative number indicating the quantity.  +-99999.99999  The application will truncate the decimal places if it can not fit on the screen.",
+                                                    "type": "number"
+                                                },
+                                                "unitTimeCode": {
+                                                    "description": "The units in which the quantity is communicated.",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "hour",
+                                                        "day",
+                                                        "minute",
+                                                        "week"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "defaultTime": {
+                                            "type": "object",
+                                            "description": "The default time used for a duration entry where the durationPrecision is hh:mm",
+                                            "properties": {
+                                                "timeValue": {
+                                                    "description": "Total Time represented as +-hh:mm",
+                                                    "type": "string",
+                                                    "pattern": "-?(2[0-3]|[0-1]?[0-9]):([0-5][0-9])"
+                                                }
+                                            }
+                                        },
+                                        "defaultStartTime": {
+                                            "description": "For an entry type which has time this will be the default start time shown to the user.  The user may change this. This is communicated in military time.  The application converts it for display purposes based on the timeNotationCode.",
+                                            "type": "string",
+                                            "pattern": "-?(2[0-3]|[0-1]?[0-9]):([0-5][0-9])",
+                                            "default": "08:00"
+                                        },
+                                        "defaultEndTime": {
+                                            "description": "For an entry type which has time this will be the default end time shown to the user.  The user may change this. This is communicated in military time.  The application converts it for display purposes based on the timeNotationCode.  17:00 will show as 5:00 pm if the timeNotationCode is 12h",
+                                            "type": "string",
+                                            "pattern": "-?(2[0-3]|[0-1]?[0-9]):([0-5][0-9])",
+                                            "default": "17:00"
+                                        },
+                                        "requestTimeOffIndicator": {
+                                            "description": "False indicates that this policy should not be presented to the user in the drop down.",
+                                            "type": "boolean",
+                                            "default": true,
+                                            "optional": true
+                                        },
+                                        "forecastIndicator": {
+                                            "description": "True indicates that the user may request this type of time off",
+                                            "type": "boolean",
+                                            "default": false,
+                                            "optional": true
+                                        },
+                                        "entryTypeCodes": {
+                                            "description": "A list of  types of entries supported for the entry type.  An earning type may be entered in varying ways depending on whether it is a single day or a period. dateDuration represents a date and number of hours.  timePeriod represents a startDateTime and endDateTime.  endDateTime is optional.  datePeriod represents a startDate and an endDate.  The endDate is optional. dateTime represents a date with optional time.  A date alone indicates a full day.  A dateTime can also be a date with a start time and an end time.  There may be a combination of types in the case where one rule applies for a single day or a time period. datePeriodHalfDay indicates that a half day is taken each day in the specified period.  The System of Record calculates what is considered a half day for the worker.",
+                                            "type": "array",
+                                            "minItems": 1,
+                                            "maxItems": 2,
+                                            "items": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "dateDuration",
+                                                    "timePeriod",
+                                                    "datePeriod",
+                                                    "dateTime",
+                                                    "startDateTimeDuration",
+                                                    "datePeriodStartTimeDuration",
+                                                    "datePeriodHalfDay",
+                                                    "datePeriodDayPeriod",
+                                                    "dayPeriod"
+                                                ]
+                                            }
+                                        },
+                                        "partialDayIndicator": {
+                                            "description": "True indicates that this entry type allows partial day to be entered.  Example 2 hours.  This will trigger the UI to allow a time to be entered in a time off request.  False will only allow full days to be entered. ",
+                                            "type": "boolean",
+                                            "default": false,
+                                            "optional": true
+                                        },
+                                        "minimumQuantity": {
+                                            "description": "The minimum amount of time which can be requested.  Example 4 hours or 1 day",
+                                            "type": "object",
+                                            "properties": {
+                                                "valueNumber": {
+                                                    "description": "A positive or negative number indicating the quantity.  +-99999.99999  The application will truncate the decimal places if it can not fit on the screen.",
+                                                    "type": "number"
+                                                },
+                                                "unitTimeCode": {
+                                                    "description": "The units in which the quantity is communicated.",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "hour",
+                                                        "day",
+                                                        "minute",
+                                                        "week"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "minimumIncrement": {
+                                            "description": "The minimum increment of time which can be requested.  For example,  30 minute is the minimum increment.  Therefore, I can not request 4 hours and 30 minute, but I can not request 4 hours and 45 minute.",
+                                            "type": "object",
+                                            "properties": {
+                                                "valueNumber": {
+                                                    "description": "A positive or negative number indicating the quantity.  +-99999.99999  The application will truncate the decimal places if it can not fit on the screen.",
+                                                    "type": "number"
+                                                },
+                                                "unitTimeCode": {
+                                                    "description": "The units in which the quantity is communicated.",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "day",
+                                                        "hour",
+                                                        "minute",
+                                                        "week"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "durationPrecision": {
+                                            "description": "Precision by which duration is entered.  Hours and minute, Hours and Hundreths of an Hour, d - days, d.d decimal days.",
+                                            "type": "string",
+                                            "enum": [
+                                                "hh.hh",
+                                                "hh",
+                                                "hh:mm",
+                                                "hh:mm:ss",
+                                                "d",
+                                                "d.d",
+                                                "w",
+                                                "w.w"
+                                            ]
+                                        },
+                                        "defaultIndicator": {
+                                            "description": "True indicates that this is the first policy to show on the list.",
+                                            "type": "boolean",
+                                            "default": false
+                                        },
+                                        "multiPeriodRequestIndicator": {
+                                            "description": "True indicates that the System of Record supports multiple periods for this policy.  False indicates that after the first entry there should not be an Add Period option",
+                                            "type": "boolean",
+                                            "optional": true
+                                        },
+                                        "startTimeInSummaryIndicator": {
+                                            "description": "False indicates that the startTime is not shown in the summary view of the request.  Default is to show the time portion from the timePeriod.startDateTime for timePeriod, dateTime, startDateTimeDuration, or datePeriodStartTimeDuration entry types",
+                                            "type": "boolean",
+                                            "default": true
+                                        },
+                                        "durationTypes": {
+                                            "description": "The list of permissable duration types which only go with the entryTypeCodes = datePeriodStartTimeDuration",
+                                            "type": "array",
+                                            "minItems": 1,
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "code": {
+                                                        "description": "code identifying the type of duration",
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "fullday",
+                                                            "halfday",
+                                                            "quantity",
+                                                            "dailyQuantity",
+                                                            "firstHalfDay",
+                                                            "secondHalfDay"
+                                                        ]
+                                                    },
+                                                    "labelName": {
+                                                        "description": "The label which will be shown in the UI",
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "dayPeriods": {
+                                            "description": "The list of permissable periods of a day.  Example of values is am/pm.  This property is only relevant when the entryTypesCodes is datePeriodDayPeriod.  The first item will be the default value which goes with the Start Date.  The second item will will be the default for the endDate.",
+                                            "type": "array",
+                                            "minItems": 2,
+                                            "maxItems": 2,
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "code": {
+                                                        "description": "code identifying the periods of the day",
+                                                        "type": "string"
+                                                    },
+                                                    "labelName": {
+                                                        "description": "The label which will be shown in the UI",
+                                                        "type": "string"
+                                                    },
+                                                    "defaultStartIndicator": {
+                                                        "description": "True indicates that this is the default which goes with the startDate",
+                                                        "type": "boolean",
+                                                        "default": true
+                                                    },
+                                                    "defaultEndIndicator": {
+                                                        "description": "True indicates that this is the default which goes with the endDate",
+                                                        "type": "boolean",
+                                                        "default": true
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "earningTypes": {
+                                            "description": "The permissable earning codes related to the policy",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "code": {
+                                                        "description": "code identifying the earning code",
+                                                        "type": "string"
+                                                    },
+                                                    "labelName": {
+                                                        "description": "The label which will be shown in the UI",
+                                                        "type": "string"
+                                                    },
+                                                    "defaultIndicator": {
+                                                        "description": "True indicates that this is the first policy to show on the list.",
+                                                        "type": "boolean",
+                                                        "default": false
+                                                    },
+                                                    "unitTimeCode": {
+                                                        "description": "The unit associated with the earning type",
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "hour",
+                                                            "day",
+                                                            "minute",
+                                                            "week"
+                                                        ]
+                                                    },
+                                                    "durationTypes": {
+                                                        "description": "The list of permissable duration types which only go with the entryTypeCodes = datePeriodStartTimeDuration",
+                                                        "type": "array",
+                                                        "minItems": 1,
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "code": {
+                                                                    "description": "code identifying the type of duration",
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "fullday",
+                                                                        "halfday",
+                                                                        "quantity",
+                                                                        "dailyQuantity",
+                                                                        "firstHalfDay",
+                                                                        "secondHalfDay"
+                                                                    ]
+                                                                },
+                                                                "labelName": {
+                                                                    "description": "The label which will be shown in the UI",
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "durationDisplayCode": {
+                                            "description": "A code identifying whether the totalQuantity or totalTime should be shown in the UI.  This overrides the default.  Default is if durationPrecision is hh:mm totalTime is shown if durationPrecision hh, hh.hh, d, d.d then totalQuantity is shown",
+                                            "type": "string",
+                                            "enum": [
+                                                "totalQuantity",
+                                                "totalTime"
+                                            ]
+                                        },
+                                        "commentsIndicator": {
+                                            "description": "True indicates that the System of Record supports the user entering comments.  If the value is false then the comments field will not be visible in the UI",
+                                            "type": "boolean",
+                                            "default": false
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "paidTimeOffBalances": {
+                    "description": "List of balances by position",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "positionRef": {
+                                "description": "Data which provides reference to a position",
+                                "type": "object",
+                                "properties": {
+                                    "positionID": {
+                                        "description": "Position identifier a person may enter time against.  ",
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "description": "Is the Identifier of the given instance of an entity.",
+                                                "type": "string"
+                                            },
+                                            "schemeName": {
+                                                "description": "name of the identification scheme",
+                                                "type": "string",
+                                                "optional": true
+                                            },
+                                            "schemeAgencyName": {
+                                                "description": "Agency responsible for the maintenance and definition of the identification scheme",
+                                                "type": "string",
+                                                "optional": true
+                                            }
+                                        }
+                                    },
+                                    "title": {
+                                        "description": "The title of the position",
+                                        "type": "string",
+                                        "optional": true
+                                    }
+                                }
+                            },
+                            "asOfDate": {
+                                "description": "The date of the balances and entries.",
+                                "type": "string",
+                                "format": "date"
+                            },
+                            "paidTimeOffPolicyBalances": {
+                                "type": "array",
+                                "description": "An array of accrual balances and list of entries",
+                                "minItems": 1,
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "paidTimeOffPolicy": {
+                                            "description": "code identifying the time off policy.  A system may have 1 policy per earning type.  If there earning type has only 1 earning type then the paidTimeOffPolicycode should be equal to the earningTypeCode. If there is a policy with multiple earning Types then the user must first select the policy.  If there are multiple possible earning types then the user is presented with the list to select from.  The list is presented in the order which it is sent in the JSON.  The first one is the default presented.",
+                                            "type": "object",
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "description": "code identifying the policy"
+                                                },
+                                                "labelName": {
+                                                    "description": "The label which will be shown in the UI for the policy.",
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        "policyBalances": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "balanceType": {
+                                                        "description": "The type of balance",
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "code": {
+                                                                "description": "Code identifying the type of balance",
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "available",
+                                                                    "carryover",
+                                                                    "earned",
+                                                                    "taken",
+                                                                    "scheduled",
+                                                                    "pending",
+                                                                    "adjusted",
+                                                                    "cashedOut",
+                                                                    "maximumBalance",
+                                                                    "purchased",
+                                                                    "purged",
+                                                                    "reduced",
+                                                                    "initialize",
+                                                                    "balanceReset",
+                                                                    "newBalance",
+                                                                    "transferred",
+                                                                    "archiveBalance"
+                                                                ]
+                                                            },
+                                                            "labelName": {
+                                                                "description": "The label to show on the UI",
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    },
+                                                    "totalQuantity": {
+                                                        "description": "The total quantity of time.  These may be positive or negative.  This is the rolled up total quantity at the policy level.  It is the aggregation of the balances of the earning types.",
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "valueNumber": {
+                                                                "description": "A positive or negative number indicating the quantity.  +-99999.99999  The application will truncate the decimal places if it can not fit on the screen.",
+                                                                "type": "number"
+                                                            },
+                                                            "unitTimeCode": {
+                                                                "description": "The units in which the quantity is communicated.",
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "hour",
+                                                                    "day",
+                                                                    "minute",
+                                                                    "week"
+                                                                ]
+                                                            },
+                                                            "labelName": {
+                                                                "description": "The label which will be shown in the UI for the policy.",
+                                                                "type": "string",
+                                                                "optional": true
+                                                            }
+                                                        }
+                                                    },
+                                                    "totalTime": {
+                                                        "type": "object",
+                                                        "description": "Total Time represented as hh:mm",
+                                                        "properties": {
+                                                            "timeValue": {
+                                                                "description": "Total Time represented as +-hh:mm",
+                                                                "type": "string",
+                                                                "pattern": "-?(2[0-3]|[0-1]?[0-9]):([0-5][0-9])"
+                                                            },
+                                                            "labelName": {
+                                                                "description": "The label which will be shown in the UI for the policy.",
+                                                                "type": "string",
+                                                                "optional": true
+                                                            }
+                                                        }
+                                                    },
+                                                    "accrualBalances": {
+                                                        "description": "The total quantity by accrual type.  This is optional and only passed if the system maintains an aggregation of multiple accruals into one balance.  Example the policy is vacation = 8 days.  This is comprised of 6 vacation days, 1 carryover 2011, and 1 carryover 2010.",
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "accrualType": {
+                                                                    "description": "The permissable earning codes related to the policy",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "code": {
+                                                                            "description": "code identifying the earning code",
+                                                                            "type": "string"
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "The label which will be shown in the UI",
+                                                                            "type": "string"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "totalQuantity": {
+                                                                    "description": "The total quantity of hours.  These may be positive or negative ",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "valueNumber": {
+                                                                            "description": "A positive or negative number indicating the quantity.  +-99999.99999  The application will truncate the decimal places if it can not fit on the screen.",
+                                                                            "type": "number"
+                                                                        },
+                                                                        "unitTimeCode": {
+                                                                            "description": "The units in which the quantity is communicated.",
+                                                                            "type": "string",
+                                                                            "enum": [
+                                                                                "hour",
+                                                                                "day",
+                                                                                "minute",
+                                                                                "week"
+                                                                            ]
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "The label which will be shown in the UI",
+                                                                            "type": "string",
+                                                                            "optional": true
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "totalTime": {
+                                                                    "type": "object",
+                                                                    "description": "Total Time represented as hh:mm",
+                                                                    "properties": {
+                                                                        "timeValue": {
+                                                                            "description": "Total Time represented as +-hh:mm",
+                                                                            "type": "string",
+                                                                            "pattern": "-?(2[0-3]|[0-1]?[0-9]):([0-5][0-9])"
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "The label which will be shown in the UI for the policy.",
+                                                                            "type": "string",
+                                                                            "optional": true
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "expiringQuantity": {
+                                                                    "description": "The rate at which the time is accruing",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "expireDateTime": {
+                                                                            "description": "Date when the time will expire.  If granularity is at the date level then YYYY-MM-DD is passed.  If the granularity is at the hour/minute level then the date time format is YYYY-MM-DDThh:mm:ss+-hh:mm",
+                                                                            "type": "string",
+                                                                            "format": "date-time"
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "The label which will be shown in the UI for the policy.",
+                                                                            "type": "string",
+                                                                            "optional": true
+                                                                        },
+                                                                        "totalQuantity": {
+                                                                            "description": "The total quantity of time.  These may be positive or negative ",
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "valueNumber": {
+                                                                                    "description": "A positive or negative number indicating the quantity.  +-99999.99999  The application will truncate the decimal places if it can not fit on the screen.",
+                                                                                    "type": "number"
+                                                                                },
+                                                                                "unitTimeCode": {
+                                                                                    "description": "The units in which the quantity is communicated.",
+                                                                                    "type": "string",
+                                                                                    "enum": [
+                                                                                        "hour",
+                                                                                        "day",
+                                                                                        "minute",
+                                                                                        "week"
+                                                                                    ]
+                                                                                },
+                                                                                "labelName": {
+                                                                                    "description": "The label which will be shown in the UI for the policy.",
+                                                                                    "type": "string",
+                                                                                    "optional": true
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        "totalTime": {
+                                                                            "type": "object",
+                                                                            "description": "Total Time represented as hh:mm",
+                                                                            "properties": {
+                                                                                "timeValue": {
+                                                                                    "description": "Total Time represented as +-hh:mm",
+                                                                                    "type": "string",
+                                                                                    "pattern": "-?(2[0-3]|[0-1]?[0-9]):([0-5][0-9])"
+                                                                                },
+                                                                                "labelName": {
+                                                                                    "description": "The label which will be shown in the UI for the policy.",
+                                                                                    "type": "string",
+                                                                                    "optional": true
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    "paidTimeOffEntries": {
+                                                        "description": "The entries which make up the quantity for the balance type",
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "paidTimeOffID": {
+                                                                    "description": "The entries which make up the quantity for the balance type",
+                                                                    "type": "string",
+                                                                    "optional": true
+                                                                },
+                                                                "paidTimeOffPolicy": {
+                                                                    "description": "code identifying the time off policy.  A system may have 1 policy per earning type.  If there earning type has only 1 earning type then the paidTimeOffPolicycode should be equal to the earningTypeCode. If there is a policy with multiple earning Types then the user must first select the policy.  If there are multiple possible earning types then the user is presented with the list to select from.  The list is presented in the order which it is sent in the JSON.  The first one is the default presented.",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "code": {
+                                                                            "type": "string",
+                                                                            "description": "code identifying the policy"
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "The label which will be shown in the UI for the policy.",
+                                                                            "type": "string"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "entryStatus": {
+                                                                    "description": "The status of the entry",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "code": {
+                                                                            "description": "code identifying the status",
+                                                                            "type": "string",
+                                                                            "enum": [
+                                                                                "inprogress",
+                                                                                "submitted",
+                                                                                "pending",
+                                                                                "approved",
+                                                                                "denied"
+                                                                            ]
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "Label to be shown on the UI",
+                                                                            "type": "string"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "earningType": {
+                                                                    "description": "The type of earning",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "code": {
+                                                                            "description": "Code identifying the type of earning",
+                                                                            "type": "string"
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "The label to show on the UI",
+                                                                            "type": "string"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "timePeriod": {
+                                                                    "description": "Time period of the paid time off.  If single day then startDate and endDate are equivalent.  If a full day then the time component is truncated.,",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "startDateTime": {
+                                                                            "description": "The start date time of the time period. Data Representation Standard: Temporal Data Specification which follows the ISO-8601:2000 format YYYY-MM-DDThh:mm:ss+-hh:mm.  The lexical representation of a time zone is a string of the form: (('+' | '-') hh ':' mm) | 'Z', where hh is a two-digit numeral (with leading zeros as required) that represents the hours, mm is a two-digit numeral that represents the minute, '+' indicates a nonnegative duration, '-' indicates a non-positive duration. 'Z' indicates the UTC time zone",
+                                                                            "type": "string",
+                                                                            "format": "date-time"
+                                                                        },
+                                                                        "endDateTime": {
+                                                                            "description": "The end date time of the time period. Data Representation Standard: Temporal Data Specification which follows the ISO-8601:2000 format YYYY-MM-DDThh:mm:ss+-hh:mm.  The lexical representation of a time zone is a string of the form: (('+' | '-') hh ':' mm) | 'Z', where hh is a two-digit numeral (with leading zeros as required) that represents the hours, mm is a two-digit numeral that represents the minute, '+' indicates a nonnegative duration, '-' indicates a non-positive duration. 'Z' indicates the UTC time zone",
+                                                                            "type": "string",
+                                                                            "format": "date-time",
+                                                                            "optional": true
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "totalQuantity": {
+                                                                    "description": "The total quantity of hours.  These may be positive or negative ",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "valueNumber": {
+                                                                            "description": "A positive or negative number indicating the quantity.  +-99999.99999  The application will truncate the decimal places if it can not fit on the screen.",
+                                                                            "type": "number"
+                                                                        },
+                                                                        "unitTimeCode": {
+                                                                            "description": "The units in which the quantity is communicated.",
+                                                                            "type": "string",
+                                                                            "enum": [
+                                                                                "hour",
+                                                                                "day",
+                                                                                "minute",
+                                                                                "week"
+                                                                            ]
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "The label which will be shown in the UI",
+                                                                            "type": "string",
+                                                                            "optional": true
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "totalTime": {
+                                                                    "type": "object",
+                                                                    "description": "Total Time represented as hh:mm",
+                                                                    "properties": {
+                                                                        "timeValue": {
+                                                                            "description": "Total Time represented as +-hh:mm",
+                                                                            "type": "string",
+                                                                            "pattern": "-?(2[0-3]|[0-1]?[0-9]):([0-5][0-9])"
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "The label which will be shown in the UI for the policy.",
+                                                                            "type": "string",
+                                                                            "optional": true
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "requestRef": {
+                                                                    "description": "This entry is part of a request",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "requestUri": {
+                                                                            "description": "URI of a related resource",
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "href": {
+                                                                                    "type": "string",
+                                                                                    "format": "uri"
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        "metadataEntitlementCodes": {
+                                                                            "description": "Code describing the data entitlements the user has on the entry.  These are  r - read, u - update, d- delete, k - cancel.  Read is the default value. If the associate can not see the entry it will not be returned in the JSON",
+                                                                            "type": "array",
+                                                                            "items": {
+                                                                                "type": "string",
+                                                                                "default": "r",
+                                                                                "enum": [
+                                                                                    "r",
+                                                                                    "u",
+                                                                                    "d",
+                                                                                    "k"
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "paidTimeOffRequests": {
+                    "description": "List of Paid Time Off Requests by position",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "positionRef": {
+                                "description": "Data which provides reference to a position",
+                                "type": "object",
+                                "properties": {
+                                    "positionID": {
+                                        "description": "Position identifier a person may enter time against.  ",
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "description": "Is the Identifier of the given instance of an entity.",
+                                                "type": "string"
+                                            },
+                                            "schemeName": {
+                                                "description": "name of the identification scheme",
+                                                "type": "string",
+                                                "optional": true
+                                            },
+                                            "schemeAgencyName": {
+                                                "description": "Agency responsible for the maintenance and definition of the identification scheme",
+                                                "type": "string",
+                                                "optional": true
+                                            }
+                                        }
+                                    },
+                                    "title": {
+                                        "description": "The title of the position",
+                                        "type": "string",
+                                        "optional": true
+                                    }
+                                }
+                            },
+                            "paidTimeOffRequestEntries": {
+                                "description": "The list of Requests grouped by status.  The list should be returned chronological order and in the following status order:  pending, approved, denied, partially denied, taken",
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "requestStatus": {
+                                            "description": "The status of the request for time off.",
+                                            "type": "object",
+                                            "properties": {
+                                                "code": {
+                                                    "description": "code identifying the status",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "userentry",
+                                                        "usersubmitted",
+                                                        "userentrycancelled",
+                                                        "usercancelled",
+                                                        "inprogress",
+                                                        "submitted",
+                                                        "pending",
+                                                        "approved",
+                                                        "denied",
+                                                        "partiallyDenied",
+                                                        "taken",
+                                                        "cancelled"
+                                                    ]
+                                                },
+                                                "labelName": {
+                                                    "description": "Label to be shown on the UI",
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        "totalQuantity": {
+                                            "description": "The total quantity of hours.  These may be positive or negative ",
+                                            "type": "object",
+                                            "properties": {
+                                                "valueNumber": {
+                                                    "description": "A positive or negative number indicating the quantity.  +-99999.99999  The application will truncate the decimal places if it can not fit on the screen.",
+                                                    "type": "number"
+                                                },
+                                                "unitTimeCode": {
+                                                    "description": "The units in which the quantity is communicated.",
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "hour",
+                                                        "day",
+                                                        "minute",
+                                                        "week"
+                                                    ]
+                                                },
+                                                "labelName": {
+                                                    "description": "The label to be shown on the UI",
+                                                    "type": "string",
+                                                    "optional": true
+                                                }
+                                            }
+                                        },
+                                        "totalTime": {
+                                            "description": "Total Time represented as hh:mm",
+                                            "type": "object",
+                                            "properties": {
+                                                "timeValue": {
+                                                    "description": "Total Time represented as hh:mm",
+                                                    "type": "string",
+                                                    "pattern": "-?(2[0-3]|[0-1]?[0-9]):([0-5][0-9])"
+                                                },
+                                                "labelName": {
+                                                    "description": "The label which will be shown in the UI for the policy.",
+                                                    "type": "string",
+                                                    "optional": true
+                                                }
+                                            }
+                                        },
+                                        "requests": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "requestID": {
+                                                        "description": "Identifier of the request",
+                                                        "type": "string"
+                                                    },
+                                                    "requestUri": {
+                                                        "description": "URI of a related resource",
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "href": {
+                                                                "type": "string",
+                                                                "format": "uri"
+                                                            }
+                                                        }
+                                                    },
+                                                    "entryDateTime": {
+                                                        "description": "The date time of the entry. Data Representation Standard: Temporal Data Specification which follows the ISO-8601:2000 format YYYY-MM-DDThh:mm:ss+-hh:mm.  The lexical representation of a time zone is a string of the form: (('+' | '-') hh ':' mm) | 'Z', where hh is a two-digit numeral (with leading zeros as required) that represents the hours, mm is a two-digit numeral that represents the minutes, '+' indicates a nonnegative duration, '-' indicates a non-positive duration. 'Z' indicates the UTC time zone",
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "approvalDueDate": {
+                                                        "description": "The date that the approval is needed by",
+                                                        "type": "string",
+                                                        "format": "date"
+                                                    },
+                                                    "requestStatus": {
+                                                        "description": "The status of the request for time off.",
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "code": {
+                                                                "description": "code identifying the status",
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "inprogress",
+                                                                    "submitted",
+                                                                    "pending",
+                                                                    "approved",
+                                                                    "denied",
+                                                                    "partiallyDenied",
+                                                                    "taken",
+                                                                    "cancelled"
+                                                                ]
+                                                            },
+                                                            "labelName": {
+                                                                "description": "Label to be shown on the UI",
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    },
+                                                    "requestorComment": {
+                                                        "description": "Comment from the requestor (i.e. Worker)",
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "entryDateTime": {
+                                                                "description": "The date time of the entry. Data Representation Standard: Temporal Data Specification which follows the ISO-8601:2000 format YYYY-MM-DDThh:mm:ss+-hh:mm.  The lexical representation of a time zone is a string of the form: (('+' | '-') hh ':' mm) | 'Z', where hh is a two-digit numeral (with leading zeros as required) that represents the hours, mm is a two-digit numeral that represents the minutes, '+' indicates a nonnegative duration, '-' indicates a non-positive duration. 'Z' indicates the UTC time zone",
+                                                                "type": "string",
+                                                                "format": "date-time"
+                                                            },
+                                                            "commentTxt": {
+                                                                "description": "The string entered by the user",
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    },
+                                                    "comments": {
+                                                        "description": "The list of comments in reverse chronological order of those managing the request (i.e. Approvers)",
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "userName": {
+                                                                    "description": "user name which entered comment",
+                                                                    "type": "string",
+                                                                    "optional": true
+                                                                },
+                                                                "entryDateTime": {
+                                                                    "description": "The date time of the entry. Data Representation Standard: Temporal Data Specification which follows the ISO-8601:2000 format YYYY-MM-DDThh:mm:ss+-hh:mm.  The lexical representation of a time zone is a string of the form: (('+' | '-') hh ':' mm) | 'Z', where hh is a two-digit numeral (with leading zeros as required) that represents the hours, mm is a two-digit numeral that represents the minutes, '+' indicates a nonnegative duration, '-' indicates a non-positive duration. 'Z' indicates the UTC time zone",
+                                                                    "type": "string",
+                                                                    "format": "date-time"
+                                                                },
+                                                                "commentTxt": {
+                                                                    "description": "The string entered by the user",
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    "totalQuantity": {
+                                                        "description": "The total quantity of hours.  These may be positive or negative ",
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "valueNumber": {
+                                                                "description": "A positive or negative number indicating the quantity.  +-99999.99999  The application will truncate the decimal places if it can not fit on the screen.",
+                                                                "type": "number"
+                                                            },
+                                                            "unitTimeCode": {
+                                                                "description": "The units in which the quantity is communicated.",
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "hour",
+                                                                    "day",
+                                                                    "minute",
+                                                                    "week"
+                                                                ]
+                                                            },
+                                                            "labelName": {
+                                                                "description": "The label to be shown on the UI",
+                                                                "type": "string",
+                                                                "optional": true
+                                                            }
+                                                        }
+                                                    },
+                                                    "totalTime": {
+                                                        "description": "Total Time represented as hh:mm",
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "timeValue": {
+                                                                "description": "Total Time represented as hh:mm",
+                                                                "type": "string",
+                                                                "pattern": "-?(2[0-3]|[0-1]?[0-9]):([0-5][0-9])"
+                                                            },
+                                                            "labelName": {
+                                                                "description": "The label which will be shown in the UI for the policy.",
+                                                                "type": "string",
+                                                                "optional": true
+                                                            }
+                                                        }
+                                                    },
+                                                    "meta": {
+                                                        "description": "Data which provides reference to a position",
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "metadataEntitlementCodes": {
+                                                                "description": "Code describing the data entitlements the user has on the entry.  These are r - read, u - update, d- delete, k - cancel.  Read is the default value. If the associate can not see the entry it will not be returned in the JSON.  ",
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "r",
+                                                                        "u",
+                                                                        "d",
+                                                                        "k"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "multiPeriodRequestIndicator": {
+                                                                "description": "True indicates that the System of Record supports multiple periods in a request",
+                                                                "type": "boolean",
+                                                                "default": true
+                                                            },
+                                                            "actions": {
+                                                                "description": "Actions which the user is allowed to initiate against the related entity.  ",
+                                                                "type": "array",
+                                                                "minItems": 1,
+                                                                "items": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "operationID": {
+                                                                            "description": "Identifies the operation",
+                                                                            "type": "string",
+                                                                            "enum": [
+                                                                                "timeOffRequest.review",
+                                                                                "timeOffRequest.partialSubmit",
+                                                                                "timeOffRequest.view",
+                                                                                "timeOffRequest.update",
+                                                                                "timeOffRequest.delete",
+                                                                                "timeOffRequest.create"
+                                                                            ]
+                                                                        },
+                                                                        "actionTypeCode": {
+                                                                            "description": "Identifies the type of action to be taken to fulfill the request.  Action can be a callback to a service to complete the action.  A callback requires the methodCode and uris to be returned.  An external link i.e. open a web page - requires the uris of the external link; An object reference is a reference to a related object within the application.  This is a canonical name which represents the object.  Based on this identifier, the application knows what view it needs to open.  The uris returns the data for the view.  For an object reference, the objectRefID, methodCode, and uris are required . modify indicates that a property is being modified.",
+                                                                            "type": "string",
+                                                                            "enum": [
+                                                                                "callback",
+                                                                                "externalLink",
+                                                                                "objectReference",
+                                                                                "modify"
+                                                                            ]
+                                                                        },
+                                                                        "requestConfirmationIndicator": {
+                                                                            "description": "True indicates that the application will prompt the user to confirm the selected action. False indicates that the action will be executed once selected by the user.",
+                                                                            "type": "boolean",
+                                                                            "default": false
+                                                                        },
+                                                                        "commentIndicator": {
+                                                                            "description": "True indicates that the SOR supports adding a comment when taking an action.",
+                                                                            "type": "boolean",
+                                                                            "default": false
+                                                                        },
+                                                                        "colorCode": {
+                                                                            "description": "Code identifying the color to associate to the action.  A positive action should be green (e.g. Approval) a negative action (e.g. Denial) should be red); red=FF0000, yellow=FFFF00, green=80FF00 using RGB codes.",
+                                                                            "type": "string",
+                                                                            "default": "80FF00",
+                                                                            "enum": [
+                                                                                "FF0000",
+                                                                                "FFFF00",
+                                                                                "80FF00"
+                                                                            ]
+                                                                        },
+                                                                        "attestation": {
+                                                                            "description": "Optional text provided to the user when they take an action to affirm to be correct, true, or genuine. Requires confirmation indicator to be set to true.",
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "messageTxt": {
+                                                                                    "description": "message to present to the user.  This is mutuallly exclusive with the messageUri which is an external link to the message.  If the text is sizable and fairly static then it should be an external link which may be cached.",
+                                                                                    "type": "string",
+                                                                                    "optional": true
+                                                                                },
+                                                                                "messageUri": {
+                                                                                    "description": "URI of the attestation message, should be used instead of the messageTxt property if it can be cached",
+                                                                                    "type": "object",
+                                                                                    "properties": {
+                                                                                        "href": {
+                                                                                            "type": "string",
+                                                                                            "format": "uri"
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        "links": {
+                                                                            "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+                                                                            "type": "array",
+                                                                            "items": {
+                                                                                "type": "object",
+                                                                                "properties": {
+                                                                                    "rel": {
+                                                                                        "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+                                                                                        "type": "string",
+                                                                                        "enum": [
+                                                                                            "create",
+                                                                                            "full",
+                                                                                            "self",
+                                                                                            "up",
+                                                                                            "/adp/invoke",
+                                                                                            "/adp/modify"
+                                                                                        ]
+                                                                                    },
+                                                                                    "href": {
+                                                                                        "description": " The value of the href link description property is a template used to determine the target URI of the related resource.  The value of the instance property SHOULD be resolved as a URI-Reference per RFC 3986 [RFC3986] and MAY be a relative reference to a URI.",
+                                                                                        "type": "string",
+                                                                                        "format": "uri"
+                                                                                    },
+                                                                                    "method": {
+                                                                                        "description": "The HTTP method to use to traverse the link (GET, POST, PUT or DELETE).",
+                                                                                        "type": "string",
+                                                                                        "enum": [
+                                                                                            "GET",
+                                                                                            "POST",
+                                                                                            "DELETE",
+                                                                                            "PUT"
+                                                                                        ]
+                                                                                    },
+                                                                                    "mediaType": {
+                                                                                        "description": "The media type that the linked resource will return (Response)",
+                                                                                        "type": "string",
+                                                                                        "default": "application/json",
+                                                                                        "enum": [
+                                                                                            "application/json",
+                                                                                            "text/html",
+                                                                                            "application/pdf",
+                                                                                            "image/jpeg",
+                                                                                            "image/gif"
+                                                                                        ]
+                                                                                    },
+                                                                                    "encType": {
+                                                                                        "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+                                                                                        "type": "string",
+                                                                                        "default": "application/json",
+                                                                                        "enum": [
+                                                                                            "application/json",
+                                                                                            "application/x-www-form-urlencoded"
+                                                                                        ]
+                                                                                    },
+                                                                                    "schema": {
+                                                                                        "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body.",
+                                                                                        "type": "string",
+                                                                                        "optional": true
+                                                                                    },
+                                                                                    "targetSchema": {
+                                                                                        "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation.",
+                                                                                        "type": "string",
+                                                                                        "optional": true
+                                                                                    },
+                                                                                    "title": {
+                                                                                        "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+                                                                                        "type": "string",
+                                                                                        "optional": true
+                                                                                    },
+                                                                                    "arguments": {
+                                                                                        "description": "A map that may be used as the basis for any data (arguments or properties) required to follow the link. ",
+                                                                                        "type": "array",
+                                                                                        "items": {
+                                                                                            "type": "object",
+                                                                                            "properties": {
+                                                                                                "propertyUri": {
+                                                                                                    "description": "URI of the property",
+                                                                                                    "type": "object",
+                                                                                                    "properties": {
+                                                                                                        "href": {
+                                                                                                            "type": "string",
+                                                                                                            "format": "uri",
+                                                                                                            "enum": [
+                                                                                                                "/requestStatus/code",
+                                                                                                                "/requestRevID/idValue",
+                                                                                                                "/associateID/idValue",
+                                                                                                                "/associateID/schemeName",
+                                                                                                                "/associateID/schemeAgencyName"
+                                                                                                            ]
+                                                                                                        }
+                                                                                                    }
+                                                                                                },
+                                                                                                "propertyValue": {
+                                                                                                    "description": "The value of the property.",
+                                                                                                    "type": "string"
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    "paidTimeOffEntries": {
+                                                        "description": "The entries which make up the quantity for the balance type",
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "paidTimeOffID": {
+                                                                    "description": "The entries which make up the quantity for the balance type",
+                                                                    "type": "string",
+                                                                    "optional": true
+                                                                },
+                                                                "paidTimeOffPolicy": {
+                                                                    "description": "code identifying the time off policy.  A system may have 1 policy per earning type.  If there earning type has only 1 earning type then the paidTimeOffPolicycode should be equal to the earningTypeCode. If there is a policy with multiple earning Types then the user must first select the policy.  If there are multiple possible earning types then the user is presented with the list to select from.  The list is presented in the order which it is sent in the JSON.  The first one is the default presented.",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "code": {
+                                                                            "type": "string",
+                                                                            "description": "code identifying the policy"
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "The label which will be shown in the UI for the policy.",
+                                                                            "type": "string"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "entryStatus": {
+                                                                    "description": "The status of the entry",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "code": {
+                                                                            "description": "code identifying the status",
+                                                                            "type": "string",
+                                                                            "enum": [
+                                                                                "pending",
+                                                                                "approved",
+                                                                                "denied"
+                                                                            ]
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "Label to be shown on the UI",
+                                                                            "type": "string"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "earningType": {
+                                                                    "description": "The type of earning",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "code": {
+                                                                            "description": "Code identifying the type of earning",
+                                                                            "type": "string"
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "The label to show on the UI",
+                                                                            "type": "string"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "timePeriod": {
+                                                                    "description": "Time period of the paid time off.  If single day then startDate and endDate are equivalent.  If a full day then the time component is truncated.,",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "startDateTime": {
+                                                                            "description": "The start date time of the time period. Data Representation Standard: Temporal Data Specification which follows the ISO-8601:2000 format YYYY-MM-DDThh:mm:ss+-hh:mm.  The lexical representation of a time zone is a string of the form: (('+' | '-') hh ':' mm) | 'Z', where hh is a two-digit numeral (with leading zeros as required) that represents the hours, mm is a two-digit numeral that represents the minute, '+' indicates a nonnegative duration, '-' indicates a non-positive duration. 'Z' indicates the UTC time zone",
+                                                                            "type": "string",
+                                                                            "format": "date-time"
+                                                                        },
+                                                                        "endDateTime": {
+                                                                            "description": "The end date time of the time period. Data Representation Standard: Temporal Data Specification which follows the ISO-8601:2000 format YYYY-MM-DDThh:mm:ss+-hh:mm.  The lexical representation of a time zone is a string of the form: (('+' | '-') hh ':' mm) | 'Z', where hh is a two-digit numeral (with leading zeros as required) that represents the hours, mm is a two-digit numeral that represents the minute, '+' indicates a nonnegative duration, '-' indicates a non-positive duration. 'Z' indicates the UTC time zone",
+                                                                            "type": "string",
+                                                                            "format": "date-time"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "startTime": {
+                                                                    "description": "The startTime represented as hh:mm. This is communicated in military notation and presented in the UI based on the timeNotationCode.  This is only used with the datePeriodStartTimeDuration",
+                                                                    "type": "string"
+                                                                },
+                                                                "dailyQuantity": {
+                                                                    "description": "The quantity of time for a given day.  Only applicable for entryType/code=datePeriodStartTimeDuration.  These may be positive or negative ",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "valueNumber": {
+                                                                            "description": "A positive or negative number indicating the quantity.  +-99999.99999  The application will truncate the decimal places if it can not fit on the screen.",
+                                                                            "type": "number"
+                                                                        },
+                                                                        "unitTimeCode": {
+                                                                            "description": "The units in which the quantity is communicated.",
+                                                                            "type": "string",
+                                                                            "enum": [
+                                                                                "hour",
+                                                                                "day",
+                                                                                "minute",
+                                                                                "week"
+                                                                            ]
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "The label which will be shown in the UI",
+                                                                            "type": "string",
+                                                                            "optional": true
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "dailyTime": {
+                                                                    "description": "The time taken on a daily basis represented as hh:mm",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "timeValue": {
+                                                                            "description": "Total Time represented as hh:mm",
+                                                                            "type": "string",
+                                                                            "pattern": "-?(2[0-3]|[0-1]?[0-9]):([0-5][0-9])"
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "The label which will be shown in the UI for the policy.",
+                                                                            "type": "string",
+                                                                            "optional": true
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "totalQuantity": {
+                                                                    "description": "The total quantity of hours.  These may be positive or negative ",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "valueNumber": {
+                                                                            "description": "A positive or negative number indicating the quantity.  +-99999.99999  The application will truncate the decimal places if it can not fit on the screen.",
+                                                                            "type": "number"
+                                                                        },
+                                                                        "unitTimeCode": {
+                                                                            "description": "The units in which the quantity is communicated.",
+                                                                            "type": "string",
+                                                                            "enum": [
+                                                                                "hour",
+                                                                                "day",
+                                                                                "minute",
+                                                                                "week"
+                                                                            ]
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "The label which will be shown in the UI",
+                                                                            "type": "string",
+                                                                            "optional": true
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "totalTime": {
+                                                                    "description": "Total Time represented as hh:mm",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "timeValue": {
+                                                                            "description": "Total Time represented as hh:mm",
+                                                                            "type": "string",
+                                                                            "pattern": "-?(2[0-3]|[0-1]?[0-9]):([0-5][0-9])"
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "The label which will be shown in the UI for the policy.",
+                                                                            "type": "string",
+                                                                            "optional": true
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "durationType": {
+                                                                    "description": "The list of permissable duration types which only go with the entryTypeCodes = datePeriodStartTimeDuration",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "code": {
+                                                                            "description": "code identifying the type of duration",
+                                                                            "type": "string",
+                                                                            "enum": [
+                                                                                "fullday",
+                                                                                "halfday",
+                                                                                "quantity",
+                                                                                "dailyQuantity",
+                                                                                "firstHalfDay",
+                                                                                "secondHalfDay"
+                                                                            ]
+                                                                        },
+                                                                        "labelName": {
+                                                                            "description": "The label which will be shown in the UI",
+                                                                            "type": "string"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "meta": {
+                                                                    "description": "Data which provides reference to a position",
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "actions": {
+                                                                            "description": "Actions which the user is allowed to initiate against the related entity.  ",
+                                                                            "type": "array",
+                                                                            "minItems": 1,
+                                                                            "items": {
+                                                                                "type": "object",
+                                                                                "properties": {
+                                                                                    "operationID": {
+                                                                                        "description": "Identifies the operation",
+                                                                                        "type": "string",
+                                                                                        "enum": [
+                                                                                            "timeOffRequest.review",
+                                                                                            "timeOffRequest.partialSubmit",
+                                                                                            "timeOffRequest.view",
+                                                                                            "timeOffRequest.update",
+                                                                                            "timeOffRequest.delete",
+                                                                                            "timeOffRequest.create"
+                                                                                        ]
+                                                                                    },
+                                                                                    "actionTypeCode": {
+                                                                                        "description": "Identifies the type of action to be taken to fulfill the request.  Action can be a callback to a service to complete the action.  A callback requires the methodCode and uris to be returned.  An external link i.e. open a web page - requires the uris of the external link; An object reference is a reference to a related object within the application.  This is a canonical name which represents the object.  Based on this identifier, the application knows what view it needs to open.  The uris returns the data for the view.  For an object reference, the objectRefID, methodCode, and uris are required . modify indicates that a property is being modified.",
+                                                                                        "type": "string",
+                                                                                        "enum": [
+                                                                                            "callback",
+                                                                                            "externalLink",
+                                                                                            "objectReference",
+                                                                                            "modify"
+                                                                                        ]
+                                                                                    },
+                                                                                    "requestConfirmationIndicator": {
+                                                                                        "description": "True indicates that the application will prompt the user to confirm the selected action. False indicates that the action will be executed once selected by the user.",
+                                                                                        "type": "boolean",
+                                                                                        "default": false
+                                                                                    },
+                                                                                    "commentIndicator": {
+                                                                                        "description": "True indicates that the SOR supports adding a comment when taking an action.",
+                                                                                        "type": "boolean",
+                                                                                        "default": false
+                                                                                    },
+                                                                                    "colorCode": {
+                                                                                        "description": "Code identifying the color to associate to the action.  A positive action should be green (e.g. Approval) a negative action (e.g. Denial) should be red); red=FF0000, yellow=FFFF00, green=80FF00 using RGB codes.",
+                                                                                        "type": "string",
+                                                                                        "default": "80FF00",
+                                                                                        "enum": [
+                                                                                            "FF0000",
+                                                                                            "FFFF00",
+                                                                                            "80FF00"
+                                                                                        ]
+                                                                                    },
+                                                                                    "attestation": {
+                                                                                        "description": "Optional text provided to the user when they take an action to affirm to be correct, true, or genuine. Requires confirmation indicator to be set to true.",
+                                                                                        "type": "object",
+                                                                                        "properties": {
+                                                                                            "descTxt": {
+                                                                                                "description": "Text to present.  This is mutuallly exclusive with the resourceUri which is an external link to the text.  If the text is sizable and fairly static then it should be an external link which may be cached.",
+                                                                                                "type": "string",
+                                                                                                "optional": true
+                                                                                            },
+                                                                                            "resourceUri": {
+                                                                                                "description": "URI of the attestation, should be used instead of the text property if can be cachable",
+                                                                                                "type": "object",
+                                                                                                "properties": {
+                                                                                                    "href": {
+                                                                                                        "type": "string",
+                                                                                                        "format": "uri"
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    },
+                                                                                    "links": {
+                                                                                        "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+                                                                                        "type": "array",
+                                                                                        "items": {
+                                                                                            "type": "object",
+                                                                                            "properties": {
+                                                                                                "rel": {
+                                                                                                    "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+                                                                                                    "type": "string",
+                                                                                                    "enum": [
+                                                                                                        "create",
+                                                                                                        "full",
+                                                                                                        "self",
+                                                                                                        "up",
+                                                                                                        "adp/invoke",
+                                                                                                        "adp/modify"
+                                                                                                    ]
+                                                                                                },
+                                                                                                "href": {
+                                                                                                    "description": " The value of the href link description property is a template used to determine the target URI of the related resource.  The value of the instance property SHOULD be resolved as a URI-Reference per RFC 3986 [RFC3986] and MAY be a relative reference to a URI.",
+                                                                                                    "type": "string",
+                                                                                                    "format": "uri"
+                                                                                                },
+                                                                                                "method": {
+                                                                                                    "description": "The HTTP method to use to traverse the link (GET, POST, PUT or DELETE).",
+                                                                                                    "type": "string",
+                                                                                                    "enum": [
+                                                                                                        "GET",
+                                                                                                        "POST",
+                                                                                                        "DELETE",
+                                                                                                        "PUT"
+                                                                                                    ]
+                                                                                                },
+                                                                                                "mediaType": {
+                                                                                                    "description": "The media type that the linked resource will return (Response)",
+                                                                                                    "type": "string",
+                                                                                                    "default": "application/json",
+                                                                                                    "enum": [
+                                                                                                        "application/json",
+                                                                                                        "text/html",
+                                                                                                        "application/pdf",
+                                                                                                        "image/jpeg",
+                                                                                                        "image/gif"
+                                                                                                    ]
+                                                                                                },
+                                                                                                "encType": {
+                                                                                                    "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+                                                                                                    "type": "string",
+                                                                                                    "default": "application/json",
+                                                                                                    "enum": [
+                                                                                                        "application/json",
+                                                                                                        "application/x-www-form-urlencoded"
+                                                                                                    ]
+                                                                                                },
+                                                                                                "schema": {
+                                                                                                    "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body.",
+                                                                                                    "type": "string",
+                                                                                                    "optional": true
+                                                                                                },
+                                                                                                "targetSchema": {
+                                                                                                    "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation.",
+                                                                                                    "type": "string",
+                                                                                                    "optional": true
+                                                                                                },
+                                                                                                "title": {
+                                                                                                    "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user.",
+                                                                                                    "type": "string",
+                                                                                                    "optional": true
+                                                                                                },
+                                                                                                "arguments": {
+                                                                                                    "description": "A map that may be used as the basis for any data (arguments or properties) required to follow the link. ",
+                                                                                                    "type": "array",
+                                                                                                    "items": {
+                                                                                                        "type": "object",
+                                                                                                        "properties": {
+                                                                                                            "propertyUri": {
+                                                                                                                "description": "URI of the property",
+                                                                                                                "type": "object",
+                                                                                                                "properties": {
+                                                                                                                    "href": {
+                                                                                                                        "type": "string",
+                                                                                                                        "format": "uri",
+                                                                                                                        "enum": [
+                                                                                                                            "/entryStatus/code"
+                                                                                                                        ]
+                                                                                                                    }
+                                                                                                                }
+                                                                                                            },
+                                                                                                            "propertyValue": {
+                                                                                                                "description": "The value of the property.",
+                                                                                                                "type": "string"
+                                                                                                            }
+                                                                                                        }
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

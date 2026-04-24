@@ -1,0 +1,1877 @@
+{
+  "openapi": "3.0.1",
+  "servers": [
+    {
+      "url": "https://__host__/"
+    }
+  ],
+  "info": {
+    "contact": {
+      "name": "Vamshi Krishna Guduru",
+      "email": "VAMSHI.KRISHNA.GUDURU@ADP.COM"
+    },
+    "description": "<p>The Time Entries Modify TLM Application Programming Interface (API) is used to upload time entry data for employee positions. This is data involving an employee&#39;s timecard, such as the following details describing instances the employee started and stopped a time and labor event:</p><ul><li>Target time entry employees are always specified in the body by using the <strong>workAssignmentID</strong> value (<strong>Entry ID</strong>).</li><li>Entry ID value can be obtained from making a call to the workers API, through <strong>workAssignments &gt; item ID</strong>.</li><li>Accompanying Associate Object Identifier (AOID) value should also be supplied in the payload Employee Position event record, along with the Position Fulfillment Identifier (PFID) value.</li><li><strong>Location</strong> and <strong>Retry-After</strong> response headers for all HTTP status responses of 202 Accepted indicate that a subsequent request can be made to the <strong>time-entries.modify/{meta.resourceSetID}</strong> HTTP GET method to obtain an import and/or timecard posting status of the uploaded Time Entry events.</li><li><strong>time-entries.modify</strong>web service is designed to be used asynchronously when more than one Employee Position is included in the uploading payload, and:<ul><li>Consuming applications should honor the <strong>Retry-After</strong> response header returned by the <strong>time-entries.modify</strong> and <strong>time-entries.modify/{meta.resourceSetID}</strong> web service. This only pertains to the subsequent requests to obtain a status for an <strong>Event ID</strong> (using <strong>time-entries.modify/{meta.resourceSetID}</strong>).</li><li>Subsequent requests can be made to the <strong>time-entries.modify</strong> web service to upload additional Time Entry events while asynchronously polling/waiting for previous bulk upload events to complete.</li><li>ADP asks consuming applications to honor a wait interval of at least 30 <span>seconds</span> between each subsequent bulk upload request made to <strong>time-entries.modify.</strong> This is to limit inadvertent DOS (Denial of Service) incidences.</li></ul></li><li><strong>timeEntries</strong> contained in a payload do not need to be one type of Change Code operation for the example payloads described by this guide (even though the examples might demonstrate one type of Change Code operation).</li></ul><p>For more information please refer - <a href=\"https://developers.adp.com/articles/guides/time-entries-modify-tlm-api-guide-for-adp-workforce-now\">Time Entries Modify TLM API Guide for ADP Workforce Now</a></p>",
+    "title": "Time Cards",
+    "version": "2.0.4"
+  },
+  "x-adpSpecData": {
+    "domain": "Time",
+    "specId": "65bd17b0-945f-467c-ad1e-5532dc886e82",
+    "canonicalSpecId": "3923a6c5-8606-42c4-bcea-664493ad1f12",
+    "specStatusCode": "publishing",
+    "specTypeCode": "REST",
+    "specStateCode": "active",
+    "nonStandardIndicator": false,
+    "visibilityCodes": [
+      "internal",
+      "external"
+    ],
+    "filename": "time-cards-swagger_v2-merged.json",
+    "serviceProviderId": "null",
+    "resourcePath": "time/time-cards/v2",
+    "libraryVersion": "",
+    "businessRules": [
+      {
+        "rule": "R3.0",
+        "ruleTitle": "/data/schemaContext communicates the keys and properties that relate the event instance to a concrete concept (e.g. associate).",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.2",
+        "ruleTitle": "The recordDateTime is the date time which the event is recorded in the system of record with an event.status.code=complete",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R11.1",
+        "ruleTitle": "'associateoid' in the uri pattern should match the 'associateoid' in the request header parameter",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.1",
+        "ruleTitle": "If the event is declared by an actor then the creationDateTime is the date time when the first call is made to the System of Record.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.4",
+        "ruleTitle": "/data/output may be provided during the recording of the event showing the intermediary results.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R1.0",
+        "ruleTitle": "event.id is generated once an event is recorded with a event.status.code=complete",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R6.1",
+        "ruleTitle": "An event instance which is being \u201cworked on\u201d has an event.status.code=inprogress",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R8.2",
+        "ruleTitle": "An event notification does not include the transform or meta objects.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R6.0",
+        "ruleTitle": "An event instance may be created by a System of record for a user to complete. This event instance will have a event.status.code=created",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.6",
+        "ruleTitle": "An event which is being recorded includes the /data/eventContext and the /data/transform during the composition phase (i.e. recording of the event).",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.1",
+        "ruleTitle": "/data/input is optional.  Input communicates data that is needed to complete recording the event instance.  An example is a benefits.enroll event.  The input communicates the benefitOfferings (the choices) that the user has to make which are communicated in the transform.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.3",
+        "ruleTitle": "/data/output communicates the result of the event instance.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.4",
+        "ruleTitle": "If there is no effective date from a business perspective then the effective date should be set equal to the record date time.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.0",
+        "ruleTitle": "creationDateTime is the date that the event is created.  If a System of Record creates the event instance then it sets the creationDateTime.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R5.1",
+        "ruleTitle": "The only information that must be valued in the meta for the events header are the standard codelist references for priorityCode, eventStatusCode, and serviceCategoryCode",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.3",
+        "ruleTitle": "effectiveDateTime is the date that the event is effective from a business perspective",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.2",
+        "ruleTitle": "/data/transform is only used during the recording of the event.  The transform is the data that is provided by a user/machine to complete the recording of the event.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R5.0",
+        "ruleTitle": "Meta returns the context rules for each data section",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.5",
+        "ruleTitle": "A complete event has /data/eventContext and /data/output",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R8.1",
+        "ruleTitle": "An event notification includes the /data/eventContext and /data/output objects.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R4.0",
+        "ruleTitle": "All envelope data is set by the System of Record (e.g. event.ID, creationDateTime, recordDateTime, event.status.code, etc\u2026",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R0.2",
+        "ruleTitle": "If request contains ADP-On-Behalf-Of-OrgOID, ADP-On-Behalf-Of-AssociateOID and ADP-Acting-SessionID header values, SOR MUST use ADP-On-Behalf-Of-AssociateOID header value to authorize the data requested, NOT associateoid header value to authorize the data.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R0.3",
+        "ruleTitle": "For Act-As or On-Behalf-Of requests, header 'Cache-Control: no-store' MUST be set to indicate on server or on UI the response object SHOULD not be cached",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R6.2",
+        "ruleTitle": "An event instance which has been recorded has an event.status.code=complete",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R0.1",
+        "ruleTitle": "If request contains ADP-Act-As-OrgOID, ADP-Act-As-AssociateOID and ADP-Acting-SessionID header values, SOR MUST use ADP-Act-As-AssociateOID header value to authorize the data requested, NOT associateoid header value to authorize the data.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R15.1",
+        "ruleTitle": "An SOR may return an HTTP 503 when they are down for a scheduled maintenance or for an outage.If an SOR is planning a maintenance window then they should plan on having an end point available to return the 503 with a standard confirmMessage.  The confirmMessage will contain a message stating the date and timeframe that the maintenance window is for.The SOR should return the Retry-After response-header field with the Date and Time when they expect the system to be available.  E.g. \u00a7  Retry-After: Fri, 31 Dec 1999 23:59:59 GMT  This does not need to be handled dynamically.  They can set the time that their maintenance window ends.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R8.3",
+        "ruleTitle": "A self link is included in the /data/links with 1 links item with the following 2 properties: rel=\u201dself\u201d href=\u201d/events-notifications/{domain}/v1/{event-name}/{eventID}\u201d",
+        "visibilityCodes": [
+          "internal"
+        ]
+      }
+    ],
+    "testCaseCollection": {
+      "example": {
+        "href": "WFN_CG_TimeEntries_Modify.postman_collection.json"
+      },
+      "description": "Time Entries Modify Postman Collection"
+    },
+    "publicationContext": {
+      "products": [
+        {
+          "productId": "hcm-offrg-wfn",
+          "productName": "workforce now",
+          "marketplaceProductName": "ADP Workforce Now\u00ae"
+        }
+      ]
+    },
+    "specCategoryCode": ""
+  },
+  "tags": [
+    {
+      "name": "Modify Time Entries",
+      "description": "Modify a set of time entries"
+    }
+  ],
+  "paths": {
+    "/events/time/v2/time-entries.modify": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "timeEntryManagement",
+        "functionCode": "timeSheetManagement",
+        "serviceCode": "timeLaborManagement",
+        "serviceCategoryCode": "time",
+        "canonicalName": "Modify Time Entries"
+      },
+      "post": {
+        "summary": "Modify Time Entries",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobilePSSTimeSheet",
+            "MobileMSSTimeSheet",
+            "MobileESSTimeSheet"
+          ],
+          "sorRequestTimeoutPolicies": {
+            "cachedTimeout": 3,
+            "notCachedTimeout": 10
+          },
+          "canonicalUri": "time/timeLaborManagement/timeEntryManagement/timeSheetManagement/timeEntries.modify",
+          "operationCode": "timeEntries.modify",
+          "operationId": "9ac8f6cc-0cb7-4fe9-a90a-dd0d85fbfea6",
+          "roleCodes": [
+            "practitioner",
+            "manager",
+            "employee"
+          ],
+          "performAuthIndicator": true,
+          "scenarios": [
+            {
+              "summary": "<p>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting <strong>Entry type code</strong> as <strong>Hours</strong>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</p><p>The API supports <strong>Add an Entry</strong>, <strong>Modify an Entry</strong>, and <strong>Remove an Entry</strong>.</p>",
+              "name": "11. Pair entry multiple employees modify with labor allocation codes",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Modify time entries event instance",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/11._Pair_entry_multiple_employees_modify_with_labor_allocation_codes_Custom_Example_timeEntries.modify_200_493712.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting <strong>Entry type code</strong> as <strong>Hours</strong>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</p><p>The API supports <strong>Add an Entry</strong>, <strong>Modify an Entry</strong>, and <strong>Remove an Entry</strong>.</p>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/11._Pair_entry_multiple_employees_modify_with_labor_allocation_codes_Custom_Example_timeEntries.modify_request_45649.json"
+                }
+              }
+            },
+            {
+              "summary": "<p>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting <strong>Entry type code</strong> as <strong>Hours</strong>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</p><p>The API supports <strong>Add an Entry</strong>, <strong>Modify an Entry</strong>, and <strong>Remove an Entry</strong>.</p>",
+              "name": "12. Pair entry multiple employees remove with labor allocation codes",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Modify time entries event instance",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/12._Pair_entry_multiple_employees_remove_with_labor_allocation_codes_Custom_Example_timeEntries.modify_200_493713.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting <strong>Entry type code</strong> as <strong>Hours</strong>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</p><p>The API supports <strong>Add an Entry</strong>, <strong>Modify an Entry</strong>, and <strong>Remove an Entry</strong>.</p>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/12._Pair_entry_multiple_employees_remove_with_labor_allocation_codes_Custom_Example_timeEntries.modify_request_45650.json"
+                }
+              }
+            },
+            {
+              "summary": "<p>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting <strong>Entry type code</strong> as&nbsp;<strong>Hours</strong>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</p><p>The API supports&nbsp;<strong>Add an Entry</strong>,&nbsp;<strong>Modify an Entry</strong>, and&nbsp;<strong>Remove an Entry</strong>.</p>",
+              "name": "10. Pair entry multiple employees add with labor allocation codes",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Modify time entries event instance",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/10._Pair_entry_multiple_employees_add_with_labor_allocation_codes_Custom_Example_timeEntries.modify_200_493711.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting <strong>Entry type code</strong> as&nbsp;<strong>Hours</strong>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</p><p>The API supports&nbsp;<strong>Add an Entry</strong>,&nbsp;<strong>Modify an Entry</strong>, and&nbsp;<strong>Remove an Entry</strong>.</p>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/10._Pair_entry_multiple_employees_add_with_labor_allocation_codes_Custom_Example_timeEntries.modify_request_45648.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "name": "8. Supplement multiple employee modify",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Modify time entries event instance",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/8._Supplement_multiple_employee_modify_Custom_Example_timeEntries.modify_200_352911.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/8._Supplement_multiple_employee_modify_Custom_Example_timeEntries.modify_request_31858.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "name": "4. Hourly multiple employee modify",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Modify time entries event instance",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/4._Hourly_multiple_employee_modify_Custom_Example_timeEntries.modify_200_352900.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/4._Hourly_multiple_employee_modify_Custom_Example_timeEntries.modify_request_31854.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "name": "2. Pair entry multiple employee add",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Modify time entries event instance",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/2._Pair_entry_multiple_employee_add_Custom_Example_timeEntries.modify_200_352898.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/2._Pair_entry_multiple_employee_add_Custom_Example_timeEntries.modify_request_31852.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "name": "9. Supplement multiple employee remove",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Modify time entries event instance",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/9._Supplement_multiple_employee_remove_Custom_Example_timeEntries.modify_200_352912.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/9._Supplement_multiple_employee_remove_Custom_Example_timeEntries.modify_request_31859.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "name": "6. Pair entry multiple employee modify",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Modify time entries event instance",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/6._Pair_entry_multiple_employee_modify_Custom_Example_timeEntries.modify_200_352909.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/6._Pair_entry_multiple_employee_modify_Custom_Example_timeEntries.modify_request_31856.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "name": "7. Pair entry multiple employee remove",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Modify time entries event instance",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/7._Pair_entry_multiple_employee_remove_Custom_Example_timeEntries.modify_200_352910.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/7._Pair_entry_multiple_employee_remove_Custom_Example_timeEntries.modify_request_31857.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "name": "1. Hourly multiple employee add",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Modify time entries event instance",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/1._Hourly_multiple_employee_add_Custom_Example_timeEntries.modify_200_352897.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Bad Request",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/1._Hourly_multiple_employee_add_Custom_Example_timeEntries.modify_400_352914.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/1._Hourly_multiple_employee_add_Custom_Example_timeEntries.modify_request_31851.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "name": "3. Supplement multiple employee add",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "",
+                    "Cache-Control": "",
+                    "sm_transactionid": "",
+                    "ETag": "",
+                    "ADP-Acting-SessionID": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Modify time entries event instance",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/3._Supplement_multiple_employee_add_Custom_Example_timeEntries.modify_200_352899.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/3._Supplement_multiple_employee_add_Custom_Example_timeEntries.modify_request_31853.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "name": "5. Hourly multiple employee remove",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Modify time entries event instance",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/5._Hourly_multiple_employee_remove_Custom_Example_timeEntries.modify_200_352906.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>Through the Time Entries Modify TLM API, the time entry can be done hourly by setting&nbsp;</span><strong>Entry type code</strong><span>&nbsp;as&nbsp;</span><strong>Hours</strong><span>. If only one employee record is sent in the request payload than it will be a sync call, if more than one employee than async call.</span><br><span>The API supports&nbsp;</span><strong>Add an Entry</strong><span>,&nbsp;</span><strong>Modify an Entry</strong><span>, and&nbsp;</span><strong>Remove an Entry</strong><span>.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/5._Hourly_multiple_employee_remove_Custom_Example_timeEntries.modify_request_31855.json"
+                }
+              }
+            }
+          ],
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ],
+          "globalViewDevPortalIndicator": true
+        },
+        "requestBody": {
+          "description": "posted contents",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas/events_time.timeEntries.modify_schema_v02_00_rev004.json"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "ADP-Acting-Session-Expires": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "sm_transactionid": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ADP-Acting-SessionID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Modify time entries event instance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/events_time.timeEntries.modify_schema_v02_00_rev004.json"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {}
+            }
+          },
+          "202": {
+            "$ref": "#/components/responses/202"
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "412": {
+            "$ref": "#/components/responses/412"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "405": {
+            "$ref": "#/components/responses/405"
+          },
+          "406": {
+            "$ref": "#/components/responses/406"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Modify time entries event instance",
+        "operationId": "9ac8f6cc-0cb7-4fe9-a90a-dd0d85fbfea6",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_user",
+            "description": "SiteMinder user ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_user: JJohns@Abc",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to - usuall injected by the API proxy, with few exceptions",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORUri",
+            "description": "Actual Uri within the SOR",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORContext",
+            "description": "Context within an SOR that the call should be routed to",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_serversessionid",
+            "description": "SiteMinder session ID.   Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_serversessionid: SoFpy8UMyhtXY6YsEumvXJbznFA=",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_userdn",
+            "description": "SiteMinder user LDAP distinguished name.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_userdn: uid=JJohns@Abc,ou=Users,o=Abc",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "ISI",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "realm",
+            "description": "The identity management realm, e.g. ISI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "en-US",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "Accept-Language' ': ' ( language | '*' ) [';' 'q' '='qvalue]. Specifies the language(s) that are acceptable for the response. The optional qvalue represents a quality level for acceptable languages.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Acting-SessionID",
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-AssociateOID",
+            "description": "Associate OID for the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_transactionid",
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header should be passed in all calls.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-AssociateOID",
+            "description": "Associate OID of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_auth_level",
+            "description": "SiteMinder autorization level.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_auth_level: 10",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        ],
+        "tags": [
+          "Modify Time Entries"
+        ]
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "202": {
+        "headers": {
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Succeeded",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "./schemas/timeCardsAsyncConfirm_schema_v01_00_rev001.json"
+            }
+          }
+        }
+      },
+      "400": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "412": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Precondition Failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "500": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "403": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "503": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Service Unavailable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "405": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Method Not Allowed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "406": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Acceptable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "429": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Too Many Requests",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}

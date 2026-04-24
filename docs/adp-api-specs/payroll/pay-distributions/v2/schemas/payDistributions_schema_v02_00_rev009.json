@@ -1,0 +1,1731 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "PayDistributions",
+  "description": "Pay distribution - collection of instructions how the net pay (one per a payroll agreement) should be distributed, e.g. via direct deposit, check, paycard, etc.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "payDistributions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestedStartDate": {
+            "description": "The date when the distribution instruction set will become or became effective.  May not be the same as the first execution date (payroll date)",
+            "$ref": "#/definitions/dateType_v01"
+          },
+          "distributionPurposeCode": {
+            "description": "The pay distribution (transfer) purpose,e.g. Salary, Travel Expenses, Pension Plan, etc.  Client should provide specific code list.  If no value is provided, Salary (payroll) distribution should be assumed",
+            "$ref": "#/definitions/codeType_v02"
+          },
+          "distributionStatusCode": {
+            "description": "The pay distribution status,e.g. Active, Inactive, Pending, etc.  Only one Active distribution should be allowed at any given point of time, while multiple Pending (future) distribution are possible",
+            "$ref": "#/definitions/statusType_v02"
+          },
+          "distributionInstructions": {
+            "type": "array",
+            "description": "Instructions how the net pay (one per a payroll agreement) should be distributed, e.g. via direct deposit, check, paycard, etc.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "precedenceCode": {
+                  "description": "Indicates the order of precedence for a given distribution, e.g. primary, secondary, etc.",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "instructionEffectivePeriod": {
+                  "description": "The date period for which the corresponding data is considered to be valid/in effect as an accurate representation of a real-world concept state on the timeline. The validity period may have no end (continues indefinitely).",
+                  "$ref": "#/definitions/dateTimePeriodType_v01"
+                },
+                "paymentMethodCode": {
+                  "description": "The method by which the distribution is made, e.g. Direct Deposit, Check, Cash, etc.",
+                  "$ref": "#/definitions/codeType_v02"
+                },
+                "bonusOnlyIndicator": {
+                  "description": "Indicate if this instruction is only applicable to bonus payments based on the configuration of the earning code",
+                  "$ref": "#/definitions/indicatorType_v01"
+                },
+                "instructionStatusCode": {
+                  "description": "Status of the related distributon instruction, e.g. active, incative, pending, etc.",
+                  "$ref": "#/definitions/statusType_v02"
+                },
+                "changeRestrictionStatus": {
+                  "description": "Status of the related distribution instruction, indicating if the instruction could be modified or not, along with the reason",
+                  "$ref": "#/definitions/statusReasonType_v01"
+                },
+                "depositAccount": {
+                  "description": "The distribution target, e.g. bank account info",
+                  "$ref": "#/definitions/depositAccountType_v02"
+                },
+                "payee": {
+                  "description": "The payee information if the distribution is made by a check",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "nameCode": {
+                      "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "codeValue": {
+                          "description": "The code for the related entity",
+                          "type": "string"
+                        },
+                        "shortName": {
+                          "description": "Short description of the related code",
+                          "type": "string"
+                        },
+                        "longName": {
+                          "description": "Long description of the related code",
+                          "type": "string"
+                        },
+                        "alternateID": {
+                          "description": "Alternate (identified by the scheme code) identification of the entity",
+                          "$ref": "#/definitions/IDType_v02"
+                        }
+                      }
+                    },
+                    "address": {
+                      "description": "The address of the party",
+                      "$ref": "#/definitions/organizationAddressType_v02"
+                    },
+                    "payeeName": {
+                      "description": "The name of the contact, if applicable",
+                      "$ref": "#/definitions/personNameType_v02"
+                    }
+                  }
+                },
+                "distributionAmount": {
+                  "description": "The pay distribution amount, expressed in the account currency. Only one value, either amount or percentage or remaining balance indicator (true) should be provided",
+                  "$ref": "#/definitions/amountType_v02"
+                },
+                "distributionPercentage": {
+                  "description": "The percentage of the net pay to be distributed as per the current distribution instruction.  Only one value, either amount or percentage or remaining balance indicator (true) should be provided",
+                  "$ref": "#/definitions/percentageType_v02"
+                },
+                "remainingBalanceIndicator": {
+                  "description": "Remaining balance indicator, to indicate if the entire remainder of the net pay should be distributed. Only one value, either amount or percentage or remaining balance indicator (true) should be provided",
+                  "$ref": "#/definitions/indicatorType_v01"
+                },
+                "prenote": {
+                  "description": "Set of attributes related to the pre-notification, e.g. bank verification of the account",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "prenoteOptionCode": {
+                      "description": "Indicates the type of pre-note.  Practitioner use only.",
+                      "$ref": "#/definitions/codeType_v01"
+                    },
+                    "prenoteDate": {
+                      "description": "Defines the date of pre-note.  Practitioner use only.",
+                      "$ref": "#/definitions/dateType_v01"
+                    },
+                    "prenoteDescription": {
+                      "description": "Human readabe prenote desctiption.  Practitioner use only.",
+                      "type": "string"
+                    }
+                  }
+                },
+                "thirdPartyBeneficiaryIndicator": {
+                  "description": "Indicates the 3rd party beneficiary",
+                  "$ref": "#/definitions/indicatorType_v01"
+                },
+                "itemID": {
+                  "$ref": "#/definitions/itemIDType_v01"
+                },
+                "prenoteIndicator": {
+                  "description": "Indicates if the pre-note is required based on the client company setup.  Response only",
+                  "$ref": "#/definitions/indicatorType_v01"
+                },
+                "actions": {
+                  "description": "Actions which the user is allowed to initiate against the related entity based on the context",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/actionType_v02"
+                  }
+                }
+              }
+            }
+          },
+          "actions": {
+            "description": "Actions which the user is allowed to initiate against the related entity based on the context",
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/actionType_v02"
+            }
+          },
+          "attestationIndicator": {
+            "description": "Indicates if the attestation was accepted and when",
+            "$ref": "#/definitions/effectiveDatedIndicatorType_v02"
+          },
+          "itemID": {
+            "description": "The unique identifier of the related pay distribution within a collection",
+            "$ref": "#/definitions/itemIDType_v01"
+          },
+          "workerID": {
+            "description": "An identifier for a worker, e.g. an Employee ID",
+            "$ref": "#/definitions/IDType_v02"
+          },
+          "payrollFileNumber": {
+            "description": "The payroll file number",
+            "$ref": "#/definitions/simpleIDType_v02"
+          },
+          "payrollAgreementDescription": {
+            "description": "Payroll Agreement description is a mechanism to provide the user with the job and or position context of a given payroll agreement, e.g. a file number. It should be readable, user-friendly and might be valued with job or position title(s) or perhaps with the work assignment description(s)",
+            "type": "string"
+          },
+          "payrollRegionCode": {
+            "description": "The region in which the payroll is processed",
+            "$ref": "#/definitions/codeType_v02"
+          },
+          "payrollGroupCode": {
+            "description": "The payroll group relevant to payroll processing",
+            "$ref": "#/definitions/codeType_v02"
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/linkType_v02"
+            }
+          }
+        }
+      }
+    },
+    "meta": {
+      "description": "Meta contains the metadata associated with a response.  A GET response may include metadata to support pagination",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "startSequence": {
+          "description": "The instance resource sequence (number) identifying the first resource returned in the response. The server generates this sequence.  It is used by the client to determine the start sequence of the subsequent Get request",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "completeIndicator": {
+          "description": "Indicates whether the response completes the return of all of the resources of the instance resource set to the requesting system",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "number": {
+          "description": "Number of instance resources in the response",
+          "type": "integer"
+        },
+        "totalNumber": {
+          "description": "Number of total instance resources in an instance resource set. Note: An instance resource set is a set of instance resources that is determined by a server to satisfy the sets membership criteria (i.e., selection, filter, expansion and search criteria) of a resource management operation (e.g. GET request) upon a collection resource",
+          "type": "integer"
+        },
+        "resourceSetID": {
+          "description": "Unique identifier of the instance resource set.  It is generated by the server as a result of the original Get request",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        },
+        "workflowIndicator": {
+          "description": "Indicates that the current pay distribution is in under review (part of the approval workflow)",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "fullNetDirectDepositIndicator": {
+          "description": "Indicates that the full net pay must be allocated to direct deposit instruction(s), e.g. no cash or check options",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "allowAccountTypeReuseIndicator": {
+          "description": "Indicates if multiple instructions could be set for the same account type, e.g., multiple checking or savings accounts",
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "permissions": {
+          "description": "Collection of permissions related to the pay distributions",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/operationBaseType_v02"
+          }
+        }
+      }
+    },
+    "confirmMessage": {
+      "$ref": "#/definitions/confirmMessageType_v01"
+    }
+  },
+  "definitions": {
+    "dateType_v01": {
+      "description": "The string representation of the date value. Follows the ISO-8601:2000 format",
+      "type": "string",
+      "format": "date"
+    },
+    "codeType_v02": {
+      "description": "The code for the related entity.  If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        }
+      }
+    },
+    "statusType_v02": {
+      "description": "Status to include the status code and effective date (ISO-8601:2000 format)",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        },
+        "effectiveDate": {
+          "$ref": "#/definitions/dateType_v01"
+        }
+      }
+    },
+    "dateTimePeriodType_v01": {
+      "description": "The string reprersentation of the date range. Used to specify effective period.  Follows the ISO-8601:2000 format.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "startDateTime": {
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "endDateTime": {
+          "$ref": "#/definitions/dateTimeType_v01"
+        }
+      }
+    },
+    "dateTimeType_v01": {
+      "description": "The string reprersentation of the date-time value. Follows the ISO-8601:2000 format",
+      "type": "string",
+      "format": "date-time"
+    },
+    "indicatorType_v01": {
+      "description": "Boolean expression",
+      "type": "boolean"
+    },
+    "statusReasonType_v01": {
+      "description": "Status to include the status code, effective date (ISO-8601:2000 format) and the reason for change",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity.",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code not to exceed 25 characters",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        },
+        "effectiveDate": {
+          "$ref": "#/definitions/dateType_v01"
+        },
+        "reasonCode": {
+          "$ref": "#/definitions/codeType_v01"
+        }
+      }
+    },
+    "codeType_v01": {
+      "description": "The code for the related entity",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity.",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code not to exceed 25 characters",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        }
+      }
+    },
+    "depositAccountType_v02": {
+      "description": "Bank account info",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountID": {
+          "description": "An account ID, other than an account number, used for varios purposes, e.g. alias, etc.",
+          "$ref": "#/definitions/IDType_v02"
+        },
+        "BBAN": {
+          "description": "Basic Bank Account Number. The BBAN format is decided by each national banking community under the restriction that it must be of a fixed length of case-insensitive alphanumeric characters. It includes the domestic bank account number, branch identifier, and potential routing information",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "IBAN": {
+          "description": "International Bank Account Number. The IBAN consists of up to 34 alphanumeric characters: first the two-letter ISO 3166-1 alpha-2 country code, then two check digits, and finally a country-specific Basic Bank Account Number (BBAN). The check digits enable a sanity check of the bank account number to confirm its integrity even before submitting a transaction. ",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "UPIC": {
+          "description": "Universal Payment Identification Code. A UPIC is an identifier (or banking address) for a bank account in the United States used to receive electronic credit payments. A UPIC acts exactly like a US bank account number and protects your sensitive banking information. The actual bank account number, including the bank's routing transit number, is masked by the UPIC. Only credit transactions to an account can be initiated with a UPIC. All direct debits are blocked which should mitigate unauthorized transactions to an account.",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "financialParty": {
+          "description": "The account where the moneis are to be distributed",
+          "$ref": "#/definitions/financialPartyType_v02"
+        },
+        "financialAccount": {
+          "description": "The account where the moneis are to be distributed",
+          "$ref": "#/definitions/financialAccountType_v02"
+        }
+      }
+    },
+    "IDType_v02": {
+      "description": "The unique identifier of the related entity ",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "idValue": {
+          "description": "An actual ID value",
+          "type": "string"
+        },
+        "schemeCode": {
+          "description": "The scheme code",
+          "$ref": "#/definitions/codeType_v02"
+        }
+      }
+    },
+    "simpleIDType_v02": {
+      "description": "The simple (string) identifier of an object",
+      "type": "string"
+    },
+    "financialPartyType_v02": {
+      "description": "An institution, such as a bank, building society, credit union, stock brokerage, or similar business; established primarily to provide financial services and financial transactions",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nameCode": {
+          "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "codeValue": {
+              "description": "The code for the related entity",
+              "type": "string"
+            },
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "alternateID": {
+              "description": "Alternate (identified by the scheme code) identification of the entity",
+              "$ref": "#/definitions/IDType_v02"
+            }
+          }
+        },
+        "address": {
+          "description": "The address of the party",
+          "$ref": "#/definitions/organizationAddressType_v02"
+        },
+        "financialPartyID": {
+          "description": "The unique identifier of the associated party entity",
+          "$ref": "#/definitions/IDType_v02"
+        },
+        "SWIFTCode": {
+          "description": "Identifies a standard format of Business Identifier Codes approved by the International Organization for Standardization (ISO). It is a unique identification code for both financial and non-financial institutions. The acronym SWIFT stands for the Society for Worldwide Interbank Financial Telecommunication.  The SWIFT code consists of 8 or 11 characters. When 8-digits code is given, it refers to the primary office. First 4 characters - bank code (only letters), next 2 characters - ISO 3166-1 alpha-2 country code (only letters), next 2 characters - location code (letters and digits) (passive participant will have 1 in the second character). Last 3 characters - branch code",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "branchNameCode": {
+          "description": "Branch code / number used to compose the routing id, along with the name if applicable",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "routingTransitID": {
+          "description": "A routing (transit) number is a bank code used to facilitate automated monetary transfers, e.g. as issued by the American Bankers Association or the Canadian Payments Association or EU",
+          "$ref": "#/definitions/IDType_v02"
+        },
+        "communication": {
+          "description": "Communication mechanisms, e,g, phone, email, etc",
+          "$ref": "#/definitions/communicationType_v02"
+        }
+      }
+    },
+    "organizationAddressType_v02": {
+      "description": "organization address objects / components",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nameCode": {
+          "description": "A descriptive coded name of the address",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "attentionOfName": {
+          "description": "Attention of Name",
+          "type": "string"
+        },
+        "careOfName": {
+          "description": "Care Of Name",
+          "type": "string"
+        },
+        "lineOne": {
+          "description": "Line One of Street Address Information",
+          "type": "string"
+        },
+        "lineTwo": {
+          "description": "Line Two of Street Address Information",
+          "type": "string"
+        },
+        "lineThree": {
+          "description": "Line Three of Street Address Information",
+          "type": "string"
+        },
+        "cityName": {
+          "description": "A city in the context of an address",
+          "type": "string"
+        },
+        "countrySubdivisionLevel1": {
+          "description": "A country subdivision correlating to a administrative level one level below country. For example, in the United States, this would be a state",
+          "$ref": "#/definitions/countrySubdivisionType_v02"
+        },
+        "countryCode": {
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "postalCode": {
+          "description": "The string of characters used to identify the postal code",
+          "type": "string"
+        },
+        "geoCoordinate": {
+          "description": "The coordinates of the location of the address",
+          "$ref": "#/definitions/coordinateType_v02"
+        },
+        "typeCode": {
+          "description": "The type of the related address entity",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "scriptCode": {
+          "description": "The type of script the in which the associated entity is represented. Associated codelist is ISO15924-A. Use the alpha-4 representation versus the single digit numeric representation. Format is lowercase with initial letter capitalized. For example, Cyrillic is Cyrl",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "lineFour": {
+          "description": "Line Four of Street Address Information",
+          "type": "string"
+        },
+        "lineFive": {
+          "description": "Line Five of Street Address Information",
+          "type": "string"
+        },
+        "buildingNumber": {
+          "description": "The number of a building in the context of a physical address, e.g. House Number",
+          "type": "string"
+        },
+        "buildingNumberExtension": {
+          "description": "Additional value to supplememnt number of a building in the context of a physical address, e.g. section, etc.",
+          "type": "string"
+        },
+        "buildingName": {
+          "description": "The name of a building in the context of a physical address, e.g. Rockefeller Center",
+          "type": "string"
+        },
+        "blockName": {
+          "description": "The name the block",
+          "type": "string"
+        },
+        "streetName": {
+          "description": "The name of the street",
+          "type": "string"
+        },
+        "streetTypeCode": {
+          "description": "The type of street, e.g. Lane, Passage, Way",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "unit": {
+          "description": "A unit in the context of an address, e.g. an Apartment Number or an Office",
+          "type": "string"
+        },
+        "floor": {
+          "description": "A floor in the context of an address",
+          "type": "string"
+        },
+        "stairCase": {
+          "description": "A reference to a particular staircase in the context of an address",
+          "type": "string"
+        },
+        "door": {
+          "description": "A reference to a particular door in the context of an address. e.g. Apartment Number",
+          "type": "string"
+        },
+        "postOfficeBox": {
+          "description": "A post office box",
+          "type": "string"
+        },
+        "deliveryPoint": {
+          "description": "A way to identify a specific delivery location, e.g. a mail-stop",
+          "type": "string"
+        },
+        "plotID": {
+          "description": "A way to identify a building plot, e.g. a specific building construction site",
+          "type": "string"
+        },
+        "countrySubdivisionLevel2": {
+          "description": "A country subdivision correlating to a administrative level two levels below country. For example, in the United States, this might be a county",
+          "$ref": "#/definitions/countrySubdivisionType_v02"
+        }
+      }
+    },
+    "countrySubdivisionType_v02": {
+      "description": "A country sub-division correlating to a administrative level one or two levels below country. For example, in the United States, this might be a state or a county",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code for the related entity",
+          "type": "string"
+        },
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        },
+        "subdivisionType": {
+          "description": "The type of a country sub-division, e.g. state, county",
+          "type": "string"
+        }
+      }
+    },
+    "simpleCodeType_v02": {
+      "description": "A simple (string) code.  Can have a code list reference",
+      "type": "string"
+    },
+    "coordinateType_v02": {
+      "description": "The coordinates of the location",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "latitude": {
+          "description": "The angle, in degrees, of a position on Earth above the equator. (Latitude is negative for a place below the equator.) specified in decimal degrees",
+          "type": "number"
+        },
+        "longitude": {
+          "description": "The angle, in degrees, of a position on Earth around the equator from the Greenwich Meridian specified in decimal degrees",
+          "type": "number"
+        }
+      }
+    },
+    "communicationType_v02": {
+      "description": "Communication objects to include various communication mechanisms, e,g, phone, email, etc.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "landlines": {
+          "description": "A list of land-line telephone numbers",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "countryDialing": {
+                "description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country.  ",
+                "type": "string"
+              },
+              "areaDialing": {
+                "description": "The local area dialing code for a telephone number.",
+                "type": "string"
+              },
+              "dialNumber": {
+                "description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+                "type": "string"
+              },
+              "extension": {
+                "description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+                "type": "string"
+              },
+              "access": {
+                "description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1.",
+                "type": "string"
+              },
+              "formattedNumber": {
+                "description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as defined by the regex format specified.  Please note that \\ is used as an escape character in regex, but a double \\ is needed to escape within the json schema.  The regex will accept +CC NNNNNNNNNNNNNN where + is the symbol indicating the caller to enter their country specific code to call from outside the country.  CC is the country code for an international number (optional), and the area code and dial number.  The local access code (i.e. 1 (201) 333 4444. 1 is the access code in US) is not passed.  The UI will present the phone number following its own presentation convention",
+                "type": "string"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              },
+              "notificationIndicator": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "mobiles": {
+          "description": "A list of mobile telephone numbers",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "countryDialing": {
+                "description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country.  ",
+                "type": "string"
+              },
+              "areaDialing": {
+                "description": "The local area dialing code for a telephone number.",
+                "type": "string"
+              },
+              "dialNumber": {
+                "description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+                "type": "string"
+              },
+              "extension": {
+                "description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+                "type": "string"
+              },
+              "access": {
+                "description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1.",
+                "type": "string"
+              },
+              "formattedNumber": {
+                "description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as defined by the regex format specified.  Please note that \\ is used as an escape character in regex, but a double \\ is needed to escape within the json schema.  The regex will accept +CC NNNNNNNNNNNNNN where + is the symbol indicating the caller to enter their country specific code to call from outside the country.  CC is the country code for an international number (optional), and the area code and dial number.  The local access code (i.e. 1 (201) 333 4444. 1 is the access code in US) is not passed.  The UI will present the phone number following its own presentation convention",
+                "type": "string"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              },
+              "notificationIndicator": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "emails": {
+          "description": "A list of email addresses",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "title": "EmailContactCommunicationType",
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "emailUri": {
+                "description": "The URI of the associated email address",
+                "$ref": "#/definitions/emailUriType_v02"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              },
+              "notificationIndicator": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "socialNetworks": {
+          "description": "A list of social networks addresses",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "title": "SocialNetworkContactCommunicationType",
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "uri": {
+                "description": "The URI of the associated email address",
+                "$ref": "#/definitions/URIType_v01"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              },
+              "notificationIndicator": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "faxes": {
+          "description": "A list of fax telephone numbers",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "countryDialing": {
+                "description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country.  ",
+                "type": "string"
+              },
+              "areaDialing": {
+                "description": "The local area dialing code for a telephone number.",
+                "type": "string"
+              },
+              "dialNumber": {
+                "description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+                "type": "string"
+              },
+              "extension": {
+                "description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+                "type": "string"
+              },
+              "access": {
+                "description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1.",
+                "type": "string"
+              },
+              "formattedNumber": {
+                "description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as defined by the regex format specified.  Please note that \\ is used as an escape character in regex, but a double \\ is needed to escape within the json schema.  The regex will accept +CC NNNNNNNNNNNNNN where + is the symbol indicating the caller to enter their country specific code to call from outside the country.  CC is the country code for an international number (optional), and the area code and dial number.  The local access code (i.e. 1 (201) 333 4444. 1 is the access code in US) is not passed.  The UI will present the phone number following its own presentation convention",
+                "type": "string"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              },
+              "notificationIndicator": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "pagers": {
+          "description": "A list of pager telephone numbers",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "countryDialing": {
+                "description": "The country dialing code is the national prefix to be used when dialing TO that particular country FROM another country.  ",
+                "type": "string"
+              },
+              "areaDialing": {
+                "description": "The local area dialing code for a telephone number.",
+                "type": "string"
+              },
+              "dialNumber": {
+                "description": "The local communication number, not including country dialing or area dialing codes.   If component parts of the telephone number are being communicated then the dialNumber is required.",
+                "type": "string"
+              },
+              "extension": {
+                "description": "The extension of the local communication number.  In the case of a Telephone Number accessing a Pager Network, the extension may be the Pager Identification Number required to leave a message for the Pager Number (i.e. Pager Pin).  These are mutually exclusive.",
+                "type": "string"
+              },
+              "access": {
+                "description": "National Direct Dialing Prefix.  Also known as the trunk prefix or National Prefix.  It is the number to be dialed in a domestic telephone call, preceding any necessary area code and subscriber number (i.e. dial number).  When calling from outside of the country, the national direct dial prefix is omitted by the caller.  In Australia, Germany, and United Kingdom the trunk prefix is 0.  In the US and Canada it is 1.",
+                "type": "string"
+              },
+              "formattedNumber": {
+                "description": "The formatted telephone number.  The component parts of the telephone are put together into a presentation pattern as defined by the regex format specified.  Please note that \\ is used as an escape character in regex, but a double \\ is needed to escape within the json schema.  The regex will accept +CC NNNNNNNNNNNNNN where + is the symbol indicating the caller to enter their country specific code to call from outside the country.  CC is the country code for an international number (optional), and the area code and dial number.  The local access code (i.e. 1 (201) 333 4444. 1 is the access code in US) is not passed.  The UI will present the phone number following its own presentation convention",
+                "type": "string"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              },
+              "notificationIndicator": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "internetAddresses": {
+          "description": "A list of internet URIs",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "title": "InternetAddressWithItemID",
+            "additionalProperties": false,
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "uri": {
+                "description": "The URI of the associated email address",
+                "$ref": "#/definitions/URIType_v01"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              }
+            }
+          }
+        },
+        "instantMessages": {
+          "description": "A list of instant messages URIs",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "nameCode": {
+                "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary ",
+                "$ref": "#/definitions/codeType_v02"
+              },
+              "uri": {
+                "description": "The URI of the associated email address",
+                "$ref": "#/definitions/URIType_v01"
+              },
+              "itemID": {
+                "$ref": "#/definitions/itemIDType_v01"
+              },
+              "notificationIndicator": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "itemIDType_v01": {
+      "description": "The unique identifier of the object in a collection",
+      "$ref": "#/definitions/simpleIDType_v02"
+    },
+    "emailUriType_v02": {
+      "description": "The email URI of the related entity",
+      "type": "string",
+      "format": "email"
+    },
+    "URIType_v01": {
+      "description": "The URI of the related entity",
+      "type": "string",
+      "format": "uri"
+    },
+    "financialAccountType_v02": {
+      "description": "Bank account info",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountNumber": {
+          "description": "The unique identifier of the account where the moneis are to be distributed",
+          "$ref": "#/definitions/simpleIDType_v02"
+        },
+        "accountName": {
+          "description": "The name of the related account",
+          "type": "string"
+        },
+        "typeCode": {
+          "description": "The type of account, e.g. checking, savings, credit union, GL, etc.",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "currencyCode": {
+          "description": "The default account currency code. As per ISO 4212",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        },
+        "rollNumber": {
+          "description": "Roll numbers are used in the United Kingdom to identify individual accounts at a financial institution other than a bank, typically a building society or credit union, this is in addition to account number. ",
+          "$ref": "#/definitions/simpleIDType_v02"
+        }
+      }
+    },
+    "personNameType_v02": {
+      "description": "Object describing the details of a person name",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "givenName": {
+          "description": "The first name of the person",
+          "type": "string"
+        },
+        "middleName": {
+          "description": "Person middle name or initial",
+          "type": "string"
+        },
+        "familyName1": {
+          "description": "Person family name 1",
+          "type": "string"
+        },
+        "familyName2": {
+          "description": "Person family name 2",
+          "type": "string"
+        },
+        "formattedName": {
+          "description": "A formatted version of the person name",
+          "type": "string"
+        },
+        "nameCode": {
+          "description": "A coded name or descriptive label of the associated entity. If this is a coded value, codeValue and shortName should be used. If this is just a string value, only shortName is necessary",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "scriptCode": {
+          "description": "The type of script the name is in. Associated codelist is ISO15924-A. Use the alpha-4 representation versus the single digit numeric representation. Format is lowercase with inital letter capitalized. For example, Cyrillic is Cyrl",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "preferredSalutations": {
+          "description": "A list of preferred salutations",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/salutationType_v02"
+          }
+        },
+        "titlePrefixCodes": {
+          "description": "Person title Prefix Codes",
+          "type": "array",
+          "items": {
+            "description": "Person title Prefix Codes",
+            "$ref": "#/definitions/titleAffixType_v02"
+          }
+        },
+        "nickName": {
+          "description": "A preferred name, e.g. a nickname",
+          "type": "string"
+        },
+        "generationAffixCode": {
+          "description": "The generational affix of the person name, e.g. Jr, Sr",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "qualificationAffixCode": {
+          "description": "The qualification affix of the person name",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "titleAffixCodes": {
+          "description": "Person titles",
+          "type": "array",
+          "items": {
+            "description": "Person titles",
+            "$ref": "#/definitions/titleAffixType_v02"
+          }
+        },
+        "familyName1Prefix": {
+          "description": "Person family name pre-fix",
+          "type": "string"
+        },
+        "familyName2Prefix": {
+          "description": "Person family name pre-fix",
+          "type": "string"
+        },
+        "initials": {
+          "description": "Person initials",
+          "type": "string"
+        }
+      }
+    },
+    "salutationType_v02": {
+      "description": "A preferred salutation, e.g. Mr., Dr., etc.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "salutationCode": {
+          "description": "The saluation code",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "typeCode": {
+          "description": "The type of salutation, e.g. Professional, Social",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "sequenceNumber": {
+          "description": "The sequence or order of the salutation",
+          "$ref": "#/definitions/sequenceType_v01"
+        }
+      }
+    },
+    "sequenceType_v01": {
+      "description": "Sequence of a related entity when included in the collection or a group",
+      "type": "integer"
+    },
+    "titleAffixType_v02": {
+      "description": "Person titles, e.g. social, professional, generational, etc.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "affixCode": {
+          "description": "The title affix of the person name",
+          "$ref": "#/definitions/codeType_v02"
+        },
+        "sequenceNumber": {
+          "description": "The sequence or order of the title",
+          "$ref": "#/definitions/sequenceType_v01"
+        }
+      }
+    },
+    "amountType_v02": {
+      "description": "A representation of a monetary value",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "amountValue": {
+          "description": "The monetary value of the object in which the amount is associated",
+          "type": "number"
+        },
+        "currencyCode": {
+          "description": "Standard currency code as per ISO 4212",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        }
+      }
+    },
+    "percentageType_v02": {
+      "description": "A representation of a percentage value",
+      "type": "number"
+    },
+    "actionType_v02": {
+      "description": "Actions which the user is allowed to initiate against the related entity",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operationID": {
+          "description": "Identifies the operation of an action",
+          "type": "string"
+        },
+        "canonicalUri": {
+          "description": "A unique identifier of the feature/function/operation",
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "actionTypeCode": {
+          "description": "Identifies the type of action to be taken to fulfill the request.  Action can be a callback to a service to complete the action.  A callback requires the methodCode and uris to be returned.  An external link i.e. open a web page - requires the uris of the external link; An object reference is a reference to a related object within the application.  This is a canonical name which represents the object.  Based on this identifier, the application knows what view it needs to open.  The uris returns the data for the view.  For an object reference, the objectRefID, methodCode, and uris are required . modify indicates that a property is being modified",
+          "type": "string",
+          "enum": [
+            "callback",
+            "externalLink",
+            "objectReference",
+            "modify"
+          ]
+        },
+        "confirmationRequiredIndicator": {
+          "description": "True indicates that the application will prompt the user to confirm the action before it takes the action. False indicates that the action will be executed once selected by the user.",
+          "$ref": "#/definitions/indicatorDefaultType_v01"
+        },
+        "commentAllowedIndicator": {
+          "description": "True indicates that the SOR supports adding a comment when taking an action.",
+          "$ref": "#/definitions/indicatorDefaultType_v01"
+        },
+        "defaultIndicator": {
+          "description": "True indicates that this is the default action",
+          "$ref": "#/definitions/indicatorDefaultType_v01"
+        },
+        "sequence": {
+          "description": "Sequence indicates that the item in the array must be in a sequence in relation to the other items in the sequence.  The action must not ocurr before another action with a lower sequence",
+          "$ref": "#/definitions/sequenceType_v01"
+        },
+        "attestation": {
+          "description": "Optional text provided to the user when they take an action to affirm to be correct, true, or genuine. Requires confirmation indicator to be set to true.",
+          "$ref": "#/definitions/attestationType_v02"
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        }
+      }
+    },
+    "indicatorDefaultType_v01": {
+      "description": "Boolean expression",
+      "type": "boolean",
+      "default": false
+    },
+    "attestationType_v02": {
+      "description": "Optional text provided to the user when they take an action to affirm to be correct, true, or genuine. Requires confirmation indicator to be set to true",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "actionBlockIndicator": {
+          "description": "Action blocking flag.  True indicates that the user must acknowledge the text as specified in the attestation message, before the action can be taken.  False indicates that the action will be executed once selected by the user.",
+          "$ref": "#/definitions/indicatorDefaultType_v01"
+        },
+        "messageTxt": {
+          "description": "Message to present to the user.  This is mutuallly exclusive with the messageUri which is an external link to the message.  If the text is sizable and fairly static then it should be an external link which may be cached",
+          "type": "string"
+        },
+        "messageUri": {
+          "description": "URI of the attestation message, should be used instead of the messageTxt property if it can be cached",
+          "$ref": "#/definitions/URIType_v01"
+        }
+      }
+    },
+    "linkType_v02": {
+      "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "linkID": {
+          "description": "Simple (string) identifier of an object to be used when there is no appropriate specific named ID Type",
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9.$-_/]+$"
+        },
+        "href": {
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "rel": {
+          "description": "Indicates the nature of the relationship of the related resource to the resource that generated this representation",
+          "type": "string",
+          "enum": [
+            "alternate",
+            "create",
+            "canonical",
+            "describedby",
+            "edit-form",
+            "enclosure",
+            "full",
+            "related",
+            "root",
+            "self",
+            "up",
+            "search",
+            "first",
+            "last",
+            "next",
+            "previous",
+            "/adp/invoke",
+            "/adp/image",
+            "/adp/confirm-message",
+            "/adp/status-monitor",
+            "/adp/codelist",
+            "/adp/template",
+            "/adp/externalLink",
+            "/adp/validation",
+            "/adp/deeplink",
+            "/adp/attachment",
+            "/adp/workflow",
+            "/adp/consent"
+          ]
+        },
+        "canonicalUri": {
+          "description": "A unique identifier of the feature/function/operation, the link poins to",
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "title": {
+          "description": "This property defines a title for the link.  The value must be a string. User agents MAY use this title when presenting the link to the user",
+          "type": "string"
+        },
+        "targetSchema": {
+          "description": "This property is a schema that defines the expected structure of the JSON representation of the target of the link, if the target of the link is returned using JSON representation",
+          "type": "string"
+        },
+        "mediaType": {
+          "description": "The media type that the linked resource will return (Response)",
+          "type": "string",
+          "enum": [
+            "application/gzip",
+            "application/json",
+            "application/msword",
+            "application/pdf",
+            "application/postscript",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/xml",
+            "application/x-www-form-urlencoded",
+            "image/gif",
+            "image/jpeg",
+            "image/png",
+            "image/tiff",
+            "multipart/mixed",
+            "multipart/form-data",
+            "text/html",
+            "text/plain",
+            "application/vnd.visio",
+            "image/bmp",
+            "image/x-ms-bmp",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/vnd.ms-powerpoint",
+            "video/mp4",
+            "audio/mpeg",
+            "video/x-msvideo",
+            "video/x-ms-wmv",
+            "application/rtf",
+            "application/vnd.ms-outlook",
+            "text/csv",
+            "video/quicktime",
+            "application/zip",
+            "application/illustrator",
+            "text/xml"
+          ]
+        },
+        "method": {
+          "description": "The HTTP method code (HTTP Verb) traverse the link (GET, POST, PUT or DELETE)",
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "DELETE",
+            "PUT"
+          ]
+        },
+        "encType": {
+          "description": "If present, this property indicates a query media type format that the server supports for querying or posting to the collection of instances at the target resource.  The query can be suffixed to the target URI to query the collection with property-based constraints on the resources that SHOULD be returned from the server or used to post data to the resource (depending on the method). (Request)",
+          "type": "string",
+          "enum": [
+            "application/json",
+            "application/x-www-form-urlencoded"
+          ]
+        },
+        "schema": {
+          "description": "This property contains a schema which defines the acceptable structure of the submitted request.  For a GET request, this schema would define the properties for the query string and for a POST request, this would define the body",
+          "type": "string"
+        },
+        "payLoadArguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "argumentPath": {
+                "description": "Code value (typically a key field) of the code list item",
+                "type": "string"
+              },
+              "argumentValue": {
+                "description": "Code value (typically a key field) of the code list item",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "effectiveDatedIndicatorType_v02": {
+      "description": "Type to include the indicator and effective date (ISO-8601:2000 format)",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "indicatorValue": {
+          "$ref": "#/definitions/indicatorType_v01"
+        },
+        "effectiveDate": {
+          "$ref": "#/definitions/dateType_v01"
+        }
+      }
+    },
+    "operationBaseType_v02": {
+      "description": "Operation or capabilities which a user is authorized to by role",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "canonicalUri": {
+          "description": "A unique identifier of a capability",
+          "$ref": "#/definitions/URIType_v01"
+        },
+        "canonicalName": {
+          "description": "A human readable name which represents the capability. i.e. canonicalUri",
+          "type": "string"
+        }
+      }
+    },
+    "confirmMessageType_v01": {
+      "description": "The ConfirmMessage contains the processing results for the corresponding request.  A request may have its processing reported as: succeeded, partially failed, or failed.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "confirmMessageID": {
+          "description": "An identifier for the instance of the confirm message.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "createDateTime": {
+          "description": "The date & time that the message instance was generated.; follows the ISO-8601:2000 format: 2008-05-11T15:30:00-06:00.",
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "requestReceiptDateTime": {
+          "description": "The date & time that the request submitted by the client was received. Note, this timestamp may not be the same as the time the client actually submitted the request if there is a queuing mechanism between the client and server processing the request; it follows the ISO-8601:2000 format: 2008-05-11T15:30:00-06:00.",
+          "$ref": "#/definitions/dateTimeType_v01"
+        },
+        "protocolStatusCode": {
+          "description": "Protocol-specific response status code.",
+          "$ref": "#/definitions/codeType_v01"
+        },
+        "protocolCode": {
+          "description": "Code that identifies the protocol used for the request.",
+          "$ref": "#/definitions/codeType_v01"
+        },
+        "requestID": {
+          "description": "The identifier of the request that generated this response.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "requestStatusCode": {
+          "description": "The process results status code for the request.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "succeeded",
+                "partiallyFailed",
+                "failed"
+              ]
+            }
+          }
+        },
+        "requestMethodCode": {
+          "description": "The method that was used on the request corresponding to this message instance.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "GET",
+                "PUT",
+                "POST",
+                "PATCH",
+                "DELETE"
+              ]
+            }
+          }
+        },
+        "sessionID": {
+          "description": "A session identifier if one is available.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "requestETag": {
+          "description": "The entity tag of the entity in the request.",
+          "type": "string"
+        },
+        "requestLink": {
+          "description": "The link of the request that generated this response.",
+          "$ref": "#/definitions/linkType_v02"
+        },
+        "processingStatusCode": {
+          "description": "Processing status of the related request message.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "received",
+                "validated",
+                "started",
+                "in-progress",
+                "completed"
+              ]
+            }
+          }
+        },
+        "processMessages": {
+          "description": "processMessage is optional and contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).  Most often there will be a single instance for an associated request or resource, but this structure allows for more than one if needed, for example, if multiple errors exist for a single resource. ",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/processMessage_v01"
+          }
+        },
+        "resourceMessages": {
+          "description": "resource Message contains the resource-specific processing results for resources being managed in the request.  A resource may have its processing reported as:  succeeded or failed.  It must be used to represent resource-specific messages.  In the case of a request managing multiple resources and resource-specific messages are to be returned, then this array will contain one object for each such resource of the request.",
+          "type": "array",
+          "items": {
+            "description": "Each object contains detailed information for a resource referenced in the original request.",
+            "type": "object",
+            "properties": {
+              "resourceMessageID": {
+                "description": "An identifier for the instance of the resource message.",
+                "$ref": "#/definitions/IDType_v01"
+              },
+              "resourceStatusCode": {
+                "description": "The processing results status code of the resource of the request.",
+                "type": "object",
+                "additionalProperties": false,
+                "title": "ResourceMessageResourceStatus",
+                "properties": {
+                  "shortName": {
+                    "description": "Short description of the related code",
+                    "type": "string"
+                  },
+                  "longName": {
+                    "description": "Long description of the related code",
+                    "type": "string"
+                  },
+                  "codeValue": {
+                    "description": "The code for the related entity.",
+                    "type": "string",
+                    "enum": [
+                      "succeeded",
+                      "failed",
+                      "warning"
+                    ]
+                  }
+                }
+              },
+              "resourceLink": {
+                "description": "The link of the request that generated this response.",
+                "$ref": "#/definitions/linkType_v02"
+              },
+              "processMessages": {
+                "description": "processMessage is optional and contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).  Most often there will be a single instance for an associated request or resource, but this structure allows for more than one if needed, for example, if multiple errors exist for a single resource. ",
+                "type": "array",
+                "items": {
+                  "title": "ProcessMessageWithResourceStatusCode",
+                  "description": "Each object contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "processMessageID": {
+                      "description": "An identifier for the instance of the process message.",
+                      "$ref": "#/definitions/IDType_v01"
+                    },
+                    "messageTypeCode": {
+                      "description": "Process Message instances may be of type: success, warning, error, or info.",
+                      "$ref": "#/definitions/messageTypeCodeType_v01"
+                    },
+                    "sourceLocationExpression": {
+                      "description": "Expression that provides the location (or source) of content in a message instance that is associated with a process message. Examples of expression languages include: XPath, XQuery, JSON Pointer.",
+                      "type": "string"
+                    },
+                    "expressionLanguageCode": {
+                      "description": "Identifies the language used for expressions communicated in this message.",
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "shortName": {
+                          "description": "Short description of the related code",
+                          "type": "string"
+                        },
+                        "longName": {
+                          "description": "Long description of the related code",
+                          "type": "string"
+                        },
+                        "codeValue": {
+                          "description": "The code for the related entity.",
+                          "type": "string",
+                          "enum": [
+                            "jPath"
+                          ]
+                        }
+                      }
+                    },
+                    "links": {
+                      "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/linkType_v02"
+                      }
+                    },
+                    "userMessage": {
+                      "description": "Message returned to the user",
+                      "$ref": "#/definitions/messageType_v01"
+                    },
+                    "developerMessage": {
+                      "description": "Message returned to the user",
+                      "$ref": "#/definitions/messageType_v01"
+                    },
+                    "clientActionTypeCode": {
+                      "description": "Code that identifies the action to be taken by the client application upon receiving the message",
+                      "$ref": "#/definitions/simpleCodeType_v02"
+                    },
+                    "resourceStatusCode": {
+                      "description": "DEPRECATED - Use messageTypeCode instead. The processing results status code of the resource of the request.",
+                      "$ref": "#/definitions/codeType_v01"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "IDType_v01": {
+      "description": "The unique identifier of the related entity ",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "idValue": {
+          "description": "An ID",
+          "type": "string"
+        },
+        "schemeName": {
+          "description": "The type of ID",
+          "type": "string"
+        },
+        "schemeAgencyName": {
+          "description": "The agency that issues the ID",
+          "type": "string"
+        }
+      }
+    },
+    "processMessage_v01": {
+      "description": "Each object contains processing information for either the request (at the ConfirmMessage level) or a resource being managed in the request (at the ResourceMessage level).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "processMessageID": {
+          "description": "An identifier for the instance of the process message.",
+          "$ref": "#/definitions/IDType_v01"
+        },
+        "messageTypeCode": {
+          "description": "Process Message instances may be of type: success, warning, error, or info.",
+          "$ref": "#/definitions/messageTypeCodeType_v01"
+        },
+        "sourceLocationExpression": {
+          "description": "Expression that provides the location (or source) of content in a message instance that is associated with a process message. Examples of expression languages include: XPath, XQuery, JSON Pointer.",
+          "type": "string"
+        },
+        "expressionLanguageCode": {
+          "description": "Identifies the language used for expressions communicated in this message.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "shortName": {
+              "description": "Short description of the related code",
+              "type": "string"
+            },
+            "longName": {
+              "description": "Long description of the related code",
+              "type": "string"
+            },
+            "codeValue": {
+              "description": "The code for the related entity.",
+              "type": "string",
+              "enum": [
+                "jPath"
+              ]
+            }
+          }
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        },
+        "userMessage": {
+          "description": "Message returned to the user",
+          "$ref": "#/definitions/messageType_v01"
+        },
+        "developerMessage": {
+          "description": "Message returned to the user",
+          "$ref": "#/definitions/messageType_v01"
+        },
+        "clientActionTypeCode": {
+          "description": "Code that identifies the action to be taken by the client application upon receiving the message",
+          "$ref": "#/definitions/simpleCodeType_v02"
+        }
+      }
+    },
+    "messageTypeCodeType_v01": {
+      "description": "Schema describing the type of the user or developer message",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "shortName": {
+          "description": "Short description of the related code",
+          "type": "string"
+        },
+        "longName": {
+          "description": "Long description of the related code",
+          "type": "string"
+        },
+        "codeValue": {
+          "description": "The code for the related entity.",
+          "type": "string",
+          "enum": [
+            "success",
+            "warning",
+            "error",
+            "info"
+          ]
+        }
+      }
+    },
+    "messageType_v01": {
+      "description": "Representation of a message.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "codeValue": {
+          "description": "The code associated with the message description.",
+          "type": "string"
+        },
+        "title": {
+          "description": "Title of the message description.",
+          "type": "string"
+        },
+        "messageTxt": {
+          "description": "The value/content of the message description.",
+          "type": "string"
+        },
+        "messageArguments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "argumentName": {
+                "description": "Argument name to be passed in",
+                "type": "string"
+              },
+              "argumentPath": {
+                "description": "Argument path if referenced within the same schema",
+                "type": "string"
+              },
+              "argumentValue": {
+                "description": "Argument name to be passed in",
+                "type": "string"
+              }
+            },
+            "required": [
+              "argumentValue"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "links": {
+          "description": "A link description object is used to describe link relations.  In the context of a schema, it defines the link relations of the instances of the schema, and can be parameterized by the instance values.  The link description format can be used on its own in regular (non-schema documents), and use of this format can be declared by referencing the normative link description schema as the the schema for the data structure that uses the links.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/linkType_v02"
+          }
+        },
+        "messageTypeCode": {
+          "$ref": "#/definitions/messageTypeCodeType_v01"
+        }
+      }
+    }
+  }
+}

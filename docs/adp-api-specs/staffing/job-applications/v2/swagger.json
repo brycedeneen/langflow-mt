@@ -1,0 +1,2482 @@
+{
+  "openapi": "3.0.1",
+  "servers": [
+    {
+      "url": "https://__host__/"
+    }
+  ],
+  "info": {
+    "contact": {
+      "name": "Kelly Ortman",
+      "email": "kelly.ortman@adp.com"
+    },
+    "description": "The Job Applications V2 Application Programming Interface (API) is used to retrieve details of a job application or a list of applications. For more information, see <a href=\"https://developers.adp.com/articles/guides/job-applications-v2-api-guide-for-adp-workforce-now\" rel=\"noopener noreferrer\" target=\"_blank\">Job Applications V2 API Guide</a>",
+    "title": "Job Applications",
+    "version": "2.0.9"
+  },
+  "x-adpSpecData": {
+    "domain": "Staffing",
+    "specId": "9a45d7fb-6303-4fbc-98e0-24d161a06a99",
+    "canonicalSpecId": "5376b578-acd8-4b8a-81ff-52a5a0838a2a",
+    "specStatusCode": "modified",
+    "specTypeCode": "REST",
+    "specStateCode": "active",
+    "nonStandardIndicator": false,
+    "visibilityCodes": [
+      "internal",
+      "external"
+    ],
+    "filename": "job-applications-swagger_v2-merged.json",
+    "serviceProviderId": "ADPRECRUIT",
+    "resourcePath": "staffing/job-applications/v2",
+    "libraryVersion": "",
+    "businessRules": [
+      {
+        "rule": "R3.2",
+        "ruleTitle": "/data/transform is only used during the recording of the event.  The transform is the data that is provided by a user/machine to complete the recording of the event.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R8.1",
+        "ruleTitle": "An event notification includes the /data/eventContext and /data/output objects.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R6.1",
+        "ruleTitle": "An event instance which is being \u201cworked on\u201d has an event.status.code=inprogress",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R6.2",
+        "ruleTitle": "An event instance which has been recorded has an event.status.code=complete",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.4",
+        "ruleTitle": "/data/output may be provided during the recording of the event showing the intermediary results.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R5.1",
+        "ruleTitle": "The only information that must be valued in the meta for the events header are the standard codelist references for priorityCode, eventStatusCode, and serviceCategoryCode",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.0",
+        "ruleTitle": "creationDateTime is the date that the event is created.  If a System of Record creates the event instance then it sets the creationDateTime.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.3",
+        "ruleTitle": "/data/output communicates the result of the event instance.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "US Person Birth Year",
+        "ruleTitle": "**Masking [Pattern:](/library/patterns/#revealmasked)**\u00a0XXXX-01-15\u00a0(mask year)  **Reveal Operation Canonical ID:\u00a0**  /core/accessManagement/sensitiveDataManagement/birthDateManagement/usBirthDateYear.reveal",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R15.1",
+        "ruleTitle": "An SOR may return an HTTP 503 when they are down for a scheduled maintenance or for an outage.If an SOR is planning a maintenance window then they should plan on having an end point available to return the 503 with a standard confirmMessage.  The confirmMessage will contain a message stating the date and timeframe that the maintenance window is for.The SOR should return the Retry-After response-header field with the Date and Time when they expect the system to be available.  E.g. \u00a7  Retry-After: Fri, 31 Dec 1999 23:59:59 GMT  This does not need to be handled dynamically.  They can set the time that their maintenance window ends.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R5.0",
+        "ruleTitle": "Meta returns the context rules for each data section",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R0.1",
+        "ruleTitle": "If request contains ADP-Act-As-OrgOID, ADP-Act-As-AssociateOID and ADP-Acting-SessionID header values, SOR MUST use ADP-Act-As-AssociateOID header value to authorize the data requested, NOT associateoid header value to authorize the data.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R8.2",
+        "ruleTitle": "An event notification does not include the transform or meta objects.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R0.3",
+        "ruleTitle": "For Act-As or On-Behalf-Of requests, header 'Cache-Control: no-store' MUST be set to indicate on server or on UI the response object SHOULD not be cached",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.4",
+        "ruleTitle": "If there is no effective date from a business perspective then the effective date should be set equal to the record date time.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R8.3",
+        "ruleTitle": "A self link is included in the /data/links with 1 links item with the following 2 properties: rel=\u201dself\u201d href=\u201d/events-notifications/{domain}/v1/{event-name}/{eventID}\u201d",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.5",
+        "ruleTitle": "A complete event has /data/eventContext and /data/output",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R1.0",
+        "ruleTitle": "event.id is generated once an event is recorded with a event.status.code=complete",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.6",
+        "ruleTitle": "An event which is being recorded includes the /data/eventContext and the /data/transform during the composition phase (i.e. recording of the event).",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.1",
+        "ruleTitle": "/data/input is optional.  Input communicates data that is needed to complete recording the event instance.  An example is a benefits.enroll event.  The input communicates the benefitOfferings (the choices) that the user has to make which are communicated in the transform.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R0.2",
+        "ruleTitle": "If request contains ADP-On-Behalf-Of-OrgOID, ADP-On-Behalf-Of-AssociateOID and ADP-Acting-SessionID header values, SOR MUST use ADP-On-Behalf-Of-AssociateOID header value to authorize the data requested, NOT associateoid header value to authorize the data.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.1",
+        "ruleTitle": "If the event is declared by an actor then the creationDateTime is the date time when the first call is made to the System of Record.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.0",
+        "ruleTitle": "/data/schemaContext communicates the keys and properties that relate the event instance to a concrete concept (e.g. associate).",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R4.0",
+        "ruleTitle": "All envelope data is set by the System of Record (e.g. event.ID, creationDateTime, recordDateTime, event.status.code, etc\u2026",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.2",
+        "ruleTitle": "The recordDateTime is the date time which the event is recorded in the system of record with an event.status.code=complete",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R6.0",
+        "ruleTitle": "An event instance may be created by a System of record for a user to complete. This event instance will have a event.status.code=created",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.3",
+        "ruleTitle": "effectiveDateTime is the date that the event is effective from a business perspective",
+        "visibilityCodes": [
+          "internal"
+        ]
+      }
+    ],
+    "testCaseCollection": {
+      "example": {
+        "href": "WFN_CG_Job_applications.postman_collection.json"
+      },
+      "description": "WFN_CG_Job_applications.postman_collection"
+    },
+    "publicationContext": {
+      "products": [
+        {
+          "productId": "hcm-offrg-wfn",
+          "productName": "workforce now",
+          "marketplaceProductName": "ADP Workforce Now\u00ae"
+        }
+      ]
+    },
+    "specCategoryCode": ""
+  },
+  "tags": [
+    {
+      "name": "Job Applications",
+      "description": "List all job applications"
+    }
+  ],
+  "paths": {
+    "/staffing/v2/job-applications/{job-application-id}": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "positionSeekerManagement",
+        "functionCode": "applicantManagement",
+        "serviceCode": "staffingManagement",
+        "serviceCategoryCode": "staffing",
+        "canonicalName": "Job Applications"
+      },
+      "get": {
+        "summary": "Job Application",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobileMSSStaffing",
+            "MobileESSStaffing",
+            "MobilePSSStaffing"
+          ],
+          "canonicalUri": "staffing/staffingManagement/positionSeekerManagement/applicantManagement/jobApplication.read",
+          "sorRequestTimeoutPolicies": {
+            "cachedTimeout": 3,
+            "notCachedTimeout": 10
+          },
+          "operationCode": "jobApplication.read",
+          "operationId": "ab513f15-9bdb-4991-ad9d-c6a32b557dfb",
+          "roleCodes": [
+            "manager",
+            "employee",
+            "practitioner"
+          ],
+          "performAuthIndicator": true,
+          "scenarios": [
+            {
+              "summary": "<p>Retrieve a single job application.&nbsp;</p><p>The itemID the response is referred to as the job application-id. This id can be used as an input to the Job Applications V2 API to retrieve information for a single job application.</p><p><span style='color: rgb(33, 33, 37); font-family: CircularXX, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;'>You may encounter exceptions outside your common success scenarios. You must account for these exceptions during your initial development.&nbsp;</span><span style='box-sizing: border-box; color: rgb(33, 33, 37); font-family: CircularXX, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>For more information, see&nbsp;</span><a href=\"https://developers.adp.com/articles/general/api-common-exceptions-and-tips-for-handling?query=API%20Common%20Exceptions%20and%20Tips%20for%20HAndling\" style='box-sizing: border-box; background-color: rgb(255, 255, 255); color: rgb(8, 98, 116); font-weight: 400; text-decoration: none; outline: 0px; font-family: CircularXX, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px;' target=\"_blank\">API Common Exceptions and Tips for Handling</a><span style='box-sizing: border-box; color: rgb(33, 33, 37); font-family: CircularXX, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>.</span><span style='color: rgb(33, 33, 37); font-family: CircularXX, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;'>&nbsp;</span> </p>",
+              "name": "Retrieve a single job application.",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Returns a single job application.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Retrieve_a_single_job_application._Provide_Example_jobApplication.read_200_44151.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "500",
+                  "description": "Returns when clientRequisitionID is sent in single or double quotes using filter.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Retrieve_a_single_job_application._Provide_Example_jobApplication.read_500_44156.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>Retrieve a single job application.&nbsp;</p><p>The itemID the response is referred to as the job application-id. This id can be used as an input to the Job Applications V2 API to retrieve information for a single job application.</p><p><span style='color: rgb(33, 33, 37); font-family: CircularXX, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;'>You may encounter exceptions outside your common success scenarios. You must account for these exceptions during your initial development.&nbsp;</span><span style='box-sizing: border-box; color: rgb(33, 33, 37); font-family: CircularXX, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>For more information, see&nbsp;</span><a href=\"https://developers.adp.com/articles/general/api-common-exceptions-and-tips-for-handling?query=API%20Common%20Exceptions%20and%20Tips%20for%20HAndling\" style='box-sizing: border-box; background-color: rgb(255, 255, 255); color: rgb(8, 98, 116); font-weight: 400; text-decoration: none; outline: 0px; font-family: CircularXX, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px;' target=\"_blank\">API Common Exceptions and Tips for Handling</a><span style='box-sizing: border-box; color: rgb(33, 33, 37); font-family: CircularXX, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;'>.</span><span style='color: rgb(33, 33, 37); font-family: CircularXX, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;'>&nbsp;</span> </p>"
+            }
+          ],
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ],
+          "globalViewDevPortalIndicator": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "ADP-Acting-Session-Expires": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "sm_transactionid": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ADP-Acting-SessionID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Returns a job application",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/jobApplications_schema_v02_00_rev010.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "412": {
+            "$ref": "#/components/responses/412"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "413": {
+            "$ref": "#/components/responses/413"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "304": {
+            "$ref": "#/components/responses/304"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "405": {
+            "$ref": "#/components/responses/405"
+          },
+          "406": {
+            "$ref": "#/components/responses/406"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Returns a job application",
+        "operationId": "ab513f15-9bdb-4991-ad9d-c6a32b557dfb",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-AssociateOID",
+            "description": "Associate OID for the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header should be passed in all calls.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "AP1234567890",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "job-application-id",
+            "description": "Job Application ID",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_auth_level",
+            "description": "SiteMinder autorization level.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_auth_level: 10",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORContext",
+            "description": "Context within an SOR that the call should be routed to",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "$expand",
+            "description": "The OData $expand parameter MUST be used to specify the expansion criteria.  Please refer \"RESTful Web API Design Standard\" for more details",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to - usuall injected by the API proxy, with few exceptions",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Acting-SessionID",
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "ISI",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "realm",
+            "description": "The identity management realm, e.g. ISI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORUri",
+            "description": "Actual Uri within the SOR",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-AssociateOID",
+            "description": "Associate OID of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_transactionid",
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_userdn",
+            "description": "SiteMinder user LDAP distinguished name.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_userdn: uid=JJohns@Abc,ou=Users,o=Abc",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_serversessionid",
+            "description": "SiteMinder session ID.   Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_serversessionid: SoFpy8UMyhtXY6YsEumvXJbznFA=",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_user",
+            "description": "SiteMinder user ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_user: JJohns@Abc",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        ],
+        "tags": [
+          "Job Applications"
+        ]
+      }
+    },
+    "/staffing/v2/job-applications": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "positionSeekerManagement",
+        "functionCode": "applicantManagement",
+        "serviceCode": "staffingManagement",
+        "serviceCategoryCode": "staffing",
+        "canonicalName": "Job Applications"
+      },
+      "get": {
+        "summary": "Job Applications",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobileMSSStaffing",
+            "MobileESSStaffing",
+            "MobilePSSStaffing"
+          ],
+          "canonicalUri": "staffing/staffingManagement/positionSeekerManagement/applicantManagement/jobApplication.read",
+          "sorRequestTimeoutPolicies": {
+            "cachedTimeout": 3,
+            "notCachedTimeout": 10
+          },
+          "operationCode": "jobApplication.read",
+          "operationId": "fa2ab202-5c9f-4587-8901-cb926f3b2324",
+          "roleCodes": [
+            "manager",
+            "employee",
+            "practitioner"
+          ],
+          "performAuthIndicator": true,
+          "scenarios": [
+            {
+              "summary": "<p>Retrieves all job applications. &nbsp;</p><p>Supported OData Query Options</p><p style=\"box-sizing: border-box; margin: 0px 0px 10px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); font-family: TaubSans, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\">This use case supports Query String Options as defined by Open Data Protocol (OData).</p><p style=\"box-sizing: border-box; margin: 0px 0px 10px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); font-family: TaubSans, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\">For more information about OData, see <a href=\"https://developers.adp.com/articles/general/introduction-to-adp-api-open-data-protocol-odata?query=OData\" style=\"box-sizing: border-box; background-color: transparent; color: rgb(74, 144, 226); text-decoration: none;\" target=\"_blank\">Introduction to the ADP API Open Data (OData) Protocol</a>.</p><table style=\"box-sizing: border-box; border-spacing: 0px; border-collapse: collapse; background-color: rgb(255, 255, 255); border-width: 1px 0px 1px 1px; border-top-style: solid; border-bottom-style: solid; border-left-style: solid; border-top-color: rgb(242, 99, 93); border-bottom-color: rgb(242, 99, 93); border-left-color: rgb(242, 99, 93); border-image: initial; border-right-style: initial; border-right-color: initial; display: inline-block; position: relative; overflow: hidden; margin-top: 20px; max-width: 100%; table-layout: fixed; color: rgb(77, 77, 77); font-family: TaubSans, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 300; letter-spacing: normal; orphans: 2; text-align: start; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; width: auto;\"><thead style=\"box-sizing: border-box; background-color: rgb(239, 223, 209);\"><tr style=\"box-sizing: border-box;\"><th scope=\"col\" style=\"box-sizing: border-box; padding: 10px; text-align: left; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; font-weight: 500; -webkit-print-color-adjust: exact; border-right: 1px solid rgb(242, 99, 93) !important; background-color: rgb(239, 223, 209) !important; width: 110px;\"><p style=\"box-sizing: border-box; margin: 0px 0px 10px; font-size: 16px; font-weight: 500; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">Query String</strong></p></th><th scope=\"col\" style=\"box-sizing: border-box; padding: 10px; text-align: left; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; font-weight: 500; -webkit-print-color-adjust: exact; border-right: 1px solid rgb(242, 99, 93) !important; background-color: rgb(239, 223, 209) !important;\"><p style=\"box-sizing: border-box; margin: 0px 0px 10px; font-size: 16px; font-weight: 500; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">Description</strong></p></th><th scope=\"col\" style=\"box-sizing: border-box; padding: 10px; text-align: left; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; font-weight: 500; -webkit-print-color-adjust: exact; border-right: 1px solid rgb(242, 99, 93) !important; background-color: rgb(239, 223, 209) !important;\"><p style=\"box-sizing: border-box; margin: 0px 0px 10px; font-size: 16px; font-weight: 500; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">Example</strong></p></th></tr></thead><tbody style=\"box-sizing: border-box;\"><tr style=\"box-sizing: border-box;\"><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; width: 110px;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">filter</strong></p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">Returns a job application for a client requisition ID.</p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">$filter=jobRequisitionReference/clientRequisitionID eq 1271</p></td></tr><tr style=\"box-sizing: border-box; background-color: rgb(250, 245, 240);\"><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; width: 110px; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">filter</strong></p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">Returns a job application for a requisition title.</p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">$filter=jobRequisitionReference/requisitionTitle eq ANALYST</p></td></tr><tr style=\"box-sizing: border-box;\"><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; width: 110px;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">filter</strong></p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">Returns a job application for a job location.</p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">$filter=appliedLocations/itemID eq 169734009081_1</p></td></tr><tr style=\"box-sizing: border-box; background-color: rgb(250, 245, 240);\"><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; width: 110px; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">filter</strong></p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">Returns a job application for an applied date.</p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">$filter=applicationSource/submittedDate eq 2019-08-16<br style=\"box-sizing: border-box;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">Important:</strong> The date should be in the {YYYY-MM-DD} format.</p></td></tr><tr style=\"box-sizing: border-box;\"><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; width: 110px;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">filter</strong></p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">Returns a job application for an application status.</p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">$filter=applicationStatusCode/codeValue eq Make Offer</p></td></tr><tr style=\"box-sizing: border-box; background-color: rgb(250, 245, 240);\"><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; width: 110px; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">filter</strong></p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">Returns a job application for an application type.</p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">$filter=applicant/internalApplicantIndicator eq false</p></td></tr><tr style=\"box-sizing: border-box;\"><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; width: 110px;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">$top and $skip</strong></p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">Indicates pagination for job application results.</p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">?$top=1&amp;$skip=0</p></td></tr></tbody></table><p><br></p><p>You may encounter exceptions outside your common success scenarios. You must account for these exceptions during your initial development. <span style=\"color: rgb(34, 34, 34); font-family: TaubSans, sans-serif; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 300; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;\">For more information, see&nbsp;</span><a href=\"https://developers.adp.com/articles/general/api-common-exceptions-and-tips-for-handling?query=API%20Common%20Exceptions%20and%20Tips%20for%20HAndling\" style=\"box-sizing: border-box; background-color: rgb(255, 255, 255); color: rgb(74, 144, 226); text-decoration: none; font-family: TaubSans, sans-serif; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 300; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px;\" target=\"_blank\">API Common Exceptions and Tips for Handling</a><span style=\"color: rgb(34, 34, 34); font-family: TaubSans, sans-serif; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 300; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;\">.</span>&nbsp;</p>",
+              "name": "Retrieves all the job applications.",
+              "responses": [
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Request the list of all available job applications that the requester is authorized to view",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Retrieves_all_the_job_applications._Provide_Example_jobApplication.read_200_44138.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Returns when the filter is invalid.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Retrieves_all_the_job_applications._Provide_Example_jobApplication.read_400_44139.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Returns when the submittedDate is sent in an invalid format.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Retrieves_all_the_job_applications._Provide_Example_jobApplication.read_400_44140.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "500",
+                  "description": "Returns when the clientRequisitionID\nis sent in single or double quotes using\nfilter\n\n$filter=job Requisition Reference/clientRequisitionID eq \"1010\"",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Retrieves_all_the_job_applications._Provide_Example_jobApplication.read_500_44141.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>Retrieves all job applications. &nbsp;</p><p>Supported OData Query Options</p><p style=\"box-sizing: border-box; margin: 0px 0px 10px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); font-family: TaubSans, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\">This use case supports Query String Options as defined by Open Data Protocol (OData).</p><p style=\"box-sizing: border-box; margin: 0px 0px 10px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); font-family: TaubSans, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\">For more information about OData, see <a href=\"https://developers.adp.com/articles/general/introduction-to-adp-api-open-data-protocol-odata?query=OData\" style=\"box-sizing: border-box; background-color: transparent; color: rgb(74, 144, 226); text-decoration: none;\" target=\"_blank\">Introduction to the ADP API Open Data (OData) Protocol</a>.</p><table style=\"box-sizing: border-box; border-spacing: 0px; border-collapse: collapse; background-color: rgb(255, 255, 255); border-width: 1px 0px 1px 1px; border-top-style: solid; border-bottom-style: solid; border-left-style: solid; border-top-color: rgb(242, 99, 93); border-bottom-color: rgb(242, 99, 93); border-left-color: rgb(242, 99, 93); border-image: initial; border-right-style: initial; border-right-color: initial; display: inline-block; position: relative; overflow: hidden; margin-top: 20px; max-width: 100%; table-layout: fixed; color: rgb(77, 77, 77); font-family: TaubSans, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 300; letter-spacing: normal; orphans: 2; text-align: start; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; width: auto;\"><thead style=\"box-sizing: border-box; background-color: rgb(239, 223, 209);\"><tr style=\"box-sizing: border-box;\"><th scope=\"col\" style=\"box-sizing: border-box; padding: 10px; text-align: left; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; font-weight: 500; -webkit-print-color-adjust: exact; border-right: 1px solid rgb(242, 99, 93) !important; background-color: rgb(239, 223, 209) !important; width: 110px;\"><p style=\"box-sizing: border-box; margin: 0px 0px 10px; font-size: 16px; font-weight: 500; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">Query String</strong></p></th><th scope=\"col\" style=\"box-sizing: border-box; padding: 10px; text-align: left; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; font-weight: 500; -webkit-print-color-adjust: exact; border-right: 1px solid rgb(242, 99, 93) !important; background-color: rgb(239, 223, 209) !important;\"><p style=\"box-sizing: border-box; margin: 0px 0px 10px; font-size: 16px; font-weight: 500; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">Description</strong></p></th><th scope=\"col\" style=\"box-sizing: border-box; padding: 10px; text-align: left; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; font-weight: 500; -webkit-print-color-adjust: exact; border-right: 1px solid rgb(242, 99, 93) !important; background-color: rgb(239, 223, 209) !important;\"><p style=\"box-sizing: border-box; margin: 0px 0px 10px; font-size: 16px; font-weight: 500; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">Example</strong></p></th></tr></thead><tbody style=\"box-sizing: border-box;\"><tr style=\"box-sizing: border-box;\"><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; width: 110px;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">filter</strong></p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">Returns a job application for a client requisition ID.</p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">$filter=jobRequisitionReference/clientRequisitionID eq 1271</p></td></tr><tr style=\"box-sizing: border-box; background-color: rgb(250, 245, 240);\"><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; width: 110px; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">filter</strong></p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">Returns a job application for a requisition title.</p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">$filter=jobRequisitionReference/requisitionTitle eq ANALYST</p></td></tr><tr style=\"box-sizing: border-box;\"><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; width: 110px;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">filter</strong></p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">Returns a job application for a job location.</p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">$filter=appliedLocations/itemID eq 169734009081_1</p></td></tr><tr style=\"box-sizing: border-box; background-color: rgb(250, 245, 240);\"><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; width: 110px; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">filter</strong></p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">Returns a job application for an applied date.</p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">$filter=applicationSource/submittedDate eq 2019-08-16<br style=\"box-sizing: border-box;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">Important:</strong> The date should be in the {YYYY-MM-DD} format.</p></td></tr><tr style=\"box-sizing: border-box;\"><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; width: 110px;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">filter</strong></p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">Returns a job application for an application status.</p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">$filter=applicationStatusCode/codeValue eq Make Offer</p></td></tr><tr style=\"box-sizing: border-box; background-color: rgb(250, 245, 240);\"><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; width: 110px; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">filter</strong></p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">Returns a job application for an application type.</p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; -webkit-print-color-adjust: exact; background-color: rgb(250, 245, 240) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">$filter=applicant/internalApplicantIndicator eq false</p></td></tr><tr style=\"box-sizing: border-box;\"><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important; width: 110px;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); text-align: center;\"><strong style=\"box-sizing: border-box; font-weight: 600;\">$top and $skip</strong></p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">Indicates pagination for job application results.</p></td><td style=\"box-sizing: border-box; padding: 10px; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: initial; min-height: 20px; font-size: 16px; overflow-wrap: break-word; border-right: 1px solid rgb(242, 99, 93) !important;\"><p style=\"box-sizing: border-box; margin: 0px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34);\">?$top=1&amp;$skip=0</p></td></tr></tbody></table><p><br></p><p>You may encounter exceptions outside your common success scenarios. You must account for these exceptions during your initial development. <span style=\"color: rgb(34, 34, 34); font-family: TaubSans, sans-serif; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 300; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;\">For more information, see&nbsp;</span><a href=\"https://developers.adp.com/articles/general/api-common-exceptions-and-tips-for-handling?query=API%20Common%20Exceptions%20and%20Tips%20for%20HAndling\" style=\"box-sizing: border-box; background-color: rgb(255, 255, 255); color: rgb(74, 144, 226); text-decoration: none; font-family: TaubSans, sans-serif; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 300; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px;\" target=\"_blank\">API Common Exceptions and Tips for Handling</a><span style=\"color: rgb(34, 34, 34); font-family: TaubSans, sans-serif; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 300; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;\">.</span>&nbsp;</p>"
+            }
+          ],
+          "visibilityCodes": [
+            "internal",
+            "external"
+          ],
+          "globalViewDevPortalIndicator": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "ADP-Acting-Session-Expires": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "sm_transactionid": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              },
+              "ADP-Acting-SessionID": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal",
+                    "external"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Request the list of all available job applications that the requester is authorized to view",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/jobApplications_schema_v02_00_rev010.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "412": {
+            "$ref": "#/components/responses/412"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "413": {
+            "$ref": "#/components/responses/413"
+          },
+          "204": {
+            "$ref": "#/components/responses/204"
+          },
+          "304": {
+            "$ref": "#/components/responses/304"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "405": {
+            "$ref": "#/components/responses/405"
+          },
+          "406": {
+            "$ref": "#/components/responses/406"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Request the list of all available job applications that the requester is authorized to view",
+        "operationId": "fa2ab202-5c9f-4587-8901-cb926f3b2324",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORContext",
+            "description": "Context within an SOR that the call should be routed to",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "$select",
+            "description": "The OData $select parameter MUST be used to specify the selection criterion  Certain implemetations may return an error if $select parameter is omitted.  Please refer RESTful Web API Design Standard document for this query parameter specification details.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to - usuall injected by the API proxy, with few exceptions",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_transactionid",
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_userdn",
+            "description": "SiteMinder user LDAP distinguished name.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_userdn: uid=JJohns@Abc,ou=Users,o=Abc",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-AssociateOID",
+            "description": "Associate OID for the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header should be passed in all calls.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_auth_level",
+            "description": "SiteMinder autorization level.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_auth_level: 10",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "$expand",
+            "description": "The OData $expand parameter MUST be used to specify the expansion criteria.  Please refer \"RESTful Web API Design Standard\" for more details",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Acting-SessionID",
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "query",
+            "name": "$filter",
+            "description": "The OData $filter parameter MUST be used to specify the filter criteria. The usage sample is below. Various criteria could be combined using and/or operands and () to set the operand precedence. Please refer \"RESTful Web API Design Standard\" for more details",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "ISI",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "realm",
+            "description": "The identity management realm, e.g. ISI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SORUri",
+            "description": "Actual Uri within the SOR",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-AssociateOID",
+            "description": "Associate OID of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Act-As-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in 'Acting As' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_serversessionid",
+            "description": "SiteMinder session ID.   Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_serversessionid: SoFpy8UMyhtXY6YsEumvXJbznFA=",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-On-Behalf-Of-OrgOID",
+            "description": "Org OID for organization of the associate that is the actor in ' On Behalf Of' as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "sm_user",
+            "description": "SiteMinder user ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_user: JJohns@Abc",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        ],
+        "tags": [
+          "Job Applications"
+        ]
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "400": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "412": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Precondition Failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "500": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "413": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Request Entity Too Large",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "204": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "No Content"
+      },
+      "403": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "304": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Modified"
+      },
+      "404": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "503": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Service Unavailable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "405": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Method Not Allowed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "406": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Acceptable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "429": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal",
+                "external"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Too Many Requests",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}
