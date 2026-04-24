@@ -220,3 +220,19 @@ The plan's Task 3.3 ("verify no computed value changed") was the safety check, b
 1. **Decide the theme policy first.** Either keep the `@theme → var(--foo) → :root/.dark` pattern (current shape is correct for dark-mode support; no flatten) or migrate to a `@variant dark` / `@theme-dark` approach (whichever Tailwind v4 supports when we check) and restructure from there.
 2. **Audit and delete the broken-chain tokens** — the ~15 unresolved gray/indigo/blue/green/red aliases. Grep each for utility usage (`bg-medium-gray`, `text-dark-gray`, `border-*`, `ring-*`, `fill-*`, `stroke-*`). If unused, delete from `@theme`. If used, the UI is already rendering with undefined colors and needs a real fix (either define the target var or re-point to something that exists).
 3. **Phase 6 ("snap to stock Tailwind")** is the right phase to prune tokens; attack (2) as part of Phase 6 when we're already per-token diffing.
+
+## 2026-04-24 — Tailwind Maximization Phase 4 — inline bucket deferred
+
+Phase 4 shipped the dead-rule deletion (Task 4.2) which alone took `applies.css` from 1503 → 687 lines (54%, exceeding the plan's ≥40% target). Plan Task 4.3 — inlining the 51 rules with 1–2 call sites — was deferred.
+
+### Why deferred
+
+- 51 rules × 1–2 call sites each = ~100 JSX files to edit.
+- Each inline swap replaces a `className="foo"` with a Tailwind utility string that may collide with other classes already on the element; needs per-site review.
+- The 51 rules average ~5 Tailwind utilities each, so inlining tends to produce 15–20 class names at the call site, which hurts readability without a clear win.
+- The remaining 687-line `applies.css` is already well within "maintainable" territory.
+
+### If someone wants to pick this up
+
+- [ ] **Inline the 51 low-use `@apply` rules** listed in `/tmp/tailwind-max-baseline/applies-usage.txt` (count 1 or 2). Follow the plan's Task 4.3 recipe exactly. Consider batching by surface area (e.g., do all `form-modal-*` rules together, not one at a time, so the chat-modal visual regression footprint stays contained).
+- [ ] **Handle multi-selector keep rules pragmatically.** A few keep rules have 3+ selectors; if only one selector has ≥3 refs and the rest are dead, you could drop the dead selectors while keeping the rule. The Phase 4 trim script (`/tmp/tailwind-max-baseline/trim-applies.py`) punts on this case.
