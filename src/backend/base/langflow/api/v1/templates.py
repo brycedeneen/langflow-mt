@@ -14,6 +14,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel
 from sqlalchemy import delete as sa_delete
+from sqlalchemy import func
 from sqlalchemy.orm import selectinload
 from sqlmodel import col, select
 
@@ -163,6 +164,10 @@ async def list_templates(
     created_by_me: bool = Query(default=False, description="Return only templates created by the current user"),
     include_archived: bool = Query(default=False, description="Include archived templates"),
     tag_id: list[UUID] | None = Query(default=None, description="Filter by tag_id (repeatable; OR semantics)"),
+    tag_match: Literal["any", "all"] = Query(
+        default="any",
+        description="Combinator for tag_id: 'any' (OR, default) or 'all' (AND).",
+    ),
 ) -> list[TemplateRead]:
     # Guard: only platform admins (or own-rows requests) may browse archived templates
     if include_archived and not getattr(current_user, "is_platform_admin", False) and not created_by_me:
@@ -192,12 +197,23 @@ async def list_templates(
         )
 
     if tag_id:
-        stmt = (
-            stmt
-            .join(TemplateTag, TemplateTag.template_id == Template.id)
-            .where(col(TemplateTag.tag_id).in_(tag_id))
-            .distinct()
-        )
+        if tag_match == "all":
+            n = len(set(tag_id))
+            subq = (
+                select(TemplateTag.template_id)
+                .where(col(TemplateTag.tag_id).in_(tag_id))
+                .group_by(TemplateTag.template_id)
+                .having(func.count(func.distinct(TemplateTag.tag_id)) == n)
+                .scalar_subquery()
+            )
+            stmt = stmt.where(col(Template.id).in_(subq))
+        else:
+            stmt = (
+                stmt
+                .join(TemplateTag, TemplateTag.template_id == Template.id)
+                .where(col(TemplateTag.tag_id).in_(tag_id))
+                .distinct()
+            )
 
     # Tenant scoping: platform admins see all rows; everyone else sees
     # platform-scoped templates + org-scoped templates for their own orgs.

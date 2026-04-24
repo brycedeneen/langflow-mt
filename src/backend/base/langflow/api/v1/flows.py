@@ -6,7 +6,7 @@ import re
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path as StdlibPath
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID, uuid4
 
 import orjson
@@ -20,6 +20,7 @@ from fastapi_pagination.ext.sqlmodel import apaginate
 from lfx.log import logger
 from pydantic import BaseModel
 from sqlalchemy import delete as sa_delete
+from sqlalchemy import func
 from sqlalchemy.orm import selectinload
 from sqlmodel import and_, col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -441,6 +442,7 @@ async def read_flows(
     params: Annotated[Params, Depends()],
     header_flows: bool = False,
     tag_id: Annotated[list[UUID] | None, Query()] = None,
+    tag_match: Annotated[Literal["any", "all"], Query()] = "any",
 ):
     """Retrieve a list of flows with pagination support.
 
@@ -505,11 +507,22 @@ async def read_flows(
             stmt = stmt.where(Flow.is_component == True)  # noqa: E712
 
         if tag_id:
-            stmt = (
-                stmt.join(FlowTag, FlowTag.flow_id == Flow.id)
-                .where(col(FlowTag.tag_id).in_(tag_id))
-                .distinct()
-            )
+            if tag_match == "all":
+                n = len(set(tag_id))
+                subq = (
+                    select(FlowTag.flow_id)
+                    .where(col(FlowTag.tag_id).in_(tag_id))
+                    .group_by(FlowTag.flow_id)
+                    .having(func.count(func.distinct(FlowTag.tag_id)) == n)
+                    .scalar_subquery()
+                )
+                stmt = stmt.where(col(Flow.id).in_(subq))
+            else:
+                stmt = (
+                    stmt.join(FlowTag, FlowTag.flow_id == Flow.id)
+                    .where(col(FlowTag.tag_id).in_(tag_id))
+                    .distinct()
+                )
 
         if get_all:
             flows = (await session.exec(stmt)).all()
