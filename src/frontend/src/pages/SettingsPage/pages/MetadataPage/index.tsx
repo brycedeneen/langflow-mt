@@ -1,6 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FlowsTab } from "./flows-tab";
 import { ComponentsTab } from "./components-tab";
+import { TagsTab } from "./tags-tab";
 
 export default function MetadataPage() {
   return (
@@ -10,12 +11,16 @@ export default function MetadataPage() {
         <TabsList>
           <TabsTrigger value="flows">Flows</TabsTrigger>
           <TabsTrigger value="components">Components</TabsTrigger>
+          <TabsTrigger value="tags">Tags</TabsTrigger>
         </TabsList>
         <TabsContent value="flows">
           <FlowsTab />
         </TabsContent>
         <TabsContent value="components">
           <ComponentsTab />
+        </TabsContent>
+        <TabsContent value="tags">
+          <TagsTab />
         </TabsContent>
       </Tabs>
     </div>
