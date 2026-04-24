@@ -32,13 +32,11 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
     template.categories.map((c) => c.id),
   );
-  // Intentionally starts empty: TemplateRead does not yet expose the new
-  // flow_tag-backed tag IDs (Task 10 follow-up will add `tags: TagRead[]`
-  // to the read shape). As a safety gate against accidental data loss,
-  // we only PUT the assign endpoint when `selectedTagIds.length > 0` —
-  // i.e. the user affirmatively picked at least one tag. Do NOT remove
-  // the length check without also plumbing initial tags through.
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  // template.tags is now populated by TemplateRead (see 0b5d4aae7c).
+  // Mirror the pattern used for selectedCategoryIds.
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(
+    template.tags?.map((t) => t.id) ?? [],
+  );
 
   const { mutate: updateTemplate, isPending } = useUpdateTemplate();
   const assignTemplateTags = useAssignTemplateTags();
@@ -53,8 +51,7 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
       setIcon(template.icon ?? "FileText");
       setGradient(template.gradient ?? "0");
       setSelectedCategoryIds(template.categories.map((c) => c.id));
-      // See `selectedTagIds` init comment above re: initializing from template.tags.
-      setSelectedTagIds([]);
+      setSelectedTagIds(template.tags?.map((t) => t.id) ?? []);
     }
   }, [open, template]);
 
@@ -77,23 +74,20 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
             setSuccessData({ title: `Template "${name}" updated` });
             onOpenChange(false);
           };
-          // Safety gate — see the `selectedTagIds` init comment above.
-          if (selectedTagIds.length > 0) {
-            assignTemplateTags.mutate(
-              { templateId: template.id, tagIds: selectedTagIds },
-              {
-                onSuccess: finish,
-                onError: () => {
-                  setErrorData({
-                    title: "Template updated, but tag assignment failed",
-                  });
-                  onOpenChange(false);
-                },
+          // The edit panel now shows the user the current tag state before saving,
+          // so an empty picker means "clear all tags" — let the server know.
+          assignTemplateTags.mutate(
+            { templateId: template.id, tagIds: selectedTagIds },
+            {
+              onSuccess: finish,
+              onError: () => {
+                setErrorData({
+                  title: "Template updated, but tag assignment failed",
+                });
+                onOpenChange(false);
               },
-            );
-          } else {
-            finish();
-          }
+            },
+          );
         },
         onError: (err: unknown) => {
           const msg =

@@ -23,22 +23,18 @@ type FlowToolbarOptionsProps = {
 function FlowTagsButton() {
   const currentFlow = useFlowsManagerStore((s) => s.currentFlow);
   const [open, setOpen] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  // currentSavedFlow.tags is populated by FlowRead (see 0b5d4aae7c). If
+  // the toolbar mounts before the saved flow is available, start empty.
+  const [selectedIds, setSelectedIds] = useState<string[]>(
+    currentFlow?.tags?.map((t) => t.id) ?? [],
+  );
   const assignFlowTags = useAssignFlowTags();
 
-  // TODO: initialize from flow.tags once the backend Flow read shape exposes
-  // the new flow_tag-backed tag IDs. Currently starts empty; users who add
-  // a tag via this button will replace (via PUT-replaces-set) whatever the
-  // server thinks the flow's tags are. Acceptable for now since (a) flows
-  // seldom have tags today and (b) any stale tag state is visible via the
-  // sidebar chip row that Task 10 will add.
-  //
-  // Note: firing `useAssignFlowTags.mutate` on EVERY change (see handleChange)
-  // is the correct behavior here — the user clicking a chip = immediate intent,
-  // not a form submit. No length-check gate (unlike the template modals).
+  // Re-sync when the underlying flow's tags change (e.g. assigned from
+  // another surface like the save-as-template modal).
   useEffect(() => {
-    setSelectedIds([]);
-  }, [currentFlow?.id]);
+    setSelectedIds(currentFlow?.tags?.map((t) => t.id) ?? []);
+  }, [currentFlow?.tags]);
 
   if (!currentFlow?.id) return null;
 
