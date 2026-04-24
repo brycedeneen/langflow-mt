@@ -236,3 +236,27 @@ Phase 4 shipped the dead-rule deletion (Task 4.2) which alone took `applies.css`
 
 - [ ] **Inline the 51 low-use `@apply` rules** listed in `/tmp/tailwind-max-baseline/applies-usage.txt` (count 1 or 2). Follow the plan's Task 4.3 recipe exactly. Consider batching by surface area (e.g., do all `form-modal-*` rules together, not one at a time, so the chat-modal visual regression footprint stays contained).
 - [ ] **Handle multi-selector keep rules pragmatically.** A few keep rules have 3+ selectors; if only one selector has ≥3 refs and the rest are dead, you could drop the dead selectors while keeping the rule. The Phase 4 trim script (`/tmp/tailwind-max-baseline/trim-applies.py`) punts on this case.
+
+## 2026-04-24 — Tailwind Maximization Phase 7+ deferrals (post-plan)
+
+Carried forward from the plan's post-plan section. Record so they don't get lost. Each item was documented in the plan spec (`docs/superpowers/specs/2026-04-22-tailwind-maximization-design.md`) and not attempted during the 2026-04-24 pass.
+
+### 7a — Full `framer-motion` removal
+
+- [ ] **framer-motion import count is currently 19** (was 22; Phase 2 removed 3 decorative consumers). Full removal from `package.json` requires handling the remaining consumers: `TextShimmer` (5 loading-state call sites), `AnimatedConditional` (3 call sites including the deferred `simple-sidebar.tsx`), `BorderTrail` (2 call sites), plus the rest of `src/**/*.tsx` imports. See the Phase 2 deferrals section above for per-component strategies. Once all consumers are migrated, `npm uninstall framer-motion` and confirm `grep -rn "framer-motion" src` returns zero.
+
+### 7b — Inline `shadTooltipComponent` wrapper
+
+- [ ] **`src/components/common/shadTooltipComponent/` wraps Radix Tooltip primitives** (`Tooltip`, `TooltipTrigger`, `TooltipContent`). Phase 5 established the pattern for wrapper inlining (`accordionComponent`). Same treatment: audit call sites, inline at each, delete the wrapper directory, delete the orphaned `ShadTooltipType` from `types/components/index.ts` if present. Expect many more call sites than the accordion wrapper had.
+
+### 7c — Inline `genericIconComponent` / `renderIconComponent` wrappers
+
+- [ ] **`src/components/common/genericIconComponent/` and `renderIconComponent` abstract Lucide icon rendering.** Migration target: direct use of named Lucide icon imports (`import { ChevronDown } from "lucide-react"`) or `ForwardedIconComponent` where dynamic name resolution is actually needed. Expected call-site count is very high (hundreds); migrate in batches by surface area, not one pass.
+
+### 7d — Remaining decorative consolidation
+
+- [ ] **`refreshButton`, `dialog-with-no-close`, `disclosure`** (and adjacent small wrappers under `src/components/common/` and `src/components/ui/`). Plan's Phase 7d batched these as "small wrappers that don't earn their keep". Per-wrapper audit needed to decide inline vs keep; none were investigated during the 2026-04-24 pass.
+
+### 7e — Semantic palette lean-out
+
+- [ ] **The semantic color tokens still take up most of the `@theme` block** (99 of the remaining 125 `--color-*` tokens after Phase 6). Phase 7e goal: where a semantic token is effectively an alias for a single `destructive` / `muted` / `accent` role, use the role directly instead of a dedicated named token. Requires (a) reading each semantic token's actual usage pattern, (b) confirming that consolidating doesn't break a subtle visual distinction, (c) migrating call sites. High effort, moderate payoff — do this last.
