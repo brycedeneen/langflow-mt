@@ -16,39 +16,15 @@
   /* Scalar colors using existing CSS variables */
   --color-component-icon: var(--component-icon);
   --color-flow-icon: var(--flow-icon);
-  --color-low-indigo: var(--low-indigo);
   --color-chat-send: var(--chat-send);
   --color-connection: var(--connection);
-  --color-almost-dark-gray: var(--almost-dark-gray);
-  --color-almost-light-blue: var(--almost-light-blue);
-  --color-almost-medium-gray: var(--almost-medium-gray);
-  --color-almost-medium-green: var(--almost-medium-green);
-  --color-almost-medium-red: var(--almost-medium-red);
-  --color-btn-shadow: var(--round-btn-shadow);
   --color-build-trigger: var(--build-trigger);
   --color-chat-trigger: var(--chat-trigger);
   --color-chat-trigger-disabled: var(--chat-trigger-disabled);
-  --color-dark-blue: var(--dark-blue);
-  --color-dark-gray: var(--dark-gray);
-  --color-dark-red: var(--dark-red);
-  --color-high-dark-gray: var(--high-dark-gray);
   --color-high-indigo: var(--high-indigo);
-  --color-high-light-gray: var(--high-light-gray);
   --color-info-background: var(--info-background);
   --color-info-foreground: var(--info-foreground);
-  --color-light-blue: var(--light-blue);
-  --color-light-gray: var(--light-gray);
-  --color-light-slate: var(--light-slate);
-  --color-medium-blue: var(--medium-blue);
   --color-status-blue: var(--status-blue);
-  --color-medium-dark-gray: var(--medium-dark-gray);
-  --color-medium-dark-green: var(--medium-dark-green);
-  --color-medium-dark-red: var(--medium-dark-red);
-  --color-medium-emerald: var(--medium-emerald);
-  --color-medium-gray: var(--medium-gray);
-  --color-medium-high-indigo: var(--medium-high-indigo);
-  --color-medium-indigo: var(--medium-indigo);
-  --color-medium-low-gray: var(--medium-low-gray);
   --color-status-green: var(--status-green);
   --color-status-red: var(--status-red);
   --color-status-yellow: var(--status-yellow);
@@ -77,15 +53,11 @@
   --color-node-selected: hsl(var(--node-selected));
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
-  --color-emerald-smooth: hsl(var(--emaral-smooth));
-  --color-emerald-hard: hsl(var(--emeral-hard));
   --color-placeholder: hsl(var(--placeholder));
   --color-hard-zinc: hsl(var(--hard-zinc));
   --color-smooth-red: hsl(var(--smooth-red));
   --color-placeholder-foreground: hsl(var(--placeholder-foreground));
-  --color-code-background: hsl(var(--code-background));
   --color-code-description-background: hsl(var(--code-description-background));
-  --color-code-foreground: hsl(var(--code-foreground));
   --color-node-ring: hsl(var(--node-ring));
   --color-neon-fuschia: hsl(var(--neon-fuschia));
   --color-digital-orchid: hsl(var(--digital-orchid));
@@ -507,7 +479,6 @@
     --jse-success-color: hsl(142, 76%, 36%);
 
     --node-selected: 243 75% 59%;
-    --round-btn-shadow: #00000063;
     --ice: #31a3cc;
     --selected: #2196f3;
     --discord-color: #5765f2;
@@ -523,8 +494,6 @@
     --info-foreground: #141653;
 
     --high-indigo: #4338ca;
-    --medium-indigo: #6366f1;
-    --low-indigo: #e0e7ff;
 
     --beta-background: rgb(219 234 254);
     --beta-foreground: rgb(37 99 235);
@@ -566,7 +535,6 @@
     --error-red: 0, 86%, 97%; /*hsla(0, 86%, 97%)*/
     --error-red-border: 0, 96%, 89%; /*hsla(0,96%,89%)*/
 
-    --code-background: 240 6% 10%;
     --code-description-background: 240 6% 10%;
     --code-foreground: 240 6% 90%;
     --placeholder: 240 5% 64.9%;
@@ -798,7 +766,6 @@
     --filter-foreground: #eef2ff;
     --filter-background: #4e46e599;
 
-    --round-btn-shadow: #00000063;
 
     --success-background: #022c22;
     --success-foreground: #ecfdf5;
@@ -811,8 +778,6 @@
     --info-background: #172554;
 
     --high-indigo: #4338ca;
-    --medium-indigo: #6366f1;
-    --low-indigo: #e0e7ff;
 
     --component-icon: #c35f85;
     --flow-icon: #2467e4;
@@ -826,7 +791,6 @@
     --status-green: #4ade80;
     --status-blue: #2563eb;
     --connection: #6d6c6c;
-    --code-background: 240 6% 10%;
     --code-description-background: 0 0% 0%;
     --code-foreground: 240 6% 90%;
 
