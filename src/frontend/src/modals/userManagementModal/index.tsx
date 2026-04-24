@@ -70,8 +70,11 @@ export default function UserManagementModal({
       setOrganizationId("");
       setOrgQuery("");
       setRole("member");
-      handleInput({ target: { name: "organization_id", value: "" } });
-      handleInput({ target: { name: "role", value: "member" } });
+      setInputState((prev) => ({
+        ...prev,
+        organization_id: "",
+        role: "member",
+      }));
     }
   }, [isSuperUser, isPlatformAdmin]);
 

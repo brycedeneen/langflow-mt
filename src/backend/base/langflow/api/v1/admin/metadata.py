@@ -44,7 +44,7 @@ def _template_row_read(
     return TemplateMetadataRowRead(
         flow_id=flow.id,
         flow_name=flow.name,
-        flow_description=getattr(flow, "description", None),
+        flow_description=flow.description,
         is_starter=is_starter,
         metadata=(
             TemplateMetadataRead(

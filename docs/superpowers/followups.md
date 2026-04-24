@@ -218,7 +218,7 @@ The plan's Task 3.3 ("verify no computed value changed") was the safety check, b
 ### Recommended path forward
 
 1. **Decide the theme policy first.** Either keep the `@theme → var(--foo) → :root/.dark` pattern (current shape is correct for dark-mode support; no flatten) or migrate to a `@variant dark` / `@theme-dark` approach (whichever Tailwind v4 supports when we check) and restructure from there.
-2. **Audit and delete the broken-chain tokens** — the ~15 unresolved gray/indigo/blue/green/red aliases. Grep each for utility usage (`bg-medium-gray`, `text-dark-gray`, `border-*`, `ring-*`, `fill-*`, `stroke-*`). If unused, delete from `@theme`. If used, the UI is already rendering with undefined colors and needs a real fix (either define the target var or re-point to something that exists).
+2. **~~Audit and delete the broken-chain tokens~~ Resolved in Phase 6 (commit `28513e3305`).** The 28-token prune covered the ~15 unresolved gray/indigo/blue/green/red aliases (`--color-medium-gray`, `--color-dark-gray`, `--color-light-gray`, `--color-almost-{dark,medium}-gray`, `--color-almost-light-blue`, `--color-almost-medium-{green,red}`, `--color-high-{dark,light}-gray`, `--color-medium-dark-{gray,green,red}`, `--color-medium-emerald`, `--color-medium-high-indigo`, `--color-medium-indigo`, `--color-medium-low-gray`) — all had zero utility call sites and were deleted. Confirmed zero residual refs across `src/frontend/src/style/*.css` and `App.css` 2026-04-24.
 3. **Phase 6 ("snap to stock Tailwind")** is the right phase to prune tokens; attack (2) as part of Phase 6 when we're already per-token diffing.
 
 ## 2026-04-24 — Tailwind Maximization Phase 4 — inline bucket deferred
