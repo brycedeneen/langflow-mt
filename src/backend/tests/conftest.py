@@ -492,11 +492,16 @@ async def logged_in_headers(client, active_user):
 @pytest.fixture
 async def active_super_user(client):  # noqa: ARG001
     async with session_scope() as session:
+        # Bootstrap superuser is auto-promoted to platform admin in
+        # langflow.services.auth.service::create_super_user; mirror that here
+        # so tests exercising platform-admin-gated endpoints (e.g. templates)
+        # don't need a separate fixture.
         user = User(
             username="activeuser",
             password=get_auth_service().get_password_hash("testpassword"),
             is_active=True,
             is_superuser=True,
+            is_platform_admin=True,
         )
         stmt = select(User).where(User.username == user.username)
         if active_user := (await session.exec(stmt)).first():
