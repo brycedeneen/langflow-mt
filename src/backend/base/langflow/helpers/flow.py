@@ -397,8 +397,23 @@ def get_arg_names(inputs: list[Vertex]) -> list[dict[str, str]]:
 
 
 async def get_flow_by_id_or_endpoint_name(flow_id_or_name: str, user_id: str | UUID | None = None) -> FlowRead:
+    """Resolve a flow by UUID or by endpoint_name.
+
+    When ``flow_id_or_name`` is a UUID, authorization happens at the route layer
+    (via `check_flow_user_permission` on the flow's ``organization_id``), so this
+    function returns the row unscoped.
+
+    When it is an endpoint_name: ``user_id`` narrows the lookup to a single user's
+    flows. That parameter is preserved because the ``flow.endpoint_name`` unique
+    constraint is still per-user (``unique_flow_endpoint_name`` on
+    ``("user_id", "endpoint_name")``). Without it, two users with the same
+    endpoint_name would collide and ``.first()`` would be non-deterministic.
+
+    Follow-up: once endpoint_name uniqueness migrates to per-org (tracked in the
+    Phase 6 worklist), drop ``user_id`` here and switch the endpoint_name branch
+    to ``Flow.organization_id == org_id``.
+    """
     async with session_scope() as session:
-        endpoint_name = None
         try:
             flow_id = UUID(flow_id_or_name)
             flow = await session.get(Flow, flow_id)

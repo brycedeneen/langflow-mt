@@ -31,6 +31,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from langflow.api.utils.authz import assert_org_role
 from langflow.api.utils import (
     CurrentActiveMCPUser,
     extract_global_variables_from_headers,
@@ -66,6 +67,7 @@ from langflow.services.auth.mcp_encryption import decrypt_auth_settings, encrypt
 from langflow.services.database.models import Flow, Folder
 from langflow.services.database.models.api_key.crud import check_key, create_api_key
 from langflow.services.database.models.api_key.model import ApiKeyCreate
+from langflow.services.database.models.membership.model import MembershipRole
 from langflow.services.database.models.user.model import User
 from langflow.services.deps import get_service
 
@@ -73,6 +75,31 @@ from langflow.services.deps import get_service
 ALL_INTERFACES_HOST = "0.0.0.0"  # noqa: S104
 
 router = APIRouter(prefix="/mcp/project", tags=["mcp_projects"])
+
+
+async def _authorize_mcp_project(
+    session: AsyncSession,
+    project_id: UUID,
+    user: User,
+    min_role: MembershipRole = MembershipRole.VIEWER,
+) -> Folder:
+    """Resolve a project and assert the caller has at least ``min_role`` in its org.
+
+    Non-members see 404 rather than 403 to avoid leaking project existence.
+    A legitimate member who lacks the required role still gets the authz helper's
+    403 — that surfaces a useful "upgrade your role" signal without leaking
+    anything the member couldn't already discover.
+    """
+    project = (await session.exec(select(Folder).where(Folder.id == project_id))).first()
+    if project is None or project.organization_id is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    try:
+        await assert_org_role(user, project.organization_id, min_role, session=session)
+    except HTTPException as exc:
+        if exc.status_code == status.HTTP_403_FORBIDDEN and "Not a member" in (exc.detail or ""):
+            raise HTTPException(status_code=404, detail="Project not found") from exc
+        raise
+    return project
 
 
 async def verify_project_auth(
@@ -108,14 +135,8 @@ async def verify_project_auth(
         if not user:
             raise HTTPException(status_code=401, detail="Invalid API key")
 
-        # Verify user has access to the project
-        project_access = (
-            await db.exec(select(Folder).where(Folder.id == project_id, Folder.user_id == user.id))
-        ).first()
-
-        if not project_access:
-            raise HTTPException(status_code=404, detail="Project not found")
-
+        # Caller must be a member of the project's organization.
+        await _authorize_mcp_project(db, project_id, user)
         return user
 
     raise HTTPException(
@@ -163,14 +184,8 @@ async def verify_project_auth_conditional(
             token=token or "", query_param=api_key_query_value, header_param=api_key_header_value, db=session
         )
 
-        # Verify project access
-        project_access = (
-            await session.exec(select(Folder).where(Folder.id == project_id, Folder.user_id == user.id))
-        ).first()
-
-        if not project_access:
-            raise HTTPException(status_code=404, detail="Project not found")
-
+        # Caller must be a member of the project's organization.
+        await _authorize_mcp_project(session, project_id, user)
         return user
 
 
@@ -202,20 +217,23 @@ async def _build_project_tools_response(
     tools: list[MCPSettings] = []
     try:
         async with session_scope() as session:
-            # Fetch the project first to verify it exists and belongs to the current user
+            # Viewer+ in the project's org to list its MCP tools.
+            project_plain = await _authorize_mcp_project(session, project_id, current_user)
             project = (
                 await session.exec(
                     select(Folder)
                     .options(selectinload(Folder.flows))
-                    .where(Folder.id == project_id, Folder.user_id == current_user.id)
+                    .where(Folder.id == project_id)
                 )
             ).first()
-
-            if not project:
+            if project is None:
                 raise HTTPException(status_code=404, detail="Project not found")
-
-            # Query flows in the project
-            flows_query = select(Flow).where(Flow.folder_id == project_id, Flow.is_component == False)  # noqa: E712
+            # Query flows in the project (scoped to the project's org as defense-in-depth).
+            flows_query = select(Flow).where(
+                Flow.folder_id == project_id,
+                Flow.organization_id == project_plain.organization_id,
+                Flow.is_component == False,  # noqa: E712
+            )
 
             # Optionally filter for MCP-enabled flows only
             if mcp_enabled:
@@ -311,10 +329,9 @@ async def handle_project_sse(
 ):
     """Handle SSE connections for a specific project."""
     async with session_scope() as session:
-        project = (
-            await session.exec(select(Folder).where(Folder.id == project_id, Folder.user_id == current_user.id))
-        ).first()
-
+        # Org-scoped access check (Viewer+). verify_project_auth_conditional above
+        # already enforced this; re-check here as defense-in-depth.
+        project = await _authorize_mcp_project(session, project_id, current_user)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
@@ -462,12 +479,13 @@ async def update_project_mcp_settings(
     """
     try:
         async with session_scope() as session:
-            # Fetch the project first to verify it exists and belongs to the current user
+            # Member+ in the project's org to mutate MCP settings.
+            await _authorize_mcp_project(session, project_id, current_user, MembershipRole.MEMBER)
             project = (
                 await session.exec(
                     select(Folder)
                     .options(selectinload(Folder.flows))
-                    .where(Folder.id == project_id, Folder.user_id == current_user.id)
+                    .where(Folder.id == project_id)
                 )
             ).first()
 
@@ -493,14 +511,19 @@ async def update_project_mcp_settings(
                 should_start_composer = auth_result["should_start_composer"]
                 should_stop_composer = auth_result["should_stop_composer"]
 
-            # Query flows in the project
-            flows = (await session.exec(select(Flow).where(Flow.folder_id == project_id))).all()
+            # Query flows in the project, scoped to its org as defense-in-depth.
+            flows = (
+                await session.exec(
+                    select(Flow).where(
+                        Flow.folder_id == project_id,
+                        Flow.organization_id == project.organization_id,
+                    )
+                )
+            ).all()
             flows_to_update = {x.id: x for x in request.settings}
 
             updated_flows = []
             for flow in flows:
-                if flow.user_id is None or flow.user_id != current_user.id:
-                    continue
 
                 if flow.id in flows_to_update:
                     settings_to_update = flows_to_update[flow.id]
@@ -933,14 +956,9 @@ async def check_installed_mcp_servers(
 ):
     """Check if MCP server configuration is installed for this project in Cursor, Windsurf, or Claude."""
     try:
-        # Verify project exists and user has access
+        # Viewer+ in the project's org.
         async with session_scope() as session:
-            project = (
-                await session.exec(select(Folder).where(Folder.id == project_id, Folder.user_id == current_user.id))
-            ).first()
-
-            if not project:
-                raise HTTPException(status_code=404, detail="Project not found")
+            await _authorize_mcp_project(session, project_id, current_user)
 
         project = await verify_project_access(project_id, current_user)
         if should_use_mcp_composer(project):
@@ -1473,16 +1491,9 @@ async def init_mcp_servers():
 
 
 async def verify_project_access(project_id: UUID, current_user: CurrentActiveMCPUser) -> Folder:
-    """Verify project exists and user has access."""
+    """Verify project exists and caller has Viewer+ in its organization."""
     async with session_scope() as session:
-        project = (
-            await session.exec(select(Folder).where(Folder.id == project_id, Folder.user_id == current_user.id))
-        ).first()
-
-        if not project:
-            raise HTTPException(status_code=404, detail="Project not found")
-
-        return project
+        return await _authorize_mcp_project(session, project_id, current_user)
 
 
 def should_use_mcp_composer(project: Folder) -> bool:

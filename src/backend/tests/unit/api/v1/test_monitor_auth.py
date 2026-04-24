@@ -64,15 +64,11 @@ async def test_get_messages_with_valid_auth(client: AsyncClient, logged_in_heade
 
 @pytest.mark.usefixtures("active_user")
 async def test_get_transactions_with_valid_auth(client: AsyncClient, logged_in_headers):
-    """Test that GET /monitor/transactions works with valid authentication."""
+    """Valid auth + a nonexistent flow_id → 404 (org-scoped lookup)."""
     response = await client.get(
         "api/v1/monitor/transactions?flow_id=00000000-0000-0000-0000-000000000000", headers=logged_in_headers
     )
-    # Should return 200 OK with pagination structure
-    assert response.status_code == status.HTTP_200_OK
-    result = response.json()
-    assert "items" in result
-    assert "total" in result
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 @pytest.mark.usefixtures("active_user")

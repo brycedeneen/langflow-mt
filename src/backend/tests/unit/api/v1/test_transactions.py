@@ -469,32 +469,20 @@ class TestTransactionsEndpoint:
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @pytest.mark.usefixtures("active_user")
-    async def test_get_transactions_returns_paginated_response(self, client: AsyncClient, logged_in_headers):
-        """Test that GET /monitor/transactions returns paginated response."""
+    async def test_get_transactions_nonexistent_flow_returns_404(self, client: AsyncClient, logged_in_headers):
+        """Nonexistent flow_id returns 404 — the endpoint now scopes to the caller's org."""
         flow_id = "00000000-0000-0000-0000-000000000000"
         response = await client.get(f"api/v1/monitor/transactions?flow_id={flow_id}", headers=logged_in_headers)
-
-        assert response.status_code == status.HTTP_200_OK
-        result = response.json()
-        assert "items" in result
-        assert "total" in result
-        assert "page" in result
-        assert "size" in result
-        assert "pages" in result
-        assert isinstance(result["items"], list)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     @pytest.mark.usefixtures("active_user")
     async def test_get_transactions_with_pagination_params(self, client: AsyncClient, logged_in_headers):
-        """Test GET /monitor/transactions with custom pagination parameters."""
+        """Pagination params are accepted; nonexistent flow_id still 404s."""
         flow_id = "00000000-0000-0000-0000-000000000000"
         response = await client.get(
             f"api/v1/monitor/transactions?flow_id={flow_id}&page=1&size=10", headers=logged_in_headers
         )
-
-        assert response.status_code == status.HTTP_200_OK
-        result = response.json()
-        assert result["page"] == 1
-        assert result["size"] == 10
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     @pytest.mark.usefixtures("active_user")
     async def test_get_transactions_requires_flow_id(self, client: AsyncClient, logged_in_headers):
@@ -510,17 +498,7 @@ class TestTransactionsEndpoint:
 
     @pytest.mark.usefixtures("active_user")
     async def test_get_transactions_response_structure(self, client: AsyncClient, logged_in_headers):
-        """Test that transaction response items have the expected structure."""
+        """A random UUID is not in the caller's org → 404."""
         flow_id = uuid4()
         response = await client.get(f"api/v1/monitor/transactions?flow_id={flow_id}", headers=logged_in_headers)
-
-        assert response.status_code == status.HTTP_200_OK
-        result = response.json()
-
-        # Verify pagination structure
-        assert "items" in result
-        assert "total" in result
-        assert "page" in result
-        assert "size" in result
-        assert "pages" in result
-        assert isinstance(result["items"], list)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
