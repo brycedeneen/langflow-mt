@@ -19,20 +19,8 @@ import { useIsPlatformAdmin } from "@/hooks/use-is-platform-admin";
 import ConfirmationModal from "@/modals/confirmationModal";
 import useAlertStore from "@/stores/alertStore";
 import { TAG_COLORS, type TagColor, type TagRead } from "@/types/tag";
+import { TAG_COLOR_BG_MAP } from "@/types/tag/colors";
 import { cn } from "@/utils/utils";
-
-const COLOR_BG_MAP: Record<TagColor, string> = {
-  slate: "bg-slate-500",
-  red: "bg-red-500",
-  orange: "bg-orange-500",
-  amber: "bg-amber-500",
-  green: "bg-green-500",
-  teal: "bg-teal-500",
-  sky: "bg-sky-500",
-  blue: "bg-blue-500",
-  violet: "bg-violet-500",
-  pink: "bg-pink-500",
-};
 
 const NAME_MAX = 64;
 const DESCRIPTION_MAX = 1024;
@@ -113,7 +101,7 @@ export function TagsTab() {
                   aria-hidden="true"
                   className={cn(
                     "inline-block h-3 w-3 rounded-full shrink-0",
-                    COLOR_BG_MAP[tag.color],
+                    TAG_COLOR_BG_MAP[tag.color],
                   )}
                 />
                 <div className="flex flex-col min-w-0">
@@ -306,7 +294,7 @@ function TagDialog({
                     onClick={() => setColor(c)}
                     className={cn(
                       "h-7 w-7 rounded-full border-2 transition-all",
-                      COLOR_BG_MAP[c],
+                      TAG_COLOR_BG_MAP[c],
                       selected
                         ? "border-foreground scale-110"
                         : "border-transparent hover:border-muted-foreground/40",

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import TagPicker from "@/components/common/TagPicker";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAssignTemplateTags } from "@/controllers/API/queries/tags";
 import { useUpdateTemplate } from "@/controllers/API/queries/templates/use-update-template";
 import useAlertStore from "@/stores/alertStore";
 import IconPickerField from "@/modals/SaveAsTemplateModal/IconPickerField";
@@ -30,8 +32,16 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
     template.categories.map((c) => c.id),
   );
+  // Intentionally starts empty: TemplateRead does not yet expose the new
+  // flow_tag-backed tag IDs (Task 10 follow-up will add `tags: TagRead[]`
+  // to the read shape). As a safety gate against accidental data loss,
+  // we only PUT the assign endpoint when `selectedTagIds.length > 0` —
+  // i.e. the user affirmatively picked at least one tag. Do NOT remove
+  // the length check without also plumbing initial tags through.
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   const { mutate: updateTemplate, isPending } = useUpdateTemplate();
+  const assignTemplateTags = useAssignTemplateTags();
   const setSuccessData = useAlertStore((s) => s.setSuccessData);
   const setErrorData = useAlertStore((s) => s.setErrorData);
 
@@ -43,6 +53,8 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
       setIcon(template.icon ?? "FileText");
       setGradient(template.gradient ?? "0");
       setSelectedCategoryIds(template.categories.map((c) => c.id));
+      // See `selectedTagIds` init comment above re: initializing from template.tags.
+      setSelectedTagIds([]);
     }
   }, [open, template]);
 
@@ -61,8 +73,27 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
       },
       {
         onSuccess: () => {
-          setSuccessData({ title: `Template "${name}" updated` });
-          onOpenChange(false);
+          const finish = () => {
+            setSuccessData({ title: `Template "${name}" updated` });
+            onOpenChange(false);
+          };
+          // Safety gate — see the `selectedTagIds` init comment above.
+          if (selectedTagIds.length > 0) {
+            assignTemplateTags.mutate(
+              { templateId: template.id, tagIds: selectedTagIds },
+              {
+                onSuccess: finish,
+                onError: () => {
+                  setErrorData({
+                    title: "Template updated, but tag assignment failed",
+                  });
+                  onOpenChange(false);
+                },
+              },
+            );
+          } else {
+            finish();
+          }
         },
         onError: (err: unknown) => {
           const msg =
@@ -124,6 +155,16 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
             <CategoryChipPicker
               selectedIds={selectedCategoryIds}
               onChange={setSelectedCategoryIds}
+              disabled={isPending}
+            />
+          </div>
+
+          {/* Tags */}
+          <div className="flex flex-col gap-1.5">
+            <Label>Tags</Label>
+            <TagPicker
+              selectedIds={selectedTagIds}
+              onChange={setSelectedTagIds}
               disabled={isPending}
             />
           </div>

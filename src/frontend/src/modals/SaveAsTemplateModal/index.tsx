@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import TagPicker from "@/components/common/TagPicker";
 import { Button } from "@/components/ui/button";
+import { useAssignTemplateTags } from "@/controllers/API/queries/tags";
 import {
   useCreateTemplate,
   useListTemplates,
@@ -56,6 +58,7 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [conflict, setConflict] = useState<TemplateRead | null>(null);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   const isPlatformAdmin = useIsPlatformAdmin();
   const { data: memberships = [], isPending: membershipsLoading } =
@@ -85,6 +88,7 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
       setConfirmOpen(false);
       setConflict(null);
       setSelectedCategoryIds([]);
+      setSelectedTagIds([]);
       // Re-derive scope on open so it reflects the latest admin/membership state.
       setScope(computeDefaultScope(isPlatformAdmin, memberships));
     }
@@ -106,6 +110,7 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
   const createTemplate = useCreateTemplate();
   const { data: templatesList } = useListTemplates();
   const updateTemplate = useUpdateTemplate();
+  const assignTemplateTags = useAssignTemplateTags();
   const setSuccessData = useAlertStore((s) => s.setSuccessData);
   const setErrorData = useAlertStore((s) => s.setErrorData);
 
@@ -160,9 +165,31 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
     if (!flow.id) return;
 
     createTemplate.mutate(buildPayload(), {
-      onSuccess: () => {
-        setSuccessData({ title: `Template "${name.trim()}" saved` });
-        onClose();
+      onSuccess: (created: TemplateRead) => {
+        const finish = () => {
+          setSuccessData({ title: `Template "${name.trim()}" saved` });
+          onClose();
+        };
+        // Create flow: no existing server-side state to preserve, so only PUT
+        // when the user picked tags.
+        if (selectedTagIds.length > 0 && created?.id) {
+          assignTemplateTags.mutate(
+            { templateId: created.id, tagIds: selectedTagIds },
+            {
+              onSuccess: finish,
+              // Best-effort: template is already saved; surface an error but still close.
+              onError: () => {
+                setErrorData({
+                  title: "Template saved, but tag assignment failed",
+                  list: ["You can re-apply tags from the template edit panel."],
+                });
+                onClose();
+              },
+            },
+          );
+        } else {
+          finish();
+        }
       },
       onError: (err: any) => {
         if (err?.response?.status !== 409) {
@@ -194,10 +221,35 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
       { templateId: conflict.id, body: buildPayload() },
       {
         onSuccess: () => {
-          setSuccessData({ title: `Template "${name.trim()}" updated` });
-          setConfirmOpen(false);
-          setConflict(null);
-          onClose();
+          const finish = () => {
+            setSuccessData({ title: `Template "${name.trim()}" updated` });
+            setConfirmOpen(false);
+            setConflict(null);
+            onClose();
+          };
+          // Overwrite flow: PUT replaces the tag set; only fire when the
+          // user picked tags to avoid wiping any existing server-side state.
+          if (selectedTagIds.length > 0) {
+            assignTemplateTags.mutate(
+              { templateId: conflict.id, tagIds: selectedTagIds },
+              {
+                onSuccess: finish,
+                onError: () => {
+                  setErrorData({
+                    title: "Template updated, but tag assignment failed",
+                    list: [
+                      "You can re-apply tags from the template edit panel.",
+                    ],
+                  });
+                  setConfirmOpen(false);
+                  setConflict(null);
+                  onClose();
+                },
+              },
+            );
+          } else {
+            finish();
+          }
         },
         onError: (err: any) => {
           setConfirmOpen(false);
@@ -309,6 +361,15 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
               <CategoryChipPicker
                 selectedIds={selectedCategoryIds}
                 onChange={setSelectedCategoryIds}
+                disabled={submitting}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <span className="block text-sm font-medium">Tags</span>
+              <TagPicker
+                selectedIds={selectedTagIds}
+                onChange={setSelectedTagIds}
                 disabled={submitting}
               />
             </div>
