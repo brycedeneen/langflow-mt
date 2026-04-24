@@ -18,6 +18,8 @@ from fastapi.responses import StreamingResponse
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.sqlmodel import apaginate
 from lfx.log import logger
+from pydantic import BaseModel
+from sqlalchemy import delete as sa_delete
 from sqlmodel import and_, col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -35,6 +37,8 @@ from langflow.services.database.models.flow.model import (
     FlowRead,
     FlowUpdate,
 )
+from langflow.services.database.models.tag.model import FlowTag, Tag
+from langflow.services.database.models.tag.schema import TagRead
 from langflow.services.database.models.template.model import Template
 from langflow.services.database.models.flow.utils import generate_webhook_api_key, get_webhook_component_in_flow
 from lfx.services.secret_store import get_secret_store
@@ -57,6 +61,15 @@ from langflow.utils.compression import compress_response
 
 # build router
 router = APIRouter(prefix="/flows", tags=["Flows"])
+
+
+class _FlowTagAssignBody(BaseModel):
+    tag_ids: list[UUID]
+
+
+class _FlowWithTagsRead(BaseModel):
+    id: UUID
+    tags: list[TagRead]
 
 
 def _get_safe_flow_path(fs_path: str, user_id: UUID, storage_service: StorageService) -> Path:
@@ -850,6 +863,48 @@ async def generate_or_reset_webhook_api_key(
     })
 
     return {"api_key": key}
+
+
+@router.put("/{flow_id}/tags", response_model=_FlowWithTagsRead)
+async def assign_flow_tags(
+    *,
+    session: DbSession,
+    flow_id: UUID,
+    body: _FlowTagAssignBody,
+    current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
+) -> _FlowWithTagsRead:
+    """Replace the full set of tags associated with a flow (PUT-replaces-set)."""
+    flow = await _read_flow(
+        session=session,
+        flow_id=flow_id,
+        user_id=current_user.id,
+        organization_id=current_org.id,
+    )
+    if flow is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flow not found")
+
+    tag_ids = list(body.tag_ids)
+    if tag_ids:
+        found = (await session.exec(select(Tag).where(col(Tag.id).in_(tag_ids)))).all()
+        if len(found) != len(set(tag_ids)):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="one or more tag_ids do not exist",
+            )
+        tags_by_id = {t.id: t for t in found}
+    else:
+        tags_by_id = {}
+
+    await session.exec(sa_delete(FlowTag).where(FlowTag.flow_id == flow_id))
+    for tid in tag_ids:
+        session.add(FlowTag(flow_id=flow_id, tag_id=tid))
+    await session.commit()
+
+    return _FlowWithTagsRead(
+        id=flow.id,
+        tags=[TagRead.model_validate(tags_by_id[tid]) for tid in tag_ids],
+    )
 
 
 @router.delete("/{flow_id}", status_code=200)

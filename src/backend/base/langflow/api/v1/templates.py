@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from pydantic import BaseModel
+from sqlalchemy import delete as sa_delete
 from sqlalchemy.orm import selectinload
 from sqlmodel import col, select
 
@@ -24,6 +26,8 @@ from langflow.services.auth.utils import (
 from langflow.services.database.models.category.model import Category, TemplateCategory
 from langflow.services.database.models.flow.model import Flow
 from langflow.services.database.models.membership.model import Membership
+from langflow.services.database.models.tag.model import Tag, TemplateTag
+from langflow.services.database.models.tag.schema import TagRead
 from langflow.services.database.models.template.model import (
     Template,
     TemplateCreate,
@@ -40,6 +44,15 @@ if TYPE_CHECKING:
     from langflow.services.database.models.user.model import User
 
 router = APIRouter(tags=["Templates"], prefix="/templates")
+
+
+class _TemplateTagAssignBody(BaseModel):
+    tag_ids: list[UUID]
+
+
+class _TemplateWithTagsRead(BaseModel):
+    id: UUID
+    tags: list[TagRead]
 
 
 def _is_password_input(field_cfg: dict) -> bool:
@@ -405,6 +418,50 @@ async def update_template(
         )
     ).one()
     return TemplateReadDetail.model_validate(row, from_attributes=True)
+
+
+@router.put("/{template_id}/tags", response_model=_TemplateWithTagsRead)
+async def assign_template_tags(
+    template_id: UUID,
+    body: _TemplateTagAssignBody,
+    *,
+    session: DbSession,
+    current_user: "User" = Depends(get_current_active_user),
+) -> _TemplateWithTagsRead:
+    """Replace the full set of tags associated with a template (PUT-replaces-set)."""
+    row = (
+        await session.exec(
+            select(Template)
+            .where(Template.id == template_id)
+            .where(Template.deleted_at.is_(None))
+        )
+    ).one_or_none()
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Template not found")
+    if not user_can_edit_template(current_user, row):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+
+    tag_ids = list(body.tag_ids)
+    if tag_ids:
+        found = (await session.exec(select(Tag).where(col(Tag.id).in_(tag_ids)))).all()
+        if len(found) != len(set(tag_ids)):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="one or more tag_ids do not exist",
+            )
+        tags_by_id = {t.id: t for t in found}
+    else:
+        tags_by_id = {}
+
+    await session.exec(sa_delete(TemplateTag).where(TemplateTag.template_id == template_id))
+    for tid in tag_ids:
+        session.add(TemplateTag(template_id=template_id, tag_id=tid))
+    await session.commit()
+
+    return _TemplateWithTagsRead(
+        id=row.id,
+        tags=[TagRead.model_validate(tags_by_id[tid]) for tid in tag_ids],
+    )
 
 
 @router.patch("/{template_id}", response_model=TemplateReadDetail)
