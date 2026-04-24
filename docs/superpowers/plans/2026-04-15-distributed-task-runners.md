@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+**Status:** ✅ 151/156 checkboxes ticked. The remaining 5 unchecked items are all under Task 30 (Helm chart) which is **deferred cross-repo** — the worker-deployment + KEDA ScaledObject YAML belongs in the separate Helm repo, and starter templates sit at `deploy/helm/worker-starter/` in-tree as a handoff. Task 32 E2E smoke shipped at `src/backend/tests/integration/e2e/test_runs_e2e.py`. No further work in this repo.
+
 **Goal:** Execute non-interactive flow runs out-of-process on an Arq-based worker fleet with per-org concurrency caps, priority queues, durable run state, polling API, and signed webhooks.
 
 **Architecture:** Single Docker image, two entrypoints (`langflow run` for API, `langflow worker` for the Arq worker + internal crons). API enqueues `flow_runs` rows into one of three Redis priority queues; workers dequeue, check per-org concurrency via a Redis Lua script, execute the graph via the existing `run_graph_internal`, write terminal state, and emit signed webhooks. Editor/playground traffic (`/api/v1/run`) continues in-process unchanged.

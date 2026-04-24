@@ -1,8 +1,15 @@
 # Non-LC dep follow-ups — status snapshot
 
-**Date:** 2026-04-22
+**Date:** 2026-04-22 (re-verified 2026-04-24)
 **Status:** Informational — no action required today
 **Goal:** Track the three dep-audit items that were deferred on 2026-04-22 because they were either upstream-blocked or already landed at an intermediate cut. None are blockers; they are "when upstream moves, we move" follow-ups.
+
+**Re-verification on 2026-04-24 (from `uv.lock`):**
+- `arq==0.28.0` — unchanged, still pins `redis<6`. Item A remains upstream-blocked.
+- `redis==5.3.1` — unchanged.
+- `chromadb==1.5.8` — unchanged, still on latest. Item B remains resolved — no action.
+- `elasticsearch==8.19.3` — unchanged, still within ES 8 support window.
+- None of items A / B / C changed since 2026-04-22; this file stays as a memory anchor rather than an active plan.
 
 ## Item A — `redis 5.x → 7.x`
 
