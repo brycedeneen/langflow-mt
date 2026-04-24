@@ -1,0 +1,582 @@
+{
+  "tile": "payroll/pay-data-input/v1",
+  "samples": [
+    {
+      "filename": "1_Pay_Data_Input_-_Simple_Reg_&_OT_Custom_Example_pay-data-input.modify_request_36223.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "payrollGroupCode": {
+                  "codeValue": "{{payrollGroupCode}}"
+                },
+                "payrollProcessingJobID": "Regular, OT"
+              },
+              "transform": {
+                "payDataInput": {
+                  "payeePayInputs": [
+                    {
+                      "associateOID": "{{employeeAOID}}",
+                      "payNumber": "1",
+                      "payrollProfilePayInputs": [
+                        {
+                          "payrollFileNumber": "{{payrollFileNumber}}",
+                          "payInputs": [
+                            {
+                              "earningInputs": [
+                                {
+                                  "earningCode": {
+                                    "codeValue": "R"
+                                  },
+                                  "numberOfHours": 80
+                                },
+                                {
+                                  "earningCode": {
+                                    "codeValue": "O"
+                                  },
+                                  "numberOfHours": 10
+                                }
+                              ],
+                              "deductionInputs": [],
+                              "memoInputs": [],
+                              "reportableEarningAndBenefitInputs": [],
+                              "taxInputs": [],
+                              "_modificationTypeCode": "Add"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "10_Pay_Data_Input_-_Deduction_code_Custom_Example_pay-data-input.modify_request_36217.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "payrollGroupCode": {
+                  "codeValue": "{{payrollGroupCode}}"
+                },
+                "payrollProcessingJobID": "Deduction Code"
+              },
+              "transform": {
+                "payDataInput": {
+                  "payeePayInputs": [
+                    {
+                      "associateOID": "{{employeeAOID}}",
+                      "payNumber": "1",
+                      "payrollProfilePayInputs": [
+                        {
+                          "payrollFileNumber": "{{payrollFileNumber}}",
+                          "payInputs": [
+                            {
+                              "earningInputs": [],
+                              "deductionInputs": [
+                                {
+                                  "deductionCode": {
+                                    "codeValue": "1"
+                                  },
+                                  "deductionRate": {
+                                    "rateValue": 25,
+                                    "currencyCode": "USD"
+                                  }
+                                }
+                              ],
+                              "memoInputs": [],
+                              "reportableEarningAndBenefitInputs": [],
+                              "taxInputs": [],
+                              "_modificationTypeCode": "Add"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "11_Pay_Data_Input_-_Mulitple_Pay_Numbers_Custom_Example_pay-data-input.modify_request_36216.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "payrollGroupCode": {
+                  "codeValue": "{{payrollGroupCode}}"
+                },
+                "payrollProcessingJobID": "Multiple Pay Numbers"
+              },
+              "transform": {
+                "payDataInput": {
+                  "payeePayInputs": [
+                    {
+                      "associateOID": "{{employeeAOID}}",
+                      "payNumber": "1",
+                      "payrollProfilePayInputs": [
+                        {
+                          "payrollFileNumber": "{{payrollFileNumber}}",
+                          "payInputs": [
+                            {
+                              "earningInputs": [
+                                {
+                                  "earningCode": {
+                                    "codeValue": "R"
+                                  },
+                                  "numberOfHours": 80
+                                },
+                                {
+                                  "earningCode": {
+                                    "codeValue": "O"
+                                  },
+                                  "numberOfHours": 10
+                                }
+                              ],
+                              "deductionInputs": [],
+                              "memoInputs": [],
+                              "reportableEarningAndBenefitInputs": [],
+                              "taxInputs": [],
+                              "_modificationTypeCode": "Add"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "associateOID": "{{employeeAOID}}",
+                      "payNumber": "2",
+                      "payrollProfilePayInputs": [
+                        {
+                          "payrollFileNumber": "{{payrollFileNumber}}",
+                          "payInputs": [
+                            {
+                              "earningInputs": [
+                                {
+                                  "earningCode": {
+                                    "codeValue": "R"
+                                  },
+                                  "numberOfHours": 40
+                                },
+                                {
+                                  "earningCode": {
+                                    "codeValue": "O"
+                                  },
+                                  "numberOfHours": 5
+                                }
+                              ],
+                              "deductionInputs": [],
+                              "memoInputs": [],
+                              "reportableEarningAndBenefitInputs": [],
+                              "taxInputs": [],
+                              "_modificationTypeCode": "Add"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "12_Pay_Data_Input_-_Memo_Code_Custom_Example_pay-data-input.modify_request_36215.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "payrollGroupCode": {
+                  "codeValue": "{{payrollGroupCode}}"
+                },
+                "payrollProcessingJobID": "18 - G.T.L."
+              },
+              "transform": {
+                "payDataInput": {
+                  "payeePayInputs": [
+                    {
+                      "associateOID": "{{employeeAOID}}",
+                      "payNumber": "1",
+                      "payrollProfilePayInputs": [
+                        {
+                          "payrollFileNumber": "{{payrollFileNumber}}",
+                          "payInputs": [
+                            {
+                              "cancelAutomaticPayIndicator": "true",
+                              "earningInputs": [],
+                              "deductionInputs": [],
+                              "memoInputs": [
+                                {
+                                  "memoCode": {
+                                    "codeValue": "{{memocode}}"
+                                  },
+                                  "memoAmount": {
+                                    "amountValue": "200",
+                                    "currencyCode": "USD"
+                                  }
+                                }
+                              ],
+                              "reportableEarningAndBenefitInputs": [],
+                              "taxInputs": [],
+                              "_modificationTypeCode": "Add"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "13_Pay_Data_Input_-_TIPS_Custom_Example_pay-data-input.modify_request_36214.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "payrollGroupCode": {
+                  "codeValue": "{{payrollGroupCode}}"
+                },
+                "payrollProcessingJobID": "Cash and Charge Tips"
+              },
+              "transform": {
+                "payDataInput": {
+                  "payeePayInputs": [
+                    {
+                      "associateOID": "{{employeeAOID}}",
+                      "payNumber": "1",
+                      "payrollProfilePayInputs": [
+                        {
+                          "payrollFileNumber": "{{payrollFileNumber}}",
+                          "payInputs": [
+                            {
+                              "earningInputs": [
+                                {
+                                  "earningCode": {
+                                    "codeValue": "T"
+                                  },
+                                  "rate": {
+                                    "rateValue": 150
+                                  }
+                                }
+                              ],
+                              "memoInputs": [],
+                              "reportableEarningAndBenefitInputs": [
+                                {
+                                  "reportableEarningAndBenefitCode": {
+                                    "codeValue": "T"
+                                  },
+                                  "reportableEarningAndBenefitAmount": {
+                                    "amountValue": 350,
+                                    "currencyCode": "USD"
+                                  }
+                                }
+                              ],
+                              "taxInputs": [],
+                              "_modificationTypeCode": "Add"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "14_Pay_Data_Input_modify_shift_code_Custom_Example_pay-data-input.modify_request_36213.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "payrollGroupCode": {
+                  "codeValue": "{{payrollGroupCode}}"
+                },
+                "payrollProcessingJobID": "Regular, Shift Code"
+              },
+              "transform": {
+                "payDataInput": {
+                  "payeePayInputs": [
+                    {
+                      "associateOID": "{{employeeAOID}}",
+                      "payNumber": "1",
+                      "payrollProfilePayInputs": [
+                        {
+                          "payrollFileNumber": "{{payrollFileNumber}}",
+                          "payInputs": [
+                            {
+                              "earningInputs": [
+                                {
+                                  "configurationTags": [
+                                    {
+                                      "tagCode": "Shift Code",
+                                      "tagValues": [
+                                        "2"
+                                      ]
+                                    }
+                                  ],
+                                  "earningCode": {
+                                    "codeValue": "R"
+                                  },
+                                  "numberOfHours": 20
+                                },
+                                {
+                                  "configurationTags": [
+                                    {
+                                      "tagCode": "Shift Code",
+                                      "tagValues": [
+                                        "3"
+                                      ]
+                                    }
+                                  ],
+                                  "earningCode": {
+                                    "codeValue": "R"
+                                  },
+                                  "numberOfHours": 20
+                                },
+                                {
+                                  "earningCode": {
+                                    "codeValue": "O"
+                                  },
+                                  "numberOfHours": 2
+                                }
+                              ],
+                              "deductionInputs": [],
+                              "memoInputs": [],
+                              "reportableEarningAndBenefitInputs": [],
+                              "taxInputs": [],
+                              "_modificationTypeCode": "Add"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "15_Pay_Data_Input_modify_for_Tax_Frequency_Custom_Example_pay-data-input.modify_request_36212.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "payrollGroupCode": {
+                  "codeValue": "{{payrollGroupCode}}"
+                },
+                "payrollProcessingJobID": "Tax Frequency"
+              },
+              "transform": {
+                "payDataInput": {
+                  "payeePayInputs": [
+                    {
+                      "associateOID": "{{employeeAOID}}",
+                      "payNumber": "1",
+                      "payrollProfilePayInputs": [
+                        {
+                          "payrollFileNumber": "{{payrollFileNumber}}",
+                          "payInputs": [
+                            {
+                              "earningInputs": [
+                                {
+                                  "earningCode": {
+                                    "codeValue": "B"
+                                  },
+                                  "earningsAmount": {
+                                    "amountValue": 5000,
+                                    "currencyCode": "USD"
+                                  }
+                                }
+                              ],
+                              "deductionInputs": [],
+                              "memoInputs": [],
+                              "reportableEarningAndBenefitInputs": [],
+                              "taxInputs": [
+                                {
+                                  "taxCycleCode": {
+                                    "codeValue": "B"
+                                  }
+                                }
+                              ],
+                              "_modificationTypeCode": "Add"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "2_Pay_Data_Input_-_Simple_Reg_&_OT_-_Append_Custom_Example_pay-data-input.modify_request_36222.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "payrollGroupCode": {
+                  "codeValue": "{{payrollGroupCode}}"
+                },
+                "payrollProcessingJobID": "Regular, OT"
+              },
+              "transform": {
+                "payDataInput": {
+                  "payeePayInputs": [
+                    {
+                      "associateOID": "{{employeeAOID}}",
+                      "payNumber": "1",
+                      "payrollProfilePayInputs": [
+                        {
+                          "payrollFileNumber": "{{payrollFileNumber}}",
+                          "payInputs": [
+                            {
+                              "earningInputs": [
+                                {
+                                  "earningCode": {
+                                    "codeValue": "R"
+                                  },
+                                  "numberOfHours": 80
+                                },
+                                {
+                                  "earningCode": {
+                                    "codeValue": "O"
+                                  },
+                                  "numberOfHours": 10
+                                }
+                              ],
+                              "deductionInputs": [],
+                              "memoInputs": [],
+                              "reportableEarningAndBenefitInputs": [],
+                              "taxInputs": [],
+                              "_modificationTypeCode": "Append"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "3_Pay_Data_Input_-_Simplay_Reg_&_OT_W",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "payrollGroupCode": {
+                  "codeValue": "{{payrollGroupCode}}"
+                },
+                "payrollProcessingJobID": "Reg, OT, FLSA Work Week"
+              },
+              "transform": {
+                "payDataInput": {
+                  "payeePayInputs": [
+                    {
+                      "associateOID": "{{employeeAOID}}",
+                      "payNumber": "1",
+                      "payrollProfilePayInputs": [
+                        {
+                          "payrollFileNumber": "{{payrollFileNumber}}",
+                          "payInputs": [
+                            {
+                              "earningInputs": [
+                                {
+                                  "earnedPayPeriodWeekNumber": 1,
+                                  "earningCode": {
+                                    "codeValue": "R"
+                                  },
+                                  "numberOfHours": 40
+                                },
+                                {
+                                  "earnedPayPeriodWeekNumber": 2,
+                                  "earningCode": {
+                                    "codeValue": "R"
+                                  },
+                                  "numberOfHours": 40
+                                },
+                                {
+                                  "earnedPayPeriodWeekNumber": 1,
+                                  "earningCode": {
+                                    "codeValue": "O"
+                                  },
+                                  "numberOfHours": 5
+                                },
+                                {
+                                  "earnedPayPeriodWeekNumber": 2,
+                                  "earningCode": {
+                                    "codeValue": "O"
+                                  },
+                                  "numberOfHours": 5
+                                }
+                              ],
+                              "deductionInputs": [],
+                              "memoInputs": [],
+                              "reportableEarningAndBenefitInputs": [],
+                              "taxInputs": [],
+                              "_modificationTypeCode": "Add"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

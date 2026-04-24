@@ -4,6 +4,8 @@ def test_bundle_exports_all_components():
         ADPApplicantOnboardingToolsComponent,
         ADPAuthComponent,
         ADPMCPComponent,
+        ADPPayDataInputToolsComponent,
+        ADPPayDistributionsToolsComponent,
         ADPTriggerComponent,
         ADPWorkerAssignmentToolsComponent,
         ADPWorkerAssignmentV3ToolsComponent,
@@ -15,6 +17,7 @@ def test_bundle_exports_all_components():
         ADPWorkerIdentificationToolsComponent,
         ADPWorkerLeavesToolsComponent,
         ADPWorkerLifecycleToolsComponent,
+        ADPWorkerPayrollInstructionsToolsComponent,
         ADPWorkerPersonalCommunicationToolsComponent,
         ADPWorkerToolsComponent,
     )
@@ -23,6 +26,8 @@ def test_bundle_exports_all_components():
     assert ADPAPIRequestComponent.name == "ADPAPIRequest"
     assert ADPApplicantOnboardingToolsComponent.name == "ADPApplicantOnboardingTools"
     assert ADPMCPComponent.name == "ADPMCP"
+    assert ADPPayDataInputToolsComponent.name == "ADPPayDataInputTools"
+    assert ADPPayDistributionsToolsComponent.name == "ADPPayDistributionsTools"
     assert ADPWorkerToolsComponent.name == "ADPWorkerTools"
     assert ADPTriggerComponent.name == "ADPTrigger"
     assert ADPWorkerCompensationToolsComponent.name == "ADPWorkerCompensationTools"
@@ -35,4 +40,5 @@ def test_bundle_exports_all_components():
     assert ADPWorkerHrProfilesToolsComponent.name == "ADPWorkerHrProfilesTools"
     assert ADPWorkerLeavesToolsComponent.name == "ADPWorkerLeavesTools"
     assert ADPWorkerLifecycleToolsComponent.name == "ADPWorkerLifecycleTools"
+    assert ADPWorkerPayrollInstructionsToolsComponent.name == "ADPWorkerPayrollInstructionsTools"
     assert ADPWorkerAssignmentV3ToolsComponent.name == "ADPWorkerAssignmentV3Tools"

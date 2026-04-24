@@ -1,0 +1,512 @@
+{
+  "tile": "payroll/worker-payroll-instructions/v1",
+  "samples": [
+    {
+      "filename": "1._Changing_a_deduction_with_InactiveIndicator_as_true_Provide_Example_workerGeneralDeductionInstruction.change_request_3775.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "payrollInstruction": {
+                  "payrollGroupCode": {
+                    "codeValue": "{{payrollGroupCode}}",
+                    "shortName": "94N"
+                  },
+                  "payrollFileNumber": "{{payrollFileNumber}}",
+                  "payrollAgreementID": "{{payrollAgreementID}}",
+                  "itemID": "169749147863_1",
+                  "generalDeductionInstruction": {
+                    "deductionCode": {
+                      "codeValue": "M"
+                    }
+                  }
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2020-05-08",
+                "payrollInstruction": {
+                  "generalDeductionInstruction": {
+                    "inactiveIndicator": true,
+                    "deductionRate": {
+                      "rateValue": "20"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "2._Changing_a_deduction_with_InactiveIndicator_as_false_Custom_Example_workerGeneralDeductionInstruction.change_request_19626.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "payrollInstruction": {
+                  "payrollGroupCode": {
+                    "codeValue": "{{payrollGroupCode}}",
+                    "shortName": "94N"
+                  },
+                  "payrollFileNumber": "{{payrollFileNumber}}",
+                  "payrollAgreementID": "{{payrollAgreementID}}",
+                  "itemID": "169749147863_1",
+                  "generalDeductionInstruction": {
+                    "deductionCode": {
+                      "codeValue": "M"
+                    }
+                  }
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2020-05-08",
+                "payrollInstruction": {
+                  "generalDeductionInstruction": {
+                    "inactiveIndicator": true,
+                    "deductionRate": {
+                      "rateValue": "20"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "3._When_changing_a_deduction,_without_a_deduction_goal,_with_effective_date_as_current._Custom_Example_workerGeneralDeductionInstruction.change_request_19627.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "payrollInstruction": {
+                  "payrollGroupCode": {
+                    "codeValue": "{{payrollGroupCode}}",
+                    "shortName": "94N"
+                  },
+                  "payrollFileNumber": "{{payrollFileNumber}}",
+                  "payrollAgreementID": "{{payrollAgreementID}}",
+                  "itemID": "169750219183_1",
+                  "generalDeductionInstruction": {
+                    "deductionCode": {
+                      "codeValue": "M"
+                    }
+                  }
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2020-04-29",
+                "payrollInstruction": {
+                  "generalDeductionInstruction": {
+                    "inactiveIndicator": false,
+                    "deductionRate": {
+                      "rateValue": 10
+                    },
+                    "deductionGoal": {
+                      "goalLimitAmount": {
+                        "amountValue": 500
+                      },
+                      "goalID": "5",
+                      "goalBalanceAmount": {
+                        "amountValue": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "4._When_changing_a_deduction_with_deduction_goal_with_effective_date_as_current_date._Custom_Example_workerGeneralDeductionInstruction.change_request_19628.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "payrollInstruction": {
+                  "payrollGroupCode": {
+                    "codeValue": "{{payrollGroupCode}}",
+                    "shortName": "938"
+                  },
+                  "payrollFileNumber": "{{payrollFileNumber}}",
+                  "payrollAgreementID": "{{payrollAgreementID}}",
+                  "itemID": "169728023987_1337",
+                  "generalDeductionInstruction": {
+                    "deductionCode": {
+                      "codeValue": "D"
+                    }
+                  }
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2019-05-13",
+                "payrollInstruction": {
+                  "generalDeductionInstruction": {
+                    "deductionRate": {
+                      "rateValue": 40
+                    },
+                    "deductionGoal": {
+                      "goalLimitAmount": {
+                        "amountValue": 600
+                      },
+                      "goalID": "1",
+                      "goalBalanceAmount": {
+                        "amountValue": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "5._When_changing_a_deduction_with_the_deduction_goal_effective_on_a_future_date._Custom_Example_workerGeneralDeductionInstruction.change_request_19629.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "payrollInstruction": {
+                  "payrollGroupCode": {
+                    "codeValue": "{{payrollGroupCode}}",
+                    "shortName": "938"
+                  },
+                  "payrollFileNumber": "{{payrollFileNumber}}",
+                  "payrollAgreementID": "{{payrollAgreementID}}",
+                  "itemID": "40028978_74",
+                  "generalDeductionInstruction": {
+                    "deductionCode": {
+                      "codeValue": "I"
+                    }
+                  }
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2019-05-15",
+                "payrollInstruction": {
+                  "generalDeductionInstruction": {
+                    "deductionRate": {
+                      "rateValue": 140
+                    },
+                    "deductionGoal": {
+                      "goalLimitAmount": {
+                        "amountValue": 64
+                      },
+                      "goalID": "1",
+                      "goalBalanceAmount": {
+                        "amountValue": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "1._When_adding_a_deduction_with_InactiveIndicator_as_true._Provide_Example_workerGeneralDeductionInstruction.start_request_3773.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "payrollInstruction": {
+                  "payrollGroupCode": {
+                    "codeValue": "{{payrollGroupCode}}",
+                    "shortName": "938",
+                    "longName": ""
+                  },
+                  "payrollFileNumber": "{{payrollFileNumber}}",
+                  "payrollAgreementID": "{{payrollAgreementID}}"
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2020-6-15",
+                "payrollInstruction": {
+                  "generalDeductionInstruction": {
+                    "deductionCode": {
+                      "codeValue": "H",
+                      "shortName": "H",
+                      "longName": ""
+                    },
+                    "deductionRate": {
+                      "rateValue": "",
+                      "currencyCode": "USD"
+                    },
+                    "deductionGoal": {
+                      "goalLimitAmount": {
+                        "amountValue": "500"
+                      },
+                      "goalID": "6",
+                      "goalBalanceAmount": {
+                        "amountValue": "50"
+                      }
+                    },
+                    "inactiveIndicator": true
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "2._When_adding_a_deduction_with_InactiveIndicator_as_false._Custom_Example_workerGeneralDeductionInstruction.start_request_19622.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "G3588JKQ33NJG6NX"
+                },
+                "payrollInstruction": {
+                  "payrollGroupCode": {
+                    "codeValue": "938",
+                    "shortName": "938",
+                    "longName": ""
+                  },
+                  "payrollFileNumber": "9665",
+                  "payrollAgreementID": "26849471_194800"
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2020-6-15",
+                "payrollInstruction": {
+                  "generalDeductionInstruction": {
+                    "deductionCode": {
+                      "codeValue": "H",
+                      "shortName": "H",
+                      "longName": ""
+                    },
+                    "deductionRate": {
+                      "rateValue": "",
+                      "currencyCode": "USD"
+                    },
+                    "deductionGoal": {
+                      "goalLimitAmount": {
+                        "amountValue": "500"
+                      },
+                      "goalID": "6",
+                      "goalBalanceAmount": {
+                        "amountValue": "50"
+                      }
+                    },
+                    "inactiveIndicator": true
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "3._When_adding_a_deduction_without_a_deduction_goal_and_the_effective_date_as_the_current_date._Custom_Example_workerGeneralDeductionInstruction.start_request_19623.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "G3588JKQ33NJG6NX"
+                },
+                "payrollInstruction": {
+                  "payrollGroupCode": {
+                    "codeValue": "94N"
+                  },
+                  "payrollFileNumber": "12345",
+                  "payrollAgreementID": "39297793_1317"
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2019-04-18",
+                "payrollInstruction": {
+                  "generalDeductionInstruction": {
+                    "deductionCode": {
+                      "codeValue": "L"
+                    },
+                    "deductionRate": {
+                      "rateValue": 111,
+                      "currencyCode": "USD"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "4._When_adding_a_deduction_with_a_deduction_goal_and_the_effective_date_as_the_current_date._Custom_Example_workerGeneralDeductionInstruction.start_request_19624.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "G3ZNHFD4527JV1P3"
+                },
+                "payrollInstruction": {
+                  "payrollGroupCode": {
+                    "codeValue": "938",
+                    "shortName": "938",
+                    "longName": ""
+                  },
+                  "payrollFileNumber": "9656",
+                  "payrollAgreementID": "26849471_194737"
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2019-05-15",
+                "payrollInstruction": {
+                  "generalDeductionInstruction": {
+                    "deductionCode": {
+                      "codeValue": "D",
+                      "shortName": "D",
+                      "longName": ""
+                    },
+                    "deductionRate": {
+                      "rateValue": 20,
+                      "currencyCode": "USD"
+                    },
+                    "deductionGoal": {
+                      "goalLimitAmount": {
+                        "amountValue": 500
+                      },
+                      "goalID": "2",
+                      "goalBalanceAmount": {
+                        "amountValue": 300
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "5._When_adding_a_deduction_with_a_deduction_goal_and_effective_date_as_the_future_date._Custom_Example_workerGeneralDeductionInstruction.start_request_19625.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "G3ZNHFD4527JV1P3"
+                },
+                "payrollInstruction": {
+                  "payrollGroupCode": {
+                    "codeValue": "938",
+                    "shortName": "938",
+                    "longName": ""
+                  },
+                  "payrollFileNumber": "9656",
+                  "payrollAgreementID": "26849471_194737"
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2020-01-01",
+                "payrollInstruction": {
+                  "generalDeductionInstruction": {
+                    "deductionCode": {
+                      "codeValue": "H",
+                      "shortName": "H",
+                      "longName": ""
+                    },
+                    "deductionRate": {
+                      "rateValue": 200,
+                      "currencyCode": "USD"
+                    },
+                    "deductionGoal": {
+                      "goalLimitAmount": {
+                        "amountValue": 500,
+                        "currencyCode": "USD"
+                      },
+                      "goalID": "4",
+                      "goalBalanceAmount": {
+                        "amountValue": 300,
+                        "currencyCode": "USD"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Using_the_General_Deduction_Instruction_Stop_API__Provide_Example_workerGeneralDeductionInstruction.stop_request_3780.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "payrollInstruction": {
+                  "payrollFileNumber": "{{payrollFileNumber}}",
+                  "payrollAgreementID": "{{payrollAgreementID}}",
+                  "itemID": "169734365871_1",
+                  "generalDeductionInstruction": {}
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2019-04-18"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

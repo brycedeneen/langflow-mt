@@ -1,0 +1,421 @@
+{
+  "tile": "payroll/pay-distributions/v2",
+  "samples": [
+    {
+      "filename": "1._Adding_DD_with_Amount_to_deposit_as_Percent_Net_Custom_Example_worker.payDistribution.change_request_45575.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "payDistribution": {
+                  "itemID": "{{workAssignmentID}}"
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2024-05-31",
+                "payDistribution": {
+                  "distributionInstructions": [
+                    {
+                      "distributionPercentage": "50",
+                      "depositAccount": {
+                        "financialAccount": {
+                          "accountNumber": "123456778",
+                          "typeCode": {
+                            "codeValue": "x"
+                          }
+                        },
+                        "financialParty": {
+                          "routingTransitID": {
+                            "idValue": "823456789"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "10._Updating_DD_with_Amount_to_deposit_as_Percent_Net_Custom_Example_worker.payDistribution.change_request_45584.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "payDistribution": {
+                  "itemID": "{{workAssignmentID}}"
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2024-05-31",
+                "payDistribution": {
+                  "distributionInstructions": [
+                    {
+                      "itemID": "9201158803848_1",
+                      "distributionPercentage": "50",
+                      "depositAccount": {
+                        "financialAccount": {
+                          "accountNumber": "123456778",
+                          "typeCode": {
+                            "codeValue": "x"
+                          }
+                        },
+                        "financialParty": {
+                          "routingTransitID": {
+                            "idValue": "823456789"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "11._Updating_DD_with_Amount_to_deposit_as_Partial_Net_Custom_Example_worker.payDistribution.change_request_45585.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "payDistribution": {
+                  "itemID": "{{workAssignmentID}}"
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2024-05-31",
+                "payDistribution": {
+                  "distributionInstructions": [
+                    {
+                      "itemID": "9201158803848_1",
+                      "distributionAmount": {
+                        "amountValue": "700"
+                      },
+                      "depositAccount": {
+                        "financialAccount": {
+                          "accountNumber": "123456778",
+                          "typeCode": {
+                            "codeValue": "W"
+                          }
+                        },
+                        "financialParty": {
+                          "routingTransitID": {
+                            "idValue": "823456789"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "12._Updating_DD_with_Amount_to_deposit_as_Full_Net_Custom_Example_worker.payDistribution.change_request_45586.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "payDistribution": {
+                  "itemID": "{{workAssignmentID}}"
+                }
+              },
+              "transform": {
+                "payDistribution": {
+                  "effectiveDateTime": "2024-05-31",
+                  "distributionInstructions": [
+                    {
+                      "itemID": "9201158803848_1",
+                      "remainingBalanceIndicator": true,
+                      "depositAccount": {
+                        "financialParty": {
+                          "routingTransitID": {
+                            "idValue": "031207607"
+                          }
+                        },
+                        "financialAccount": {
+                          "accountNumber": "4172678660111",
+                          "typeCode": {
+                            "codeValue": "Z"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "13._Updating_DD_with_Multiple_Deposit_Codes_Custom_Example_worker.payDistribution.change_request_45587.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "payDistribution": {
+                  "itemID": "{{workAssignmentID}}"
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2024-05-31",
+                "payDistribution": {
+                  "distributionInstructions": [
+                    {
+                      "itemID": "9201158803848_1",
+                      "distributionAmount": {
+                        "amountValue": "300"
+                      },
+                      "depositAccount": {
+                        "financialAccount": {
+                          "accountNumber": "123456778",
+                          "typeCode": {
+                            "codeValue": "Z"
+                          }
+                        },
+                        "financialParty": {
+                          "routingTransitID": {
+                            "idValue": "823456789"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "itemID": "9201158803848_1",
+                      "distributionAmount": {
+                        "amountValue": "500"
+                      },
+                      "depositAccount": {
+                        "financialAccount": {
+                          "accountNumber": "123456778",
+                          "typeCode": {
+                            "codeValue": "Y"
+                          }
+                        },
+                        "financialParty": {
+                          "routingTransitID": {
+                            "idValue": "823456789"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "14._Updating_DD_from_Active_to_Inactive_Custom_Example_worker.payDistribution.change_request_45588.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "payDistribution": {
+                  "itemID": "{{workAssignmentID}}"
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2024-05-31",
+                "payDistribution": {
+                  "distributionInstructions": [
+                    {
+                      "instructionStatusCode": {
+                        "codeValue": "I",
+                        "shortName": "Inactive"
+                      },
+                      "depositAccount": {
+                        "financialParty": {
+                          "routingTransitID": {
+                            "idValue": "823456789"
+                          }
+                        },
+                        "financialAccount": {
+                          "accountNumber": "123456778",
+                          "typeCode": {
+                            "codeValue": "w",
+                            "shortName": "w"
+                          }
+                        }
+                      },
+                      "remainingBalanceIndicator": true
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "15._Removing_direct_deposit_Custom_Example_worker.payDistribution.change_request_45589.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "payDistribution": {
+                  "itemID": "{{workAssignmentID}}"
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2024-05-31",
+                "payDistribution": {
+                  "distributionInstructions": []
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "16._Add_DD_with_Amount_to_deposit_as_Partial_Net_(canadian_clients)_Custom_Example_worker.payDistribution.change_request_45590.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "payDistribution": {
+                  "itemID": "{{workAssignmentID}}"
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2024-05-31",
+                "payDistribution": {
+                  "distributionInstructions": [
+                    {
+                      "distributionAmount": {
+                        "amountValue": "300"
+                      },
+                      "depositAccount": {
+                        "financialParty": {
+                          "financialPartyID": {
+                            "schemeCode": {
+                              "codeValue": "260"
+                            }
+                          },
+                          "branchNameCode": {
+                            "codeValue": "58956"
+                          }
+                        },
+                        "financialAccount": {
+                          "accountNumber": "11118167",
+                          "typeCode": {
+                            "codeValue": "DP1",
+                            "shortName": "DEPOSIT ACCT1"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "17._Adding_DD_with_Amount_to_deposit_as_Percentage_net_(Canadian_Clients)_Custom_Example_worker.payDistribution.change_request_45591.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "worker": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "payDistribution": {
+                  "itemID": "{{workAssignmentID}}"
+                }
+              },
+              "transform": {
+                "effectiveDateTime": "2024-05-28",
+                "payDistribution": {
+                  "distributionInstructions": [
+                    {
+                      "distributionPercentage": "50",
+                      "depositAccount": {
+                        "financialParty": {
+                          "financialPartyID": {
+                            "schemeCode": {
+                              "codeValue": "260"
+                            }
+                          },
+                          "branchNameCode": {
+                            "codeValue": "58956"
+                          }
+                        },
+                        "financialAccount": {
+                          "accountNumber": "11118167",
+                          "typeCode": {
+                            "codeValue": "DP5",
+                            "shortName": "DEPOSIT ACCT5"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

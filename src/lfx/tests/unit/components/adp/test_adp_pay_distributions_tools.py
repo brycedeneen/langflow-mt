@@ -1,0 +1,366 @@
+"""Tests for ADPPayDistributionsToolsComponent."""
+
+from contextlib import asynccontextmanager
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import httpx
+import pytest
+
+from lfx.components.adp.adp_pay_distributions_tools import (
+    ADPPayDistributionsToolsComponent,
+    PATH_CHANGE,
+    PATH_DETAIL,
+    PATH_LIST,
+    build_change_pay_distribution_event,
+)
+
+
+def _make_component(connection, *, enable_mutations: bool = False) -> ADPPayDistributionsToolsComponent:
+    return ADPPayDistributionsToolsComponent(connection=connection, enable_mutations=enable_mutations)
+
+
+# ------------- envelope builder -------------
+
+
+def test_build_add_dd_percentage_net():
+    body = build_change_pay_distribution_event(
+        associate_oid="G3ABC",
+        work_assignment_item_id="WA-1",
+        effective_date="2024-05-31",
+        distribution_instructions=[
+            {
+                "distribution_percentage": 50,
+                "account_number": "123456778",
+                "account_type_code": "x",
+                "routing_transit_id": "823456789",
+            },
+        ],
+    )
+    event = body["events"][0]
+    assert event["data"]["eventContext"] == {
+        "worker": {"associateOID": "G3ABC"},
+        "payDistribution": {"itemID": "WA-1"},
+    }
+    transform = event["data"]["transform"]
+    assert transform["effectiveDateTime"] == "2024-05-31"
+    instruction = transform["payDistribution"]["distributionInstructions"][0]
+    assert instruction["distributionPercentage"] == "50"
+    assert instruction["depositAccount"] == {
+        "financialAccount": {"accountNumber": "123456778", "typeCode": {"codeValue": "x"}},
+        "financialParty": {"routingTransitID": {"idValue": "823456789"}},
+    }
+    assert "itemID" not in instruction
+
+
+def test_build_update_dd_partial_net_with_item_id():
+    body = build_change_pay_distribution_event(
+        associate_oid="G3ABC",
+        work_assignment_item_id="WA-1",
+        effective_date="2024-05-31",
+        distribution_instructions=[
+            {
+                "item_id": "9201158803848_1",
+                "distribution_amount": 700,
+                "account_number": "123456778",
+                "account_type_code": "W",
+                "routing_transit_id": "823456789",
+            },
+        ],
+    )
+    instruction = body["events"][0]["data"]["transform"]["payDistribution"]["distributionInstructions"][0]
+    assert instruction["itemID"] == "9201158803848_1"
+    assert instruction["distributionAmount"] == {"amountValue": "700"}
+
+
+def test_build_update_dd_remaining_balance():
+    body = build_change_pay_distribution_event(
+        associate_oid="G3ABC",
+        work_assignment_item_id="WA-1",
+        effective_date="2024-05-31",
+        distribution_instructions=[
+            {
+                "item_id": "9201158803848_1",
+                "remaining_balance_indicator": True,
+                "account_number": "4172678660111",
+                "account_type_code": "Z",
+                "routing_transit_id": "031207607",
+            },
+        ],
+    )
+    instruction = body["events"][0]["data"]["transform"]["payDistribution"]["distributionInstructions"][0]
+    assert instruction["remainingBalanceIndicator"] is True
+
+
+def test_build_inactivate_instruction():
+    body = build_change_pay_distribution_event(
+        associate_oid="G3ABC",
+        work_assignment_item_id="WA-1",
+        effective_date="2024-05-31",
+        distribution_instructions=[
+            {
+                "instruction_status_code": "I",
+                "instruction_status_short_name": "Inactive",
+                "remaining_balance_indicator": True,
+                "account_number": "123456778",
+                "account_type_code": "w",
+                "account_type_short_name": "w",
+                "routing_transit_id": "823456789",
+            },
+        ],
+    )
+    instruction = body["events"][0]["data"]["transform"]["payDistribution"]["distributionInstructions"][0]
+    assert instruction["instructionStatusCode"] == {"codeValue": "I", "shortName": "Inactive"}
+    assert instruction["depositAccount"]["financialAccount"]["typeCode"] == {
+        "codeValue": "w",
+        "shortName": "w",
+    }
+
+
+def test_build_remove_all_empty_list():
+    body = build_change_pay_distribution_event(
+        associate_oid="G3ABC",
+        work_assignment_item_id="WA-1",
+        effective_date="2024-05-31",
+        distribution_instructions=[],
+    )
+    transform = body["events"][0]["data"]["transform"]
+    assert transform["payDistribution"] == {"distributionInstructions": []}
+
+
+def test_build_canadian_financial_party():
+    body = build_change_pay_distribution_event(
+        associate_oid="G3ABC",
+        work_assignment_item_id="WA-1",
+        effective_date="2024-05-31",
+        distribution_instructions=[
+            {
+                "distribution_amount": 300,
+                "account_number": "11118167",
+                "account_type_code": "DP1",
+                "account_type_short_name": "DEPOSIT ACCT1",
+                "financial_party_scheme_code": "260",
+                "branch_name_code": "58956",
+            },
+        ],
+    )
+    instruction = body["events"][0]["data"]["transform"]["payDistribution"]["distributionInstructions"][0]
+    fp = instruction["depositAccount"]["financialParty"]
+    assert fp == {
+        "financialPartyID": {"schemeCode": {"codeValue": "260"}},
+        "branchNameCode": {"codeValue": "58956"},
+    }
+    assert instruction["depositAccount"]["financialAccount"]["typeCode"] == {
+        "codeValue": "DP1",
+        "shortName": "DEPOSIT ACCT1",
+    }
+
+
+def test_build_multiple_instructions_in_one_call():
+    body = build_change_pay_distribution_event(
+        associate_oid="G3ABC",
+        work_assignment_item_id="WA-1",
+        effective_date="2024-05-31",
+        distribution_instructions=[
+            {
+                "item_id": "9201158803848_1",
+                "distribution_amount": 300,
+                "account_number": "123456778",
+                "account_type_code": "Z",
+                "routing_transit_id": "823456789",
+            },
+            {
+                "item_id": "9201158803848_1",
+                "distribution_amount": 500,
+                "account_number": "123456778",
+                "account_type_code": "Y",
+                "routing_transit_id": "823456789",
+            },
+        ],
+    )
+    instructions = body["events"][0]["data"]["transform"]["payDistribution"]["distributionInstructions"]
+    assert len(instructions) == 2
+    assert instructions[0]["distributionAmount"]["amountValue"] == "300"
+    assert instructions[1]["distributionAmount"]["amountValue"] == "500"
+
+
+def test_build_additional_fields_merged_into_pay_distribution():
+    body = build_change_pay_distribution_event(
+        associate_oid="G3ABC",
+        work_assignment_item_id="WA-1",
+        distribution_instructions=[],
+        additional_fields={"someRareKey": "val"},
+    )
+    pd = body["events"][0]["data"]["transform"]["payDistribution"]
+    assert pd["someRareKey"] == "val"
+
+
+def test_build_omits_effective_date_when_missing():
+    body = build_change_pay_distribution_event(
+        associate_oid="G3ABC",
+        work_assignment_item_id="WA-1",
+        distribution_instructions=[],
+    )
+    transform = body["events"][0]["data"]["transform"]
+    assert "effectiveDateTime" not in transform
+
+
+# ------------- _call helper -------------
+
+
+@pytest.mark.asyncio
+async def test_call_get_happy_path(adp_connection):
+    c = _make_component(adp_connection)
+    fake_response = httpx.Response(200, json={"payDistributions": []})
+    mock_client = MagicMock()
+
+    @asynccontextmanager
+    async def fake_build_client(_conn, *, timeout=30):
+        yield mock_client
+
+    with patch(
+        "lfx.components.adp.adp_pay_distributions_tools.build_mtls_httpx_client",
+        new=fake_build_client,
+    ), patch.object(c, "_execute_request", new=AsyncMock(return_value=fake_response)):
+        result = await c._call(adp_connection, method="GET", path=PATH_LIST.format(aoid="G3ABC"))
+
+    assert result == {"payDistributions": []}
+
+
+@pytest.mark.asyncio
+async def test_call_401_retries(adp_connection):
+    c = _make_component(adp_connection)
+    responses = [
+        httpx.Response(401, json={"error": "expired"}),
+        httpx.Response(200, json={"ok": True}),
+    ]
+    mock_exec = AsyncMock(side_effect=responses)
+    mock_client = MagicMock()
+
+    @asynccontextmanager
+    async def fake_build_client(_conn, *, timeout=30):
+        yield mock_client
+
+    async def fake_force_refresh(conn, *, force=False):
+        assert force is True
+        conn.access_token = "refreshed"  # noqa: S105
+
+    with patch(
+        "lfx.components.adp.adp_pay_distributions_tools.build_mtls_httpx_client",
+        new=fake_build_client,
+    ), patch.object(c, "_execute_request", new=mock_exec), patch(
+        "lfx.components.adp.adp_pay_distributions_tools.fetch_token",
+        new=AsyncMock(side_effect=fake_force_refresh),
+    ):
+        await c._call(adp_connection, method="GET", path=PATH_LIST.format(aoid="G3ABC"))
+
+    assert mock_exec.call_count == 2
+    assert mock_exec.call_args_list[1].kwargs["headers"]["Authorization"] == "Bearer refreshed"
+
+
+@pytest.mark.asyncio
+async def test_call_http_error_returns_dict(adp_connection):
+    c = _make_component(adp_connection)
+    fake_response = httpx.Response(404, json={"errorCode": "NOT_FOUND"})
+    mock_client = MagicMock()
+
+    @asynccontextmanager
+    async def fake_build_client(_conn, *, timeout=30):
+        yield mock_client
+
+    with patch(
+        "lfx.components.adp.adp_pay_distributions_tools.build_mtls_httpx_client",
+        new=fake_build_client,
+    ), patch.object(c, "_execute_request", new=AsyncMock(return_value=fake_response)):
+        result = await c._call(adp_connection, method="GET", path="/payroll/v2/workers/missing/pay-distributions")
+
+    assert result == {"error": {"errorCode": "NOT_FOUND"}, "status_code": 404}
+
+
+# ------------- tool registration + invocation -------------
+
+
+@pytest.mark.asyncio
+async def test_build_tools_disabled_returns_only_read(adp_connection):
+    c = _make_component(adp_connection, enable_mutations=False)
+    tools = await c.build_tools()
+    assert len(tools) == 1
+    assert tools[0].name == "get_worker_pay_distributions"
+
+
+@pytest.mark.asyncio
+async def test_build_tools_enabled_returns_both(adp_connection):
+    c = _make_component(adp_connection, enable_mutations=True)
+    tools = await c.build_tools()
+
+    assert {t.name for t in tools} == {
+        "get_worker_pay_distributions",
+        "change_worker_pay_distributions",
+    }
+    for tool in tools:
+        assert tool.description
+        assert tool.args_schema is not None
+
+
+@pytest.mark.asyncio
+async def test_read_tool_list_routes_to_list_path(adp_connection):
+    c = _make_component(adp_connection)
+    mock_call = AsyncMock(return_value={"payDistributions": []})
+
+    with patch.object(c, "_call", new=mock_call):
+        tools = await c.build_tools()
+        read_tool = next(t for t in tools if t.name == "get_worker_pay_distributions")
+        await read_tool.ainvoke({"associate_oid": "G3ABC"})
+
+    assert mock_call.call_args.kwargs["path"] == "/payroll/v2/workers/G3ABC/pay-distributions"
+    assert mock_call.call_args.kwargs["method"] == "GET"
+
+
+@pytest.mark.asyncio
+async def test_read_tool_detail_routes_to_detail_path(adp_connection):
+    c = _make_component(adp_connection)
+    mock_call = AsyncMock(return_value={})
+
+    with patch.object(c, "_call", new=mock_call):
+        tools = await c.build_tools()
+        read_tool = next(t for t in tools if t.name == "get_worker_pay_distributions")
+        await read_tool.ainvoke({"associate_oid": "G3ABC", "pay_distribution_id": "PD-9"})
+
+    assert mock_call.call_args.kwargs["path"] == "/payroll/v2/workers/G3ABC/pay-distributions/PD-9"
+
+
+@pytest.mark.asyncio
+async def test_change_tool_builds_envelope_and_posts(adp_connection):
+    c = _make_component(adp_connection, enable_mutations=True)
+    mock_post = AsyncMock(return_value={"confirmMessage": {"requestID": "REQ-9"}})
+
+    with patch.object(c, "_post_event", new=mock_post):
+        tools = await c.build_tools()
+        change_tool = next(t for t in tools if t.name == "change_worker_pay_distributions")
+        result = await change_tool.ainvoke(
+            {
+                "associate_oid": "G3ABC",
+                "work_assignment_item_id": "WA-1",
+                "effective_date": "2024-05-31",
+                "distribution_instructions": [
+                    {
+                        "distribution_percentage": 50,
+                        "account_number": "123456778",
+                        "account_type_code": "x",
+                        "routing_transit_id": "823456789",
+                    },
+                ],
+            },
+        )
+
+    assert result == {"confirmMessage": {"requestID": "REQ-9"}}
+    call = mock_post.call_args
+    assert call.kwargs["path"] == PATH_CHANGE
+    body = call.kwargs["body"]
+    instruction = body["events"][0]["data"]["transform"]["payDistribution"]["distributionInstructions"][0]
+    assert instruction["distributionPercentage"] == "50"
+
+
+def test_expected_path_constants():
+    assert PATH_LIST == "/payroll/v2/workers/{aoid}/pay-distributions"
+    assert PATH_DETAIL == "/payroll/v2/workers/{aoid}/pay-distributions/{pay_distribution_id}"
+    assert PATH_CHANGE == "/events/payroll/v1/worker.pay-distribution.change"

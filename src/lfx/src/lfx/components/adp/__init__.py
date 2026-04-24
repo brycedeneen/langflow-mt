@@ -4,6 +4,8 @@ from .adp_api_request import ADPAPIRequestComponent
 from .adp_applicant_onboarding_tools import ADPApplicantOnboardingToolsComponent
 from .adp_auth import ADPAuthComponent
 from .adp_mcp import ADPMCPComponent
+from .adp_pay_data_input_tools import ADPPayDataInputToolsComponent
+from .adp_pay_distributions_tools import ADPPayDistributionsToolsComponent
 from .adp_trigger import ADPTriggerComponent
 from .adp_worker_assignment_tools import ADPWorkerAssignmentToolsComponent
 from .adp_worker_assignment_v3_tools import ADPWorkerAssignmentV3ToolsComponent
@@ -15,6 +17,7 @@ from .adp_worker_hr_profiles_tools import ADPWorkerHrProfilesToolsComponent
 from .adp_worker_identification_tools import ADPWorkerIdentificationToolsComponent
 from .adp_worker_leaves_tools import ADPWorkerLeavesToolsComponent
 from .adp_worker_lifecycle_tools import ADPWorkerLifecycleToolsComponent
+from .adp_worker_payroll_instructions_tools import ADPWorkerPayrollInstructionsToolsComponent
 from .adp_worker_personal_communication_tools import ADPWorkerPersonalCommunicationToolsComponent
 from .adp_worker_tools import ADPWorkerToolsComponent
 
@@ -23,6 +26,8 @@ __all__ = [
     "ADPApplicantOnboardingToolsComponent",
     "ADPAuthComponent",
     "ADPMCPComponent",
+    "ADPPayDataInputToolsComponent",
+    "ADPPayDistributionsToolsComponent",
     "ADPTriggerComponent",
     "ADPWorkerAssignmentToolsComponent",
     "ADPWorkerAssignmentV3ToolsComponent",
@@ -34,6 +39,7 @@ __all__ = [
     "ADPWorkerIdentificationToolsComponent",
     "ADPWorkerLeavesToolsComponent",
     "ADPWorkerLifecycleToolsComponent",
+    "ADPWorkerPayrollInstructionsToolsComponent",
     "ADPWorkerPersonalCommunicationToolsComponent",
     "ADPWorkerToolsComponent",
 ]
