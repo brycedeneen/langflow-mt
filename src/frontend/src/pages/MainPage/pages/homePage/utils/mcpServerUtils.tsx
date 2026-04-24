@@ -75,16 +75,13 @@ export const getServerName = (
 export const getAuthHeaders = ({
   enableComposer,
   authType,
-  isAutoLogin,
   apiKey,
 }: {
   enableComposer: boolean;
   authType?: string | null;
-  isAutoLogin: boolean;
   apiKey?: string;
 }): string => {
   if (!enableComposer) {
-    if (isAutoLogin) return "";
     return `"--headers","x-api-key","${apiKey || "YOUR_API_KEY"}"`;
   }
   if (!authType || authType === "none") return "";

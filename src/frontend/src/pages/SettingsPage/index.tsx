@@ -5,20 +5,13 @@ import { CustomStoreSidebar } from "@/customization/components/custom-store-side
 import {
   ENABLE_DATASTAX_LANGFLOW,
   ENABLE_LANGFLOW_STORE,
-  ENABLE_PROFILE_ICONS,
 } from "@/customization/feature-flags";
 import useAuthStore from "@/stores/authStore";
-import { useStoreStore } from "@/stores/storeStore";
 import ForwardedIconComponent from "../../components/common/genericIconComponent";
 import PageLayout from "../../components/common/pageLayout";
 export default function SettingsPage(): JSX.Element {
-  const autoLogin = useAuthStore((state) => state.autoLogin);
   const userData = useAuthStore((state) => state.userData);
   const isAdmin = useAuthStore((state) => state.isAdmin);
-  const hasStore = useStoreStore((state) => state.hasStore);
-
-  // Hides the General settings if there is nothing to show
-  const showGeneralSettings = ENABLE_PROFILE_ICONS || hasStore || !autoLogin;
 
   const sidebarNavItems: {
     href?: string;
@@ -26,18 +19,16 @@ export default function SettingsPage(): JSX.Element {
     icon: React.ReactNode;
   }[] = [];
 
-  if (showGeneralSettings) {
-    sidebarNavItems.push({
-      title: "General",
-      href: "/settings/general",
-      icon: (
-        <ForwardedIconComponent
-          name="SlidersHorizontal"
-          className="w-4 shrink-0 justify-start stroke-[1.5]"
-        />
-      ),
-    });
-  }
+  sidebarNavItems.push({
+    title: "General",
+    href: "/settings/general",
+    icon: (
+      <ForwardedIconComponent
+        name="SlidersHorizontal"
+        className="w-4 shrink-0 justify-start stroke-[1.5]"
+      />
+    ),
+  });
 
   sidebarNavItems.push(
     {
@@ -116,7 +107,7 @@ export default function SettingsPage(): JSX.Element {
     });
   }
 
-  if (isAdmin && !autoLogin) {
+  if (isAdmin) {
     sidebarNavItems.push({
       title: "User Admin",
       href: "/settings/users",

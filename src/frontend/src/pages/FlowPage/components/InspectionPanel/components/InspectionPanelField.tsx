@@ -17,7 +17,6 @@ import {
   getCustomParameterTitle,
 } from "@/customization/components/custom-parameter";
 import { LANGFLOW_AGENTIC_EXPERIENCE } from "@/customization/feature-flags";
-import { useIsAutoLogin } from "@/hooks/use-is-auto-login";
 import useAuthStore from "@/stores/authStore";
 import useFlowStore from "@/stores/flowStore";
 import type { NodeInputFieldComponentType } from "@/types/components";
@@ -49,8 +48,7 @@ export default function InspectionPanelField({
   showAdvanced = false,
 }: InspectionPanelFieldProps) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const isAutoLogin = useIsAutoLogin();
-  const shouldDisplayApiKey = isAuthenticated && !isAutoLogin;
+  const shouldDisplayApiKey = isAuthenticated;
 
   const { currentFlowId, currentFlowName } = useFlowStore(
     useShallow((state) => ({

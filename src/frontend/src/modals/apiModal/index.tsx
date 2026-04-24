@@ -6,7 +6,6 @@ import { Separator } from "@/components/ui/separator";
 import { CustomAPIGenerator } from "@/customization/components/custom-api-generator";
 import { CustomLink } from "@/customization/components/custom-link";
 import useSaveFlow from "@/hooks/flows/use-save-flow";
-import useAuthStore from "@/stores/authStore";
 import useFlowStore from "@/stores/flowStore";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import { isEndpointNameValid } from "@/utils/utils";
@@ -34,7 +33,6 @@ export default function ApiModal({
   open?: boolean;
   setOpen?: (a: boolean | ((o?: boolean) => boolean)) => void;
 }) {
-  const _autoLogin = useAuthStore((state) => state.autoLogin);
   const nodes = useFlowStore((state) => state.nodes);
   const [openTweaks, setOpenTweaks] = useState(false);
   const tweaks = useTweaksStore((state) => state.tweaks);

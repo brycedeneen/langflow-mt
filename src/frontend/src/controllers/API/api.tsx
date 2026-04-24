@@ -5,7 +5,6 @@ import axios, {
 } from "axios";
 import * as fetchIntercept from "fetch-intercept";
 import { useEffect } from "react";
-import { IS_AUTO_LOGIN } from "@/constants/constants";
 import { baseURL } from "@/customization/constants";
 import { useCustomApiHeaders } from "@/customization/hooks/use-custom-api-headers";
 import { customGetAccessToken } from "@/customization/utils/custom-get-access-token";
@@ -27,7 +26,6 @@ const api: AxiosInstance = axios.create({
   withCredentials: getAxiosWithCredentials(),
 });
 function ApiInterceptor() {
-  const autoLogin = useAuthStore((state) => state.autoLogin);
   const setErrorData = useAlertStore((state) => state.setErrorData);
   const accessToken = useAuthStore((state) => state.accessToken);
   const authenticationErrorCount = useAuthStore(
@@ -71,15 +69,12 @@ function ApiInterceptor() {
         const isAuthenticationError =
           error?.response?.status === 403 || error?.response?.status === 401;
 
-        const shouldRetryRefresh =
-          (isAuthenticationError && !IS_AUTO_LOGIN) ||
-          (isAuthenticationError && !autoLogin && autoLogin !== undefined);
+        const shouldRetryRefresh = isAuthenticationError;
 
         if (shouldRetryRefresh) {
           if (
             error?.config?.url?.includes("github") ||
-            error?.config?.url?.includes("public") ||
-            error?.config?.url?.includes("auto_login")
+            error?.config?.url?.includes("public")
           ) {
             return Promise.reject(error);
           }
@@ -155,7 +150,7 @@ function ApiInterceptor() {
       api.interceptors.request.eject(requestInterceptor);
       unregister();
     };
-  }, [accessToken, setErrorData, customHeaders, autoLogin]);
+  }, [accessToken, setErrorData, customHeaders]);
 
   function checkErrorCount() {
     if (isLoginPage) return;

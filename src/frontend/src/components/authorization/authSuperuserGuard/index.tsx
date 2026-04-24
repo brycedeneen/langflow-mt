@@ -10,12 +10,11 @@ type Props = { children: ReactNode };
 export const ProtectedSuperuserRoute = ({ children }: Props) => {
   const { userData } = useContext(AuthContext);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const autoLogin = useAuthStore((s) => s.autoLogin);
 
   if (!isAuthenticated) {
     return <LoadingPage />;
   }
-  if (!userData?.is_superuser || autoLogin) {
+  if (!userData?.is_superuser) {
     return <CustomNavigate to="/" replace />;
   }
   return <>{children}</>;

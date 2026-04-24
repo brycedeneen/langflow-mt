@@ -48,7 +48,6 @@ jest.mock("@/stores/authStore", () => ({
   __esModule: true,
   default: () => ({
     apiKey: null,
-    autoLogin: false,
   }),
 }));
 

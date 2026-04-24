@@ -56,7 +56,7 @@ export default function LoginPage(): JSX.Element {
     mutate(user, {
       onSuccess: (data) => {
         clearAuthSession();
-        login(data.access_token, "login", data.refresh_token);
+        login(data.access_token, data.refresh_token);
         queryClient.clear();
       },
       onError: (error) => {

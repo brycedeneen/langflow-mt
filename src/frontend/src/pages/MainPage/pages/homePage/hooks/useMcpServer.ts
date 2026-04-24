@@ -104,7 +104,6 @@ export const useMcpServer = ({
   }, [s.isWaitingForComposer, isLoadingComposerUrl, composerUrlData]);
   // auth store selectors
   const apiKeyFromStore = useAuthStore((st) => st.apiKey);
-  const isAutoLoginFromStore = useAuthStore((st) => st.autoLogin);
 
   const flowsMCPData = useMemo(() => mapFlowsToTools(flows), [flows]);
   const installedClients = useMemo(
@@ -248,10 +247,9 @@ export const useMcpServer = ({
       getAuthHeaders({
         enableComposer: ENABLE_MCP_COMPOSER,
         authType,
-        isAutoLogin: !!isAutoLoginFromStore,
         apiKey: apiKeyFromStore || s.apiKey,
       }),
-    [authType, isAutoLoginFromStore, apiKeyFromStore, s.apiKey],
+    [authType, apiKeyFromStore, s.apiKey],
   );
 
   const composerError = composerUrlData?.error_message ?? null;
@@ -294,9 +292,7 @@ export const useMcpServer = ({
   const hasAuthentication = !!(
     currentAuthSettings?.auth_type && currentAuthSettings.auth_type !== "none"
   );
-  const isAuthApiKey = ENABLE_MCP_COMPOSER
-    ? authType === "apikey"
-    : !isAutoLoginFromStore;
+  const isAuthApiKey = ENABLE_MCP_COMPOSER ? authType === "apikey" : true;
   const hasOAuthError = isOAuthProject && !!composerUrlData?.error_message;
 
   return {

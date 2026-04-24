@@ -10,7 +10,6 @@ import {
   getCustomParameterTitle,
 } from "@/customization/components/custom-parameter";
 import { LANGFLOW_AGENTIC_EXPERIENCE } from "@/customization/feature-flags";
-import { useIsAutoLogin } from "@/hooks/use-is-auto-login";
 import useAuthStore from "@/stores/authStore";
 import { cn } from "@/utils/utils";
 import { default as IconComponent } from "../../../../components/common/genericIconComponent";
@@ -49,8 +48,7 @@ export default function NodeInputField({
 }: NodeInputFieldComponentType): JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const isAutoLogin = useIsAutoLogin();
-  const shouldDisplayApiKey = isAuthenticated && !isAutoLogin;
+  const shouldDisplayApiKey = isAuthenticated;
 
   const { currentFlowId, currentFlowName } = useFlowStore(
     useShallow((state) => ({

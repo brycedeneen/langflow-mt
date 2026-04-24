@@ -1,10 +1,7 @@
 import { useContext, useEffect, useMemo } from "react";
 import { Outlet } from "react-router-dom";
 import { AuthContext } from "@/contexts/authContext";
-import {
-  useGetAuthSession,
-  useGetAutoLogin,
-} from "@/controllers/API/queries/auth";
+import { useGetAuthSession } from "@/controllers/API/queries/auth";
 import { useGetConfig } from "@/controllers/API/queries/config/use-get-config";
 import { useGetBasicExamplesQuery } from "@/controllers/API/queries/flows/use-get-basic-examples";
 import { useGetFoldersQuery } from "@/controllers/API/queries/folders/use-get-folders";
@@ -29,7 +26,6 @@ export function AppInitPage() {
   const setIsAuthenticated = useAuthStore((state) => state.setIsAuthenticated);
   const setIsAdmin = useAuthStore((state) => state.setIsAdmin);
   const setUserDataInStore = useAuthStore((state) => state.setUserData);
-  const autoLogin = useAuthStore((state) => state.autoLogin);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   const { isFetched: isLoaded } = useCustomPrimaryLoading();
@@ -39,19 +35,16 @@ export function AppInitPage() {
     enabled: isLoaded,
   });
 
-  const { isFetched } = useGetAutoLogin({ enabled: isLoaded });
-
   // Only fetch authenticated endpoints when user is authenticated
-  // (either via auto-login or manual login)
-  const isAuthReady = autoLogin === true || isAuthenticated;
+  const isAuthReady = isAuthenticated;
 
-  useGetVersionQuery({ enabled: isFetched });
+  useGetVersionQuery({ enabled: isSessionFetched });
   const { isFetched: isConfigFetched } = useGetConfig({
-    enabled: isFetched && isAuthReady,
+    enabled: isSessionFetched && isAuthReady,
   });
-  useGetGlobalVariables({ enabled: isFetched && isAuthReady });
-  useGetTagsQuery({ enabled: isFetched && isAuthReady });
-  useGetFoldersQuery({ enabled: isFetched && isAuthReady });
+  useGetGlobalVariables({ enabled: isSessionFetched && isAuthReady });
+  useGetTagsQuery({ enabled: isSessionFetched && isAuthReady });
+  useGetFoldersQuery({ enabled: isSessionFetched && isAuthReady });
   const { isFetched: isExamplesFetched, refetch: refetchExamples } =
     useGetBasicExamplesQuery();
 
@@ -74,7 +67,7 @@ export function AppInitPage() {
   }, [sessionData]);
 
   useEffect(() => {
-    if (isFetched) {
+    if (isSessionFetched) {
       refreshStars();
       refreshDiscordCount();
     }
@@ -82,19 +75,14 @@ export function AppInitPage() {
     if (isConfigFetched) {
       refetchExamples();
     }
-  }, [isFetched, isConfigFetched]);
+  }, [isSessionFetched, isConfigFetched]);
 
   const isSessionReady = useMemo(
-    () => isAuthenticated || autoLogin || isSessionFetched,
-    [autoLogin, isSessionFetched, isAuthenticated],
+    () => isAuthenticated || isSessionFetched,
+    [isSessionFetched, isAuthenticated],
   );
 
-  // Auto-login is "complete" if:
-  // - The query actually ran (isFetched), OR
-  // - We're already authenticated (so we skipped auto-login intentionally)
-  const isAutoLoginComplete = isFetched || isAuthenticated;
-
-  const isReady = isAutoLoginComplete && isExamplesFetched && isSessionReady;
+  const isReady = isExamplesFetched && isSessionReady;
 
   return (
     <>

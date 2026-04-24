@@ -7,14 +7,13 @@ import useAuthStore from "@/stores/authStore";
 export const ProtectedAdminRoute = ({ children }) => {
   const { userData } = useContext(AuthContext);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const autoLogin = useAuthStore((state) => state.autoLogin);
   const isAdmin = useAuthStore((state) => state.isAdmin);
 
   const isPlatformAdmin = userData?.is_platform_admin === true;
 
   if (!isAuthenticated) {
     return <LoadingPage />;
-  } else if ((userData && !isAdmin && !isPlatformAdmin) || autoLogin) {
+  } else if (userData && !isAdmin && !isPlatformAdmin) {
     return <CustomNavigate to="/" replace />;
   } else {
     return children;

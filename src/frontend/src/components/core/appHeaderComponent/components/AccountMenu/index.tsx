@@ -3,7 +3,6 @@ import { useLogout } from "@/controllers/API/queries/auth";
 import { CustomProfileIcon } from "@/customization/components/custom-profile-icon";
 import { ENABLE_DATASTAX_LANGFLOW } from "@/customization/feature-flags";
 import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
-import useAuthStore from "@/stores/authStore";
 import { useDarkStore } from "@/stores/darkStore";
 import { cn, stripReleaseStageFromVersion } from "@/utils/utils";
 import {
@@ -20,8 +19,6 @@ export const AccountMenu = () => {
   const latestVersion = useDarkStore((state) => state.latestVersion);
   const navigate = useCustomNavigate();
   const { mutate: mutationLogout } = useLogout();
-
-  const autoLogin = useAuthStore((state) => state.autoLogin);
 
   const handleLogout = () => {
     mutationLogout();
@@ -103,13 +100,11 @@ export const AccountMenu = () => {
             </div>
           </div>
 
-          {!autoLogin && (
-            <div>
-              <HeaderMenuItemButton onClick={handleLogout} icon="log-out">
-                Logout
-              </HeaderMenuItemButton>
-            </div>
-          )}
+          <div>
+            <HeaderMenuItemButton onClick={handleLogout} icon="log-out">
+              Logout
+            </HeaderMenuItemButton>
+          </div>
         </div>
       </HeaderMenuItems>
     </HeaderMenu>

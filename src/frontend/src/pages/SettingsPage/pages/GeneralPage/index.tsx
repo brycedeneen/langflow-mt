@@ -15,7 +15,6 @@ import {
 import { useGetProfilePicturesQuery } from "@/controllers/API/queries/files";
 import { CustomTermsLinks } from "@/customization/components/custom-terms-links";
 import { ENABLE_PROFILE_ICONS } from "@/customization/feature-flags";
-import useAuthStore from "@/stores/authStore";
 import { CONTROL_PATCH_USER_STATE } from "../../../../constants/constants";
 import { AuthContext } from "../../../../contexts/authContext";
 import useAlertStore from "../../../../stores/alertStore";
@@ -40,7 +39,6 @@ export const GeneralPage = () => {
   const setErrorData = useAlertStore((state) => state.setErrorData);
   const { userData, setUserData } = useContext(AuthContext);
   const { password, cnfPassword, profilePicture } = inputState;
-  const autoLogin = useAuthStore((state) => state.autoLogin);
 
   const { storeApiKey } = useContext(AuthContext);
   const setHasApiKey = useStoreStore((state) => state.updateHasApiKey);
@@ -152,14 +150,12 @@ export const GeneralPage = () => {
           />
         )}
 
-        {!autoLogin && (
-          <PasswordFormComponent
-            password={password}
-            cnfPassword={cnfPassword}
-            handleInput={handleInput}
-            handlePatchPassword={handlePatchPassword}
-          />
-        )}
+        <PasswordFormComponent
+          password={password}
+          cnfPassword={cnfPassword}
+          handleInput={handleInput}
+          handlePatchPassword={handlePatchPassword}
+        />
       </div>
 
       <CustomTermsLinks />

@@ -52,21 +52,10 @@ describe("mcpServerUtils", () => {
   });
 
   describe("getAuthHeaders", () => {
-    it("returns empty string for auto login when composer disabled", () => {
+    it("returns api key headers when composer disabled", () => {
       const headers = getAuthHeaders({
         enableComposer: false,
         authType: "none",
-        isAutoLogin: true,
-        apiKey: "test-key", // pragma: allowlist secret
-      });
-      expect(headers).toBe("");
-    });
-
-    it("returns api key headers when composer disabled and no auto login", () => {
-      const headers = getAuthHeaders({
-        enableComposer: false,
-        authType: "none",
-        isAutoLogin: false,
         apiKey: "my-key", // pragma: allowlist secret
       });
       expect(headers).toContain("x-api-key");
@@ -77,7 +66,6 @@ describe("mcpServerUtils", () => {
       const headers = getAuthHeaders({
         enableComposer: true,
         authType: "none",
-        isAutoLogin: false,
         apiKey: "test-key", // pragma: allowlist secret
       });
       expect(headers).toBe("");
@@ -87,7 +75,6 @@ describe("mcpServerUtils", () => {
       const headers = getAuthHeaders({
         enableComposer: true,
         authType: "apikey",
-        isAutoLogin: false,
         apiKey: "secure-key", // pragma: allowlist secret
       });
       expect(headers).toContain("x-api-key");
@@ -98,7 +85,6 @@ describe("mcpServerUtils", () => {
       const headers = getAuthHeaders({
         enableComposer: true,
         authType: "apikey",
-        isAutoLogin: false,
       });
       expect(headers).toContain("YOUR_API_KEY");
     });

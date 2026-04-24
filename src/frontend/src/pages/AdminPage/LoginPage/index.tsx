@@ -37,7 +37,7 @@ export default function LoginAdminPage() {
 
     mutate(user, {
       onSuccess: (res) => {
-        login(res.access_token, "login", res.refresh_token);
+        login(res.access_token, res.refresh_token);
         queryClient.clear();
       },
       onError: (error) => {
