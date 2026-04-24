@@ -1539,9 +1539,11 @@ git worktree remove .worktrees/dto-boundary-2026-04  # re-create for Phase 1 bel
 
 ## Phase 1 — Generate + hand-write all schemas
 
-**Goal:** `make gen-frontend-schemas` produces one schema file per OpenAPI tag; hand-written schemas cover the 34 `include_in_schema=False` endpoints; all schemas registered permissive. No call-site changes beyond what Phase 0 already did.
+**Goal:** `make gen_frontend_schemas` produces one schema file per OpenAPI tag; hand-written schemas cover the **~65 hidden endpoints across 14 routers** (re-baselined 2026-04-24 — the original "9 routers / 34 endpoints" estimate was low; see `docs/superpowers/research/2026-04-24-phase-1-prep.md`); all schemas registered permissive. No call-site changes beyond what Phase 0 already did.
 
 **Scope:** build the generator toolchain, produce schemas, add CI gates. Do NOT migrate any call sites beyond `useGetFlow` from Phase 0.
+
+**Budget:** ~1.5 weeks (was ~1 week pre-research). Phase 1.3 alone is ~7–8 focused hours; the user signed off on doing it in one push.
 
 ### Task 1.1 — Add `make openapi-json` target
 
@@ -1564,6 +1566,9 @@ Record the path that exposes the FastAPI app object; we'll import and dump its s
 Edit `Makefile` (root). Add (at the bottom or with other frontend targets):
 
 ```makefile
+# Tested 2026-04-24: emits 136 paths + 188 component schemas; bootstraps without env vars.
+# 6 duplicate-operation-ID warnings appear from MCP streamable routes — dedup'd downstream
+# in scripts/gen-schemas.mjs (separate backend ticket for the underlying duplicate registration).
 .PHONY: openapi_json
 openapi_json: ## Dump the backend OpenAPI schema to scripts/openapi.json
 	@mkdir -p scripts
@@ -1576,7 +1581,7 @@ gen_frontend_schemas: openapi_json ## Regenerate src/frontend/src/schemas/api/*.
 	cd src/frontend && npx biome format --write src/schemas/api
 ```
 
-The Python snippet imports `langflow.main.create_app` — confirm this is the correct import path from Step 1.1.1; if not, substitute.
+`langflow.main.create_app` is the confirmed import path (verified 2026-04-24).
 
 - [ ] **Step 1.1.3: Run the openapi target**
 
@@ -1711,6 +1716,27 @@ const meta = [
 ].join("\n");
 fs.writeFileSync(path.join(OUT_DIR, "generated.meta.ts"), meta);
 
+// Dedupe schema names that appeared in multiple tags due to upstream
+// duplicate-operation-IDs (see research doc — six known MCP streamable
+// routes). Keep the first occurrence; warn for visibility.
+const seenSchemaNames = new Set();
+for (const file of fs.readdirSync(OUT_DIR)) {
+  if (!file.endsWith(".ts") || file === "generated.meta.ts") continue;
+  const path_ = path.join(OUT_DIR, file);
+  const txt = fs.readFileSync(path_, "utf8");
+  const names = [...txt.matchAll(/^export const (\w+Schema)\s*=/gm)].map((m) => m[1]);
+  let next = txt;
+  for (const n of names) {
+    if (seenSchemaNames.has(n)) {
+      console.warn(`WARN: duplicate schema ${n} in ${file} — removing (kept first occurrence)`);
+      next = next.replace(new RegExp(`^export const ${n}\\s*=[\\s\\S]*?;\\n(?=export|$)`, "m"), "");
+    } else {
+      seenSchemaNames.add(n);
+    }
+  }
+  if (next !== txt) fs.writeFileSync(path_, next);
+}
+
 // Warn on any file > 500 lines.
 for (const f of fs.readdirSync(OUT_DIR)) {
   const lc = fs.readFileSync(path.join(OUT_DIR, f), "utf8").split("\n").length;
@@ -1735,7 +1761,7 @@ cd /Users/brycedeneen/dev/langflow/.worktrees/dto-boundary-2026-04
 make gen_frontend_schemas
 ```
 
-Expected: `src/frontend/src/schemas/api/` populated with 15–25 `.ts` files plus `generated.meta.ts`. Console reports the tag count. Any file >500 lines produces a `WARN`.
+Expected: `src/frontend/src/schemas/api/` populated with 15–25 `.ts` files plus `generated.meta.ts`. Console reports the tag count. Up to 6 `WARN: duplicate schema` lines from MCP streamable routes are expected and harmless. Any file >500 lines also produces a `WARN`.
 
 - [ ] **Step 1.2.4: Reconcile with Phase 0's hand-written `flows.ts`**
 
@@ -1779,16 +1805,29 @@ walking-skeleton useGetFlow continues to work unchanged."
 
 ### Task 1.3 — Hand-written schemas for OpenAPI-hidden endpoints
 
+**Re-baselined 2026-04-24** (see `docs/superpowers/research/2026-04-24-phase-1-prep.md`): the original 9-router list was incomplete. Total is 14 routers covering ~65 hidden routes; **3 deprecated `chat.py` `/build/*` legacy routes are explicitly skipped** (zero frontend usage).
+
 **Files:** one file per router group with `include_in_schema=False`:
-- Create: `src/frontend/src/schemas/app/internal/auth.ts` — `/auth/session`, `/auth/login`, `/auth/refresh`, `/auth/logout`
-- Create: `src/frontend/src/schemas/app/internal/api_key.ts` — all `/api_key/*`
-- Create: `src/frontend/src/schemas/app/internal/variables.ts` — all `/variables/*`
-- Create: `src/frontend/src/schemas/app/internal/store.ts` — all `/store/*`
-- Create: `src/frontend/src/schemas/app/internal/voice.ts` — all `/voice/*`
-- Create: `src/frontend/src/schemas/app/internal/models.ts` — all `/models/*`
-- Create: `src/frontend/src/schemas/app/internal/model_options.ts` — `/model_options/*`
-- Create: `src/frontend/src/schemas/app/internal/validate.ts` — `/validate/code`
-- Create: `src/frontend/src/schemas/app/internal/chat_internal.ts` — hidden `/build/*` routes
+
+Whole-router-hidden (`router = APIRouter(..., include_in_schema=False)`):
+- Create: `src/frontend/src/schemas/app/internal/store.ts` — `/store/*` (~9 routes: components CRUD, tags, likes, check)
+- Create: `src/frontend/src/schemas/app/internal/voice.ts` — `/voice/elevenlabs/voice_ids`
+- Create: `src/frontend/src/schemas/app/internal/models.ts` — `/models/*` (~10 routes: providers, enabled-models, default-model, validation)
+- Create: `src/frontend/src/schemas/app/internal/model_options.ts` — `/model_options/{language,embedding}`
+- Create: `src/frontend/src/schemas/app/internal/folders.ts` — `/folders/*` (~10 routes: full CRUD + uploads/downloads)
+- Create: `src/frontend/src/schemas/app/internal/knowledge_bases.ts` — `/knowledge_bases/*` (~10 routes: CRUD + ingestion + chunks)
+- Create: `src/frontend/src/schemas/app/internal/registration_v2.ts` — `/api/v2/registration/{get,post}`
+
+Hidden routes within otherwise-public routers (route-level `include_in_schema=False`):
+- Create: `src/frontend/src/schemas/app/internal/auth.ts` — `/auth/{login,refresh,session,logout}`
+- Create: `src/frontend/src/schemas/app/internal/api_key.ts` — all `/api_key/*` (4 routes incl. `/store`)
+- Create: `src/frontend/src/schemas/app/internal/variables.ts` — full `/variables/*` CRUD
+- Create: `src/frontend/src/schemas/app/internal/validate.ts` — `/validate/{code,prompt}`
+- Create: `src/frontend/src/schemas/app/internal/endpoints_internal.ts` — `endpoints.py` hidden routes (run/session, webhook-events, custom_component x2; skip the deprecated `/task/{_task_id}`)
+- Create: `src/frontend/src/schemas/app/internal/flows_internal.ts` — `flows.py` hidden routes (PUT `/{flow_id}`, POST `/expand/`)
+
+**Skipped intentionally** (zero frontend usage; placeholder if ever needed):
+- `chat.py` 3 deprecated `/build/{flow_id}/vertices/*` routes
 
 **Pattern:** each file mirrors a generated file — imports zod + `registerSchema`, exports one or more `Schema` constants, registers each under `api.<router>.<operation>` naming, and re-exports inferred types.
 
@@ -1852,15 +1891,21 @@ Create `src/frontend/src/schemas/app/internal/api_key.ts` with schemas for list,
 
 Mirror the pattern using `VariableRead` from `src/backend/base/langflow/services/database/models/variable/`. Register `api.variables.list|create|update|delete`.
 
-- [ ] **Step 1.3.4: `store.ts`, `voice.ts`, `models.ts`, `model_options.ts`, `validate.ts`, `chat_internal.ts`**
+- [ ] **Step 1.3.4: Remaining 11 routers — `store.ts`, `voice.ts`, `models.ts`, `model_options.ts`, `folders.ts`, `knowledge_bases.ts`, `registration_v2.ts`, `validate.ts`, `endpoints_internal.ts`, `flows_internal.ts`** (and revisit `chat_internal.ts` only if a future use-case needs the deprecated routes)
 
 Same pattern for each. For each hidden router:
-1. Open its Python file under `src/backend/base/langflow/api/`.
+1. Open its Python file under `src/backend/base/langflow/api/v1/` (or `v2/` for registration).
 2. Note each route's `response_model=` type (or inspect the return value if no explicit model).
 3. Author a zod schema that matches.
 4. Register each operation under `api.<router>.<op>` with `permissive` mode.
 
 If a route returns a raw `dict` without a response_model, emit a permissive `z.record(z.unknown())` and add a TODO comment: `// TODO: backend returns untyped dict; add z.object(...) once route is tightened (Phase 2.h risk)`.
+
+Effort budget per router (informed estimates from research doc):
+- variables, validate, api_key, voice, model_options, registration_v2, flows_internal: ≤30 min each
+- auth, endpoints_internal: ~30–45 min
+- store, folders, knowledge_bases: ~60 min each
+- models: ~90 min (heaviest — many provider configs)
 
 - [ ] **Step 1.3.5: Extend `schemas/index.ts` barrel**
 
@@ -1872,12 +1917,16 @@ export * as FlowsApi from "./api/flows";
 export * as AuthInternal from "./app/internal/auth";
 export * as ApiKeyInternal from "./app/internal/api_key";
 export * as VariablesInternal from "./app/internal/variables";
+export * as ValidateInternal from "./app/internal/validate";
 export * as StoreInternal from "./app/internal/store";
 export * as VoiceInternal from "./app/internal/voice";
 export * as ModelsInternal from "./app/internal/models";
 export * as ModelOptionsInternal from "./app/internal/model_options";
-export * as ValidateInternal from "./app/internal/validate";
-export * as ChatInternal from "./app/internal/chat_internal";
+export * as FoldersInternal from "./app/internal/folders";
+export * as KnowledgeBasesInternal from "./app/internal/knowledge_bases";
+export * as RegistrationV2Internal from "./app/internal/registration_v2";
+export * as EndpointsInternal from "./app/internal/endpoints_internal";
+export * as FlowsInternal from "./app/internal/flows_internal";
 ```
 
 - [ ] **Step 1.3.6: Type-check + jest**
@@ -1897,8 +1946,12 @@ cd /Users/brycedeneen/dev/langflow/.worktrees/dto-boundary-2026-04
 git add src/frontend/src/schemas/app/internal/ src/frontend/src/schemas/index.ts
 git commit -m "feat(frontend): hand-written schemas for OpenAPI-hidden endpoints
 
-Covers the 34 include_in_schema=False routes (auth, api_key, variables,
-store, voice, models, model_options, validate, internal chat/build).
+Covers ~62 of 65 include_in_schema=False routes across 13 routers
+(auth, api_key, variables, validate, store, voice, models,
+model_options, folders, knowledge_bases, registration_v2,
+endpoints_internal, flows_internal). 3 deprecated chat /build/*
+routes intentionally skipped (zero frontend usage).
+
 All registered permissive; call-site migration happens in Phase 2.h
 (and 2.f for auth)."
 ```
