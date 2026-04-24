@@ -40,11 +40,8 @@ const ListComponent = ({
   selected: boolean;
   setSelected: (selected: boolean) => void;
   shiftPressed: boolean;
-  // TODO: Filter flows by tag_id once FlowHeader/FlowRead exposes
-  // the new flow_tag-backed tag list. Today the prop is accepted but
-  // rendered as no-op filtering because `flow.tags` is not populated
-  // by the backend. See Task 10 plan + the TODOs in Task 9 for the
-  // same data gap.
+  // flow.tags is populated by FlowRead (0b5d4aae7c), consumed by HomePage
+  // for client-side filtering; chips render per-row below.
   selectedTagIds?: string[];
 }) => {
   const navigate = useCustomNavigate();

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import PaginatorComponent from "@/components/common/paginatorComponent";
 import TagFilterChips from "@/components/common/TagFilterChips";
@@ -68,8 +68,33 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
     search,
   });
 
+  // Tag filter state — local to this page. We filter the folder response's
+  // flow list client-side by intersecting each flow's `tags[].id` with
+  // `selectedTagIds`. `flow.tags` is populated by FlowRead (0b5d4aae7c).
+  const { data: allTags = [] } = useListTags();
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+
+  const allFlowItems: FlowType[] = folderData?.flows?.items ?? [];
+  const visibleFlowItems =
+    selectedTagIds.length === 0
+      ? allFlowItems
+      : allFlowItems.filter((f) =>
+          f.tags?.some((t) => selectedTagIds.includes(t.id)),
+        );
+
+  // Tags actually present on flows in the current folder response. We pass
+  // this (rather than `allTags`) to the filter chip row so users don't see
+  // chips they cannot possibly toggle against. If a selected id is no longer
+  // in `tagsInUse` (last tagged flow deleted), we intentionally keep it in
+  // `selectedTagIds` so re-tagging a flow restores the user's filter state.
+  const tagsInUse = useMemo(() => {
+    const inUse = new Set<string>();
+    allFlowItems.forEach((f) => f.tags?.forEach((t) => inUse.add(t.id)));
+    return allTags.filter((t) => inUse.has(t.id));
+  }, [allFlowItems, allTags]);
+
   const data = {
-    flows: folderData?.flows?.items ?? [],
+    flows: visibleFlowItems,
     name: folderData?.folder?.name ?? "",
     description: folderData?.folder?.description ?? "",
     parent_id: folderData?.folder?.parent_id ?? "",
@@ -135,17 +160,6 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
     null,
   );
 
-  // Tag filter state — local to this page. Today this is a no-op filter
-  // because `flow.tags` (legacy JSON) is no longer populated and the read
-  // endpoint does not yet return new flow_tag-backed TagRead[]. The filter
-  // row is still rendered so the UI is ready when the backend catches up.
-  //
-  // TODO: Filter flows by tag_id once FlowHeader/FlowRead exposes the new
-  // flow_tag-backed tag list. Today the prop is accepted but rendered as
-  // no-op filtering because `flow.tags` is not populated by the backend.
-  // See Task 10 plan + the TODOs in Task 9 for the same data gap.
-  const { data: allTags = [] } = useListTags();
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
 
@@ -287,13 +301,13 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
                 <EmptyFolder setOpenModal={setNewProjectModal} />
               ) : (
                 <div className="flex h-full flex-col">
-                  {/* Tag filter row — visible whenever tags exist in the
-                      workspace. Client-side state only; today the
-                      selection does not filter the list (see TODO above). */}
+                  {/* Tag filter row — renders tags actually in use by flows
+                      in the current folder response. Selection filters the
+                      list client-side via `visibleFlowItems` above. */}
                   {(flowType === "flows" || flowType === "components") &&
-                    allTags.length > 0 && (
+                    tagsInUse.length > 0 && (
                       <TagFilterChips
-                        availableTags={allTags}
+                        availableTags={tagsInUse}
                         selected={selectedTagIds}
                         onChange={setSelectedTagIds}
                         className="mt-2 px-1"
