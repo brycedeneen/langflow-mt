@@ -1,4 +1,4 @@
-.PHONY: all init format_backend format lint build run_backend dev help tests coverage clean_python_cache clean_npm_cache clean_frontend_build clean_all run_clic load_test_setup load_test_setup_basic load_test_list_flows load_test_run load_test_langflow_quick load_test_stress load_test_example load_test_clean load_test_remote_setup load_test_remote_run load_test_help docs docs_build docs_install
+.PHONY: all init format_backend format lint build run_backend dev help tests coverage clean_python_cache clean_npm_cache clean_frontend_build clean_all run_clic load_test_setup load_test_setup_basic load_test_list_flows load_test_run load_test_langflow_quick load_test_stress load_test_example load_test_clean load_test_remote_setup load_test_remote_run load_test_help docs docs_build docs_install bump-version bump-version-check
 
 # Configurations
 VERSION=$(shell grep "^version" pyproject.toml | sed 's/.*\"\(.*\)\"$$/\1/')
@@ -1062,3 +1062,13 @@ docs_serve: docs_build ## build and serve documentation locally
 
 # Include frontend-specific Makefile
 include Makefile.frontend
+
+######################
+# VERSIONING
+######################
+
+bump-version: ## compute and write the next CalVer version across all 4 packages
+	@uv run python scripts/bump_version.py
+
+bump-version-check: ## dry-run: show what bump-version would change
+	@uv run python scripts/bump_version.py --check

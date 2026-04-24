@@ -1,6 +1,6 @@
 [project]
 name = "langflow"
-version = "1.8.4"
+version = "26.424.1"
 description = "A Python package with a built-in web application"
 requires-python = ">=3.11,<3.14"
 license = "MIT"
@@ -17,7 +17,7 @@ maintainers = [
 ]
 # Define your main dependencies here
 dependencies = [
-    "langflow-base[complete]~=0.8.4",
+    "langflow-base[complete]>=26.424.1",
 ]
 
 
