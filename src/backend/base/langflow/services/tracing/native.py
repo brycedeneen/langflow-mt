@@ -271,8 +271,11 @@ class NativeTracer(BaseTracer):
     async def _flush_to_database(self, error: Exception | None = None) -> None:
         """Persist the completed trace and all its spans in a single DB session to minimise round-trips."""
         try:
+            from sqlmodel import select
+
             from lfx.services.deps import session_scope
 
+            from langflow.services.database.models.flow_run.model import FlowRun
             from langflow.services.database.models.traces.model import SpanTable, TraceTable
 
             try:
@@ -308,11 +311,15 @@ class NativeTracer(BaseTracer):
             )
 
             async with session_scope() as session:
+                # Only link to FlowRun if a row actually exists for this run.
+                # Interactive playground runs (/api/v1/build) generate a graph.run_id
+                # but never insert a flow_run row — only enqueued runs (/api/v2/runs) do.
+                run_exists = await session.scalar(select(FlowRun.id).where(FlowRun.id == self.trace_id))
                 trace = TraceTable(
                     id=self.trace_id,
                     name=self.trace_name,
                     flow_id=flow_uuid,
-                    flow_run_id=self.trace_id,  # trace_id == run_id for native tracer
+                    flow_run_id=self.trace_id if run_exists else None,
                     session_id=self.session_id,
                     status=trace_status,
                     start_time=self._start_time,
