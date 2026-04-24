@@ -47,7 +47,7 @@
 **Files:**
 - Modify: `src/lfx/pyproject.toml`
 
-- [ ] **Step 1: Add hvac to pyproject.toml dependencies**
+- [x] **Step 1: Add hvac to pyproject.toml dependencies**
 
 In `src/lfx/pyproject.toml`, add `hvac` to the `dependencies` list:
 
@@ -57,17 +57,17 @@ In `src/lfx/pyproject.toml`, add `hvac` to the `dependencies` list:
 
 Add it after the existing `cryptography` entry.
 
-- [ ] **Step 2: Install the updated dependencies**
+- [x] **Step 2: Install the updated dependencies**
 
 Run: `cd src/lfx && uv sync`
 Expected: clean install with hvac resolved
 
-- [ ] **Step 3: Verify hvac is importable**
+- [x] **Step 3: Verify hvac is importable**
 
 Run: `cd src/lfx && uv run python -c "import hvac; print(hvac.__version__)"`
 Expected: prints a version like `2.x.x`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/lfx/pyproject.toml src/lfx/uv.lock
@@ -83,7 +83,7 @@ git commit -m "build: add hvac dependency for Vault secret store"
 - Create: `src/lfx/src/lfx/services/secret_store/base.py`
 - Test: `src/lfx/tests/unit/services/test_secret_store.py`
 
-- [ ] **Step 1: Write the failing test for SecretStore interface**
+- [x] **Step 1: Write the failing test for SecretStore interface**
 
 Create `src/lfx/tests/unit/services/test_secret_store.py`:
 
@@ -161,12 +161,12 @@ class TestSecretStoreABC:
             SecretStore()  # type: ignore[abstract]
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_secret_store.py -v`
 Expected: FAIL — `ModuleNotFoundError: No module named 'lfx.services.secret_store'`
 
-- [ ] **Step 3: Write the SecretStore ABC**
+- [x] **Step 3: Write the SecretStore ABC**
 
 Create `src/lfx/src/lfx/services/secret_store/base.py`:
 
@@ -212,12 +212,12 @@ from lfx.services.secret_store.base import SecretStore
 __all__ = ["SecretStore"]
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_secret_store.py -v`
 Expected: all 7 tests PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/services/secret_store/ src/lfx/tests/unit/services/test_secret_store.py
@@ -233,7 +233,7 @@ git commit -m "feat: add SecretStore ABC for pluggable secret storage"
 - Modify: `src/lfx/src/lfx/services/settings/base.py`
 - Test: `src/lfx/tests/unit/services/test_secret_store.py` (append)
 
-- [ ] **Step 1: Write the failing test for SecretStoreSettings**
+- [x] **Step 1: Write the failing test for SecretStoreSettings**
 
 Append to `src/lfx/tests/unit/services/test_secret_store.py`:
 
@@ -257,12 +257,12 @@ class TestSecretStoreSettings:
         assert settings.SECRET_STORE_BACKEND == "memory"
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_secret_store.py::TestSecretStoreSettings -v`
 Expected: FAIL — `ModuleNotFoundError: No module named 'lfx.services.secret_store.settings'`
 
-- [ ] **Step 3: Create the settings model**
+- [x] **Step 3: Create the settings model**
 
 Create `src/lfx/src/lfx/services/secret_store/settings.py`:
 
@@ -298,12 +298,12 @@ class SecretStoreSettings(BaseSettings):
     )
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_secret_store.py::TestSecretStoreSettings -v`
 Expected: all 3 tests PASS
 
-- [ ] **Step 5: Wire settings into the main Settings class**
+- [x] **Step 5: Wire settings into the main Settings class**
 
 In `src/lfx/src/lfx/services/settings/base.py`, add an import at the top of the file (with the other imports):
 
@@ -317,7 +317,7 @@ Then add a field to the `Settings` class body (after the existing fields):
 secret_store: SecretStoreSettings = Field(default_factory=SecretStoreSettings)
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/lfx/src/lfx/services/secret_store/settings.py src/lfx/src/lfx/services/settings/base.py src/lfx/tests/unit/services/test_secret_store.py
@@ -332,7 +332,7 @@ git commit -m "feat: add SecretStoreSettings and wire into main Settings"
 - Create: `src/lfx/src/lfx/services/secret_store/vault.py`
 - Test: `src/lfx/tests/unit/services/test_secret_store.py` (append)
 
-- [ ] **Step 1: Write the failing test for VaultSecretStore**
+- [x] **Step 1: Write the failing test for VaultSecretStore**
 
 Append to `src/lfx/tests/unit/services/test_secret_store.py`:
 
@@ -424,12 +424,12 @@ class TestVaultSecretStore:
             assert result == []
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_secret_store.py::TestVaultSecretStore -v`
 Expected: FAIL — `ModuleNotFoundError: No module named 'lfx.services.secret_store.vault'`
 
-- [ ] **Step 3: Implement VaultSecretStore**
+- [x] **Step 3: Implement VaultSecretStore**
 
 Create `src/lfx/src/lfx/services/secret_store/vault.py`:
 
@@ -498,12 +498,12 @@ class VaultSecretStore(SecretStore):
             return []
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_secret_store.py::TestVaultSecretStore -v`
 Expected: all 8 tests PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/services/secret_store/vault.py src/lfx/tests/unit/services/test_secret_store.py
@@ -519,7 +519,7 @@ git commit -m "feat: add VaultSecretStore implementation using hvac KV v2"
 - Modify: `src/lfx/src/lfx/services/secret_store/__init__.py`
 - Test: `src/lfx/tests/unit/services/test_secret_store.py` (append)
 
-- [ ] **Step 1: Write the failing test for the factory**
+- [x] **Step 1: Write the failing test for the factory**
 
 Append to `src/lfx/tests/unit/services/test_secret_store.py`:
 
@@ -549,12 +549,12 @@ class TestSecretStoreFactory:
             get_secret_store(settings)
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_secret_store.py::TestSecretStoreFactory -v`
 Expected: FAIL — `ModuleNotFoundError: No module named 'lfx.services.secret_store.factory'`
 
-- [ ] **Step 3: Implement the factory**
+- [x] **Step 3: Implement the factory**
 
 Create `src/lfx/src/lfx/services/secret_store/factory.py`:
 
@@ -634,7 +634,7 @@ def get_secret_store(settings: SecretStoreSettings | None = None) -> SecretStore
     return store
 ```
 
-- [ ] **Step 4: Update the factory test to use correct types**
+- [x] **Step 4: Update the factory test to use correct types**
 
 Replace the `test_memory_backend` test in `TestSecretStoreFactory`:
 
@@ -647,7 +647,7 @@ Replace the `test_memory_backend` test in `TestSecretStoreFactory`:
         assert isinstance(store, InMemorySecretStore)
 ```
 
-- [ ] **Step 5: Update `__init__.py` to export factory**
+- [x] **Step 5: Update `__init__.py` to export factory**
 
 Replace `src/lfx/src/lfx/services/secret_store/__init__.py`:
 
@@ -660,12 +660,12 @@ from lfx.services.secret_store.factory import get_secret_store
 __all__ = ["SecretStore", "get_secret_store"]
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_secret_store.py::TestSecretStoreFactory -v`
 Expected: all 3 tests PASS
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/lfx/src/lfx/services/secret_store/ src/lfx/tests/unit/services/test_secret_store.py
@@ -680,7 +680,7 @@ git commit -m "feat: add secret store factory with Vault and in-memory backends"
 - Modify: `src/backend/base/langflow/services/database/models/flow/utils.py`
 - Test: `src/lfx/tests/unit/services/test_webhook_auth.py`
 
-- [ ] **Step 1: Write the failing test for key generation**
+- [x] **Step 1: Write the failing test for key generation**
 
 Create `src/lfx/tests/unit/services/test_webhook_auth.py`:
 
@@ -724,12 +724,12 @@ class TestWebhookApiKeyGeneration:
         assert hmac.compare_digest("ADP-APICPRO-abc123", "ADP-APICPRO-wrong") is False
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_webhook_auth.py -v`
 Expected: FAIL — `ImportError: cannot import name 'generate_webhook_api_key'`
 
-- [ ] **Step 3: Implement the key generation function**
+- [x] **Step 3: Implement the key generation function**
 
 Add to the end of `src/backend/base/langflow/services/database/models/flow/utils.py`:
 
@@ -746,12 +746,12 @@ def generate_webhook_api_key() -> str:
     return f"ADP-APICPRO-{secrets.token_urlsafe(36)}"
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_webhook_auth.py -v`
 Expected: all 5 tests PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/models/flow/utils.py src/lfx/tests/unit/services/test_webhook_auth.py
@@ -766,7 +766,7 @@ git commit -m "feat: add generate_webhook_api_key() helper"
 - Modify: `src/backend/base/langflow/api/v1/flows.py`
 - Test: `src/lfx/tests/unit/services/test_webhook_auth.py` (append)
 
-- [ ] **Step 1: Write the failing test for key provisioning on flow save**
+- [x] **Step 1: Write the failing test for key provisioning on flow save**
 
 Append to `src/lfx/tests/unit/services/test_webhook_auth.py`:
 
@@ -838,12 +838,12 @@ class TestWebhookKeyProvisioning:
         mock_store.put.assert_not_called()
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_webhook_auth.py::TestWebhookKeyProvisioning -v`
 Expected: FAIL — `ImportError: cannot import name '_provision_webhook_api_key'`
 
-- [ ] **Step 3: Add the provisioning function to flows.py**
+- [x] **Step 3: Add the provisioning function to flows.py**
 
 Add the following imports near the top of `src/backend/base/langflow/api/v1/flows.py` (with the existing imports):
 
@@ -884,7 +884,7 @@ async def _provision_webhook_api_key(
     return key
 ```
 
-- [ ] **Step 4: Wire provisioning into _new_flow**
+- [x] **Step 4: Wire provisioning into _new_flow**
 
 In `src/backend/base/langflow/api/v1/flows.py`, in the `_new_flow` function, add after the line `db_flow.updated_at = datetime.now(timezone.utc)` (around line 272) and before the line `# Validate folder_id exists`:
 
@@ -900,7 +900,7 @@ In `src/backend/base/langflow/api/v1/flows.py`, in the `_new_flow` function, add
             )
 ```
 
-- [ ] **Step 5: Wire provisioning into update_flow**
+- [x] **Step 5: Wire provisioning into update_flow**
 
 In `src/backend/base/langflow/api/v1/flows.py`, in the `update_flow` function, after the existing lines (around line 518-519):
 
@@ -920,12 +920,12 @@ Add:
             )
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_webhook_auth.py -v`
 Expected: all 8 tests PASS
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/flows.py src/lfx/tests/unit/services/test_webhook_auth.py
@@ -940,7 +940,7 @@ git commit -m "feat: auto-provision webhook API keys on flow create/update"
 - Modify: `src/backend/base/langflow/api/v1/endpoints.py`
 - Test: `src/lfx/tests/unit/services/test_webhook_auth.py` (append)
 
-- [ ] **Step 1: Write the failing test for webhook endpoint auth**
+- [x] **Step 1: Write the failing test for webhook endpoint auth**
 
 Append to `src/lfx/tests/unit/services/test_webhook_auth.py`:
 
@@ -1012,12 +1012,12 @@ class TestWebhookEndpointAuth:
         assert exc_info.value.status_code == 401
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_webhook_auth.py::TestWebhookEndpointAuth -v`
 Expected: FAIL — `ImportError: cannot import name '_validate_webhook_api_key'`
 
-- [ ] **Step 3: Add the validation function to endpoints.py**
+- [x] **Step 3: Add the validation function to endpoints.py**
 
 Add this import near the top of `src/backend/base/langflow/api/v1/endpoints.py`:
 
@@ -1058,7 +1058,7 @@ async def _validate_webhook_api_key(
 
 Also add `import hmac` to the imports at the top of the file if not already present.
 
-- [ ] **Step 4: Wire validation into the webhook endpoint**
+- [x] **Step 4: Wire validation into the webhook endpoint**
 
 In `src/backend/base/langflow/api/v1/endpoints.py`, in the `webhook_run_flow` function, add right after the docstring (before the distributed execution path comment, around line 752):
 
@@ -1083,12 +1083,12 @@ In `src/backend/base/langflow/api/v1/endpoints.py`, in the `webhook_run_flow` fu
     # --- End per-flow API key validation ---
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_webhook_auth.py -v`
 Expected: all 12 tests PASS
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/endpoints.py src/lfx/tests/unit/services/test_webhook_auth.py
@@ -1102,7 +1102,7 @@ git commit -m "feat: enforce per-flow API key auth on webhook endpoint"
 **Files:**
 - Modify: `src/lfx/src/lfx/components/input_output/webhook.py`
 
-- [ ] **Step 1: Update the WebhookComponent**
+- [x] **Step 1: Update the WebhookComponent**
 
 Replace the contents of `src/lfx/src/lfx/components/input_output/webhook.py`:
 
@@ -1173,12 +1173,12 @@ class WebhookComponent(Component):
         return data
 ```
 
-- [ ] **Step 2: Verify the component loads without errors**
+- [x] **Step 2: Verify the component loads without errors**
 
 Run: `cd src/lfx && uv run python -c "from lfx.components.input_output.webhook import WebhookComponent; print('OK:', [i.name for i in WebhookComponent.inputs])"`
 Expected: `OK: ['data', 'curl', 'endpoint', 'api_key']`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/input_output/webhook.py
@@ -1192,7 +1192,7 @@ git commit -m "feat: add api_key field to WebhookComponent for display"
 **Files:**
 - Create: `src/lfx/tests/integration/services/test_vault_secret_store.py`
 
-- [ ] **Step 1: Write the integration test**
+- [x] **Step 1: Write the integration test**
 
 Create `src/lfx/tests/integration/services/test_vault_secret_store.py`:
 
@@ -1304,12 +1304,12 @@ class TestVaultSecretStoreIntegration:
         await vault_store.delete("org-B/webhooks/flow-1")
 ```
 
-- [ ] **Step 2: Run the integration tests**
+- [x] **Step 2: Run the integration tests**
 
 Run: `cd src/lfx && VAULT_ADDR=http://localhost:8200 VAULT_TOKEN=myroot uv run pytest tests/integration/services/test_vault_secret_store.py -v`
 Expected: all 8 tests PASS (requires Vault running on localhost:8200)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/lfx/tests/integration/services/test_vault_secret_store.py
@@ -1324,7 +1324,7 @@ git commit -m "test: add integration tests for VaultSecretStore against real Vau
 - Modify: `src/backend/base/langflow/api/v1/flows.py`
 - Test: `src/lfx/tests/unit/services/test_webhook_auth.py` (append)
 
-- [ ] **Step 1: Write the failing test for key cleanup on delete**
+- [x] **Step 1: Write the failing test for key cleanup on delete**
 
 Append to `src/lfx/tests/unit/services/test_webhook_auth.py`:
 
@@ -1354,12 +1354,12 @@ class TestWebhookKeyCleanup:
             await _cleanup_webhook_api_key(org_id="org-123", flow_id="flow-456")
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_webhook_auth.py::TestWebhookKeyCleanup -v`
 Expected: FAIL — `ImportError: cannot import name '_cleanup_webhook_api_key'`
 
-- [ ] **Step 3: Add the cleanup function**
+- [x] **Step 3: Add the cleanup function**
 
 Add to `src/backend/base/langflow/api/v1/flows.py`, after the `_provision_webhook_api_key` function:
 
@@ -1373,7 +1373,7 @@ async def _cleanup_webhook_api_key(org_id: str, flow_id: str) -> None:
         logger.warning(f"Failed to clean up webhook API key for flow {flow_id}")
 ```
 
-- [ ] **Step 4: Wire cleanup into the delete_flow function**
+- [x] **Step 4: Wire cleanup into the delete_flow function**
 
 Find the `delete_flow` function in `src/backend/base/langflow/api/v1/flows.py` (around line 724). Add the cleanup call before the flow is deleted from the database. After the flow is fetched and before `await session.delete(db_flow)`, add:
 
@@ -1386,12 +1386,12 @@ Find the `delete_flow` function in `src/backend/base/langflow/api/v1/flows.py` (
             )
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_webhook_auth.py -v`
 Expected: all 14 tests PASS
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/flows.py src/lfx/tests/unit/services/test_webhook_auth.py
@@ -1402,22 +1402,22 @@ git commit -m "feat: clean up webhook API key from secret store on flow delete"
 
 ## Task 12: Run Full Test Suite and Verify
 
-- [ ] **Step 1: Run all unit tests**
+- [x] **Step 1: Run all unit tests**
 
 Run: `cd src/lfx && uv run pytest tests/unit/services/test_secret_store.py tests/unit/services/test_webhook_auth.py -v`
 Expected: all tests PASS
 
-- [ ] **Step 2: Run integration tests (requires Vault)**
+- [x] **Step 2: Run integration tests (requires Vault)**
 
 Run: `cd src/lfx && VAULT_ADDR=http://localhost:8200 VAULT_TOKEN=myroot uv run pytest tests/integration/services/test_vault_secret_store.py -v`
 Expected: all tests PASS
 
-- [ ] **Step 3: Verify no regressions in existing tests**
+- [x] **Step 3: Verify no regressions in existing tests**
 
 Run: `cd src/lfx && uv run pytest tests/ -x --timeout=60`
 Expected: no new failures
 
-- [ ] **Step 4: Final commit (if any fixups needed)**
+- [x] **Step 4: Final commit (if any fixups needed)**
 
 ```bash
 git add -A
