@@ -180,3 +180,23 @@ Surfaced while executing `docs/superpowers/plans/2026-04-22-tailwind-maximizatio
 ### `src/style/classes.css` audit needs visual QA, not grep
 
 - [ ] **The 513-line `src/style/classes.css` is not app-utility CSS; it's a dumping ground of third-party-library styling overrides** (`.react-flow__*`, `.ag-cell*`, `.cm-*` for CodeMirror, `.jse-*` for jsoneditor, `.ace_scrollbar*` for Ace editor, plus `.json-view*` / `.card-shine-effect` / version-animation keyframes). Plan Phase 1's grep-based "0 source refs = dead" audit produces false positives here: those class names are applied by the third-party libs' own DOM rendering, not by our source. Safe cleanup requires per-rule visual QA (boot the app, confirm the library still applies the class, confirm the override is still visually meaningful) rather than a grep. Deferred to a dedicated pass.
+
+## 2026-04-24 — Tailwind Maximization Phase 2 deferrals
+
+Surfaced while executing `docs/superpowers/plans/2026-04-22-tailwind-maximization.md` Phase 2. Phase 2 shipped a reduced scope (deleted `background-gradient`, `text-loop`, `textAnimation` — framer-motion consumers 22 → 19). Four other items from the plan's Phase 2 list were deferred because a plain-Tailwind swap would either lose load-bearing UX or blocks on deferred work.
+
+### TextShimmer — load-bearing loading indicator
+
+- [ ] **`src/components/ui/TextShimmer.tsx` has 5 production call sites** (`modals/IOModal/components/flow-running-squeleton.tsx`, `modals/IOModal/components/chatView/chatMessage/components/content-view.tsx`, `components/core/playgroundComponent/chat-view/chat-messages/components/flow-running-squeleton.tsx`, `components/core/playgroundComponent/chat-view/chat-messages/components/error-message.tsx`, `pages/FlowPage/components/flowBuildingComponent/index.tsx`). Plan suggested "replace with plain `<span>`" but the shimmer is the loading-state cue during flow building — removing it degrades UX. Needs a CSS-only shimmer (gradient + animate via Tailwind `animate-[shimmer_2s_linear_infinite]` keyframes) rather than a blind strip. Includes updating the existing `jest.mock` in `flowBuildingComponent/__tests__/index.test.tsx`.
+
+### animated-close (AnimatedConditional) — blocked by simple-sidebar
+
+- [ ] **`src/components/ui/animated-close.tsx` exports `AnimatedConditional`, consumed by `ui/simple-sidebar.tsx`, playground `chat-header.tsx`, and `flow-page-sliding-container.tsx`.** Because Phase 1 deferred `simple-sidebar.tsx` removal (it has unique resize/drag features vs. `ui/sidebar`), we can't fully delete `animated-close` without also rewriting `simple-sidebar`. The component animates `width: 0 → auto`, which CSS can't do with a single `transition-[width]` — needs a `grid-template-columns: 0fr → 1fr` trick (Tailwind arbitrary) or a JS width-measurement helper. Bundle this with the simple-sidebar resolution.
+
+### border-trail — animates along border path
+
+- [ ] **`src/components/core/border-trail.tsx` uses framer-motion to animate `offsetDistance` along a rounded-rect `offsetPath`** (2 production consumers: `chatComponents/ContentBlockDisplay.tsx` and `pages/FlowPage/components/flowBuildingComponent/index.tsx`, plus `jest.mock` in the flowBuilding test). Pure CSS has no direct offset-path animation support; replacement options are (a) drop the effect entirely, (b) SVG-path alternative, (c) custom CSS keyframes mimicking the gradient around the border. All three need a design decision on whether the trail is decorative or status-bearing. Deferred.
+
+### dot-background — not framer-motion, still a wrapper
+
+- [ ] **`src/components/ui/dot-background.tsx` has no framer-motion dependency** — it's already pure Tailwind. One caller (`pages/MainPage/pages/empty-page.tsx`). The component could still be inlined to reduce abstraction, but that's a wrapper-consolidation concern, not framer-motion purge. Not in Phase 2 scope; leaving in place.
