@@ -5,32 +5,6 @@ test(
   "flow state should be properly cleaned up between user sessions",
   { tag: ["@release", "@api", "@database"] },
   async ({ page }) => {
-    // Disable auto login
-    await page.route("**/api/v1/auto_login", (route) => {
-      route.fulfill({
-        status: 500,
-        contentType: "application/json",
-        body: JSON.stringify({
-          detail: { auto_login: false },
-        }),
-      });
-    });
-
-    await page.addInitScript(() => {
-      window.process = window.process || {};
-      const newEnv = {
-        ...window.process.env,
-        LANGFLOW_AUTO_LOGIN: "false",
-        LANGFLOW_NEW_USER_IS_ACTIVE: "true",
-      };
-      Object.defineProperty(window.process, "env", {
-        value: newEnv,
-        writable: true,
-        configurable: true,
-      });
-      sessionStorage.setItem("testMockAutoLogin", "true");
-    });
-
     // Create random usernames, passwords and flow names for the test
     const userAName = "user_a_" + Math.random().toString(36).substring(5);
     const userAPassword = "pass_a_" + Math.random().toString(36).substring(5);
@@ -41,9 +15,6 @@ test(
     await page.waitForSelector("text=sign in to langflow", { timeout: 30000 });
     await page.getByPlaceholder("Username").fill("langflow");
     await page.getByPlaceholder("Password").fill("langflow");
-    await page.evaluate(() => {
-      sessionStorage.removeItem("testMockAutoLogin");
-    });
     await page.getByRole("button", { name: "Sign In" }).click();
 
     // Create User A
@@ -68,9 +39,6 @@ test(
       timeout: 1500,
     });
     await page.getByTestId("user-profile-settings").click();
-    await page.evaluate(() => {
-      sessionStorage.setItem("testMockAutoLogin", "true");
-    });
     await page.getByText("Logout", { exact: true }).click();
 
     // ---- USER A SESSION ----
@@ -79,9 +47,6 @@ test(
     await page.waitForSelector("text=sign in to langflow", { timeout: 30000 });
     await page.getByPlaceholder("Username").fill(userAName);
     await page.getByPlaceholder("Password").fill(userAPassword);
-    await page.evaluate(() => {
-      sessionStorage.removeItem("testMockAutoLogin");
-    });
     await page.getByRole("button", { name: "Sign In" }).click();
 
     // Create a flow for User A
@@ -127,9 +92,6 @@ test(
 
     // Log out User A
     await page.getByTestId("user-profile-settings").click();
-    await page.evaluate(() => {
-      sessionStorage.setItem("testMockAutoLogin", "true");
-    });
     await page.getByText("Logout", { exact: true }).click();
 
     // ---- ADMIN SESSION AGAIN ----
@@ -138,20 +100,12 @@ test(
     await page.waitForSelector("text=sign in to langflow", { timeout: 30000 });
     await page.getByPlaceholder("Username").fill("langflow");
     await page.getByPlaceholder("Password").fill("langflow");
-    await page.evaluate(() => {
-      sessionStorage.removeItem("testMockAutoLogin");
-    });
     await page.getByRole("button", { name: "Sign In" }).click();
 
     // Verify admin can't see User A's flow
     await expect(page.getByText(userAFlowName, { exact: true })).toBeVisible({
       timeout: 2000,
       visible: false,
-    });
-
-    // Cleanup
-    await page.evaluate(() => {
-      sessionStorage.removeItem("testMockAutoLogin");
     });
   },
 );

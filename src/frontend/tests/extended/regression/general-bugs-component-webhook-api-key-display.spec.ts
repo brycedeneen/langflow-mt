@@ -10,19 +10,9 @@ import {
 } from "../../utils/open-advanced-options";
 
 test(
-  "user must be able to see api key in webhook component when auto login is disabled",
+  "user must be able to see api key in webhook component when webhook auth is enabled",
   { tag: ["@release"] },
   async ({ page }) => {
-    await page.route("**/api/v1/auto_login", (route) => {
-      route.fulfill({
-        status: 500,
-        contentType: "application/json",
-        body: JSON.stringify({
-          detail: { auto_login: false },
-        }),
-      });
-    });
-
     await page.route("**/api/v1/config", (route) => {
       route.fulfill({
         status: 200,
@@ -86,7 +76,7 @@ test(
 );
 
 test(
-  "user must be able to not see api key in webhook component when auto login is enabled",
+  "user must be able to not see api key in webhook component when webhook auth is disabled",
   { tag: ["@release"] },
   async ({ page }) => {
     await page.route("**/api/v1/config", (route) => {

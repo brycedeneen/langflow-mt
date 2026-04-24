@@ -2,30 +2,6 @@ import { type Page } from "@playwright/test";
 import { expect } from "../fixtures";
 
 export const addNewUserAndLogin = async (page: Page) => {
-  await page.route("**/api/v1/auto_login", (route) => {
-    route.fulfill({
-      status: 500,
-      contentType: "application/json",
-      body: JSON.stringify({
-        detail: { auto_login: false },
-      }),
-    });
-  });
-
-  await page.addInitScript(() => {
-    window.process = window.process || {};
-
-    const newEnv = { ...window.process.env, LANGFLOW_AUTO_LOGIN: "false" };
-
-    Object.defineProperty(window.process, "env", {
-      value: newEnv,
-      writable: true,
-      configurable: true,
-    });
-
-    sessionStorage.setItem("testMockAutoLogin", "true");
-  });
-
   const randomName = Math.random().toString(36).substring(5);
   const randomPassword = Math.random().toString(36).substring(5);
 
@@ -35,10 +11,6 @@ export const addNewUserAndLogin = async (page: Page) => {
 
   await page.getByPlaceholder("Username").fill("langflow");
   await page.getByPlaceholder("Password").fill("langflow");
-
-  await page.evaluate(() => {
-    sessionStorage.removeItem("testMockAutoLogin");
-  });
 
   await page.getByRole("button", { name: "Sign In" }).click();
 
@@ -87,10 +59,6 @@ export const addNewUserAndLogin = async (page: Page) => {
 
   await page.getByTestId("user-profile-settings").click();
 
-  await page.evaluate(() => {
-    sessionStorage.setItem("testMockAutoLogin", "true");
-  });
-
   await page.getByText("Logout", { exact: true }).click();
 
   await page.waitForSelector("text=sign in to langflow", { timeout: 30000 });
@@ -103,10 +71,6 @@ export const addNewUserAndLogin = async (page: Page) => {
   });
 
   await page.getByRole("button", { name: "Sign In" }).click();
-
-  await page.evaluate(() => {
-    sessionStorage.removeItem("testMockAutoLogin");
-  });
 
   // Wait for any loading text to disappear
   await page.waitForSelector('text="Loading"', {

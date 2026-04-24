@@ -33,7 +33,6 @@ export const test = base.extend({
         const isAuth =
           url.includes("/login") ||
           url.includes("/refresh") ||
-          url.includes("/auto_login") ||
           url.includes("/logout");
         if (!isAuth) {
           console.log(

@@ -28,7 +28,6 @@
     "src",
     "tests/core/saveComponents.spec.ts",
     "tests/extended/actionsMainPage-shard-1.spec.ts",
-    "tests/core/auto_login.spec.ts",
     "tests/fe-components/chatInputOutput.spec.ts",
     "tests/extended/integrations/chatInputOutputUser-shard-2.spec.ts",
     "tests/fe-components/codeAreaModalComponent.spec.ts",
