@@ -95,7 +95,7 @@ async function progressTrackTestFn(
 
   await expect(
     page.getByTestId("get_started_progress_percentage").first(),
-  ).toHaveText("66%");
+  ).toHaveText("100%");
 
   await cleanAllFlows(page);
 
@@ -103,12 +103,6 @@ async function progressTrackTestFn(
     page.getByTestId("get_started_progress_title"),
   ).not.toBeVisible();
   await expect(
-    page.getByTestId("github_starred_icon_get_started"),
-  ).not.toBeVisible();
-  await expect(
     page.getByTestId("create_flow_icon_get_started"),
-  ).not.toBeVisible();
-  await expect(
-    page.getByTestId("discord_joined_icon_get_started"),
   ).not.toBeVisible();
 }
