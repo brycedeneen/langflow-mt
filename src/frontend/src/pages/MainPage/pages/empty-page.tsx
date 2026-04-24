@@ -6,7 +6,6 @@ import logoLightPng from "@/assets/logo_light.png";
 import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
 import CardsWrapComponent from "@/components/core/cardsWrapComponent";
 import { Button } from "@/components/ui/button";
-import { DotBackgroundDemo } from "@/components/ui/dot-background";
 import { DISCORD_URL, GITHUB_URL } from "@/constants/constants";
 import { useGetUserData, useUpdateUser } from "@/controllers/API/queries/auth";
 import useAuthStore from "@/stores/authStore";
@@ -59,7 +58,9 @@ export const EmptyPageCommunity = ({
   };
 
   return (
-    <DotBackgroundDemo>
+    <div className="relative flex h-full w-full items-center justify-center bg-background">
+      <div className="absolute inset-0 [background-size:20px_20px] [background-image:radial-gradient(#d4d4d4_1px,transparent_1px)] dark:[background-image:radial-gradient(#404040_1px,transparent_1px)]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/0 from-0% via-background/50 via-30% to-background to-50%" />
       <CardsWrapComponent
         dragMessage={`Drop your flows or components here`}
         onFileDrop={handleFileDrop}
@@ -185,7 +186,7 @@ export const EmptyPageCommunity = ({
           {EMPTY_PAGE_DRAG_AND_DROP_TEXT}
         </p>
       </CardsWrapComponent>
-    </DotBackgroundDemo>
+    </div>
   );
 };
 

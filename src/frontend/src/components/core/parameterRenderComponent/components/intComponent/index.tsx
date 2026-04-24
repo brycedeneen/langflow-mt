@@ -1,10 +1,3 @@
-import {
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-} from "@chakra-ui/number-input";
 import { MinusIcon, PlusIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
@@ -32,11 +25,11 @@ export default function IntComponent({
   }, [disabled, handleOnNewValue]);
 
   const [cursor, setCursor] = useState<number | null>(null);
-  const ref = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    ref.current?.setSelectionRange(cursor, cursor);
-  }, [ref, cursor, value]);
+    inputRef.current?.setSelectionRange(cursor, cursor);
+  }, [cursor, value]);
 
   const parseAndValidate = (raw: string): number | null => {
     const trimmed = raw.trim();
@@ -95,16 +88,6 @@ export default function IntComponent({
     }
   }, [minVal, value, handleOnNewValue, name]);
 
-  const getInputClassName = () => {
-    return cn(
-      editNode ? "input-edit-node" : "",
-      "nopan nodelete nodrag noflow primary-input ",
-    );
-  };
-
-  const DISABLED_INPUT_CLASS =
-    "cursor-default bg-secondary border-border border rounded-md py-2 px-3 text-sm text-input placeholder:text-input";
-
   const handleNumberChange = (newValue: string | number) => {
     if (newValue === "" || newValue === undefined) {
       handleOnNewValue({ value: null as unknown as number });
@@ -115,91 +98,106 @@ export default function IntComponent({
       handleOnNewValue({ value: null as unknown as number });
       return;
     }
-    const minVal = getMinValue();
-    const maxVal = getMaxValue();
+    const minLocal = getMinValue();
+    const maxLocal = getMaxValue();
     let clamped = Math.round(num);
-    if (clamped < minVal) clamped = minVal;
-    if (maxVal !== undefined && clamped > maxVal) clamped = maxVal;
+    if (clamped < minLocal) clamped = minLocal;
+    if (maxLocal !== undefined && clamped > maxLocal) clamped = maxLocal;
     handleOnNewValue({ value: clamped });
   };
 
-  const handleInputChange = (event: React.FormEvent<HTMLInputElement>) => {
+  const handleInputEvent = (event: React.FormEvent<HTMLInputElement>) => {
     const inputValue = Number((event.target as HTMLInputElement).value);
     if (Number.isFinite(inputValue) && inputValue < getMinValue()) {
       (event.target as HTMLInputElement).value = getMinValue().toString();
     }
   };
 
+  const adjustValue = (delta: number) => {
+    const current = typeof value === "number" && Number.isFinite(value) ? value : 0;
+    handleNumberChange(current + delta);
+  };
+
+  const baseInputClassName = cn(
+    editNode ? "input-edit-node" : "",
+    "nopan nodelete nodrag noflow primary-input pr-7",
+  );
+  const DISABLED_INPUT_CLASS =
+    "cursor-default bg-secondary border-border border rounded-md py-2 px-3 text-sm text-input placeholder:text-input pr-7";
+
   const iconClassName =
-    "text-placeholder-foreground h-3 w-3 group-increment-hover:text-primary group-decrement-hover:text-primary transition-colors";
-  const stepperClassName = " w-5 rounded-r-sm border-l-[1px]";
-  const incrementStepperClassName =
-    " border-b-[1px] hover:rounded-tr-[5px] hover:bg-muted group-increment";
-  const decrementStepperClassName =
-    " hover:rounded-br-[5px] hover:bg-muted group-decrement";
-  const inputRef = useRef(null);
+    "text-placeholder-foreground h-3 w-3 transition-colors";
+  const stepperWrapperClassName =
+    "absolute right-[1px] top-[1px] bottom-[1px] w-5 flex flex-col rounded-r-sm border-l-[1px] border-border overflow-hidden";
+  const stepButtonClassName =
+    "flex flex-1 items-center justify-center hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50";
 
   if (!showParameter) {
     return null;
   }
 
+  const isDisabled = Boolean(disabled || readonly);
+  const step = getStepValue();
+  const displayValue =
+    name === "max_tokens" && (value === 0 || value === null)
+      ? ""
+      : (value ?? "");
+
   return (
-    <div className="w-full">
-      <NumberInput
+    <div className="relative w-full">
+      <input
         id={id}
-        step={getStepValue()}
+        type="number"
+        step={step}
         min={getMinValue()}
         max={getMaxValue()}
-        onChange={handleNumberChange}
-        isDisabled={disabled || readonly}
-        value={
-          name === "max_tokens" && (value === 0 || value === null)
-            ? ""
-            : (value ?? "")
-        }
-      >
-        <NumberInputField
-          className={
-            disabled || readonly ? DISABLED_INPUT_CLASS : getInputClassName()
-          }
-          onChange={handleChangeInput}
-          onKeyDown={(event) => handleKeyDown(event, value, "")}
-          onInput={handleInputChange}
-          disabled={disabled || readonly}
-          placeholder={editNode ? "Integer number" : "Type an integer number"}
-          data-testid={id}
-          ref={inputRef}
-        />
-        <NumberInputStepper className={stepperClassName}>
-          <NumberIncrementStepper
-            className={incrementStepperClassName}
-            _disabled={{ cursor: "default" }}
-          >
-            <PlusIcon
-              className={iconClassName}
-              strokeWidth={ICON_STROKE_WIDTH}
-            />
-          </NumberIncrementStepper>
-          <NumberDecrementStepper
-            className={cn(
-              decrementStepperClassName,
-              isAtOrBelowMin && "pointer-events-none opacity-50",
-            )}
-            aria-disabled={isAtOrBelowMin || undefined}
-            data-disabled={isAtOrBelowMin ? "" : undefined}
-            onClickCapture={(e: React.MouseEvent) => {
-              if (!isAtOrBelowMin) return;
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-          >
-            <MinusIcon
-              className={iconClassName}
-              strokeWidth={ICON_STROKE_WIDTH}
-            />
-          </NumberDecrementStepper>
-        </NumberInputStepper>
-      </NumberInput>
+        value={displayValue}
+        onChange={handleChangeInput}
+        onKeyDown={(event) => handleKeyDown(event, value, "")}
+        onInput={handleInputEvent}
+        disabled={isDisabled}
+        placeholder={editNode ? "Integer number" : "Type an integer number"}
+        data-testid={id}
+        ref={inputRef}
+        className={isDisabled ? DISABLED_INPUT_CLASS : baseInputClassName}
+      />
+      <div className={stepperWrapperClassName}>
+        <button
+          type="button"
+          tabIndex={-1}
+          onClick={() => adjustValue(step)}
+          disabled={isDisabled}
+          className={cn(
+            stepButtonClassName,
+            "border-b-[1px] border-border hover:rounded-tr-[5px]",
+          )}
+          aria-label="Increment"
+        >
+          <PlusIcon
+            className={iconClassName}
+            strokeWidth={ICON_STROKE_WIDTH}
+          />
+        </button>
+        <button
+          type="button"
+          tabIndex={-1}
+          onClick={() => adjustValue(-step)}
+          disabled={isDisabled || isAtOrBelowMin}
+          aria-disabled={isAtOrBelowMin || undefined}
+          data-disabled={isAtOrBelowMin ? "" : undefined}
+          className={cn(
+            stepButtonClassName,
+            "hover:rounded-br-[5px]",
+            isAtOrBelowMin && "pointer-events-none opacity-50",
+          )}
+          aria-label="Decrement"
+        >
+          <MinusIcon
+            className={iconClassName}
+            strokeWidth={ICON_STROKE_WIDTH}
+          />
+        </button>
+      </div>
     </div>
   );
 }

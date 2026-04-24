@@ -45,10 +45,6 @@ jest.mock("@/components/common/genericIconComponent", () => ({
   ),
 }));
 
-jest.mock("@/components/core/border-trail", () => ({
-  BorderTrail: () => <div data-testid="border-trail">Border Trail</div>,
-}));
-
 jest.mock("@/components/ui/button", () => ({
   Button: ({ children, onClick, "data-testid": testId, ...props }: any) => (
     <button onClick={onClick} data-testid={testId} {...props}>
@@ -129,8 +125,8 @@ describe("FlowBuildingComponent - Timer Tests", () => {
       // Verify initial state
       expect(screen.getByText(/0\.0seconds/)).toBeInTheDocument();
 
-      // Component should be in building state with timer mechanism active
-      expect(screen.getByTestId("border-trail")).toBeInTheDocument();
+      // Component should be in building state — `Running flow` text appears alongside the timer
+      expect(screen.getByText("Running flow")).toBeInTheDocument();
 
       // The implementation sets startTimeRef.current = Date.now() when building starts
       // and calculates duration as Date.now() - startTimeRef.current
@@ -173,7 +169,6 @@ describe("FlowBuildingComponent - Timer Tests", () => {
 
       // The timer should update as time passes
       // We're testing that the mechanism is in place
-      expect(screen.getByTestId("border-trail")).toBeInTheDocument();
       expect(screen.getByTestId("stop_building_button")).toBeInTheDocument();
     });
 
@@ -235,7 +230,6 @@ describe("FlowBuildingComponent - Timer Tests", () => {
       render(<FlowBuildingComponent />);
 
       expect(screen.getByText("Running flow")).toBeInTheDocument();
-      expect(screen.getByTestId("border-trail")).toBeInTheDocument();
     });
 
     it("should show success message", () => {
