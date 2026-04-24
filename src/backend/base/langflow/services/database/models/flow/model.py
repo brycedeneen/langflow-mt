@@ -62,7 +62,6 @@ class FlowBase(SQLModel):
         ),
     )
     endpoint_name: str | None = Field(default=None, nullable=True, index=True)
-    tags: list[str] | None = None
     locked: bool | None = Field(default=False, nullable=True)
     mcp_enabled: bool | None = Field(default=False, nullable=True, description="Can be exposed in the MCP server")
     action_name: str | None = Field(
@@ -216,7 +215,6 @@ class Flow(FlowBase, table=True):  # type: ignore[call-arg]
     organization_id: UUID | None = Field(default=None, index=True, foreign_key="organization.id", nullable=False)
     user: "User" = Relationship(back_populates="flows")
     icon: str | None = Field(default=None, nullable=True)
-    tags: list[str] | None = Field(sa_column=Column(JSON), default=[])
     locked: bool | None = Field(default=False, nullable=True)
     folder_id: UUID | None = Field(default=None, foreign_key="folder.id", nullable=True, index=True)
     fs_path: str | None = Field(default=None, nullable=True)

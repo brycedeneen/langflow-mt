@@ -86,7 +86,6 @@ async def get_flow_graph_representations(
             "text_repr": text_repr,
             "vertex_count": len(graph.vertices),
             "edge_count": len(graph.edges),
-            "tags": flow.tags,
             "description": flow.description,
         }
 
@@ -193,7 +192,6 @@ async def get_flow_graph_summary(
             "edge_count": len(graph.edges),
             "vertices": [vertex.id for vertex in graph.vertices],
             "edges": [(edge.source_id, edge.target_id) for edge in graph.edges],
-            "tags": flow.tags,
             "description": flow.description,
         }
 
