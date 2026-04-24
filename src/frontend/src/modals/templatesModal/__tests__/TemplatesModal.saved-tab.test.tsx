@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +15,53 @@ jest.mock("@/controllers/API/queries/categories", () => ({
     data: [],
     isPending: false,
   }),
+  useCreateCategory: () => ({
+    mutate: jest.fn(),
+    mutateAsync: jest.fn().mockResolvedValue(undefined),
+    isPending: false,
+  }),
+  useUpdateCategory: () => ({
+    mutate: jest.fn(),
+    mutateAsync: jest.fn().mockResolvedValue(undefined),
+    isPending: false,
+  }),
+  useDeleteCategory: () => ({
+    mutate: jest.fn(),
+    mutateAsync: jest.fn().mockResolvedValue(undefined),
+    isPending: false,
+  }),
+}));
+
+jest.mock("@/controllers/API/queries/memberships", () => ({
+  __esModule: true,
+  useListMyMemberships: () => ({ data: [], isPending: false }),
+}));
+
+jest.mock("@/controllers/API/queries/templates/use-archive-template", () => ({
+  __esModule: true,
+  useArchiveTemplate: () => ({
+    mutate: jest.fn(),
+    mutateAsync: jest.fn().mockResolvedValue(undefined),
+    isPending: false,
+  }),
+}));
+
+jest.mock("@/controllers/API/queries/templates/use-unarchive-template", () => ({
+  __esModule: true,
+  useUnarchiveTemplate: () => ({
+    mutate: jest.fn(),
+    mutateAsync: jest.fn().mockResolvedValue(undefined),
+    isPending: false,
+  }),
+}));
+
+jest.mock("@/controllers/API/queries/templates/use-hard-delete-template", () => ({
+  __esModule: true,
+  useHardDeleteTemplate: () => ({
+    mutate: jest.fn(),
+    mutateAsync: jest.fn().mockResolvedValue(undefined),
+    isPending: false,
+  }),
 }));
 
 jest.mock("@/controllers/API/queries/templates/use-list-templates", () => ({
@@ -26,6 +74,8 @@ jest.mock("@/controllers/API/queries/templates/use-list-templates", () => ({
         description: "Frontline triage",
         icon: "Bot",
         gradient: "2",
+        categories: [],
+        tags: [],
         created_at: "2026-04-20T00:00:00Z",
         updated_at: "2026-04-20T00:00:00Z",
       },
@@ -96,11 +146,13 @@ describe("TemplatesModal — Saved Templates tab", () => {
 
   it("shows the Saved Templates nav item and switches to it on click", () => {
     render(
-      <MemoryRouter>
-        <TooltipProvider>
-          <TemplatesModal open={true} setOpen={jest.fn()} />
-        </TooltipProvider>
-      </MemoryRouter>,
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter>
+          <TooltipProvider>
+            <TemplatesModal open={true} setOpen={jest.fn()} />
+          </TooltipProvider>
+        </MemoryRouter>
+      </QueryClientProvider>,
     );
     const navItem = screen.getByTestId("side_nav_options_saved-templates");
     expect(navItem).toBeInTheDocument();
@@ -125,11 +177,13 @@ describe("TemplatesModal — Saved Templates tab", () => {
     });
 
     render(
-      <MemoryRouter>
-        <TooltipProvider>
-          <TemplatesModal open={true} setOpen={jest.fn()} />
-        </TooltipProvider>
-      </MemoryRouter>,
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter>
+          <TooltipProvider>
+            <TemplatesModal open={true} setOpen={jest.fn()} />
+          </TooltipProvider>
+        </MemoryRouter>
+      </QueryClientProvider>,
     );
 
     fireEvent.click(screen.getByTestId("side_nav_options_saved-templates"));

@@ -115,6 +115,11 @@ jest.mock("@/utils/utils", () => ({
   cn: (...classes: any[]) => classes.filter(Boolean).join(" "),
 }));
 
+jest.mock("@/utils/customComponentGuards", () => ({
+  useCustomComponentsAllowed: () => true,
+  flowJsonHasCustomComponent: () => false,
+}));
+
 describe("InspectionPanelHeader", () => {
   const createMockData = (overrides = {}): NodeDataType => ({
     id: "test-node-123",

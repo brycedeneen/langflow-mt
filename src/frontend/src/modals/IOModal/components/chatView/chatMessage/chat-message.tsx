@@ -72,7 +72,7 @@ export default function ChatMessage({
         setIsStreaming(false);
         eventSource.current?.close();
         setStreamUrl(undefined);
-        if (JSON.parse(event.data)?.error) {
+        if (event.data && JSON.parse(event.data)?.error) {
           setErrorData({
             title: "Error on Streaming",
             list: [JSON.parse(event.data)?.error],

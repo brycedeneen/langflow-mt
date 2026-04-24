@@ -16,7 +16,7 @@ module.exports = {
   testMatch: [
     "<rootDir>/src/**/__tests__/**/*.{test,spec}.{ts,tsx}",
     "<rootDir>/src/**/*.{test,spec}.{ts,tsx}",
-    "<rootDir>/tests/**/*.{test,spec}.{ts,tsx}",
+    "<rootDir>/tests/unit/**/*.{test,spec}.{ts,tsx}",
   ],
   testPathIgnorePatterns: ["/node_modules/", "test-utils.tsx"],
   transform: {
