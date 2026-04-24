@@ -225,7 +225,7 @@ class KnowledgeBaseComponent(Component):
         Args:
             metadata: The knowledge base embedding metadata.
             api_key: Pre-resolved API key (user override > metadata > global).
-            provider_vars: Pre-resolved provider variables (for Ollama/WatsonX).
+            provider_vars: Pre-resolved provider variables (for Ollama).
         """
         provider = metadata.get("embedding_provider")
         model = metadata.get("embedding_model")
@@ -283,25 +283,6 @@ class KnowledgeBaseComponent(Component):
             if base_url:
                 kwargs["base_url"] = base_url
             return OllamaEmbeddings(**kwargs)
-        if provider == "IBM WatsonX":
-            from langchain_ibm import WatsonxEmbeddings
-
-            all_vars = provider_vars or {}
-            watsonx_apikey = api_key or all_vars.get("WATSONX_APIKEY")
-            watsonx_project_id = all_vars.get("WATSONX_PROJECT_ID")
-            watsonx_url = all_vars.get("WATSONX_URL")
-            if not watsonx_apikey:
-                msg = (
-                    "IBM WatsonX API key is required. Provide it in the component's advanced settings"
-                    " or configure it globally."
-                )
-                raise ValueError(msg)
-            kwargs = {"model_id": model, "apikey": watsonx_apikey}
-            if watsonx_project_id:
-                kwargs["project_id"] = watsonx_project_id
-            if watsonx_url:
-                kwargs["url"] = watsonx_url
-            return WatsonxEmbeddings(**kwargs)
         if provider == "Custom":
             # For custom embedding models, we would need additional configuration
             msg = "Custom embedding models not yet supported"
@@ -341,9 +322,9 @@ class KnowledgeBaseComponent(Component):
         if not api_key and provider:
             api_key = await self._resolve_api_key(provider)
 
-        # Resolve provider-specific variables (e.g. base_url for Ollama, project_id for WatsonX)
+        # Resolve provider-specific variables (e.g. base_url for Ollama)
         provider_vars: dict[str, str] = {}
-        if provider in {"Ollama", "IBM WatsonX"}:
+        if provider == "Ollama":
             provider_vars = await self._resolve_provider_variables(provider)
 
         # Build the embedder for the knowledge base

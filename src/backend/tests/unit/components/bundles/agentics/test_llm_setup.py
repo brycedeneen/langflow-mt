@@ -26,8 +26,6 @@ def mock_component():
     component.model = [{"name": "gpt-4", "provider": PROVIDER_OPENAI}]
     component.api_key = "test-api-key"
     component.user_id = "test-user-id"
-    component.base_url_ibm_watsonx = None
-    component.project_id = None
     component.ollama_base_url = None
     return component
 
@@ -84,8 +82,6 @@ class TestPrepareLlmFromComponent:
         mock_llm = MagicMock()
         mock_create_llm.return_value = mock_llm
 
-        mock_component.base_url_ibm_watsonx = "https://watsonx.url"
-        mock_component.project_id = "project-123"
         mock_component.ollama_base_url = "http://ollama:11434"
 
         result = prepare_llm_from_component(mock_component)
@@ -94,8 +90,6 @@ class TestPrepareLlmFromComponent:
             provider=PROVIDER_OPENAI,
             model_name="gpt-4",
             api_key="resolved-api-key",
-            base_url_ibm_watsonx="https://watsonx.url",
-            project_id="project-123",
             ollama_base_url="http://ollama:11434",
         )
         assert result == mock_llm
@@ -152,6 +146,4 @@ class TestPrepareLlmFromComponent:
         prepare_llm_from_component(component)
 
         call_kwargs = mock_create_llm.call_args[1]
-        assert call_kwargs["base_url_ibm_watsonx"] is None
-        assert call_kwargs["project_id"] is None
         assert call_kwargs["ollama_base_url"] is None

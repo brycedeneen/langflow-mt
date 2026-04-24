@@ -12,7 +12,6 @@ except ImportError:
 
 from lfx.components.agentics.constants import (
     ERROR_MODEL_NOT_SELECTED,
-    PROVIDER_IBM_WATSONX,
     PROVIDER_OLLAMA,
     PROVIDER_OPENAI,
 )
@@ -83,100 +82,68 @@ class TestValidateModelSelection:
 class TestUpdateProviderFieldsVisibility:
     """Tests for update_provider_fields_visibility function."""
 
-    def test_should_show_watsonx_fields_when_watsonx_selected(self):
-        """Test that WatsonX fields are shown when WatsonX provider is selected."""
-        build_config = {
-            "model": {"value": [{"name": "model-1", "provider": PROVIDER_IBM_WATSONX}]},
-            "base_url_ibm_watsonx": {"show": False, "required": False},
-            "project_id": {"show": False, "required": False},
-            "ollama_base_url": {"show": True},
-        }
-
-        result = update_provider_fields_visibility(build_config, None, None)
-
-        assert result["base_url_ibm_watsonx"]["show"] is True
-        assert result["base_url_ibm_watsonx"]["required"] is True
-        assert result["project_id"]["show"] is True
-        assert result["project_id"]["required"] is True
-        assert result["ollama_base_url"]["show"] is False
-
     def test_should_show_ollama_fields_when_ollama_selected(self):
         """Test that Ollama fields are shown when Ollama provider is selected."""
         build_config = {
             "model": {"value": [{"name": "llama2", "provider": PROVIDER_OLLAMA}]},
-            "base_url_ibm_watsonx": {"show": True, "required": True},
-            "project_id": {"show": True, "required": True},
             "ollama_base_url": {"show": False},
         }
 
         result = update_provider_fields_visibility(build_config, None, None)
 
-        assert result["base_url_ibm_watsonx"]["show"] is False
-        assert result["base_url_ibm_watsonx"]["required"] is False
-        assert result["project_id"]["show"] is False
-        assert result["project_id"]["required"] is False
         assert result["ollama_base_url"]["show"] is True
 
-    def test_should_hide_all_provider_fields_when_openai_selected(self):
-        """Test that provider-specific fields are hidden when OpenAI is selected."""
+    def test_should_hide_ollama_fields_when_openai_selected(self):
+        """Test that Ollama field is hidden when OpenAI is selected."""
         build_config = {
             "model": {"value": [{"name": "gpt-4", "provider": PROVIDER_OPENAI}]},
-            "base_url_ibm_watsonx": {"show": True, "required": True},
-            "project_id": {"show": True, "required": True},
             "ollama_base_url": {"show": True},
         }
 
         result = update_provider_fields_visibility(build_config, None, None)
 
-        assert result["base_url_ibm_watsonx"]["show"] is False
-        assert result["project_id"]["show"] is False
         assert result["ollama_base_url"]["show"] is False
 
     def test_should_return_unchanged_when_model_value_is_empty(self):
         """Test that build_config is unchanged when model value is empty."""
         build_config = {
             "model": {"value": []},
-            "base_url_ibm_watsonx": {"show": True},
-            "project_id": {"show": True},
+            "ollama_base_url": {"show": True},
         }
 
         result = update_provider_fields_visibility(build_config, None, None)
 
-        assert result["base_url_ibm_watsonx"]["show"] is True
-        assert result["project_id"]["show"] is True
+        assert result["ollama_base_url"]["show"] is True
 
     def test_should_return_unchanged_when_model_value_is_not_list(self):
         """Test that build_config is unchanged when model value is not a list."""
         build_config = {
             "model": {"value": "not-a-list"},
-            "base_url_ibm_watsonx": {"show": True},
+            "ollama_base_url": {"show": True},
         }
 
         result = update_provider_fields_visibility(build_config, None, None)
 
-        assert result["base_url_ibm_watsonx"]["show"] is True
+        assert result["ollama_base_url"]["show"] is True
 
     def test_should_use_field_value_when_field_name_is_model(self):
         """Test that field_value is used when field_name is 'model'."""
         build_config = {
             "model": {"value": [{"name": "old-model", "provider": PROVIDER_OPENAI}]},
-            "base_url_ibm_watsonx": {"show": False, "required": False},
-            "project_id": {"show": False, "required": False},
+            "ollama_base_url": {"show": False},
         }
-        field_value = [{"name": "new-model", "provider": PROVIDER_IBM_WATSONX}]
+        field_value = [{"name": "new-model", "provider": PROVIDER_OLLAMA}]
 
         result = update_provider_fields_visibility(build_config, field_value, "model")
 
-        assert result["base_url_ibm_watsonx"]["show"] is True
-        assert result["project_id"]["show"] is True
+        assert result["ollama_base_url"]["show"] is True
 
     def test_should_handle_missing_provider_fields_gracefully(self):
         """Test that function handles missing provider fields without error."""
         build_config = {
-            "model": {"value": [{"name": "model-1", "provider": PROVIDER_IBM_WATSONX}]},
+            "model": {"value": [{"name": "model-1", "provider": PROVIDER_OLLAMA}]},
         }
 
         result = update_provider_fields_visibility(build_config, None, None)
 
-        assert "base_url_ibm_watsonx" not in result
-        assert "project_id" not in result
+        assert "ollama_base_url" not in result

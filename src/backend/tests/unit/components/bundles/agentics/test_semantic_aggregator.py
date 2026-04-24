@@ -49,8 +49,6 @@ class TestSemanticAggregatorComponent:
         """Test that component has provider-specific inputs."""
         input_names = {i.name for i in SemanticAggregator.inputs}
 
-        assert "base_url_ibm_watsonx" in input_names
-        assert "project_id" in input_names
         assert "ollama_base_url" in input_names
 
     def test_should_have_model_input_with_real_time_refresh(self):

@@ -11,12 +11,10 @@ from lfx.base.models.unified_models import (
     get_unified_models_detailed,
     update_model_options_in_build_config,
 )
-from lfx.base.models.watsonx_constants import IBM_WATSONX_URLS
 from lfx.field_typing import Embeddings
 from lfx.io import (
     BoolInput,
     DictInput,
-    DropdownInput,
     FloatInput,
     IntInput,
     MessageTextInput,
@@ -56,13 +54,6 @@ class EmbeddingModelComponent(LCEmbeddingsModel):
         if provider:
             build_config = apply_provider_variable_config_to_build_config(build_config, provider)
 
-            # Embedding-specific WatsonX toggles not covered by provider metadata
-            is_watsonx = provider == "IBM WatsonX"
-            if "truncate_input_tokens" in build_config:
-                build_config["truncate_input_tokens"]["show"] = is_watsonx
-            if "input_text" in build_config:
-                build_config["input_text"]["show"] = is_watsonx
-
         return build_config
 
     inputs = [
@@ -87,22 +78,6 @@ class EmbeddingModelComponent(LCEmbeddingsModel):
             display_name="API Base URL",
             info="Base URL for the API. Leave empty for default.",
             advanced=True,
-        ),
-        # Watson-specific inputs
-        DropdownInput(
-            name="base_url_ibm_watsonx",
-            display_name="watsonx API Endpoint",
-            info="The base URL of the API (IBM watsonx.ai only)",
-            options=IBM_WATSONX_URLS,
-            value=IBM_WATSONX_URLS[0],
-            show=False,
-            real_time_refresh=True,
-        ),
-        MessageTextInput(
-            name="project_id",
-            display_name="Project ID",
-            info="IBM watsonx.ai Project ID (required for IBM watsonx.ai)",
-            show=False,
         ),
         IntInput(
             name="dimensions",
@@ -138,20 +113,6 @@ class EmbeddingModelComponent(LCEmbeddingsModel):
             display_name="Model Kwargs",
             advanced=True,
             info="Additional keyword arguments to pass to the model.",
-        ),
-        IntInput(
-            name="truncate_input_tokens",
-            display_name="Truncate Input Tokens",
-            advanced=True,
-            value=200,
-            show=False,
-        ),
-        BoolInput(
-            name="input_text",
-            display_name="Include the original text in the output",
-            value=True,
-            advanced=True,
-            show=False,
         ),
     ]
 
@@ -311,11 +272,9 @@ class EmbeddingModelComponent(LCEmbeddingsModel):
         kwargs = {}
         provider = model.get("provider")
 
-        # Required parameters - handle both "model" and "model_id" (for watsonx)
+        # Required parameter
         if "model" in param_mapping:
             kwargs[param_mapping["model"]] = model.get("name")
-        elif "model_id" in param_mapping:
-            kwargs[param_mapping["model_id"]] = model.get("name")
 
         # Add API key if mapped
         if "api_key" in param_mapping and api_key:
@@ -331,20 +290,6 @@ class EmbeddingModelComponent(LCEmbeddingsModel):
             "show_progress_bar": self.show_progress_bar if hasattr(self, "show_progress_bar") else None,
             "model_kwargs": self.model_kwargs if self.model_kwargs else None,
         }
-
-        # Watson-specific parameters
-        if provider in {"IBM WatsonX", "IBM watsonx.ai"}:
-            # Map base_url_ibm_watsonx to "url" parameter for watsonx
-            if "url" in param_mapping:
-                url_value = (
-                    self.base_url_ibm_watsonx
-                    if hasattr(self, "base_url_ibm_watsonx") and self.base_url_ibm_watsonx
-                    else "https://us-south.ml.cloud.ibm.com"
-                )
-                kwargs[param_mapping["url"]] = url_value
-            # Map project_id for watsonx
-            if hasattr(self, "project_id") and self.project_id and "project_id" in param_mapping:
-                kwargs[param_mapping["project_id"]] = self.project_id
 
         # Ollama-specific parameters
         if provider == "Ollama" and "base_url" in param_mapping:
@@ -375,11 +320,9 @@ class EmbeddingModelComponent(LCEmbeddingsModel):
 
         kwargs = {}
 
-        # Required parameters - handle both "model" and "model_id" (for watsonx)
+        # Required parameter
         if "model" in param_mapping:
             kwargs[param_mapping["model"]] = model.get("name")
-        elif "model_id" in param_mapping:
-            kwargs[param_mapping["model_id"]] = model.get("name")
         if "api_key" in param_mapping:
             kwargs[param_mapping["api_key"]] = get_api_key_for_provider(
                 self.user_id,
@@ -398,20 +341,6 @@ class EmbeddingModelComponent(LCEmbeddingsModel):
             "show_progress_bar": self.show_progress_bar if hasattr(self, "show_progress_bar") else None,
             "model_kwargs": self.model_kwargs if self.model_kwargs else None,
         }
-
-        # Watson-specific parameters
-        if provider in {"IBM WatsonX", "IBM watsonx.ai"}:
-            # Map base_url_ibm_watsonx to "url" parameter for watsonx
-            if "url" in param_mapping:
-                url_value = (
-                    self.base_url_ibm_watsonx
-                    if hasattr(self, "base_url_ibm_watsonx") and self.base_url_ibm_watsonx
-                    else "https://us-south.ml.cloud.ibm.com"
-                )
-                kwargs[param_mapping["url"]] = url_value
-            # Map project_id for watsonx
-            if hasattr(self, "project_id") and self.project_id and "project_id" in param_mapping:
-                kwargs[param_mapping["project_id"]] = self.project_id
 
         # Ollama-specific parameters
         if provider == "Ollama" and "base_url" in param_mapping:

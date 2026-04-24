@@ -6,7 +6,6 @@ from typing import Any
 
 from lfx.components.agentics.constants import (
     ERROR_MODEL_NOT_SELECTED,
-    PROVIDER_IBM_WATSONX,
     PROVIDER_OLLAMA,
 )
 
@@ -46,8 +45,8 @@ def update_provider_fields_visibility(
 ) -> dict:
     """Update visibility of provider-specific fields based on the selected model.
 
-    Dynamically shows/hides fields like WatsonX project_id or Ollama base_url
-    depending on which provider is currently selected.
+    Dynamically shows/hides fields like Ollama base_url depending on which
+    provider is currently selected.
 
     Args:
         build_config: The build configuration dictionary to update.
@@ -65,26 +64,9 @@ def update_provider_fields_visibility(
     selected_model = current_model_value[0]
     provider = selected_model.get("provider", "")
 
-    _update_watsonx_fields(build_config, provider)
     _update_ollama_fields(build_config, provider)
 
     return build_config
-
-
-def _update_watsonx_fields(build_config: dict, provider: str) -> None:
-    """Update visibility and requirements for IBM WatsonX-specific fields.
-
-    Shows base_url and project_id fields only when WatsonX is selected.
-    """
-    is_watsonx = provider == PROVIDER_IBM_WATSONX
-
-    if "base_url_ibm_watsonx" in build_config:
-        build_config["base_url_ibm_watsonx"]["show"] = is_watsonx
-        build_config["base_url_ibm_watsonx"]["required"] = is_watsonx
-
-    if "project_id" in build_config:
-        build_config["project_id"]["show"] = is_watsonx
-        build_config["project_id"]["required"] = is_watsonx
 
 
 def _update_ollama_fields(build_config: dict, provider: str) -> None:

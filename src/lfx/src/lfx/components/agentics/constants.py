@@ -6,14 +6,12 @@ from __future__ import annotations
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
 # Provider names
-PROVIDER_IBM_WATSONX = "IBM WatsonX"
 PROVIDER_GOOGLE = "Google Generative AI"
 PROVIDER_OPENAI = "OpenAI"
 PROVIDER_ANTHROPIC = "Anthropic"
 PROVIDER_OLLAMA = "Ollama"
 
 SUPPORTED_PROVIDERS = [
-    PROVIDER_IBM_WATSONX,
     PROVIDER_GOOGLE,
     PROVIDER_OPENAI,
     PROVIDER_ANTHROPIC,
@@ -22,17 +20,11 @@ SUPPORTED_PROVIDERS = [
 
 # LLM model prefixes by provider
 LLM_MODEL_PREFIXES = {
-    PROVIDER_IBM_WATSONX: "watsonx/",
     PROVIDER_GOOGLE: "gemini/",
     PROVIDER_OPENAI: "openai/",
     PROVIDER_ANTHROPIC: "anthropic/",
     PROVIDER_OLLAMA: "ollama/",
 }
-
-# IBM WatsonX default parameters
-WATSONX_DEFAULT_TEMPERATURE = 0
-WATSONX_DEFAULT_MAX_TOKENS = 4000
-WATSONX_DEFAULT_MAX_INPUT_TOKENS = 100000
 
 # DataFrame operation types
 OPERATION_MERGE = "merge"

@@ -31,7 +31,6 @@ from lfx.base.models.openai_constants import (
     OPENAI_EMBEDDING_MODELS_DETAILED,
     OPENAI_MODELS_DETAILED,
 )
-from lfx.base.models.watsonx_constants import WATSONX_MODELS_DETAILED
 from lfx.log.logger import logger
 from lfx.services.deps import get_variable_service, session_scope
 from lfx.utils.async_helpers import run_until_complete
@@ -48,7 +47,6 @@ _MODEL_CLASS_IMPORTS: dict[str, tuple[str, str, str | None]] = {
         "langchain-google-genai",
     ),
     "ChatOllama": ("langchain_ollama", "ChatOllama", None),
-    "ChatWatsonx": ("langchain_ibm", "ChatWatsonx", None),
 }
 
 _EMBEDDING_CLASS_IMPORTS: dict[str, tuple[str, str, str | None]] = {
@@ -59,7 +57,6 @@ _EMBEDDING_CLASS_IMPORTS: dict[str, tuple[str, str, str | None]] = {
         None,
     ),
     "OllamaEmbeddings": ("langchain_ollama", "OllamaEmbeddings", None),
-    "WatsonxEmbeddings": ("langchain_ibm", "WatsonxEmbeddings", None),
 }
 
 # Canonical mapping of provider name → embedding class name.
@@ -69,8 +66,6 @@ EMBEDDING_PROVIDER_CLASS_MAPPING: dict[str, str] = {
     "OpenAI": "OpenAIEmbeddings",
     "Google Generative AI": "GoogleGenerativeAIEmbeddings",
     "Ollama": "OllamaEmbeddings",
-    "IBM WatsonX": "WatsonxEmbeddings",
-    "IBM watsonx.ai": "WatsonxEmbeddings",  # Alias used by MODEL_PROVIDERS_DICT
 }
 
 _model_class_cache: dict[str, type] = {}
@@ -184,7 +179,6 @@ def get_models_detailed():
         GOOGLE_GENERATIVE_AI_EMBEDDING_MODELS_DETAILED,
         OLLAMA_MODELS_DETAILED,
         OLLAMA_EMBEDDING_MODELS_DETAILED,
-        WATSONX_MODELS_DETAILED,
     ]
 
 
@@ -547,7 +541,7 @@ def get_all_variables_for_provider(user_id: UUID | str | None, provider: str) ->
 
     Args:
         user_id: The user ID to look up global variables for
-        provider: The provider name (e.g., "IBM WatsonX", "Ollama")
+        provider: The provider name (e.g., "OpenAI", "Ollama")
 
     Returns:
         Dictionary mapping variable keys to their values
@@ -622,9 +616,8 @@ def _validate_and_get_enabled_providers(
     to avoid latency from external API calls.
 
 
-    For providers requiring multiple variables (e.g., IBM WatsonX needs API key, project ID, and URL),
-    all variables marked as `required: True` must be present (from DB or environment variables)
-    for the provider to be considered enabled.
+    For providers requiring multiple variables, all variables marked as `required: True`
+    must be present (from DB or environment variables) for the provider to be considered enabled.
 
     Variables are collected from:
     1. Database variables (if available)
@@ -716,7 +709,7 @@ def get_provider_from_variable_key(variable_key: str) -> str | None:
     """Get provider name from a variable key.
 
     Args:
-        variable_key: The variable key (e.g., "OPENAI_API_KEY", "WATSONX_APIKEY")
+        variable_key: The variable key (e.g., "OPENAI_API_KEY")
 
     Returns:
         The provider name or None if not found
@@ -732,10 +725,10 @@ def validate_model_provider_key(provider: str, variables: dict[str, str], model_
     """Validate a model provider by making a minimal test call.
 
     Args:
-        provider: The provider name (e.g., "OpenAI", "IBM WatsonX")
+        provider: The provider name (e.g., "OpenAI", "Anthropic")
         model_name: The model name to test (e.g., "gpt-4o", "gpt-4o-mini")
         variables: Dictionary mapping variable keys to their decrypted values
-                   (e.g., {"WATSONX_APIKEY": "...", "WATSONX_PROJECT_ID": "...", "WATSONX_URL": "..."})
+                   (e.g., {"OPENAI_API_KEY": "..."})
 
     Raises:
         ValueError: If the credentials are invalid
@@ -756,7 +749,6 @@ def validate_model_provider_key(provider: str, variables: dict[str, str], model_
         "OpenAI",
         "Anthropic",
         "Google Generative AI",
-        "IBM WatsonX",
     ]:
         return
 
@@ -786,23 +778,6 @@ def validate_model_provider_key(provider: str, variables: dict[str, str], model_
             if not api_key:
                 return
             llm = ChatGoogleGenerativeAI(google_api_key=api_key, model=first_model, max_tokens=1)
-            llm.invoke("test")
-
-        elif provider == "IBM WatsonX":
-            from langchain_ibm import ChatWatsonx
-
-            api_key = variables.get("WATSONX_APIKEY")
-            project_id = variables.get("WATSONX_PROJECT_ID")
-            url = variables.get("WATSONX_URL", "https://us-south.ml.cloud.ibm.com")
-            if not api_key or not project_id:
-                return
-            llm = ChatWatsonx(
-                apikey=api_key,
-                url=url,
-                model_id=first_model,
-                project_id=project_id,
-                params={"max_new_tokens": 1},
-            )
             llm.invoke("test")
 
         elif provider == "Ollama":
@@ -1269,14 +1244,6 @@ def get_embedding_model_options(
             "request_timeout": "request_timeout",
             "model_kwargs": "model_kwargs",
         },
-        "IBM WatsonX": {
-            "model_id": "model_id",
-            "url": "url",
-            "api_key": "apikey",
-            "project_id": "project_id",
-            "space_id": "space_id",
-            "request_timeout": "request_timeout",
-        },
     }
 
     # Track which providers have models
@@ -1452,14 +1419,10 @@ def get_llm(
     *,
     stream=False,
     max_tokens=None,
-    watsonx_url=None,
-    watsonx_project_id=None,
     ollama_base_url=None,
 ) -> Any:
     # Coerce provider-specific string params (Message/Data may leak through StrInput)
     ollama_base_url = _to_str(ollama_base_url)
-    watsonx_url = _to_str(watsonx_url)
-    watsonx_project_id = _to_str(watsonx_project_id)
 
     # Check if model is already a BaseLanguageModel instance (from a connection)
     try:
@@ -1544,44 +1507,7 @@ def get_llm(
         kwargs["stream_usage"] = True
 
     # Add provider-specific parameters
-    if provider == "IBM WatsonX":
-        # For watsonx, url and project_id are required parameters
-        # Try database first, then component values, then environment variables
-        url_param = metadata.get("url_param", "url")
-        project_id_param = metadata.get("project_id_param", "project_id")
-
-        # Get all provider variables from database
-        provider_vars = get_all_variables_for_provider(user_id, provider)
-
-        # Priority: component value > database value > env var
-        watsonx_url_value = (
-            watsonx_url if watsonx_url else provider_vars.get("WATSONX_URL") or os.environ.get("WATSONX_URL")
-        )
-        watsonx_project_id_value = (
-            watsonx_project_id
-            if watsonx_project_id
-            else provider_vars.get("WATSONX_PROJECT_ID") or os.environ.get("WATSONX_PROJECT_ID")
-        )
-
-        has_url = bool(watsonx_url_value)
-        has_project_id = bool(watsonx_project_id_value)
-
-        if has_url and has_project_id:
-            # Both provided - add them to kwargs
-            kwargs[url_param] = watsonx_url_value
-            kwargs[project_id_param] = watsonx_project_id_value
-        elif has_url or has_project_id:
-            # Only one provided - this is a misconfiguration
-            missing = "project ID (WATSONX_PROJECT_ID)" if has_url else "URL (WATSONX_URL)"
-            provided = "URL" if has_url else "project ID"
-            msg = (
-                f"IBM WatsonX requires both a URL and project ID. "
-                f"You provided a watsonx {provided} but no {missing}. "
-                f"Please configure the missing value in the component or set the environment variable."
-            )
-            raise ValueError(msg)
-        # else: neither provided - let ChatWatsonx handle it (will fail with its own error)
-    elif provider == "Ollama":
+    if provider == "Ollama":
         # For Ollama, handle custom base_url with database > component > env var fallback
         base_url_param = metadata.get("base_url_param", "base_url")
 
@@ -1597,20 +1523,7 @@ def get_llm(
         if ollama_base_url_value:
             kwargs[base_url_param] = ollama_base_url_value
 
-    try:
-        return model_class(**kwargs)
-    except Exception as e:
-        # If instantiation fails and it's WatsonX, provide additional context
-        if provider == "IBM WatsonX" and ("url" in str(e).lower() or "project" in str(e).lower()):
-            msg = (
-                f"Failed to initialize IBM WatsonX model: {e}\n\n"
-                "IBM WatsonX requires additional configuration parameters (API endpoint URL and project ID). "
-                "This component may not support these parameters. "
-                "Consider using the 'Language Model' component instead, which fully supports IBM WatsonX."
-            )
-            raise ValueError(msg) from e
-        # Re-raise the original exception for other cases
-        raise
+    return model_class(**kwargs)
 
 
 def update_model_options_in_build_config(

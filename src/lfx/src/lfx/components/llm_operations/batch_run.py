@@ -207,7 +207,7 @@ class BatchRunComponent(Component):
             ]
 
             # Configure the model with project info and callbacks
-            # Some models (e.g., ChatWatsonx) may have serialization issues with with_config()
+            # Some models may have serialization issues with with_config()
             # due to SecretStr or other non-serializable attributes
             try:
                 model = model.with_config(

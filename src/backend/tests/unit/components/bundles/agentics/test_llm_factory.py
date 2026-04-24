@@ -18,12 +18,8 @@ from lfx.components.agentics.constants import (
     LLM_MODEL_PREFIXES,
     PROVIDER_ANTHROPIC,
     PROVIDER_GOOGLE,
-    PROVIDER_IBM_WATSONX,
     PROVIDER_OLLAMA,
     PROVIDER_OPENAI,
-    WATSONX_DEFAULT_MAX_INPUT_TOKENS,
-    WATSONX_DEFAULT_MAX_TOKENS,
-    WATSONX_DEFAULT_TEMPERATURE,
 )
 
 
@@ -97,56 +93,6 @@ class TestCreateLlm:
             api_key="test-api-key",
         )
         assert result == mock_llm
-
-    @patch(
-        "lfx.components.agentics.helpers.llm_factory.IBM_WATSONX_URLS",
-        ["https://default.watsonx.url"],
-    )
-    def test_should_create_watsonx_llm_with_all_params(self, mock_crewai):
-        """Test WatsonX LLM creation with all required parameters."""
-        from lfx.components.agentics.helpers.llm_factory import create_llm
-
-        mock_llm = MagicMock()
-        mock_crewai.return_value = mock_llm
-
-        result = create_llm(
-            provider=PROVIDER_IBM_WATSONX,
-            model_name="granite-13b",
-            api_key="test-api-key",
-            base_url_ibm_watsonx="https://custom.watsonx.url",
-            project_id="test-project-id",
-        )
-
-        mock_crewai.assert_called_once_with(
-            model=LLM_MODEL_PREFIXES[PROVIDER_IBM_WATSONX] + "granite-13b",
-            base_url="https://custom.watsonx.url",
-            project_id="test-project-id",
-            api_key="test-api-key",
-            temperature=WATSONX_DEFAULT_TEMPERATURE,
-            max_tokens=WATSONX_DEFAULT_MAX_TOKENS,
-            max_input_tokens=WATSONX_DEFAULT_MAX_INPUT_TOKENS,
-        )
-        assert result == mock_llm
-
-    @patch(
-        "lfx.components.agentics.helpers.llm_factory.IBM_WATSONX_URLS",
-        ["https://default.watsonx.url"],
-    )
-    def test_should_use_default_watsonx_url_when_not_provided(self, mock_crewai):
-        """Test WatsonX LLM uses default URL when base_url not provided."""
-        from lfx.components.agentics.helpers.llm_factory import create_llm
-
-        mock_llm = MagicMock()
-        mock_crewai.return_value = mock_llm
-
-        create_llm(
-            provider=PROVIDER_IBM_WATSONX,
-            model_name="granite-13b",
-            api_key="test-api-key",
-        )
-
-        call_kwargs = mock_crewai.call_args[1]
-        assert call_kwargs["base_url"] == "https://default.watsonx.url"
 
     def test_should_create_ollama_llm_with_custom_url(self, mock_crewai):
         """Test Ollama LLM creation with custom base URL."""

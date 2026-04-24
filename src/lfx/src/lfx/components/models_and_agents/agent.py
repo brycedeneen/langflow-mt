@@ -20,13 +20,12 @@ from lfx.base.models.unified_models import (
     get_provider_for_model_name,
     update_model_options_in_build_config,
 )
-from lfx.base.models.watsonx_constants import IBM_WATSONX_URLS
 from lfx.components.helpers import CurrentDateComponent
 from lfx.components.langchain_utilities.tool_calling import ToolCallingAgentComponent
 from lfx.custom.custom_component.component import get_component_toolkit
 from lfx.field_typing.range_spec import RangeSpec
 from lfx.helpers.base_model import build_model_from_schema
-from lfx.inputs.inputs import BoolInput, DropdownInput, ModelInput, StrInput
+from lfx.inputs.inputs import BoolInput, ModelInput
 from lfx.io import IntInput, MessageTextInput, MultilineInput, Output, SecretStrInput, TableInput
 from lfx.log.logger import logger
 from lfx.schema.data import Data
@@ -64,22 +63,6 @@ class AgentComponent(ToolCallingAgentComponent):
             info="Model Provider API key",
             real_time_refresh=True,
             advanced=True,
-        ),
-        DropdownInput(
-            name="base_url_ibm_watsonx",
-            display_name="watsonx API Endpoint",
-            info="The base URL of the API (IBM watsonx.ai only)",
-            options=IBM_WATSONX_URLS,
-            value=IBM_WATSONX_URLS[0],
-            show=False,
-            real_time_refresh=True,
-        ),
-        StrInput(
-            name="project_id",
-            display_name="watsonx Project ID",
-            info="The project ID associated with the foundation model (IBM watsonx.ai only)",
-            show=False,
-            required=False,
         ),
         MultilineInput(
             name="system_prompt",
@@ -200,8 +183,6 @@ class AgentComponent(ToolCallingAgentComponent):
             user_id=self.user_id,
             api_key=getattr(self, "api_key", None),
             max_tokens=self._get_max_tokens_value(),
-            watsonx_url=getattr(self, "base_url_ibm_watsonx", None),
-            watsonx_project_id=getattr(self, "project_id", None),
         )
 
     async def get_agent_requirements(self):

@@ -152,11 +152,9 @@ postgresql = [
 override-dependencies = [
     # temporary force a newer python-pptx
     "python-pptx>=1.0.2",
-    # Force pandas 3.0+ despite these consumers pinning lower:
-    #   - ibm-watsonx-ai (<2.4)      — deploy target doesn't include watsonx; see project memory
-    #   - cleanlab-tlm (==2.*)       — upstream hasn't released a pandas-3 compatible cut
-    # Each has a smoke probe in tests/unit/integration_smoke/test_pandas_3_overrides.py
-    # to catch runtime breakage.
+    # Force pandas 3.0+ despite cleanlab-tlm (==2.*) pinning lower — upstream hasn't
+    # released a pandas-3 compatible cut. Smoke probe at
+    # tests/unit/integration_smoke/test_pandas_3_overrides_cleanlab.py catches runtime breakage.
     "pandas>=3.0,<4.0",
     # Force tree-sitter 0.25+ required by docling-core>=2.65[chunking] (pulled in by docling 2.90);
     # astra-assistants 2.5.5 pins tree-sitter<0.24 but uses the modern Language()/Parser() API

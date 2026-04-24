@@ -292,15 +292,6 @@ class TestDetectProviders:
         result = _detect_providers_from_template(template)
         assert result == {"Amazon Bedrock"}
 
-    def test_ibm_watsonx_provider(self):
-        template = {
-            "model": {
-                "value": [{"provider": "IBM watsonx.ai", "name": "ibm/granite-13b"}],
-            },
-        }
-        result = _detect_providers_from_template(template)
-        assert result == {"IBM watsonx.ai"}
-
     def test_multiple_providers(self):
         template = {
             "model": {
@@ -536,18 +527,6 @@ class TestGenerateRequirementsFromFlow:
         flow = _make_flow(node)
         result = generate_requirements_from_flow(flow, pin_versions=False)
         assert "langchain-aws" in result
-
-    def test_ibm_watsonx_provider_adds_package(self):
-        node = _make_node(
-            "LLM",
-            "",
-            template_extra={
-                "model": {"value": [{"provider": "IBM watsonx.ai", "name": "ibm/granite-13b"}]},
-            },
-        )
-        flow = _make_flow(node)
-        result = generate_requirements_from_flow(flow, pin_versions=False)
-        assert "langchain-ibm" in result
 
     def test_multiple_providers(self):
         node1 = _make_node(
@@ -852,10 +831,6 @@ class TestResolveEmbeddingProviderPackages:
         """Providers without embedding support should return empty (not warn)."""
         packages = _resolve_embedding_provider_packages("Anthropic")
         assert packages == set()
-
-    def test_ibm_watsonx_embedding_resolves(self):
-        packages = _resolve_embedding_provider_packages("IBM WatsonX")
-        assert "langchain-ibm" in packages
 
     def test_all_embedding_providers_resolve(self):
         """Every provider in EMBEDDING_PROVIDER_CLASS_MAPPING should resolve to a package."""

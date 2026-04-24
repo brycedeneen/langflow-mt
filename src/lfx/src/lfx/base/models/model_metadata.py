@@ -47,7 +47,7 @@ def create_model_metadata(
     )
 
 
-LIVE_MODEL_PROVIDERS: list[str] = ["Ollama", "IBM WatsonX"]
+LIVE_MODEL_PROVIDERS: list[str] = ["Ollama"]
 
 # Provider metadata configuration
 # Defines the variables (credentials, URLs, etc.) required for each model provider
@@ -173,70 +173,6 @@ MODEL_PROVIDER_METADATA: dict[str, Any] = {
             "model_param": "model",
         },
     },
-    "IBM WatsonX": {
-        "icon": "WatsonxAI",
-        "max_tokens_field_name": "max_tokens",
-        "variables": [
-            {
-                "variable_name": "API Key",
-                "variable_key": "WATSONX_APIKEY",
-                "required": True,
-                "is_secret": True,
-                "is_list": False,
-                "options": [],
-                "langchain_param": "apikey",
-                "component_metadata": {
-                    "mapping_field": "api_key",
-                    "required": False,
-                    "advanced": True,
-                    "info": "Falls back to WATSONX_APIKEY environment variable",
-                },
-            },
-            {
-                "variable_name": "Project ID",
-                "variable_key": "WATSONX_PROJECT_ID",
-                "required": True,
-                "is_secret": False,
-                "is_list": False,
-                "options": [],
-                "langchain_param": "project_id",
-                "component_metadata": {
-                    "mapping_field": "project_id",
-                    "required": False,
-                    "advanced": True,
-                    "info": "Falls back to WATSONX_PROJECT_ID environment variable",
-                },
-            },
-            {
-                "variable_name": "Endpoint URL",
-                "variable_key": "WATSONX_URL",
-                "required": True,
-                "is_secret": False,
-                "is_list": False,
-                "combobox": True,
-                "options": [
-                    "https://us-south.ml.cloud.ibm.com",
-                    "https://eu-de.ml.cloud.ibm.com",
-                    "https://eu-gb.ml.cloud.ibm.com",
-                    "https://au-syd.ml.cloud.ibm.com",
-                    "https://jp-tok.ml.cloud.ibm.com",
-                    "https://ca-tor.ml.cloud.ibm.com",
-                ],
-                "langchain_param": "url",
-                "component_metadata": {
-                    "mapping_field": "base_url_ibm_watsonx",
-                    "required": False,
-                    "advanced": True,
-                    "info": "Falls back to WATSONX_URL environment variable",
-                },
-            },
-        ],
-        "api_docs_url": "https://www.ibm.com/products/watsonx",
-        "mapping": {
-            "model_class": "ChatWatsonx",
-            "model_param": "model_id",
-        },
-    },
 }
 
 
@@ -247,7 +183,7 @@ def get_provider_param_mapping(provider: str) -> dict[str, str]:
     Returns dict with keys like: model_class, model_param, and dynamically built param mappings.
 
     Args:
-        provider: The provider name (e.g., "OpenAI", "Anthropic", "IBM WatsonX")
+        provider: The provider name (e.g., "OpenAI", "Anthropic")
 
     Returns:
         Dict containing parameter mappings for the provider.
@@ -271,14 +207,6 @@ def get_provider_param_mapping(provider: str) -> dict[str, str]:
             if "api_key" in mapping_field:
                 result["api_key_param"] = langchain_param
             elif "url" in mapping_field.lower() or "base_url" in mapping_field.lower():
-                # Distinguish between different URL types
-                if "ollama" in mapping_field.lower():
-                    result["base_url_param"] = langchain_param
-                elif "watsonx" in mapping_field.lower() or provider == "IBM WatsonX":
-                    result["url_param"] = langchain_param
-                else:
-                    result["base_url_param"] = langchain_param
-            elif "project_id" in mapping_field:
-                result["project_id_param"] = langchain_param
+                result["base_url_param"] = langchain_param
 
     return result

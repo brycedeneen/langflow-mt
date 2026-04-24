@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-from lfx.base.models.watsonx_constants import IBM_WATSONX_URLS
 from lfx.components.agentics.constants import DEFAULT_OLLAMA_URL
 from lfx.io import (
-    DropdownInput,
     MessageInput,
     ModelInput,
     SecretStrInput,
-    StrInput,
     TableInput,
 )
 from lfx.schema.table import EditMode
@@ -56,8 +53,7 @@ GENERATED_FIELDS_DEFAULT_VALUE = []
 def get_model_provider_inputs() -> list:
     """Return the standard set of model provider configuration inputs.
 
-    Includes model selection, API key, and provider-specific fields for
-    WatsonX and Ollama.
+    Includes model selection, API key, and provider-specific fields for Ollama.
     """
     return [
         ModelInput(
@@ -68,7 +64,6 @@ def get_model_provider_inputs() -> list:
             required=True,
         ),
         get_api_key_input(),
-        *get_watsonx_inputs(),
         get_ollama_url_input(),
     ]
 
@@ -82,31 +77,6 @@ def get_api_key_input() -> SecretStrInput:
         real_time_refresh=True,
         advanced=True,
     )
-
-
-def get_watsonx_inputs() -> list:
-    """Return IBM WatsonX-specific configuration inputs.
-
-    Includes API endpoint selection and project ID fields.
-    """
-    return [
-        DropdownInput(
-            name="base_url_ibm_watsonx",
-            display_name="Watsonx API Endpoint",
-            info="API endpoint URL for IBM WatsonX (shown only when WatsonX is selected).",
-            options=IBM_WATSONX_URLS,
-            value=IBM_WATSONX_URLS[0],
-            show=False,
-            real_time_refresh=True,
-        ),
-        StrInput(
-            name="project_id",
-            display_name="Watsonx Project ID",
-            info="Project ID for IBM WatsonX workspace (shown only when WatsonX is selected).",
-            show=False,
-            required=False,
-        ),
-    ]
 
 
 def get_ollama_url_input() -> MessageInput:

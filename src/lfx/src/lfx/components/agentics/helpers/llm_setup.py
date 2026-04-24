@@ -43,7 +43,5 @@ def prepare_llm_from_component(component: Component) -> LLM:
         provider=provider,
         model_name=model_name,
         api_key=api_key,
-        base_url_ibm_watsonx=getattr(component, "base_url_ibm_watsonx", None),
-        project_id=getattr(component, "project_id", None),
         ollama_base_url=getattr(component, "ollama_base_url", None),
     )

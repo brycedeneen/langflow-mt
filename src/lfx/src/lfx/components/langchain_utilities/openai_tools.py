@@ -3,14 +3,11 @@ from langchain_core.prompts import ChatPromptTemplate, HumanMessagePromptTemplat
 
 from lfx.base.agents.agent import LCToolsAgentComponent
 from lfx.base.models.unified_models import get_language_model_options, get_llm, update_model_options_in_build_config
-from lfx.base.models.watsonx_constants import IBM_WATSONX_URLS
 from lfx.inputs.inputs import (
     DataInput,
-    DropdownInput,
     ModelInput,
     MultilineInput,
     SecretStrInput,
-    StrInput,
 )
 from lfx.schema.data import Data
 
@@ -37,22 +34,6 @@ class OpenAIToolsAgentComponent(LCToolsAgentComponent):
             real_time_refresh=True,
             advanced=True,
         ),
-        DropdownInput(
-            name="base_url_ibm_watsonx",
-            display_name="watsonx API Endpoint",
-            info="The base URL of the API (IBM watsonx.ai only)",
-            options=IBM_WATSONX_URLS,
-            value=IBM_WATSONX_URLS[0],
-            show=False,
-            real_time_refresh=True,
-        ),
-        StrInput(
-            name="project_id",
-            display_name="watsonx Project ID",
-            info="The project ID associated with the foundation model (IBM watsonx.ai only)",
-            show=False,
-            required=False,
-        ),
         MultilineInput(
             name="system_prompt",
             display_name="System Prompt",
@@ -71,8 +52,6 @@ class OpenAIToolsAgentComponent(LCToolsAgentComponent):
             model=self.model,
             user_id=self.user_id,
             api_key=getattr(self, "api_key", None),
-            watsonx_url=getattr(self, "base_url_ibm_watsonx", None),
-            watsonx_project_id=getattr(self, "project_id", None),
         )
 
     def update_build_config(self, build_config: dict, field_value: str, field_name: str | None = None) -> dict:
@@ -81,7 +60,7 @@ class OpenAIToolsAgentComponent(LCToolsAgentComponent):
         def get_tool_calling_model_options(user_id=None):
             return get_language_model_options(user_id=user_id, tool_calling=True)
 
-        build_config = update_model_options_in_build_config(
+        return update_model_options_in_build_config(
             component=self,
             build_config=dict(build_config),
             cache_key_prefix="language_model_options_tool_calling",
@@ -89,18 +68,6 @@ class OpenAIToolsAgentComponent(LCToolsAgentComponent):
             field_name=field_name,
             field_value=field_value,
         )
-        current_model_value = field_value if field_name == "model" else build_config.get("model", {}).get("value")
-        if isinstance(current_model_value, list) and len(current_model_value) > 0:
-            selected_model = current_model_value[0]
-            provider = selected_model.get("provider", "")
-            is_watsonx = provider == "IBM WatsonX"
-            if "base_url_ibm_watsonx" in build_config:
-                build_config["base_url_ibm_watsonx"]["show"] = is_watsonx
-                build_config["base_url_ibm_watsonx"]["required"] = is_watsonx
-            if "project_id" in build_config:
-                build_config["project_id"]["show"] = is_watsonx
-                build_config["project_id"]["required"] = is_watsonx
-        return build_config
 
     def get_chat_history_data(self) -> list[Data] | None:
         return self.chat_history

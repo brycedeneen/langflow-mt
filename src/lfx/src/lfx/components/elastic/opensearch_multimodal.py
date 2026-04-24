@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import copy
 import json
-import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
@@ -446,7 +445,7 @@ class OpenSearchVectorStoreComponentMultimodalMultiEmbedding(LCVectorStoreCompon
 
         Priority: deployment > model > model_id > model_name
         This ensures we use the actual model being deployed, not just the configured model.
-        Supports multiple embedding providers (OpenAI, Watsonx, Cohere, etc.)
+        Supports multiple embedding providers (OpenAI, Cohere, etc.)
 
         Args:
             embedding_obj: Specific embedding object to get name from (optional)
@@ -1126,36 +1125,16 @@ class OpenSearchVectorStoreComponentMultimodalMultiEmbedding(LCVectorStoreCompon
                 )
                 raise
 
-        # Restrict concurrency for IBM/Watsonx models to avoid rate limits
-        is_ibm = (embedding_model and "ibm" in str(embedding_model).lower()) or (
-            selected_embedding and "watsonx" in type(selected_embedding).__name__.lower()
-        )
-        logger.debug(f"Is IBM: {is_ibm}")
-
-        # For IBM models, use sequential processing with rate limiting
-        # For other models, use parallel processing
+        # Parallel processing for embedding chunks
         vectors: list[list[float]] = [None] * len(texts)
+        max_workers = min(max(len(texts), 1), 8)
+        logger.debug(f"Using parallel processing with {max_workers} workers")
 
-        if is_ibm:
-            # Sequential processing with inter-request delay for IBM models
-            inter_request_delay = 0.6  # ~1.67 req/s, safely under 2 req/s limit
-            logger.info(f"Using sequential processing for IBM model with {inter_request_delay}s delay between requests")
-
-            for idx, chunk in enumerate(texts):
-                if idx > 0:
-                    # Add delay between requests (but not before the first one)
-                    time.sleep(inter_request_delay)
-                vectors[idx] = embed_chunk_with_retry(chunk, idx)
-        else:
-            # Parallel processing for non-IBM models
-            max_workers = min(max(len(texts), 1), 8)
-            logger.debug(f"Using parallel processing with {max_workers} workers")
-
-            with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                futures = {executor.submit(embed_chunk_with_retry, chunk, idx): idx for idx, chunk in enumerate(texts)}
-                for future in as_completed(futures):
-                    idx = futures[future]
-                    vectors[idx] = future.result()
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(embed_chunk_with_retry, chunk, idx): idx for idx, chunk in enumerate(texts)}
+            for future in as_completed(futures):
+                idx = futures[future]
+                vectors[idx] = future.result()
 
         if not vectors:
             self.log(f"No vectors generated from documents for model {embedding_model}.")

@@ -62,7 +62,6 @@ class TestModelOptionsIncludeMaxTokensFieldName:
             ("Anthropic", "max_tokens"),
             ("Google Generative AI", "max_output_tokens"),
             ("Ollama", "max_tokens"),
-            ("IBM WatsonX", "max_tokens"),
         ],
     )
     def test_provider_max_tokens_field_name_matches_metadata(self, provider: str, expected_field: str):

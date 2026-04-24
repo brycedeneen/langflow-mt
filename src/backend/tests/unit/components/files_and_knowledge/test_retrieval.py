@@ -331,51 +331,6 @@ class TestKnowledgeBaseComponent(ComponentTestBaseWithClient):
         )
         assert result == mock_embeddings
 
-    @patch("langchain_ibm.WatsonxEmbeddings")
-    def test_build_embeddings_watsonx(self, mock_watsonx_embeddings, component_class, default_kwargs):
-        """Test building IBM WatsonX embeddings."""
-        component = component_class(**default_kwargs)
-
-        metadata = {
-            "embedding_provider": "IBM WatsonX",
-            "embedding_model": "ibm/slate-125m-english-rtrvr-v2",
-            "chunk_size": 1000,
-        }
-
-        mock_embeddings = MagicMock()
-        mock_watsonx_embeddings.return_value = mock_embeddings
-
-        result = component._build_embeddings(
-            metadata,
-            api_key="test-watsonx-key",
-            provider_vars={
-                "WATSONX_APIKEY": "test-watsonx-key",  # pragma:allowlist secret
-                "WATSONX_PROJECT_ID": "test-project-id",
-                "WATSONX_URL": "https://us-south.ml.cloud.ibm.com",
-            },
-        )
-
-        mock_watsonx_embeddings.assert_called_once_with(
-            model_id="ibm/slate-125m-english-rtrvr-v2",
-            apikey="test-watsonx-key",  # pragma:allowlist secret
-            project_id="test-project-id",
-            url="https://us-south.ml.cloud.ibm.com",
-        )
-        assert result == mock_embeddings
-
-    def test_build_embeddings_watsonx_no_key(self, component_class, default_kwargs):
-        """Test building IBM WatsonX embeddings without API key raises error."""
-        component = component_class(**default_kwargs)
-
-        metadata = {
-            "embedding_provider": "IBM WatsonX",
-            "embedding_model": "ibm/slate-125m-english-rtrvr-v2",
-            "chunk_size": 1000,
-        }
-
-        with pytest.raises(ValueError, match="IBM WatsonX API key is required"):
-            component._build_embeddings(metadata)
-
     @patch("langchain_openai.OpenAIEmbeddings")
     async def test_resolve_api_key_global_fallback(self, mock_openai_embeddings, component_class, default_kwargs):
         """Test that retrieve_data resolves the global API key for OpenAI."""
@@ -746,65 +701,6 @@ class TestKnowledgeBaseComponent(ComponentTestBaseWithClient):
         result = component._build_embeddings(metadata, provider_vars=None)
 
         mock_ollama_embeddings.assert_called_once_with(model="nomic-embed-text")
-        assert result == mock_embeddings
-
-    @patch("langchain_ibm.WatsonxEmbeddings")
-    def test_build_embeddings_watsonx_api_key_from_provider_vars(
-        self, mock_watsonx_embeddings, component_class, default_kwargs
-    ):
-        """Test WatsonX uses api_key from provider_vars fallback when api_key param is None."""
-        component = component_class(**default_kwargs)
-
-        metadata = {
-            "embedding_provider": "IBM WatsonX",
-            "embedding_model": "ibm/slate-125m-english-rtrvr-v2",
-        }
-
-        mock_embeddings = MagicMock()
-        mock_watsonx_embeddings.return_value = mock_embeddings
-
-        result = component._build_embeddings(
-            metadata,
-            api_key=None,
-            provider_vars={
-                "WATSONX_APIKEY": "vars-watsonx-key",  # pragma:allowlist secret
-                "WATSONX_PROJECT_ID": "project-123",
-                "WATSONX_URL": "https://us-south.ml.cloud.ibm.com",
-            },
-        )
-
-        mock_watsonx_embeddings.assert_called_once_with(
-            model_id="ibm/slate-125m-english-rtrvr-v2",
-            apikey="vars-watsonx-key",  # pragma:allowlist secret
-            project_id="project-123",
-            url="https://us-south.ml.cloud.ibm.com",
-        )
-        assert result == mock_embeddings
-
-    @patch("langchain_ibm.WatsonxEmbeddings")
-    def test_build_embeddings_watsonx_partial_vars(self, mock_watsonx_embeddings, component_class, default_kwargs):
-        """Test WatsonX with only apikey, no project_id or url."""
-        component = component_class(**default_kwargs)
-
-        metadata = {
-            "embedding_provider": "IBM WatsonX",
-            "embedding_model": "ibm/slate-125m-english-rtrvr-v2",
-        }
-
-        mock_embeddings = MagicMock()
-        mock_watsonx_embeddings.return_value = mock_embeddings
-
-        result = component._build_embeddings(
-            metadata,
-            api_key="only-api-key",
-            provider_vars={},
-        )
-
-        # project_id and url should be omitted from kwargs
-        mock_watsonx_embeddings.assert_called_once_with(
-            model_id="ibm/slate-125m-english-rtrvr-v2",
-            apikey="only-api-key",  # pragma:allowlist secret
-        )
         assert result == mock_embeddings
 
     def test_build_embeddings_empty_metadata(self, component_class, default_kwargs):

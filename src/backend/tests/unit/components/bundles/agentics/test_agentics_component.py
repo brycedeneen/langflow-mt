@@ -55,8 +55,6 @@ class TestSemanticMapComponent:
         """Test that component has provider-specific inputs."""
         input_names = {i.name for i in SemanticMap.inputs}
 
-        assert "base_url_ibm_watsonx" in input_names
-        assert "project_id" in input_names
         assert "ollama_base_url" in input_names
 
     def test_should_have_valid_transduction_constants(self):

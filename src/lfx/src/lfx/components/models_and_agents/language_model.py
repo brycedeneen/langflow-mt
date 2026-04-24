@@ -6,10 +6,9 @@ from lfx.base.models.unified_models import (
     get_provider_for_model_name,
     update_model_options_in_build_config,
 )
-from lfx.base.models.watsonx_constants import IBM_WATSONX_URLS
 from lfx.field_typing import LanguageModel
 from lfx.field_typing.range_spec import RangeSpec
-from lfx.inputs.inputs import BoolInput, DropdownInput, StrInput
+from lfx.inputs.inputs import BoolInput, StrInput
 from lfx.io import IntInput, MessageInput, ModelInput, MultilineInput, SecretStrInput, SliderInput
 
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
@@ -38,22 +37,6 @@ class LanguageModelComponent(LCModelComponent):
             show=True,
             real_time_refresh=True,
             advanced=True,
-        ),
-        DropdownInput(
-            name="base_url_ibm_watsonx",
-            display_name="watsonx API Endpoint",
-            info="The base URL of the API (IBM watsonx.ai only)",
-            options=IBM_WATSONX_URLS,
-            value=IBM_WATSONX_URLS[0],
-            show=False,
-            real_time_refresh=True,
-        ),
-        StrInput(
-            name="project_id",
-            display_name="watsonx Project ID",
-            info="The project ID associated with the foundation model (IBM watsonx.ai only)",
-            show=False,
-            required=False,
         ),
         StrInput(
             name="ollama_base_url",
@@ -106,8 +89,6 @@ class LanguageModelComponent(LCModelComponent):
             temperature=self.temperature,
             stream=self.stream,
             max_tokens=getattr(self, "max_tokens", None),
-            watsonx_url=getattr(self, "base_url_ibm_watsonx", None),
-            watsonx_project_id=getattr(self, "project_id", None),
             ollama_base_url=getattr(self, "ollama_base_url", None),
         )
 

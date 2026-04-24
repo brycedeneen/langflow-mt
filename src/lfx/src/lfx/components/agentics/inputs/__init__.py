@@ -3,7 +3,7 @@
 Provides reusable input configurations for:
 - Model provider selection and authentication
 - Output schema definition
-- Provider-specific settings (WatsonX, Ollama)
+- Provider-specific settings (Ollama)
 """
 
 from __future__ import annotations
@@ -14,7 +14,6 @@ from lfx.components.agentics.inputs.common_inputs import (
     get_generated_fields_input,
     get_model_provider_inputs,
     get_ollama_url_input,
-    get_watsonx_inputs,
 )
 
 __all__ = [
@@ -23,5 +22,4 @@ __all__ = [
     "get_generated_fields_input",
     "get_model_provider_inputs",
     "get_ollama_url_input",
-    "get_watsonx_inputs",
 ]

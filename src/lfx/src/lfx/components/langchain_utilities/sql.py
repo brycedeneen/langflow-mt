@@ -5,9 +5,8 @@ from langchain_community.utilities import SQLDatabase
 
 from lfx.base.agents.agent import LCAgentComponent
 from lfx.base.models.unified_models import get_language_model_options, get_llm, update_model_options_in_build_config
-from lfx.base.models.watsonx_constants import IBM_WATSONX_URLS
-from lfx.inputs.inputs import DropdownInput, HandleInput, MessageTextInput, ModelInput
-from lfx.io import Output, SecretStrInput, StrInput
+from lfx.inputs.inputs import HandleInput, MessageTextInput, ModelInput
+from lfx.io import Output, SecretStrInput
 
 
 class SQLAgentComponent(LCAgentComponent):
@@ -31,22 +30,6 @@ class SQLAgentComponent(LCAgentComponent):
             real_time_refresh=True,
             advanced=True,
         ),
-        DropdownInput(
-            name="base_url_ibm_watsonx",
-            display_name="watsonx API Endpoint",
-            info="The base URL of the API (IBM watsonx.ai only)",
-            options=IBM_WATSONX_URLS,
-            value=IBM_WATSONX_URLS[0],
-            show=False,
-            real_time_refresh=True,
-        ),
-        StrInput(
-            name="project_id",
-            display_name="watsonx Project ID",
-            info="The project ID associated with the foundation model (IBM watsonx.ai only)",
-            show=False,
-            required=False,
-        ),
         MessageTextInput(name="database_uri", display_name="Database URI", required=True),
         HandleInput(
             name="extra_tools",
@@ -68,8 +51,6 @@ class SQLAgentComponent(LCAgentComponent):
             model=self.model,
             user_id=self.user_id,
             api_key=getattr(self, "api_key", None),
-            watsonx_url=getattr(self, "base_url_ibm_watsonx", None),
-            watsonx_project_id=getattr(self, "project_id", None),
         )
 
     def update_build_config(self, build_config: dict, field_value: str, field_name: str | None = None) -> dict:
@@ -78,7 +59,7 @@ class SQLAgentComponent(LCAgentComponent):
         def get_tool_calling_model_options(user_id=None):
             return get_language_model_options(user_id=user_id, tool_calling=True)
 
-        build_config = update_model_options_in_build_config(
+        return update_model_options_in_build_config(
             component=self,
             build_config=dict(build_config),
             cache_key_prefix="language_model_options_tool_calling",
@@ -86,21 +67,6 @@ class SQLAgentComponent(LCAgentComponent):
             field_name=field_name,
             field_value=field_value,
         )
-
-        # Show/hide watsonx fields based on selected model
-        current_model_value = field_value if field_name == "model" else build_config.get("model", {}).get("value")
-        if isinstance(current_model_value, list) and len(current_model_value) > 0:
-            selected_model = current_model_value[0]
-            provider = selected_model.get("provider", "")
-            is_watsonx = provider == "IBM WatsonX"
-            if "base_url_ibm_watsonx" in build_config:
-                build_config["base_url_ibm_watsonx"]["show"] = is_watsonx
-                build_config["base_url_ibm_watsonx"]["required"] = is_watsonx
-            if "project_id" in build_config:
-                build_config["project_id"]["show"] = is_watsonx
-                build_config["project_id"]["required"] = is_watsonx
-
-        return build_config
 
     def build_agent(self) -> AgentExecutor:
         llm = self._get_llm()
