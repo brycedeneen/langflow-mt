@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime
+from sqlalchemy import BigInteger, DateTime, Index, String
 from sqlmodel import Column, Field, ForeignKey, SQLModel
 
 
@@ -21,14 +21,17 @@ class UsagePeriod(str, Enum):
 
 class OrgUsageThreshold(SQLModel, table=True):
     __tablename__ = "org_usage_threshold"
+    __table_args__ = (
+        Index("ix_org_usage_threshold_org_active", "org_id", "is_active"),
+    )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True, nullable=False)
     org_id: UUID = Field(
-        sa_column=Column(ForeignKey("organization.id", ondelete="CASCADE"), nullable=False, index=True),
+        sa_column=Column(ForeignKey("organization.id", ondelete="CASCADE"), nullable=False),
     )
-    metric: UsageMetric = Field(max_length=32, nullable=False)
-    period: UsagePeriod = Field(max_length=16, nullable=False)
-    threshold_value: int = Field(nullable=False)
+    metric: UsageMetric = Field(sa_column=Column(String(length=32), nullable=False))
+    period: UsagePeriod = Field(sa_column=Column(String(length=16), nullable=False))
+    threshold_value: int = Field(sa_column=Column(BigInteger, nullable=False))
     is_active: bool = Field(default=True, nullable=False)
     last_fired_at: datetime | None = Field(
         default=None, sa_column=Column(DateTime(timezone=True), nullable=True),
