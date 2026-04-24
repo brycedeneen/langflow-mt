@@ -261,16 +261,6 @@ export type ProgressBarType = {
   max?: number;
 };
 
-export type AccordionComponentType = {
-  children?: ReactElement;
-  open?: string[];
-  trigger?: string | ReactElement;
-  disabled?: boolean;
-  keyValue?: string;
-  openDisc?: boolean;
-  sideBar?: boolean;
-  options?: { title: string; icon: string }[];
-};
 export type Side = "top" | "right" | "bottom" | "left";
 
 export type ShadTooltipProps = {

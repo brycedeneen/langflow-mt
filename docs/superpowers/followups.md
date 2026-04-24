@@ -164,3 +164,99 @@ Backport merged to `platform-multi-tenant` 2026-04-23. Coding work is complete a
   - (a) Look up the component's canonical code server-side using a stable identifier (e.g., `template._type` or a registered-component name in the request) and use that instead of the user-supplied `code`. The user-supplied `code` becomes informational only.
   - (b) Hash-compare `code_request.code` against the registered code for that component type; if they match, accept; if they differ, require the gate. Requires extending the request schema with a component-identity field.
 - [ ] **Sibling endpoint `POST /custom_component` remains correctly gated on `get_current_active_superuser`.** It's only invoked from the Code-paste validator (`use-post-validate-component-code.ts`), which the UI already restricts to platform admins via `useCustomComponentsAllowed`. That endpoint and its 403 negative test (`test_custom_component_build_requires_superuser`) are untouched by the revert.
+
+## 2026-04-24 — Tailwind Maximization Phase 1 deferrals
+
+Surfaced while executing `docs/superpowers/plans/2026-04-22-tailwind-maximization.md` Phase 1. These three items fell out of the "dead code + unused styling deps" scope and were deferred so Phase 1 could ship cleanly.
+
+### Chakra number-input replacement
+
+- [ ] **`@chakra-ui/number-input` is still consumed.** Call sites: `src/components/core/parameterRenderComponent/components/floatComponent/index.tsx:7` and `.../intComponent/index.tsx:7`. Removing the dep requires replacing the `<NumberInput>` primitive with either a plain `<input type="number">` + Tailwind styling, or a Radix-based equivalent. Plan Phase 1 opted to delete only the fully-unused Chakra dep (`@chakra-ui/system`) and leave this one until the two call sites can be migrated.
+
+### simple-sidebar ↔ sidebar consolidation blocker
+
+- [ ] **`src/components/ui/simple-sidebar.tsx` cannot be deleted in favor of `ui/sidebar` because the two have materially different APIs.** `simple-sidebar` is a pixel-width-resizable drag-handle sidebar with a parent-width ResizeObserver and width-constraint state; `ui/sidebar` is a cookie-backed section sidebar with no drag behavior. Call sites relying on the unique behavior: `src/components/core/flowToolbarComponent/components/playground-button.tsx` (`SimpleSidebarTrigger`), `src/components/core/playgroundComponent/sliding-container/components/flow-page-sliding-container.tsx` (`useSimpleSidebar`), `src/pages/FlowPage/index.tsx` (multiple exports). Either port the resize/drag/parent-observer features into `ui/sidebar` and then migrate callers, or accept the two-sidebar split as intentional and rename `simple-sidebar` to something non-misleading (e.g., `resizable-sidebar.tsx`). Plan Phase 1 escalation rule triggered; deferred.
+
+### `src/style/classes.css` audit needs visual QA, not grep
+
+- [ ] **The 513-line `src/style/classes.css` is not app-utility CSS; it's a dumping ground of third-party-library styling overrides** (`.react-flow__*`, `.ag-cell*`, `.cm-*` for CodeMirror, `.jse-*` for jsoneditor, `.ace_scrollbar*` for Ace editor, plus `.json-view*` / `.card-shine-effect` / version-animation keyframes). Plan Phase 1's grep-based "0 source refs = dead" audit produces false positives here: those class names are applied by the third-party libs' own DOM rendering, not by our source. Safe cleanup requires per-rule visual QA (boot the app, confirm the library still applies the class, confirm the override is still visually meaningful) rather than a grep. Deferred to a dedicated pass.
+
+## 2026-04-24 — Tailwind Maximization Phase 2 deferrals
+
+Surfaced while executing `docs/superpowers/plans/2026-04-22-tailwind-maximization.md` Phase 2. Phase 2 shipped a reduced scope (deleted `background-gradient`, `text-loop`, `textAnimation` — framer-motion consumers 22 → 19). Four other items from the plan's Phase 2 list were deferred because a plain-Tailwind swap would either lose load-bearing UX or blocks on deferred work.
+
+### TextShimmer — load-bearing loading indicator
+
+- [ ] **`src/components/ui/TextShimmer.tsx` has 5 production call sites** (`modals/IOModal/components/flow-running-squeleton.tsx`, `modals/IOModal/components/chatView/chatMessage/components/content-view.tsx`, `components/core/playgroundComponent/chat-view/chat-messages/components/flow-running-squeleton.tsx`, `components/core/playgroundComponent/chat-view/chat-messages/components/error-message.tsx`, `pages/FlowPage/components/flowBuildingComponent/index.tsx`). Plan suggested "replace with plain `<span>`" but the shimmer is the loading-state cue during flow building — removing it degrades UX. Needs a CSS-only shimmer (gradient + animate via Tailwind `animate-[shimmer_2s_linear_infinite]` keyframes) rather than a blind strip. Includes updating the existing `jest.mock` in `flowBuildingComponent/__tests__/index.test.tsx`.
+
+### animated-close (AnimatedConditional) — blocked by simple-sidebar
+
+- [ ] **`src/components/ui/animated-close.tsx` exports `AnimatedConditional`, consumed by `ui/simple-sidebar.tsx`, playground `chat-header.tsx`, and `flow-page-sliding-container.tsx`.** Because Phase 1 deferred `simple-sidebar.tsx` removal (it has unique resize/drag features vs. `ui/sidebar`), we can't fully delete `animated-close` without also rewriting `simple-sidebar`. The component animates `width: 0 → auto`, which CSS can't do with a single `transition-[width]` — needs a `grid-template-columns: 0fr → 1fr` trick (Tailwind arbitrary) or a JS width-measurement helper. Bundle this with the simple-sidebar resolution.
+
+### border-trail — animates along border path
+
+- [ ] **`src/components/core/border-trail.tsx` uses framer-motion to animate `offsetDistance` along a rounded-rect `offsetPath`** (2 production consumers: `chatComponents/ContentBlockDisplay.tsx` and `pages/FlowPage/components/flowBuildingComponent/index.tsx`, plus `jest.mock` in the flowBuilding test). Pure CSS has no direct offset-path animation support; replacement options are (a) drop the effect entirely, (b) SVG-path alternative, (c) custom CSS keyframes mimicking the gradient around the border. All three need a design decision on whether the trail is decorative or status-bearing. Deferred.
+
+### dot-background — not framer-motion, still a wrapper
+
+- [ ] **`src/components/ui/dot-background.tsx` has no framer-motion dependency** — it's already pure Tailwind. One caller (`pages/MainPage/pages/empty-page.tsx`). The component could still be inlined to reduce abstraction, but that's a wrapper-consolidation concern, not framer-motion purge. Not in Phase 2 scope; leaving in place.
+
+## 2026-04-24 — Tailwind Maximization Phase 3 skipped — theme system needs redesign, not flatten
+
+Phase 3 of `docs/superpowers/plans/2026-04-22-tailwind-maximization.md` ("flatten `--color-*` alias chains in the `@theme` block to literal values") was skipped in its entirety after audit. The plan assumed the `@theme` block's `var(--foo)` indirection was pure syntactic sugar that could be mechanically inlined with no behavior change. It isn't.
+
+### Findings
+
+- **149 of 153 `--color-*` tokens use `var(--foo)` indirection.** Only 4 already hold literal values.
+- **Many target vars differ between `:root` and `.dark`** — e.g., `--flow-icon: #2f67d0` (light) vs `--flow-icon: #2467e4` (dark). Tailwind v4's `@theme` block is evaluated once globally and has no per-selector re-scoping, so flattening these to a literal **breaks dark mode** for every affected token.
+- **Many target vars are undefined entirely.** `--medium-gray`, `--dark-gray`, `--light-gray`, `--almost-{dark,medium}-gray`, `--almost-light-blue`, `--almost-medium-{green,red}`, `--high-dark-gray`, `--high-light-gray`, `--medium-dark-{gray,green,red}`, `--medium-emerald`, `--medium-high-indigo`, `--medium-low-gray`, etc. are referenced by `@theme` aliases but defined nowhere in `src/frontend/src/style/`. Their tokens emit Tailwind utilities (`bg-medium-gray`, `text-dark-gray`, etc.) that resolve to nothing at runtime.
+
+### Why the plan's flatten approach doesn't work
+
+The plan's Task 3.3 ("verify no computed value changed") was the safety check, but a correct flatten of dark-sensitive tokens either (a) requires a different mechanism entirely (CSS custom properties in nested `:root`/`.dark` blocks feeding `@theme` — i.e., the current indirection is load-bearing, not redundant) or (b) requires giving up dark mode for those tokens.
+
+### Recommended path forward
+
+1. **Decide the theme policy first.** Either keep the `@theme → var(--foo) → :root/.dark` pattern (current shape is correct for dark-mode support; no flatten) or migrate to a `@variant dark` / `@theme-dark` approach (whichever Tailwind v4 supports when we check) and restructure from there.
+2. **Audit and delete the broken-chain tokens** — the ~15 unresolved gray/indigo/blue/green/red aliases. Grep each for utility usage (`bg-medium-gray`, `text-dark-gray`, `border-*`, `ring-*`, `fill-*`, `stroke-*`). If unused, delete from `@theme`. If used, the UI is already rendering with undefined colors and needs a real fix (either define the target var or re-point to something that exists).
+3. **Phase 6 ("snap to stock Tailwind")** is the right phase to prune tokens; attack (2) as part of Phase 6 when we're already per-token diffing.
+
+## 2026-04-24 — Tailwind Maximization Phase 4 — inline bucket deferred
+
+Phase 4 shipped the dead-rule deletion (Task 4.2) which alone took `applies.css` from 1503 → 687 lines (54%, exceeding the plan's ≥40% target). Plan Task 4.3 — inlining the 51 rules with 1–2 call sites — was deferred.
+
+### Why deferred
+
+- 51 rules × 1–2 call sites each = ~100 JSX files to edit.
+- Each inline swap replaces a `className="foo"` with a Tailwind utility string that may collide with other classes already on the element; needs per-site review.
+- The 51 rules average ~5 Tailwind utilities each, so inlining tends to produce 15–20 class names at the call site, which hurts readability without a clear win.
+- The remaining 687-line `applies.css` is already well within "maintainable" territory.
+
+### If someone wants to pick this up
+
+- [ ] **Inline the 51 low-use `@apply` rules** listed in `/tmp/tailwind-max-baseline/applies-usage.txt` (count 1 or 2). Follow the plan's Task 4.3 recipe exactly. Consider batching by surface area (e.g., do all `form-modal-*` rules together, not one at a time, so the chat-modal visual regression footprint stays contained).
+- [ ] **Handle multi-selector keep rules pragmatically.** A few keep rules have 3+ selectors; if only one selector has ≥3 refs and the rest are dead, you could drop the dead selectors while keeping the rule. The Phase 4 trim script (`/tmp/tailwind-max-baseline/trim-applies.py`) punts on this case.
+
+## 2026-04-24 — Tailwind Maximization Phase 7+ deferrals (post-plan)
+
+Carried forward from the plan's post-plan section. Record so they don't get lost. Each item was documented in the plan spec (`docs/superpowers/specs/2026-04-22-tailwind-maximization-design.md`) and not attempted during the 2026-04-24 pass.
+
+### 7a — Full `framer-motion` removal
+
+- [ ] **framer-motion import count is currently 19** (was 22; Phase 2 removed 3 decorative consumers). Full removal from `package.json` requires handling the remaining consumers: `TextShimmer` (5 loading-state call sites), `AnimatedConditional` (3 call sites including the deferred `simple-sidebar.tsx`), `BorderTrail` (2 call sites), plus the rest of `src/**/*.tsx` imports. See the Phase 2 deferrals section above for per-component strategies. Once all consumers are migrated, `npm uninstall framer-motion` and confirm `grep -rn "framer-motion" src` returns zero.
+
+### 7b — Inline `shadTooltipComponent` wrapper
+
+- [ ] **`src/components/common/shadTooltipComponent/` wraps Radix Tooltip primitives** (`Tooltip`, `TooltipTrigger`, `TooltipContent`). Phase 5 established the pattern for wrapper inlining (`accordionComponent`). Same treatment: audit call sites, inline at each, delete the wrapper directory, delete the orphaned `ShadTooltipType` from `types/components/index.ts` if present. Expect many more call sites than the accordion wrapper had.
+
+### 7c — Inline `genericIconComponent` / `renderIconComponent` wrappers
+
+- [ ] **`src/components/common/genericIconComponent/` and `renderIconComponent` abstract Lucide icon rendering.** Migration target: direct use of named Lucide icon imports (`import { ChevronDown } from "lucide-react"`) or `ForwardedIconComponent` where dynamic name resolution is actually needed. Expected call-site count is very high (hundreds); migrate in batches by surface area, not one pass.
+
+### 7d — Remaining decorative consolidation
+
+- [ ] **`refreshButton`, `dialog-with-no-close`, `disclosure`** (and adjacent small wrappers under `src/components/common/` and `src/components/ui/`). Plan's Phase 7d batched these as "small wrappers that don't earn their keep". Per-wrapper audit needed to decide inline vs keep; none were investigated during the 2026-04-24 pass.
+
+### 7e — Semantic palette lean-out
+
+- [ ] **The semantic color tokens still take up most of the `@theme` block** (99 of the remaining 125 `--color-*` tokens after Phase 6). Phase 7e goal: where a semantic token is effectively an alias for a single `destructive` / `muted` / `accent` role, use the role directly instead of a dedicated named token. Requires (a) reading each semantic token's actual usage pattern, (b) confirming that consolidating doesn't break a subtle visual distinction, (c) migrating call sites. High effort, moderate payoff — do this last.
