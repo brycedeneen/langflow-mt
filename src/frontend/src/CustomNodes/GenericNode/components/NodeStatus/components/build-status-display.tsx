@@ -15,38 +15,32 @@ const StatusMessage = ({ children, className = "text-foreground" }) => (
 );
 
 const TimeStamp = ({ prefix, time }) => (
-  <div className="flex items-center text-xxs text-secondary-foreground">
+  <div className="flex items-center text-xxs">
     <div>{prefix}</div>
-    <div className="ml-1 text-secondary-foreground">{time}</div>
+    <div className="ml-1">{time}</div>
   </div>
 );
 
 const Duration = ({ duration }) => (
-  <div className="flex items-center text-xxs text-secondary-foreground">
+  <div className="flex items-center text-xxs">
     <div>Duration:</div>
     <div className="ml-auto">{duration}</div>
   </div>
 );
 
 const TokenUsageDisplay = ({ tokenUsage }: { tokenUsage: UsageType }) => (
-  <div className="flex flex-col gap-1 text-secondary-foreground">
+  <div className="flex flex-col gap-1">
     <div className="flex items-center">
       <div className="text-xxs">Input tokens:</div>
       <div className="ml-auto flex items-center gap-1 font-mono text-xs">
-        <ForwardedIconComponent
-          name="Coins"
-          className="h-3 w-3 text-secondary-foreground"
-        />
+        <ForwardedIconComponent name="Coins" className="h-3 w-3" />
         {formatTokenCount(tokenUsage.input_tokens)}
       </div>
     </div>
     <div className="flex items-center">
       <div className="text-xxs">Output tokens:</div>
       <div className="ml-auto flex items-center gap-1 font-mono text-xs">
-        <ForwardedIconComponent
-          name="Coins"
-          className="h-3 w-3 text-secondary-foreground text-xs"
-        />
+        <ForwardedIconComponent name="Coins" className="h-3 w-3 text-xs" />
         {formatTokenCount(tokenUsage.output_tokens)}
       </div>
     </div>
