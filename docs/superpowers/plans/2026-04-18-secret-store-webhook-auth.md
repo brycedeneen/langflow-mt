@@ -2,6 +2,10 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+**Status:** ✅ Tasks 1–11 shipped (see reconciliation note below). Full unit + integration suites green on 2026-04-24: `src/lfx/tests/unit/services/test_secret_store.py` (21 passed), `src/backend/base/langflow/tests/services/database/models/flow/test_webhook_auth.py` (14 passed), `src/lfx/tests/integration/services/test_vault_secret_store.py` (8 passed against local Vault dev). Task 12 (full suite run) complete for the secret-store / webhook-auth surface. Plan checkboxes below were never flipped during implementation — relying on commit history + code inspection for ground truth. Bonus scope added beyond plan: `POST /flows/{flow_id}/webhook-api-key` reset endpoint (`flows.py:848`) + `webhookFieldComponent` UI. Gaps tracked as follow-ups: no direct HTTP-route test for the reset endpoint, no cross-org regression, no Jest coverage on the UI component.
+
+**Commits (chronological):** `dbcaf22288` (ABC) · `d2ceb2c676` (settings) · `bc82a30b33` (VaultSecretStore) · `8f9d716dc3` (factory) · `561140e185` (factory singleton fix) · `189fcd2da5` (hvac v3 compat) · `1cf2dbcb9c` (key-gen helper) · `cd5ba836ec` (enforce on webhook endpoint) · `9466867b22` (WebhookComponent UI field).
+
 **Goal:** Add a pluggable secret store abstraction (Vault-backed) and enforce per-flow API key authentication on all webhook invocations in a multi-tenant environment.
 
 **Architecture:** A `SecretStore` ABC lives in the lfx services layer with a Vault KV v2 implementation using `hvac`. Per-flow webhook API keys (`ADP-APICPRO-{48 chars}`) are generated on flow create/update when a webhook component is present, stored in Vault at `{org_id}/webhooks/{flow_id}`, and validated via constant-time compare on every webhook request.
