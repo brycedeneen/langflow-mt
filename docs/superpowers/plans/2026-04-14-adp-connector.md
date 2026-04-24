@@ -1720,6 +1720,8 @@ git commit -m "feat(adp): register bundle components via __init__.py"
 
 ## Task 10: Manual smoke flow in Langflow UI
 
+> **Partial automation (2026-04-24):** The static subset of these checks now lives in `src/lfx/tests/unit/components/adp/test_adp_bundle_smoke.py` (12 passing). That suite covers bundle size (33), foundation components present, Auth v2 field schema + no legacy `cert_source`, API Request endpoint catalog, `ADPConnection` wire types on API Request + MCP, and representative tool-component instantiation. The *interactive* parts below (live Langflow UI render, actual ADP credentials, browser feel) still require a human; the automated tests just tell you if the schema drifted before you start.
+
 **Files:** none (manual verification)
 
 - [ ] **Step 1: Start Langflow dev server**
