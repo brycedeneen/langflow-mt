@@ -3,9 +3,12 @@
 from .adp_api_request import ADPAPIRequestComponent
 from .adp_applicant_onboarding_tools import ADPApplicantOnboardingToolsComponent
 from .adp_auth import ADPAuthComponent
+from .adp_job_applicants_tools import ADPJobApplicantsToolsComponent
+from .adp_job_requisitions_tools import ADPJobRequisitionsToolsComponent
 from .adp_mcp import ADPMCPComponent
 from .adp_pay_data_input_tools import ADPPayDataInputToolsComponent
 from .adp_pay_distributions_tools import ADPPayDistributionsToolsComponent
+from .adp_team_time_cards_tools import ADPTeamTimeCardsToolsComponent
 from .adp_trigger import ADPTriggerComponent
 from .adp_worker_assignment_tools import ADPWorkerAssignmentToolsComponent
 from .adp_worker_assignment_v3_tools import ADPWorkerAssignmentV3ToolsComponent
@@ -25,9 +28,12 @@ __all__ = [
     "ADPAPIRequestComponent",
     "ADPApplicantOnboardingToolsComponent",
     "ADPAuthComponent",
+    "ADPJobApplicantsToolsComponent",
+    "ADPJobRequisitionsToolsComponent",
     "ADPMCPComponent",
     "ADPPayDataInputToolsComponent",
     "ADPPayDistributionsToolsComponent",
+    "ADPTeamTimeCardsToolsComponent",
     "ADPTriggerComponent",
     "ADPWorkerAssignmentToolsComponent",
     "ADPWorkerAssignmentV3ToolsComponent",

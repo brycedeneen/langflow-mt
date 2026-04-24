@@ -1,0 +1,310 @@
+{
+  "tile": "staffing/job-applicants/v2",
+  "samples": [
+    {
+      "filename": "Updating_assessment_result_status_for_single_applicant_Provide_Example_externalAssessment.status.change_request_4273.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "agencyCode": {
+                  "codeValue": "Agency1"
+                }
+              },
+              "transform": {
+                "jobApplications": [
+                  {
+                    "applicationID": "169744662286_1",
+                    "externalAssessment": {
+                      "assessmentStatusCode": {
+                        "codeValue": "Complete"
+                      },
+                      "assessmentPackageID": "Package3",
+                      "links": [
+                        {
+                          "href": "https://test-complete.com"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Updating_assessment_results_for_multiple_applicants_Provide_Example_externalAssessment.status.change_request_4274.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "agencyCode": {
+                  "codeValue": "Agency1"
+                }
+              },
+              "transform": {
+                "jobApplications": [
+                  {
+                    "applicationID": "169744662286_1",
+                    "externalAssessment": {
+                      "assessmentStatusCode": {
+                        "codeValue": "In Progress"
+                      },
+                      "assessmentPackageID": "Package3",
+                      "links": [
+                        {
+                          "href": "https://test-complete.com"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "applicationID": "169744665423_1",
+                    "externalAssessment": {
+                      "assessmentStatusCode": {
+                        "codeValue": "In Progress"
+                      },
+                      "assessmentPackageID": "Package2",
+                      "links": [
+                        {
+                          "href": "https://test-complete.com"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Publishing_an_assessment_package_Provide_Example_externalScreening.packages.modify_request_4269.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "screeningTypeCode": {
+                  "codeValue": "ASSESSMENT"
+                },
+                "agencyCode": {
+                  "codeValue": "Agency1"
+                }
+              },
+              "transform": {
+                "externalScreeningPackages": [
+                  {
+                    "screeningPackageID": "Package3",
+                    "packageName": "PACKAGE THREE",
+                    "packageDescription": "Assessment3",
+                    "packageStatusCode": {
+                      "codeValue": "Assessment"
+                    },
+                    "packageAmount": {
+                      "amountValue": 100,
+                      "currencyCode": "USD"
+                    },
+                    "screeningLinkEffectiveDate": "2020-03-01",
+                    "screeningLinkExpirationDate": "2021-03-28"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Publishing_or_updating_assessment_with_multiple_packages_Provide_Example_externalScreening.packages.modify_request_4270.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "screeningTypeCode": {
+                  "codeValue": "ASSESSMENT"
+                },
+                "agencyCode": {
+                  "codeValue": "Agency1"
+                }
+              },
+              "transform": {
+                "externalScreeningPackages": [
+                  {
+                    "screeningPackageID": "Package1",
+                    "packageName": "PACKAGE ONE",
+                    "packageDescription": "Assessment1",
+                    "packageStatusCode": {
+                      "codeValue": "TEST"
+                    },
+                    "packageAmount": {
+                      "amountValue": 1006,
+                      "currencyCode": ""
+                    },
+                    "screeningLinkEffectiveDate": "2020-03-01",
+                    "screeningLinkExpirationDate": "2021-03-28"
+                  },
+                  {
+                    "screeningPackageID": "Package2",
+                    "packageName": "PACKAGE TWO",
+                    "packageDescription": "Assessment1",
+                    "packageStatusCode": {
+                      "codeValue": "TEST"
+                    },
+                    "packageAmount": {
+                      "amountValue": 1006,
+                      "currencyCode": ""
+                    },
+                    "screeningLinkEffectiveDate": "2020-03-01",
+                    "screeningLinkExpirationDate": "2021-03-28"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Add_or_Change_the_Background_Check_status_and_results_link_for_a_single_or_multiple_job_applications_Provide_Example_externalScreening.status.change_request_3783.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "agencyCode": {
+                  "codeValue": "PartnerName"
+                }
+              },
+              "transform": {
+                "jobApplications": [
+                  {
+                    "applicationID": "169744662286_1",
+                    "externalBackgroundScreening": {
+                      "screeningStatusCode": {
+                        "codeValue": "Complete"
+                      },
+                      "links": [
+                        {
+                          "href": "http://tests.com"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "applicationID": "169744665423_1",
+                    "externalBackgroundScreening": {
+                      "screeningStatusCode": {
+                        "codeValue": "NEW"
+                      },
+                      "links": [
+                        {
+                          "href": "http://tests.com"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Initiating_an_assessment_for_a_job_applicant_Provide_Example_externalScreening.initiate_request_4271.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "agencyCode": {
+                  "codeValue": "Agency1"
+                },
+                "screeningTypeCode": {
+                  "codeValue": "ASSESSMENT"
+                }
+              },
+              "transform": {
+                "jobApplications": [
+                  {
+                    "applicationID": "169744662286_1",
+                    "externalBackgroundScreening": {
+                      "screeningPackageID": "Package2",
+                      "links": [
+                        {
+                          "href": "http://mytests-test1.com",
+                          "linkExpirationDate": "2020-07-22"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Initiating_an_assessment_for_more_then_one_job_applicant_Provide_Example_externalScreening.initiate_request_4272.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "agencyCode": {
+                  "codeValue": "Agency1"
+                },
+                "screeningTypeCode": {
+                  "codeValue": "ASSESSMENT"
+                }
+              },
+              "transform": {
+                "jobApplications": [
+                  {
+                    "applicationID": "169744665423_1",
+                    "externalBackgroundScreening": {
+                      "screeningPackageID": "Package2",
+                      "links": [
+                        {
+                          "href": "http://mytests-test1.com",
+                          "linkExpirationDate": "2020-07-22"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "applicationID": "169744662286_1",
+                    "externalBackgroundScreening": {
+                      "screeningPackageID": "Package2",
+                      "links": [
+                        {
+                          "href": "http://mytests-test1.com",
+                          "linkExpirationDate": "2020-07-22"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

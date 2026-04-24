@@ -3,9 +3,12 @@ def test_bundle_exports_all_components():
         ADPAPIRequestComponent,
         ADPApplicantOnboardingToolsComponent,
         ADPAuthComponent,
+        ADPJobApplicantsToolsComponent,
+        ADPJobRequisitionsToolsComponent,
         ADPMCPComponent,
         ADPPayDataInputToolsComponent,
         ADPPayDistributionsToolsComponent,
+        ADPTeamTimeCardsToolsComponent,
         ADPTriggerComponent,
         ADPWorkerAssignmentToolsComponent,
         ADPWorkerAssignmentV3ToolsComponent,
@@ -23,6 +26,9 @@ def test_bundle_exports_all_components():
     )
 
     assert ADPAuthComponent.name == "ADPAuth"
+    assert ADPJobApplicantsToolsComponent.name == "ADPJobApplicantsTools"
+    assert ADPJobRequisitionsToolsComponent.name == "ADPJobRequisitionsTools"
+    assert ADPTeamTimeCardsToolsComponent.name == "ADPTeamTimeCardsTools"
     assert ADPAPIRequestComponent.name == "ADPAPIRequest"
     assert ADPApplicantOnboardingToolsComponent.name == "ADPApplicantOnboardingTools"
     assert ADPMCPComponent.name == "ADPMCP"

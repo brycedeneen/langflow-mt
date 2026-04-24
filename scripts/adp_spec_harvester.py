@@ -79,6 +79,7 @@ TILES: list[tuple[str, str, str]] = [
     # Staffing
     ("staffing", "job-requisitions", "v1"),
     ("staffing", "job-applications", "v2"),
+    ("staffing", "job-applicants", "v2"),
 ]
 
 SPLIT_HINT_THRESHOLD_BYTES = 20_000  # schemas bigger than this → recommend splitting

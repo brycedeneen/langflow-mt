@@ -1,0 +1,2581 @@
+{
+  "openapi": "3.0.1",
+  "servers": [
+    {
+      "url": "https://__host__/"
+    }
+  ],
+  "info": {
+    "contact": {
+      "name": "Kelly Ortman",
+      "email": "kelly.ortman@adp.com"
+    },
+    "description": "Add and change the background screening status and results link for a single or multiple job applications at a time using the application item IDs. &nbsp;For more information, see <a href=\"https://developers.adp.com/articles/guides/job-applications-v2-api-guide-for-adp-workforce-now\" rel=\"noopener noreferrer\" target=\"_blank\"></a><a href=\"https://developers.adp.com/articles/guides/job-applications-v2-api-guide-for-adp-workforce-now\" rel=\"noopener noreferrer\" target=\"_blank\">Job Applications V2 API Guide</a>",
+    "title": "Job Applicants",
+    "version": "2.0.8"
+  },
+  "x-adpSpecData": {
+    "domain": "Staffing",
+    "specId": "f606dd50-37e9-4af1-9c05-0858675ac49a",
+    "canonicalSpecId": "c9ee8839-a6c5-45db-8162-5be445446cf2",
+    "specStatusCode": "published",
+    "specTypeCode": "REST",
+    "specStateCode": "active",
+    "nonStandardIndicator": false,
+    "visibilityCodes": [
+      "internal",
+      "external"
+    ],
+    "filename": "job-applicants-swagger_v2-merged.json",
+    "serviceProviderId": "WFN",
+    "resourcePath": "staffing/job-applicants/v2",
+    "libraryVersion": "",
+    "businessRules": [
+      {
+        "rule": "R3.0",
+        "ruleTitle": "/data/schemaContext communicates the keys and properties that relate the event instance to a concrete concept (e.g. associate).",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.1",
+        "ruleTitle": "If the event is declared by an actor then the creationDateTime is the date time when the first call is made to the System of Record.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R8.3",
+        "ruleTitle": "A self link is included in the /data/links with 1 links item with the following 2 properties: rel=\u201dself\u201d href=\u201d/events-notifications/{domain}/v1/{event-name}/{eventID}\u201d",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R4.0",
+        "ruleTitle": "All envelope data is set by the System of Record (e.g. event.ID, creationDateTime, recordDateTime, event.status.code, etc\u2026",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.0",
+        "ruleTitle": "creationDateTime is the date that the event is created.  If a System of Record creates the event instance then it sets the creationDateTime.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R5.1",
+        "ruleTitle": "The only information that must be valued in the meta for the events header are the standard codelist references for priorityCode, eventStatusCode, and serviceCategoryCode",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.2",
+        "ruleTitle": "/data/transform is only used during the recording of the event.  The transform is the data that is provided by a user/machine to complete the recording of the event.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.3",
+        "ruleTitle": "/data/output communicates the result of the event instance.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.3",
+        "ruleTitle": "effectiveDateTime is the date that the event is effective from a business perspective",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R5.0",
+        "ruleTitle": "Meta returns the context rules for each data section",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R15.1",
+        "ruleTitle": "An SOR may return an HTTP 503 when they are down for a scheduled maintenance or for an outage.If an SOR is planning a maintenance window then they should plan on having an end point available to return the 503 with a standard confirmMessage.  The confirmMessage will contain a message stating the date and timeframe that the maintenance window is for.The SOR should return the Retry-After response-header field with the Date and Time when they expect the system to be available.  E.g. \u00a7  Retry-After: Fri, 31 Dec 1999 23:59:59 GMT  This does not need to be handled dynamically.  They can set the time that their maintenance window ends.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R1.0",
+        "ruleTitle": "event.id is generated once an event is recorded with a event.status.code=complete",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R8.2",
+        "ruleTitle": "An event notification does not include the transform or meta objects.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R0.1",
+        "ruleTitle": "If request contains ADP-Act-As-OrgOID, ADP-Act-As-AssociateOID and ADP-Acting-SessionID header values, SOR MUST use ADP-Act-As-AssociateOID header value to authorize the data requested, NOT associateoid header value to authorize the data.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R6.2",
+        "ruleTitle": "An event instance which has been recorded has an event.status.code=complete",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.2",
+        "ruleTitle": "The recordDateTime is the date time which the event is recorded in the system of record with an event.status.code=complete",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R8.1",
+        "ruleTitle": "An event notification includes the /data/eventContext and /data/output objects.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R0.2",
+        "ruleTitle": "If request contains ADP-On-Behalf-Of-OrgOID, ADP-On-Behalf-Of-AssociateOID and ADP-Acting-SessionID header values, SOR MUST use ADP-On-Behalf-Of-AssociateOID header value to authorize the data requested, NOT associateoid header value to authorize the data.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R2.4",
+        "ruleTitle": "If there is no effective date from a business perspective then the effective date should be set equal to the record date time.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.6",
+        "ruleTitle": "An event which is being recorded includes the /data/eventContext and the /data/transform during the composition phase (i.e. recording of the event).",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.5",
+        "ruleTitle": "A complete event has /data/eventContext and /data/output",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R6.0",
+        "ruleTitle": "An event instance may be created by a System of record for a user to complete. This event instance will have a event.status.code=created",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R6.1",
+        "ruleTitle": "An event instance which is being \u201cworked on\u201d has an event.status.code=inprogress",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.4",
+        "ruleTitle": "/data/output may be provided during the recording of the event showing the intermediary results.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "US Person Birth Year",
+        "ruleTitle": "**Masking [Pattern:](/library/patterns/#revealmasked)**\u00a0XXXX-01-15\u00a0(mask year)  **Reveal Operation Canonical ID:\u00a0**  /core/accessManagement/sensitiveDataManagement/birthDateManagement/usBirthDateYear.reveal",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R3.1",
+        "ruleTitle": "/data/input is optional.  Input communicates data that is needed to complete recording the event instance.  An example is a benefits.enroll event.  The input communicates the benefitOfferings (the choices) that the user has to make which are communicated in the transform.",
+        "visibilityCodes": [
+          "internal"
+        ]
+      },
+      {
+        "rule": "R0.3",
+        "ruleTitle": "For Act-As or On-Behalf-Of requests, header 'Cache-Control: no-store' MUST be set to indicate on server or on UI the response object SHOULD not be cached",
+        "visibilityCodes": [
+          "internal"
+        ]
+      }
+    ],
+    "testCaseCollection": {
+      "example": {
+        "href": "WFN_CG_Job_applicants.postman_collection.json"
+      },
+      "description": "WFN_CG_Job_applicants.postman_collection."
+    },
+    "publicationContext": {
+      "products": [
+        {
+          "productId": "hcm-offrg-wfn",
+          "productName": "workforce now",
+          "marketplaceProductName": "ADP Workforce Now\u00ae"
+        }
+      ]
+    },
+    "specCategoryCode": ""
+  },
+  "tags": [
+    {
+      "name": "Applicant's External Screening",
+      "description": "API to manage the applicant's background screening by the external agency"
+    },
+    {
+      "name": "Applicant's External Assessment",
+      "description": "API to manage the applicant's assessment by the external agency"
+    }
+  ],
+  "paths": {
+    "/events/staffing/v1/job-applicant.external-screening.packages.modify": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "positionSeekerManagement",
+        "functionCode": "applicantManagementExternal",
+        "serviceCode": "staffingManagement",
+        "serviceCategoryCode": "staffing",
+        "canonicalName": "Job Applicants"
+      },
+      "post": {
+        "summary": "Intiate Applicant's External Agency Screening",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobilePSSStaffingExternal"
+          ],
+          "canonicalUri": "staffing/staffingManagement/positionSeekerManagement/applicantManagementExternal/externalScreening.packages.modify",
+          "operationCode": "externalScreening.packages.modify",
+          "operationId": "d020f50f-0818-4ef3-9bb5-1d926852cd85",
+          "roleCodes": [
+            "practitioner"
+          ],
+          "performAuthIndicator": true,
+          "scenarios": [
+            {
+              "summary": "<span>This use case describes how to use the Publish Package API to publish and update an assessment package in ADP Workforce Now.</span>",
+              "name": "Publishing or updating assessment with multiple packages",
+              "responses": [
+                {
+                  "headers": {
+                    "Cache-Control": "unset",
+                    "ETag": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "updating with multiple packages.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Publishing_or_updating_assessment_with_multiple_packages_Provide_Example_externalScreening.packages.modify_200_45681.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>This use case describes how to use the Publish Package API to publish and update an assessment package in ADP Workforce Now.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/Publishing_or_updating_assessment_with_multiple_packages_Provide_Example_externalScreening.packages.modify_request_4270.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>This use case describes how to use the Publish Package API to publish and update an assessment package in ADP Workforce Now.</span>",
+              "name": "Publishing an assessment package",
+              "responses": [
+                {
+                  "headers": {
+                    "Cache-Control": "unset",
+                    "ETag": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Updating published package details.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Publishing_an_assessment_package_Provide_Example_externalScreening.packages.modify_200_45682.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "unset",
+                    "ETag": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "While publishing a package without packageAmount.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Publishing_an_assessment_package_Provide_Example_externalScreening.packages.modify_200_45683.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "unset",
+                    "ETag": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Applicant external screening initiated",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Publishing_an_assessment_package_Provide_Example_externalScreening.packages.modify_200_45680.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Bad Request.While publishing a package without screeningTypeCode.\"userMessage\": {\n\"messageTxt\": \"Bad Request - screeningTypeCode should not be blank\"\n}",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Publishing_an_assessment_package_Provide_Example_externalScreening.packages.modify_400_45684.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "While publishing a package with blank screeningLinkExpirationDate format.\n \"userMessage\": {\n                            \"messageTxt\": \"Bad Request - [screeningLinkExpirationDate should not be blank against screeningPackageID: Package1]\"\n                        }",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Publishing_an_assessment_package_Provide_Example_externalScreening.packages.modify_400_45691.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "While publishing a package without screeningLinkEffectiveDate.\n\"userMessage\": {\n\"messageTxt\": \"Bad Request - [screeningLinkEffectiveDate should not be blank against screeningPackageID: Package1]\"\n}",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Publishing_an_assessment_package_Provide_Example_externalScreening.packages.modify_400_45690.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Bad Request.\tWhile publishing a package with invalid screeningTypeCode. \"userMessage\": {\n                            \"messageTxt\": \"Bad Request - screeningTypeCode should not be blank or should be ASSESSMENT\"\n                        }",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Publishing_an_assessment_package_Provide_Example_externalScreening.packages.modify_400_45685.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "While publishing a package without packageStatusCode.\n\"userMessage\": {\n\"messageTxt\": \"Bad Request - [packageStatusCode should not be blank against screeningPackageID: Package1]\"\n}",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Publishing_an_assessment_package_Provide_Example_externalScreening.packages.modify_400_45689.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Bad Request.While publishing a package without agencyCode.\n\"userMessage\": {\n\"messageTxt\": \"Bad Request - agencyCode should not be blank\"\n}",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Publishing_an_assessment_package_Provide_Example_externalScreening.packages.modify_400_45686.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Bad Request.While publishing a package without packageName.\n\"userMessage\": {\n\"messageTxt\": \"Bad Request - [packageName should not be blank against screeningPackageID: Package1]\"\n}",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Publishing_an_assessment_package_Provide_Example_externalScreening.packages.modify_400_45688.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Bad Request.While publishing a package without screeningPackageID.\n\"userMessage\": {\n\"messageTxt\": \"Bad Request - [screeningPackageID should not be blank against agency_code: Agency1]\"\n}",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Publishing_an_assessment_package_Provide_Example_externalScreening.packages.modify_400_45687.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "500",
+                  "description": "Internal Server Error.\nWhile trying to publish multiple packages at a time with the same screeningPackageID.\n\"userMessage\": {\n\"messageTxt\": \"Internal Server Error - BackgroundScreeningDao: saveScreeningPackages: Exception occurred while persisting Screening data: BackgroundScreeningDao: saveScreeningPackages: Screening data not persisted\"\n}",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Publishing_an_assessment_package_Provide_Example_externalScreening.packages.modify_500_45692.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>This use case describes how to use the Publish Package API to publish and update an assessment package in ADP Workforce Now.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/Publishing_an_assessment_package_Provide_Example_externalScreening.packages.modify_request_4269.json"
+                }
+              }
+            }
+          ],
+          "visibilityCodes": [
+            "internal"
+          ],
+          "globalViewDevPortalIndicator": false
+        },
+        "requestBody": {
+          "description": "posted contents",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas/events_staffing.jobApplicant.externalScreening.packages.modify_schema_v01_00_rev001.json"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Applicant external screening initiated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/events_staffing.jobApplicant.externalScreening.packages.modify_schema_v01_00_rev001.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "412": {
+            "$ref": "#/components/responses/412"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "405": {
+            "$ref": "#/components/responses/405"
+          },
+          "406": {
+            "$ref": "#/components/responses/406"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Applicant's background screening is intiated by the external agency",
+        "operationId": "d020f50f-0818-4ef3-9bb5-1d926852cd85",
+        "parameters": [
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header should be passed in all calls.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to - usuall injected by the API proxy, with few exceptions",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "en-US",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "Accept-Language' ': ' ( language | '*' ) [';' 'q' '='qvalue]. Specifies the language(s) that are acceptable for the response. The optional qvalue represents a quality level for acceptable languages.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        ],
+        "tags": [
+          "Applicant's External Screening"
+        ]
+      }
+    },
+    "/events/staffing/v1/job-applicant.external-screening.status.change": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "positionSeekerManagement",
+        "functionCode": "applicantManagementExternal",
+        "serviceCode": "staffingManagement",
+        "serviceCategoryCode": "staffing",
+        "canonicalName": "Job Applicants"
+      },
+      "post": {
+        "summary": "Update Applicant's External Agency Screening Status",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobilePSSStaffingExternal"
+          ],
+          "canonicalUri": "staffing/staffingManagement/positionSeekerManagement/applicantManagementExternal/externalScreening.status.change",
+          "operationCode": "externalScreening.status.change",
+          "operationId": "7126949c-4061-4b8f-a7aa-2a767865af8d",
+          "roleCodes": [
+            "practitioner"
+          ],
+          "performAuthIndicator": true,
+          "scenarios": [
+            {
+              "summary": "<p style=\"box-sizing: border-box; margin: 0px 0px 10px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); font-family: TaubSans, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\">Add and c<span style=\"color: rgb(34, 34, 34); font-family: TaubSans, sans-serif; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 300; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;\">hange the background screening status and results link for a single or multiple job applications at a time using the application item IDs.</span> The <strong style=\"box-sizing: border-box; font-weight: 600;\">itemID</strong> in the Job Application GET response is referred to as the job application ID. Using this application ID in the request payload, the user can change the Background screening status for the job application. &nbsp;<span style=\"color: rgb(34, 34, 34); font-family: TaubSans, sans-serif; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 300; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;\"><span style='color: rgb(33, 33, 37); font-family: CircularXX, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;'>For more information, see&nbsp;</span></span><a href=\"https://developers.adp.com/articles/guides/job-applications-v2-api-guide-for-adp-workforce-now\" rel=\"noopener noreferrer\" target=\"_blank\">https://developers.adp.com/articles/guides/job-applications-v2-api-guide-for-adp-workforce-now</a> &nbsp;</p><p style=\"box-sizing: border-box; margin: 0px 0px 10px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); font-family: TaubSans, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\">This POST API helps the ADP Partner change the background screening status associated with the progress of a job application screening along with the results link. &nbsp;</p>",
+              "name": "Add or Change the Background Check status and results link for a single or multiple job applications",
+              "responses": [
+                {
+                  "headers": {
+                    "Cache-Control": "",
+                    "ETag": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Changing the Background screening status and results link for multiple job application records.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Add_or_Change_the_Background_Check_status_and_results_link_for_a_single_or_multiple_job_applications_Provide_Example_externalScreening.status.change_200_44295.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p style=\"box-sizing: border-box; margin: 0px 0px 10px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); font-family: TaubSans, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\">Add and c<span style=\"color: rgb(34, 34, 34); font-family: TaubSans, sans-serif; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 300; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;\">hange the background screening status and results link for a single or multiple job applications at a time using the application item IDs.</span> The <strong style=\"box-sizing: border-box; font-weight: 600;\">itemID</strong> in the Job Application GET response is referred to as the job application ID. Using this application ID in the request payload, the user can change the Background screening status for the job application. &nbsp;<span style=\"color: rgb(34, 34, 34); font-family: TaubSans, sans-serif; font-size: 16px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 300; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;\"><span style='color: rgb(33, 33, 37); font-family: CircularXX, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;'>For more information, see&nbsp;</span></span><a href=\"https://developers.adp.com/articles/guides/job-applications-v2-api-guide-for-adp-workforce-now\" rel=\"noopener noreferrer\" target=\"_blank\">https://developers.adp.com/articles/guides/job-applications-v2-api-guide-for-adp-workforce-now</a> &nbsp;</p><p style=\"box-sizing: border-box; margin: 0px 0px 10px; font-size: 16px; font-weight: 300; line-height: 1.5; color: rgb(34, 34, 34); font-family: TaubSans, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;\">This POST API helps the ADP Partner change the background screening status associated with the progress of a job application screening along with the results link. &nbsp;</p>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/Add_or_Change_the_Background_Check_status_and_results_link_for_a_single_or_multiple_job_applications_Provide_Example_externalScreening.status.change_request_3783.json"
+                }
+              }
+            }
+          ],
+          "visibilityCodes": [
+            "internal"
+          ],
+          "globalViewDevPortalIndicator": true
+        },
+        "requestBody": {
+          "description": "posted contents",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas/events_staffing.jobApplicant.externalScreening.status.change_schema_v01_00_rev001.json"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Applicant external screening status changed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/events_staffing.jobApplicant.externalScreening.status.change_schema_v01_00_rev001.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "412": {
+            "$ref": "#/components/responses/412"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "405": {
+            "$ref": "#/components/responses/405"
+          },
+          "406": {
+            "$ref": "#/components/responses/406"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Applicant's background screening status changed by the external agency",
+        "operationId": "7126949c-4061-4b8f-a7aa-2a767865af8d",
+        "parameters": [
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header should be passed in all calls.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to - usuall injected by the API proxy, with few exceptions",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "en-US",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "Accept-Language' ': ' ( language | '*' ) [';' 'q' '='qvalue]. Specifies the language(s) that are acceptable for the response. The optional qvalue represents a quality level for acceptable languages.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        ],
+        "tags": [
+          "Applicant's External Screening"
+        ]
+      }
+    },
+    "/events/staffing/v1/job-applicant.external-assessment.status.change": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "positionSeekerManagement",
+        "functionCode": "applicantManagementExternal",
+        "serviceCode": "staffingManagement",
+        "serviceCategoryCode": "staffing",
+        "canonicalName": "Job Applicants"
+      },
+      "post": {
+        "summary": "Update Applicant's External Agency Assessment Status",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobilePSSStaffingExternal"
+          ],
+          "canonicalUri": "staffing/staffingManagement/positionSeekerManagement/applicantManagementExternal/externalAssessment.status.change",
+          "operationCode": "externalAssessment.status.change",
+          "operationId": "374402a1-a1d4-4f38-9dae-19df7c578f85",
+          "roleCodes": [
+            "practitioner"
+          ],
+          "performAuthIndicator": true,
+          "scenarios": [
+            {
+              "summary": "<span>This use case describes how to use the Publish Package API to publish and update an assessment package in ADP Workforce Now.</span>",
+              "name": "Updating assessment results for multiple applicants",
+              "responses": [
+                {
+                  "headers": {
+                    "Cache-Control": "",
+                    "ETag": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Updating assessment results for multiple packages.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Updating_assessment_results_for_multiple_applicants_Provide_Example_externalAssessment.status.change_200_45703.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>This use case describes how to use the Publish Package API to publish and update an assessment package in ADP Workforce Now.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/Updating_assessment_results_for_multiple_applicants_Provide_Example_externalAssessment.status.change_request_4274.json"
+                }
+              }
+            },
+            {
+              "summary": "<p>This use case describes how to use the Result Assessment API to update the assessment result status selected by the job applicant.</p>",
+              "name": "Updating assessment result status for single applicant",
+              "responses": [
+                {
+                  "headers": {
+                    "Cache-Control": "",
+                    "ETag": "",
+                    "Content-Type": ""
+                  },
+                  "code": "200",
+                  "description": "Applicant external assessment status changed",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Updating_assessment_result_status_for_single_applicant_Provide_Example_externalAssessment.status.change_200_45702.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "Cache-Control": "unset",
+                    "ETag": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Applicant external assessment status changed",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Updating_assessment_result_status_for_single_applicant_Provide_Example_externalAssessment.status.change_200_45704.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Bad Request.\nUpdating an assessment result without an agencyCode.\n\"userMessage\": {\n                            \"messageTxt\": \"Bad Request - agencyCode should not be blank\"\n                        }",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Updating_assessment_result_status_for_single_applicant_Provide_Example_externalAssessment.status.change_400_45705.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Bad Request.Updating an assessment result without applicationID.\n\"userMessage\": {\n                            \"messageTxt\": \"Bad Request - Invalid AppOid - []\"\n                        }",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Updating_assessment_result_status_for_single_applicant_Provide_Example_externalAssessment.status.change_400_45707.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Bad Request.\nUpdating an assessment result without an assessmentStatusCode.\n\"userMessage\": {\n                            \"messageTxt\": \"Bad Request - [Status should not be blank against Application Id - 169744662286_1]\"\n                        }",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Updating_assessment_result_status_for_single_applicant_Provide_Example_externalAssessment.status.change_400_45706.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Bad Request.Updating an assessment result without the assessmentPackageID.\n\"userMessage\": {\n                            \"messageTxt\": \"Bad Request - Invalid assessmentPackageID - []\"\n                        }",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Updating_assessment_result_status_for_single_applicant_Provide_Example_externalAssessment.status.change_400_45708.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<p>This use case describes how to use the Result Assessment API to update the assessment result status selected by the job applicant.</p>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/Updating_assessment_result_status_for_single_applicant_Provide_Example_externalAssessment.status.change_request_4273.json"
+                }
+              }
+            }
+          ],
+          "visibilityCodes": [
+            "internal"
+          ],
+          "globalViewDevPortalIndicator": false
+        },
+        "requestBody": {
+          "description": "posted contents",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas/events_staffing.jobApplicant.externalAssessment.status.change_schema_v01_00_rev001.json"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Applicant external assessment status changed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/events_staffing.jobApplicant.externalAssessment.status.change_schema_v01_00_rev001.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "412": {
+            "$ref": "#/components/responses/412"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "405": {
+            "$ref": "#/components/responses/405"
+          },
+          "406": {
+            "$ref": "#/components/responses/406"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Applicant's background assessment status changed by the external agency",
+        "operationId": "374402a1-a1d4-4f38-9dae-19df7c578f85",
+        "parameters": [
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header should be passed in all calls.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to - usuall injected by the API proxy, with few exceptions",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "en-US",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "Accept-Language' ': ' ( language | '*' ) [';' 'q' '='qvalue]. Specifies the language(s) that are acceptable for the response. The optional qvalue represents a quality level for acceptable languages.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        ],
+        "tags": [
+          "Applicant's External Assessment"
+        ]
+      }
+    },
+    "/events/staffing/v1/job-applicant.external-screening.initiate": {
+      "x-adpPathData": {
+        "uriTranslationIndicator": false,
+        "featureCode": "positionSeekerManagement",
+        "functionCode": "applicantManagementExternal",
+        "serviceCode": "staffingManagement",
+        "serviceCategoryCode": "staffing",
+        "canonicalName": "Job Applicants"
+      },
+      "post": {
+        "summary": "Intiate Applicant's External Agency Screening",
+        "x-adpOperationData": {
+          "operationStateCode": "active",
+          "grantTypes": [
+            "authorization_code",
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_credential"
+          ],
+          "asaFeatureCodes": [
+            "MobilePSSStaffingExternal"
+          ],
+          "canonicalUri": "staffing/staffingManagement/positionSeekerManagement/applicantManagementExternal/externalScreening.initiate",
+          "operationCode": "externalScreening.initiate",
+          "operationId": "b6e88159-4bfc-459d-9a79-489f14f09a37",
+          "roleCodes": [
+            "practitioner"
+          ],
+          "performAuthIndicator": true,
+          "scenarios": [
+            {
+              "summary": "<span>Initiates an assessment with In progress status as the default for job applicants.</span>",
+              "name": "Initiating an assessment for a job applicant",
+              "responses": [
+                {
+                  "headers": {
+                    "Cache-Control": "unset",
+                    "ETag": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Initiating an assessment for a job applicant.",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Initiating_an_assessment_for_a_job_applicant_Provide_Example_externalScreening.initiate_200_45693.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Bad Request.Initiate an assessment without the screeningTypeCode.\n\"userMessage\": {\n                            \"messageTxt\": \"Bad Request - screeningTypeCode should not be blank\"\n                        }",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Initiating_an_assessment_for_a_job_applicant_Provide_Example_externalScreening.initiate_400_45697.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Initiate an assessment with an invalid screeningTypeCode.\n\"userMessage\": {\n                            \"messageTxt\": \"Bad Request - [Invalid screeningTypeCode against Application Id - 169744662286_1]\"\n                        }\nNOTE- The only supported screeningTypeCode is \"ASSESSMENT\" or \"Assessment\".",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Initiating_an_assessment_for_a_job_applicant_Provide_Example_externalScreening.initiate_400_45698.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Bad Request.\nInitiate an assessment without the applicationID.\n \"userMessage\": {\n                            \"messageTxt\": \"Bad Request - Invalid AppOid - []\"\n                        }",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Initiating_an_assessment_for_a_job_applicant_Provide_Example_externalScreening.initiate_400_45696.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Bad Request.\nInitiate an assessment without the agencyCode.\n\"userMessage\": {\n                            \"messageTxt\": \"Bad Request - agencyCode should not be blank\"\n                        }",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Initiating_an_assessment_for_a_job_applicant_Provide_Example_externalScreening.initiate_400_45695.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Initiate an assessment without  the screeningPackageID.\n\"userMessage\": {\n                            \"messageTxt\": \"Bad Request - Invalid assessmentPackageID - []\"\n                        }",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Initiating_an_assessment_for_a_job_applicant_Provide_Example_externalScreening.initiate_400_45699.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Initiate an assessment without the linkExpirationDate or with the invalid date format.\n\"userMessage\": {\n                            \"messageTxt\": \"Bad Request - Invalid Date format - Valid date format(YYYY-MM-DD)\"\n                        }",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Initiating_an_assessment_for_a_job_applicant_Provide_Example_externalScreening.initiate_400_45701.json"
+                    }
+                  }
+                },
+                {
+                  "headers": {
+                    "ADP-Acting-Session-Expires": "unset",
+                    "Cache-Control": "unset",
+                    "sm_transactionid": "unset",
+                    "ETag": "unset",
+                    "ADP-Acting-SessionID": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "400",
+                  "description": "Initiate an assessment without a link.\n\"userMessage\": {\n                            \"messageTxt\": \"Bad Request - [Test URL should not be blank against Package Id - Package2]\"\n                        }",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Initiating_an_assessment_for_a_job_applicant_Provide_Example_externalScreening.initiate_400_45700.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>Initiates an assessment with In progress status as the default for job applicants.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/Initiating_an_assessment_for_a_job_applicant_Provide_Example_externalScreening.initiate_request_4271.json"
+                }
+              }
+            },
+            {
+              "summary": "<span>Initiates an assessment with In progress status as the default for job applicants.</span>",
+              "name": "Initiating an assessment for more then one job applicant",
+              "responses": [
+                {
+                  "headers": {
+                    "Cache-Control": "unset",
+                    "ETag": "unset",
+                    "Content-Type": "unset"
+                  },
+                  "code": "200",
+                  "description": "Applicant external screening initiated",
+                  "content": {
+                    "application/json": {
+                      "externalValue": "./examples/Initiating_an_assessment_for_more_then_one_job_applicant_Provide_Example_externalScreening.initiate_200_45694.json"
+                    }
+                  }
+                }
+              ],
+              "description": "<span>Initiates an assessment with In progress status as the default for job applicants.</span>",
+              "content": {
+                "application/json": {
+                  "externalValue": "./examples/Initiating_an_assessment_for_more_then_one_job_applicant_Provide_Example_externalScreening.initiate_request_4272.json"
+                }
+              }
+            }
+          ],
+          "visibilityCodes": [
+            "internal"
+          ],
+          "globalViewDevPortalIndicator": false
+        },
+        "requestBody": {
+          "description": "posted contents",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas/events_staffing.jobApplicant.externalScreening.initiate_schema_v01_00_rev001.json"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+                "x-adpParameterData": {
+                  "visibilityCodes": [
+                    "internal"
+                  ]
+                },
+                "required": false
+              }
+            },
+            "description": "Applicant external screening initiated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas/events_staffing.jobApplicant.externalScreening.initiate_schema_v01_00_rev001.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "412": {
+            "$ref": "#/components/responses/412"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "503": {
+            "$ref": "#/components/responses/503"
+          },
+          "405": {
+            "$ref": "#/components/responses/405"
+          },
+          "406": {
+            "$ref": "#/components/responses/406"
+          },
+          "429": {
+            "$ref": "#/components/responses/429"
+          }
+        },
+        "description": "Applicant's background screening is intiated by the external agency",
+        "operationId": "b6e88159-4bfc-459d-9a79-489f14f09a37",
+        "parameters": [
+          {
+            "schema": {
+              "default": "G4O73G9Z62SL2NFM",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "associateoid",
+            "description": "Associate OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Context-ExpressionID",
+            "description": "Geopolitical context, typically country, region, e.g. country=CA;subdivision=Quebec",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "orgoid",
+            "description": "Organization OID of the requestor as provisioned by the ADP Registry",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ConsumerAppOID",
+            "description": "Identifier for the service consumer application.  This header is required, if the actor (Service Consumer) is an application or the actor is internal to ADP",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ADP-Consumer-ApplicationID",
+            "description": "Identifier of the application sending a request - not intended to be used as a correlation id for messages across systems participating in a collaboration",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "employee",
+              "type": "string",
+              "enum": [
+                "employee",
+                " manager",
+                " practitioner",
+                " administrator",
+                " supervisor"
+              ]
+            },
+            "in": "header",
+            "name": "roleCode",
+            "description": "The role the user is playing during the transaction.  Possible values: employee,manager,practitioner,administrator,supervisor.  The roleCode header should be passed in all calls.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "SOR",
+            "description": "SOR where the call is routed to - usuall injected by the API proxy, with few exceptions",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Authorization",
+            "description": "Provides the client's authorization token to access the resource representation at a URI",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "en-US",
+              "type": "string"
+            },
+            "in": "header",
+            "name": "Accept-Language",
+            "description": "Accept-Language' ': ' ( language | '*' ) [';' 'q' '='qvalue]. Specifies the language(s) that are acceptable for the response. The optional qvalue represents a quality level for acceptable languages.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        ],
+        "tags": [
+          "Applicant's External Screening"
+        ]
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "400": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "412": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Precondition Failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "500": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Internal Server Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "403": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "503": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Service Unavailable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "405": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Method Not Allowed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "406": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Not Acceptable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      },
+      "429": {
+        "headers": {
+          "ADP-Acting-Session-Expires": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the date and time the representational state of the resource is considered stale in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "sm_transactionid": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "SiteMinder transaction ID.  Required for requests where conversation was initiated from a service consumer, external to ADP, and that consumer was authenticated by SMS. Example - sm_transactionid: 1aaf14ac-7083-54c0186f-4680c940-82b33ca3",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies directives that must be obeyed by all caching mechanisms along the request/response chain.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ETag": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Defines the entity tag for use with the If-Match and If-None-Match request headers.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "ADP-Acting-SessionID": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Session ID for the acting session in 'Act-As' and act 'On-Behalf-Of' scenarios",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          },
+          "Content-Type": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Content-Type' ': ' type '/' subtype. Describes the media type and subtype of an entity-body.",
+            "x-adpParameterData": {
+              "visibilityCodes": [
+                "internal"
+              ]
+            },
+            "required": false
+          }
+        },
+        "description": "Too Many Requests",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../../common/responses/v1/schemas/confirmMessage_schema_v01_00_rev008.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}
