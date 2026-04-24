@@ -1,6 +1,7 @@
 import "@xyflow/react/dist/style.css";
 import { Suspense, useEffect } from "react";
 import { RouterProvider } from "react-router-dom";
+import ValidationErrorOverlay from "@/components/common/ValidationErrorOverlay";
 import { LoadingPage } from "./pages/LoadingPage";
 import router from "./routes";
 import { useDarkStore } from "./stores/darkStore";
@@ -15,8 +16,11 @@ export default function App() {
     }
   }, [dark]);
   return (
-    <Suspense fallback={<LoadingPage />}>
-      <RouterProvider router={router} />
-    </Suspense>
+    <>
+      <ValidationErrorOverlay />
+      <Suspense fallback={<LoadingPage />}>
+        <RouterProvider router={router} />
+      </Suspense>
+    </>
   );
 }

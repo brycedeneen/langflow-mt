@@ -40,6 +40,13 @@ const DEFAULT_REPORTER: Reporter = (payload) => {
     // eslint-disable-next-line no-console
     console.warn(`[ValidationError][${payload.boundary}][${payload.mode}] ${payload.id}`, payload.error.issues, { raw: payload.raw });
   }
+  // Fire-and-forget push to the in-app store; keeps app path untouched if the store isn't present (e.g. unit tests that reset reporter).
+  void import("@/stores/validationErrorStore").then(({ default: store }) => {
+    store.getState().push({
+      id: payload.id, boundary: payload.boundary, mode: payload.mode,
+      error: payload.error, raw: payload.raw, at: Date.now(),
+    });
+  }).catch(() => { /* noop */ });
 };
 
 let reporter: Reporter = DEFAULT_REPORTER;
