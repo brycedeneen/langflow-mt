@@ -200,3 +200,23 @@ Surfaced while executing `docs/superpowers/plans/2026-04-22-tailwind-maximizatio
 ### dot-background — not framer-motion, still a wrapper
 
 - [ ] **`src/components/ui/dot-background.tsx` has no framer-motion dependency** — it's already pure Tailwind. One caller (`pages/MainPage/pages/empty-page.tsx`). The component could still be inlined to reduce abstraction, but that's a wrapper-consolidation concern, not framer-motion purge. Not in Phase 2 scope; leaving in place.
+
+## 2026-04-24 — Tailwind Maximization Phase 3 skipped — theme system needs redesign, not flatten
+
+Phase 3 of `docs/superpowers/plans/2026-04-22-tailwind-maximization.md` ("flatten `--color-*` alias chains in the `@theme` block to literal values") was skipped in its entirety after audit. The plan assumed the `@theme` block's `var(--foo)` indirection was pure syntactic sugar that could be mechanically inlined with no behavior change. It isn't.
+
+### Findings
+
+- **149 of 153 `--color-*` tokens use `var(--foo)` indirection.** Only 4 already hold literal values.
+- **Many target vars differ between `:root` and `.dark`** — e.g., `--flow-icon: #2f67d0` (light) vs `--flow-icon: #2467e4` (dark). Tailwind v4's `@theme` block is evaluated once globally and has no per-selector re-scoping, so flattening these to a literal **breaks dark mode** for every affected token.
+- **Many target vars are undefined entirely.** `--medium-gray`, `--dark-gray`, `--light-gray`, `--almost-{dark,medium}-gray`, `--almost-light-blue`, `--almost-medium-{green,red}`, `--high-dark-gray`, `--high-light-gray`, `--medium-dark-{gray,green,red}`, `--medium-emerald`, `--medium-high-indigo`, `--medium-low-gray`, etc. are referenced by `@theme` aliases but defined nowhere in `src/frontend/src/style/`. Their tokens emit Tailwind utilities (`bg-medium-gray`, `text-dark-gray`, etc.) that resolve to nothing at runtime.
+
+### Why the plan's flatten approach doesn't work
+
+The plan's Task 3.3 ("verify no computed value changed") was the safety check, but a correct flatten of dark-sensitive tokens either (a) requires a different mechanism entirely (CSS custom properties in nested `:root`/`.dark` blocks feeding `@theme` — i.e., the current indirection is load-bearing, not redundant) or (b) requires giving up dark mode for those tokens.
+
+### Recommended path forward
+
+1. **Decide the theme policy first.** Either keep the `@theme → var(--foo) → :root/.dark` pattern (current shape is correct for dark-mode support; no flatten) or migrate to a `@variant dark` / `@theme-dark` approach (whichever Tailwind v4 supports when we check) and restructure from there.
+2. **Audit and delete the broken-chain tokens** — the ~15 unresolved gray/indigo/blue/green/red aliases. Grep each for utility usage (`bg-medium-gray`, `text-dark-gray`, `border-*`, `ring-*`, `fill-*`, `stroke-*`). If unused, delete from `@theme`. If used, the UI is already rendering with undefined colors and needs a real fix (either define the target var or re-point to something that exists).
+3. **Phase 6 ("snap to stock Tailwind")** is the right phase to prune tokens; attack (2) as part of Phase 6 when we're already per-token diffing.
