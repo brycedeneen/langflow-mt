@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from uuid import UUID
 
 from lfx.log.logger import logger
 
@@ -68,6 +69,10 @@ class JobQueueService(Service):
         to active.
         """
         self._queues: dict[str, tuple[asyncio.Queue, EventManager, asyncio.Task | None, float | None]] = {}
+        # Job → organization_id mapping. Populated at enqueue time so
+        # authorization checks in get_build_events / cancel_build can gate on
+        # the job's org without a post-hoc DB lookup.
+        self._job_orgs: dict[str, UUID] = {}
         self._cleanup_task: asyncio.Task | None = None
         self._closed = False
         self.ready = False
@@ -121,6 +126,19 @@ class JobQueueService(Service):
 
     async def teardown(self) -> None:
         await self.stop()
+
+    def set_job_organization(self, job_id: str, organization_id: UUID) -> None:
+        """Record the organization a job belongs to.
+
+        Must be called at enqueue time so subsequent `get_build_events` /
+        `cancel_build` calls can gate on the job's organization without
+        re-resolving it from the flow.
+        """
+        self._job_orgs[job_id] = organization_id
+
+    def get_job_organization(self, job_id: str) -> UUID | None:
+        """Return the organization_id associated with a job, or None if unknown."""
+        return self._job_orgs.get(job_id)
 
     def create_queue(self, job_id: str) -> tuple[asyncio.Queue, EventManager]:
         """Create and register a new queue along with its corresponding event manager for a job.
@@ -261,6 +279,7 @@ class JobQueueService(Service):
         await logger.adebug(f"Removed {items_cleared} items from queue for job_id {job_id}")
         # Remove the job entry from the registry
         self._queues.pop(job_id, None)
+        self._job_orgs.pop(job_id, None)
         await logger.adebug(f"Cleanup successful for job_id {job_id}: resources have been released.")
 
     async def _periodic_cleanup(self) -> None:

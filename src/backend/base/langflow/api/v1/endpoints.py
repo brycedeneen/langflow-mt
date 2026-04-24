@@ -36,6 +36,7 @@ from langflow.api.utils import (
     parse_value,
     resolve_component_gate_flags,
 )
+from langflow.api.utils.authz import assert_org_role
 from langflow.api.v1.schemas import (
     ConfigResponse,
     CustomComponentRequest,
@@ -64,6 +65,7 @@ from langflow.services.auth.utils import (
 from langflow.services.cache.utils import save_uploaded_file
 from langflow.services.database.models.flow.model import Flow, FlowRead
 from langflow.services.database.models.flow.utils import get_all_webhook_components_in_flow
+from langflow.services.database.models.membership.model import MembershipRole
 from langflow.services.database.models.user.model import User, UserRead
 from langflow.services.deps import get_auth_service, get_session_service, get_settings_service, get_telemetry_service
 from langflow.services.event_manager import create_webhook_event_manager, webhook_event_manager
@@ -408,20 +410,30 @@ async def run_flow_generator(
 
 
 async def check_flow_user_permission(
-    flow: FlowRead | None,
-    api_key_user: UserRead,
+    flow: FlowRead | Flow | None,
+    api_key_user: UserRead | User,
+    *,
+    session,
 ) -> None:
-    """Check if the user associated with the API key has permission to run the flow.
+    """Enforce Operator+ membership in the flow's organization before running it.
 
-    Args:
-        flow (FlowRead | None): The flow to check permissions for
-        api_key_user (UserRead): The user associated with the API key
-
-    Raises:
-        HTTPException: If the user does not have permission to run the flow
+    Presents the historic "You do not have permission to run this flow" message
+    to callers so /run/* clients don't see the lower-level "Not a member of
+    this organization" from the authz helper.
     """
-    if flow and flow.user_id != api_key_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to run this flow")
+    if flow is None:
+        return
+    if flow.organization_id is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flow not found")
+    try:
+        await assert_org_role(api_key_user, flow.organization_id, MembershipRole.OPERATOR, session=session)
+    except HTTPException as exc:
+        if exc.status_code == status.HTTP_403_FORBIDDEN:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to run this flow",
+            ) from exc
+        raise
 
 
 async def _run_flow_internal(
@@ -433,6 +445,7 @@ async def _run_flow_internal(
     api_key_user: User | UserRead,
     context: dict | None,
     http_request: Request,
+    session,
 ) -> StreamingResponse | RunResponse:
     """Internal function containing the core business logic for running a flow.
 
@@ -455,7 +468,7 @@ async def _run_flow_internal(
         HTTPException: For flow not found (404) or invalid input (400)
         APIException: For internal execution errors (500)
     """
-    await check_flow_user_permission(flow=flow, api_key_user=api_key_user)
+    await check_flow_user_permission(flow=flow, api_key_user=api_key_user, session=session)
 
     telemetry_service = get_telemetry_service()
 
@@ -572,6 +585,7 @@ async def simplified_run_flow(
     api_key_user: Annotated[UserRead, Depends(api_key_security)],
     context: dict | None = None,
     http_request: Request,
+    session: DbSession,
 ):
     """Executes a specified flow by ID with support for streaming and telemetry (API key auth).
 
@@ -617,6 +631,7 @@ async def simplified_run_flow(
         api_key_user=api_key_user,
         context=context,
         http_request=http_request,
+        session=session,
     )
 
 
@@ -632,6 +647,7 @@ async def simplified_run_flow_session(
     api_key_user: CurrentActiveUser,
     context: dict | None = None,
     http_request: Request,
+    session: DbSession,
 ):
     """Executes a specified flow by ID with support for streaming and telemetry (session auth).
 
@@ -685,48 +701,35 @@ async def simplified_run_flow_session(
         api_key_user=api_key_user,
         context=context,
         http_request=http_request,
+        session=session,
     )
 
 
 async def _authorize_sse_subscriber(flow, user) -> None:
     """Authorize a user to subscribe to a flow's SSE webhook events.
 
-    Multi-tenant rule: the user must be a member of the flow's organization.
-    Falls back to strict personal ownership for legacy flows that predate
-    organization scoping (flow.organization_id is None).
+    Requires Operator+ role in the flow's organization — viewing live build
+    events implies permission to run the flow, not just see its definition.
     """
-    from langflow.services.database.models.membership.model import Membership
     from langflow.services.deps import session_scope
 
     async with session_scope() as session:
         flow_record = await session.get(Flow, flow.id)
         flow_org_id = flow_record.organization_id if flow_record is not None else None
-
         if flow_org_id is None:
-            is_authorized = str(flow.user_id) == str(user.id)
-            await logger.ainfo(
-                f"sse_auth.legacy flow_id={flow.id} flow_user_id={flow.user_id} "
-                f"user_id={user.id} authorized={is_authorized}"
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail="Flow not found",
             )
-        else:
-            membership = (
-                await session.exec(
-                    select(Membership).where(
-                        Membership.user_id == user.id,
-                        Membership.organization_id == flow_org_id,
-                    )
-                )
-            ).first()
-            is_authorized = membership is not None
+        try:
+            await assert_org_role(user, flow_org_id, MembershipRole.OPERATOR, session=session)
+        except HTTPException:
             await logger.ainfo(
-                f"sse_auth.org flow_id={flow.id} flow_org_id={flow_org_id} "
-                f"user_id={user.id} authorized={is_authorized}"
+                f"sse_auth.denied flow_id={flow.id} flow_org_id={flow_org_id} user_id={user.id}"
             )
-
-    if not is_authorized:
-        raise HTTPException(
-            status_code=HTTPStatus.FORBIDDEN,
-            detail="Access denied: You do not have permission to subscribe to events for this flow",
+            raise
+        await logger.ainfo(
+            f"sse_auth.ok flow_id={flow.id} flow_org_id={flow_org_id} user_id={user.id}"
         )
 
 
@@ -1018,7 +1021,7 @@ async def experimental_run_flow(
     catering to diverse application requirements.
     """  # noqa: E501
     # Get the flow from the id or name
-    await check_flow_user_permission(flow=flow, api_key_user=api_key_user)
+    await check_flow_user_permission(flow=flow, api_key_user=api_key_user, session=session)
 
     session_service = get_session_service()
     flow_id_str = str(flow.id)
@@ -1038,9 +1041,11 @@ async def experimental_run_flow(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
     else:
         try:
-            # Get the flow that matches the flow_id and belongs to the user
-            # flow = session.query(Flow).filter(Flow.id == flow_id).filter(Flow.user_id == api_key_user.id).first()
-            stmt = select(Flow).where(Flow.id == flow.id).where(Flow.user_id == api_key_user.id)
+            # Org scoping is already enforced by check_flow_user_permission above;
+            # re-fetch only to get the full Flow row (the dep returns a FlowRead).
+            stmt = select(Flow).where(
+                Flow.id == flow.id, Flow.organization_id == flow.organization_id
+            )
             flow = (await session.exec(stmt)).first()
         except sa.exc.StatementError as exc:
             # StatementError('(builtins.ValueError) badly formed hexadecimal UUID string')

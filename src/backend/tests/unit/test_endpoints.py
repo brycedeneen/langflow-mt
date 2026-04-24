@@ -268,7 +268,7 @@ async def test_various_prompts(client, logged_in_headers, prompt, expected_input
 async def test_get_vertices_flow_not_found(client, logged_in_headers):
     uuid = uuid4()
     response = await client.post(f"/api/v1/build/{uuid}/vertices", headers=logged_in_headers)
-    assert response.status_code == 500
+    assert response.status_code == 404
 
 
 async def test_get_vertices(client, added_flow_webhook_test, logged_in_headers):
@@ -287,7 +287,7 @@ async def test_get_vertices(client, added_flow_webhook_test, logged_in_headers):
 async def test_build_vertex_invalid_flow_id(client, logged_in_headers):
     uuid = uuid4()
     response = await client.post(f"/api/v1/build/{uuid}/vertices/vertex_id", headers=logged_in_headers)
-    assert response.status_code == 500
+    assert response.status_code == 404
 
 
 async def test_build_vertex_invalid_vertex_id(client, added_flow_webhook_test, logged_in_headers):

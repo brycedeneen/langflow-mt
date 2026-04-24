@@ -69,6 +69,7 @@ async def start_flow_build(
     log_builds: bool,
     current_user: CurrentActiveUser,
     queue_service: JobQueueService,
+    organization_id: uuid.UUID | None = None,
     flow_name: str | None = None,
     source_flow_id: uuid.UUID | None = None,
 ) -> str:
@@ -96,6 +97,8 @@ async def start_flow_build(
     job_id = str(uuid.uuid4())
     try:
         _, event_manager = queue_service.create_queue(job_id)
+        if organization_id is not None:
+            queue_service.set_job_organization(job_id, organization_id)
         task_coro = generate_flow_events(
             flow_id=flow_id,
             background_tasks=background_tasks,

@@ -13,6 +13,7 @@ from lfx.graph.utils import log_vertex_build
 from lfx.log.logger import logger
 from lfx.schema.schema import InputValueRequest, OutputValue
 from lfx.services.cache.utils import CacheMiss
+from sqlmodel import select
 
 from langflow.api.build import cancel_flow_build, get_flow_events_response, start_flow_build
 from langflow.api.limited_background_tasks import LimitVertexBuildBackgroundTasks
@@ -28,6 +29,8 @@ from langflow.api.utils import (
     parse_exception,
     verify_public_flow_and_get_user,
 )
+from langflow.api.utils.authz import assert_org_role
+from langflow.api.utils.core import CurrentOrg
 from langflow.api.v1.schemas import (
     CancelFlowResponse,
     FlowDataRequest,
@@ -40,6 +43,7 @@ from langflow.exceptions.component import ComponentBuildError
 from langflow.services.auth.utils import get_current_active_user
 from langflow.services.chat.service import ChatService
 from langflow.services.database.models.flow.model import Flow
+from langflow.services.database.models.membership.model import MembershipRole
 from langflow.services.deps import (
     get_chat_service,
     get_queue_service,
@@ -58,7 +62,6 @@ router = APIRouter(tags=["Chat"])
 @router.post(
     "/build/{flow_id}/vertices",
     deprecated=True,
-    dependencies=[Depends(get_current_active_user)],
     include_in_schema=False,
 )
 async def retrieve_vertices_order(
@@ -69,6 +72,8 @@ async def retrieve_vertices_order(
     stop_component_id: str | None = None,
     start_component_id: str | None = None,
     session: DbSession,
+    current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
 ) -> VerticesOrderResponse:
     """Retrieve the vertices order for a given flow.
 
@@ -86,6 +91,16 @@ async def retrieve_vertices_order(
     Raises:
         HTTPException: If there is an error checking the build status.
     """
+    # Org scoping: flow must be in the caller's current org.
+    flow_row = (
+        await session.exec(
+            select(Flow).where(Flow.id == flow_id, Flow.organization_id == current_org.id)
+        )
+    ).first()
+    if flow_row is None:
+        raise HTTPException(status_code=404, detail=f"Flow with id {flow_id} not found")
+    await assert_org_role(current_user, flow_row.organization_id, MembershipRole.OPERATOR, session=session)
+
     chat_service = get_chat_service()
     telemetry_service = get_telemetry_service()
     start_time = time.perf_counter()
@@ -147,6 +162,7 @@ async def build_flow(
     start_component_id: str | None = None,
     log_builds: bool = True,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
     queue_service: Annotated[JobQueueService, Depends(get_queue_service)],
     flow_name: str | None = None,
     event_delivery: EventDeliveryType = EventDeliveryType.POLLING,
@@ -173,11 +189,19 @@ async def build_flow(
     Returns:
         Dict with job_id that can be used to poll for build status
     """
-    # First verify the flow exists
+    # Org scoping: flow must be in the caller's current org + Operator+ role.
     async with session_scope() as session:
-        flow = await session.get(Flow, flow_id)
+        flow = (
+            await session.exec(
+                select(Flow).where(Flow.id == flow_id, Flow.organization_id == current_org.id)
+            )
+        ).first()
         if not flow:
             raise HTTPException(status_code=404, detail=f"Flow with id {flow_id} not found")
+        await assert_org_role(
+            current_user, flow.organization_id, MembershipRole.OPERATOR, session=session
+        )
+        flow_org_id = flow.organization_id
 
     job_id = await start_flow_build(
         flow_id=flow_id,
@@ -190,6 +214,7 @@ async def build_flow(
         log_builds=log_builds,
         current_user=current_user,
         queue_service=queue_service,
+        organization_id=flow_org_id,
         flow_name=flow_name,
     )
 
@@ -203,17 +228,38 @@ async def build_flow(
     )
 
 
-@router.get("/build/{job_id}/events", dependencies=[Depends(get_current_active_user)])
+async def _authorize_build_job(
+    job_id: str,
+    queue_service: JobQueueService,
+    current_user,
+) -> None:
+    """Gate build-queue job access on Operator+ in the job's owning org.
+
+    The job's organization_id was stamped at enqueue time (see
+    `start_flow_build`). Public-flow builds (build_public_tmp/*) never stamp
+    an org, so those job_ids intentionally have no entry and this helper is
+    only called for authenticated /build/* paths.
+    """
+    job_org_id = queue_service.get_job_organization(job_id)
+    if job_org_id is None:
+        # Either the job is expired/cleaned up, or it was enqueued by a
+        # public-build path. The authenticated endpoints must not serve
+        # either, so treat as not-found to avoid existence leaks.
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Job not found: {job_id}")
+    async with session_scope() as session:
+        await assert_org_role(current_user, job_org_id, MembershipRole.OPERATOR, session=session)
+
+
+@router.get("/build/{job_id}/events")
 async def get_build_events(
     job_id: str,
+    current_user: CurrentActiveUser,
     queue_service: Annotated[JobQueueService, Depends(get_queue_service)],
     *,
     event_delivery: EventDeliveryType = EventDeliveryType.STREAMING,
 ):
-    """Get events for a specific build job.
-
-    Requires authentication to prevent unauthorized access to build events.
-    """
+    """Get events for a specific build job (Operator+ in the job's org)."""
+    await _authorize_build_job(job_id, queue_service, current_user)
     return await get_flow_events_response(
         job_id=job_id,
         queue_service=queue_service,
@@ -224,16 +270,14 @@ async def get_build_events(
 @router.post(
     "/build/{job_id}/cancel",
     response_model=CancelFlowResponse,
-    dependencies=[Depends(get_current_active_user)],
 )
 async def cancel_build(
     job_id: str,
+    current_user: CurrentActiveUser,
     queue_service: Annotated[JobQueueService, Depends(get_queue_service)],
 ):
-    """Cancel a specific build job.
-
-    Requires authentication to prevent unauthorized build cancellation.
-    """
+    """Cancel a specific build job (Operator+ in the job's org)."""
+    await _authorize_build_job(job_id, queue_service, current_user)
     try:
         # Cancel the flow build and check if it was successful
         cancellation_success = await cancel_flow_build(job_id=job_id, queue_service=queue_service)
@@ -268,6 +312,7 @@ async def build_vertex(
     inputs: Annotated[InputValueRequest | None, Body(embed=True)] = None,
     files: list[str] | None = None,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
 ) -> VertexBuildResponse:
     """Build a vertex instead of the entire graph.
 
@@ -286,6 +331,17 @@ async def build_vertex(
         HTTPException: If there is an error building the vertex.
 
     """
+    # Org scoping: flow must be in the caller's current org + Operator+ role.
+    async with session_scope() as _scope:
+        flow_row = (
+            await _scope.exec(
+                select(Flow).where(Flow.id == flow_id, Flow.organization_id == current_org.id)
+            )
+        ).first()
+        if flow_row is None:
+            raise HTTPException(status_code=404, detail="Flow not found")
+        await assert_org_role(current_user, flow_row.organization_id, MembershipRole.OPERATOR, session=_scope)
+
     chat_service = get_chat_service()
     telemetry_service = get_telemetry_service()
     flow_id_str = str(flow_id)
@@ -518,12 +574,13 @@ async def _stream_vertex(flow_id: str, vertex_id: str, chat_service: ChatService
     "/build/{flow_id}/{vertex_id}/stream",
     response_class=StreamingResponse,
     deprecated=True,
-    dependencies=[Depends(get_current_active_user)],
     include_in_schema=False,
 )
 async def build_vertex_stream(
     flow_id: uuid.UUID,
-    vertex_id: str,
+    vertex_id: str,  # noqa: ARG001 — used inside the streaming closure via _stream_vertex
+    current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
 ):
     """Build a vertex instead of the entire graph.
 
@@ -550,6 +607,17 @@ async def build_vertex_stream(
     Raises:
         HTTPException: If an error occurs while building the vertex.
     """
+    # Org scoping: flow must be in the caller's current org + Operator+ role.
+    async with session_scope() as _scope:
+        flow_row = (
+            await _scope.exec(
+                select(Flow).where(Flow.id == flow_id, Flow.organization_id == current_org.id)
+            )
+        ).first()
+        if flow_row is None:
+            raise HTTPException(status_code=404, detail="Flow not found")
+        await assert_org_role(current_user, flow_row.organization_id, MembershipRole.OPERATOR, session=_scope)
+
     try:
         return StreamingResponse(
             _stream_vertex(str(flow_id), vertex_id, get_chat_service()),

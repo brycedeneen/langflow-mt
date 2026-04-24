@@ -249,6 +249,7 @@ class FlowCreate(FlowBase):
 class FlowRead(FlowBase):
     id: UUID
     user_id: UUID | None = Field()
+    organization_id: UUID | None = Field(default=None)
     folder_id: UUID | None = Field()
     tags: list[str] | None = Field(None, description="The tags of the flow")
 
