@@ -1,6 +1,7 @@
 def test_bundle_exports_all_components():
     from lfx.components.adp import (
         ADPAPIRequestComponent,
+        ADPApplicantOnboardingToolsComponent,
         ADPAuthComponent,
         ADPMCPComponent,
         ADPTriggerComponent,
@@ -20,6 +21,7 @@ def test_bundle_exports_all_components():
 
     assert ADPAuthComponent.name == "ADPAuth"
     assert ADPAPIRequestComponent.name == "ADPAPIRequest"
+    assert ADPApplicantOnboardingToolsComponent.name == "ADPApplicantOnboardingTools"
     assert ADPMCPComponent.name == "ADPMCP"
     assert ADPWorkerToolsComponent.name == "ADPWorkerTools"
     assert ADPTriggerComponent.name == "ADPTrigger"
