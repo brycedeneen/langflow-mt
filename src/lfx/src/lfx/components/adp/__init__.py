@@ -17,6 +17,7 @@ from .adp_time_cards_tools import ADPTimeCardsToolsComponent
 from .adp_time_off_tools import ADPTimeOffToolsComponent
 from .adp_trigger import ADPTriggerComponent
 from .adp_us_tax_profiles_tools import ADPUSTaxProfilesToolsComponent
+from .adp_work_schedules_tools import ADPWorkSchedulesToolsComponent
 from .adp_worker_business_communication_tools import ADPWorkerBusinessCommunicationToolsComponent
 from .adp_worker_assignment_tools import ADPWorkerAssignmentToolsComponent
 from .adp_worker_assignment_v3_tools import ADPWorkerAssignmentV3ToolsComponent
@@ -50,6 +51,7 @@ __all__ = [
     "ADPTimeOffToolsComponent",
     "ADPTriggerComponent",
     "ADPUSTaxProfilesToolsComponent",
+    "ADPWorkSchedulesToolsComponent",
     "ADPWorkerBusinessCommunicationToolsComponent",
     "ADPWorkerAssignmentToolsComponent",
     "ADPWorkerAssignmentV3ToolsComponent",

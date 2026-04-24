@@ -17,6 +17,7 @@ def test_bundle_exports_all_components():
         ADPTimeOffToolsComponent,
         ADPTriggerComponent,
         ADPUSTaxProfilesToolsComponent,
+        ADPWorkSchedulesToolsComponent,
         ADPWorkerBusinessCommunicationToolsComponent,
         ADPWorkerAssignmentToolsComponent,
         ADPWorkerAssignmentV3ToolsComponent,
@@ -45,6 +46,7 @@ def test_bundle_exports_all_components():
     assert ADPTimeOffToolsComponent.name == "ADPTimeOffTools"
     assert ADPUSTaxProfilesToolsComponent.name == "ADPUSTaxProfilesTools"
     assert ADPWorkerBusinessCommunicationToolsComponent.name == "ADPWorkerBusinessCommunicationTools"
+    assert ADPWorkSchedulesToolsComponent.name == "ADPWorkSchedulesTools"
     assert ADPAPIRequestComponent.name == "ADPAPIRequest"
     assert ADPApplicantOnboardingToolsComponent.name == "ADPApplicantOnboardingTools"
     assert ADPMCPComponent.name == "ADPMCP"
