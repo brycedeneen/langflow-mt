@@ -76,7 +76,7 @@ Langflow automatically generates global variables based on [`constants.py`](http
 For example, if you set `OPENAI_API_KEY` in your runtime environment, Langflow automatically generates a global variable using that value.
 
 You can declare additional variables in `LANGFLOW_VARIABLES_TO_GET_FROM_ENVIRONMENT`.
-For example, `LANGFLOW_VARIABLES_TO_GET_FROM_ENVIRONMENT=WATSONX_PROJECT_ID,WATSONX_API_KEY` creates global variables named `WATSONX_PROJECT_ID` and `WATSONX_API_KEY` in Langflow's database.
+For example, `LANGFLOW_VARIABLES_TO_GET_FROM_ENVIRONMENT=CUSTOM_PROJECT_ID,CUSTOM_API_KEY` creates global variables named `CUSTOM_PROJECT_ID` and `CUSTOM_API_KEY` in Langflow's database.
 Then, you can use these variables wherever they are needed in your component settings.
 
 <Tabs>
@@ -173,13 +173,13 @@ If you want to explicitly prevent Langflow from sourcing global variables from t
 If you want to automatically set fallback values for your global variables to environment variables, set `LANGFLOW_FALLBACK_TO_ENV_VAR=True` in your `.env` file.
 When this setting is enabled, if a global variable isn't found, Langflow attempts to use an environment variable with the same name as a backup.
 
-For example, assume you have the following Langflow `.env` configuration, and your flow has a component that expects a `WATSONX_API_KEY` global variable:
+For example, assume you have the following Langflow `.env` configuration, and your flow has a component that expects a `CUSTOM_API_KEY` global variable:
 
 ```text
 LANGFLOW_FALLBACK_TO_ENV_VAR=True
-WATSONX_PROJECT_ID=your_project_id
-WATSONX_API_KEY=your_api_key
+CUSTOM_PROJECT_ID=your_project_id
+CUSTOM_API_KEY=your_api_key
 ```
 
-When you run the flow, if there is no global variable named `WATSONX_API_KEY`, Langflow looks for an environment variable named `WATSONX_API_KEY`.
-In this example, Langflow uses the `WATSONX_API_KEY` value from the `.env` to run the flow.
+When you run the flow, if there is no global variable named `CUSTOM_API_KEY`, Langflow looks for an environment variable named `CUSTOM_API_KEY`.
+In this example, Langflow uses the `CUSTOM_API_KEY` value from the `.env` to run the flow.

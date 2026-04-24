@@ -395,7 +395,6 @@ module.exports = {
             "Components/bundles-google",
             "Components/bundles-groq",
             "Components/bundles-huggingface",
-            "Components/bundles-ibm",
             "Components/bundles-icosacomputing",
             "Components/bundles-langchain",
             "Components/bundles-lite-llm",

@@ -331,7 +331,7 @@ class TestProviderAccountCRUD:
                 db,
                 user_id=user.id,
                 provider_tenant_id="t1",
-                provider_key="watsonx",
+                provider_key="openai",
                 provider_url="https://api.example.com",
                 api_key="raw-key",  # pragma: allowlist secret
             )
@@ -342,7 +342,7 @@ class TestProviderAccountCRUD:
 
         fetched = await get_provider_account_by_id(db, provider_id=acct.id, user_id=user.id)
         assert fetched is not None
-        assert fetched.provider_key == "watsonx"
+        assert fetched.provider_key == "openai"
 
     async def test_list(self, db: AsyncSession, user: User):
         with patch(_ENCRYPT_TARGET) as mock_auth:

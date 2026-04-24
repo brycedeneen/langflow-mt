@@ -40,8 +40,8 @@ class TestDeploymentProviderAccountValidation:
             DeploymentProviderAccount.validate_non_empty("   ", self._make_info("api_key"))
 
     def test_strips_whitespace(self):
-        result = DeploymentProviderAccount.validate_non_empty("  watsonx  ", self._make_info("provider_key"))
-        assert result == "watsonx"
+        result = DeploymentProviderAccount.validate_non_empty("  openai  ", self._make_info("provider_key"))
+        assert result == "openai"
 
     def test_normalizes_blank_tenant_id_to_none(self):
         result = DeploymentProviderAccount.normalize_tenant_id("   ")
