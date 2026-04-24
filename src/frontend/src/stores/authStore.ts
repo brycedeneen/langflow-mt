@@ -11,6 +11,7 @@ import { cookieManager, getCookiesInstance } from "@/utils/cookie-manager";
 
 const useAuthStore = create<AuthStoreType>((set, get) => ({
   isAdmin: false,
+  isPlatformAdmin: false,
   // Authentication state is now determined by session validation, not cookie reads
   // This allows HttpOnly cookies to work properly
   isAuthenticated: false,
@@ -20,6 +21,7 @@ const useAuthStore = create<AuthStoreType>((set, get) => ({
   authenticationErrorCount: 0,
 
   setIsAdmin: (isAdmin) => set({ isAdmin }),
+  setIsPlatformAdmin: (isPlatformAdmin) => set({ isPlatformAdmin }),
   setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
   setAccessToken: (accessToken) => set({ accessToken }),
   setUserData: (userData) => set({ userData }),
@@ -36,9 +38,11 @@ const useAuthStore = create<AuthStoreType>((set, get) => ({
 
     get().setIsAuthenticated(false);
     get().setIsAdmin(false);
+    get().setIsPlatformAdmin(false);
 
     set({
       isAdmin: false,
+      isPlatformAdmin: false,
       userData: null,
       accessToken: null,
       isAuthenticated: false,

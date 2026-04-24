@@ -2,6 +2,7 @@ import type { Users } from "@/types/api";
 
 export interface AuthStoreType {
   isAdmin: boolean;
+  isPlatformAdmin: boolean;
   isAuthenticated: boolean;
   accessToken: string | null;
   userData: Users | null;
@@ -9,6 +10,7 @@ export interface AuthStoreType {
   authenticationErrorCount: number;
 
   setIsAdmin: (isAdmin: boolean) => void;
+  setIsPlatformAdmin: (isPlatformAdmin: boolean) => void;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
   setAccessToken: (accessToken: string | null) => void;
   setUserData: (userData: Users | null) => void;

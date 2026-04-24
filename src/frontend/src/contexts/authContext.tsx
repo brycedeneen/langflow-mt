@@ -53,6 +53,7 @@ export function AuthProvider({ children }): React.ReactElement {
           setUserData(user);
           const isSuperUser = user!.is_superuser;
           useAuthStore.getState().setIsAdmin(isSuperUser);
+          useAuthStore.getState().setIsPlatformAdmin(Boolean(user?.is_platform_admin));
           checkHasStore();
           fetchApiData();
         },
@@ -89,6 +90,7 @@ export function AuthProvider({ children }): React.ReactElement {
             setUserData(user);
             const isSuperUser = user!.is_superuser;
             useAuthStore.getState().setIsAdmin(isSuperUser);
+            useAuthStore.getState().setIsPlatformAdmin(Boolean(user?.is_platform_admin));
             checkHasStore();
             fetchApiData();
             userLoaded = true;

@@ -40,11 +40,13 @@ jest.mock("@/utils/local-storage-util", () => ({
 
 const mockSetIsAuthenticated = jest.fn();
 const mockSetIsAdmin = jest.fn();
+const mockSetIsPlatformAdmin = jest.fn();
 
 const mockAuthStore = (selector: any) => {
   const state = {
     setIsAuthenticated: mockSetIsAuthenticated,
     setIsAdmin: mockSetIsAdmin,
+    setIsPlatformAdmin: mockSetIsPlatformAdmin,
   };
   return selector ? selector(state) : state;
 };
@@ -52,6 +54,7 @@ const mockAuthStore = (selector: any) => {
 (mockAuthStore as any).getState = () => ({
   setIsAuthenticated: mockSetIsAuthenticated,
   setIsAdmin: mockSetIsAdmin,
+  setIsPlatformAdmin: mockSetIsPlatformAdmin,
 });
 
 jest.mock("@/stores/authStore", () => ({

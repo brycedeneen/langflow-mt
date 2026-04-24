@@ -11,7 +11,7 @@ export interface SessionResponse {
     username: string;
     is_active: boolean;
     is_superuser: boolean;
-    [key: string]: any;
+    is_platform_admin: boolean;
   };
   store_api_key?: string;
 }
