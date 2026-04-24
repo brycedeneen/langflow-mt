@@ -247,6 +247,10 @@
   0%, 100% { background-color: hsla(var(--accent-pink), 1); }
   50%      { background-color: hsla(var(--accent-pink), 0.4); }
 }
+@keyframes text-shimmer {
+  from { background-position: 100% center; }
+  to   { background-position: 0% center; }
+}
 
 @theme {
   --animate-overlayShow: overlayShow 400ms cubic-bezier(0.16, 1, 0.3, 1);
