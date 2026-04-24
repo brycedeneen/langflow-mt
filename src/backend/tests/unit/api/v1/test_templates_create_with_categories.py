@@ -156,14 +156,21 @@ async def org_member_headers(client: AsyncClient, org_member_user):
 
 
 @pytest.fixture
-async def source_flow(platform_admin_user):
-    """A flow owned by platform_admin to use as template source."""
+async def source_flow(platform_admin_user, sample_org):
+    """A flow in ``sample_org`` owned by platform_admin, used as a template source.
+
+    Scoped to ``sample_org`` rather than the admin's auto-provisioned personal
+    workspace so ``_load_source_and_blank`` can resolve it for non-admin callers
+    (e.g. org members in ``sample_org``). Admin still owns it, which is fine — the
+    server's source-flow load only cares about ``flow.organization_id``.
+    """
     admin_uid = uuid.UUID(platform_admin_user["id"])
     async with session_scope() as session:
         flow = Flow(
             name=f"src-flow-{uuid.uuid4()}",
             data={"nodes": [], "edges": []},
             user_id=admin_uid,
+            organization_id=sample_org,
         )
         session.add(flow)
         await session.flush()
