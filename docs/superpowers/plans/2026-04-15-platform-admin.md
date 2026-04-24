@@ -52,7 +52,7 @@ Implements `docs/superpowers/specs/2026-04-15-platform-admin-design.md`.
 **Files:**
 - Modify: `src/backend/base/langflow/services/database/models/user/model.py`
 
-- [ ] **Step 1: Add field to `User` and read/update models**
+- [x] **Step 1: Add field to `User` and read/update models**
 
 Edit `src/backend/base/langflow/services/database/models/user/model.py`, add the field after line 34 (`is_superuser: bool = Field(default=False)`) in `User`, after line 86 in `UserRead`, and after line 98 in `UserUpdate`:
 
@@ -71,7 +71,7 @@ In `UserUpdate` (after `is_superuser: bool | None = None`):
     is_platform_admin: bool | None = None
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/models/user/model.py
@@ -85,7 +85,7 @@ git commit -m "feat(admin): add is_platform_admin field to User model"
 **Files:**
 - Create: `src/backend/base/langflow/alembic/versions/<rev>_add_platform_admin_flag.py`
 
-- [ ] **Step 1: Generate migration**
+- [x] **Step 1: Generate migration**
 
 Run from repo root:
 ```bash
@@ -93,7 +93,7 @@ cd src/backend/base && uv run alembic -c langflow/alembic.ini revision -m "add p
 ```
 Note the generated filename; open it.
 
-- [ ] **Step 2: Replace `upgrade()` and `downgrade()` bodies**
+- [x] **Step 2: Replace `upgrade()` and `downgrade()` bodies**
 
 ```python
 def upgrade() -> None:
@@ -118,14 +118,14 @@ def downgrade() -> None:
         batch_op.drop_column("is_platform_admin")
 ```
 
-- [ ] **Step 3: Run migration locally**
+- [x] **Step 3: Run migration locally**
 
 ```bash
 cd src/backend/base && uv run alembic -c langflow/alembic.ini upgrade head
 ```
 Expected: no errors; `user` table gains `is_platform_admin` column.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/backend/base/langflow/alembic/versions/*_add_platform_admin_flag.py
@@ -139,7 +139,7 @@ git commit -m "feat(admin): migration adds is_platform_admin and promotes existi
 **Files:**
 - Create: `src/backend/tests/unit/alembic/test_platform_admin_migration.py`
 
-- [ ] **Step 1: Write failing test**
+- [x] **Step 1: Write failing test**
 
 ```python
 """Test that the platform-admin migration promotes existing superusers."""
@@ -175,14 +175,14 @@ async def test_migration_promotes_superusers_to_platform_admins(client, session:
     assert by_name["existing_regular"].is_platform_admin is False
 ```
 
-- [ ] **Step 2: Run test**
+- [x] **Step 2: Run test**
 
 ```bash
 cd src/backend/base && uv run pytest ../../tests/unit/alembic/test_platform_admin_migration.py -v
 ```
 Expected: PASS. (If it fails because of the `client`/`session` fixture signatures, align with the conventions used in existing tests like `test_users.py`.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/backend/tests/unit/alembic/test_platform_admin_migration.py
@@ -196,7 +196,7 @@ git commit -m "test(admin): verify migration promotes superusers to platform adm
 **Files:**
 - Modify: `src/backend/base/langflow/api/utils/core.py`
 
-- [ ] **Step 1: Add dependency function and type alias**
+- [x] **Step 1: Add dependency function and type alias**
 
 After line 51 in `core.py` (after `CurrentMembership = ...`), insert:
 
@@ -211,7 +211,7 @@ async def require_platform_admin(user: CurrentActiveUser) -> User:
 PlatformAdmin = Annotated[User, Depends(require_platform_admin)]
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/utils/core.py
@@ -227,7 +227,7 @@ git commit -m "feat(admin): add PlatformAdmin FastAPI dependency"
 **Files:**
 - Modify: `src/backend/base/langflow/api/utils/org_helpers.py`
 
-- [ ] **Step 1: Write failing test for resolution rule**
+- [x] **Step 1: Write failing test for resolution rule**
 
 Append to `src/backend/tests/unit/api/v1/test_users.py` (or a new `test_org_helpers.py` in the same dir):
 
@@ -262,14 +262,14 @@ async def test_get_current_org_prefers_personal(session):
     assert org.id == personal.id
 ```
 
-- [ ] **Step 2: Run test — expect failure (409)**
+- [x] **Step 2: Run test — expect failure (409)**
 
 ```bash
 cd src/backend/base && uv run pytest ../../tests/unit/api/v1/test_users.py -k test_get_current_org_prefers_personal -v
 ```
 Expected: FAIL with 409.
 
-- [ ] **Step 3: Implement resolution rule**
+- [x] **Step 3: Implement resolution rule**
 
 Replace the body of `get_current_organization` in `org_helpers.py` below the `x_acting_org_id` block (starting at `rows = (await session.exec(...`):
 
@@ -296,21 +296,21 @@ Replace the body of `get_current_organization` in `org_helpers.py` below the `x_
 
 Leave the `x_acting_org_id` branch and `get_current_membership` untouched.
 
-- [ ] **Step 4: Run test — expect PASS**
+- [x] **Step 4: Run test — expect PASS**
 
 ```bash
 cd src/backend/base && uv run pytest ../../tests/unit/api/v1/test_users.py -k test_get_current_org_prefers_personal -v
 ```
 Expected: PASS.
 
-- [ ] **Step 5: Run existing org tests to check for regression**
+- [x] **Step 5: Run existing org tests to check for regression**
 
 ```bash
 cd src/backend/base && uv run pytest ../../tests/unit/api/v1/ -k "org or membership" -v
 ```
 Expected: all green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/utils/org_helpers.py src/backend/tests/unit/api/v1/test_users.py
@@ -326,7 +326,7 @@ git commit -m "feat(admin): resolve current org preferring personal for multi-me
 - Create: `src/backend/tests/unit/api/v1/test_admin.py`
 - Modify: `src/backend/base/langflow/api/router.py`
 
-- [ ] **Step 1: Write failing test for auth + list + create**
+- [x] **Step 1: Write failing test for auth + list + create**
 
 Create `src/backend/tests/unit/api/v1/test_admin.py`:
 
@@ -386,14 +386,14 @@ async def test_admin_orgs_create_duplicate_slug_409(
 
 You will need fixtures `regular_user_headers` and `platform_admin_headers`. Add to `src/backend/tests/conftest.py` (or the nearest existing conftest) — follow existing patterns used by `test_api_key.py` / `test_users.py` for creating users + bearer tokens. If those patterns already produce a superuser-authenticated client, create `platform_admin_headers` by setting `is_platform_admin=True` on that user. If no such pattern exists, inline user creation + login inside the test.
 
-- [ ] **Step 2: Run tests — expect failure (404/501)**
+- [x] **Step 2: Run tests — expect failure (404/501)**
 
 ```bash
 cd src/backend/base && uv run pytest ../../tests/unit/api/v1/test_admin.py -v
 ```
 Expected: FAIL (route does not exist).
 
-- [ ] **Step 3: Create `admin.py` router with list + create**
+- [x] **Step 3: Create `admin.py` router with list + create**
 
 Create `src/backend/base/langflow/api/v1/admin.py`:
 
@@ -503,7 +503,7 @@ async def create_organization(
     )
 ```
 
-- [ ] **Step 4: Register the router**
+- [x] **Step 4: Register the router**
 
 Edit `src/backend/base/langflow/api/router.py`. Add import near the other `_router` imports:
 
@@ -517,14 +517,14 @@ Add include after the other `router_v1.include_router(...)` calls (logical spot:
 router_v1.include_router(admin_router)
 ```
 
-- [ ] **Step 5: Run tests — expect PASS**
+- [x] **Step 5: Run tests — expect PASS**
 
 ```bash
 cd src/backend/base && uv run pytest ../../tests/unit/api/v1/test_admin.py -v
 ```
 Expected: the four tests from Step 1 pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/admin.py src/backend/base/langflow/api/router.py src/backend/tests/unit/api/v1/test_admin.py
@@ -539,7 +539,7 @@ git commit -m "feat(admin): add /admin/organizations list + create endpoints"
 - Modify: `src/backend/base/langflow/api/v1/admin.py`
 - Modify: `src/backend/tests/unit/api/v1/test_admin.py`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Append to `test_admin.py`:
 
@@ -569,14 +569,14 @@ async def test_admin_orgs_detail_404(client, platform_admin_headers):
     assert resp.status_code == 404
 ```
 
-- [ ] **Step 2: Run — expect failure**
+- [x] **Step 2: Run — expect failure**
 
 ```bash
 cd src/backend/base && uv run pytest ../../tests/unit/api/v1/test_admin.py -k detail -v
 ```
 Expected: FAIL (404/missing route).
 
-- [ ] **Step 3: Add endpoint + schema**
+- [x] **Step 3: Add endpoint + schema**
 
 Append to `admin.py` (after `create_organization`):
 
@@ -628,14 +628,14 @@ async def get_organization(
     )
 ```
 
-- [ ] **Step 4: Run — expect PASS**
+- [x] **Step 4: Run — expect PASS**
 
 ```bash
 cd src/backend/base && uv run pytest ../../tests/unit/api/v1/test_admin.py -v
 ```
 Expected: all admin tests green.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/admin.py src/backend/tests/unit/api/v1/test_admin.py
@@ -650,7 +650,7 @@ git commit -m "feat(admin): add GET /admin/organizations/{id} detail endpoint"
 - Modify: `src/backend/base/langflow/api/v1/admin.py`
 - Modify: `src/backend/tests/unit/api/v1/test_admin.py`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Append to `test_admin.py`:
 
@@ -708,14 +708,14 @@ async def test_admin_orgs_delete_personal_403(client, platform_admin_headers, se
     assert resp.status_code == 403
 ```
 
-- [ ] **Step 2: Run — expect failure**
+- [x] **Step 2: Run — expect failure**
 
 ```bash
 cd src/backend/base && uv run pytest ../../tests/unit/api/v1/test_admin.py -k delete -v
 ```
 Expected: FAIL.
 
-- [ ] **Step 3: Implement delete with explicit cascade**
+- [x] **Step 3: Implement delete with explicit cascade**
 
 Append to `admin.py`:
 
@@ -791,14 +791,14 @@ async def delete_organization(
 
 Note: `ApiKey` may not carry `organization_id` on this branch — the `hasattr` guard skips tables that don't. If a newly-added child table is missing from this list, add it. Verify by grepping `organization_id = Field(...foreign_key="organization.id"` in the models directory before landing.
 
-- [ ] **Step 4: Run — expect PASS**
+- [x] **Step 4: Run — expect PASS**
 
 ```bash
 cd src/backend/base && uv run pytest ../../tests/unit/api/v1/test_admin.py -v
 ```
 Expected: all green.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/admin.py src/backend/tests/unit/api/v1/test_admin.py
@@ -813,7 +813,7 @@ git commit -m "feat(admin): add DELETE /admin/organizations/{id} with typed conf
 - Modify: `src/backend/base/langflow/api/v1/admin.py`
 - Modify: `src/backend/tests/unit/api/v1/test_admin.py`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Append to `test_admin.py`:
 
@@ -881,14 +881,14 @@ async def test_admin_membership_remove_personal_forbidden(
     assert r.status_code == 403
 ```
 
-- [ ] **Step 2: Run — expect failure**
+- [x] **Step 2: Run — expect failure**
 
 ```bash
 cd src/backend/base && uv run pytest ../../tests/unit/api/v1/test_admin.py -k membership -v
 ```
 Expected: FAIL.
 
-- [ ] **Step 3: Implement endpoints**
+- [x] **Step 3: Implement endpoints**
 
 Append to `admin.py`:
 
@@ -990,14 +990,14 @@ async def remove_member(
     await session.flush()
 ```
 
-- [ ] **Step 4: Run — expect PASS**
+- [x] **Step 4: Run — expect PASS**
 
 ```bash
 cd src/backend/base && uv run pytest ../../tests/unit/api/v1/test_admin.py -v
 ```
 Expected: all green.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/admin.py src/backend/tests/unit/api/v1/test_admin.py
@@ -1012,7 +1012,7 @@ git commit -m "feat(admin): add membership list/add/remove endpoints"
 - Modify: `src/backend/base/langflow/api/v1/admin.py`
 - Modify: `src/backend/tests/unit/api/v1/test_admin.py`
 
-- [ ] **Step 1: Write failing test**
+- [x] **Step 1: Write failing test**
 
 ```python
 @pytest.mark.asyncio
@@ -1033,14 +1033,14 @@ async def test_admin_user_search(client, platform_admin_headers, session):
     assert "gamma.delta" not in names
 ```
 
-- [ ] **Step 2: Run — expect failure**
+- [x] **Step 2: Run — expect failure**
 
 ```bash
 cd src/backend/base && uv run pytest ../../tests/unit/api/v1/test_admin.py -k user_search -v
 ```
 Expected: FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Append to `admin.py`:
 
@@ -1101,13 +1101,13 @@ async def search_users(
     return UserSearchResponse(items=items)
 ```
 
-- [ ] **Step 4: Run — expect PASS**
+- [x] **Step 4: Run — expect PASS**
 
 ```bash
 cd src/backend/base && uv run pytest ../../tests/unit/api/v1/test_admin.py -v
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/admin.py src/backend/tests/unit/api/v1/test_admin.py
@@ -1122,7 +1122,7 @@ git commit -m "feat(admin): add /admin/users search endpoint"
 - Modify: `src/backend/base/langflow/api/v1/users.py` (only if the `/whoami` response explicitly constructs a dict; otherwise `UserRead` already carries the field from Task 1).
 - Modify: `src/backend/tests/unit/api/v1/test_users.py`
 
-- [ ] **Step 1: Write failing test**
+- [x] **Step 1: Write failing test**
 
 Append to `test_users.py`:
 
@@ -1134,17 +1134,17 @@ async def test_whoami_includes_is_platform_admin(client, platform_admin_headers)
     assert resp.json()["is_platform_admin"] is True
 ```
 
-- [ ] **Step 2: Run — expect failure IF `UserRead` isn't serializing the field**
+- [x] **Step 2: Run — expect failure IF `UserRead` isn't serializing the field**
 
 ```bash
 cd src/backend/base && uv run pytest ../../tests/unit/api/v1/test_users.py -k whoami_includes -v
 ```
 
-- [ ] **Step 3: Fix if needed**
+- [x] **Step 3: Fix if needed**
 
 If the test fails, inspect `read_current_user` (around line 51 of `users.py`) and ensure the response uses `UserRead` (it already does). Verify `UserRead` from Task 1 includes the new field.
 
-- [ ] **Step 4: Run — expect PASS; commit**
+- [x] **Step 4: Run — expect PASS; commit**
 
 ```bash
 git add src/backend/tests/unit/api/v1/test_users.py
@@ -1158,14 +1158,14 @@ git commit -m "test(admin): whoami exposes is_platform_admin"
 **Files:**
 - Modify: `src/backend/base/langflow/__main__.py`
 
-- [ ] **Step 1: Inspect existing `superuser` command**
+- [x] **Step 1: Inspect existing `superuser` command**
 
 ```bash
 cd src/backend/base && grep -n "def superuser" langflow/__main__.py
 ```
 Locate the `superuser` Typer command (around line 678) as a reference for CLI patterns and session usage.
 
-- [ ] **Step 2: Add the new command**
+- [x] **Step 2: Add the new command**
 
 Immediately after the `superuser` command in `__main__.py`, add:
 
@@ -1199,7 +1199,7 @@ async def _set_platform_admin(email: str, *, revoke: bool) -> None:
 
 If `session_scope` is not already imported at module scope, add `from langflow.services.deps import session_scope` alongside the existing imports. Verify by running `grep -n "session_scope" langflow/__main__.py`.
 
-- [ ] **Step 3: Test manually**
+- [x] **Step 3: Test manually**
 
 ```bash
 cd src/backend/base && uv run langflow users set-platform-admin nobody@nowhere
@@ -1212,7 +1212,7 @@ uv run langflow users set-platform-admin <that_username>
 ```
 Expected: "granted". Query the DB (or call `/users/whoami` after logging in) and verify `is_platform_admin=True`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/backend/base/langflow/__main__.py

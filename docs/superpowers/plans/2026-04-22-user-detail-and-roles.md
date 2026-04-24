@@ -58,7 +58,7 @@
 **Files:**
 - Modify: `src/backend/base/langflow/services/database/models/membership/model.py:14-16`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/backend/tests/unit/models/test_membership_role_enum.py`:
 
@@ -77,14 +77,14 @@ def test_membership_role_owner_value_unchanged():
     assert MembershipRole.OWNER.value == "owner"
 ```
 
-- [ ] **Step 2: Run and confirm failure**
+- [x] **Step 2: Run and confirm failure**
 
 ```bash
 uv run pytest src/backend/tests/unit/models/test_membership_role_enum.py -v
 ```
 Expected: fails on `test_membership_role_contains_all_five_tiers` (only `OWNER` exists).
 
-- [ ] **Step 3: Extend the enum**
+- [x] **Step 3: Extend the enum**
 
 Edit `src/backend/base/langflow/services/database/models/membership/model.py`:
 
@@ -97,14 +97,14 @@ class MembershipRole(str, Enum):
     VIEWER = "viewer"
 ```
 
-- [ ] **Step 4: Rerun — all pass**
+- [x] **Step 4: Rerun — all pass**
 
 ```bash
 uv run pytest src/backend/tests/unit/models/test_membership_role_enum.py -v
 ```
 Expected: 2 passed.
 
-- [ ] **Step 5: Propose commit**
+- [x] **Step 5: Propose commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/models/membership/model.py \
@@ -120,7 +120,7 @@ git commit -m "feat(membership): extend role enum to owner/admin/member/operator
 **Files:**
 - Create: `src/backend/base/langflow/alembic/versions/<hash>_extend_membership_role_enum.py`
 
-- [ ] **Step 1: Generate a revision**
+- [x] **Step 1: Generate a revision**
 
 ```bash
 cd src/backend/base/langflow
@@ -128,7 +128,7 @@ uv run alembic revision -m "extend membership role enum"
 ```
 Expected: prints new revision path. Note the filename `<hash>_extend_membership_role_enum.py`.
 
-- [ ] **Step 2: Write the migration**
+- [x] **Step 2: Write the migration**
 
 Replace the generated body with:
 
@@ -165,7 +165,7 @@ def downgrade() -> None:
     pass
 ```
 
-- [ ] **Step 3: Dry-run on a disposable Postgres**
+- [x] **Step 3: Dry-run on a disposable Postgres**
 
 ```bash
 uv run alembic upgrade head --sql > /tmp/upgrade.sql
@@ -173,14 +173,14 @@ grep "membership_role_enum" /tmp/upgrade.sql
 ```
 Expected: four `ALTER TYPE ... ADD VALUE` lines for admin/member/operator/viewer.
 
-- [ ] **Step 4: Run live upgrade**
+- [x] **Step 4: Run live upgrade**
 
 ```bash
 uv run alembic upgrade head
 ```
 Expected: no errors; `alembic current` prints the new revision.
 
-- [ ] **Step 5: Smoke-test enum insert**
+- [x] **Step 5: Smoke-test enum insert**
 
 ```bash
 uv run python -c "
@@ -198,7 +198,7 @@ asyncio.run(main())
 ```
 Expected: prints `viewer`.
 
-- [ ] **Step 6: Propose commit**
+- [x] **Step 6: Propose commit**
 
 ```bash
 git add src/backend/base/langflow/alembic/versions/<hash>_extend_membership_role_enum.py
@@ -213,17 +213,17 @@ git commit -m "feat(db): alembic migration extending membership_role_enum"
 **Files:**
 - Create: `src/backend/base/langflow/alembic/versions/<hash>_flow_folder_user_id_set_null.py`
 
-- [ ] **Step 1: Inspect current FK behavior**
+- [x] **Step 1: Inspect current FK behavior**
 
 Read `src/backend/base/langflow/services/database/models/flow/model.py:213` and `folder/model.py` to confirm current FK `ondelete`. Record the existing constraint name (check Alembic history or run `\d flow` against a dev DB) — you need the old name to drop it.
 
-- [ ] **Step 2: Generate revision**
+- [x] **Step 2: Generate revision**
 
 ```bash
 uv run alembic revision -m "flow folder user_id on delete set null"
 ```
 
-- [ ] **Step 3: Write the migration**
+- [x] **Step 3: Write the migration**
 
 ```python
 """flow folder user_id ON DELETE SET NULL
@@ -276,14 +276,14 @@ def downgrade() -> None:
 
 > **Constraint names:** the placeholders above assume Postgres default naming. Confirm with `psql -c "\d flow"` before committing — names may differ (e.g. `fk_flow_user_id_user`). Update the migration accordingly.
 
-- [ ] **Step 4: Run upgrade**
+- [x] **Step 4: Run upgrade**
 
 ```bash
 uv run alembic upgrade head
 ```
 Expected: clean apply.
 
-- [ ] **Step 5: Verify FK behavior**
+- [x] **Step 5: Verify FK behavior**
 
 ```bash
 uv run python - <<'PY'
@@ -302,7 +302,7 @@ PY
 ```
 Expected (Postgres): prints `('n',)` — FK delete action `n` = SET NULL.
 
-- [ ] **Step 6: Propose commit**
+- [x] **Step 6: Propose commit**
 
 ```bash
 git add src/backend/base/langflow/alembic/versions/<hash>_flow_folder_user_id_set_null.py
@@ -317,7 +317,7 @@ git commit -m "feat(db): flow/folder user_id ON DELETE SET NULL"
 - Create: `src/backend/base/langflow/api/utils/authz.py`
 - Create: `src/backend/tests/unit/api/utils/test_authz.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # src/backend/tests/unit/api/utils/test_authz.py
@@ -392,14 +392,14 @@ async def test_assert_org_role_403_when_role_too_low(mocker):
     assert exc.value.status_code == 403
 ```
 
-- [ ] **Step 2: Run and confirm failure**
+- [x] **Step 2: Run and confirm failure**
 
 ```bash
 uv run pytest src/backend/tests/unit/api/utils/test_authz.py -v
 ```
 Expected: import error — `authz` module doesn't exist yet.
 
-- [ ] **Step 3: Implement the helpers**
+- [x] **Step 3: Implement the helpers**
 
 ```python
 # src/backend/base/langflow/api/utils/authz.py
@@ -484,14 +484,14 @@ OrgRoleOperator = Annotated[Membership | None, Depends(require_org_role(Membersh
 OrgRoleViewer   = Annotated[Membership | None, Depends(require_org_role(MembershipRole.VIEWER))]
 ```
 
-- [ ] **Step 4: Rerun — all pass**
+- [x] **Step 4: Rerun — all pass**
 
 ```bash
 uv run pytest src/backend/tests/unit/api/utils/test_authz.py -v
 ```
 Expected: 9 passed (6 parametrized + 4 async).
 
-- [ ] **Step 5: Propose commit**
+- [x] **Step 5: Propose commit**
 
 ```bash
 git add src/backend/base/langflow/api/utils/authz.py \
@@ -517,7 +517,7 @@ Expected: pre-existing tests still pass.
 - Modify: `src/backend/base/langflow/api/v1/__init__.py` (register router)
 - Create: `src/backend/tests/unit/api/v1/admin/test_users.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # src/backend/tests/unit/api/v1/admin/test_users.py
@@ -559,14 +559,14 @@ async def test_get_user_detail_403_for_non_platform_admin(
 
 You may need to add a `seeded_user_with_memberships` fixture to `conftest.py` — check for an existing pattern in `src/backend/tests/unit/api/v1/` first and mirror it.
 
-- [ ] **Step 2: Run — fails (endpoint does not exist)**
+- [x] **Step 2: Run — fails (endpoint does not exist)**
 
 ```bash
 uv run pytest src/backend/tests/unit/api/v1/admin/test_users.py -v
 ```
 Expected: 404 on all three (route not registered).
 
-- [ ] **Step 3: Implement the router**
+- [x] **Step 3: Implement the router**
 
 ```python
 # src/backend/base/langflow/api/v1/admin/users.py
@@ -648,7 +648,7 @@ async def get_user_detail(
     )
 ```
 
-- [ ] **Step 4: Register the router**
+- [x] **Step 4: Register the router**
 
 Open `src/backend/base/langflow/api/v1/__init__.py`. Find where the existing admin routers (`admin/orgs.py`) are wired; add the new router next to it:
 
@@ -659,14 +659,14 @@ from langflow.api.v1.admin import orgs as admin_orgs, users as admin_users
 router.include_router(admin_users.router, prefix="/admin")
 ```
 
-- [ ] **Step 5: Rerun — all pass**
+- [x] **Step 5: Rerun — all pass**
 
 ```bash
 uv run pytest src/backend/tests/unit/api/v1/admin/test_users.py -v
 ```
 Expected: 3 passed.
 
-- [ ] **Step 6: Propose commit**
+- [x] **Step 6: Propose commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/admin/users.py \
@@ -683,7 +683,7 @@ git commit -m "feat(admin): add GET /admin/users/{user_id} endpoint"
 - Modify: `src/backend/base/langflow/api/v1/admin/orgs.py` (add endpoint)
 - Create: `src/backend/tests/unit/api/v1/admin/test_role_changes.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # src/backend/tests/unit/api/v1/admin/test_role_changes.py
@@ -767,13 +767,13 @@ class TestPatchMemberRole:
 
 Fixtures `org_with_member`, `org_admin_token`, `viewer_token`, `sole_owner_org`, `personal_org` — add to `conftest.py` beside the existing `platform_admin_token` fixture.
 
-- [ ] **Step 2: Run — all fail**
+- [x] **Step 2: Run — all fail**
 
 ```bash
 uv run pytest src/backend/tests/unit/api/v1/admin/test_role_changes.py -v
 ```
 
-- [ ] **Step 3: Implement PATCH endpoint**
+- [x] **Step 3: Implement PATCH endpoint**
 
 Append to `src/backend/base/langflow/api/v1/admin/orgs.py`:
 
@@ -864,20 +864,20 @@ async def patch_member_role(
 
 (The `is_active` field on `MemberRow` lands in Task 8 — leave the line and expect a TypeError until then, OR implement Task 8 concurrently. If sequencing strictly, omit `is_active=` from this return until Task 8 extends the model.)
 
-- [ ] **Step 4: Import `CurrentActiveUser`**
+- [x] **Step 4: Import `CurrentActiveUser`**
 
 At the top of `orgs.py`, ensure:
 ```python
 from langflow.api.utils.core import CurrentActiveUser, DbSession, PlatformAdmin
 ```
 
-- [ ] **Step 5: Rerun — all pass**
+- [x] **Step 5: Rerun — all pass**
 
 ```bash
 uv run pytest src/backend/tests/unit/api/v1/admin/test_role_changes.py -v
 ```
 
-- [ ] **Step 6: Propose commit**
+- [x] **Step 6: Propose commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/admin/orgs.py \
@@ -893,7 +893,7 @@ git commit -m "feat(admin): PATCH member role with escalation + last-owner guard
 - Modify: `src/backend/base/langflow/api/v1/admin/orgs.py:246-311`
 - Create: `src/backend/tests/unit/api/v1/admin/test_member_gate_relaxed.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # test_member_gate_relaxed.py
@@ -945,9 +945,9 @@ async def test_cannot_remove_last_owner(client, platform_admin_token, sole_owner
     assert r.status_code == 409
 ```
 
-- [ ] **Step 2: Run — all fail**
+- [x] **Step 2: Run — all fail**
 
-- [ ] **Step 3: Modify `add_member`**
+- [x] **Step 3: Modify `add_member`**
 
 Replace the existing `add_member` endpoint in `orgs.py`:
 
@@ -1001,7 +1001,7 @@ async def add_member(
     )
 ```
 
-- [ ] **Step 4: Modify `remove_member`**
+- [x] **Step 4: Modify `remove_member`**
 
 ```python
 @router.delete(
@@ -1049,14 +1049,14 @@ async def remove_member(
     await session.flush()
 ```
 
-- [ ] **Step 5: Rerun — all pass**
+- [x] **Step 5: Rerun — all pass**
 
 ```bash
 uv run pytest src/backend/tests/unit/api/v1/admin/test_member_gate_relaxed.py -v
 uv run pytest src/backend/tests/unit/api/v1/admin/ -v   # existing tests still pass
 ```
 
-- [ ] **Step 6: Propose commit**
+- [x] **Step 6: Propose commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/admin/orgs.py \
@@ -1072,7 +1072,7 @@ git commit -m "feat(admin): relax add/remove member gates; last-owner guard"
 - Modify: `src/backend/base/langflow/api/v1/admin/orgs.py:84-87` (MemberRow definition)
 - Update every `MemberRow(...)` construction site in the file to pass `is_active`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # append to test_role_changes.py or a new file
@@ -1088,7 +1088,7 @@ async def test_org_detail_members_include_is_active(
     assert inactive["is_active"] is False
 ```
 
-- [ ] **Step 2: Extend `MemberRow` model**
+- [x] **Step 2: Extend `MemberRow` model**
 
 ```python
 class MemberRow(BaseModel):
@@ -1098,7 +1098,7 @@ class MemberRow(BaseModel):
     is_active: bool
 ```
 
-- [ ] **Step 3: Update every construction site in `orgs.py`**
+- [x] **Step 3: Update every construction site in `orgs.py`**
 
 Search for `MemberRow(` and add `is_active=u.is_active` (or the equivalent source) to each. Sites as of this task:
 - `get_organization` (line ~117) — `MemberRow(user_id=u.id, username=u.username, role=m.role.value, is_active=u.is_active)`
@@ -1106,13 +1106,13 @@ Search for `MemberRow(` and add `is_active=u.is_active` (or the equivalent sourc
 - `add_member` (end) — `is_active=target.is_active`
 - `patch_member_role` (end) — `is_active=target_user.is_active`
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 ```bash
 uv run pytest src/backend/tests/unit/api/v1/admin/ -v
 ```
 
-- [ ] **Step 5: Propose commit**
+- [x] **Step 5: Propose commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/admin/orgs.py \
@@ -1129,7 +1129,7 @@ git commit -m "feat(admin): include is_active on MemberRow"
 - Read: `src/backend/base/langflow/services/database/models/user/crud.py` (update_user)
 - Modify only if needed.
 
-- [ ] **Step 1: Confirm `UserUpdate` accepts `is_platform_admin`**
+- [x] **Step 1: Confirm `UserUpdate` accepts `is_platform_admin`**
 
 ```bash
 grep -n "is_platform_admin" src/backend/base/langflow/services/database/models/user/model.py
@@ -1142,11 +1142,11 @@ If `UserUpdate` does not include `is_platform_admin`, add it:
 is_platform_admin: bool | None = None
 ```
 
-- [ ] **Step 2: Confirm `update_user` copies through the field**
+- [x] **Step 2: Confirm `update_user` copies through the field**
 
 Check `src/backend/base/langflow/services/database/models/user/crud.py` — the `update_user` function should assign every UserUpdate field. If there's an explicit per-field allowlist that excludes `is_platform_admin`, add it.
 
-- [ ] **Step 3: Add a test**
+- [x] **Step 3: Add a test**
 
 ```python
 # src/backend/tests/unit/api/v1/test_users_patch_platform_admin.py
@@ -1173,13 +1173,13 @@ async def test_non_superuser_cannot_set_platform_admin(client, logged_in_token, 
 
 Note: the existing `PATCH /users/{user_id}` uses `is_superuser` as its privilege gate. Because Task 1 of the platform-admin spec auto-promoted superusers to platform admins, in practice these sets overlap for most installs. If stricter is_platform_admin-only gating is desired, add that check alongside the existing is_superuser check. This task's minimum is: verify the field round-trips.
 
-- [ ] **Step 4: Run**
+- [x] **Step 4: Run**
 
 ```bash
 uv run pytest src/backend/tests/unit/api/v1/test_users_patch_platform_admin.py -v
 ```
 
-- [ ] **Step 5: Propose commit**
+- [x] **Step 5: Propose commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/models/user/model.py \
@@ -1204,7 +1204,7 @@ uv run pytest src/backend/tests/unit/api/v1/admin/ -v
 - Create: `src/frontend/src/constants/roles.ts`
 - Create: `src/frontend/src/constants/__tests__/roles.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // src/frontend/src/constants/__tests__/roles.test.ts
@@ -1254,13 +1254,13 @@ describe("canAssignRole (mirrors backend escalation guard)", () => {
 });
 ```
 
-- [ ] **Step 2: Run — fails**
+- [x] **Step 2: Run — fails**
 
 ```bash
 cd src/frontend && npm test -- constants/__tests__/roles.test.ts
 ```
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // src/frontend/src/constants/roles.ts
@@ -1321,9 +1321,9 @@ export function canAssignRole(args: {
 }
 ```
 
-- [ ] **Step 4: Rerun — pass**
+- [x] **Step 4: Rerun — pass**
 
-- [ ] **Step 5: Propose commit**
+- [x] **Step 5: Propose commit**
 
 ```bash
 git add src/frontend/src/constants/roles.ts \
@@ -1339,7 +1339,7 @@ git commit -m "feat(frontend): add ROLE_METADATA + canAssignRole guard"
 - Create: `src/frontend/src/components/common/roleBadge.tsx`
 - Create: `src/frontend/src/components/common/__tests__/roleBadge.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // src/frontend/src/components/common/__tests__/roleBadge.test.tsx
@@ -1362,9 +1362,9 @@ describe("RoleBadge", () => {
 });
 ```
 
-- [ ] **Step 2: Run — fails**
+- [x] **Step 2: Run — fails**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```tsx
 // src/frontend/src/components/common/roleBadge.tsx
@@ -1400,9 +1400,9 @@ export default function RoleBadge({ role, className = "" }: Props) {
 
 (Use the exact `Tooltip` imports already used elsewhere in the project — check an existing component for the correct path if `@/components/ui/tooltip` is not it.)
 
-- [ ] **Step 4: Rerun — pass**
+- [x] **Step 4: Rerun — pass**
 
-- [ ] **Step 5: Propose commit**
+- [x] **Step 5: Propose commit**
 
 ```bash
 git add src/frontend/src/components/common/roleBadge.tsx \
@@ -1418,7 +1418,7 @@ git commit -m "feat(frontend): RoleBadge shared component"
 - Create: `src/frontend/src/components/common/rolePicker.tsx`
 - Create: `src/frontend/src/components/common/__tests__/rolePicker.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // rolePicker.test.tsx
@@ -1459,9 +1459,9 @@ describe("RolePicker", () => {
 });
 ```
 
-- [ ] **Step 2: Run — fails**
+- [x] **Step 2: Run — fails**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```tsx
 // rolePicker.tsx
@@ -1513,9 +1513,9 @@ export default function RolePicker({ caller, current, onSelect, disabled }: Prop
 
 (Adjust the import path for `Select` to match existing usage in the codebase. `@/components/ui/select` is the most likely path — confirm with a grep before committing.)
 
-- [ ] **Step 4: Rerun — pass**
+- [x] **Step 4: Rerun — pass**
 
-- [ ] **Step 5: Propose commit**
+- [x] **Step 5: Propose commit**
 
 ```bash
 git add src/frontend/src/components/common/rolePicker.tsx \
@@ -1530,7 +1530,7 @@ git commit -m "feat(frontend): RolePicker with escalation guard"
 **Files:**
 - Create: `src/frontend/src/controllers/API/queries/admin/use-get-user.ts`
 
-- [ ] **Step 1: Read existing admin hook**
+- [x] **Step 1: Read existing admin hook**
 
 ```bash
 ls src/frontend/src/controllers/API/queries/admin/
@@ -1538,7 +1538,7 @@ ls src/frontend/src/controllers/API/queries/admin/
 
 Mirror the file layout and export style of an existing hook (e.g. `use-get-organization.ts`).
 
-- [ ] **Step 2: Implement**
+- [x] **Step 2: Implement**
 
 ```ts
 // use-get-user.ts
@@ -1577,11 +1577,11 @@ export function useGetUser(userId: string) {
 }
 ```
 
-- [ ] **Step 3: Smoke test in browser**
+- [x] **Step 3: Smoke test in browser**
 
 Manual — run the dev server, log in as a platform admin, open devtools network, call `/api/v1/admin/users/<your-id>` and confirm shape.
 
-- [ ] **Step 4: Propose commit**
+- [x] **Step 4: Propose commit**
 
 ```bash
 git add src/frontend/src/controllers/API/queries/admin/use-get-user.ts
@@ -1595,7 +1595,7 @@ git commit -m "feat(frontend): useGetUser hook"
 **Files:**
 - Create: `src/frontend/src/controllers/API/queries/admin/use-update-member-role.ts`
 
-- [ ] **Step 1: Implement**
+- [x] **Step 1: Implement**
 
 ```ts
 // use-update-member-role.ts
@@ -1627,7 +1627,7 @@ export function useUpdateMemberRole() {
 }
 ```
 
-- [ ] **Step 2: Propose commit**
+- [x] **Step 2: Propose commit**
 
 ```bash
 git add src/frontend/src/controllers/API/queries/admin/use-update-member-role.ts
@@ -1646,7 +1646,7 @@ git commit -m "feat(frontend): useUpdateMemberRole hook"
 - Create: `src/frontend/src/pages/AdminPage/UserDetailPage/index.tsx`
 - Modify: `src/frontend/src/routes.tsx` (add route)
 
-- [ ] **Step 1: Add the route**
+- [x] **Step 1: Add the route**
 
 Open `src/frontend/src/routes.tsx`. Find the route block for `/settings/organizations/:orgId`. Add, near existing `/admin/users` or `/settings/users` patterns:
 
@@ -1661,7 +1661,7 @@ Wire `UserDetailPage` import: `import UserDetailPage from "@/pages/AdminPage/Use
 
 The route must be gated on `is_platform_admin` — mirror whatever gate the existing `/admin/**` routes use. If none, wrap in an `<AdminGuard>` component consistent with neighboring pages.
 
-- [ ] **Step 2: Implement the page shell**
+- [x] **Step 2: Implement the page shell**
 
 ```tsx
 // src/frontend/src/pages/AdminPage/UserDetailPage/index.tsx
@@ -1747,7 +1747,7 @@ function TabButton({ active, onClick, children }: {
 }
 ```
 
-- [ ] **Step 3: Create stub tab files so the build passes**
+- [x] **Step 3: Create stub tab files so the build passes**
 
 ```tsx
 // src/frontend/src/pages/AdminPage/UserDetailPage/AccountTab.tsx
@@ -1765,18 +1765,18 @@ export default function MembershipsTab(_: { user: UserDetail }) {
 }
 ```
 
-- [ ] **Step 4: Verify build**
+- [x] **Step 4: Verify build**
 
 ```bash
 cd src/frontend && npm run build
 ```
 Expected: no TypeScript errors.
 
-- [ ] **Step 5: Manual smoke**
+- [x] **Step 5: Manual smoke**
 
 Run dev server; navigate to `/admin/users/<your-user-id>` logged in as a platform admin. Header + tab bar render.
 
-- [ ] **Step 6: Propose commit**
+- [x] **Step 6: Propose commit**
 
 ```bash
 git add src/frontend/src/pages/AdminPage/UserDetailPage/ \
@@ -1792,7 +1792,7 @@ git commit -m "feat(frontend): UserDetailPage shell + route"
 - Modify: `src/frontend/src/pages/AdminPage/UserDetailPage/AccountTab.tsx`
 - Create: `src/frontend/src/pages/AdminPage/UserDetailPage/__tests__/AccountTab.test.tsx`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```tsx
 // AccountTab.test.tsx
@@ -1843,9 +1843,9 @@ describe("AccountTab", () => {
 });
 ```
 
-- [ ] **Step 2: Run — fails**
+- [x] **Step 2: Run — fails**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```tsx
 // AccountTab.tsx
@@ -1974,13 +1974,13 @@ function Facts({ label, value }: { label: string; value: React.ReactNode }) {
 }
 ```
 
-- [ ] **Step 4: Rerun — pass**
+- [x] **Step 4: Rerun — pass**
 
 ```bash
 cd src/frontend && npm test -- UserDetailPage/__tests__/AccountTab.test.tsx
 ```
 
-- [ ] **Step 5: Propose commit**
+- [x] **Step 5: Propose commit**
 
 ```bash
 git add src/frontend/src/pages/AdminPage/UserDetailPage/AccountTab.tsx \
@@ -1997,7 +1997,7 @@ git commit -m "feat(frontend): UserDetailPage AccountTab"
 - Create: `src/frontend/src/pages/AdminPage/UserDetailPage/AddToOrganizationDialog.tsx`
 - Create: `src/frontend/src/pages/AdminPage/UserDetailPage/__tests__/MembershipsTab.test.tsx`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```tsx
 // MembershipsTab.test.tsx
@@ -2060,9 +2060,9 @@ describe("MembershipsTab", () => {
 });
 ```
 
-- [ ] **Step 2: Run — fails**
+- [x] **Step 2: Run — fails**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```tsx
 // MembershipsTab.tsx
@@ -2285,17 +2285,17 @@ export default function AddToOrganizationDialog({
 }
 ```
 
-- [ ] **Step 4: Rerun**
+- [x] **Step 4: Rerun**
 
 ```bash
 cd src/frontend && npm test -- UserDetailPage
 ```
 
-- [ ] **Step 5: Manual smoke**
+- [x] **Step 5: Manual smoke**
 
 Log in as platform admin → open user detail → try role change + add-to-org + remove.
 
-- [ ] **Step 6: Propose commit**
+- [x] **Step 6: Propose commit**
 
 ```bash
 git add src/frontend/src/pages/AdminPage/UserDetailPage/MembershipsTab.tsx \
@@ -2313,7 +2313,7 @@ git commit -m "feat(frontend): MembershipsTab + AddToOrganizationDialog"
 - Create: `src/frontend/src/pages/AdminPage/organizations/__tests__/OrgMemberDetailPage.test.tsx`
 - Modify: `src/frontend/src/routes.tsx`
 
-- [ ] **Step 1: Register route**
+- [x] **Step 1: Register route**
 
 ```tsx
 {
@@ -2324,7 +2324,7 @@ git commit -m "feat(frontend): MembershipsTab + AddToOrganizationDialog"
 
 Guard: platform admin OR Owner/Admin of the org. Mirror how `OrganizationDetailPage` is gated — likely a hook that checks the caller's membership in `:orgId`.
 
-- [ ] **Step 2: Failing test**
+- [x] **Step 2: Failing test**
 
 ```tsx
 // OrgMemberDetailPage.test.tsx
@@ -2364,7 +2364,7 @@ it("renders scoped member view", () => {
 });
 ```
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```tsx
 // OrgMemberDetailPage.tsx
@@ -2483,13 +2483,13 @@ export default function OrgMemberDetailPage() {
 }
 ```
 
-- [ ] **Step 4: Test + smoke**
+- [x] **Step 4: Test + smoke**
 
 ```bash
 cd src/frontend && npm test -- organizations/__tests__/OrgMemberDetailPage
 ```
 
-- [ ] **Step 5: Propose commit**
+- [x] **Step 5: Propose commit**
 
 ```bash
 git add src/frontend/src/pages/AdminPage/organizations/OrgMemberDetailPage.tsx \
@@ -2509,7 +2509,7 @@ git commit -m "feat(frontend): OrgMemberDetailPage scoped view"
 **Files:**
 - Modify: `src/frontend/src/pages/AdminPage/UsersPage.tsx:348-500` (row body)
 
-- [ ] **Step 1: Wrap each row's username (or add a View icon) with a link**
+- [x] **Step 1: Wrap each row's username (or add a View icon) with a link**
 
 Edit the username cell (around line 355):
 
@@ -2528,9 +2528,9 @@ Edit the username cell (around line 355):
 
 Add `useNavigate` import and `const navigate = useNavigate();` at top of the component.
 
-- [ ] **Step 2: Verify build, run the page, click a row, land on the detail page.**
+- [x] **Step 2: Verify build, run the page, click a row, land on the detail page.**
 
-- [ ] **Step 3: Propose commit**
+- [x] **Step 3: Propose commit**
 
 ```bash
 git add src/frontend/src/pages/AdminPage/UsersPage.tsx
@@ -2544,7 +2544,7 @@ git commit -m "feat(admin): UsersPage row links to user detail"
 **Files:**
 - Modify: `src/frontend/src/pages/AdminPage/organizations/OrganizationMembersTab.tsx`
 
-- [ ] **Step 1: Replace role text with `RoleBadge`**
+- [x] **Step 1: Replace role text with `RoleBadge`**
 
 Find the column that renders `{m.role}` or `{member.role}` and replace with:
 
@@ -2554,7 +2554,7 @@ Find the column that renders `{m.role}` or `{member.role}` and replace with:
 
 Add import: `import RoleBadge from "@/components/common/roleBadge";` and `import type { MembershipRole } from "@/constants/roles";`
 
-- [ ] **Step 2: Make the username cell a link**
+- [x] **Step 2: Make the username cell a link**
 
 ```tsx
 <button
@@ -2565,17 +2565,17 @@ Add import: `import RoleBadge from "@/components/common/roleBadge";` and `import
 </button>
 ```
 
-- [ ] **Step 3: Remove the old inline role-edit control**
+- [x] **Step 3: Remove the old inline role-edit control**
 
 Any per-row role-edit dropdown inline in the members table is now the member detail page's job. Delete that piece; keep only the badge + link-to-detail.
 
-- [ ] **Step 4: Run existing tests, verify nothing broke**
+- [x] **Step 4: Run existing tests, verify nothing broke**
 
 ```bash
 cd src/frontend && npm test -- organizations/
 ```
 
-- [ ] **Step 5: Propose commit**
+- [x] **Step 5: Propose commit**
 
 ```bash
 git add src/frontend/src/pages/AdminPage/organizations/OrganizationMembersTab.tsx
@@ -2601,7 +2601,7 @@ grep -rn "current_user.id" src/backend/base/langflow/api/v1/flows* || true
 grep -rn "current_user.id" src/backend/base/langflow/api/v1/folders* || true
 ```
 
-- [ ] **Step 2: Build the worklist**
+- [x] **Step 2: Build the worklist**
 
 Create `docs/superpowers/plans/2026-04-22-flow-ownership-worklist.md`:
 

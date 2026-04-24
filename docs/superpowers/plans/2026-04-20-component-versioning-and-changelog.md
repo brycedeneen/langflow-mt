@@ -1,6 +1,6 @@
 # Component Versioning and Changelog Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Surface author-written per-version changelog entries in the Update components modal so users see *what changed* and *what to do*, and add a Claude skill that enforces the version-bump + changelog-append ritual and guides input-type selection.
 
@@ -52,7 +52,7 @@
 - Create: `src/lfx/src/lfx/custom/custom_component/changelog.py`
 - Test: `src/lfx/tests/unit/custom/test_component_changelog.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/lfx/tests/unit/custom/test_component_changelog.py`:
 
@@ -92,14 +92,14 @@ class TestChangelogEntry:
         assert dumped == {"version": 1, "changes": "x", "notes": None}
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 uv run --project src/lfx pytest src/lfx/tests/unit/custom/test_component_changelog.py -v
 ```
 Expected: FAIL with `ModuleNotFoundError: No module named 'lfx.custom.custom_component.changelog'`.
 
-- [ ] **Step 3: Implement the model**
+- [x] **Step 3: Implement the model**
 
 Create `src/lfx/src/lfx/custom/custom_component/changelog.py`:
 
@@ -121,14 +121,14 @@ class ChangelogEntry(BaseModel):
     notes: str | None = None
 ```
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 ```bash
 uv run --project src/lfx pytest src/lfx/tests/unit/custom/test_component_changelog.py -v
 ```
 Expected: PASS — 5 tests.
 
-- [ ] **Step 5: Ask the user to commit**
+- [x] **Step 5: Ask the user to commit**
 
 Propose (do not run yet):
 
@@ -145,7 +145,7 @@ git commit -m "feat(lfx): add ChangelogEntry model for component versioning"
 - Modify: `src/lfx/src/lfx/custom/custom_component/changelog.py`
 - Modify: `src/lfx/tests/unit/custom/test_component_changelog.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `src/lfx/tests/unit/custom/test_component_changelog.py`:
 
@@ -229,14 +229,14 @@ class TestValidateChangelog:
         assert not caplog.records
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 uv run --project src/lfx pytest src/lfx/tests/unit/custom/test_component_changelog.py::TestValidateChangelog -v
 ```
 Expected: FAIL with `ImportError: cannot import name 'validate_changelog'`.
 
-- [ ] **Step 3: Implement the validator**
+- [x] **Step 3: Implement the validator**
 
 Append to `src/lfx/src/lfx/custom/custom_component/changelog.py`:
 
@@ -282,14 +282,14 @@ def validate_changelog(cls: type) -> None:
             )
 ```
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 ```bash
 uv run --project src/lfx pytest src/lfx/tests/unit/custom/test_component_changelog.py -v
 ```
 Expected: PASS — all tests.
 
-- [ ] **Step 5: Ask the user to commit**
+- [x] **Step 5: Ask the user to commit**
 
 ```bash
 git add src/lfx/src/lfx/custom/custom_component/changelog.py src/lfx/tests/unit/custom/test_component_changelog.py
@@ -303,7 +303,7 @@ git commit -m "feat(lfx): add validate_changelog helper with non-fatal warnings"
 **Files:**
 - Modify: `src/lfx/src/lfx/custom/custom_component/component.py:112-116` (class declaration)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `src/lfx/tests/unit/custom/test_component_changelog.py`:
 
@@ -344,14 +344,14 @@ class TestComponentVersionAttrs:
         assert any("exceeds class version" in r.message for r in caplog.records)
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 uv run --project src/lfx pytest src/lfx/tests/unit/custom/test_component_changelog.py::TestComponentVersionAttrs -v
 ```
 Expected: FAIL — `AttributeError: type object 'Plain' has no attribute 'version'` or similar.
 
-- [ ] **Step 3: Add the attributes and `__init_subclass__`**
+- [x] **Step 3: Add the attributes and `__init_subclass__`**
 
 In `src/lfx/src/lfx/custom/custom_component/component.py`, at the top of the file add the import (near the other `from lfx.custom...` imports):
 
@@ -379,21 +379,21 @@ class Component(CustomComponent):
         validate_changelog(cls)
 ```
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 ```bash
 uv run --project src/lfx pytest src/lfx/tests/unit/custom/test_component_changelog.py -v
 ```
 Expected: PASS — all tests including the new three.
 
-- [ ] **Step 5: Run the broader lfx custom-component tests to catch regressions**
+- [x] **Step 5: Run the broader lfx custom-component tests to catch regressions**
 
 ```bash
 uv run --project src/lfx pytest src/lfx/tests -k "custom" -x
 ```
 Expected: existing tests continue to pass. If not, investigate before moving on.
 
-- [ ] **Step 6: Ask the user to commit**
+- [x] **Step 6: Ask the user to commit**
 
 ```bash
 git add src/lfx/src/lfx/custom/custom_component/component.py
@@ -407,7 +407,7 @@ git commit -m "feat(lfx): add version and changelog attrs to Component"
 **Files:**
 - Modify: `src/lfx/src/lfx/template/frontend_node/base.py:9-67` (FrontendNode field list)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/lfx/tests/unit/template/test_frontend_node_versioning.py`:
 
@@ -441,14 +441,14 @@ class TestFrontendNodeVersioning:
         ]
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 uv run --project src/lfx pytest src/lfx/tests/unit/template/test_frontend_node_versioning.py -v
 ```
 Expected: FAIL — `AttributeError` or `ValidationError` on unknown field.
 
-- [ ] **Step 3: Add the fields**
+- [x] **Step 3: Add the fields**
 
 In `src/lfx/src/lfx/template/frontend_node/base.py`, after line 67 (the `tool_mode` field) and before line 69 (`def set_documentation`), add:
 
@@ -459,14 +459,14 @@ In `src/lfx/src/lfx/template/frontend_node/base.py`, after line 67 (the `tool_mo
     """Per-version changelog entries (dumped `ChangelogEntry` dicts). Newest last."""
 ```
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 ```bash
 uv run --project src/lfx pytest src/lfx/tests/unit/template/test_frontend_node_versioning.py -v
 ```
 Expected: PASS — 2 tests.
 
-- [ ] **Step 5: Ask the user to commit**
+- [x] **Step 5: Ask the user to commit**
 
 ```bash
 git add src/lfx/src/lfx/template/frontend_node/base.py src/lfx/tests/unit/template/test_frontend_node_versioning.py
@@ -480,7 +480,7 @@ git commit -m "feat(lfx): serialize version and changelog on FrontendNode"
 **Files:**
 - Modify: `src/lfx/src/lfx/custom/utils.py:464` and `:540` (both builder functions)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `src/lfx/tests/unit/custom/test_component_changelog.py`:
 
@@ -523,14 +523,14 @@ class TestBuilderPropagation:
         assert frontend_dict["changelog"] == []
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 uv run --project src/lfx pytest src/lfx/tests/unit/custom/test_component_changelog.py::TestBuilderPropagation -v
 ```
 Expected: FAIL — `KeyError: 'version'` because the fields aren't written onto the frontend_node yet.
 
-- [ ] **Step 3: Add the helper**
+- [x] **Step 3: Add the helper**
 
 In `src/lfx/src/lfx/custom/utils.py`, directly above `build_custom_component_template_from_inputs` (line 464), add:
 
@@ -563,21 +563,21 @@ In `build_custom_component_template` (line 540), after `reorder_fields(frontend_
         apply_component_versioning(frontend_node, custom_instance)
 ```
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 ```bash
 uv run --project src/lfx pytest src/lfx/tests/unit/custom/test_component_changelog.py -v
 ```
 Expected: PASS — including the two new `TestBuilderPropagation` tests.
 
-- [ ] **Step 5: Run the broader custom-component suite**
+- [x] **Step 5: Run the broader custom-component suite**
 
 ```bash
 uv run --project src/lfx pytest src/lfx/tests/unit/custom -x
 ```
 Expected: existing tests continue to pass.
 
-- [ ] **Step 6: Ask the user to commit**
+- [x] **Step 6: Ask the user to commit**
 
 ```bash
 git add src/lfx/src/lfx/custom/utils.py src/lfx/tests/unit/custom/test_component_changelog.py
@@ -592,7 +592,7 @@ git commit -m "feat(lfx): propagate version and changelog through template build
 - Modify: `src/frontend/src/types/api/index.ts:31-68` (APIClassType)
 - Modify: `src/frontend/src/types/zustand/flow/index.ts:55-62` (ComponentsToUpdateType)
 
-- [ ] **Step 1: Add the `ChangelogEntry` type and extend `APIClassType`**
+- [x] **Step 1: Add the `ChangelogEntry` type and extend `APIClassType`**
 
 In `src/frontend/src/types/api/index.ts`, add a new type above `APIClassType` (above line 31):
 
@@ -620,7 +620,7 @@ Then update the index-signature union (lines 58-67) to include the new value typ
 
 to the `[key: string]:` union.
 
-- [ ] **Step 2: Extend `ComponentsToUpdateType`**
+- [x] **Step 2: Extend `ComponentsToUpdateType`**
 
 In `src/frontend/src/types/zustand/flow/index.ts`, add the import at the top (alongside existing type imports):
 
@@ -644,14 +644,14 @@ export type ComponentsToUpdateType = {
 };
 ```
 
-- [ ] **Step 3: Typecheck**
+- [x] **Step 3: Typecheck**
 
 ```bash
 cd src/frontend && npx tsc --noEmit
 ```
 Expected: PASS. If errors appear in callers that construct `ComponentsToUpdateType`, they'll be addressed in Task 7 (`check-code-validity.ts`). If other callers fail outside that file, fix them to supply defaults (`userVersion: 0, latestVersion: 0, changelogEntries: []`).
 
-- [ ] **Step 4: Ask the user to commit**
+- [x] **Step 4: Ask the user to commit**
 
 ```bash
 git add src/frontend/src/types/api/index.ts src/frontend/src/types/zustand/flow/index.ts
@@ -666,7 +666,7 @@ git commit -m "feat(frontend): type version and changelog on APIClassType"
 - Modify: `src/frontend/src/CustomNodes/helpers/check-code-validity.ts`
 - Create: `src/frontend/src/CustomNodes/helpers/__tests__/check-code-validity.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/frontend/src/CustomNodes/helpers/__tests__/check-code-validity.test.ts`:
 
@@ -746,14 +746,14 @@ describe("checkCodeValidity — version fields", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 cd src/frontend && npx vitest run src/CustomNodes/helpers/__tests__/check-code-validity.test.ts
 ```
 Expected: FAIL — `userVersion` is undefined on the return value.
 
-- [ ] **Step 3: Update `checkCodeValidity` to compute the new fields**
+- [x] **Step 3: Update `checkCodeValidity` to compute the new fields**
 
 In `src/frontend/src/CustomNodes/helpers/check-code-validity.ts`, update the imports at the top:
 
@@ -807,14 +807,14 @@ export const checkCodeValidity = (
 };
 ```
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 ```bash
 cd src/frontend && npx vitest run src/CustomNodes/helpers/__tests__/check-code-validity.test.ts
 ```
 Expected: PASS — 5 tests.
 
-- [ ] **Step 5: Plumb the new fields through `flowStore.updateComponentsToUpdate`**
+- [x] **Step 5: Plumb the new fields through `flowStore.updateComponentsToUpdate`**
 
 Open `src/frontend/src/stores/flowStore.ts` and find `updateComponentsToUpdate` (around line 95-113). It should already pass every field returned by `checkCodeValidity` into `componentsToUpdate`. If it uses spread (`...result`), no change needed. If it hand-picks properties, add `userVersion`, `latestVersion`, `changelogEntries` to the mapping.
 
@@ -834,14 +834,14 @@ Verify with `grep -n "userVersion\|latestVersion\|changelogEntries" src/frontend
 }
 ```
 
-- [ ] **Step 6: Typecheck**
+- [x] **Step 6: Typecheck**
 
 ```bash
 cd src/frontend && npx tsc --noEmit
 ```
 Expected: PASS.
 
-- [ ] **Step 7: Ask the user to commit**
+- [x] **Step 7: Ask the user to commit**
 
 ```bash
 git add src/frontend/src/CustomNodes/helpers/check-code-validity.ts \
@@ -858,7 +858,7 @@ git commit -m "feat(frontend): compute changelog entries in checkCodeValidity"
 - Create: `src/frontend/src/modals/updateComponentModal/changelogPanel.tsx`
 - Create: `src/frontend/src/modals/updateComponentModal/__tests__/changelogPanel.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/frontend/src/modals/updateComponentModal/__tests__/changelogPanel.test.tsx`:
 
@@ -929,14 +929,14 @@ describe("ChangelogPanel", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 cd src/frontend && npx vitest run src/modals/updateComponentModal/__tests__/changelogPanel.test.tsx
 ```
 Expected: FAIL — `Cannot find module '../changelogPanel'`.
 
-- [ ] **Step 3: Implement the panel**
+- [x] **Step 3: Implement the panel**
 
 Create `src/frontend/src/modals/updateComponentModal/changelogPanel.tsx`:
 
@@ -1025,14 +1025,14 @@ export default function ChangelogPanel({
 
 Notes on deps: `react-markdown` and `remark-gfm` are already used elsewhere in the frontend — no new deps. Run `cd src/frontend && grep "react-markdown\|remark-gfm" package.json` to verify.
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 ```bash
 cd src/frontend && npx vitest run src/modals/updateComponentModal/__tests__/changelogPanel.test.tsx
 ```
 Expected: PASS — 4 tests.
 
-- [ ] **Step 5: Ask the user to commit**
+- [x] **Step 5: Ask the user to commit**
 
 ```bash
 git add src/frontend/src/modals/updateComponentModal/changelogPanel.tsx \
@@ -1047,7 +1047,7 @@ git commit -m "feat(frontend): add ChangelogPanel for the update modal"
 **Files:**
 - Modify: `src/frontend/src/modals/updateComponentModal/index.tsx`
 
-- [ ] **Step 1: Add chevron column + expansion state (multi-component path)**
+- [x] **Step 1: Add chevron column + expansion state (multi-component path)**
 
 In `src/frontend/src/modals/updateComponentModal/index.tsx`:
 
@@ -1081,7 +1081,7 @@ useEffect(() => {
 }, [open]);
 ```
 
-- [ ] **Step 2: Add the chevron column and detail-row renderer**
+- [x] **Step 2: Add the chevron column and detail-row renderer**
 
 Prepend a new column to `columnDefs` (above the existing `id` hidden column at line 62):
 
@@ -1225,7 +1225,7 @@ Replace the `<TableComponent ... />` block (lines 172-193) with a plain list:
 
 Remove the now-unused `columnDefs`, `agGrid` ref, and the old ag-grid-specific `useEffect` (line 113-123). Remove imports for `ColDef`, `AgGridReact`, `TableComponent` if they're no longer referenced.
 
-- [ ] **Step 3: Render the panel in the single-component path**
+- [x] **Step 3: Render the panel in the single-component path**
 
 After the descriptive paragraphs block (ends at line 169) and before the `{isMultiple && ...}` block, add a single-component panel:
 
@@ -1242,7 +1242,7 @@ After the descriptive paragraphs block (ends at line 169) and before the `{isMul
 
 (No fallback message for single-component — the current modal copy is enough, as specified.)
 
-- [ ] **Step 4: Typecheck + smoke-test the frontend build**
+- [x] **Step 4: Typecheck + smoke-test the frontend build**
 
 ```bash
 cd src/frontend && npx tsc --noEmit
@@ -1254,7 +1254,7 @@ cd src/frontend && npm run build
 ```
 Expected: PASS. Watch for unresolved imports or removed-but-still-referenced symbols.
 
-- [ ] **Step 5: Manually test the UI**
+- [x] **Step 5: Manually test the UI**
 
 Run the dev server (`make frontend` or the existing command the user uses). Open a flow with:
 - A single component with a changelog bump → single-component modal shows the panel.
@@ -1264,7 +1264,7 @@ Run the dev server (`make frontend` or the existing command the user uses). Open
 
 Confirm markdown renders (bold, inline code, bullet lists).
 
-- [ ] **Step 6: Ask the user to commit**
+- [x] **Step 6: Ask the user to commit**
 
 ```bash
 git add src/frontend/src/modals/updateComponentModal/index.tsx
@@ -1279,7 +1279,7 @@ git commit -m "feat(frontend): render changelog panel in Update components modal
 - Verify: `src/frontend/src/CustomNodes/hooks/use-update-node-code.ts`
 - Check: wherever sidebar drops create a node's `data` — likely `src/frontend/src/utils/utils.ts` or `src/frontend/src/stores/flowStore.ts` (new-node creation)
 
-- [ ] **Step 1: Verify update action already propagates version**
+- [x] **Step 1: Verify update action already propagates version**
 
 Open `src/frontend/src/CustomNodes/hooks/use-update-node-code.ts`. Confirm that line 24 (`node: { ...newNodeClass, edited: false }`) spreads `newNodeClass` — which now carries `version` via the extended `APIClassType`. No change needed; document in a comment:
 
@@ -1289,7 +1289,7 @@ Open `src/frontend/src/CustomNodes/hooks/use-update-node-code.ts`. Confirm that 
 node: { ...newNodeClass, edited: false },
 ```
 
-- [ ] **Step 2: Find the sidebar-drop node-creation path**
+- [x] **Step 2: Find the sidebar-drop node-creation path**
 
 Run:
 
@@ -1299,18 +1299,18 @@ grep -rn "data:\s*{\s*node:" src/frontend/src/pages src/frontend/src/utils src/f
 
 Expected: several matches. Identify the one invoked on sidebar drop (likely a helper that deep-clones the template and sets initial `data.node`). If the helper assigns `node: cloneDeep(templateClass)`, the `version` field rides along automatically. If it hand-picks fields, add `version: templateClass.version ?? 0`.
 
-- [ ] **Step 3: Add a targeted test or manual verification**
+- [x] **Step 3: Add a targeted test or manual verification**
 
 If the node-creation helper is a plain function, write a unit test (vitest) asserting that the resulting `data.node.version` equals the template's version. Otherwise, manually: drop a new component, open DevTools Redux-like store inspector / React DevTools, confirm `data.node.version` is set on the new node.
 
-- [ ] **Step 4: Run the full frontend type check**
+- [x] **Step 4: Run the full frontend type check**
 
 ```bash
 cd src/frontend && npx tsc --noEmit
 ```
 Expected: PASS.
 
-- [ ] **Step 5: Ask the user to commit (only if code changed)**
+- [x] **Step 5: Ask the user to commit (only if code changed)**
 
 If changes were made:
 
@@ -1326,7 +1326,7 @@ git commit -m "feat(frontend): persist version on newly-dropped component nodes"
 **Files:**
 - Modify: the API Request component (pick one under `src/backend/base/langflow/components/` or `src/lfx/src/lfx/components/` that recently changed — recent commits touched `bearer token auth` and `mTLS`)
 
-- [ ] **Step 1: Locate the component**
+- [x] **Step 1: Locate the component**
 
 Find the API Request component source:
 
@@ -1334,7 +1334,7 @@ Find the API Request component source:
 grep -rn "class.*APIRequest" src/backend/base/langflow/components src/lfx/src/lfx/components | head -3
 ```
 
-- [ ] **Step 2: Add `version` and `changelog`**
+- [x] **Step 2: Add `version` and `changelog`**
 
 Edit the component class. Example (adapt values/wording to match the real recent changes to that component):
 
@@ -1357,7 +1357,7 @@ class APIRequestComponent(Component):
     ]
 ```
 
-- [ ] **Step 3: Manually smoke-test**
+- [x] **Step 3: Manually smoke-test**
 
 Open a flow that contains an API Request component saved before this change (so `data.node.version` is missing → reads as 0). Trigger the Update components modal. Confirm:
 
@@ -1367,7 +1367,7 @@ Open a flow that contains an API Request component saved before this change (so 
 
 Then click Update. Reopen the modal. The node should no longer appear in the outdated list.
 
-- [ ] **Step 4: Ask the user to commit**
+- [x] **Step 4: Ask the user to commit**
 
 ```bash
 git add <the component file>
@@ -1381,7 +1381,7 @@ git commit -m "feat: add changelog to API Request component"
 **Files:**
 - Create: `.claude/skills/langflow-component-authoring/SKILL.md`
 
-- [ ] **Step 1: Check current `.claude/skills/` structure and `.gitignore`**
+- [x] **Step 1: Check current `.claude/skills/` structure and `.gitignore`**
 
 ```bash
 ls -la .claude/skills/ 2>/dev/null
@@ -1390,7 +1390,7 @@ grep -E "^\.claude" .gitignore 2>/dev/null
 
 If `.claude/skills/` is git-ignored, ask the user before writing (the skill needs to be committed to be shared with other contributors). If `.claude/` itself is git-ignored, consider putting the skill under `docs/ai-skills/langflow-component-authoring.md` and adding a project-level pointer.
 
-- [ ] **Step 2: Write the skill file**
+- [x] **Step 2: Write the skill file**
 
 Create `.claude/skills/langflow-component-authoring/SKILL.md`:
 
@@ -1536,7 +1536,7 @@ Before finishing the task:
 - **When Langflow adds a new input type**, add a row to the "Input type picker" tables above as part of that change.
 ````
 
-- [ ] **Step 3: Ask the user to commit**
+- [x] **Step 3: Ask the user to commit**
 
 ```bash
 git add .claude/skills/langflow-component-authoring/SKILL.md
@@ -1547,28 +1547,28 @@ git commit -m "docs: add langflow-component-authoring Claude skill"
 
 ## Task 13: End-to-end verification
 
-- [ ] **Step 1: Backend test run**
+- [x] **Step 1: Backend test run**
 
 ```bash
 uv run --project src/lfx pytest src/lfx/tests/unit/custom src/lfx/tests/unit/template -x
 ```
 Expected: PASS.
 
-- [ ] **Step 2: Frontend test run**
+- [x] **Step 2: Frontend test run**
 
 ```bash
 cd src/frontend && npx vitest run src/CustomNodes/helpers src/modals/updateComponentModal
 ```
 Expected: PASS.
 
-- [ ] **Step 3: Frontend typecheck + build**
+- [x] **Step 3: Frontend typecheck + build**
 
 ```bash
 cd src/frontend && npx tsc --noEmit && npm run build
 ```
 Expected: PASS.
 
-- [ ] **Step 4: Manual UI walk-through**
+- [x] **Step 4: Manual UI walk-through**
 
 Start the dev server. Exercise each UI path called out in Task 9 Step 5. Confirm:
 
@@ -1578,11 +1578,11 @@ Start the dev server. Exercise each UI path called out in Task 9 Step 5. Confirm
 - Updating a node moves `data.node.version` forward (reopen the modal — the component should no longer be outdated).
 - A new component dragged from the sidebar gets `data.node.version` = template's version (no outdated state immediately after drop).
 
-- [ ] **Step 5: Update memory / notes**
+- [x] **Step 5: Update memory / notes**
 
 No auto-memory change needed (this is a project-scoped feature, not a user preference). If the user has observations they want remembered — e.g., a convention they want enforced — capture them then.
 
-- [ ] **Step 6: Final commit**
+- [x] **Step 6: Final commit**
 
 No code should change here. If everything passes, summarize results to the user and ask whether to open a PR (per user memory: no PRs to upstream; platform-multi-tenant is the effective main).
 

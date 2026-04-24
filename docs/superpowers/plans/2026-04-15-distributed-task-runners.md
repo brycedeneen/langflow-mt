@@ -22,11 +22,11 @@
 - Modify: `pyproject.toml`
 - Modify: `src/backend/base/pyproject.toml` (if the base package has its own)
 
-- [ ] **Step 1: Inspect current dependency section**
+- [x] **Step 1: Inspect current dependency section**
 
 Run: Read `pyproject.toml` and find the `[project]` or `[tool.poetry.dependencies]` section listing `celery`.
 
-- [ ] **Step 2: Replace celery with arq; add prometheus-client; ensure httpx present**
+- [x] **Step 2: Replace celery with arq; add prometheus-client; ensure httpx present**
 
 In `pyproject.toml` dependencies list:
 - Remove: `celery[redis] = "..."` (or equivalent pin)
@@ -36,17 +36,17 @@ In `pyproject.toml` dependencies list:
 
 Do the same edit in `src/backend/base/pyproject.toml` if that file also lists celery.
 
-- [ ] **Step 3: Regenerate the lockfile**
+- [x] **Step 3: Regenerate the lockfile**
 
 Run: `uv lock` (or `poetry lock --no-update` if the project uses Poetry — check the lockfile extension first).
 Expected: Lockfile updates, no resolution errors.
 
-- [ ] **Step 4: Verify install**
+- [x] **Step 4: Verify install**
 
 Run: `uv sync` (or `poetry install`).
 Expected: `arq`, `prometheus-client`, `httpx` installed; `celery` gone.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add pyproject.toml src/backend/base/pyproject.toml uv.lock
@@ -60,7 +60,7 @@ git commit -m "build(runs): swap celery for arq; add prometheus-client"
 **Files:**
 - Modify: `src/lfx/src/lfx/services/settings/base.py`
 
-- [ ] **Step 1: Write a failing test for the new settings fields**
+- [x] **Step 1: Write a failing test for the new settings fields**
 
 Create `src/backend/tests/unit/test_settings_runs.py`:
 
@@ -83,12 +83,12 @@ def test_runs_settings_defaults():
     assert s.org_default_max_concurrent_runs == 5
 ```
 
-- [ ] **Step 2: Run the test — must fail**
+- [x] **Step 2: Run the test — must fail**
 
 Run: `pytest src/backend/tests/unit/test_settings_runs.py -v`
 Expected: FAIL (`AttributeError` on first missing attribute).
 
-- [ ] **Step 3: Add the settings fields**
+- [x] **Step 3: Add the settings fields**
 
 In `src/lfx/src/lfx/services/settings/base.py`, inside the `Settings` class:
 
@@ -124,12 +124,12 @@ org_default_max_concurrent_runs: int = 5
 """Default per-organization concurrent run cap when not overridden."""
 ```
 
-- [ ] **Step 4: Run the test — must pass**
+- [x] **Step 4: Run the test — must pass**
 
 Run: `pytest src/backend/tests/unit/test_settings_runs.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/services/settings/base.py src/backend/tests/unit/test_settings_runs.py
@@ -144,12 +144,12 @@ git commit -m "feat(runs): add settings for distributed execution"
 - Modify: `src/backend/base/langflow/services/database/models/organization/model.py` (verify exact path — created in `6d926936ec2d_multi_tenant_foundation.py`)
 - Create: `src/backend/base/langflow/alembic/versions/{newrev}_organization_runs_limits.py`
 
-- [ ] **Step 1: Confirm the organization model path**
+- [x] **Step 1: Confirm the organization model path**
 
 Run: `ls src/backend/base/langflow/services/database/models/organization/`
 Expected: a `model.py` (or similar) containing `Organization`.
 
-- [ ] **Step 2: Write a failing model test**
+- [x] **Step 2: Write a failing model test**
 
 Create `src/backend/tests/unit/models/test_organization_runs_fields.py`:
 
@@ -162,12 +162,12 @@ def test_organization_runs_fields_exist():
     assert "runs_priority_tier" in fields
 ```
 
-- [ ] **Step 3: Run the test — must fail**
+- [x] **Step 3: Run the test — must fail**
 
 Run: `pytest src/backend/tests/unit/models/test_organization_runs_fields.py -v`
 Expected: FAIL.
 
-- [ ] **Step 4: Add fields to the Organization model**
+- [x] **Step 4: Add fields to the Organization model**
 
 In the `Organization` class (the `table=True` one):
 
@@ -190,7 +190,7 @@ class RunsPriorityTier(str, Enum):
 
 And type the field `runs_priority_tier: RunsPriorityTier = Field(default=RunsPriorityTier.DEFAULT, ...)`.
 
-- [ ] **Step 5: Generate Alembic migration**
+- [x] **Step 5: Generate Alembic migration**
 
 Run: `cd src/backend/base && alembic revision -m "organization runs limits"`
 Expected: A new file in `langflow/alembic/versions/` with `revision` set.
@@ -209,17 +209,17 @@ def downgrade() -> None:
         batch_op.drop_column("runs_max_concurrent")
 ```
 
-- [ ] **Step 6: Apply migration locally**
+- [x] **Step 6: Apply migration locally**
 
 Run: `cd src/backend/base && alembic upgrade head`
 Expected: Migration applies without error.
 
-- [ ] **Step 7: Run model + migration tests**
+- [x] **Step 7: Run model + migration tests**
 
 Run: `pytest src/backend/tests/unit/models/test_organization_runs_fields.py -v`
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/models/organization/model.py \
@@ -236,7 +236,7 @@ git commit -m "feat(runs): org-level concurrency and priority tier"
 - Modify: `src/backend/base/langflow/services/database/models/flow/model.py`
 - Create: `src/backend/base/langflow/alembic/versions/{newrev}_flow_run_config.py`
 
-- [ ] **Step 1: Write a failing model test**
+- [x] **Step 1: Write a failing model test**
 
 Create `src/backend/tests/unit/models/test_flow_run_config.py`:
 
@@ -249,12 +249,12 @@ def test_flow_run_config_fields():
         assert name in fields, f"missing {name}"
 ```
 
-- [ ] **Step 2: Run the test — must fail**
+- [x] **Step 2: Run the test — must fail**
 
 Run: `pytest src/backend/tests/unit/models/test_flow_run_config.py -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Add fields on `FlowBase`**
+- [x] **Step 3: Add fields on `FlowBase`**
 
 In `flow/model.py`, add to `FlowBase`:
 
@@ -266,7 +266,7 @@ max_retries: int = Field(default=3, sa_column_kwargs={"server_default": "3"})
 timeout_seconds: int = Field(default=600, sa_column_kwargs={"server_default": "600"})
 ```
 
-- [ ] **Step 4: Generate migration**
+- [x] **Step 4: Generate migration**
 
 Run: `cd src/backend/base && alembic revision -m "flow run config"`
 
@@ -287,12 +287,12 @@ def downgrade() -> None:
             batch_op.drop_column(col)
 ```
 
-- [ ] **Step 5: Apply, run tests**
+- [x] **Step 5: Apply, run tests**
 
 Run: `cd src/backend/base && alembic upgrade head && cd - && pytest src/backend/tests/unit/models/test_flow_run_config.py -v`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/models/flow/model.py \
@@ -311,7 +311,7 @@ git commit -m "feat(runs): per-flow run config (webhook, retries, timeout)"
 - Create: `src/backend/base/langflow/alembic/versions/{newrev}_create_flow_runs.py`
 - Create: `src/backend/tests/unit/models/test_flow_run.py`
 
-- [ ] **Step 1: Write failing model test**
+- [x] **Step 1: Write failing model test**
 
 In `test_flow_run.py`:
 
@@ -337,12 +337,12 @@ def test_flow_run_fields():
     assert required.issubset(FlowRun.model_fields)
 ```
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
 Run: `pytest src/backend/tests/unit/models/test_flow_run.py -v`
 Expected: `ImportError`.
 
-- [ ] **Step 3: Implement `FlowRun` model**
+- [x] **Step 3: Implement `FlowRun` model**
 
 `src/backend/base/langflow/services/database/models/flow_run/model.py`:
 
@@ -417,11 +417,11 @@ class FlowRunRead(FlowRunBase):
 
 Also create `__init__.py` re-exporting `FlowRun, RunStatus, TriggeredBy, FlowRunRead, FlowRunCreate`.
 
-- [ ] **Step 4: Register the model for Alembic**
+- [x] **Step 4: Register the model for Alembic**
 
 If the codebase has a central models import (e.g., `services/database/models/__init__.py`), add `from .flow_run.model import FlowRun`. Check existing pattern via `grep "from .flow" src/backend/base/langflow/services/database/models/__init__.py`.
 
-- [ ] **Step 5: Generate the migration**
+- [x] **Step 5: Generate the migration**
 
 Run: `cd src/backend/base && alembic revision --autogenerate -m "create flow_run"`
 
@@ -436,12 +436,12 @@ op.create_index("ix_flow_run_status_finished", "flow_run", ["status", "finished_
 
 `downgrade` drops the indexes then the table.
 
-- [ ] **Step 6: Apply and run tests**
+- [x] **Step 6: Apply and run tests**
 
 Run: `cd src/backend/base && alembic upgrade head && cd - && pytest src/backend/tests/unit/models/test_flow_run.py -v`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/models/flow_run/ \
@@ -461,7 +461,7 @@ git commit -m "feat(runs): flow_run model and migration"
 - Create: `src/backend/base/langflow/alembic/versions/{newrev}_create_flow_run_log.py`
 - Create: `src/backend/tests/unit/models/test_flow_run_log.py`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```python
 from langflow.services.database.models.flow_run_log.model import FlowRunLog, LogLevel
@@ -474,11 +474,11 @@ def test_flow_run_log_fields():
     assert required.issubset(FlowRunLog.model_fields)
 ```
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
 Run: `pytest src/backend/tests/unit/models/test_flow_run_log.py -v`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `model.py`:
 
@@ -511,7 +511,7 @@ class FlowRunLog(SQLModel, table=True):
     extra: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON))
 ```
 
-- [ ] **Step 4: Migration**
+- [x] **Step 4: Migration**
 
 Run: `cd src/backend/base && alembic revision --autogenerate -m "create flow_run_log"`
 
@@ -523,7 +523,7 @@ sa.ForeignKeyConstraint(["run_id"], ["flow_run.id"], ondelete="CASCADE"),
 
 Add: `op.create_index("ix_flow_run_log_run_ts", "flow_run_log", ["run_id", "ts"])`.
 
-- [ ] **Step 5: Apply, test, commit**
+- [x] **Step 5: Apply, test, commit**
 
 ```bash
 cd src/backend/base && alembic upgrade head && cd -
@@ -549,7 +549,7 @@ git commit -m "feat(runs): flow_run_log model and migration"
 - Modify: `src/backend/base/langflow/services/manager.py` (or wherever services are registered)
 - Create: `src/backend/tests/unit/services/test_redis_service.py`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```python
 import pytest
@@ -576,11 +576,11 @@ async def redis_service():
     await svc.stop()
 ```
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
 Run: `pytest src/backend/tests/unit/services/test_redis_service.py -v`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `service.py`:
 
@@ -637,16 +637,16 @@ def get_redis_service() -> "RedisService":
     return get_service(ServiceType.REDIS_SERVICE)
 ```
 
-- [ ] **Step 4: Ensure Redis is running for the test**
+- [x] **Step 4: Ensure Redis is running for the test**
 
 If no Redis in CI yet, document that `redis-server` on `6379` is required. Follow existing pattern — search `docker-compose.test.yml` or check if tests already assume Redis. Add Redis to `deploy/docker-compose.yml`'s test profile if needed.
 
-- [ ] **Step 5: Run — must pass**
+- [x] **Step 5: Run — must pass**
 
 Run: `pytest src/backend/tests/unit/services/test_redis_service.py -v`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/redis/ \
@@ -667,7 +667,7 @@ git commit -m "feat(runs): redis service"
 - Create: `src/backend/base/langflow/services/runs/concurrency.py`
 - Create: `src/backend/tests/unit/services/runs/test_concurrency.py`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```python
 import pytest
@@ -692,11 +692,11 @@ async def test_release_never_goes_negative(redis_service):
     assert await conc.try_acquire(org_id, limit=1) is True
 ```
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
 Run: `pytest src/backend/tests/unit/services/runs/test_concurrency.py -v`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `concurrency.py`:
 
@@ -749,12 +749,12 @@ class OrgConcurrency:
         return int(v) if v else 0
 ```
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
 Run: `pytest src/backend/tests/unit/services/runs/test_concurrency.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/runs/ \
@@ -770,7 +770,7 @@ git commit -m "feat(runs): per-org concurrency via redis lua"
 - Create: `src/backend/base/langflow/services/runs/payload.py`
 - Create: `src/backend/tests/unit/services/runs/test_payload.py`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```python
 import json, pytest
@@ -799,11 +799,11 @@ async def test_large_payload_offloads(storage_service):
 
 `storage_service` fixture: use the existing `StorageService` with a local tmpdir backend.
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
 Run: `pytest src/backend/tests/unit/services/runs/test_payload.py -v`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `payload.py`:
 
@@ -842,12 +842,12 @@ class PayloadOffloader:
 
 Note: `build_full_path` and `save_file` signatures are from `storage/service.py`. If the storage service's `flow_id` param is strictly a real flow id (e.g., validated elsewhere), introduce a dedicated "bucket" argument or use a separate subdirectory convention by prefixing `file_name` with `run_{run_id}/`. Check the `local.py` and `s3.py` implementations and adapt accordingly.
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
 Run: `pytest src/backend/tests/unit/services/runs/test_payload.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/runs/payload.py \
@@ -865,7 +865,7 @@ git commit -m "feat(runs): payload offload helper"
 - Create: `src/backend/base/langflow/services/runs/enqueue.py`
 - Create: `src/backend/tests/unit/services/runs/test_enqueue.py`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```python
 import pytest
@@ -890,11 +890,11 @@ async def test_enqueue_persists_row_and_dispatches(db_session, redis_service, or
 
 Use existing `db_session` fixture (check conftest.py for actual name). `org_and_flow` creates an Organization with default tier and a Flow.
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
 Run: `pytest src/backend/tests/unit/services/runs/test_enqueue.py -v`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `enqueue.py`:
 
@@ -961,12 +961,12 @@ class RunEnqueuer:
         return run
 ```
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
 Run: `pytest src/backend/tests/unit/services/runs/test_enqueue.py -v`
 Expected: PASS. (If Arq list-name differs, adjust assertion to match `arq:queue:<name>`.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/runs/enqueue.py \
@@ -983,7 +983,7 @@ git commit -m "feat(runs): enqueue service persists row and dispatches arq job"
 - Modify: `src/backend/base/langflow/api/v2/__init__.py` (or wherever v2 routers are registered — grep for existing v2 router includes)
 - Create: `src/backend/tests/api/v2/test_runs_enqueue.py`
 
-- [ ] **Step 1: Failing API test**
+- [x] **Step 1: Failing API test**
 
 ```python
 import pytest
@@ -998,11 +998,11 @@ async def test_post_runs_returns_queued(client, api_key_headers, seeded_flow):
     assert "run_id" in data and "queued_at" in data
 ```
 
-- [ ] **Step 2: Run — must fail (404)**
+- [x] **Step 2: Run — must fail (404)**
 
 Run: `pytest src/backend/tests/api/v2/test_runs_enqueue.py -v`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `runs.py`:
 
@@ -1090,12 +1090,12 @@ async def get_current_org():
 
 Register the router: add to the v2 router aggregation (follow the pattern in `src/backend/base/langflow/api/v2/__init__.py` where other v2 routers are `include_router`ed).
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
 Run: `pytest src/backend/tests/api/v2/test_runs_enqueue.py -v`
 Expected: PASS with `LANGFLOW_DISTRIBUTED_EXECUTION=true` in the test env or monkeypatched settings.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v2/runs.py \
@@ -1113,7 +1113,7 @@ git commit -m "feat(runs): POST /api/v2/runs enqueues jobs"
 - Modify: `src/backend/base/langflow/api/v2/runs.py`
 - Create: `src/backend/tests/api/v2/test_runs_read.py`
 
-- [ ] **Step 1: Failing tests**
+- [x] **Step 1: Failing tests**
 
 ```python
 import pytest
@@ -1137,11 +1137,11 @@ async def test_list_runs_filters_by_flow(client, api_key_headers, seeded_flow, e
     assert any(r["id"] == str(enqueued_run.id) for r in resp.json()["items"])
 ```
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
 Run: `pytest src/backend/tests/api/v2/test_runs_read.py -v`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Append to `runs.py`:
 
@@ -1206,11 +1206,11 @@ def _serialize(r: FlowRun) -> dict:
     }
 ```
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
 Run: `pytest src/backend/tests/api/v2/test_runs_read.py -v`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v2/runs.py src/backend/tests/api/v2/test_runs_read.py
@@ -1226,7 +1226,7 @@ git commit -m "feat(runs): read and list endpoints"
 - Modify: `src/backend/base/langflow/services/runs/concurrency.py` (add cancel helper — or create `cancel.py`)
 - Create: `src/backend/tests/api/v2/test_runs_cancel.py`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```python
 import pytest
@@ -1238,9 +1238,9 @@ async def test_cancel_sets_flag_and_redis(client, api_key_headers, enqueued_run,
     assert await redis_service.client.get(f"run:cancel:{enqueued_run.id}") == b"1"
 ```
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `src/backend/base/langflow/services/runs/cancel.py`:
 
@@ -1285,11 +1285,11 @@ async def cancel_run(
     return {"status": run.status.value}
 ```
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
 Run: `pytest src/backend/tests/api/v2/test_runs_cancel.py -v`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/runs/cancel.py \
@@ -1306,7 +1306,7 @@ git commit -m "feat(runs): cancel endpoint + redis cancel signal"
 - Modify: `src/backend/base/langflow/api/v2/runs.py`
 - Create: `src/backend/tests/api/v2/test_runs_logs.py`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```python
 import pytest
@@ -1322,9 +1322,9 @@ async def test_logs_paginated(client, api_key_headers, run_with_logs):
 
 `run_with_logs` fixture inserts ~5 `FlowRunLog` rows for an existing run.
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 from langflow.services.database.models.flow_run_log.model import FlowRunLog
@@ -1355,9 +1355,9 @@ async def get_run_logs(
     }
 ```
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v2/runs.py src/backend/tests/api/v2/test_runs_logs.py
@@ -1375,7 +1375,7 @@ git commit -m "feat(runs): logs endpoint"
 - Create: `src/backend/base/langflow/worker_app/settings.py`
 - Create: `src/backend/tests/unit/worker/test_worker_settings.py`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```python
 from langflow.worker_app.settings import WorkerSettings
@@ -1388,9 +1388,9 @@ def test_worker_settings_registers_tasks():
     assert any(cron.name == "retention_sweep" for cron in WorkerSettings.cron_jobs)
 ```
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
-- [ ] **Step 3: Implement (stubs; real bodies come in later tasks)**
+- [x] **Step 3: Implement (stubs; real bodies come in later tasks)**
 
 `settings.py`:
 
@@ -1435,11 +1435,11 @@ class WorkerSettings:
     max_jobs = _settings.worker_concurrency
 ```
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
 Run: `pytest src/backend/tests/unit/worker/test_worker_settings.py -v`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/worker_app/ \
@@ -1455,7 +1455,7 @@ git commit -m "feat(runs): worker settings skeleton"
 - Create: `src/backend/base/langflow/worker_app/log_sink.py`
 - Create: `src/backend/tests/unit/worker/test_log_sink.py`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```python
 import asyncio, pytest, logging
@@ -1476,9 +1476,9 @@ async def test_log_sink_flushes(db_session, flow_run):
     assert len(rows) == 5
 ```
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 from __future__ import annotations
@@ -1558,9 +1558,9 @@ class RunLogSink:
             await self._task
 ```
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/worker_app/log_sink.py \
@@ -1577,7 +1577,7 @@ git commit -m "feat(runs): batched run-log sink"
 - Modify: `src/backend/base/langflow/worker_app/settings.py` (replace stub)
 - Create: `src/backend/tests/integration/worker/test_execute_run.py`
 
-- [ ] **Step 1: Failing integration test**
+- [x] **Step 1: Failing integration test**
 
 ```python
 import pytest, asyncio
@@ -1598,9 +1598,9 @@ async def test_execute_run_happy_path(db_session, redis_service, arq_worker_ctx,
 
 `enqueued_run` fixture seeds a queued `FlowRun` pointing at a trivial flow that returns a deterministic payload. Use an existing test-flow fixture if one exists (check `src/backend/tests/` for flow fixtures — `starter_projects` JSON or similar).
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `execute.py`:
 
@@ -1824,11 +1824,11 @@ Wire the real function into `WorkerSettings.functions` in `worker_app/settings.p
 
 **Note to implementer:** `Graph.from_payload` is illustrative. The current code in `api/v1/endpoints.py` at `_run_flow_internal` shows the real graph construction path; copy that pattern (likely `Graph.from_payload(flow.data)` or similar). If there is a helper already that builds a Graph from a `Flow`, reuse it.
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
 Run: `pytest src/backend/tests/integration/worker/test_execute_run.py -v`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/worker_app/execute.py \
@@ -1844,7 +1844,7 @@ git commit -m "feat(runs): execute_run worker task"
 **Files:**
 - Create: `src/backend/tests/integration/worker/test_execute_run_cancel.py`
 
-- [ ] **Step 1: Write test**
+- [x] **Step 1: Write test**
 
 ```python
 import asyncio, pytest
@@ -1865,9 +1865,9 @@ async def test_execute_run_honors_cancel(db_session, redis_service, arq_worker_c
 
 `slow_enqueued_run` wraps a flow that awaits e.g. 5s (a Python component with `asyncio.sleep(5)`).
 
-- [ ] **Step 2: Run — must pass** (if not, debug the cancel_watcher / executor cancel path)
+- [x] **Step 2: Run — must pass** (if not, debug the cancel_watcher / executor cancel path)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/backend/tests/integration/worker/test_execute_run_cancel.py
@@ -1881,7 +1881,7 @@ git commit -m "test(runs): cancellation path"
 **Files:**
 - Create: `src/backend/tests/integration/worker/test_execute_run_timeout.py`
 
-- [ ] **Step 1: Write test**
+- [x] **Step 1: Write test**
 
 ```python
 import pytest
@@ -1898,9 +1898,9 @@ async def test_execute_run_times_out(db_session, redis_service, arq_worker_ctx, 
 
 Fixture `enqueued_run_with_short_timeout`: flow with `timeout_seconds=1` and a 5s sleep component.
 
-- [ ] **Step 2: Run — must pass**
+- [x] **Step 2: Run — must pass**
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/backend/tests/integration/worker/test_execute_run_timeout.py
@@ -1914,7 +1914,7 @@ git commit -m "test(runs): timeout path"
 **Files:**
 - Create: `src/backend/tests/integration/worker/test_execute_run_concurrency.py`
 
-- [ ] **Step 1: Write test**
+- [x] **Step 1: Write test**
 
 ```python
 import pytest
@@ -1938,9 +1938,9 @@ async def test_over_cap_requeues(db_session, redis_service, arq_worker_ctx, enqu
         or await redis_service.client.llen(b"arq:queue:runs:default") >= 1
 ```
 
-- [ ] **Step 2: Run — must pass**
+- [x] **Step 2: Run — must pass**
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/backend/tests/integration/worker/test_execute_run_concurrency.py
@@ -1954,7 +1954,7 @@ git commit -m "test(runs): cap-exceeded re-enqueue"
 **Files:**
 - Create: `src/backend/tests/integration/worker/test_execute_run_retry.py`
 
-- [ ] **Step 1: Write test**
+- [x] **Step 1: Write test**
 
 ```python
 import pytest
@@ -1971,9 +1971,9 @@ async def test_auto_retry_reenqueues(db_session, redis_service, arq_worker_ctx, 
 
 `failing_run_with_retry`: flow that raises and has `auto_retry=True, max_retries=3`.
 
-- [ ] **Step 2: Run — must pass**
+- [x] **Step 2: Run — must pass**
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/backend/tests/integration/worker/test_execute_run_retry.py
@@ -1989,7 +1989,7 @@ git commit -m "test(runs): auto-retry re-enqueue"
 - Modify: `src/backend/base/langflow/worker_app/settings.py`
 - Create: `src/backend/tests/integration/worker/test_reaper.py`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```python
 import pytest
@@ -2005,9 +2005,9 @@ async def test_reaper_marks_stale_running_failed(db_session, arq_worker_ctx, run
     assert row.error["type"] == "worker_lost"
 ```
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `reaper.py`:
 
@@ -2047,9 +2047,9 @@ async def reap_lost_runs(ctx) -> None:
 
 Replace the stub in `worker_app/settings.py` with `from .reaper import reap_lost_runs`.
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/worker_app/reaper.py \
@@ -2067,7 +2067,7 @@ git commit -m "feat(runs): reaper marks lost runs failed"
 - Modify: `src/backend/base/langflow/worker_app/settings.py`
 - Create: `src/backend/tests/integration/worker/test_retention.py`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```python
 import pytest
@@ -2084,9 +2084,9 @@ async def test_retention_deletes_old_runs(db_session, arq_worker_ctx, very_old_f
 
 `very_old_finished_run` fixture: creates a `succeeded` run with `finished_at` set 48h ago.
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 from __future__ import annotations
@@ -2110,9 +2110,9 @@ async def retention_sweep(ctx) -> None:
 
 Wire into `WorkerSettings`.
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/worker_app/retention.py \
@@ -2131,7 +2131,7 @@ git commit -m "feat(runs): retention sweep"
 - Create: `src/backend/base/langflow/services/runs/webhook_sign.py`
 - Create: `src/backend/tests/unit/services/runs/test_webhook_sign.py`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```python
 from langflow.services.runs.webhook_sign import sign_body, verify_body
@@ -2145,9 +2145,9 @@ def test_sign_and_verify_roundtrip():
     assert not verify_body(body, secret, "sha256=deadbeef")
 ```
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 from __future__ import annotations
@@ -2165,9 +2165,9 @@ def verify_body(body: bytes, secret: str, signature: str) -> bool:
     return hmac.compare_digest(expected, signature)
 ```
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/runs/webhook_sign.py \
@@ -2184,7 +2184,7 @@ git commit -m "feat(runs): webhook HMAC signing"
 - Modify: `src/backend/base/langflow/worker_app/settings.py`
 - Create: `src/backend/tests/integration/worker/test_deliver_webhook.py`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```python
 import pytest, json, respx, httpx
@@ -2218,9 +2218,9 @@ async def test_deliver_webhook_failure_schedules_retry(db_session, redis_service
 
 Add `respx` to dev dependencies (httpx mocking) if not present.
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 from __future__ import annotations
@@ -2324,9 +2324,9 @@ async def deliver_webhook(ctx, run_id: str, event: str, attempt: int = 0) -> Non
 
 Wire into `WorkerSettings.functions`.
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/worker_app/webhook.py \
@@ -2348,7 +2348,7 @@ git commit -m "feat(runs): webhook delivery with retry + delivery state"
 - Modify: `src/backend/base/langflow/worker_app/execute.py` to increment counters/histograms
 - Create: `src/backend/tests/unit/services/runs/test_metrics.py`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```python
 from langflow.services.runs.metrics import RUNS_TOTAL, RUN_DURATION, QUEUE_DEPTH, ACTIVE_RUNS, WEBHOOK_DELIVERY_TOTAL
@@ -2358,9 +2358,9 @@ def test_metrics_registered():
         assert m is not None
 ```
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 from prometheus_client import Counter, Histogram, Gauge
@@ -2381,9 +2381,9 @@ from prometheus_client import make_asgi_app
 app.mount("/metrics", make_asgi_app())
 ```
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/runs/metrics.py \
@@ -2404,7 +2404,7 @@ git commit -m "feat(runs): prometheus metrics on API and worker"
 - Modify: scheduled-trigger dispatch site (grep for `schedule` or `cron` trigger-handler references)
 - Create: `src/backend/tests/integration/triggers/test_trigger_dispatch.py`
 
-- [ ] **Step 1: Write integration tests**
+- [x] **Step 1: Write integration tests**
 
 ```python
 import pytest
@@ -2422,9 +2422,9 @@ async def test_webhook_trigger_in_process_when_flag_off(client, settings_overrid
     assert resp.status_code == 200  # existing synchronous behavior
 ```
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In each trigger handler (webhook, schedule, MCP), add a branch at the top that checks `settings.distributed_execution`. When true, call `RunEnqueuer.enqueue(triggered_by=...)` and return a 202 `{run_id}`. When false, fall through to existing `run_graph_internal` path.
 
@@ -2445,9 +2445,9 @@ if settings.distributed_execution:
 
 Same branch inserted in the schedule dispatcher and MCP tool execution path.
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/endpoints.py \
@@ -2466,7 +2466,7 @@ git commit -m "feat(runs): route webhook/schedule/MCP through queue when flag is
 - Create: `src/backend/base/langflow/cli/worker_cmd.py`
 - Create: `src/backend/tests/unit/cli/test_worker_cmd.py`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```python
 from typer.testing import CliRunner
@@ -2478,9 +2478,9 @@ def test_worker_help_lists_subcommand():
     assert "queue" in result.output
 ```
 
-- [ ] **Step 2: Run — must fail**
+- [x] **Step 2: Run — must fail**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `cli/worker_cmd.py`:
 
@@ -2513,9 +2513,9 @@ from langflow.cli.worker_cmd import worker_cmd
 app.command(name="worker", help="Run a distributed flow-execution worker")(worker_cmd)
 ```
 
-- [ ] **Step 4: Run — must pass**
+- [x] **Step 4: Run — must pass**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/__main__.py \
@@ -2533,11 +2533,11 @@ git commit -m "feat(runs): langflow worker CLI subcommand"
 **Files:**
 - Modify: `deploy/docker-compose.yml`
 
-- [ ] **Step 1: Read the current file**
+- [x] **Step 1: Read the current file**
 
 Run: `cat deploy/docker-compose.yml` and note the existing `langflow`, `celeryworker`, `rabbitmq`, `flower`, `postgres`, `redis`, `minio` services (if present).
 
-- [ ] **Step 2: Edit**
+- [x] **Step 2: Edit**
 
 Remove: `celeryworker`, `rabbitmq`, `flower` services and any `depends_on` references to them.
 
@@ -2584,11 +2584,11 @@ Add:
 
 Ensure `redis` is present; ensure `minio` is present (for payload offload in self-hosted mode).
 
-- [ ] **Step 3: Sanity check**
+- [x] **Step 3: Sanity check**
 
 Run: `docker compose -f deploy/docker-compose.yml config` — must parse without errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add deploy/docker-compose.yml
@@ -2679,7 +2679,7 @@ git commit -m "chore(runs): helm worker deployment + KEDA ScaledObject"
 - Modify: `src/backend/base/langflow/services/task/backends/` — remove celery backend file
 - Modify: `src/lfx/src/lfx/services/settings/base.py` — remove `celery_enabled` setting
 
-- [ ] **Step 1: Grep for remaining references**
+- [x] **Step 1: Grep for remaining references**
 
 Run: `grep -r "celery" src/backend src/lfx --include="*.py"`
 Expected: zero hits after deletions.
@@ -2687,25 +2687,25 @@ Expected: zero hits after deletions.
 Run: `grep -r "from langflow.worker" src/backend --include="*.py"`
 Expected: zero hits (the Arq worker lives in `worker_app`).
 
-- [ ] **Step 2: Delete files and update imports**
+- [x] **Step 2: Delete files and update imports**
 
 Remove the files listed above. Update any `__init__.py` that imported them.
 
 For `task/service.py`: keep `TaskService` as a thin wrapper over `AnyIOBackend` only, or remove the abstraction and inline `anyio.create_task_group` at the single remaining call site. Decide based on how many callers exist (`grep -r "TaskService" src/backend --include="*.py"`).
 
-- [ ] **Step 3: Remove `celery_enabled` setting**
+- [x] **Step 3: Remove `celery_enabled` setting**
 
 ```python
 # delete from Settings:
 # celery_enabled: bool = False
 ```
 
-- [ ] **Step 4: Run the full test suite**
+- [x] **Step 4: Run the full test suite**
 
 Run: `pytest src/backend/tests -x`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -u

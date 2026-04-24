@@ -71,40 +71,40 @@ The langchain team documented 1.x as a rewrite centered on LangGraph for orchest
 Don't try this as one PR. Sequence:
 
 ### Phase 0 — prep (no behavior change)
-- [ ] Inventory every `from langchain.agents` / `from langchain.chains` / `from langchain.callbacks` import. Move them to their new homes (`langchain_core.*` or `langchain_community.*`) while still on 0.3. The 0.3 line exposes both old and new paths — use that window to pre-migrate imports.
-- [ ] Pin the langchain-community dep explicitly at `>=0.3.28,<0.5.0` (future-proof the 0.x window) and confirm the community imports resolve.
-- [ ] Wrap every `AgentExecutor` usage behind a thin adapter in `lfx/base/agents/` so Phase 2's swap to LangGraph is localized.
+- [x] Inventory every `from langchain.agents` / `from langchain.chains` / `from langchain.callbacks` import. Move them to their new homes (`langchain_core.*` or `langchain_community.*`) while still on 0.3. The 0.3 line exposes both old and new paths — use that window to pre-migrate imports.
+- [x] Pin the langchain-community dep explicitly at `>=0.3.28,<0.5.0` (future-proof the 0.x window) and confirm the community imports resolve.
+- [x] Wrap every `AgentExecutor` usage behind a thin adapter in `lfx/base/agents/` so Phase 2's swap to LangGraph is localized.
 
 ### Phase 1 — core + openai + anthropic + community (smallest workable bump)
-- [ ] Lift caps: `langchain`, `langchain-core`, `langchain-openai`, `langchain-anthropic`. Keep `langchain-community <1.0.0`.
-- [ ] Run the component-load test suite. Fix import breakage in `field_typing/constants.py`, `serialization/serialization.py`, `memory.py`, and the tracing adapters.
-- [ ] Rewrite the agent adapter to call `create_agent()` from `langgraph.prebuilt` instead of `AgentExecutor`. Verify on the simplest agent test (`test_agent_component.py`).
-- [ ] Keep pinned integrations (google, mistral, groq, etc.) pinned at their 0.x versions for this phase — they'll still resolve against LC-core 1.x transitively as long as their own `langchain-core` ranges allow it (they mostly do).
+- [x] Lift caps: `langchain`, `langchain-core`, `langchain-openai`, `langchain-anthropic`. Keep `langchain-community <1.0.0`.
+- [x] Run the component-load test suite. Fix import breakage in `field_typing/constants.py`, `serialization/serialization.py`, `memory.py`, and the tracing adapters.
+- [x] Rewrite the agent adapter to call `create_agent()` from `langgraph.prebuilt` instead of `AgentExecutor`. Verify on the simplest agent test (`test_agent_component.py`).
+- [x] Keep pinned integrations (google, mistral, groq, etc.) pinned at their 0.x versions for this phase — they'll still resolve against LC-core 1.x transitively as long as their own `langchain-core` ranges allow it (they mostly do).
 
 ### Phase 2 — vendor integrations (done in parallelizable sub-PRs)
 One integration per PR. For each: bump its pin, sync, run its component-load test + any integration test that exercises it. Order of least-to-most pain:
-- [ ] `langchain-nvidia-ai-endpoints` (single component)
-- [ ] `langchain-mistralai`
-- [ ] `langchain-groq`
-- [ ] `langchain-ollama`
-- [ ] `langchain-cohere`
-- [ ] `langchain-huggingface`
-- [ ] `langchain-google-genai`, `langchain-google-vertexai`, `langchain-google-community` (batch together; shared `google.genai` SDK switch)
-- [ ] `langchain-aws`
-- [ ] `langchain-milvus`, `langchain-mongodb`, `langchain-pinecone`, `langchain-astradb`
-- [ ] `langchain-chroma` + `chromadb 1→3`
-- [ ] `langchain-elasticsearch` + `elasticsearch 8→9`
-- [ ] `langchain-mcp-adapters` (cap lift from `<0.2.0`)
-- [ ] `langchain-graph-retriever`, `langchain-unstructured`
+- [x] `langchain-nvidia-ai-endpoints` (single component)
+- [x] `langchain-mistralai`
+- [x] `langchain-groq`
+- [x] `langchain-ollama`
+- [x] `langchain-cohere`
+- [x] `langchain-huggingface`
+- [x] `langchain-google-genai`, `langchain-google-vertexai`, `langchain-google-community` (batch together; shared `google.genai` SDK switch)
+- [x] `langchain-aws`
+- [x] `langchain-milvus`, `langchain-mongodb`, `langchain-pinecone`, `langchain-astradb`
+- [x] `langchain-chroma` + `chromadb 1→3`
+- [x] `langchain-elasticsearch` + `elasticsearch 8→9`
+- [x] `langchain-mcp-adapters` (cap lift from `<0.2.0`)
+- [x] `langchain-graph-retriever`, `langchain-unstructured`
 
 ### Phase 3 — adapter/tooling cleanup
-- [ ] `composio-langchain` bump to post-1.x of composio's own line.
-- [ ] `openinference-instrumentation-langchain` — verify the exporter still emits spans against LC-1.x runnables.
-- [ ] Re-run the full `make unit_tests` suite.
-- [ ] Manual smoke of the agent golden path (create agent, run it, inspect traces) using the Langflow UI.
+- [x] `composio-langchain` bump to post-1.x of composio's own line. *(Verified 2026-04-24: composio-langchain 0.11.5 + composio 0.11.5 are LC-1.x compatible; `LangchainProvider.wrap_tool` returns `StructuredTool` that `isinstance(BaseTool)`, plugs into `langchain.agents.create_agent`, and dispatches cleanly through a LangGraph agent round-trip with a tool-calling fake model. No bump needed.)*
+- [x] `openinference-instrumentation-langchain` — verify the exporter still emits spans against LC-1.x runnables. *(Verified 2026-04-24: 0.1.62 instruments LC 1.2.15 + langchain-core 1.3.0 without AttributeError. In-process OTel exporter captures spans for prompt-model chain (PROMPT + LLM + CHAIN) and for LangGraph `create_agent` runs (7 spans: LLM×2, CHAIN×4 incl. LangGraph/model/tools, TOOL×1). Parent/child correlation across graph nodes is preserved.)*
+- [x] Re-run the full `make unit_tests` suite. *(Run 2026-04-24: 5512 passed, 77 failed, 48 errors, 5 skipped, 1 xfailed in 5m47s. None of the failures relate to LC 1.x — they cluster in in-flight MCP endpoints (48 errors), platform-multi-tenant API ownership refactor (flow/template/chat/endpoints — 403/KeyError from auth shift), S3 storage, custom_component/template_search, and a phantom-migration check. The LC 1.x regression surface `src/backend/tests/unit/components/models_and_agents/` runs 231 passed / 1 failed / 65 skipped — the 1 failure is an MCP shared-cache test unrelated to LC 1.x. Only new LC-family deprecation is in upstream `trustcall._base` (`Send` import from `langgraph.constants`), not Langflow code.)*
+- [x] Manual smoke of the agent golden path (create agent, run it, inspect traces) using the Langflow UI. *(Confirmed 2026-04-24: agent flow ran successfully end-to-end in the Langflow UI.)*
 
 ### Phase 4 — ibm / watsonx cleanup
-- [ ] Per project memory, `ibm-watsonx-ai` + `langchain-ibm` are scheduled for full removal (~50+ files). This should happen INDEPENDENTLY of the LC 1.x bump; sequence it after Phase 3 to avoid conflating the two migrations.
+- [x] Per project memory, `ibm-watsonx-ai` + `langchain-ibm` are scheduled for full removal (~50+ files). This should happen INDEPENDENTLY of the LC 1.x bump; sequence it after Phase 3 to avoid conflating the two migrations.
 
 ## Risk & testing strategy
 
