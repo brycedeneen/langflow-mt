@@ -10,17 +10,20 @@ these models must stay shape-compatible with that migration:
   on both FKs.
 """
 
-from __future__ import annotations
-
 from datetime import datetime, timezone
 from enum import Enum
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import sqlalchemy as sa
 from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, Index, String, Text, func, text
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 
 from langflow.schema.serialize import UUIDstr
+
+if TYPE_CHECKING:
+    from langflow.services.database.models.flow.model import Flow
+    from langflow.services.database.models.template.model import Template
 
 
 class TagColor(str, Enum):
@@ -44,6 +47,30 @@ _COLOR_CHECK_CLAUSE = "color IN (" + ", ".join(f"'{c}'" for c in _PALETTE) + ")"
 
 def _utc_now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+class FlowTag(SQLModel, table=True):  # type: ignore[call-arg]
+    __tablename__ = "flow_tag"
+    __table_args__ = (Index("ix_flow_tag_tag_id", "tag_id"),)
+
+    flow_id: UUIDstr = Field(
+        sa_column=Column(sa.Uuid(), ForeignKey("flow.id", ondelete="CASCADE"), primary_key=True)
+    )
+    tag_id: UUIDstr = Field(
+        sa_column=Column(sa.Uuid(), ForeignKey("tag.id", ondelete="CASCADE"), primary_key=True)
+    )
+
+
+class TemplateTag(SQLModel, table=True):  # type: ignore[call-arg]
+    __tablename__ = "template_tag"
+    __table_args__ = (Index("ix_template_tag_tag_id", "tag_id"),)
+
+    template_id: UUIDstr = Field(
+        sa_column=Column(sa.Uuid(), ForeignKey("template.id", ondelete="CASCADE"), primary_key=True)
+    )
+    tag_id: UUIDstr = Field(
+        sa_column=Column(sa.Uuid(), ForeignKey("tag.id", ondelete="CASCADE"), primary_key=True)
+    )
 
 
 class Tag(SQLModel, table=True):  # type: ignore[call-arg]
@@ -78,26 +105,5 @@ class Tag(SQLModel, table=True):  # type: ignore[call-arg]
         ),
     )
 
-
-class FlowTag(SQLModel, table=True):  # type: ignore[call-arg]
-    __tablename__ = "flow_tag"
-    __table_args__ = (Index("ix_flow_tag_tag_id", "tag_id"),)
-
-    flow_id: UUIDstr = Field(
-        sa_column=Column(sa.Uuid(), ForeignKey("flow.id", ondelete="CASCADE"), primary_key=True)
-    )
-    tag_id: UUIDstr = Field(
-        sa_column=Column(sa.Uuid(), ForeignKey("tag.id", ondelete="CASCADE"), primary_key=True)
-    )
-
-
-class TemplateTag(SQLModel, table=True):  # type: ignore[call-arg]
-    __tablename__ = "template_tag"
-    __table_args__ = (Index("ix_template_tag_tag_id", "tag_id"),)
-
-    template_id: UUIDstr = Field(
-        sa_column=Column(sa.Uuid(), ForeignKey("template.id", ondelete="CASCADE"), primary_key=True)
-    )
-    tag_id: UUIDstr = Field(
-        sa_column=Column(sa.Uuid(), ForeignKey("tag.id", ondelete="CASCADE"), primary_key=True)
-    )
+    flows: list["Flow"] = Relationship(back_populates="tags", link_model=FlowTag)
+    templates: list["Template"] = Relationship(back_populates="tags", link_model=TemplateTag)

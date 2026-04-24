@@ -19,8 +19,11 @@ from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
 from langflow.schema.data import Data
 
+from langflow.services.database.models.tag.model import FlowTag
+
 if TYPE_CHECKING:
     from langflow.services.database.models.folder.model import Folder
+    from langflow.services.database.models.tag.model import Tag
     from langflow.services.database.models.user.model import User
 
 HEX_COLOR_LENGTH = 7
@@ -219,6 +222,7 @@ class Flow(FlowBase, table=True):  # type: ignore[call-arg]
     folder_id: UUID | None = Field(default=None, foreign_key="folder.id", nullable=True, index=True)
     fs_path: str | None = Field(default=None, nullable=True)
     folder: Optional["Folder"] = Relationship(back_populates="flows")
+    tags: list["Tag"] = Relationship(back_populates="flows", link_model=FlowTag)
 
     def to_data(self):
         serialized = self.model_dump()

@@ -16,8 +16,10 @@ from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
     from langflow.services.database.models.category.model import Category
+    from langflow.services.database.models.tag.model import Tag
 
 from langflow.services.database.models.category.model import CategoryRead, TemplateCategory
+from langflow.services.database.models.tag.model import TemplateTag
 
 
 def _utc_now() -> datetime:
@@ -106,6 +108,7 @@ class Template(SQLModel, table=True):
     categories: list["Category"] = Relationship(
         back_populates="templates", link_model=TemplateCategory
     )
+    tags: list["Tag"] = Relationship(back_populates="templates", link_model=TemplateTag)
 
 
 # ---------------------------- Pydantic schemas ----------------------------
