@@ -715,7 +715,6 @@ def _prepare_install_test_env(monkeypatch, tmp_path, filename="cursor.json"):
     monkeypatch.setattr("langflow.api.v1.mcp_projects.get_project_sse_url", fake_sse)
 
     class DummyAuth:
-        AUTO_LOGIN = True
         SUPERUSER = True
 
     dummy_settings = SimpleNamespace(host="localhost", port=9999, mcp_composer_enabled=False)

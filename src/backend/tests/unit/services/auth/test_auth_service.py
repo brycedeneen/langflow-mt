@@ -23,7 +23,6 @@ from pydantic import SecretStr
 def auth_settings(tmp_path) -> AuthSettings:
     settings = AuthSettings(CONFIG_DIR=str(tmp_path))
     settings.SECRET_KEY = SecretStr("unit-test-secret")
-    settings.AUTO_LOGIN = False
     settings.WEBHOOK_AUTH_ENABLE = False
     settings.ACCESS_TOKEN_EXPIRE_SECONDS = 60
     settings.REFRESH_TOKEN_EXPIRE_SECONDS = 120

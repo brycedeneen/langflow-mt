@@ -200,7 +200,6 @@ class TestVersionPayload:
             platform="Linux-5.4.0",
             python="3.9",
             arch="x86_64",
-            auto_login=False,
             cache_type="memory",
             backend_only=False,
             client_type="oss",
@@ -211,7 +210,6 @@ class TestVersionPayload:
         assert payload.platform == "Linux-5.4.0"
         assert payload.python == "3.9"
         assert payload.arch == "x86_64"
-        assert payload.auto_login is False
         assert payload.cache_type == "memory"
         assert payload.backend_only is False
         assert payload.client_type == "oss"
@@ -224,7 +222,6 @@ class TestVersionPayload:
             platform="Windows",
             python="3.8",
             arch="x86_64",
-            auto_login=True,
             cache_type="redis",
             backend_only=True,
         )
@@ -241,7 +238,6 @@ class TestVersionPayload:
             platform="macOS-12.0",
             python="3.10",
             arch="arm64",
-            auto_login=True,
             cache_type="redis",
             backend_only=True,
             client_type="desktop",
@@ -254,7 +250,6 @@ class TestVersionPayload:
         assert data["platform"] == "macOS-12.0"
         assert data["python"] == "3.10"
         assert data["arch"] == "arm64"
-        assert data["autoLogin"] is True
         assert data["cacheType"] == "redis"
         assert data["backendOnly"] is True
         assert data["clientType"] == "desktop"
@@ -267,7 +262,6 @@ class TestVersionPayload:
             platform="Windows 10 Pro",
             python="3.9.7",
             arch="x86_64",
-            auto_login=False,
             cache_type="memory",
             backend_only=False,
         )
@@ -505,7 +499,6 @@ class TestPayloadEdgeCases:
             platform="Linux-测试系统",
             python="3.9",
             arch="x86_64",
-            auto_login=False,
             cache_type="memory",
             backend_only=False,
         )
@@ -567,7 +560,6 @@ class TestPayloadEdgeCases:
             platform="Linux",
             python="3.9",
             arch="x86_64",
-            auto_login=False,
             cache_type="memory",
             backend_only=False,
             client_type=client_type,
@@ -651,7 +643,6 @@ class TestPayloadIntegration:
             platform="Linux",
             python="3.9",
             arch="x86_64",
-            auto_login=False,
             cache_type="memory",
             backend_only=False,
             client_type="oss",
@@ -788,7 +779,6 @@ def sample_version_payload():
         platform="Linux-5.4.0",
         python="3.9",
         arch="x86_64",
-        auto_login=False,
         cache_type="memory",
         backend_only=False,
         client_type="oss",
@@ -855,7 +845,6 @@ class TestPayloadPerformance:
             platform="Linux-5.4.0-x86_64-with-glibc2.31",
             python="3.9.7",
             arch="x86_64",
-            auto_login=True,
             cache_type="redis",
             backend_only=False,
             client_type="oss",

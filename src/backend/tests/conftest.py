@@ -392,13 +392,13 @@ async def client_fixture(
             db_dir = tempfile.mkdtemp()
             db_path = Path(db_dir) / "test.db"
             monkeypatch.setenv("LANGFLOW_DATABASE_URL", f"sqlite:///{db_path}")
-            monkeypatch.setenv("LANGFLOW_AUTO_LOGIN", "false")
+            monkeypatch.setenv("LANGFLOW_SUPERUSER", "admin")
+            monkeypatch.setenv("LANGFLOW_SUPERUSER_PASSWORD", "testpassword123")
             if "load_flows" in request.keywords:
                 shutil.copyfile(
                     pytest.BASIC_EXAMPLE_PATH, Path(load_flows_dir) / "c54f9130-f2fa-4a3e-b22a-3856d946351b.json"
                 )
                 monkeypatch.setenv("LANGFLOW_LOAD_FLOWS_PATH", load_flows_dir)
-                monkeypatch.setenv("LANGFLOW_AUTO_LOGIN", "true")
             # Clear the services cache
             from lfx.services.manager import get_service_manager
 

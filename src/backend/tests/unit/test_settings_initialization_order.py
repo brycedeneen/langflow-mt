@@ -239,7 +239,8 @@ class TestCLISubprocessIntegration:
             f"""
 LANGFLOW_DATABASE_URL=sqlite:///{db_path}
 LANGFLOW_AUTO_SAVING=false
-LANGFLOW_AUTO_LOGIN=false
+LANGFLOW_SUPERUSER=admin
+LANGFLOW_SUPERUSER_PASSWORD=testpassword123
 LANGFLOW_LOG_LEVEL=ERROR
         """.strip()
         )

@@ -425,7 +425,6 @@ class TestProjectMCPIntegration:
         with patch("langflow.api.v1.projects.get_settings_service") as mock_get_settings:
             mock_service = MagicMock()
             mock_service.settings.add_projects_to_mcp_servers = True
-            mock_service.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_service
             yield mock_service
 
@@ -435,7 +434,6 @@ class TestProjectMCPIntegration:
         with patch("langflow.api.v1.projects.get_settings_service") as mock_get_settings:
             mock_service = MagicMock()
             mock_service.settings.add_projects_to_mcp_servers = False
-            mock_service.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_service
             yield mock_service
 
@@ -477,7 +475,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
 
             # Mock API key creation
@@ -529,7 +526,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
 
             # Mock API key creation
@@ -577,7 +573,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
 
             # Mock validation - has conflict
@@ -624,7 +619,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
 
             # Mock validation - has conflict
@@ -733,7 +727,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
 
             mock_validation_create = MagicMock()
@@ -757,7 +750,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
             mock_storage.return_value = MagicMock()
 
@@ -807,7 +799,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
 
             mock_sse_url.return_value = "http://localhost:7860/api/v1/mcp/project/test-id/sse"
@@ -834,7 +825,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
             mock_storage.return_value = MagicMock()
 
@@ -883,7 +873,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
 
             mock_validation_create = MagicMock()
@@ -906,7 +895,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
             mock_storage.return_value = MagicMock()
 
@@ -950,7 +938,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
 
             mock_sse_url.return_value = "http://localhost:7860/api/v1/mcp/project/test-id/sse"
@@ -976,7 +963,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
             mock_storage.return_value = MagicMock()
 
@@ -1019,7 +1005,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
 
             mock_validation_create = MagicMock()
@@ -1041,7 +1026,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
             mock_storage.return_value = MagicMock()
 
@@ -1084,7 +1068,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
 
             mock_sse_url.return_value = "http://localhost:7860/api/v1/mcp/project/test-id/sse"
@@ -1109,7 +1092,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
             mock_storage.return_value = MagicMock()
 
@@ -1151,7 +1133,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
 
             mock_validation_create = MagicMock()
@@ -1173,7 +1154,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
             mock_storage.return_value = MagicMock()
 
@@ -1213,7 +1193,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
 
             mock_sse_url.return_value = "http://localhost:7860/api/v1/mcp/project/test-id/sse"
@@ -1238,7 +1217,6 @@ class TestProjectMCPIntegration:
             # Mock settings to enable MCP auto-add
             mock_settings = MagicMock()
             mock_settings.settings.add_projects_to_mcp_servers = True
-            mock_settings.auth_settings.AUTO_LOGIN = False
             mock_get_settings.return_value = mock_settings
             mock_storage.return_value = MagicMock()
 
@@ -1256,25 +1234,6 @@ class TestProjectMCPIntegration:
             # Should validate server but not delete it
             mock_validate.assert_called_once()
             mock_update_server.assert_not_called()
-
-    async def test_create_project_auto_login_disabled_adds_api_key_auth(
-        self, client: AsyncClient, logged_in_headers, basic_case
-    ):
-        """Test that projects get API key auth when AUTO_LOGIN is disabled."""
-        with patch("langflow.api.v1.projects.get_settings_service") as mock_get_settings:
-            mock_service = MagicMock()
-            mock_service.settings.add_projects_to_mcp_servers = False  # Disable MCP to focus on auth
-            mock_service.auth_settings.AUTO_LOGIN = False
-            mock_get_settings.return_value = mock_service
-
-            with patch("langflow.api.v1.projects.encrypt_auth_settings") as mock_encrypt:
-                mock_encrypt.return_value = {"auth_type": "apikey"}
-
-                response = await client.post("api/v1/projects/", json=basic_case, headers=logged_in_headers)
-
-                assert response.status_code == status.HTTP_201_CREATED
-                # Verify encrypt_auth_settings was called with apikey auth
-                mock_encrypt.assert_called_once_with({"auth_type": "apikey"})
 
     async def test_project_mcp_exception_handling(
         self,

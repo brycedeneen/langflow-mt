@@ -304,7 +304,6 @@ class TestTelemetryPayloadValidation:
             platform="macOS-14.0-arm64",
             python="3.11",
             arch="64bit",
-            auto_login=False,
             cache_type="redis",
             backend_only=True,
             client_type="oss",
@@ -315,7 +314,6 @@ class TestTelemetryPayloadValidation:
         assert payload.platform == "macOS-14.0-arm64"
         assert payload.python == "3.11"
         assert payload.arch == "64bit"
-        assert payload.auto_login is False
         assert payload.cache_type == "redis"
         assert payload.backend_only is True
 
@@ -326,7 +324,6 @@ class TestTelemetryPayloadValidation:
             "platform": "macOS-14.0-arm64",
             "python": "3.11",
             "arch": "64bit",
-            "autoLogin": False,
             "cacheType": "redis",
             "backendOnly": True,
             "clientType": "oss",
@@ -401,7 +398,6 @@ class TestTelemetryPayloadValidation:
                 platform="test",
                 python="3.11",
                 arch="64bit",
-                auto_login=False,
                 cache_type="memory",
                 backend_only=False,
             ),

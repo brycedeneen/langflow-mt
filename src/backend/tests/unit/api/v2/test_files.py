@@ -113,7 +113,8 @@ async def files_client_fixture(
             db_dir = tempfile.mkdtemp()
             db_path = Path(db_dir) / "test.db"
             monkeypatch.setenv("LANGFLOW_DATABASE_URL", f"sqlite:///{db_path}")
-            monkeypatch.setenv("LANGFLOW_AUTO_LOGIN", "false")
+            monkeypatch.setenv("LANGFLOW_SUPERUSER", "admin")
+            monkeypatch.setenv("LANGFLOW_SUPERUSER_PASSWORD", "testpassword123")
             from lfx.services.manager import get_service_manager
 
             get_service_manager().factories.clear()
@@ -711,7 +712,8 @@ async def s3_files_client_fixture(
             db_dir = tempfile.mkdtemp()
             db_path = Path(db_dir) / "test_s3.db"
             monkeypatch.setenv("LANGFLOW_DATABASE_URL", f"sqlite:///{db_path}")
-            monkeypatch.setenv("LANGFLOW_AUTO_LOGIN", "false")
+            monkeypatch.setenv("LANGFLOW_SUPERUSER", "admin")
+            monkeypatch.setenv("LANGFLOW_SUPERUSER_PASSWORD", "testpassword123")
             # Configure S3 storage
             monkeypatch.setenv("LANGFLOW_STORAGE_TYPE", "s3")
             monkeypatch.setenv(

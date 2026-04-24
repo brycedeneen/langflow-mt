@@ -19,7 +19,6 @@ from fastapi import HTTPException
 from httpx import HTTPError
 from jwt import InvalidTokenError
 from lfx.log.logger import configure, logger
-from lfx.services.settings.constants import DEFAULT_SUPERUSER, DEFAULT_SUPERUSER_PASSWORD
 from multiprocess import cpu_count
 from multiprocess.context import Process
 from packaging import version as pkg_version
@@ -681,22 +680,14 @@ def print_banner(host: str, port: int, protocol: str) -> None:
 
 @app.command()
 def superuser(
-    username: str = typer.Option(
-        None, help="Username for the superuser. Defaults to 'langflow' when AUTO_LOGIN is enabled."
-    ),
-    password: str = typer.Option(
-        None, help="Password for the superuser. Defaults to 'langflow' when AUTO_LOGIN is enabled."
-    ),
+    username: str = typer.Option(None, help="Username for the superuser."),
+    password: str = typer.Option(None, help="Password for the superuser."),
     log_level: str = typer.Option("error", help="Logging level.", envvar="LANGFLOW_LOG_LEVEL"),
     auth_token: str = typer.Option(
         None, help="Authentication token of existing superuser.", envvar="LANGFLOW_SUPERUSER_TOKEN"
     ),
 ) -> None:
-    """Create a superuser.
-
-    When AUTO_LOGIN is enabled, uses default credentials.
-    In production mode, requires authentication.
-    """
+    """Create a superuser. Requires authentication if other superusers already exist."""
     configure(log_level=log_level)
 
     asyncio.run(_create_superuser(username, password, auth_token))
@@ -713,40 +704,19 @@ async def _create_superuser(username: str, password: str, auth_token: str | None
         typer.echo("Set LANGFLOW_ENABLE_SUPERUSER_CLI=true to enable this feature.")
         raise typer.Exit(1)
 
-    if settings_service.auth_settings.AUTO_LOGIN:
-        # Force default credentials for AUTO_LOGIN mode
-        username = DEFAULT_SUPERUSER
-        password = DEFAULT_SUPERUSER_PASSWORD.get_secret_value()
-    else:
-        # Production mode - prompt for credentials if not provided
-        if not username:
-            username = typer.prompt("Username")
-        if not password:
-            password = typer.prompt("Password", hide_input=True)
+    if not username:
+        username = typer.prompt("Username")
+    if not password:
+        password = typer.prompt("Password", hide_input=True)
 
     from langflow.services.database.models.user.crud import get_all_superusers
 
     existing_superusers = []
     async with session_scope() as session:
-        # Note that the default superuser is created by the initialize_services() function,
-        # but leaving this check here in case we change that behavior
         existing_superusers = await get_all_superusers(session)
     is_first_setup = len(existing_superusers) == 0
 
-    # If AUTO_LOGIN is true, only allow default superuser creation
-    if settings_service.auth_settings.AUTO_LOGIN:
-        if not is_first_setup:
-            typer.echo("Error: Cannot create additional superusers when AUTO_LOGIN is enabled.")
-            typer.echo("AUTO_LOGIN mode is for development with only the default superuser.")
-            typer.echo("To create additional superusers:")
-            typer.echo("1. Set LANGFLOW_AUTO_LOGIN=false")
-            typer.echo("2. Run this command again with --auth-token")
-            raise typer.Exit(1)
-
-        typer.echo(f"AUTO_LOGIN enabled. Creating default superuser '{username}'...")
-        # Do not echo the default password to avoid exposing it in logs.
-    # AUTO_LOGIN is false - production mode
-    elif is_first_setup:
+    if is_first_setup:
         typer.echo("No superusers found. Creating first superuser...")
     else:
         # Authentication is required in production mode
@@ -911,33 +881,23 @@ def migration(
 def api_key(
     log_level: str = typer.Option("error", help="Logging level."),
 ) -> None:
-    """Creates an API key for the default superuser if AUTO_LOGIN is enabled.
-
-    Args:
-        log_level (str, optional): Logging level. Defaults to "error".
-
-    Returns:
-        None
-    """
+    """Creates an API key for the configured superuser (LANGFLOW_SUPERUSER)."""
     configure(log_level=log_level)
 
     async def aapi_key():
         await initialize_services()
         settings_service = get_settings_service()
-        auth_settings = settings_service.auth_settings
-        if not auth_settings.AUTO_LOGIN:
-            # TODO: Allow non-auto-login users to create API keys via CLI
-            typer.echo("Auto login is disabled. API keys cannot be created through the CLI.")
-            return None
+        superuser_username = settings_service.auth_settings.SUPERUSER
 
         async with session_scope() as session:
             from langflow.services.database.models.user.model import User
 
-            stmt = select(User).where(User.username == DEFAULT_SUPERUSER)
+            stmt = select(User).where(User.username == superuser_username)
             superuser = (await session.exec(stmt)).first()
             if not superuser:
                 typer.echo(
-                    "Default superuser not found. This command requires a superuser and AUTO_LOGIN to be enabled."
+                    f"Superuser '{superuser_username}' not found. "
+                    "Set LANGFLOW_SUPERUSER/LANGFLOW_SUPERUSER_PASSWORD and restart the app to create it."
                 )
                 return None
             from langflow.services.database.models.api_key.crud import create_api_key, delete_api_key

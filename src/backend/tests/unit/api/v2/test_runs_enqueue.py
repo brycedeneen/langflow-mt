@@ -13,7 +13,8 @@ from unittest.mock import AsyncMock
 def runs_client(monkeypatch, tmp_path):
     """Create a test client with auth/org/arq dependencies overridden."""
     monkeypatch.setenv("LANGFLOW_DATABASE_URL", f"sqlite+aiosqlite:///{tmp_path / 'test.db'}")
-    monkeypatch.setenv("LANGFLOW_AUTO_LOGIN", "true")
+    monkeypatch.setenv("LANGFLOW_SUPERUSER", "admin")
+    monkeypatch.setenv("LANGFLOW_SUPERUSER_PASSWORD", "testpassword123")
 
     from langflow.main import create_app
     from langflow.api.utils.org_helpers import get_current_organization

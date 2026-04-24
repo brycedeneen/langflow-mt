@@ -16,7 +16,8 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture
 def webhook_client(monkeypatch, tmp_path):
-    monkeypatch.setenv("LANGFLOW_AUTO_LOGIN", "true")
+    monkeypatch.setenv("LANGFLOW_SUPERUSER", "admin")
+    monkeypatch.setenv("LANGFLOW_SUPERUSER_PASSWORD", "testpassword123")
     from langflow.main import create_app
     app = create_app()
     yield TestClient(app), app

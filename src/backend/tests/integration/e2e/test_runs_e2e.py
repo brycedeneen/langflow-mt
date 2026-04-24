@@ -108,7 +108,8 @@ def client_and_ctx(monkeypatch, tmp_path, engine_and_factory, seeded):
     """Build a TestClient whose session overrides point at the same SQLite DB
     used by execute_run, so both sides see the same rows."""
     monkeypatch.setenv("LANGFLOW_DISTRIBUTED_EXECUTION", "true")
-    monkeypatch.setenv("LANGFLOW_AUTO_LOGIN", "true")
+    monkeypatch.setenv("LANGFLOW_SUPERUSER", "admin")
+    monkeypatch.setenv("LANGFLOW_SUPERUSER_PASSWORD", "testpassword123")
 
     from langflow.main import create_app
     from langflow.api.utils.org_helpers import get_current_organization

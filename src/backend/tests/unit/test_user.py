@@ -8,7 +8,6 @@ from langflow.services.database.models.user import UserUpdate
 from langflow.services.database.models.user.model import User
 from langflow.services.database.utils import session_getter
 from langflow.services.deps import get_db_service, get_settings_service
-from lfx.services.settings.constants import DEFAULT_SUPERUSER
 from sqlalchemy import text
 from sqlmodel import select
 
@@ -47,8 +46,7 @@ async def super_user_headers(
     settings_service = get_settings_service()
     auth_settings = settings_service.auth_settings
     login_data = {
-        # SUPERUSER may be reset to default depending on AUTO_LOGIN; use constant for stability in tests
-        "username": DEFAULT_SUPERUSER if auth_settings.AUTO_LOGIN else auth_settings.SUPERUSER,
+        "username": auth_settings.SUPERUSER,
         "password": _TEST_SUPERUSER_PASSWORD,
     }
     response = await client.post("api/v1/login", data=login_data)

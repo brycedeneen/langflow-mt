@@ -71,31 +71,11 @@ class TestSuperuserCommand:
             patch("langflow.services.deps.get_settings_service") as mock_settings,
             patch("langflow.__main__.get_settings_service") as mock_settings2,
         ):
-            # Configure settings for production mode (AUTO_LOGIN=False)
-            mock_auth_settings = type("MockAuthSettings", (), {"AUTO_LOGIN": False, "ENABLE_SUPERUSER_CLI": True})()
+            mock_auth_settings = type("MockAuthSettings", (), {"ENABLE_SUPERUSER_CLI": True})()
             mock_settings.return_value.auth_settings = mock_auth_settings
             mock_settings2.return_value.auth_settings = mock_auth_settings
 
             # Try to create a superuser without auth - should fail
-            with pytest.raises(typer.Exit) as exc_info:
-                await _create_superuser("newuser", "newpass", None)
-
-            assert exc_info.value.exit_code == 1
-
-    @pytest.mark.asyncio
-    async def test_additional_superuser_blocked_in_auto_login_mode(self, client, active_super_user):  # noqa: ARG002
-        """Test additional superuser creation blocked when AUTO_LOGIN=true."""
-        # We already have active_super_user from the fixture, so we're not in first setup
-        with (
-            patch("langflow.services.deps.get_settings_service") as mock_settings,
-            patch("langflow.__main__.get_settings_service") as mock_settings2,
-        ):
-            # Configure settings for AUTO_LOGIN mode
-            mock_auth_settings = type("MockAuthSettings", (), {"AUTO_LOGIN": True, "ENABLE_SUPERUSER_CLI": True})()
-            mock_settings.return_value.auth_settings = mock_auth_settings
-            mock_settings2.return_value.auth_settings = mock_auth_settings
-
-            # Try to create a superuser - should fail
             with pytest.raises(typer.Exit) as exc_info:
                 await _create_superuser("newuser", "newpass", None)
 
@@ -108,7 +88,7 @@ class TestSuperuserCommand:
             patch("langflow.services.deps.get_settings_service") as mock_settings,
             patch("langflow.__main__.get_settings_service") as mock_settings2,
         ):
-            mock_auth_settings = type("MockAuthSettings", (), {"AUTO_LOGIN": True, "ENABLE_SUPERUSER_CLI": False})()
+            mock_auth_settings = type("MockAuthSettings", (), {"ENABLE_SUPERUSER_CLI": False})()
             mock_settings.return_value.auth_settings = mock_auth_settings
             mock_settings2.return_value.auth_settings = mock_auth_settings
 
@@ -117,13 +97,6 @@ class TestSuperuserCommand:
                 await _create_superuser("admin", "password", None)
 
             assert exc_info.value.exit_code == 1
-
-    @pytest.mark.skip(reason="Skip -- default superuser is created by initialize_services() function")
-    @pytest.mark.asyncio
-    async def test_auto_login_forces_default_credentials(self, client):
-        """Test AUTO_LOGIN=true forces default credentials."""
-        # Since client fixture already creates default user, we need to test in a clean DB scenario
-        # But that's why this test is skipped - the behavior is already handled by initialize_services
 
     @pytest.mark.asyncio
     async def test_failed_auth_token_validation(self, client, active_super_user):  # noqa: ARG002
@@ -135,8 +108,7 @@ class TestSuperuserCommand:
             patch("langflow.__main__.get_current_user_from_access_token", side_effect=Exception("Invalid token")),
             patch("langflow.__main__.check_key", return_value=None),
         ):
-            # Configure settings for production mode (AUTO_LOGIN=False)
-            mock_auth_settings = type("MockAuthSettings", (), {"AUTO_LOGIN": False, "ENABLE_SUPERUSER_CLI": True})()
+            mock_auth_settings = type("MockAuthSettings", (), {"ENABLE_SUPERUSER_CLI": True})()
             mock_settings.return_value.auth_settings = mock_auth_settings
             mock_settings2.return_value.auth_settings = mock_auth_settings
 
