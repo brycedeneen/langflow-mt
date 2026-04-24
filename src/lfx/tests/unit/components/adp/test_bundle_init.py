@@ -11,6 +11,7 @@ def test_bundle_exports_all_components():
         ADPMCPComponent,
         ADPPayDataInputToolsComponent,
         ADPPayDistributionsToolsComponent,
+        ADPPayStatementsToolsComponent,
         ADPTalentToolsComponent,
         ADPTeamTimeCardsToolsComponent,
         ADPTimeCardsToolsComponent,
@@ -39,6 +40,7 @@ def test_bundle_exports_all_components():
     assert ADPJobRequisitionsToolsComponent.name == "ADPJobRequisitionsTools"
     assert ADPTeamTimeCardsToolsComponent.name == "ADPTeamTimeCardsTools"
     assert ADPTalentToolsComponent.name == "ADPTalentTools"
+    assert ADPPayStatementsToolsComponent.name == "ADPPayStatementsTools"
     assert ADPBenefitsToolsComponent.name == "ADPBenefitsTools"
     assert ADPDataCollectionEntriesToolsComponent.name == "ADPDataCollectionEntriesTools"
     assert ADPDeductionConfigurationsToolsComponent.name == "ADPDeductionConfigurationsTools"

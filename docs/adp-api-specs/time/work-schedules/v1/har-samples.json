@@ -2029,6 +2029,2929 @@
           }
         ]
       }
+    },
+    {
+      "filename": "Returns_an_event_metadata_for_your_application_to_build_the_payload_Provide_Example_workScheduleDay.add_200_94006.json",
+      "status": 200,
+      "body": {
+        "meta": {
+          "/serviceCategoryCode/codeValue": "time",
+          "/eventNameCode/codeValue": "workScheduleDay.add",
+          "/data/eventContext": {
+            "/associateOID": {
+              "optional": false
+            },
+            "/workAssignmentID": {
+              "optional": true
+            },
+            "/scheduleID": {
+              "optional": true
+            }
+          },
+          "/data/transforms": [
+            {
+              "/eventStatusCode/codeValue": {
+                "optional": false,
+                "equals": [
+                  "submit"
+                ]
+              },
+              "/scheduleDay/daySequenceNumber": {
+                "optional": true
+              },
+              "/scheduleDay/scheduleDayDate": {
+                "optional": false
+              },
+              "/scheduleDay/scheduleEntries": {
+                "optional": true,
+                "maxItems": 5
+              },
+              "/scheduleDay/scheduleEntries/scheduleEntryID": {
+                "optional": true
+              },
+              "/scheduleDay/scheduleEntries/categoryTypeCode/codeValue": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "SHIFT"
+                    },
+                    {
+                      "codeValue": "PAYCODE"
+                    }
+                  ]
+                }
+              },
+              "oneOf": [
+                {
+                  "/scheduleDay/scheduleEntries/dateTimePeriod/startDateTime": {
+                    "optional": false
+                  },
+                  "/scheduleDay/scheduleEntries/dateTimePeriod/endDateTime": {
+                    "optional": false
+                  }
+                },
+                {
+                  "/scheduleDay/scheduleEntries/dateTimePeriod/startDateTime": {
+                    "optional": false
+                  },
+                  "/scheduleDay/scheduleEntries/totalTime": {
+                    "optional": false
+                  }
+                }
+              ],
+              "/scheduleDay/scheduleEntries/earningAllocations": {
+                "optional": true,
+                "maxItems": 7
+              },
+              "/scheduleDay/scheduleEntries/earningAllocations/allocationTypeCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "Location",
+                      "shortName": "Location"
+                    },
+                    {
+                      "codeValue": "Shift Rule",
+                      "shortName": "Shift Rule"
+                    },
+                    {
+                      "codeValue": "Meal Plan",
+                      "shortName": "Meal Plan"
+                    },
+                    {
+                      "codeValue": "Flextime Rule",
+                      "shortName": "Flextime Rule"
+                    },
+                    {
+                      "codeValue": "Department",
+                      "shortName": "Department"
+                    },
+                    {
+                      "codeValue": "Job or Project",
+                      "shortName": "Job or Project"
+                    }
+                  ]
+                }
+              },
+              "/scheduleDay/scheduleEntries/earningAllocations/allocationTypeCode/codeValue": {
+                "optional": false
+              },
+              "/scheduleDay/scheduleEntries/earningAllocations/allocationCode": {
+                "optional": false,
+                "codeList": {
+                  "links": [
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF1",
+                      "method": "GET",
+                      "title": "Location"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/1",
+                      "method": "GET",
+                      "title": "Shift Rule"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/14",
+                      "method": "GET",
+                      "title": "Meal Plan"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/6",
+                      "method": "GET",
+                      "title": "Flextime Rule"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF16",
+                      "method": "GET",
+                      "title": "Department"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF17",
+                      "method": "GET",
+                      "title": "Job or Project"
+                    }
+                  ]
+                }
+              },
+              "/scheduleDay/scheduleEntries/earningAllocations/allocationCode/codeValue": {
+                "optional": false
+              },
+              "/scheduleDay/scheduleEntries/entryComments": {
+                "optional": true,
+                "maxItems": 1
+              },
+              "/scheduleDay/scheduleEntries/entryComments/commentTypeCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "EDIT",
+                      "shortName": "Timecard Edit"
+                    },
+                    {
+                      "codeValue": "INEARLY",
+                      "shortName": "In Early at Timeclock"
+                    },
+                    {
+                      "codeValue": "INLATE",
+                      "shortName": "In Late at Timeclock"
+                    },
+                    {
+                      "codeValue": "OUTEARLY",
+                      "shortName": "Out Early at Timeclock"
+                    },
+                    {
+                      "codeValue": "OUTLATE",
+                      "shortName": "Out Late at Timeclock"
+                    }
+                  ]
+                }
+              },
+              "/scheduleDay/scheduleEntries/entryComments/commentTypeCode/codeValue": {
+                "optional": false
+              },
+              "/scheduleDay/scheduleEntries/entryComments/textValue": {
+                "optional": true,
+                "maxLength": 512
+              },
+              "/scheduleEntry/payCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "ABSENT",
+                      "shortName": "Unpaid Absence"
+                    },
+                    {
+                      "codeValue": "BEREAV",
+                      "shortName": "Bereavement"
+                    },
+                    {
+                      "codeValue": "COMPEARNED",
+                      "shortName": "Comp Earned"
+                    },
+                    {
+                      "codeValue": "COMPTAKEN",
+                      "shortName": "Comp Taken"
+                    },
+                    {
+                      "codeValue": "CONSULT",
+                      "shortName": "Consultation Hours"
+                    },
+                    {
+                      "codeValue": "DBLTME",
+                      "shortName": "Doubletime"
+                    },
+                    {
+                      "codeValue": "DTSH2",
+                      "shortName": "Doubletime Shift 2"
+                    },
+                    {
+                      "codeValue": "DTSH3",
+                      "shortName": "Doubletime Shift 3"
+                    },
+                    {
+                      "codeValue": "FF-FMLA",
+                      "shortName": "EXPIRED - DO NOT USE - Families First FMLA"
+                    },
+                    {
+                      "codeValue": "FF-PSL-EE",
+                      "shortName": "EXPIRED - DO NOT USE - Families First Paid Sick Leave - Employee"
+                    },
+                    {
+                      "codeValue": "FF-PSL-FAM",
+                      "shortName": "EXPIRED - DO NOT USE - Families First Paid Sick Leave - Family Member"
+                    },
+                    {
+                      "codeValue": "FLOAT",
+                      "shortName": "Float Holiday"
+                    },
+                    {
+                      "codeValue": "GUARANTEEDHRS",
+                      "shortName": "Guaranteed Hours"
+                    },
+                    {
+                      "codeValue": "HOLIDAY",
+                      "shortName": "Holiday"
+                    },
+                    {
+                      "codeValue": "HOLWRK",
+                      "shortName": "Holiday Worked"
+                    },
+                    {
+                      "codeValue": "JURY",
+                      "shortName": "Jury Duty"
+                    },
+                    {
+                      "codeValue": "LWOP",
+                      "shortName": "Leave Without Pay"
+                    },
+                    {
+                      "codeValue": "MEETING",
+                      "shortName": "Meeting Hours"
+                    },
+                    {
+                      "codeValue": "MKU",
+                      "shortName": "Make-up"
+                    },
+                    {
+                      "codeValue": "ONCALL",
+                      "shortName": "On Call - Guarantee hours not set"
+                    },
+                    {
+                      "codeValue": "OTHER",
+                      "shortName": "Other Hours"
+                    },
+                    {
+                      "codeValue": "OTSH1",
+                      "shortName": "Overtime Shift1"
+                    },
+                    {
+                      "codeValue": "OTSH2",
+                      "shortName": "Overtime Shift2"
+                    },
+                    {
+                      "codeValue": "OTSH3",
+                      "shortName": "Overtime Shift3"
+                    },
+                    {
+                      "codeValue": "OVERTIME",
+                      "shortName": "Overtime"
+                    },
+                    {
+                      "codeValue": "PAIDBREAK",
+                      "shortName": "Paid Break"
+                    },
+                    {
+                      "codeValue": "PDLCHAWD",
+                      "shortName": "Paid Meal Award"
+                    },
+                    {
+                      "codeValue": "PERSONAL",
+                      "shortName": "Personal Hours"
+                    },
+                    {
+                      "codeValue": "PR7THDAY",
+                      "shortName": "Puerto Rico 7th Consecutive Day Worked"
+                    },
+                    {
+                      "codeValue": "PR7THDAY8",
+                      "shortName": "Puerto Rico 7th Consecutive Day Worked-8hrs"
+                    },
+                    {
+                      "codeValue": "PRCLOSMEAL",
+                      "shortName": "Puerto Rico Closing Meal Penalty"
+                    },
+                    {
+                      "codeValue": "PREPTIME",
+                      "shortName": "Prep time before/after shift"
+                    },
+                    {
+                      "codeValue": "PRMEAL",
+                      "shortName": "Puerto Rico Meal Penalty"
+                    },
+                    {
+                      "codeValue": "PRSUNDAY",
+                      "shortName": "Puerto Rico Sunday Hours"
+                    },
+                    {
+                      "codeValue": "PRTOT",
+                      "shortName": "Puerto Rico Tracking Period Overtime"
+                    },
+                    {
+                      "codeValue": "PRWOT",
+                      "shortName": "Puerto Rico Weekly Overtime"
+                    },
+                    {
+                      "codeValue": "PTO",
+                      "shortName": "Paid Time Off"
+                    },
+                    {
+                      "codeValue": "REGSAL",
+                      "shortName": "Salary Regular Hours"
+                    },
+                    {
+                      "codeValue": "REGSH2",
+                      "shortName": "Regular Shift 2"
+                    },
+                    {
+                      "codeValue": "REGSH3",
+                      "shortName": "Regular Shift 3"
+                    },
+                    {
+                      "codeValue": "REGULAR",
+                      "shortName": "Regular"
+                    },
+                    {
+                      "codeValue": "SICK",
+                      "shortName": "Sick"
+                    },
+                    {
+                      "codeValue": "TRAINING",
+                      "shortName": "Training"
+                    },
+                    {
+                      "codeValue": "VACATION",
+                      "shortName": "Vacation"
+                    },
+                    {
+                      "codeValue": "WEEKENDHRS",
+                      "shortName": "Weekend Shift Differential"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "filename": "Meta_call_for_work_schedule_add_Custom_Example_workSchedule.add_200_479234.json",
+      "status": 200,
+      "body": {
+        "meta": {
+          "/serviceCategoryCode/codeValue": "time",
+          "/eventNameCode/codeValue": "workScheduleDay.add",
+          "/data/eventContext": {
+            "/associateOID": {
+              "optional": false
+            },
+            "/workAssignmentID": {
+              "optional": true
+            },
+            "/scheduleID": {
+              "optional": true
+            }
+          },
+          "/data/transforms": [
+            {
+              "/eventStatusCode/codeValue": {
+                "optional": false,
+                "equals": [
+                  "submit"
+                ]
+              },
+              "/scheduleDay/daySequenceNumber": {
+                "optional": true
+              },
+              "/scheduleDay/scheduleDayDate": {
+                "optional": false
+              },
+              "/scheduleDay/scheduleEntries": {
+                "optional": true,
+                "maxItems": 5
+              },
+              "/scheduleDay/scheduleEntries/scheduleEntryID": {
+                "optional": true
+              },
+              "/scheduleDay/scheduleEntries/categoryTypeCode/codeValue": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "SHIFT"
+                    },
+                    {
+                      "codeValue": "PAYCODE"
+                    }
+                  ]
+                }
+              },
+              "oneOf": [
+                {
+                  "/scheduleDay/scheduleEntries/dateTimePeriod/startDateTime": {
+                    "optional": false
+                  },
+                  "/scheduleDay/scheduleEntries/dateTimePeriod/endDateTime": {
+                    "optional": false
+                  }
+                },
+                {
+                  "/scheduleDay/scheduleEntries/dateTimePeriod/startDateTime": {
+                    "optional": false
+                  },
+                  "/scheduleDay/scheduleEntries/totalTime": {
+                    "optional": false
+                  }
+                }
+              ],
+              "/scheduleDay/scheduleEntries/earningAllocations": {
+                "optional": true,
+                "maxItems": 7
+              },
+              "/scheduleDay/scheduleEntries/earningAllocations/allocationTypeCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "Location",
+                      "shortName": "Location"
+                    },
+                    {
+                      "codeValue": "Shift Rule",
+                      "shortName": "Shift Rule"
+                    },
+                    {
+                      "codeValue": "Meal Plan",
+                      "shortName": "Meal Plan"
+                    },
+                    {
+                      "codeValue": "Flextime Rule",
+                      "shortName": "Flextime Rule"
+                    },
+                    {
+                      "codeValue": "Department",
+                      "shortName": "Department"
+                    },
+                    {
+                      "codeValue": "Job or Project",
+                      "shortName": "Job or Project"
+                    }
+                  ]
+                }
+              },
+              "/scheduleDay/scheduleEntries/earningAllocations/allocationTypeCode/codeValue": {
+                "optional": false
+              },
+              "/scheduleDay/scheduleEntries/earningAllocations/allocationCode": {
+                "optional": false,
+                "codeList": {
+                  "links": [
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF1",
+                      "method": "GET",
+                      "title": "Location"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/1",
+                      "method": "GET",
+                      "title": "Shift Rule"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/14",
+                      "method": "GET",
+                      "title": "Meal Plan"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/6",
+                      "method": "GET",
+                      "title": "Flextime Rule"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF16",
+                      "method": "GET",
+                      "title": "Department"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF17",
+                      "method": "GET",
+                      "title": "Job or Project"
+                    }
+                  ]
+                }
+              },
+              "/scheduleDay/scheduleEntries/earningAllocations/allocationCode/codeValue": {
+                "optional": false
+              },
+              "/scheduleDay/scheduleEntries/entryComments": {
+                "optional": true,
+                "maxItems": 1
+              },
+              "/scheduleDay/scheduleEntries/entryComments/commentTypeCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "EDIT",
+                      "shortName": "Timecard Edit"
+                    },
+                    {
+                      "codeValue": "INEARLY",
+                      "shortName": "In Early at Timeclock"
+                    },
+                    {
+                      "codeValue": "INLATE",
+                      "shortName": "In Late at Timeclock"
+                    },
+                    {
+                      "codeValue": "OUTEARLY",
+                      "shortName": "Out Early at Timeclock"
+                    },
+                    {
+                      "codeValue": "OUTLATE",
+                      "shortName": "Out Late at Timeclock"
+                    }
+                  ]
+                }
+              },
+              "/scheduleDay/scheduleEntries/entryComments/commentTypeCode/codeValue": {
+                "optional": false
+              },
+              "/scheduleDay/scheduleEntries/entryComments/textValue": {
+                "optional": true,
+                "maxLength": 512
+              },
+              "/scheduleEntry/payCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "ABSENT",
+                      "shortName": "Unpaid Absence"
+                    },
+                    {
+                      "codeValue": "BEREAV",
+                      "shortName": "Bereavement"
+                    },
+                    {
+                      "codeValue": "COMPEARNED",
+                      "shortName": "Comp Earned"
+                    },
+                    {
+                      "codeValue": "COMPTAKEN",
+                      "shortName": "Comp Taken"
+                    },
+                    {
+                      "codeValue": "CONSULT",
+                      "shortName": "Consultation Hours"
+                    },
+                    {
+                      "codeValue": "DBLTME",
+                      "shortName": "Doubletime"
+                    },
+                    {
+                      "codeValue": "DTSH2",
+                      "shortName": "Doubletime Shift 2"
+                    },
+                    {
+                      "codeValue": "DTSH3",
+                      "shortName": "Doubletime Shift 3"
+                    },
+                    {
+                      "codeValue": "FF-FMLA",
+                      "shortName": "EXPIRED - DO NOT USE - Families First FMLA"
+                    },
+                    {
+                      "codeValue": "FF-PSL-EE",
+                      "shortName": "EXPIRED - DO NOT USE - Families First Paid Sick Leave - Employee"
+                    },
+                    {
+                      "codeValue": "FF-PSL-FAM",
+                      "shortName": "EXPIRED - DO NOT USE - Families First Paid Sick Leave - Family Member"
+                    },
+                    {
+                      "codeValue": "FLOAT",
+                      "shortName": "Float Holiday"
+                    },
+                    {
+                      "codeValue": "FRINGE",
+                      "shortName": "Fringe Benefits"
+                    },
+                    {
+                      "codeValue": "FUNNYTIMEOFF",
+                      "shortName": "test time off pay code"
+                    },
+                    {
+                      "codeValue": "Fringe",
+                      "shortName": "Fringe Benefits"
+                    },
+                    {
+                      "codeValue": "GUARANTEEDHRS",
+                      "shortName": "Guaranteed Hours"
+                    },
+                    {
+                      "codeValue": "HOLIDAY",
+                      "shortName": "Holiday"
+                    },
+                    {
+                      "codeValue": "HOLWRK",
+                      "shortName": "Holiday Worked"
+                    },
+                    {
+                      "codeValue": "JURY",
+                      "shortName": "Jury Duty"
+                    },
+                    {
+                      "codeValue": "LWOP",
+                      "shortName": "Leave Without Pay"
+                    },
+                    {
+                      "codeValue": "MEETING",
+                      "shortName": "Meeting Hours"
+                    },
+                    {
+                      "codeValue": "MKU",
+                      "shortName": "Make-up"
+                    },
+                    {
+                      "codeValue": "ONCALL",
+                      "shortName": "On Call - Guarantee hours not set"
+                    },
+                    {
+                      "codeValue": "OTHER",
+                      "shortName": "Other Hours"
+                    },
+                    {
+                      "codeValue": "OTSH1",
+                      "shortName": "Overtime Shift1"
+                    },
+                    {
+                      "codeValue": "OTSH2",
+                      "shortName": "Overtime Shift2"
+                    },
+                    {
+                      "codeValue": "OTSH3",
+                      "shortName": "Overtime Shift3"
+                    },
+                    {
+                      "codeValue": "OVERTIME",
+                      "shortName": "Overtime"
+                    },
+                    {
+                      "codeValue": "PAIDBREAK",
+                      "shortName": "Paid Break"
+                    },
+                    {
+                      "codeValue": "PDLCHAWD",
+                      "shortName": "Paid Meal Award"
+                    },
+                    {
+                      "codeValue": "PERSONAL",
+                      "shortName": "Personal Hours"
+                    },
+                    {
+                      "codeValue": "PR7THDAY",
+                      "shortName": "Puerto Rico 7th Consecutive Day Worked"
+                    },
+                    {
+                      "codeValue": "PR7THDAY8",
+                      "shortName": "Puerto Rico 7th Consecutive Day Worked-8hrs"
+                    },
+                    {
+                      "codeValue": "PRCLOSMEAL",
+                      "shortName": "Puerto Rico Closing Meal Penalty"
+                    },
+                    {
+                      "codeValue": "PREPTIME",
+                      "shortName": "Prep time before/after shift"
+                    },
+                    {
+                      "codeValue": "PRMEAL",
+                      "shortName": "Puerto Rico Meal Penalty"
+                    },
+                    {
+                      "codeValue": "PRSUNDAY",
+                      "shortName": "Puerto Rico Sunday Hours"
+                    },
+                    {
+                      "codeValue": "PRTOT",
+                      "shortName": "Puerto Rico Tracking Period Overtime"
+                    },
+                    {
+                      "codeValue": "PRWOT",
+                      "shortName": "Puerto Rico Weekly Overtime"
+                    },
+                    {
+                      "codeValue": "PTO",
+                      "shortName": "Paid Time Off"
+                    },
+                    {
+                      "codeValue": "REGSAL",
+                      "shortName": "Salary Regular Hours"
+                    },
+                    {
+                      "codeValue": "REGSH2",
+                      "shortName": "Regular Shift 2"
+                    },
+                    {
+                      "codeValue": "REGSH3",
+                      "shortName": "Regular Shift 3"
+                    },
+                    {
+                      "codeValue": "REGULAR",
+                      "shortName": "Regular"
+                    },
+                    {
+                      "codeValue": "SICK",
+                      "shortName": "Sick"
+                    },
+                    {
+                      "codeValue": "TRAINING",
+                      "shortName": "Training"
+                    },
+                    {
+                      "codeValue": "VACATION",
+                      "shortName": "Vacation"
+                    },
+                    {
+                      "codeValue": "VD",
+                      "shortName": "VACATION DAYS"
+                    },
+                    {
+                      "codeValue": "WEEKENDHRS",
+                      "shortName": "Weekend Shift Differential"
+                    },
+                    {
+                      "codeValue": "ZADD VAC TEST",
+                      "shortName": "Zaddons Vacation Test"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "filename": "Returns_an_event_metadata_for_your_application_to_build_the_POST_payload._Provide_Example_workScheduleDay.change_200_94040.json",
+      "status": 200,
+      "body": {
+        "meta": {
+          "/serviceCategoryCode/codeValue": "time",
+          "/eventNameCode/codeValue": "workScheduleDay.change",
+          "/data/eventContext": {
+            "/associateOID": {
+              "optional": false
+            },
+            "/workAssignmentID": {
+              "optional": true
+            },
+            "/scheduleID": {
+              "optional": true
+            }
+          },
+          "/data/transforms": [
+            {
+              "/eventStatusCode/codeValue": {
+                "optional": false,
+                "equals": [
+                  "submit"
+                ]
+              },
+              "/scheduleDay/daySequenceNumber": {
+                "optional": true
+              },
+              "/scheduleDay/scheduleDayDate": {
+                "optional": false
+              },
+              "/scheduleDay/scheduleEntries": {
+                "optional": false,
+                "maxItems": 5
+              },
+              "/scheduleDay/scheduleEntries/scheduleEntryID": {
+                "optional": true
+              },
+              "/scheduleDay/scheduleEntries/categoryTypeCode/codeValue": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "SHIFT"
+                    },
+                    {
+                      "codeValue": "PAYCODE"
+                    }
+                  ]
+                }
+              },
+              "oneOf": [
+                {
+                  "/scheduleDay/scheduleEntries/dateTimePeriod/startDateTime": {
+                    "optional": false
+                  },
+                  "/scheduleDay/scheduleEntries/dateTimePeriod/endDateTime": {
+                    "optional": false
+                  }
+                },
+                {
+                  "/scheduleDay/scheduleEntries/dateTimePeriod/startDateTime": {
+                    "optional": false
+                  },
+                  "/scheduleDay/scheduleEntries/totalTime": {
+                    "optional": false
+                  }
+                }
+              ],
+              "/scheduleDay/scheduleEntries/earningAllocations": {
+                "optional": true,
+                "maxItems": 7
+              },
+              "/scheduleDay/scheduleEntries/earningAllocations/allocationTypeCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "Location",
+                      "shortName": "Location"
+                    },
+                    {
+                      "codeValue": "Shift Rule",
+                      "shortName": "Shift Rule"
+                    },
+                    {
+                      "codeValue": "Meal Plan",
+                      "shortName": "Meal Plan"
+                    },
+                    {
+                      "codeValue": "Flextime Rule",
+                      "shortName": "Flextime Rule"
+                    },
+                    {
+                      "codeValue": "Department",
+                      "shortName": "Department"
+                    },
+                    {
+                      "codeValue": "Job or Project",
+                      "shortName": "Job or Project"
+                    }
+                  ]
+                }
+              },
+              "/scheduleDay/scheduleEntries/earningAllocations/allocationTypeCode/codeValue": {
+                "optional": false
+              },
+              "/scheduleDay/scheduleEntries/earningAllocations/allocationCode": {
+                "optional": false,
+                "codeList": {
+                  "links": [
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF1",
+                      "method": "GET",
+                      "title": "Location"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/1",
+                      "method": "GET",
+                      "title": "Shift Rule"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/14",
+                      "method": "GET",
+                      "title": "Meal Plan"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/6",
+                      "method": "GET",
+                      "title": "Flextime Rule"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF16",
+                      "method": "GET",
+                      "title": "Department"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF17",
+                      "method": "GET",
+                      "title": "Job or Project"
+                    }
+                  ]
+                }
+              },
+              "/scheduleDay/scheduleEntries/earningAllocations/allocationCode/codeValue": {
+                "optional": false
+              },
+              "/scheduleDay/scheduleEntries/entryComments": {
+                "optional": true,
+                "maxItems": 1
+              },
+              "/scheduleDay/scheduleEntries/entryComments/commentTypeCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "EDIT",
+                      "shortName": "Timecard Edit"
+                    },
+                    {
+                      "codeValue": "INEARLY",
+                      "shortName": "In Early at Timeclock"
+                    },
+                    {
+                      "codeValue": "INLATE",
+                      "shortName": "In Late at Timeclock"
+                    },
+                    {
+                      "codeValue": "OUTEARLY",
+                      "shortName": "Out Early at Timeclock"
+                    },
+                    {
+                      "codeValue": "OUTLATE",
+                      "shortName": "Out Late at Timeclock"
+                    }
+                  ]
+                }
+              },
+              "/scheduleDay/scheduleEntries/entryComments/commentTypeCode/codeValue": {
+                "optional": false
+              },
+              "/scheduleDay/scheduleEntries/entryComments/textValue": {
+                "optional": true,
+                "maxLength": 512
+              },
+              "/scheduleEntry/payCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "ABSENT",
+                      "shortName": "Unpaid Absence"
+                    },
+                    {
+                      "codeValue": "BEREAV",
+                      "shortName": "Bereavement"
+                    },
+                    {
+                      "codeValue": "COMPEARNED",
+                      "shortName": "Comp Earned"
+                    },
+                    {
+                      "codeValue": "COMPTAKEN",
+                      "shortName": "Comp Taken"
+                    },
+                    {
+                      "codeValue": "CONSULT",
+                      "shortName": "Consultation Hours"
+                    },
+                    {
+                      "codeValue": "DBLTME",
+                      "shortName": "Doubletime"
+                    },
+                    {
+                      "codeValue": "DTSH2",
+                      "shortName": "Doubletime Shift 2"
+                    },
+                    {
+                      "codeValue": "DTSH3",
+                      "shortName": "Doubletime Shift 3"
+                    },
+                    {
+                      "codeValue": "FF-FMLA",
+                      "shortName": "EXPIRED - DO NOT USE - Families First FMLA"
+                    },
+                    {
+                      "codeValue": "FF-PSL-EE",
+                      "shortName": "EXPIRED - DO NOT USE - Families First Paid Sick Leave - Employee"
+                    },
+                    {
+                      "codeValue": "FF-PSL-FAM",
+                      "shortName": "EXPIRED - DO NOT USE - Families First Paid Sick Leave - Family Member"
+                    },
+                    {
+                      "codeValue": "FLOAT",
+                      "shortName": "Float Holiday"
+                    },
+                    {
+                      "codeValue": "GUARANTEEDHRS",
+                      "shortName": "Guaranteed Hours"
+                    },
+                    {
+                      "codeValue": "HOLIDAY",
+                      "shortName": "Holiday"
+                    },
+                    {
+                      "codeValue": "HOLWRK",
+                      "shortName": "Holiday Worked"
+                    },
+                    {
+                      "codeValue": "JURY",
+                      "shortName": "Jury Duty"
+                    },
+                    {
+                      "codeValue": "LWOP",
+                      "shortName": "Leave Without Pay"
+                    },
+                    {
+                      "codeValue": "MEETING",
+                      "shortName": "Meeting Hours"
+                    },
+                    {
+                      "codeValue": "MKU",
+                      "shortName": "Make-up"
+                    },
+                    {
+                      "codeValue": "ONCALL",
+                      "shortName": "On Call - Guarantee hours not set"
+                    },
+                    {
+                      "codeValue": "OTHER",
+                      "shortName": "Other Hours"
+                    },
+                    {
+                      "codeValue": "OTSH1",
+                      "shortName": "Overtime Shift1"
+                    },
+                    {
+                      "codeValue": "OTSH2",
+                      "shortName": "Overtime Shift2"
+                    },
+                    {
+                      "codeValue": "OTSH3",
+                      "shortName": "Overtime Shift3"
+                    },
+                    {
+                      "codeValue": "OVERTIME",
+                      "shortName": "Overtime"
+                    },
+                    {
+                      "codeValue": "PAIDBREAK",
+                      "shortName": "Paid Break"
+                    },
+                    {
+                      "codeValue": "PDLCHAWD",
+                      "shortName": "Paid Meal Award"
+                    },
+                    {
+                      "codeValue": "PERSONAL",
+                      "shortName": "Personal Hours"
+                    },
+                    {
+                      "codeValue": "PR7THDAY",
+                      "shortName": "Puerto Rico 7th Consecutive Day Worked"
+                    },
+                    {
+                      "codeValue": "PR7THDAY8",
+                      "shortName": "Puerto Rico 7th Consecutive Day Worked-8hrs"
+                    },
+                    {
+                      "codeValue": "PRCLOSMEAL",
+                      "shortName": "Puerto Rico Closing Meal Penalty"
+                    },
+                    {
+                      "codeValue": "PREPTIME",
+                      "shortName": "Prep time before/after shift"
+                    },
+                    {
+                      "codeValue": "PRMEAL",
+                      "shortName": "Puerto Rico Meal Penalty"
+                    },
+                    {
+                      "codeValue": "PRSUNDAY",
+                      "shortName": "Puerto Rico Sunday Hours"
+                    },
+                    {
+                      "codeValue": "PRTOT",
+                      "shortName": "Puerto Rico Tracking Period Overtime"
+                    },
+                    {
+                      "codeValue": "PRWOT",
+                      "shortName": "Puerto Rico Weekly Overtime"
+                    },
+                    {
+                      "codeValue": "PTO",
+                      "shortName": "Paid Time Off"
+                    },
+                    {
+                      "codeValue": "REGSAL",
+                      "shortName": "Salary Regular Hours"
+                    },
+                    {
+                      "codeValue": "REGSH2",
+                      "shortName": "Regular Shift 2"
+                    },
+                    {
+                      "codeValue": "REGSH3",
+                      "shortName": "Regular Shift 3"
+                    },
+                    {
+                      "codeValue": "REGULAR",
+                      "shortName": "Regular"
+                    },
+                    {
+                      "codeValue": "SICK",
+                      "shortName": "Sick"
+                    },
+                    {
+                      "codeValue": "TRAINING",
+                      "shortName": "Training"
+                    },
+                    {
+                      "codeValue": "VACATION",
+                      "shortName": "Vacation"
+                    },
+                    {
+                      "codeValue": "WEEKENDHRS",
+                      "shortName": "Weekend Shift Differential"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "filename": "Meta_call_for_Change_Employee_Work_Schedule_Custom_Example_workSchedule.change_200_482661.json",
+      "status": 200,
+      "body": {
+        "meta": {
+          "/serviceCategoryCode/codeValue": "time",
+          "/eventNameCode/codeValue": "workSchedule.change",
+          "/data/eventContext": {
+            "/associateOID": {
+              "optional": false
+            },
+            "/scheduleID": {
+              "optional": true
+            },
+            "/workAssignmentID": {
+              "optional": true
+            }
+          },
+          "/data/transforms": [
+            {
+              "/eventStatusCode/codeValue": {
+                "optional": false,
+                "equals": [
+                  "submit"
+                ]
+              },
+              "/workSchedule/scheduleName": {
+                "optional": true
+              },
+              "/workSchedule/scheduleDays": {
+                "optional": false,
+                "maxItems": 7
+              },
+              "/workSchedule/scheduleDays/daySequenceNumber": {
+                "optional": true
+              },
+              "/workSchedule/scheduleDays/scheduleDayDate": {
+                "optional": false
+              },
+              "/workSchedule/scheduleDays/scheduleEntries": {
+                "optional": true,
+                "maxItems": 5
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/categoryTypeCode/codeValue": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "SHIFT"
+                    },
+                    {
+                      "codeValue": "PAYCODE"
+                    }
+                  ]
+                }
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/scheduleEntryID": {
+                "optional": false
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/shiftTypeCode/codeValue": {
+                "optional": true
+              },
+              "oneOf": [
+                {
+                  "/workSchedule/scheduleDays/scheduleEntries/dateTimePeriod/startDateTime": {
+                    "optional": false
+                  },
+                  "/workSchedule/scheduleDays/scheduleEntries/dateTimePeriod/endDateTime": {
+                    "optional": false
+                  }
+                },
+                {
+                  "/workSchedule/scheduleDays/scheduleEntries/dateTimePeriod/startDateTime": {
+                    "optional": false
+                  },
+                  "/workSchedule/scheduleDays/scheduleEntries/totalTime": {
+                    "optional": false
+                  },
+                  "/workSchedule/scheduleDays/scheduleEntries/totalTime/timeValue": {
+                    "optional": false
+                  }
+                }
+              ],
+              "/workSchedule/scheduleDays/scheduleEntries/earningAllocations": {
+                "optional": true,
+                "maxItems": 7
+              },
+              "/scheduleEntry/earningAllocations/allocationTypeCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "Shift Rule",
+                      "shortName": "Shift Rule"
+                    },
+                    {
+                      "codeValue": "Meal Plan",
+                      "shortName": "Meal Plan"
+                    },
+                    {
+                      "codeValue": "Function",
+                      "shortName": "Function"
+                    },
+                    {
+                      "codeValue": "Flextime Rule",
+                      "shortName": "Flextime Rule"
+                    },
+                    {
+                      "codeValue": "Department",
+                      "shortName": "Department"
+                    },
+                    {
+                      "codeValue": "Location",
+                      "shortName": "Location"
+                    }
+                  ]
+                }
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/earningAllocations/allocationTypeCode/codeValue": {
+                "optional": false
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/earningAllocations/allocationCode": {
+                "optional": false,
+                "codeList": {
+                  "links": [
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/1",
+                      "method": "GET",
+                      "title": "Shift Rule"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/14",
+                      "method": "GET",
+                      "title": "Meal Plan"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF4",
+                      "method": "GET",
+                      "title": "Function"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/6",
+                      "method": "GET",
+                      "title": "Flextime Rule"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF16",
+                      "method": "GET",
+                      "title": "Department"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF17",
+                      "method": "GET",
+                      "title": "Location"
+                    }
+                  ]
+                }
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/earningAllocations/allocationCode/codeValue": {
+                "optional": false
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/entryComments": {
+                "optional": true,
+                "maxItems": 1
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/entryComments/commentTypeCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": []
+                }
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/entryComments/textValue": {
+                "optional": true,
+                "maxLength": 512
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/payCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "ABSENT",
+                      "shortName": "Unpaid Absence"
+                    },
+                    {
+                      "codeValue": "AWARD",
+                      "shortName": "Award"
+                    },
+                    {
+                      "codeValue": "BEREAV",
+                      "shortName": "Bereavement"
+                    },
+                    {
+                      "codeValue": "COMPEARNED",
+                      "shortName": "Comp Earned"
+                    },
+                    {
+                      "codeValue": "COMPTAKEN",
+                      "shortName": "Comp Taken"
+                    },
+                    {
+                      "codeValue": "DBLTME",
+                      "shortName": "Doubletime"
+                    },
+                    {
+                      "codeValue": "DTSH2",
+                      "shortName": "Doubletime Shift 2"
+                    },
+                    {
+                      "codeValue": "DTSH3",
+                      "shortName": "Doubletime Shift 3"
+                    },
+                    {
+                      "codeValue": "FLOAT",
+                      "shortName": "Float Holiday"
+                    },
+                    {
+                      "codeValue": "HOLIDAY",
+                      "shortName": "Holiday"
+                    },
+                    {
+                      "codeValue": "HOLWRK",
+                      "shortName": "Holiday Worked"
+                    },
+                    {
+                      "codeValue": "JURY",
+                      "shortName": "Jury Duty"
+                    },
+                    {
+                      "codeValue": "LWOP",
+                      "shortName": "Leave Without Pay"
+                    },
+                    {
+                      "codeValue": "MKU",
+                      "shortName": "Make-up"
+                    },
+                    {
+                      "codeValue": "ONCALL",
+                      "shortName": "On Call - Guarantee hours not set"
+                    },
+                    {
+                      "codeValue": "OTHER",
+                      "shortName": "Other Hours"
+                    },
+                    {
+                      "codeValue": "OTSH1",
+                      "shortName": "Overtime Shift1"
+                    },
+                    {
+                      "codeValue": "OTSH2",
+                      "shortName": "Overtime Shift2"
+                    },
+                    {
+                      "codeValue": "OTSH3",
+                      "shortName": "Overtime Shift3"
+                    },
+                    {
+                      "codeValue": "OVERTIME",
+                      "shortName": "Overtime"
+                    },
+                    {
+                      "codeValue": "PAIDBREAK",
+                      "shortName": "Paid Break"
+                    },
+                    {
+                      "codeValue": "PAIDBREAKDT",
+                      "shortName": "Paid Break Doubletime"
+                    },
+                    {
+                      "codeValue": "PAIDBREAKOT",
+                      "shortName": "Paid Break Overtime"
+                    },
+                    {
+                      "codeValue": "PDLCHAWD",
+                      "shortName": "Paid Meal Award"
+                    },
+                    {
+                      "codeValue": "PERSONAL",
+                      "shortName": "Personal Hours"
+                    },
+                    {
+                      "codeValue": "PR7THDAY",
+                      "shortName": "Puerto Rico 7th Consecutive Day Worked"
+                    },
+                    {
+                      "codeValue": "PR7THDAY8",
+                      "shortName": "Puerto Rico 7th Consecutive Day Worked-8hrs"
+                    },
+                    {
+                      "codeValue": "PRCLOSMEAL",
+                      "shortName": "Puerto Rico Closing Meal Penalty"
+                    },
+                    {
+                      "codeValue": "PRMEAL",
+                      "shortName": "Puerto Rico Meal Penalty"
+                    },
+                    {
+                      "codeValue": "PRSUNDAY",
+                      "shortName": "Puerto Rico Sunday Hours"
+                    },
+                    {
+                      "codeValue": "PRTOT",
+                      "shortName": "Puerto Rico Tracking Period Overtime"
+                    },
+                    {
+                      "codeValue": "PRWOT",
+                      "shortName": "Puerto Rico Weekly Overtime"
+                    },
+                    {
+                      "codeValue": "PTO",
+                      "shortName": "Paid Time Off"
+                    },
+                    {
+                      "codeValue": "REGSAL",
+                      "shortName": "Salary Regular Hours"
+                    },
+                    {
+                      "codeValue": "REGSH2",
+                      "shortName": "Regular Shift 2"
+                    },
+                    {
+                      "codeValue": "REGSH3",
+                      "shortName": "Regular Shift 3"
+                    },
+                    {
+                      "codeValue": "REGULAR",
+                      "shortName": "Regular"
+                    },
+                    {
+                      "codeValue": "SICK",
+                      "shortName": "Sick"
+                    },
+                    {
+                      "codeValue": "SPLITSHIFT-CEM",
+                      "shortName": "SPLITSHIFT-CEM"
+                    },
+                    {
+                      "codeValue": "TRAINING",
+                      "shortName": "Classroom Training"
+                    },
+                    {
+                      "codeValue": "VACATION",
+                      "shortName": "Vacation"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "filename": "Returns_an_event_metadata_to_build_the_payload_for_the_POST_method._Provide_Example_workScheduleDay.copy_200_94049.json",
+      "status": 200,
+      "body": {
+        "meta": {
+          "/serviceCategoryCode/codeValue": "time",
+          "/eventNameCode/codeValue": "workScheduleDay.copy",
+          "/data/eventContext": {
+            "/associateOID": {
+              "optional": false
+            },
+            "/scheduleID": {
+              "optional": true
+            },
+            "/workAssignmentID": {
+              "optional": true
+            }
+          },
+          "/data/transforms": [
+            {
+              "/eventStatusCode/codeValue": {
+                "optional": true,
+                "equals": [
+                  "submit"
+                ]
+              },
+              "/startDateCopyTo": {
+                "optional": true,
+                "pattern": "^[0-9]{4}-[0-1][0-9]-[0-3][0-9]$"
+              },
+              "/numberOfRecurrences": {
+                "optional": true
+              },
+              "/scheduleDay/daySequenceNumber": {
+                "optional": true
+              },
+              "/scheduleDay/scheduleEntries/scheduleEntryID": {
+                "optional": true
+              },
+              "oneOf": [
+                {
+                  "/workSchedule/scheduleDays/scheduleEntries/dateTimePeriod/startDateTime": {
+                    "optional": false
+                  },
+                  "/workSchedule/scheduleDays/scheduleEntries/dateTimePeriod/endDateTime": {
+                    "optional": false
+                  }
+                },
+                {
+                  "/workSchedule/scheduleDays/scheduleEntries/dateTimePeriod/startDateTime": {
+                    "optional": false
+                  },
+                  "/workSchedule/scheduleDays/scheduleEntries/totalTime": {
+                    "optional": false
+                  },
+                  "/workSchedule/scheduleDays/scheduleEntries/totalTime/timeValue": {
+                    "optional": false
+                  }
+                }
+              ],
+              "/scheduleDay/scheduleEntries/earningAllocations": {
+                "optional": true,
+                "maxItems": 7
+              },
+              "/scheduleEntry/earningAllocations/allocationTypeCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "Location",
+                      "shortName": "Location"
+                    },
+                    {
+                      "codeValue": "Shift Rule",
+                      "shortName": "Shift Rule"
+                    },
+                    {
+                      "codeValue": "Meal Plan",
+                      "shortName": "Meal Plan"
+                    },
+                    {
+                      "codeValue": "Flextime Rule",
+                      "shortName": "Flextime Rule"
+                    },
+                    {
+                      "codeValue": "Department",
+                      "shortName": "Department"
+                    },
+                    {
+                      "codeValue": "Job or Project",
+                      "shortName": "Job or Project"
+                    }
+                  ]
+                }
+              },
+              "/scheduleDay/scheduleEntries/earningAllocations/allocationTypeCode/codeValue": {
+                "optional": false
+              },
+              "/scheduleDay/scheduleEntries/earningAllocations/allocationCode": {
+                "optional": false,
+                "codeList": {
+                  "links": [
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF1",
+                      "method": "GET",
+                      "title": "Location"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/1",
+                      "method": "GET",
+                      "title": "Shift Rule"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/14",
+                      "method": "GET",
+                      "title": "Meal Plan"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/6",
+                      "method": "GET",
+                      "title": "Flextime Rule"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF16",
+                      "method": "GET",
+                      "title": "Department"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF17",
+                      "method": "GET",
+                      "title": "Job or Project"
+                    }
+                  ]
+                }
+              },
+              "/scheduleDay/scheduleEntries/earningAllocations/allocationCode/codeValue": {
+                "optional": false
+              },
+              "/scheduleDay/scheduleEntries/entryComments": {
+                "optional": true
+              },
+              "/scheduleDay/scheduleEntries/entryComments/commentTypeCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "EDIT",
+                      "shortName": "Timecard Edit"
+                    },
+                    {
+                      "codeValue": "INEARLY",
+                      "shortName": "In Early at Timeclock"
+                    },
+                    {
+                      "codeValue": "INLATE",
+                      "shortName": "In Late at Timeclock"
+                    },
+                    {
+                      "codeValue": "OUTEARLY",
+                      "shortName": "Out Early at Timeclock"
+                    },
+                    {
+                      "codeValue": "OUTLATE",
+                      "shortName": "Out Late at Timeclock"
+                    }
+                  ]
+                }
+              },
+              "/scheduleDay/scheduleEntries/entryComments/textValue": {
+                "optional": true,
+                "maxLength": 512
+              },
+              "/scheduleDay/scheduleEntries/payCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "ABSENT",
+                      "shortName": "Unpaid Absence"
+                    },
+                    {
+                      "codeValue": "BEREAV",
+                      "shortName": "Bereavement"
+                    },
+                    {
+                      "codeValue": "COMPEARNED",
+                      "shortName": "Comp Earned"
+                    },
+                    {
+                      "codeValue": "COMPTAKEN",
+                      "shortName": "Comp Taken"
+                    },
+                    {
+                      "codeValue": "CONSULT",
+                      "shortName": "Consultation Hours"
+                    },
+                    {
+                      "codeValue": "DBLTME",
+                      "shortName": "Doubletime"
+                    },
+                    {
+                      "codeValue": "DTSH2",
+                      "shortName": "Doubletime Shift 2"
+                    },
+                    {
+                      "codeValue": "DTSH3",
+                      "shortName": "Doubletime Shift 3"
+                    },
+                    {
+                      "codeValue": "FF-FMLA",
+                      "shortName": "EXPIRED - DO NOT USE - Families First FMLA"
+                    },
+                    {
+                      "codeValue": "FF-PSL-EE",
+                      "shortName": "EXPIRED - DO NOT USE - Families First Paid Sick Leave - Employee"
+                    },
+                    {
+                      "codeValue": "FF-PSL-FAM",
+                      "shortName": "EXPIRED - DO NOT USE - Families First Paid Sick Leave - Family Member"
+                    },
+                    {
+                      "codeValue": "FLOAT",
+                      "shortName": "Float Holiday"
+                    },
+                    {
+                      "codeValue": "GUARANTEEDHRS",
+                      "shortName": "Guaranteed Hours"
+                    },
+                    {
+                      "codeValue": "HOLIDAY",
+                      "shortName": "Holiday"
+                    },
+                    {
+                      "codeValue": "HOLWRK",
+                      "shortName": "Holiday Worked"
+                    },
+                    {
+                      "codeValue": "JURY",
+                      "shortName": "Jury Duty"
+                    },
+                    {
+                      "codeValue": "LWOP",
+                      "shortName": "Leave Without Pay"
+                    },
+                    {
+                      "codeValue": "MEETING",
+                      "shortName": "Meeting Hours"
+                    },
+                    {
+                      "codeValue": "MKU",
+                      "shortName": "Make-up"
+                    },
+                    {
+                      "codeValue": "ONCALL",
+                      "shortName": "On Call - Guarantee hours not set"
+                    },
+                    {
+                      "codeValue": "OTHER",
+                      "shortName": "Other Hours"
+                    },
+                    {
+                      "codeValue": "OTSH1",
+                      "shortName": "Overtime Shift1"
+                    },
+                    {
+                      "codeValue": "OTSH2",
+                      "shortName": "Overtime Shift2"
+                    },
+                    {
+                      "codeValue": "OTSH3",
+                      "shortName": "Overtime Shift3"
+                    },
+                    {
+                      "codeValue": "OVERTIME",
+                      "shortName": "Overtime"
+                    },
+                    {
+                      "codeValue": "PAIDBREAK",
+                      "shortName": "Paid Break"
+                    },
+                    {
+                      "codeValue": "PDLCHAWD",
+                      "shortName": "Paid Meal Award"
+                    },
+                    {
+                      "codeValue": "PERSONAL",
+                      "shortName": "Personal Hours"
+                    },
+                    {
+                      "codeValue": "PR7THDAY",
+                      "shortName": "Puerto Rico 7th Consecutive Day Worked"
+                    },
+                    {
+                      "codeValue": "PR7THDAY8",
+                      "shortName": "Puerto Rico 7th Consecutive Day Worked-8hrs"
+                    },
+                    {
+                      "codeValue": "PRCLOSMEAL",
+                      "shortName": "Puerto Rico Closing Meal Penalty"
+                    },
+                    {
+                      "codeValue": "PREPTIME",
+                      "shortName": "Prep time before/after shift"
+                    },
+                    {
+                      "codeValue": "PRMEAL",
+                      "shortName": "Puerto Rico Meal Penalty"
+                    },
+                    {
+                      "codeValue": "PRSUNDAY",
+                      "shortName": "Puerto Rico Sunday Hours"
+                    },
+                    {
+                      "codeValue": "PRTOT",
+                      "shortName": "Puerto Rico Tracking Period Overtime"
+                    },
+                    {
+                      "codeValue": "PRWOT",
+                      "shortName": "Puerto Rico Weekly Overtime"
+                    },
+                    {
+                      "codeValue": "PTO",
+                      "shortName": "Paid Time Off"
+                    },
+                    {
+                      "codeValue": "REGSAL",
+                      "shortName": "Salary Regular Hours"
+                    },
+                    {
+                      "codeValue": "REGSH2",
+                      "shortName": "Regular Shift 2"
+                    },
+                    {
+                      "codeValue": "REGSH3",
+                      "shortName": "Regular Shift 3"
+                    },
+                    {
+                      "codeValue": "REGULAR",
+                      "shortName": "Regular"
+                    },
+                    {
+                      "codeValue": "SICK",
+                      "shortName": "Sick"
+                    },
+                    {
+                      "codeValue": "TRAINING",
+                      "shortName": "Training"
+                    },
+                    {
+                      "codeValue": "VACATION",
+                      "shortName": "Vacation"
+                    },
+                    {
+                      "codeValue": "WEEKENDHRS",
+                      "shortName": "Weekend Shift Differential"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "filename": "Meta_call_for_work_schedule_copy_Custom_Example_workSchedule.copy_200_479235.json",
+      "status": 200,
+      "body": {
+        "meta": {
+          "/serviceCategoryCode/codeValue": "time",
+          "/eventNameCode/codeValue": "workSchedule.copy",
+          "/data/eventContext": {
+            "/associateOID": {
+              "optional": false
+            },
+            "/scheduleID": {
+              "optional": true
+            },
+            "/workAssignmentID": {
+              "optional": true
+            }
+          },
+          "/data/transforms": [
+            {
+              "/eventStatusCode/codeValue": {
+                "optional": true,
+                "equals": [
+                  "Submit"
+                ]
+              },
+              "/workerCopyTo/associateOID": {
+                "optional": false
+              },
+              "/workerCopyTo/workAssignmentID": {
+                "optional": true
+              },
+              "/startDateCopyTo": "",
+              "/numberOfRecurrences": {
+                "optional": true
+              },
+              "/workSchedule/scheduleName": {
+                "optional": true
+              },
+              "/workSchedule/scheduleDays/daySequenceNumber": {
+                "optional": true
+              },
+              "/workSchedule/scheduleDays/scheduleDayDate": {
+                "optional": false
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/scheduleEntryID": {
+                "optional": true
+              },
+              "oneOf": [
+                {
+                  "/workSchedule/scheduleDays/scheduleEntries/dateTimePeriod/startDateTime": {
+                    "optional": false
+                  },
+                  "/workSchedule/scheduleDays/scheduleEntries/dateTimePeriod/endDateTime": {
+                    "optional": false
+                  }
+                },
+                {
+                  "/workSchedule/scheduleDays/scheduleEntries/dateTimePeriod/startDateTime": {
+                    "optional": false
+                  },
+                  "/workSchedule/scheduleDays/scheduleEntries/totalTime": {
+                    "optional": false
+                  },
+                  "/workSchedule/scheduleDays/scheduleEntries/totalTime/timeValue": {
+                    "optional": false
+                  }
+                }
+              ],
+              "/workSchedule/scheduleDays/scheduleEntries/earningAllocations": {
+                "optional": true,
+                "maxItems": 7
+              },
+              "/scheduleEntry/earningAllocations/allocationTypeCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "Location",
+                      "shortName": "Location"
+                    },
+                    {
+                      "codeValue": "Shift Rule",
+                      "shortName": "Shift Rule"
+                    },
+                    {
+                      "codeValue": "Meal Plan",
+                      "shortName": "Meal Plan"
+                    },
+                    {
+                      "codeValue": "Flextime Rule",
+                      "shortName": "Flextime Rule"
+                    },
+                    {
+                      "codeValue": "Department",
+                      "shortName": "Department"
+                    },
+                    {
+                      "codeValue": "Job or Project",
+                      "shortName": "Job or Project"
+                    }
+                  ]
+                }
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/earningAllocations/allocationTypeCode/codeValue": {
+                "optional": false
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/earningAllocations/allocationCode": {
+                "optional": false,
+                "codeList": {
+                  "links": [
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF1",
+                      "method": "GET",
+                      "title": "Location"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/1",
+                      "method": "GET",
+                      "title": "Shift Rule"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/14",
+                      "method": "GET",
+                      "title": "Meal Plan"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/6",
+                      "method": "GET",
+                      "title": "Flextime Rule"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF16",
+                      "method": "GET",
+                      "title": "Department"
+                    },
+                    {
+                      "rel": "api/codelists",
+                      "href": "/codelists/time/v3/time-entry-management/labor-allocations/ezLM/LCF17",
+                      "method": "GET",
+                      "title": "Job or Project"
+                    }
+                  ]
+                }
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/earningAllocations/allocationCode/codeValue": {
+                "optional": false
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/entryComments": {
+                "optional": true
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/entryComments/commentTypeCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": []
+                }
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/entryComments/textValue": {
+                "optional": true,
+                "maxLength": 512
+              },
+              "/workSchedule/scheduleDays/scheduleEntries/payCode": {
+                "optional": false,
+                "codeList": {
+                  "listItems": [
+                    {
+                      "codeValue": "ABSENT",
+                      "shortName": "Unpaid Absence"
+                    },
+                    {
+                      "codeValue": "BEREAV",
+                      "shortName": "Bereavement"
+                    },
+                    {
+                      "codeValue": "COMPEARNED",
+                      "shortName": "Comp Earned"
+                    },
+                    {
+                      "codeValue": "COMPTAKEN",
+                      "shortName": "Comp Taken"
+                    },
+                    {
+                      "codeValue": "CONSULT",
+                      "shortName": "Consultation Hours"
+                    },
+                    {
+                      "codeValue": "DBLTME",
+                      "shortName": "Doubletime"
+                    },
+                    {
+                      "codeValue": "DTSH2",
+                      "shortName": "Doubletime Shift 2"
+                    },
+                    {
+                      "codeValue": "DTSH3",
+                      "shortName": "Doubletime Shift 3"
+                    },
+                    {
+                      "codeValue": "FLOAT",
+                      "shortName": "Float Holiday"
+                    },
+                    {
+                      "codeValue": "FRINGE",
+                      "shortName": "Fringe Benefits"
+                    },
+                    {
+                      "codeValue": "FUNNYTIMEOFF",
+                      "shortName": "test time off pay code"
+                    },
+                    {
+                      "codeValue": "Fringe",
+                      "shortName": "Fringe Benefits"
+                    },
+                    {
+                      "codeValue": "GUARANTEEDHRS",
+                      "shortName": "Guaranteed Hours"
+                    },
+                    {
+                      "codeValue": "HOLIDAY",
+                      "shortName": "Holiday"
+                    },
+                    {
+                      "codeValue": "HOLWRK",
+                      "shortName": "Holiday Worked"
+                    },
+                    {
+                      "codeValue": "JURY",
+                      "shortName": "Jury Duty"
+                    },
+                    {
+                      "codeValue": "LWOP",
+                      "shortName": "Leave Without Pay"
+                    },
+                    {
+                      "codeValue": "MEETING",
+                      "shortName": "Meeting Hours"
+                    },
+                    {
+                      "codeValue": "MKU",
+                      "shortName": "Make-up"
+                    },
+                    {
+                      "codeValue": "ONCALL",
+                      "shortName": "On Call - Guarantee hours not set"
+                    },
+                    {
+                      "codeValue": "OTHER",
+                      "shortName": "Other Hours"
+                    },
+                    {
+                      "codeValue": "OTSH1",
+                      "shortName": "Overtime Shift1"
+                    },
+                    {
+                      "codeValue": "OTSH2",
+                      "shortName": "Overtime Shift2"
+                    },
+                    {
+                      "codeValue": "OTSH3",
+                      "shortName": "Overtime Shift3"
+                    },
+                    {
+                      "codeValue": "OVERTIME",
+                      "shortName": "Overtime"
+                    },
+                    {
+                      "codeValue": "PAIDBREAK",
+                      "shortName": "Paid Break"
+                    },
+                    {
+                      "codeValue": "PDLCHAWD",
+                      "shortName": "Paid Meal Award"
+                    },
+                    {
+                      "codeValue": "PERSONAL",
+                      "shortName": "Personal Hours"
+                    },
+                    {
+                      "codeValue": "PR7THDAY",
+                      "shortName": "Puerto Rico 7th Consecutive Day Worked"
+                    },
+                    {
+                      "codeValue": "PR7THDAY8",
+                      "shortName": "Puerto Rico 7th Consecutive Day Worked-8hrs"
+                    },
+                    {
+                      "codeValue": "PRCLOSMEAL",
+                      "shortName": "Puerto Rico Closing Meal Penalty"
+                    },
+                    {
+                      "codeValue": "PREPTIME",
+                      "shortName": "Prep time before/after shift"
+                    },
+                    {
+                      "codeValue": "PRMEAL",
+                      "shortName": "Puerto Rico Meal Penalty"
+                    },
+                    {
+                      "codeValue": "PRSUNDAY",
+                      "shortName": "Puerto Rico Sunday Hours"
+                    },
+                    {
+                      "codeValue": "PRTOT",
+                      "shortName": "Puerto Rico Tracking Period Overtime"
+                    },
+                    {
+                      "codeValue": "PRWOT",
+                      "shortName": "Puerto Rico Weekly Overtime"
+                    },
+                    {
+                      "codeValue": "REGSAL",
+                      "shortName": "Salary Regular Hours"
+                    },
+                    {
+                      "codeValue": "REGSH2",
+                      "shortName": "Regular Shift 2"
+                    },
+                    {
+                      "codeValue": "REGSH3",
+                      "shortName": "Regular Shift 3"
+                    },
+                    {
+                      "codeValue": "REGULAR",
+                      "shortName": "Regular"
+                    },
+                    {
+                      "codeValue": "SICK",
+                      "shortName": "Sick"
+                    },
+                    {
+                      "codeValue": "TRAINING",
+                      "shortName": "Training"
+                    },
+                    {
+                      "codeValue": "VACATION",
+                      "shortName": "Vacation"
+                    },
+                    {
+                      "codeValue": "VD",
+                      "shortName": "VACATION DAYS"
+                    },
+                    {
+                      "codeValue": "WEEKENDHRS",
+                      "shortName": "Weekend Shift Differential"
+                    },
+                    {
+                      "codeValue": "ZADD VACATION",
+                      "shortName": "Zaddons Vacation"
+                    },
+                    {
+                      "codeValue": "ZADD VACATION - Add EE",
+                      "shortName": "Zaddons Vacation"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "filename": "Returns_event_metadata_to_build_the_payload_for_the_POST_method._Provide_Example_workScheduleDay.remove_200_94045.json",
+      "status": 200,
+      "body": {
+        "meta": {
+          "/serviceCategoryCode/codeValue": "time",
+          "/eventNameCode/codeValue": "workScheduleDay.remove",
+          "/data/eventContext": {
+            "/associateOID": {
+              "optional": false
+            },
+            "/workAssignmentID": {
+              "optional": true
+            },
+            "/scheduleID": {
+              "optional": true
+            },
+            "scheduleDayDate": {
+              "optional": false
+            }
+          },
+          "/data/transforms": [
+            {
+              "/eventStatusCode/codeValue": {
+                "optional": false,
+                "equals": [
+                  "submit"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "filename": "Meta_call_for_work_schedule_remove_Custom_Example_workSchedule.remove_200_479236.json",
+      "status": 200,
+      "body": {
+        "meta": {
+          "/serviceCategoryCode/codeValue": "time",
+          "/eventNameCode/codeValue": "workSchedule.remove",
+          "/data/eventContext": {
+            "/eventID": {
+              "optional": false
+            },
+            "/associateOID": {
+              "optional": false
+            },
+            "/scheduleID": {
+              "optional": false
+            },
+            "/workAssignmentID": {
+              "optional": true
+            }
+          },
+          "/data/transforms": [
+            {
+              "/effectiveDateTime": {
+                "optional": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "filename": "Retrieving_all_schedules_for_employees_reporting_to_the_Practitioner._Provide_Example_workSchedule.read_200_94050.json",
+      "status": 200,
+      "body": {
+        "workSchedules": [
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G332EFV3Q6J0048K",
+            "workerName": {
+              "givenName": "Test123",
+              "familyName1": "ApplicantOnboard",
+              "formattedName": "ApplicantOnboard, Test123"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          },
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G3Q7JN6K3CNJZJXA",
+            "workerName": {
+              "givenName": "Brande",
+              "familyName1": "Binolle",
+              "formattedName": "Binolle, Brande"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          },
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G332EFV3Q6J0PV9Z",
+            "workerName": {
+              "givenName": "Test",
+              "familyName1": "HR Payroll Time",
+              "formattedName": "HR Payroll Time, Test"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          },
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G3HDMB41NWAYVZDB",
+            "workerName": {
+              "givenName": "Test",
+              "familyName1": "Hr Time",
+              "formattedName": "Hr Time, Test"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          },
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G3CHQPRW483NJAAA",
+            "workerName": {
+              "givenName": "Kruti",
+              "familyName1": "Renuka",
+              "formattedName": "Renuka, Kruti"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          }
+        ],
+        "meta": {
+          "startSequence": 0,
+          "completeIndicator": true,
+          "totalNumber": 7,
+          "links": []
+        },
+        "confirmMessage": {
+          "createDateTime": "2019-07-26T05:54:19-04:00",
+          "protocolStatusCode": {
+            "codeValue": "200"
+          },
+          "requestStatusCode": {
+            "codeValue": "succeeded"
+          },
+          "requestMethodCode": {
+            "codeValue": "GET"
+          },
+          "processingStatusCode": {
+            "codeValue": "COMPLETED"
+          }
+        }
+      }
+    },
+    {
+      "filename": "Retrieving_all_schedules_for_employees_reporting_to_the_Practitioner._Provide_Example_workSchedule.read_200_94051.json",
+      "status": 200,
+      "body": {
+        "workSchedules": [
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G332EFV3Q6J0048K",
+            "workerName": {
+              "givenName": "Test123",
+              "familyName1": "ApplicantOnboard",
+              "formattedName": "ApplicantOnboard, Test123"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          },
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G3Q7JN6K3CNJZJXA",
+            "workerName": {
+              "givenName": "Brande",
+              "familyName1": "Binolle",
+              "formattedName": "Binolle, Brande"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          },
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G332EFV3Q6J0PV9Z",
+            "workerName": {
+              "givenName": "Test",
+              "familyName1": "HR Payroll Time",
+              "formattedName": "HR Payroll Time, Test"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          },
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G3HDMB41NWAYVZDB",
+            "workerName": {
+              "givenName": "Test",
+              "familyName1": "Hr Time",
+              "formattedName": "Hr Time, Test"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          },
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G3CHQPRW483NJAAA",
+            "workerName": {
+              "givenName": "Kruti",
+              "familyName1": "Renuka",
+              "formattedName": "Renuka, Kruti"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          }
+        ],
+        "meta": {
+          "startSequence": 0,
+          "completeIndicator": true,
+          "totalNumber": 7,
+          "links": []
+        },
+        "confirmMessage": {
+          "createDateTime": "2019-07-26T05:54:19-04:00",
+          "protocolStatusCode": {
+            "codeValue": "200"
+          },
+          "requestStatusCode": {
+            "codeValue": "succeeded"
+          },
+          "requestMethodCode": {
+            "codeValue": "GET"
+          },
+          "processingStatusCode": {
+            "codeValue": "COMPLETED"
+          }
+        }
+      }
+    },
+    {
+      "filename": "Retrieving_requested_employee_work_schedules._Provide_Example_workSchedule.read_200_94052.json",
+      "status": 200,
+      "body": {
+        "workSchedules": [
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G332EFV3Q6J0048K",
+            "workerName": {
+              "givenName": "Test123",
+              "familyName1": "ApplicantOnboard",
+              "formattedName": "ApplicantOnboard, Test123"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          },
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G3Q7JN6K3CNJZJXA",
+            "workerName": {
+              "givenName": "Brande",
+              "familyName1": "Binolle",
+              "formattedName": "Binolle, Brande"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          },
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G332EFV3Q6J0PV9Z",
+            "workerName": {
+              "givenName": "Test",
+              "familyName1": "HR Payroll Time",
+              "formattedName": "HR Payroll Time, Test"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          },
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G3HDMB41NWAYVZDB",
+            "workerName": {
+              "givenName": "Test",
+              "familyName1": "Hr Time",
+              "formattedName": "Hr Time, Test"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          },
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G3CHQPRW483NJAAA",
+            "workerName": {
+              "givenName": "Kruti",
+              "familyName1": "Renuka",
+              "formattedName": "Renuka, Kruti"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          }
+        ],
+        "meta": {
+          "startSequence": 0,
+          "completeIndicator": true,
+          "totalNumber": 7,
+          "links": []
+        },
+        "confirmMessage": {
+          "createDateTime": "2019-07-26T05:54:19-04:00",
+          "protocolStatusCode": {
+            "codeValue": "200"
+          },
+          "requestStatusCode": {
+            "codeValue": "succeeded"
+          },
+          "requestMethodCode": {
+            "codeValue": "GET"
+          },
+          "processingStatusCode": {
+            "codeValue": "COMPLETED"
+          }
+        }
+      }
+    },
+    {
+      "filename": "Retrieving_requested_employee_work_schedules._Custom_Example_workSchedule.read_200_482662.json",
+      "status": 200,
+      "body": {
+        "workSchedules": [
+          {
+            "scheduleID": "2024-04-14zz2024-04-22",
+            "associateOID": "G3R5S3HBCYAHE3PH",
+            "workerName": {
+              "givenName": "rssuper",
+              "familyName1": "",
+              "formattedName": "rssuper"
+            },
+            "workAssignmentID": "97096685N",
+            "schedulePeriod": {
+              "startDate": "2024-04-14",
+              "endDate": "2024-04-22"
+            },
+            "scheduleDays": [
+              {
+                "daySequenceNumber": 1,
+                "scheduleDayDate": "2024-04-15",
+                "scheduleEntries": [
+                  {
+                    "actions": [
+                      {
+                        "operationID": "Deviation"
+                      }
+                    ],
+                    "entryTotals": [],
+                    "entryTags": [],
+                    "scheduleEntryID": "17383659924783190",
+                    "categoryTypeCode": {
+                      "codeValue": "SHIFT"
+                    },
+                    "shiftTypeCode": {
+                      "codeValue": "REGULAR"
+                    },
+                    "earningAllocations": [
+                      {
+                        "allocationCode": {
+                          "codeValue": "003000",
+                          "shortName": "Training"
+                        },
+                        "allocationTypeCode": {
+                          "codeValue": "Department",
+                          "shortName": "Department"
+                        }
+                      }
+                    ],
+                    "entryComments": [],
+                    "dateTimePeriod": {
+                      "startDateTime": "2024-04-15T09:10:00-04:00",
+                      "endDateTime": "2024-04-15T12:10:00-04:00"
+                    },
+                    "datePeriod": {
+                      "startDate": "2024-04-15",
+                      "endDate": "2024-04-15"
+                    },
+                    "totalTime": {
+                      "timeValue": "3:00",
+                      "nameCode": {
+                        "codeValue": "hour",
+                        "shortName": "Hours"
+                      }
+                    }
+                  },
+                  {
+                    "actions": [
+                      {
+                        "operationID": "Deviation"
+                      }
+                    ],
+                    "entryTotals": [],
+                    "entryTags": [],
+                    "scheduleEntryID": "17383659924783191",
+                    "categoryTypeCode": {
+                      "codeValue": "SHIFT"
+                    },
+                    "shiftTypeCode": {
+                      "codeValue": "REGULAR"
+                    },
+                    "earningAllocations": [],
+                    "entryComments": [],
+                    "dateTimePeriod": {
+                      "startDateTime": "2024-04-15T13:10:00-04:00",
+                      "endDateTime": "2024-04-15T13:30:00-04:00"
+                    },
+                    "datePeriod": {
+                      "startDate": "2024-04-15",
+                      "endDate": "2024-04-15"
+                    },
+                    "totalTime": {
+                      "timeValue": "0:20",
+                      "nameCode": {
+                        "codeValue": "hour",
+                        "shortName": "Hours"
+                      }
+                    }
+                  },
+                  {
+                    "actions": [
+                      {
+                        "operationID": "Deviation"
+                      }
+                    ],
+                    "entryTotals": [],
+                    "entryTags": [],
+                    "scheduleEntryID": "17383659924782834",
+                    "categoryTypeCode": {
+                      "codeValue": "PAYCODE"
+                    },
+                    "shiftTypeCode": {
+                      "codeValue": "REGULAR"
+                    },
+                    "earningAllocations": [],
+                    "entryComments": [],
+                    "payCode": {
+                      "codeValue": "HOLIDAY",
+                      "shortName": "Holiday"
+                    },
+                    "dateTimePeriod": {
+                      "startDateTime": "2024-04-15T21:00:00-04:00",
+                      "endDateTime": "2024-04-15T22:00:00-04:00"
+                    },
+                    "datePeriod": {
+                      "startDate": "2024-04-15",
+                      "endDate": "2024-04-15"
+                    },
+                    "totalTime": {
+                      "timeValue": "1:00",
+                      "nameCode": {
+                        "codeValue": "hour",
+                        "shortName": "Hours"
+                      }
+                    }
+                  }
+                ],
+                "scheduledHours": {
+                  "hoursQuantity": 4.333333333333334
+                },
+                "dailyTotals": [
+                  {
+                    "totalTime": {
+                      "timeValue": "4:20",
+                      "nameCode": {
+                        "codeValue": "hour",
+                        "shortName": "Hours"
+                      }
+                    },
+                    "payCodeDistributions": []
+                  }
+                ]
+              }
+            ],
+            "periodTotals": []
+          }
+        ],
+        "workScheduleTotals": {
+          "periodTotals": [],
+          "dailyTotals": [
+            {
+              "counts": [],
+              "entryDate": "2024-04-15",
+              "totalTime": {
+                "timeValue": "4:20",
+                "nameCode": {
+                  "codeValue": "hour",
+                  "shortName": "Hours"
+                }
+              },
+              "totalTypeCode": {
+                "codeValue": "DAYTOTAL"
+              },
+              "payCodeDistributions": []
+            }
+          ]
+        },
+        "meta": {
+          "startDayOfWeekCode": "sunday",
+          "timeNotationCode": "12h",
+          "links": []
+        },
+        "confirmMessage": {
+          "createDateTime": "2024-04-16T10:49:17-04:00",
+          "protocolStatusCode": {
+            "codeValue": "200"
+          },
+          "requestStatusCode": {
+            "codeValue": "succeeded"
+          },
+          "requestMethodCode": {
+            "codeValue": "GET"
+          }
+        }
+      }
+    },
+    {
+      "filename": "Retrieving_requested_employee_work_schedules._Provide_Example_workSchedule.read_200_94054.json",
+      "status": 200,
+      "body": {
+        "workSchedules": [
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G332EFV3Q6J0048K",
+            "workerName": {
+              "givenName": "Test123",
+              "familyName1": "ApplicantOnboard",
+              "formattedName": "ApplicantOnboard, Test123"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          },
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G3Q7JN6K3CNJZJXA",
+            "workerName": {
+              "givenName": "Brande",
+              "familyName1": "Binolle",
+              "formattedName": "Binolle, Brande"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          },
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G332EFV3Q6J0PV9Z",
+            "workerName": {
+              "givenName": "Test",
+              "familyName1": "HR Payroll Time",
+              "formattedName": "HR Payroll Time, Test"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          },
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G3HDMB41NWAYVZDB",
+            "workerName": {
+              "givenName": "Test",
+              "familyName1": "Hr Time",
+              "formattedName": "Hr Time, Test"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          },
+          {
+            "scheduleID": "2019-07-21zz2019-07-27",
+            "associateOID": "G3CHQPRW483NJAAA",
+            "workerName": {
+              "givenName": "Kruti",
+              "familyName1": "Renuka",
+              "formattedName": "Renuka, Kruti"
+            },
+            "schedulePeriod": {
+              "startDate": "2019-07-21",
+              "endDate": "2019-07-27"
+            },
+            "scheduleDays": []
+          }
+        ],
+        "meta": {
+          "startSequence": 0,
+          "completeIndicator": true,
+          "totalNumber": 7,
+          "links": []
+        },
+        "confirmMessage": {
+          "createDateTime": "2019-07-26T05:54:19-04:00",
+          "protocolStatusCode": {
+            "codeValue": "200"
+          },
+          "requestStatusCode": {
+            "codeValue": "succeeded"
+          },
+          "requestMethodCode": {
+            "codeValue": "GET"
+          },
+          "processingStatusCode": {
+            "codeValue": "COMPLETED"
+          }
+        }
+      }
     }
   ]
 }

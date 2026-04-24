@@ -1,0 +1,253 @@
+{
+  "tile": "payroll/pay-statements/v1",
+  "samples": [
+    {
+      "filename": "Request_the_details_of_a_single_client-specific_pay_statement_as_an_image_Generate_from_Schema_payStatement.read_200_498584.json",
+      "status": 200,
+      "body": {}
+    },
+    {
+      "filename": "retrieve_Pay_Statement_Details_response_payStatement.read_200_601910.json",
+      "status": 200,
+      "body": {
+        "payStatement": {
+          "id": "e97bfb7d-8873-4652-adf9-b8a434207d4f",
+          "itemID": "e97bfb7d-8873-4652-adf9-b8a434207d4f",
+          "payDate": "2011-07-08",
+          "payPeriod": {
+            "endDate": "2011-07-08"
+          },
+          "netPayAmount": {
+            "amountValue": 568.65,
+            "currencyCode": "USD"
+          },
+          "grossPayAmount": {
+            "amountValue": 990,
+            "currencyCode": "USD"
+          },
+          "grossPayYTDAmount": {
+            "amountValue": 26730,
+            "currencyCode": "USD"
+          },
+          "totalHours": 40,
+          "earnings": [
+            {
+              "earningCodeName": "Regular ",
+              "earningAmount": {
+                "amountValue": 990,
+                "currencyCode": "USD"
+              },
+              "earningYTDAmount": {
+                "amountValue": 26730,
+                "currencyCode": "USD"
+              },
+              "payPeriodHours": 40,
+              "payRate": {
+                "amountValue": 8,
+                "currencyCode": "USD",
+                "unitTimeCode": "hour"
+              },
+              "preTaxIndicator": false
+            }
+          ],
+          "deductions": [
+            {
+              "codeName": "Federal Income Tax ",
+              "deductionAmount": {
+                "amountValue": -132.05,
+                "currencyCode": "USD"
+              },
+              "deductionYTDAmount": {
+                "amountValue": 3565.35,
+                "currencyCode": "USD"
+              },
+              "preTaxIndicator": false
+            },
+            {
+              "codeName": "Social Security Tax ",
+              "deductionAmount": {
+                "amountValue": -36.97,
+                "currencyCode": "USD"
+              },
+              "deductionYTDAmount": {
+                "amountValue": 998.19,
+                "currencyCode": "USD"
+              },
+              "preTaxIndicator": false
+            },
+            {
+              "codeName": "Medicare Tax ",
+              "deductionAmount": {
+                "amountValue": -12.76,
+                "currencyCode": "USD"
+              },
+              "deductionYTDAmount": {
+                "amountValue": 344.52,
+                "currencyCode": "USD"
+              },
+              "preTaxIndicator": false
+            },
+            {
+              "codeName": "NJ State Income Tax ",
+              "deductionAmount": {
+                "amountValue": -17,
+                "currencyCode": "USD"
+              },
+              "deductionYTDAmount": {
+                "amountValue": 170,
+                "currencyCode": "USD"
+              },
+              "preTaxIndicator": false
+            },
+            {
+              "codeName": "Dependent Care FSA",
+              "deductionAmount": {
+                "amountValue": -50,
+                "currencyCode": "USD"
+              },
+              "deductionYTDAmount": {
+                "amountValue": 170,
+                "currencyCode": "USD"
+              },
+              "preTaxIndicator": false
+            },
+            {
+              "codeName": "401K",
+              "deductionAmount": {
+                "amountValue": -29.7,
+                "currencyCode": "USD"
+              },
+              "deductionYTDAmount": {
+                "amountValue": 170,
+                "currencyCode": "USD"
+              },
+              "preTaxIndicator": false
+            },
+            {
+              "codeName": "401K Loan",
+              "deductionAmount": {
+                "amountValue": -54.6,
+                "currencyCode": "USD"
+              },
+              "deductionYTDAmount": {
+                "amountValue": 170,
+                "currencyCode": "USD"
+              },
+              "preTaxIndicator": false
+            }
+          ],
+          "directDeposits": [
+            {
+              "depositAmount": {
+                "amountValue": 568.65,
+                "currencyCode": "USD"
+              },
+              "financialPartyRoutingID": "xxxx xxxx",
+              "financialAccountTypeName": "ALINE ",
+              "financialAccountID": "xxx1234 "
+            }
+          ]
+        }
+      }
+    },
+    {
+      "filename": "Retrieve_a_list_of_pay_statements_for_an_associate._Custom_Example_payStatement.read_200_498583.json",
+      "status": 200,
+      "body": {
+        "payStatements": [
+          {
+            "payDate": "2025-05-09",
+            "netPayAmount": {
+              "amountValue": 717.92,
+              "currencyCode": "USD"
+            },
+            "grossPayAmount": {
+              "amountValue": 1033.95,
+              "currencyCode": "USD"
+            },
+            "totalHours": 45.75,
+            "payDetailUri": {
+              "href": "/payroll/v1/workers/{aoid}/organizational-pay-statements/0522316325204072000059001078924"
+            },
+            "statementImageUri": {
+              "href": "/payroll/v1/workers/{aoid}/organizational-pay-statements/0522316325204072000059001078924/images/-8Fooo004300910000r25335D390FA621.pdf"
+            }
+          },
+          {
+            "payDate": "2025-04-25",
+            "netPayAmount": {
+              "amountValue": 751.83,
+              "currencyCode": "USD"
+            },
+            "grossPayAmount": {
+              "amountValue": 1084.8,
+              "currencyCode": "USD"
+            },
+            "totalHours": 48.0,
+            "payDetailUri": {
+              "href": "/payroll/v1/workers/{aoid}/organizational-pay-statements/0522316325182847000059001044075"
+            },
+            "statementImageUri": {
+              "href": "/payroll/v1/workers/{aoid}/organizational-pay-statements/0522316325182847000059001044075/images/-8Fooo004300710000r25C40F19BEA621.pdf"
+            }
+          },
+          {
+            "payDate": "2025-03-28",
+            "netPayAmount": {
+              "amountValue": 729.24,
+              "currencyCode": "USD"
+            },
+            "grossPayAmount": {
+              "amountValue": 1050.9,
+              "currencyCode": "USD"
+            },
+            "totalHours": 46.5,
+            "payDetailUri": {
+              "href": "/payroll/v1/workers/{aoid}/organizational-pay-statements/0522316325150998000059001359926"
+            },
+            "statementImageUri": {
+              "href": "/payroll/v1/workers/{aoid}/organizational-pay-statements/0522316325150998000059001359926/images/-8Fooo004300310000r257B0A15AEA621.pdf"
+            }
+          },
+          {
+            "payDate": "2025-02-28",
+            "netPayAmount": {
+              "amountValue": 744.3,
+              "currencyCode": "USD"
+            },
+            "grossPayAmount": {
+              "amountValue": 1073.48,
+              "currencyCode": "USD"
+            },
+            "totalHours": 47.25,
+            "payDetailUri": {
+              "href": "/payroll/v1/workers/{aoid}/organizational-pay-statements/0522316325106829000059001517055"
+            },
+            "statementImageUri": {
+              "href": "/payroll/v1/workers/{aoid}/organizational-pay-statements/0522316325106829000059001517055/images/-8Fooo000300900000r2528F3E14EA621.pdf"
+            }
+          },
+          {
+            "payDate": "2025-02-14",
+            "netPayAmount": {
+              "amountValue": 733.02,
+              "currencyCode": "USD"
+            },
+            "grossPayAmount": {
+              "amountValue": 1056.55,
+              "currencyCode": "USD"
+            },
+            "totalHours": 46.75,
+            "payDetailUri": {
+              "href": "/payroll/v1/workers/{aoid}/organizational-pay-statements/0522316325085822000059001570022"
+            },
+            "statementImageUri": {
+              "href": "/payroll/v1/workers/{aoid}/organizational-pay-statements/0522316325085822000059001570022/images/-8Fooo000300700000r2578D0EFEDA621.pdf"
+            }
+          }
+        ],
+        "retirementPlanIndicator": false
+      }
+    }
+  ]
+}

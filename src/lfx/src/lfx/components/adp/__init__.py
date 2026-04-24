@@ -11,6 +11,7 @@ from .adp_job_requisitions_tools import ADPJobRequisitionsToolsComponent
 from .adp_mcp import ADPMCPComponent
 from .adp_pay_data_input_tools import ADPPayDataInputToolsComponent
 from .adp_pay_distributions_tools import ADPPayDistributionsToolsComponent
+from .adp_pay_statements_tools import ADPPayStatementsToolsComponent
 from .adp_talent_tools import ADPTalentToolsComponent
 from .adp_team_time_cards_tools import ADPTeamTimeCardsToolsComponent
 from .adp_time_cards_tools import ADPTimeCardsToolsComponent
@@ -45,6 +46,7 @@ __all__ = [
     "ADPMCPComponent",
     "ADPPayDataInputToolsComponent",
     "ADPPayDistributionsToolsComponent",
+    "ADPPayStatementsToolsComponent",
     "ADPTalentToolsComponent",
     "ADPTeamTimeCardsToolsComponent",
     "ADPTimeCardsToolsComponent",
