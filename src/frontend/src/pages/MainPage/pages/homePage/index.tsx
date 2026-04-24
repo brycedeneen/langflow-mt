@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import PaginatorComponent from "@/components/common/paginatorComponent";
+import TagFilterChips from "@/components/common/TagFilterChips";
 import CardsWrapComponent from "@/components/core/cardsWrapComponent";
 import { IS_MAC } from "@/constants/constants";
 import { useGetFolderQuery } from "@/controllers/API/queries/folders/use-get-folder";
+import { useListTags } from "@/controllers/API/queries/tags";
 import { CustomBanner } from "@/customization/components/custom-banner";
 import { CustomMcpServerTab } from "@/customization/components/custom-McpServerTab";
 import {
@@ -132,6 +134,18 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(
     null,
   );
+
+  // Tag filter state — local to this page. Today this is a no-op filter
+  // because `flow.tags` (legacy JSON) is no longer populated and the read
+  // endpoint does not yet return new flow_tag-backed TagRead[]. The filter
+  // row is still rendered so the UI is ready when the backend catches up.
+  //
+  // TODO: Filter flows by tag_id once FlowHeader/FlowRead exposes the new
+  // flow_tag-backed tag list. Today the prop is accepted but rendered as
+  // no-op filtering because `flow.tags` is not populated by the backend.
+  // See Task 10 plan + the TODOs in Task 9 for the same data gap.
+  const { data: allTags = [] } = useListTags();
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
 
@@ -273,6 +287,18 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
                 <EmptyFolder setOpenModal={setNewProjectModal} />
               ) : (
                 <div className="flex h-full flex-col">
+                  {/* Tag filter row — visible whenever tags exist in the
+                      workspace. Client-side state only; today the
+                      selection does not filter the list (see TODO above). */}
+                  {(flowType === "flows" || flowType === "components") &&
+                    allTags.length > 0 && (
+                      <TagFilterChips
+                        availableTags={allTags}
+                        selected={selectedTagIds}
+                        onChange={setSelectedTagIds}
+                        className="mt-2 px-1"
+                      />
+                    )}
                   {isLoading ? (
                     view === "grid" ? (
                       <div className="mt-4 grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
@@ -301,6 +327,7 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
                               setSelectedFlow(selected, flow.id, index)
                             }
                             shiftPressed={isShiftPressed || isCtrlPressed}
+                            selectedTagIds={selectedTagIds}
                           />
                         ))}
                       </div>
@@ -315,6 +342,7 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
                               setSelectedFlow(selected, flow.id, index)
                             }
                             shiftPressed={isShiftPressed || isCtrlPressed}
+                            selectedTagIds={selectedTagIds}
                           />
                         ))}
                       </div>

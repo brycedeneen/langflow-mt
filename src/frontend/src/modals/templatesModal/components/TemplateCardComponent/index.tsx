@@ -27,8 +27,11 @@ import { cn, getNumberFromString } from "@/utils/utils";
 import IconComponent, {
   ForwardedIconComponent,
 } from "../../../../components/common/genericIconComponent";
+import ShadTooltip from "@/components/common/shadTooltipComponent";
+import TagChip from "@/components/common/TagChip";
 import type { TemplateCardComponentProps } from "../../../../types/templates/types";
 import type { TemplateRead } from "@/types/template";
+import { coerceTagList } from "@/types/tag/runtime-validate";
 import TemplateCardAdminMenu from "../TemplateCardAdminMenu";
 import TemplateEditPanel from "../TemplateEditPanel";
 
@@ -242,6 +245,40 @@ export default function TemplateCardComponent({
           <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
             {example.description}
           </p>
+          {/* Tag chips — up to 3 with +N overflow (spec B.6). Wrapped in
+              length > 0 so cards without tags do not render an empty row. */}
+          {/* TODO: Server-side Flow/Template read shapes don't yet expose tags — see types/tag/runtime-validate.ts. */}
+          {(() => {
+            const cardTags = coerceTagList(
+              (templateData as { tags?: unknown } | undefined)?.tags,
+            );
+            if (cardTags.length === 0) return null;
+            const MAX = 3;
+            const visible = cardTags.slice(0, MAX);
+            const overflow = Math.max(0, cardTags.length - MAX);
+            return (
+              <div
+                className="mt-2 flex flex-wrap gap-1"
+                data-testid={`template-tags-${templateData?.id ?? example.id}`}
+              >
+                {visible.map((t) => (
+                  <TagChip key={t.id} tag={t} />
+                ))}
+                {overflow > 0 && (
+                  <ShadTooltip
+                    content={cardTags
+                      .slice(MAX)
+                      .map((t) => t.name)
+                      .join(", ")}
+                  >
+                    <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs text-muted-foreground">
+                      +{overflow}
+                    </span>
+                  </ShadTooltip>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>

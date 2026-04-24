@@ -1,5 +1,7 @@
 import Fuse from "fuse.js";
 import { useEffect, useMemo, useRef, useState } from "react";
+import TagFilterChips from "@/components/common/TagFilterChips";
+import { useListTags } from "@/controllers/API/queries/tags";
 import { useListTemplates } from "@/controllers/API/queries/templates/use-list-templates";
 import type { ListTemplatesParams } from "@/controllers/API/queries/templates/use-list-templates";
 import type { FlowType } from "@/types/flow";
@@ -77,6 +79,18 @@ export default function TemplateContentComponent({
   const [filteredExamples, setFilteredExamples] = useState(examples);
   const [filteredRaw, setFilteredRaw] = useState<TemplateRead[]>(templateData);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Tag filter state — client-side only. Today this is a no-op filter
+  // because TemplateRead does not yet expose a flow_tag-backed tag list.
+  // The filter row is still rendered so the UI is ready when the backend
+  // catches up.
+  //
+  // TODO: Filter templates by tag_id once TemplateRead exposes the new
+  // template_tag-backed tag list. Today the state is held locally but
+  // does not filter `filteredRaw` / `filteredExamples`. Same data gap as
+  // the flow list (see Task 10 plan + the TODOs in Task 9).
+  const { data: allTags = [] } = useListTags();
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   const fuse = useMemo(
     () => new Fuse(examples, { keys: ["name", "description"] }),
@@ -163,6 +177,16 @@ export default function TemplateContentComponent({
             Show archived
           </Label>
         </div>
+      )}
+
+      {/* Tag filter row — renders nothing when no tags exist in the workspace. */}
+      {allTags.length > 0 && (
+        <TagFilterChips
+          availableTags={allTags}
+          selected={selectedTagIds}
+          onChange={setSelectedTagIds}
+          className="mx-3"
+        />
       )}
 
       <div
