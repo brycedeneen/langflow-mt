@@ -164,3 +164,19 @@ Backport merged to `platform-multi-tenant` 2026-04-23. Coding work is complete a
   - (a) Look up the component's canonical code server-side using a stable identifier (e.g., `template._type` or a registered-component name in the request) and use that instead of the user-supplied `code`. The user-supplied `code` becomes informational only.
   - (b) Hash-compare `code_request.code` against the registered code for that component type; if they match, accept; if they differ, require the gate. Requires extending the request schema with a component-identity field.
 - [ ] **Sibling endpoint `POST /custom_component` remains correctly gated on `get_current_active_superuser`.** It's only invoked from the Code-paste validator (`use-post-validate-component-code.ts`), which the UI already restricts to platform admins via `useCustomComponentsAllowed`. That endpoint and its 403 negative test (`test_custom_component_build_requires_superuser`) are untouched by the revert.
+
+## 2026-04-24 — Tailwind Maximization Phase 1 deferrals
+
+Surfaced while executing `docs/superpowers/plans/2026-04-22-tailwind-maximization.md` Phase 1. These three items fell out of the "dead code + unused styling deps" scope and were deferred so Phase 1 could ship cleanly.
+
+### Chakra number-input replacement
+
+- [ ] **`@chakra-ui/number-input` is still consumed.** Call sites: `src/components/core/parameterRenderComponent/components/floatComponent/index.tsx:7` and `.../intComponent/index.tsx:7`. Removing the dep requires replacing the `<NumberInput>` primitive with either a plain `<input type="number">` + Tailwind styling, or a Radix-based equivalent. Plan Phase 1 opted to delete only the fully-unused Chakra dep (`@chakra-ui/system`) and leave this one until the two call sites can be migrated.
+
+### simple-sidebar ↔ sidebar consolidation blocker
+
+- [ ] **`src/components/ui/simple-sidebar.tsx` cannot be deleted in favor of `ui/sidebar` because the two have materially different APIs.** `simple-sidebar` is a pixel-width-resizable drag-handle sidebar with a parent-width ResizeObserver and width-constraint state; `ui/sidebar` is a cookie-backed section sidebar with no drag behavior. Call sites relying on the unique behavior: `src/components/core/flowToolbarComponent/components/playground-button.tsx` (`SimpleSidebarTrigger`), `src/components/core/playgroundComponent/sliding-container/components/flow-page-sliding-container.tsx` (`useSimpleSidebar`), `src/pages/FlowPage/index.tsx` (multiple exports). Either port the resize/drag/parent-observer features into `ui/sidebar` and then migrate callers, or accept the two-sidebar split as intentional and rename `simple-sidebar` to something non-misleading (e.g., `resizable-sidebar.tsx`). Plan Phase 1 escalation rule triggered; deferred.
+
+### `src/style/classes.css` audit needs visual QA, not grep
+
+- [ ] **The 513-line `src/style/classes.css` is not app-utility CSS; it's a dumping ground of third-party-library styling overrides** (`.react-flow__*`, `.ag-cell*`, `.cm-*` for CodeMirror, `.jse-*` for jsoneditor, `.ace_scrollbar*` for Ace editor, plus `.json-view*` / `.card-shine-effect` / version-animation keyframes). Plan Phase 1's grep-based "0 source refs = dead" audit produces false positives here: those class names are applied by the third-party libs' own DOM rendering, not by our source. Safe cleanup requires per-rule visual QA (boot the app, confirm the library still applies the class, confirm the override is still visually meaningful) rather than a grep. Deferred to a dedicated pass.
