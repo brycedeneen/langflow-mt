@@ -43,13 +43,13 @@ Lightweight approach: define two CSS variables in `:root` with the current hardc
 
 This is simpler than a ResizeObserver-driven "header publishes its actual height" approach — the values are stable today. If they ever need to be dynamic, upgrade later.
 
-- [ ] **Step 1: Locate the global stylesheet**
+- [x] **Step 1: Locate the global stylesheet**
 
 Run `grep -rn "@tailwind base" src/frontend/src/` to find where Tailwind's base layer is declared. That file (or the sibling `index.css`) is where we add the `:root` block.
 
 Expected location: `src/frontend/src/style/index.css` or `src/frontend/src/index.css`. Confirm and note in the subagent report.
 
-- [ ] **Step 2: Add the CSS variables**
+- [x] **Step 2: Add the CSS variables**
 
 Add to the `:root` block (creating it if none exists):
 
@@ -68,7 +68,7 @@ Immediately above the block, a short comment:
    Update here when either changes. */
 ```
 
-- [ ] **Step 3: Stage**
+- [x] **Step 3: Stage**
 
 ```bash
 git add src/frontend/src/style/index.css   # or confirmed path
@@ -81,7 +81,7 @@ git add src/frontend/src/style/index.css   # or confirmed path
 **Files:**
 - Modify: `src/frontend/src/modals/AssistantPanel/fullscreen-shell.tsx`
 
-- [ ] **Step 1: Read the existing overlay div**
+- [x] **Step 1: Read the existing overlay div**
 
 Open `fullscreen-shell.tsx`. Find the outermost `<div>` that uses `fixed top-[48px] ... md:left-[17.5rem]`. Typical shape:
 
@@ -89,7 +89,7 @@ Open `fullscreen-shell.tsx`. Find the outermost `<div>` that uses `fixed top-[48
 <div className="fixed top-[48px] bottom-0 right-0 left-0 md:left-[17.5rem] z-50 flex flex-col bg-background">
 ```
 
-- [ ] **Step 2: Replace hardcoded values with CSS variables**
+- [x] **Step 2: Replace hardcoded values with CSS variables**
 
 Tailwind arbitrary-value syntax accepts CSS variables inline:
 
@@ -99,12 +99,12 @@ Tailwind arbitrary-value syntax accepts CSS variables inline:
 
 No other changes in the file.
 
-- [ ] **Step 3: Run the AssistantPanel test suite to verify nothing breaks**
+- [x] **Step 3: Run the AssistantPanel test suite to verify nothing breaks**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel --no-coverage`
 Expected: ALL PASS. These tests don't assert pixel values, so the change should be transparent.
 
-- [ ] **Step 4: Stage**
+- [x] **Step 4: Stage**
 
 ```bash
 git add src/frontend/src/modals/AssistantPanel/fullscreen-shell.tsx
@@ -117,16 +117,16 @@ git add src/frontend/src/modals/AssistantPanel/fullscreen-shell.tsx
 **Files:**
 - Modify: `src/frontend/src/modals/AssistantPanel/test-shell.tsx`
 
-- [ ] **Step 1: Apply the same swap**
+- [x] **Step 1: Apply the same swap**
 
 Find the same `fixed top-[48px] ... md:left-[17.5rem]` pattern in `test-shell.tsx` (should be identical to `fullscreen-shell.tsx`). Replace with `top-[var(--assist-overlay-top)]` / `md:left-[var(--assist-overlay-left)]`.
 
-- [ ] **Step 2: Re-run the suite**
+- [x] **Step 2: Re-run the suite**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel --no-coverage`
 Expected: ALL PASS.
 
-- [ ] **Step 3: Stage**
+- [x] **Step 3: Stage**
 
 ```bash
 git add src/frontend/src/modals/AssistantPanel/test-shell.tsx
@@ -142,7 +142,7 @@ git add src/frontend/src/modals/AssistantPanel/test-shell.tsx
 
 Grouped tools currently render as bare `Tool: <name>` list items. Goal: cleaner visual treatment — small wrench/tool icon, subtle chip background, improved typography.
 
-- [ ] **Step 1: Update the existing grouped-children test to allow flexibility**
+- [x] **Step 1: Update the existing grouped-children test to allow flexibility**
 
 The current test asserts `getByText(/Tool: Tool1/)` and `getByText(/Tool: Tool2/)`. After the styling change we may decide to drop the literal `Tool:` prefix (e.g., render as `🔧 Tool1`). Before changing the component, loosen the assertion so it tolerates the new format:
 
@@ -166,12 +166,12 @@ it("renders grouped children as indented sub-items", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test — should still pass against the current implementation**
+- [x] **Step 2: Run the test — should still pass against the current implementation**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel/FlowPipelineView/__tests__/pipeline-card.test.tsx --no-coverage`
 Expected: 6 PASS (tests pass because `Tool: Tool1` contains `Tool1`).
 
-- [ ] **Step 3: Update the grouped-children rendering**
+- [x] **Step 3: Update the grouped-children rendering**
 
 In `pipeline-card.tsx`, find the current grouped-children block:
 
@@ -211,12 +211,12 @@ Add the `ForwardedIconComponent` import at the top of the file if it's not alrea
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 ```
 
-- [ ] **Step 4: Re-run the test to verify it passes**
+- [x] **Step 4: Re-run the test to verify it passes**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel/FlowPipelineView/__tests__/pipeline-card.test.tsx --no-coverage`
 Expected: 6 PASS.
 
-- [ ] **Step 5: Stage**
+- [x] **Step 5: Stage**
 
 ```bash
 git add src/frontend/src/modals/AssistantPanel/FlowPipelineView/pipeline-card.tsx \
@@ -229,18 +229,18 @@ git add src/frontend/src/modals/AssistantPanel/FlowPipelineView/pipeline-card.ts
 
 **Files:** none modified.
 
-- [ ] **Step 1: Boot the dev server** (`make frontend` + backend running).
+- [x] **Step 1: Boot the dev server** (`make frontend` + backend running).
 
-- [ ] **Step 2: Overlay offsets — open ADP Assist in fullscreen mode.** Confirm the overlay sits below the app header (no overlap) and right of the sidebar (no overlap). Resize the browser window — overlay should maintain its offsets at all widths.
+- [x] **Step 2: Overlay offsets — open ADP Assist in fullscreen mode.** Confirm the overlay sits below the app header (no overlap) and right of the sidebar (no overlap). Resize the browser window — overlay should maintain its offsets at all widths.
 
-- [ ] **Step 3: Overlay offsets — switch to Test mode.** Confirm the same offsets hold.
+- [x] **Step 3: Overlay offsets — switch to Test mode.** Confirm the same offsets hold.
 
-- [ ] **Step 4: Tool sub-item styling — open a flow with an Agent + Tools shape in Test mode.** Confirm the grouped tool rows under the Agent card now render with:
+- [x] **Step 4: Tool sub-item styling — open a flow with an Agent + Tools shape in Test mode.** Confirm the grouped tool rows under the Agent card now render with:
   - A small wrench icon before each name.
   - A subtle bordered/muted background that visually groups them.
   - Readable spacing; no horizontal overflow.
 
-- [ ] **Step 5: Report readiness for commit.** Human will batch-commit.
+- [x] **Step 5: Report readiness for commit.** Human will batch-commit.
 
 ---
 

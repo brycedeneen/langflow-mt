@@ -21,17 +21,17 @@
 **Files:**
 - Read: `src/frontend/package.json`, `src/frontend/tailwind.config.mjs`
 
-- [ ] **Step 1: Confirm working tree is clean enough to isolate the upgrade diff**
+- [x] **Step 1: Confirm working tree is clean enough to isolate the upgrade diff**
 
 Run: `git status --short`
 Expected: any pre-existing changes are unrelated to Tailwind (e.g., starter project JSON edits on `platform-multi-tenant`). Note them, do not revert.
 
-- [ ] **Step 2: Confirm current Tailwind version is v3**
+- [x] **Step 2: Confirm current Tailwind version is v3**
 
 Run: `cd src/frontend && npm ls tailwindcss`
 Expected: `tailwindcss@3.4.x`. If not v3, STOP and alert the user — this plan assumes v3.
 
-- [ ] **Step 3: Confirm `postcss.config.js` exists and matches the expected baseline**
+- [x] **Step 3: Confirm `postcss.config.js` exists and matches the expected baseline**
 
 Run: `cat src/frontend/postcss.config.js`
 Expected output:
@@ -59,13 +59,13 @@ If different, STOP and alert the user.
 - Modify: `src/frontend/package.json` (via npm)
 - Modify: `src/frontend/src/App.css`, `src/frontend/src/style/applies.css`, `src/frontend/src/style/index.css`
 
-- [ ] **Step 1: Install Tailwind v4**
+- [x] **Step 1: Install Tailwind v4**
 
 ```bash
 cd src/frontend && npm install --save-dev tailwindcss@^4
 ```
 
-- [ ] **Step 2: Replace `@tailwind` directives in all three CSS entry files**
+- [x] **Step 2: Replace `@tailwind` directives in all three CSS entry files**
 
 Three CSS files are imported as entry points in `src/index.tsx`. Each has its own `@tailwind base; @tailwind components; @tailwind utilities;` block that must be replaced with a single `@import "tailwindcss";`.
 
@@ -92,7 +92,7 @@ Files:
 ```
 If `@config` was above `@tailwind` in the current file (the controller's prep put it there), swap so `@import` is first.
 
-- [ ] **Step 3: Do NOT commit yet.**
+- [x] **Step 3: Do NOT commit yet.**
 
 ---
 
@@ -105,7 +105,7 @@ v4 uses a first-class Vite plugin instead of PostCSS. Simpler and faster than ke
 - Delete: `src/frontend/postcss.config.js`
 - Modify: `src/frontend/package.json` (via npm)
 
-- [ ] **Step 1: Install the Vite plugin**
+- [x] **Step 1: Install the Vite plugin**
 
 ```bash
 cd src/frontend && npm install --save-dev @tailwindcss/vite@^4
@@ -113,7 +113,7 @@ cd src/frontend && npm install --save-dev @tailwindcss/vite@^4
 
 Expected: adds `"@tailwindcss/vite": "^4.x.x"` to `devDependencies`.
 
-- [ ] **Step 2: Register the Vite plugin**
+- [x] **Step 2: Register the Vite plugin**
 
 Edit `src/frontend/vite.config.mts`. Add the import and register in the `plugins` array.
 
@@ -137,7 +137,7 @@ import svgr from "vite-plugin-svgr";
 
 Change `plugins: [react(), svgr()]` to `plugins: [tailwindcss(), react(), svgr()]`.
 
-- [ ] **Step 3: Delete `postcss.config.js`**
+- [x] **Step 3: Delete `postcss.config.js`**
 
 ```bash
 rm src/frontend/postcss.config.js
@@ -156,7 +156,7 @@ Expected: no matches (or only matches in lockfiles/comments — human-verify).
 **Files:**
 - Modify: `src/frontend/package.json`
 
-- [ ] **Step 1: Remove unused/obsolete plugins**
+- [x] **Step 1: Remove unused/obsolete plugins**
 
 Run from `src/frontend/`:
 ```bash
@@ -169,7 +169,7 @@ Rationale:
 - `tailwindcss-dotted-background` — not referenced anywhere in the codebase; confirmed unused.
 - `autoprefixer` — v4 auto-prefixes via Lightning CSS. PostCSS config is gone too.
 
-- [ ] **Step 2: Confirm the remaining Tailwind-family deps**
+- [x] **Step 2: Confirm the remaining Tailwind-family deps**
 
 Run: `cd src/frontend && npm ls | grep -Ei 'tailwind|autoprefixer|postcss'`
 
@@ -192,14 +192,14 @@ Expected state:
 - Modify: `src/frontend/package.json`
 - Modify: `src/frontend/tailwind.config.mjs:8`
 
-- [ ] **Step 1: Swap the package**
+- [x] **Step 1: Swap the package**
 
 Run from `src/frontend/`:
 ```bash
 npm uninstall tailwindcss-animate && npm install --save-dev tw-animate-css
 ```
 
-- [ ] **Step 2: Update the import in `tailwind.config.mjs`**
+- [x] **Step 2: Update the import in `tailwind.config.mjs`**
 
 Open `src/frontend/tailwind.config.mjs`. Change line 8 from:
 ```js
@@ -219,7 +219,7 @@ The variable name stays the same — the plugin registration in the `plugins` ar
 **Files:**
 - Modify: `src/frontend/tailwind.config.mjs`
 
-- [ ] **Step 1: Remove the `variants` block**
+- [x] **Step 1: Remove the `variants` block**
 
 Tailwind removed the `variants` config in v3. The block is dead code. Delete lines 12-17 of `src/frontend/tailwind.config.mjs`:
 
@@ -233,7 +233,7 @@ Remove:
   },
 ```
 
-- [ ] **Step 2: Remove the `tailwindcss-dotted-background` plugin**
+- [x] **Step 2: Remove the `tailwindcss-dotted-background` plugin**
 
 In `src/frontend/tailwind.config.mjs`:
 
@@ -245,7 +245,7 @@ Verify the rest of the plugins array is intact: `tailwindcssContainerQueries, ta
 
 Note: `tailwindcssContainerQueries` still imports from `@tailwindcss/container-queries`, which we uninstalled. Leave the import/usage for now — it will be removed in Task 7.
 
-- [ ] **Step 3: Remove the `@tailwindcss/container-queries` plugin**
+- [x] **Step 3: Remove the `@tailwindcss/container-queries` plugin**
 
 v4 has container queries in core (`@container`, `@md:`, etc.). The plugin's job is done.
 
@@ -264,7 +264,7 @@ Without the codemod, we do the deprecated-class renames ourselves. Some renames 
 **Files:**
 - Modify: files across `src/frontend/src/` identified by targeted greps
 
-- [ ] **Step 1: First build to flush out hard errors**
+- [x] **Step 1: First build to flush out hard errors**
 
 ```bash
 cd src/frontend && npm run build 2>&1 | tee /tmp/tw-build.log
@@ -272,7 +272,7 @@ cd src/frontend && npm run build 2>&1 | tee /tmp/tw-build.log
 
 If the build succeeds outright, go to Step 3. If it fails with "unknown utility" errors, go to Step 2.
 
-- [ ] **Step 2: Rename deprecated utility classes (only those that v4 strictly removed)**
+- [x] **Step 2: Rename deprecated utility classes (only those that v4 strictly removed)**
 
 Run these targeted greps from the repo root (worktree root). Each finds usages of a class name that changed in v4:
 
@@ -295,7 +295,7 @@ If hits found, Edit each file to replace.
 
 Rerun `npm run build`. If more "unknown utility" errors appear, address them one-by-one (grep + Edit + re-build).
 
-- [ ] **Step 3: Rename visual-parity classes (shadows, outlines)**
+- [x] **Step 3: Rename visual-parity classes (shadows, outlines)**
 
 v4 shifted the shadow scale and changed `outline-none`. Without these renames the app builds but looks subtly wrong.
 
@@ -314,7 +314,7 @@ grep -rn "\\b<v3-class>\\b" src/frontend/src/ --include='*.ts' --include='*.tsx'
 ```
 Then Edit each file. Be careful with `shadow` (the no-suffix form) — use word-boundary grep and inspect each hit before replacing since "shadow" may appear in unrelated contexts.
 
-- [ ] **Step 4: Border default color change**
+- [x] **Step 4: Border default color change**
 
 v4 defaults `border-*` utilities with no explicit color to `currentColor` instead of `gray-200`. Places that relied on the implicit default will now inherit text color (often black), visually darker/jarring. To identify at-risk sites:
 ```bash
@@ -322,7 +322,7 @@ grep -rn "\\bborder\\b\\|\\bborder-[trbl]\\b\\|\\bborder-x\\b\\|\\bborder-y\\b" 
 ```
 For visual parity, add `border-border` (Tailwind-friendly shorthand for `hsl(var(--border))`) to any element that previously relied on the gray-200 default. This step is fix-as-you-see — do it during smoke testing, not up front, unless the build complains.
 
-- [ ] **Step 5: Rebuild and type-check**
+- [x] **Step 5: Rebuild and type-check**
 
 ```bash
 cd src/frontend && npm run build
@@ -330,7 +330,7 @@ cd src/frontend && npm run type-check
 ```
 Both must exit 0.
 
-- [ ] **Step 6: Start the dev server and smoke-test**
+- [x] **Step 6: Start the dev server and smoke-test**
 
 ```bash
 cd src/frontend && npm start
@@ -352,7 +352,7 @@ Open the app (default http://localhost:3000). Walk through this checklist:
 
 Any visible regression is a FAIL. Note it, then either fix inline (obvious: missing border-gray-200, collapsed shadow) or STOP and alert the user for non-obvious cases.
 
-- [ ] **Step 7: Stop the dev server**
+- [x] **Step 7: Stop the dev server**
 
 Ctrl-C.
 
@@ -363,7 +363,7 @@ Ctrl-C.
 **Files:**
 - Commit: all modified files from Tasks 2-6
 
-- [ ] **Step 1: Review the full diff one more time**
+- [x] **Step 1: Review the full diff one more time**
 
 Run from the repo root:
 ```bash
@@ -373,7 +373,7 @@ git diff --stat src/frontend/
 
 Expected: changes to `src/frontend/package.json`, `src/frontend/package-lock.json`, `src/frontend/vite.config.mts`, `src/frontend/tailwind.config.mjs`, `src/frontend/src/App.css`, `src/frontend/src/style/applies.css`, `src/frontend/src/style/index.css`, manual class renames across `src/frontend/src/`, and deletion of `src/frontend/postcss.config.js`. Also includes the plan file (`docs/superpowers/plans/2026-04-20-tailwind-v4-upgrade.md`) if updated during execution.
 
-- [ ] **Step 2: Ask the user before committing**
+- [x] **Step 2: Ask the user before committing**
 
 The user's memory rule: never commit without permission. Show the user the summary and ask:
 
@@ -381,7 +381,7 @@ The user's memory rule: never commit without permission. Show the user the summa
 
 Wait for explicit "yes" before running the commit.
 
-- [ ] **Step 3: Commit (only after user says yes)**
+- [x] **Step 3: Commit (only after user says yes)**
 
 Stage only frontend files (not the unrelated starter-project JSON changes flagged in Task 1):
 ```bash
@@ -426,14 +426,14 @@ The current config uses `strategy: "class"`, which means the plugin only styles 
 **Files:**
 - Read-only: `src/frontend/src/**/*.{ts,tsx,html,css}`
 
-- [ ] **Step 1: Grep for form plugin class usage**
+- [x] **Step 1: Grep for form plugin class usage**
 
 Run from repo root:
 ```bash
 grep -rE "\\bform-(input|select|multiselect|textarea|checkbox|radio)\\b" src/frontend/src/ --include='*.ts' --include='*.tsx' --include='*.html' --include='*.css' 2>/dev/null | head -20
 ```
 
-- [ ] **Step 2: Record the decision**
+- [x] **Step 2: Record the decision**
 
 If the grep returns matches → keep `@tailwindcss/forms`, load via `@plugin` in Task 17.
 
@@ -453,7 +453,7 @@ This is the bulk of the theme migration. `theme.extend.colors` becomes `--color-
 **Files:**
 - Modify: `src/frontend/src/style/index.css`
 
-- [ ] **Step 1: Locate insertion point**
+- [x] **Step 1: Locate insertion point**
 
 `src/style/index.css` currently starts with (after Phase C):
 ```css
@@ -468,7 +468,7 @@ This is the bulk of the theme migration. `theme.extend.colors` becomes `--color-
 
 The `@theme` block goes **between** the `@config` line and `@layer base`. We will eventually delete the `@config` line in Task 19 once everything has moved.
 
-- [ ] **Step 2: Add the `@theme` block with color tokens**
+- [x] **Step 2: Add the `@theme` block with color tokens**
 
 Insert this block immediately after `@config "../../tailwind.config.mjs";` (a blank line between them):
 
@@ -664,7 +664,7 @@ Compare against `tailwind.config.mjs` lines 119-333 to confirm completeness — 
 **Files:**
 - Modify: `src/frontend/src/style/index.css`
 
-- [ ] **Step 1: Append to the `@theme` block (same block opened in Task 10) — before the closing `}`:**
+- [x] **Step 1: Append to the `@theme` block (same block opened in Task 10) — before the closing `}`:**
 
 ```css
   /* Fonts */
@@ -706,7 +706,7 @@ Compare against `tailwind.config.mjs` lines 119-333 to confirm completeness — 
 
 **Naming note on fractional tokens:** v4 CSS token names cannot contain `.`, so the original `w-4.5`, `h-4.5`, `border-1.5`, `border-1.75` class names no longer resolve. We do NOT add replacement tokens (awkward naming + vanishingly few usages). Instead, Task 18 inlines these four class patterns as arbitrary values (`w-[18px]`, `border-[1.5px]`, etc.).
 
-- [ ] **Step 2: Add keyframes and animation tokens**
+- [x] **Step 2: Add keyframes and animation tokens**
 
 After the `@theme` block closes, add the keyframes as standard CSS (keyframes live outside `@theme`), then re-open a second `@theme` block just for animation tokens. v4 allows multiple `@theme` blocks; they are merged.
 
@@ -776,7 +776,7 @@ After the `@theme` block closes, add the keyframes as standard CSS (keyframes li
 }
 ```
 
-- [ ] **Step 3: Verify via build (still with `@config` active)**
+- [x] **Step 3: Verify via build (still with `@config` active)**
 
 Run: `cd src/frontend && npm run build`
 
@@ -791,7 +791,7 @@ The first inline `plugin(({ addUtilities })...)` in `tailwind.config.mjs` (lines
 **Files:**
 - Modify: `src/frontend/src/style/index.css`
 
-- [ ] **Step 1: Append `@utility` blocks to `index.css`**
+- [x] **Step 1: Append `@utility` blocks to `index.css`**
 
 After the second `@theme` block from Task 11, before the `@layer base { ... }` block, insert:
 
@@ -893,7 +893,7 @@ After the second `@theme` block from Task 11, before the `@layer base { ... }` b
 }
 ```
 
-- [ ] **Step 2: Move global (non-utility) rules out of the inline plugin**
+- [x] **Step 2: Move global (non-utility) rules out of the inline plugin**
 
 The inline plugin also defined two global selector rules that are NOT tied to a utility class:
 
@@ -913,7 +913,7 @@ The inline plugin also defined two global selector rules that are NOT tied to a 
 
 Add these three rules as plain CSS, placed immediately after the `@utility` blocks (above `@layer base`). They are global styles, not utilities.
 
-- [ ] **Step 3: Verify build**
+- [x] **Step 3: Verify build**
 
 Run: `cd src/frontend && npm run build`
 
@@ -932,7 +932,7 @@ The last inline `plugin(({ addUtilities, theme, e }) => {...})` in `tailwind.con
 **Files:**
 - Modify: `src/frontend/src/style/index.css`
 
-- [ ] **Step 1: Append 4 static `@utility` blocks**
+- [x] **Step 1: Append 4 static `@utility` blocks**
 
 After the existing `@utility` blocks from Task 12:
 
@@ -986,7 +986,7 @@ After the existing `@utility` blocks from Task 12:
 }
 ```
 
-- [ ] **Step 2: Verify the `group-hover:truncate-secondary-hover` and `dark:truncate-canvas` variants resolve**
+- [x] **Step 2: Verify the `group-hover:truncate-secondary-hover` and `dark:truncate-canvas` variants resolve**
 
 Both variants are v4 built-ins that work on any utility class, including custom ones. No extra config needed. Run the build to confirm:
 
@@ -1005,7 +1005,7 @@ The fourth inline plugin (lines 536-539) registers two custom variants used by n
 **Files:**
 - Modify: `src/frontend/src/style/index.css`
 
-- [ ] **Step 1: Append `@custom-variant` declarations**
+- [x] **Step 1: Append `@custom-variant` declarations**
 
 After the `@utility` blocks:
 
@@ -1016,7 +1016,7 @@ After the `@utility` blocks:
 
 **Translation note:** The original JS plugin used `:merge(.group-increment):hover &`. In v4's `@custom-variant` DSL the target element is `&` and we write the selector from its perspective. The compiled form above expresses "when this element is a descendant of a hovered `.group-increment` group." If v4 syntax differs from what compiles, iterate — the test is that `group-increment-hover:text-*` classes in `intComponent/index.tsx` and `floatComponent/index.tsx` continue to work.
 
-- [ ] **Step 2: Smoke-test the numeric input spinners**
+- [x] **Step 2: Smoke-test the numeric input spinners**
 
 Run `npm start`, navigate to a flow, add any node with an integer input (e.g. `IntComponent`). Hover the increment/decrement buttons — the color change on the spinner should be visible. If it does not change on hover, STOP and iterate the `@custom-variant` selector.
 
@@ -1027,7 +1027,7 @@ Run `npm start`, navigate to a flow, add any node with an integer input (e.g. `I
 **Files:**
 - Modify: `src/frontend/src/style/index.css`
 
-- [ ] **Step 1: Add `@plugin` directives**
+- [x] **Step 1: Add `@plugin` directives**
 
 Near the top of `src/style/index.css` — after the `@import "tailwindcss";` line but before the `@theme` block — add:
 
@@ -1038,7 +1038,7 @@ Near the top of `src/style/index.css` — after the `@import "tailwindcss";` lin
 
 If Task 9 determined FORMS_PLUGIN_KEPT is true, also add `@plugin "@tailwindcss/forms";` to the list. The v4 plugin system currently has limited support for plugin options, so the `strategy: "class"` option may need to be inlined later; verify form inputs still render after the build.
 
-- [ ] **Step 2: Verify build**
+- [x] **Step 2: Verify build**
 
 Run: `cd src/frontend && npm run build`
 
@@ -1053,7 +1053,7 @@ The JS config had `safelist: ["bg-status-blue", "bg-status-green", "bg-status-re
 **Files:**
 - Modify: `src/frontend/src/style/index.css`
 
-- [ ] **Step 1: Add the source directive**
+- [x] **Step 1: Add the source directive**
 
 Near the top of `src/style/index.css`, after `@import "tailwindcss";`, add:
 
@@ -1061,7 +1061,7 @@ Near the top of `src/style/index.css`, after `@import "tailwindcss";`, add:
 @source inline("bg-status-{blue,green,red,yellow}");
 ```
 
-- [ ] **Step 2: Verify via build**
+- [x] **Step 2: Verify via build**
 
 Run: `cd src/frontend && npm run build` and then check that the generated CSS contains all four classes:
 
@@ -1079,24 +1079,24 @@ Expected: each of the four classes appears in the build output.
 - Delete: `src/frontend/tailwind.config.mjs`
 - Modify: `src/frontend/src/style/index.css`
 
-- [ ] **Step 1: Remove the `@config` directive**
+- [x] **Step 1: Remove the `@config` directive**
 
 Open `src/frontend/src/style/index.css`. Delete the line `@config "../../tailwind.config.mjs";`.
 
-- [ ] **Step 2: Run the build with the `@config` removed but the file still present**
+- [x] **Step 2: Run the build with the `@config` removed but the file still present**
 
 Run: `cd src/frontend && npm run build`
 
 Expected: succeeds — everything the config provided now lives in CSS. If the build fails with "unknown utility" or "unknown color," a theme token is missing. STOP and add it to the `@theme` block. Common culprits: a color in the JS config not moved in Task 10, a keyframe not added in Task 11, or a utility that relied on the old plugin.
 
-- [ ] **Step 3: Delete the config file**
+- [x] **Step 3: Delete the config file**
 
 Only after Step 2 succeeds:
 ```bash
 rm src/frontend/tailwind.config.mjs
 ```
 
-- [ ] **Step 4: Rebuild to confirm**
+- [x] **Step 4: Rebuild to confirm**
 
 Run: `cd src/frontend && npm run build`
 
@@ -1111,7 +1111,7 @@ The v3 config defined `w-4.5`/`h-4.5`/`border-1.5`/`border-1.75` utilities. v4 C
 **Files:**
 - Modify: files identified by the grep below
 
-- [ ] **Step 1: Find all usages**
+- [x] **Step 1: Find all usages**
 
 Run:
 ```bash
@@ -1120,7 +1120,7 @@ grep -rn "\\bw-4\\.5\\b\\|\\bh-4\\.5\\b\\|\\bborder-1\\.5\\b\\|\\bborder-1\\.75\
 
 Record the full list before editing. If the result is zero lines, skip the rest of this task.
 
-- [ ] **Step 2: Replace each occurrence**
+- [x] **Step 2: Replace each occurrence**
 
 For each line the grep returned, replace the class substring:
 - `w-4.5` → `w-[18px]`
@@ -1130,13 +1130,13 @@ For each line the grep returned, replace the class substring:
 
 Use the Edit tool, one file at a time, verifying the surrounding context for each change.
 
-- [ ] **Step 3: Rebuild**
+- [x] **Step 3: Rebuild**
 
 Run: `cd src/frontend && npm run build`
 
 Expected: succeeds.
 
-- [ ] **Step 4: Re-grep to confirm no stragglers**
+- [x] **Step 4: Re-grep to confirm no stragglers**
 
 Run the same grep from Step 1 again. Expected: zero lines.
 
@@ -1147,13 +1147,13 @@ Run the same grep from Step 1 again. Expected: zero lines.
 **Files:**
 - None (verification)
 
-- [ ] **Step 1: Type-check**
+- [x] **Step 1: Type-check**
 
 Run: `cd src/frontend && npm run type-check`
 
 Expected: exits 0. Ctrl-C to stop the dev server chain.
 
-- [ ] **Step 2: Run the dev server and repeat the Task 7 smoke checklist**
+- [x] **Step 2: Run the dev server and repeat the Task 7 smoke checklist**
 
 Run: `cd src/frontend && npm start`
 
@@ -1177,7 +1177,7 @@ Pay extra attention to:
 
 Any regression is a FAIL. STOP and alert the user with a specific description.
 
-- [ ] **Step 3: Stop the dev server**
+- [x] **Step 3: Stop the dev server**
 
 Ctrl-C.
 
@@ -1188,7 +1188,7 @@ Ctrl-C.
 **Files:**
 - Commit: all modified files from Tasks 10-18
 
-- [ ] **Step 1: Review the diff**
+- [x] **Step 1: Review the diff**
 
 Run:
 ```bash
@@ -1198,13 +1198,13 @@ git diff --stat src/frontend/
 
 Expected: `src/frontend/src/style/index.css` heavily modified, `src/frontend/tailwind.config.mjs` deleted, possibly small edits in files touched by Task 18.
 
-- [ ] **Step 2: Ask the user before committing**
+- [x] **Step 2: Ask the user before committing**
 
 > "Phase B is ready: theme migrated to CSS, all inline plugins converted, `tailwind.config.mjs` deleted. Build and type-check pass, smoke test clean. Want me to commit?"
 
 Wait for explicit yes.
 
-- [ ] **Step 3: Commit (only after user says yes)**
+- [x] **Step 3: Commit (only after user says yes)**
 
 ```bash
 git add src/frontend/

@@ -79,7 +79,7 @@ The retired `feat/template-management-phase-1` branch was deleted, but its commi
 - `src/frontend/src/types/template/index.ts`
 - `src/frontend/src/controllers/API/queries/templates/*.ts`
 
-- [ ] **Step 1: Pull each file from the retired-branch commit and write it verbatim**
+- [x] **Step 1: Pull each file from the retired-branch commit and write it verbatim**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/.worktrees/save-as-template-frontend
@@ -120,7 +120,7 @@ export const useDeleteTemplate: useMutationFunctionType<undefined, { id: string 
 };
 ```
 
-- [ ] **Step 2: Check whether `getURL` has a `TEMPLATES` entry**
+- [x] **Step 2: Check whether `getURL` has a `TEMPLATES` entry**
 
 ```bash
 grep -n "TEMPLATES" src/frontend/src/controllers/API/helpers/constants.ts
@@ -135,7 +135,7 @@ TEMPLATES: "/api/v1/templates",
 
 Match the exact quoting + trailing-comma style of the surrounding entries.
 
-- [ ] **Step 3: TypeScript compile check**
+- [x] **Step 3: TypeScript compile check**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/.worktrees/save-as-template-frontend/src/frontend
@@ -144,7 +144,7 @@ npx tsc --noEmit 2>&1 | head -30
 
 Expected: no new errors in the template hooks / types / constants. Pre-existing errors elsewhere are acceptable. If new errors appear specifically in these files, fix them (most likely an unused import or a type from the retired branch that doesn't exist on current main).
 
-- [ ] **Step 4: Stage and pause**
+- [x] **Step 4: Stage and pause**
 
 `git add src/frontend/src/types/template/ src/frontend/src/controllers/API/queries/templates/ src/frontend/src/controllers/API/helpers/constants.ts`. DO NOT COMMIT.
 
@@ -158,7 +158,7 @@ Proposed message: `feat(templates-frontend): port TypeScript types and 5 CRUD ho
 - Create: `src/frontend/src/modals/SaveAsTemplateModal/credentialBlanking.ts`
 - Create test: `src/frontend/src/modals/SaveAsTemplateModal/__tests__/credentialBlanking.test.ts`
 
-- [ ] **Step 1: Write the failing tests FIRST**
+- [x] **Step 1: Write the failing tests FIRST**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/__tests__/credentialBlanking.test.ts`:
 
@@ -302,7 +302,7 @@ describe("blankCredentials", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/.worktrees/save-as-template-frontend/src/frontend
@@ -311,7 +311,7 @@ npx jest src/modals/SaveAsTemplateModal/__tests__/credentialBlanking.test.ts --n
 
 Expected: module-not-found error (file doesn't exist yet).
 
-- [ ] **Step 3: Implement the utility**
+- [x] **Step 3: Implement the utility**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/credentialBlanking.ts`:
 
@@ -389,7 +389,7 @@ export function blankCredentials(flowData: { nodes: any[]; edges: unknown[] }): 
 }
 ```
 
-- [ ] **Step 4: Run tests to verify pass**
+- [x] **Step 4: Run tests to verify pass**
 
 ```bash
 npx jest src/modals/SaveAsTemplateModal/__tests__/credentialBlanking.test.ts --no-coverage
@@ -397,7 +397,7 @@ npx jest src/modals/SaveAsTemplateModal/__tests__/credentialBlanking.test.ts --n
 
 Expected: 7 passed.
 
-- [ ] **Step 5: Stage and pause**
+- [x] **Step 5: Stage and pause**
 
 `git add src/frontend/src/modals/SaveAsTemplateModal/credentialBlanking.ts src/frontend/src/modals/SaveAsTemplateModal/__tests__/credentialBlanking.test.ts`. DO NOT COMMIT.
 
@@ -411,7 +411,7 @@ Proposed message: `feat(save-as-template): add credentialBlanking util with unit
 - Create: `src/frontend/src/modals/SaveAsTemplateModal/GradientPickerField.tsx`
 - Create test: `src/frontend/src/modals/SaveAsTemplateModal/__tests__/GradientPickerField.test.tsx`
 
-- [ ] **Step 1: Write the failing test FIRST**
+- [x] **Step 1: Write the failing test FIRST**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/__tests__/GradientPickerField.test.tsx`:
 
@@ -444,7 +444,7 @@ describe("GradientPickerField", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/.worktrees/save-as-template-frontend/src/frontend
@@ -453,7 +453,7 @@ npx jest src/modals/SaveAsTemplateModal/__tests__/GradientPickerField.test.tsx -
 
 Expected: module-not-found.
 
-- [ ] **Step 3: Implement the component**
+- [x] **Step 3: Implement the component**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/GradientPickerField.tsx`:
 
@@ -496,11 +496,11 @@ export default function GradientPickerField({ value, onChange }: Props) {
 }
 ```
 
-- [ ] **Step 4: Run test to verify pass**
+- [x] **Step 4: Run test to verify pass**
 
 Same command as Step 2. Expected: 3 passed.
 
-- [ ] **Step 5: Stage and pause**
+- [x] **Step 5: Stage and pause**
 
 `git add src/frontend/src/modals/SaveAsTemplateModal/GradientPickerField.tsx src/frontend/src/modals/SaveAsTemplateModal/__tests__/GradientPickerField.test.tsx`. DO NOT COMMIT.
 
@@ -514,7 +514,7 @@ Proposed message: `feat(save-as-template): add GradientPickerField`.
 - Create: `src/frontend/src/modals/SaveAsTemplateModal/IconPickerField.tsx`
 - Create test: `src/frontend/src/modals/SaveAsTemplateModal/__tests__/IconPickerField.test.tsx`
 
-- [ ] **Step 1: Survey the icon list module**
+- [x] **Step 1: Survey the icon list module**
 
 ```bash
 grep -n "export " src/frontend/src/icons/fontAwesomeIcons/*.ts src/frontend/src/icons/fontAwesomeIcons/*.tsx 2>&1 | head
@@ -522,7 +522,7 @@ grep -n "export " src/frontend/src/icons/fontAwesomeIcons/*.ts src/frontend/src/
 
 Find which export gives you the array of icon names. Common names: `fontAwesomeIcons` (an array of strings), `isFontAwesomeIcon` (predicate). The component below assumes an exported `fontAwesomeIcons: string[]` — adapt the import to whatever the real export name is.
 
-- [ ] **Step 2: Write the failing test FIRST**
+- [x] **Step 2: Write the failing test FIRST**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/__tests__/IconPickerField.test.tsx`:
 
@@ -565,7 +565,7 @@ describe("IconPickerField", () => {
 });
 ```
 
-- [ ] **Step 3: Run to verify failure**
+- [x] **Step 3: Run to verify failure**
 
 ```bash
 npx jest src/modals/SaveAsTemplateModal/__tests__/IconPickerField.test.tsx --no-coverage
@@ -573,7 +573,7 @@ npx jest src/modals/SaveAsTemplateModal/__tests__/IconPickerField.test.tsx --no-
 
 Expected: module-not-found.
 
-- [ ] **Step 4: Implement the component**
+- [x] **Step 4: Implement the component**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/IconPickerField.tsx`:
 
@@ -653,11 +653,11 @@ export default function IconPickerField({ value, onChange }: Props) {
 }
 ```
 
-- [ ] **Step 5: Run test to verify pass**
+- [x] **Step 5: Run test to verify pass**
 
 Same command as Step 3. Expected: 4 passed.
 
-- [ ] **Step 6: Stage and pause**
+- [x] **Step 6: Stage and pause**
 
 `git add src/frontend/src/modals/SaveAsTemplateModal/IconPickerField.tsx src/frontend/src/modals/SaveAsTemplateModal/__tests__/IconPickerField.test.tsx`. DO NOT COMMIT.
 
@@ -672,7 +672,7 @@ Proposed message: `feat(save-as-template): add IconPickerField with search`.
 
 This task lays down the modal shell — form fields, local state, client-side validation, the "What gets stripped?" collapse, and the disabled/enabled Save button. Submit wiring (calling `useCreateTemplate`, handling 409, toasts) is Task 6.
 
-- [ ] **Step 1: Read an existing sibling modal for style reference**
+- [x] **Step 1: Read an existing sibling modal for style reference**
 
 ```bash
 cat src/frontend/src/modals/exportModal/index.tsx | head -80
@@ -680,7 +680,7 @@ cat src/frontend/src/modals/exportModal/index.tsx | head -80
 
 Note how `exportModal` imports `BaseModal`, composes header/body/footer, uses Tailwind classes, and wires buttons. Mirror that shape.
 
-- [ ] **Step 2: Create the modal skeleton**
+- [x] **Step 2: Create the modal skeleton**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/index.tsx`:
 
@@ -830,7 +830,7 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
 
 > **NOTE:** `BaseModal`'s exact prop/shape (e.g. `BaseModal.Header` vs inline `title` prop) is verified by reading `src/frontend/src/modals/baseModal/index.tsx` — adjust the composition to match what the current component accepts. If the sibling `exportModal` uses a different composition, mirror `exportModal`.
 
-- [ ] **Step 3: TypeScript compile check**
+- [x] **Step 3: TypeScript compile check**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/.worktrees/save-as-template-frontend/src/frontend
@@ -839,7 +839,7 @@ npx tsc --noEmit 2>&1 | grep SaveAsTemplateModal | head
 
 Expected: no new errors in the new file. Fix imports/prop shapes as needed.
 
-- [ ] **Step 4: Stage and pause**
+- [x] **Step 4: Stage and pause**
 
 `git add src/frontend/src/modals/SaveAsTemplateModal/index.tsx`. DO NOT COMMIT.
 
@@ -853,7 +853,7 @@ Proposed message: `feat(save-as-template): add modal skeleton with form + picker
 - Modify: `src/frontend/src/modals/SaveAsTemplateModal/index.tsx`
 - Create test: `src/frontend/src/modals/SaveAsTemplateModal/__tests__/SaveAsTemplateModal.test.tsx`
 
-- [ ] **Step 1: Write the failing modal tests**
+- [x] **Step 1: Write the failing modal tests**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/__tests__/SaveAsTemplateModal.test.tsx`:
 
@@ -1026,7 +1026,7 @@ describe("SaveAsTemplateModal", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/.worktrees/save-as-template-frontend/src/frontend
@@ -1035,7 +1035,7 @@ npx jest src/modals/SaveAsTemplateModal/__tests__/SaveAsTemplateModal.test.tsx -
 
 Expected: most tests fail because submit logic isn't wired yet.
 
-- [ ] **Step 3: Wire the submit handler**
+- [x] **Step 3: Wire the submit handler**
 
 Open `src/frontend/src/modals/SaveAsTemplateModal/index.tsx`. Add at the top (with the other imports):
 
@@ -1103,13 +1103,13 @@ Update the Save button at the bottom to wire up `onClick` and the disabled state
 
 > **NOTE:** the `useCreateTemplate` hook's `mutate` signature is `mutate(payload, options?)` per the `useMutationFunctionType` pattern. Its `options` object accepts `onSuccess` and `onError` — verify against the stale branch's `use-create-template.ts` that we ported in Task 1.
 
-- [ ] **Step 4: Run tests to verify pass**
+- [x] **Step 4: Run tests to verify pass**
 
 Same command as Step 2. Expected: 7 passed.
 
 If the `alertStore` mock or mutation mock doesn't match the real hook's shape, adjust the mock to what the real hook emits (e.g., the Zustand selector pattern sometimes differs from `default: (selector) => ...`). Use an existing test — e.g. `src/frontend/src/modals/fileManagerModal/__tests__/*.test.tsx` — as a reference for the correct Zustand-mock shape.
 
-- [ ] **Step 5: Stage and pause**
+- [x] **Step 5: Stage and pause**
 
 `git add src/frontend/src/modals/SaveAsTemplateModal/index.tsx src/frontend/src/modals/SaveAsTemplateModal/__tests__/SaveAsTemplateModal.test.tsx`. DO NOT COMMIT.
 
@@ -1122,7 +1122,7 @@ Proposed message: `feat(save-as-template): wire submit, 409 inline error, succes
 **Files:**
 - Modify: `src/frontend/src/components/core/flowToolbarComponent/components/deploy-dropdown.tsx`
 
-- [ ] **Step 1: Find the dropdown's menu items**
+- [x] **Step 1: Find the dropdown's menu items**
 
 ```bash
 grep -n "Export\|MCP\|DropdownMenuItem\|onSelect" src/frontend/src/components/core/flowToolbarComponent/components/deploy-dropdown.tsx | head -30
@@ -1130,7 +1130,7 @@ grep -n "Export\|MCP\|DropdownMenuItem\|onSelect" src/frontend/src/components/co
 
 Locate the two menu items — "Export" and "MCP Server" — and the code between them. Your insertion point is between them.
 
-- [ ] **Step 2: Add modal state + wire the menu item**
+- [x] **Step 2: Add modal state + wire the menu item**
 
 Edit `src/frontend/src/components/core/flowToolbarComponent/components/deploy-dropdown.tsx`.
 
@@ -1184,7 +1184,7 @@ At the bottom of the component's JSX (outside the dropdown, inside the component
         }}
 ```
 
-- [ ] **Step 3: TypeScript compile check**
+- [x] **Step 3: TypeScript compile check**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/.worktrees/save-as-template-frontend/src/frontend
@@ -1193,7 +1193,7 @@ npx tsc --noEmit 2>&1 | grep -E "deploy-dropdown|SaveAsTemplateModal" | head
 
 Expected: no new errors.
 
-- [ ] **Step 4: Manual smoke**
+- [x] **Step 4: Manual smoke**
 
 Not part of the automated flow, but document it in the commit message: spin up the dev server and confirm:
 1. Superuser session: open a flow, click Share, see "Save as Template" between Export and MCP Server.
@@ -1202,7 +1202,7 @@ Not part of the automated flow, but document it in the commit message: spin up t
 
 Defer this smoke to the end of the plan when everything is wired.
 
-- [ ] **Step 5: Stage and pause**
+- [x] **Step 5: Stage and pause**
 
 `git add src/frontend/src/components/core/flowToolbarComponent/components/deploy-dropdown.tsx`. DO NOT COMMIT.
 

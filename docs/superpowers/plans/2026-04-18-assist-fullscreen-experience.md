@@ -86,7 +86,7 @@ The tool refuses to overwrite a non-empty flow. This is a deliberate boundary: "
 - Modify: `src/backend/base/langflow/services/database/models/flow/model.py`
 - Test: `src/backend/tests/unit/services/database/models/test_flow_based_on_template.py`
 
-- [ ] **Step 1.1: Write the failing tests**
+- [x] **Step 1.1: Write the failing tests**
 
 Create `src/backend/tests/unit/services/database/models/test_flow_based_on_template.py`:
 
@@ -175,12 +175,12 @@ def test_template_delete_nulls_pointer_on_clones(session):
     assert refreshed.name == "C"
 ```
 
-- [ ] **Step 1.2: Run to verify failure**
+- [x] **Step 1.2: Run to verify failure**
 
 Run: `uv run pytest src/backend/tests/unit/services/database/models/test_flow_based_on_template.py -v`
 Expected: FAIL with `TypeError: __init__() got an unexpected keyword argument 'based_on_template_flow_id'` on the first constructor call.
 
-- [ ] **Step 1.3: Add the column**
+- [x] **Step 1.3: Add the column**
 
 Edit `src/backend/base/langflow/services/database/models/flow/model.py`. In the `FlowBase` class, find the `built_with_assist` field (added in Plan 3). Insert this new field immediately after it:
 
@@ -201,12 +201,12 @@ Edit `src/backend/base/langflow/services/database/models/flow/model.py`. In the 
 
 Make sure the imports at the top of the file include `from sqlalchemy import ForeignKey, Uuid` (or their equivalents already in use — match the style used by existing FK columns in the same file).
 
-- [ ] **Step 1.4: Run to verify pass**
+- [x] **Step 1.4: Run to verify pass**
 
 Run: `uv run pytest src/backend/tests/unit/services/database/models/test_flow_based_on_template.py -v`
 Expected: 3 PASS.
 
-- [ ] **Step 1.5: Pause for commit**
+- [x] **Step 1.5: Pause for commit**
 
 Stage with `git add`. Do not commit.
 
@@ -217,12 +217,12 @@ Stage with `git add`. Do not commit.
 **Files:**
 - Create: `src/backend/base/langflow/alembic/versions/<rev>_add_based_on_template_flow_id.py`
 
-- [ ] **Step 2.1: Verify the head**
+- [x] **Step 2.1: Verify the head**
 
 Run: `cd src/backend/base/langflow && uv run alembic heads`
 Expected: single head — `93e68a94275a` (Plan 3's migration). If multiple heads, STOP and report BLOCKED.
 
-- [ ] **Step 2.2: Generate the revision**
+- [x] **Step 2.2: Generate the revision**
 
 Run from repo root:
 
@@ -237,7 +237,7 @@ Open the generated file in `alembic/versions/`. Verify:
 
 If autogen output is clean, proceed to Step 2.4. If it's empty or contains unrelated changes, go to Step 2.3.
 
-- [ ] **Step 2.3: Fallback (only if autogen was empty or off-target)**
+- [x] **Step 2.3: Fallback (only if autogen was empty or off-target)**
 
 Replace the `upgrade()` and `downgrade()` bodies with:
 
@@ -264,12 +264,12 @@ def downgrade() -> None:
         batch_op.drop_column("based_on_template_flow_id")
 ```
 
-- [ ] **Step 2.4: Apply the migration**
+- [x] **Step 2.4: Apply the migration**
 
 Run: `make alembic-upgrade`
 Expected: `ALTER TABLE flow ADD COLUMN based_on_template_flow_id` + "Target revision: <new hash> (head)".
 
-- [ ] **Step 2.5: Verify column on Postgres**
+- [x] **Step 2.5: Verify column on Postgres**
 
 Run:
 
@@ -284,12 +284,12 @@ with psycopg.connect('postgresql://postgres:mysecretpassword@localhost:5432/lang
 
 Expected: `[('based_on_template_flow_id', 'uuid', 'YES')]`.
 
-- [ ] **Step 2.6: Roundtrip**
+- [x] **Step 2.6: Roundtrip**
 
 Run: `make alembic-downgrade` (column + FK dropped); re-verify the psycopg snippet returns `[]`.
 Run: `make alembic-upgrade` (column + FK recreated); re-verify.
 
-- [ ] **Step 2.7: Pause for commit**
+- [x] **Step 2.7: Pause for commit**
 
 ---
 
@@ -298,7 +298,7 @@ Run: `make alembic-upgrade` (column + FK recreated); re-verify.
 **Files:**
 - Modify: `src/frontend/src/types/flow/index.ts`
 
-- [ ] **Step 3.1: Add the optional field**
+- [x] **Step 3.1: Add the optional field**
 
 Open `src/frontend/src/types/flow/index.ts`. In `FlowType`, find `built_with_assist?: boolean;` and insert right after:
 
@@ -308,12 +308,12 @@ Open `src/frontend/src/types/flow/index.ts`. In `FlowType`, find `built_with_ass
   locked?: boolean | null;
 ```
 
-- [ ] **Step 3.2: Verify tsc**
+- [x] **Step 3.2: Verify tsc**
 
 Run: `cd src/frontend && npx tsc --noEmit 2>&1 | grep "based_on_template_flow_id" | head -5`
 Expected: no output (no new errors).
 
-- [ ] **Step 3.3: Pause for commit**
+- [x] **Step 3.3: Pause for commit**
 
 ---
 
@@ -323,7 +323,7 @@ Expected: no output (no new errors).
 - Modify: `src/frontend/src/controllers/API/queries/flows/use-post-add-flow.ts`
 - Modify: `src/frontend/src/hooks/flows/use-add-flow.ts`
 
-- [ ] **Step 4.1: Extend `IPostAddFlow` and the POST body**
+- [x] **Step 4.1: Extend `IPostAddFlow` and the POST body**
 
 In `src/frontend/src/controllers/API/queries/flows/use-post-add-flow.ts`:
 
@@ -341,7 +341,7 @@ In the `api.post(...)` body object inside `postAddFlowFn`, add:
 
 Place it alphabetically / next to `built_with_assist` for consistency.
 
-- [ ] **Step 4.2: Extend the `addFlow` signature**
+- [x] **Step 4.2: Extend the `addFlow` signature**
 
 In `src/frontend/src/hooks/flows/use-add-flow.ts`:
 
@@ -353,7 +353,7 @@ Add to the `addFlow` params type:
 
 Keep it right after `built_with_assist`.
 
-- [ ] **Step 4.3: Wire the field through the create path**
+- [x] **Step 4.3: Wire the field through the create path**
 
 Still in `use-add-flow.ts`, in the `newFlow` object construction, replace the current shape:
 
@@ -389,12 +389,12 @@ The comment is important for the reviewer — it documents why we reach into `pa
 
 **Note on semantics:** `useAddFlow` is called with `params.flow = templateFlow` when creating from a template. In that case, `params.flow.id` is the template's id (because that's what got cloned from). When creating a Blank flow (`params = { new_blank: true, ... }`), `params.flow` is undefined and `based_on_template_flow_id` stays `null` — correct.
 
-- [ ] **Step 4.4: Smoke-check tsc**
+- [x] **Step 4.4: Smoke-check tsc**
 
 Run: `cd src/frontend && npx tsc --noEmit 2>&1 | grep -E "use-add-flow|use-post-add-flow" | head -10`
 Expected: no new errors.
 
-- [ ] **Step 4.5: Pause for commit**
+- [x] **Step 4.5: Pause for commit**
 
 ---
 
@@ -405,7 +405,7 @@ Expected: no new errors.
 - Modify: `src/backend/base/langflow/services/assistant/service.py`
 - Test: `src/backend/tests/unit/services/assistant/test_flow_template_context.py`
 
-- [ ] **Step 5.1: Write the failing test**
+- [x] **Step 5.1: Write the failing test**
 
 Create `src/backend/tests/unit/services/assistant/test_flow_template_context.py`:
 
@@ -488,12 +488,12 @@ async def test_returns_instructions_block_when_pointer_and_metadata_present(
     assert "Ask for the Slack channel first." in result
 ```
 
-- [ ] **Step 5.2: Run to verify failure**
+- [x] **Step 5.2: Run to verify failure**
 
 Run: `uv run pytest src/backend/tests/unit/services/assistant/test_flow_template_context.py -v`
 Expected: `ModuleNotFoundError: No module named 'langflow.services.assistant.flow_template_context'`.
 
-- [ ] **Step 5.3: Create the helper**
+- [x] **Step 5.3: Create the helper**
 
 Create `src/backend/base/langflow/services/assistant/flow_template_context.py`:
 
@@ -533,7 +533,7 @@ async def build_flow_template_context(
     )
 ```
 
-- [ ] **Step 5.4: Wire the helper into the system prompt assembly**
+- [x] **Step 5.4: Wire the helper into the system prompt assembly**
 
 Edit `src/backend/base/langflow/services/assistant/service.py`.
 
@@ -629,7 +629,7 @@ service = AssistantService(
 )
 ```
 
-- [ ] **Step 5.5: Run the tests**
+- [x] **Step 5.5: Run the tests**
 
 Run: `uv run pytest src/backend/tests/unit/services/assistant/test_flow_template_context.py -v`
 Expected: 3 PASS.
@@ -639,7 +639,7 @@ Also run the existing assistant tests to catch a KeyError from the new format pl
 Run: `uv run pytest src/backend/tests/unit/services/assistant -q`
 Expected: all PASS. If an existing test does `SYSTEM_PROMPT_TEMPLATE.format(canvas_summary="...", available_templates="")` without the new placeholder, add `flow_template_context=""` to that `.format(...)` call. Do not adjust production code to make the new placeholder optional — keeping it required avoids silent prompt breakage.
 
-- [ ] **Step 5.6: Pause for commit**
+- [x] **Step 5.6: Pause for commit**
 
 ---
 
@@ -649,7 +649,7 @@ Expected: all PASS. If an existing test does `SYSTEM_PROMPT_TEMPLATE.format(canv
 - Modify: `src/backend/base/langflow/services/assistant/service.py`
 - Test: `src/backend/tests/unit/services/assistant/test_greeting_guidelines_in_prompt.py`
 
-- [ ] **Step 6.1: Write the failing test**
+- [x] **Step 6.1: Write the failing test**
 
 Create `src/backend/tests/unit/services/assistant/test_greeting_guidelines_in_prompt.py`:
 
@@ -677,12 +677,12 @@ def test_prompt_contains_test_handoff_bullet():
     assert "click the Test button" in SYSTEM_PROMPT_TEMPLATE
 ```
 
-- [ ] **Step 6.2: Run to verify failure**
+- [x] **Step 6.2: Run to verify failure**
 
 Run: `uv run pytest src/backend/tests/unit/services/assistant/test_greeting_guidelines_in_prompt.py -v`
 Expected: 4 FAIL.
 
-- [ ] **Step 6.3: Append the four bullets**
+- [x] **Step 6.3: Append the four bullets**
 
 Edit `src/backend/base/langflow/services/assistant/service.py`. In `SYSTEM_PROMPT_TEMPLATE`, after the existing last bullet in `## Guidelines` (`After matching a template from the Available Templates list...`), append these four bullets. Keep them in this order:
 
@@ -708,12 +708,12 @@ trigger the mode switch yourself; the user clicks the header Test button.
 
 Each bullet is one line in the rendered markdown; `\` line continuations are for Python string readability only.
 
-- [ ] **Step 6.4: Run tests**
+- [x] **Step 6.4: Run tests**
 
 Run: `uv run pytest src/backend/tests/unit/services/assistant/test_greeting_guidelines_in_prompt.py -v`
 Expected: 4 PASS.
 
-- [ ] **Step 6.5: Pause for commit**
+- [x] **Step 6.5: Pause for commit**
 
 ---
 
@@ -723,7 +723,7 @@ Expected: 4 PASS.
 - Create: `src/backend/base/langflow/services/assistant/tools/_id_regen.py`
 - Test: `src/backend/tests/unit/services/assistant/tools/test_id_regen.py`
 
-- [ ] **Step 7.1: Write the failing test**
+- [x] **Step 7.1: Write the failing test**
 
 Create `src/backend/tests/unit/services/assistant/tools/test_id_regen.py`:
 
@@ -798,12 +798,12 @@ def test_returns_a_deep_copy_not_the_input():
     assert data["nodes"][0]["id"] == "X-aaaaa"
 ```
 
-- [ ] **Step 7.2: Run to verify failure**
+- [x] **Step 7.2: Run to verify failure**
 
 Run: `uv run pytest src/backend/tests/unit/services/assistant/tools/test_id_regen.py -v`
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 7.3: Implement the regenerator**
+- [x] **Step 7.3: Implement the regenerator**
 
 Create `src/backend/base/langflow/services/assistant/tools/_id_regen.py`:
 
@@ -885,12 +885,12 @@ def regenerate_flow_ids(data: dict[str, Any]) -> dict[str, Any]:
     return out
 ```
 
-- [ ] **Step 7.4: Run the tests**
+- [x] **Step 7.4: Run the tests**
 
 Run: `uv run pytest src/backend/tests/unit/services/assistant/tools/test_id_regen.py -v`
 Expected: 4 PASS.
 
-- [ ] **Step 7.5: Pause for commit**
+- [x] **Step 7.5: Pause for commit**
 
 ---
 
@@ -902,7 +902,7 @@ Expected: 4 PASS.
 - Modify: `src/backend/base/langflow/services/assistant/service.py`
 - Test: `src/backend/tests/unit/services/assistant/tools/test_apply_template.py`
 
-- [ ] **Step 8.1: Write the failing tests**
+- [x] **Step 8.1: Write the failing tests**
 
 Create `src/backend/tests/unit/services/assistant/tools/test_apply_template.py`:
 
@@ -1027,12 +1027,12 @@ async def test_apply_template_unknown_flow_id_errors():
     assert "error" in result
 ```
 
-- [ ] **Step 8.2: Run to verify failures**
+- [x] **Step 8.2: Run to verify failures**
 
 Run: `uv run pytest src/backend/tests/unit/services/assistant/tools/test_apply_template.py -v`
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 8.3: Implement the tool**
+- [x] **Step 8.3: Implement the tool**
 
 Create `src/backend/base/langflow/services/assistant/tools/template_apply.py`:
 
@@ -1112,7 +1112,7 @@ async def apply_template(
         }
 ```
 
-- [ ] **Step 8.4: Register the tool**
+- [x] **Step 8.4: Register the tool**
 
 **Registry entry** — edit `src/backend/base/langflow/services/assistant/tools/registry.py`. Append to `CATALOG_TOOLS`:
 
@@ -1164,12 +1164,12 @@ CATALOG_DISPATCH: dict[str, Any] = {
 }
 ```
 
-- [ ] **Step 8.5: Run the tests**
+- [x] **Step 8.5: Run the tests**
 
 Run: `uv run pytest src/backend/tests/unit/services/assistant/tools/test_apply_template.py -v`
 Expected: 4 PASS.
 
-- [ ] **Step 8.6: Pause for commit**
+- [x] **Step 8.6: Pause for commit**
 
 ---
 
@@ -1179,7 +1179,7 @@ Expected: 4 PASS.
 - Modify: `src/backend/base/langflow/api/v1/assistant.py`
 - Test: `src/backend/tests/unit/api/v1/test_assistant_greet_endpoint.py`
 
-- [ ] **Step 9.1: Write the failing tests**
+- [x] **Step 9.1: Write the failing tests**
 
 Create `src/backend/tests/unit/api/v1/test_assistant_greet_endpoint.py`:
 
@@ -1287,12 +1287,12 @@ async def test_greet_returns_400_when_settings_missing(
 
 **Note:** the monkeypatch target (`_load_assistant_settings`) is a placeholder — inspect `assistant.py`'s existing `/messages` handler to find the actual settings-loader helper and patch that symbol. If no dedicated loader exists (settings are read inline), replace the monkeypatch with a direct env-var / DB stub. Keep the test assertion: status 400 when settings absent.
 
-- [ ] **Step 9.2: Run to verify failures**
+- [x] **Step 9.2: Run to verify failures**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_assistant_greet_endpoint.py -v`
 Expected: 404 on all tests (route not registered).
 
-- [ ] **Step 9.3: Add the endpoint**
+- [x] **Step 9.3: Add the endpoint**
 
 Edit `src/backend/base/langflow/api/v1/assistant.py`. First read the existing `/messages` handler (POST `/flows/{flow_id}/messages`) to learn the exact patterns — how it resolves the flow, org check, settings loading, provider-client construction. Then append the greet handler.
 
@@ -1406,12 +1406,12 @@ async def generate_once(self, user_content: str) -> str:
 
 If the provider client has no `generate` method, implement the stream-sink fallback: iterate `stream_with_tools(...)`, collect `type=="token"` deltas, return the concatenation.
 
-- [ ] **Step 9.4: Run the tests**
+- [x] **Step 9.4: Run the tests**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_assistant_greet_endpoint.py -v`
 Expected: 3 PASS. If the "settings missing" test is tricky because the real settings-loader is different, adjust the monkeypatch target to match — the spirit of the test is "when settings aren't configured, the endpoint returns 400."
 
-- [ ] **Step 9.5: Pause for commit**
+- [x] **Step 9.5: Pause for commit**
 
 ---
 
@@ -1421,7 +1421,7 @@ Expected: 3 PASS. If the "settings missing" test is tricky because the real sett
 - Create: `src/frontend/src/controllers/API/queries/assistant/use-greet-conversation.ts`
 - Test: `src/frontend/src/controllers/API/queries/assistant/__tests__/use-greet-conversation.test.ts`
 
-- [ ] **Step 10.1: Write the failing test**
+- [x] **Step 10.1: Write the failing test**
 
 Create `src/frontend/src/controllers/API/queries/assistant/__tests__/use-greet-conversation.test.ts`:
 
@@ -1478,12 +1478,12 @@ describe("useGreetConversation", () => {
 });
 ```
 
-- [ ] **Step 10.2: Run to verify failure**
+- [x] **Step 10.2: Run to verify failure**
 
 Run: `cd src/frontend && npx jest use-greet-conversation.test`
 Expected: module not found.
 
-- [ ] **Step 10.3: Implement the hook**
+- [x] **Step 10.3: Implement the hook**
 
 Create `src/frontend/src/controllers/API/queries/assistant/use-greet-conversation.ts`:
 
@@ -1517,12 +1517,12 @@ export function useGreetConversation() {
 
 If `UseRequestProcessor().mutate(...)` in this codebase returns a shape incompatible with the test's `mutateAsync` call (e.g., it wraps react-query's result differently), switch to `useMutation` from `@tanstack/react-query` directly. Match whatever pattern `useUpsertTemplateMetadata` (Plan 2) uses — that hook was verified to work.
 
-- [ ] **Step 10.4: Run the tests**
+- [x] **Step 10.4: Run the tests**
 
 Run: `cd src/frontend && npx jest use-greet-conversation.test`
 Expected: 2 PASS.
 
-- [ ] **Step 10.5: Pause for commit**
+- [x] **Step 10.5: Pause for commit**
 
 ---
 
@@ -1532,7 +1532,7 @@ Expected: 2 PASS.
 - Modify: `src/frontend/src/modals/AssistantPanel/hooks/use-assistant-conversation.ts`
 - Test: `src/frontend/src/modals/AssistantPanel/hooks/__tests__/greet-on-fullscreen.test.tsx`
 
-- [ ] **Step 11.1: Write the failing test**
+- [x] **Step 11.1: Write the failing test**
 
 Create `src/frontend/src/modals/AssistantPanel/hooks/__tests__/greet-on-fullscreen.test.tsx`:
 
@@ -1616,12 +1616,12 @@ describe("useAssistantConversation — greet-on-fullscreen", () => {
 });
 ```
 
-- [ ] **Step 11.2: Run to verify failure**
+- [x] **Step 11.2: Run to verify failure**
 
 Run: `cd src/frontend && npx jest greet-on-fullscreen`
 Expected: first test fails (greet never called).
 
-- [ ] **Step 11.3: Extend the hook**
+- [x] **Step 11.3: Extend the hook**
 
 Edit `src/frontend/src/modals/AssistantPanel/hooks/use-assistant-conversation.ts`. After the existing body that fetches the conversation and hydrates the store, add the auto-greet logic. Here's the full new body (replaces the current one):
 
@@ -1699,7 +1699,7 @@ export function useAssistantConversation(flowId: string) {
 
 The `greetedFor` ref prevents double-fires if the effect re-runs for any reason while the same flowId is mounted. Switching flows (flowId changes) resets the gate naturally since the ref is read/written at the same time.
 
-- [ ] **Step 11.4: Run the tests**
+- [x] **Step 11.4: Run the tests**
 
 Run: `cd src/frontend && npx jest greet-on-fullscreen`
 Expected: 3 PASS.
@@ -1709,7 +1709,7 @@ Also re-run the existing AssistantPanel shell-switch test:
 Run: `cd src/frontend && npx jest shell-switch`
 Expected: 4 PASS (no regression from Plan 3).
 
-- [ ] **Step 11.5: Pause for commit**
+- [x] **Step 11.5: Pause for commit**
 
 ---
 
@@ -1717,19 +1717,19 @@ Expected: 4 PASS (no regression from Plan 3).
 
 After all automated tests pass, walk through this list. **Do not commit in this task.**
 
-- [ ] **Step 12.1: Dev server boots**
+- [x] **Step 12.1: Dev server boots**
 
 Restart the backend: `LFX_DEV=1 make run_cli`. Confirm: migration auto-applies, `flow.based_on_template_flow_id` column present, no import errors.
 
-- [ ] **Step 12.2: Template-selected greet**
+- [x] **Step 12.2: Template-selected greet**
 
 Open the templates modal, select a non-blank template that has `TemplateMetadata` authored, click "Build with ADP Assist". The fullscreen overlay opens. Within 1-2 seconds, an assistant greeting appears that references the template's name and invites customization.
 
-- [ ] **Step 12.3: Blank-flow greet**
+- [x] **Step 12.3: Blank-flow greet**
 
 Open the templates modal, select Blank Flow, click "Build with ADP Assist". Fullscreen opens. Greeting appears that asks what the user wants to build (no template name).
 
-- [ ] **Step 12.4: Greeting persists across reload**
+- [x] **Step 12.4: Greeting persists across reload**
 
 On a flow where greeting was fired in 12.2 or 12.3, click View Canvas, then Maximize back to fullscreen. The greeting is loaded from the DB (no second LLM call). Confirm via psycopg:
 
@@ -1744,7 +1744,7 @@ with psycopg.connect('postgresql://postgres:mysecretpassword@localhost:5432/lang
 
 Expected: assistant messages present; exactly one greeting per flow.
 
-- [ ] **Step 12.5: Template pointer persisted**
+- [x] **Step 12.5: Template pointer persisted**
 
 From 12.2, confirm the template pointer is on the user's new flow:
 
@@ -1759,7 +1759,7 @@ with psycopg.connect('postgresql://postgres:mysecretpassword@localhost:5432/lang
 
 Expected: the most recent flow shows `built_with_assist=True` and a non-null `based_on_template_flow_id` pointing at the chosen template.
 
-- [ ] **Step 12.6: Blank-flow template matching**
+- [x] **Step 12.6: Blank-flow template matching**
 
 On a Blank-flow fullscreen session, after the generic greeting, type "I want a Slack notifier for new hires." The assistant:
 - Responds conversationally,
@@ -1768,18 +1768,18 @@ On a Blank-flow fullscreen session, after the generic greeting, type "I want a S
 
 Confirm via psycopg that the previously-null `based_on_template_flow_id` on the Blank flow is now set.
 
-- [ ] **Step 12.7: Opinionated narration**
+- [x] **Step 12.7: Opinionated narration**
 
 In any template-driven conversation, ask "add another component to do X" (pick something not in the template). The assistant:
 - Picks a specific component,
 - Narrates what it added ("I've added a Discord node — what channel should I use?"),
 - Does NOT ask "which component would you like?".
 
-- [ ] **Step 12.8: Ready-to-test prompt**
+- [x] **Step 12.8: Ready-to-test prompt**
 
 Complete a flow (answer all the assistant's config questions). At some point the assistant says "Your flow is ready — click the Test button" (or equivalent). The Test button in the fullscreen header is the natural next click. **Do not** expect the assistant to flip modes automatically.
 
-- [ ] **Step 12.9: `ON DELETE SET NULL` behavior**
+- [x] **Step 12.9: `ON DELETE SET NULL` behavior**
 
 Create a user flow via "Build with ADP Assist" from some template (confirm pointer is set per 12.5). In the DB (or admin UI), delete the template flow. Re-query:
 
@@ -1794,7 +1794,7 @@ with psycopg.connect('postgresql://postgres:mysecretpassword@localhost:5432/lang
 
 Expected: user flow still exists; `based_on_template_flow_id` is now `None`.
 
-- [ ] **Step 12.10: Report results**
+- [x] **Step 12.10: Report results**
 
 Report which steps passed/failed + any surprises. Do not mark the plan complete until every step passes.
 

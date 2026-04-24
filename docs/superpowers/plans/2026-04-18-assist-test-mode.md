@@ -46,7 +46,7 @@
 - Modify: `src/backend/base/langflow/services/assistant/service.py` (`SYSTEM_PROMPT_TEMPLATE` in `## Guidelines` section, around lines 50-86)
 - Create: `src/backend/tests/unit/services/assistant/test_test_failure_guideline_in_prompt.py`
 
-- [ ] **Step 1: Write the failing test file**
+- [x] **Step 1: Write the failing test file**
 
 Create `src/backend/tests/unit/services/assistant/test_test_failure_guideline_in_prompt.py`:
 
@@ -71,12 +71,12 @@ def test_prompt_tells_llm_to_stay_focused_on_fixing_one_failure():
     assert "do not propose redesigning the flow" in SYSTEM_PROMPT_TEMPLATE
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/assistant/test_test_failure_guideline_in_prompt.py -v`
 Expected: 3 FAIL — "[TEST_FAILURE]" not in SYSTEM_PROMPT_TEMPLATE.
 
-- [ ] **Step 3: Append the guideline bullet**
+- [x] **Step 3: Append the guideline bullet**
 
 Open `src/backend/base/langflow/services/assistant/service.py`. Find the last bullet in the `## Guidelines` section of `SYSTEM_PROMPT_TEMPLATE` (the one that starts `"- Before starting a complex multi-component build…"` ending with `"…come back in a few minutes."`). Append this new bullet immediately after it, preserving the existing backslash-continuation style:
 
@@ -94,12 +94,12 @@ response focused on fixing this one failure; do not propose redesigning \
 the flow unless asked.
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/assistant/test_test_failure_guideline_in_prompt.py -v`
 Expected: 3 PASS.
 
-- [ ] **Step 5: Stage (do not commit)**
+- [x] **Step 5: Stage (do not commit)**
 
 ```bash
 git add src/backend/base/langflow/services/assistant/service.py \
@@ -116,7 +116,7 @@ The user batches commits at end of plan — do not run `git commit`.
 - Create: `src/frontend/src/utils/test-runs.ts`
 - Create: `src/frontend/src/utils/__tests__/test-runs.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/frontend/src/utils/__tests__/test-runs.test.ts`:
 
@@ -211,12 +211,12 @@ describe("test-runs", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `cd src/frontend && npx jest src/utils/__tests__/test-runs.test.ts --no-coverage`
 Expected: FAIL — `../test-runs` module not found.
 
-- [ ] **Step 3: Implement `test-runs.ts`**
+- [x] **Step 3: Implement `test-runs.ts`**
 
 Create `src/frontend/src/utils/test-runs.ts`:
 
@@ -279,12 +279,12 @@ export async function runTestForAll(): Promise<void> {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `cd src/frontend && npx jest src/utils/__tests__/test-runs.test.ts --no-coverage`
 Expected: 3 PASS.
 
-- [ ] **Step 5: Stage**
+- [x] **Step 5: Stage**
 
 ```bash
 git add src/frontend/src/utils/test-runs.ts \
@@ -299,7 +299,7 @@ git add src/frontend/src/utils/test-runs.ts \
 - Create: `src/frontend/src/modals/AssistantPanel/FlowPipelineView/dag-layout.ts`
 - Create: `src/frontend/src/modals/AssistantPanel/FlowPipelineView/__tests__/dag-layout.test.ts`
 
-- [ ] **Step 1: Write the full failing test file first**
+- [x] **Step 1: Write the full failing test file first**
 
 Create `src/frontend/src/modals/AssistantPanel/FlowPipelineView/__tests__/dag-layout.test.ts`:
 
@@ -437,12 +437,12 @@ describe("computeDagLayout", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify all fail**
+- [x] **Step 2: Run the test to verify all fail**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel/FlowPipelineView/__tests__/dag-layout.test.ts --no-coverage`
 Expected: Module not found (`../dag-layout`) — all fail.
 
-- [ ] **Step 3: Implement `dag-layout.ts`**
+- [x] **Step 3: Implement `dag-layout.ts`**
 
 Create `src/frontend/src/modals/AssistantPanel/FlowPipelineView/dag-layout.ts`:
 
@@ -600,12 +600,12 @@ export function computeDagLayout(
 }
 ```
 
-- [ ] **Step 4: Run the test to verify all pass**
+- [x] **Step 4: Run the test to verify all pass**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel/FlowPipelineView/__tests__/dag-layout.test.ts --no-coverage`
 Expected: 9 PASS.
 
-- [ ] **Step 5: Stage**
+- [x] **Step 5: Stage**
 
 ```bash
 git add src/frontend/src/modals/AssistantPanel/FlowPipelineView/dag-layout.ts \
@@ -620,7 +620,7 @@ git add src/frontend/src/modals/AssistantPanel/FlowPipelineView/dag-layout.ts \
 - Create: `src/frontend/src/modals/AssistantPanel/FlowPipelineView/status-badge.tsx`
 - Create: `src/frontend/src/modals/AssistantPanel/FlowPipelineView/__tests__/status-badge.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/frontend/src/modals/AssistantPanel/FlowPipelineView/__tests__/status-badge.test.tsx`:
 
@@ -656,12 +656,12 @@ describe("StatusBadge", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel/FlowPipelineView/__tests__/status-badge.test.tsx --no-coverage`
 Expected: FAIL — `../status-badge` module not found.
 
-- [ ] **Step 3: Implement `status-badge.tsx`**
+- [x] **Step 3: Implement `status-badge.tsx`**
 
 Create `src/frontend/src/modals/AssistantPanel/FlowPipelineView/status-badge.tsx`:
 
@@ -716,12 +716,12 @@ export function StatusBadge({ status, errorMessage }: Props) {
 
 Note: `ForwardedIconComponent` is the default export of `@/components/common/genericIconComponent`. Follow the existing import style in `test-shell.tsx` (which imports it as `ForwardedIconComponent` from the same module).
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel/FlowPipelineView/__tests__/status-badge.test.tsx --no-coverage`
 Expected: 5 PASS.
 
-- [ ] **Step 5: Stage**
+- [x] **Step 5: Stage**
 
 ```bash
 git add src/frontend/src/modals/AssistantPanel/FlowPipelineView/status-badge.tsx \
@@ -736,7 +736,7 @@ git add src/frontend/src/modals/AssistantPanel/FlowPipelineView/status-badge.tsx
 - Create: `src/frontend/src/modals/AssistantPanel/FlowPipelineView/raw-output.tsx`
 - Create: `src/frontend/src/modals/AssistantPanel/FlowPipelineView/__tests__/raw-output.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/frontend/src/modals/AssistantPanel/FlowPipelineView/__tests__/raw-output.test.tsx`:
 
@@ -768,12 +768,12 @@ describe("RawOutput", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel/FlowPipelineView/__tests__/raw-output.test.tsx --no-coverage`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Implement `raw-output.tsx`**
+- [x] **Step 3: Implement `raw-output.tsx`**
 
 Create `src/frontend/src/modals/AssistantPanel/FlowPipelineView/raw-output.tsx`:
 
@@ -807,12 +807,12 @@ export function RawOutput({ value }: Props) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel/FlowPipelineView/__tests__/raw-output.test.tsx --no-coverage`
 Expected: 3 PASS.
 
-- [ ] **Step 5: Stage**
+- [x] **Step 5: Stage**
 
 ```bash
 git add src/frontend/src/modals/AssistantPanel/FlowPipelineView/raw-output.tsx \
@@ -827,7 +827,7 @@ git add src/frontend/src/modals/AssistantPanel/FlowPipelineView/raw-output.tsx \
 - Create: `src/frontend/src/modals/AssistantPanel/FlowPipelineView/test-all-button.tsx`
 - Create: `src/frontend/src/modals/AssistantPanel/FlowPipelineView/__tests__/test-all-button.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/frontend/src/modals/AssistantPanel/FlowPipelineView/__tests__/test-all-button.test.tsx`:
 
@@ -872,12 +872,12 @@ describe("TestAllButton", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel/FlowPipelineView/__tests__/test-all-button.test.tsx --no-coverage`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Implement `test-all-button.tsx`**
+- [x] **Step 3: Implement `test-all-button.tsx`**
 
 Create `src/frontend/src/modals/AssistantPanel/FlowPipelineView/test-all-button.tsx`:
 
@@ -906,12 +906,12 @@ export function TestAllButton({ anyTesting }: Props) {
 
 Note: `Button` comes from `@/components/ui/button` (shadcn style — this path is used elsewhere in the AssistantPanel codebase). If the exact import path differs, grep `test-shell.tsx` and `fullscreen-shell.tsx` for the pattern they use.
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel/FlowPipelineView/__tests__/test-all-button.test.tsx --no-coverage`
 Expected: 3 PASS.
 
-- [ ] **Step 5: Stage**
+- [x] **Step 5: Stage**
 
 ```bash
 git add src/frontend/src/modals/AssistantPanel/FlowPipelineView/test-all-button.tsx \
@@ -926,7 +926,7 @@ git add src/frontend/src/modals/AssistantPanel/FlowPipelineView/test-all-button.
 - Create: `src/frontend/src/modals/AssistantPanel/FlowPipelineView/pipeline-card.tsx`
 - Create: `src/frontend/src/modals/AssistantPanel/FlowPipelineView/__tests__/pipeline-card.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/frontend/src/modals/AssistantPanel/FlowPipelineView/__tests__/pipeline-card.test.tsx`:
 
@@ -1075,12 +1075,12 @@ describe("PipelineCard", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel/FlowPipelineView/__tests__/pipeline-card.test.tsx --no-coverage`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Implement `pipeline-card.tsx`**
+- [x] **Step 3: Implement `pipeline-card.tsx`**
 
 Create `src/frontend/src/modals/AssistantPanel/FlowPipelineView/pipeline-card.tsx`:
 
@@ -1203,12 +1203,12 @@ export function PipelineCard({
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel/FlowPipelineView/__tests__/pipeline-card.test.tsx --no-coverage`
 Expected: 6 PASS.
 
-- [ ] **Step 5: Stage**
+- [x] **Step 5: Stage**
 
 ```bash
 git add src/frontend/src/modals/AssistantPanel/FlowPipelineView/pipeline-card.tsx \
@@ -1223,7 +1223,7 @@ git add src/frontend/src/modals/AssistantPanel/FlowPipelineView/pipeline-card.ts
 - Create: `src/frontend/src/modals/AssistantPanel/FlowPipelineView/index.tsx`
 - Create: `src/frontend/src/modals/AssistantPanel/FlowPipelineView/__tests__/FlowPipelineView.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/frontend/src/modals/AssistantPanel/FlowPipelineView/__tests__/FlowPipelineView.test.tsx`:
 
@@ -1308,12 +1308,12 @@ describe("FlowPipelineView", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel/FlowPipelineView/__tests__/FlowPipelineView.test.tsx --no-coverage`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Implement `FlowPipelineView/index.tsx`**
+- [x] **Step 3: Implement `FlowPipelineView/index.tsx`**
 
 Create `src/frontend/src/modals/AssistantPanel/FlowPipelineView/index.tsx`:
 
@@ -1442,12 +1442,12 @@ export function FlowPipelineView({ onSend }: Props) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel/FlowPipelineView/__tests__/FlowPipelineView.test.tsx --no-coverage`
 Expected: 3 PASS.
 
-- [ ] **Step 5: Stage**
+- [x] **Step 5: Stage**
 
 ```bash
 git add src/frontend/src/modals/AssistantPanel/FlowPipelineView/index.tsx \
@@ -1462,7 +1462,7 @@ git add src/frontend/src/modals/AssistantPanel/FlowPipelineView/index.tsx \
 - Modify: `src/frontend/src/modals/AssistantPanel/test-shell.tsx` (replace the placeholder div)
 - Modify: `src/frontend/src/modals/AssistantPanel/__tests__/shell-switch.test.tsx` (update assertion if it checks placeholder text)
 
-- [ ] **Step 1: Extend the existing test to assert the pipeline view renders (failing)**
+- [x] **Step 1: Extend the existing test to assert the pipeline view renders (failing)**
 
 The current file (`shell-switch.test.tsx`, 70 lines) tests each layout mode but does not assert content inside the test-shell left pane. Once `test-shell.tsx` swaps its placeholder for `FlowPipelineView`, which reads `useFlowStore`, the existing test will fail because no flowStore state is set up.
 
@@ -1504,12 +1504,12 @@ it("renders the test shell when layoutMode is 'test'", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel/__tests__/shell-switch.test.tsx --no-coverage`
 Expected: the `"renders the test shell when layoutMode is 'test'"` test FAILs — "No components yet" not found (placeholder still reads "Pipeline view will appear here"). Other tests in the file still pass.
 
-- [ ] **Step 3: Replace the placeholder in `test-shell.tsx`**
+- [x] **Step 3: Replace the placeholder in `test-shell.tsx`**
 
 Open `src/frontend/src/modals/AssistantPanel/test-shell.tsx`. Find the left-pane placeholder div (currently lines 64-72 per the prior exploration). Replace:
 
@@ -1541,17 +1541,17 @@ import { FlowPipelineView } from "./FlowPipelineView";
 
 If `ForwardedIconComponent` becomes unused after this change, remove its import. Otherwise leave it.
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel/__tests__/shell-switch.test.tsx --no-coverage`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full AssistantPanel test subtree as a smoke check**
+- [x] **Step 5: Run the full AssistantPanel test subtree as a smoke check**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel --no-coverage`
 Expected: all tests PASS.
 
-- [ ] **Step 6: Stage**
+- [x] **Step 6: Stage**
 
 ```bash
 git add src/frontend/src/modals/AssistantPanel/test-shell.tsx \
@@ -1564,32 +1564,32 @@ git add src/frontend/src/modals/AssistantPanel/test-shell.tsx \
 
 **Files:** none modified. This task validates the plan end-to-end.
 
-- [ ] **Step 1: Run the full frontend AssistantPanel test suite**
+- [x] **Step 1: Run the full frontend AssistantPanel test suite**
 
 Run: `cd src/frontend && npx jest src/modals/AssistantPanel src/utils/__tests__/test-runs.test.ts --no-coverage`
 Expected: ALL PASS.
 
-- [ ] **Step 2: Run the backend guideline test**
+- [x] **Step 2: Run the backend guideline test**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/assistant/test_test_failure_guideline_in_prompt.py tests/unit/services/assistant/test_greeting_guidelines_in_prompt.py -v`
 Expected: ALL PASS (includes Plan 4's greeting tests — regression check).
 
-- [ ] **Step 3: Manual verification — pipeline renders**
+- [x] **Step 3: Manual verification — pipeline renders**
 
 Start the stack (`make run` or project's usual dev-server command), open a flow in the browser, open the ADP Assist panel, switch to fullscreen (per Plan 4), then click the Test button to enter Test mode. Confirm `FlowPipelineView` renders with a card per component, arranged in topological order.
 
-- [ ] **Step 4: Manual verification — single-node test happy path**
+- [x] **Step 4: Manual verification — single-node test happy path**
 
 In the browser, on a flow with a simple root component (ChatInput or similar), click the `Test` button on that card. Expected:
 1. Badge goes `Not tested → Testing… → Passed`
 2. `View full output →` button appears
 3. Clicking it expands a `<pre>` with the node's output data
 
-- [ ] **Step 5: Manual verification — upstream-plus-self semantics**
+- [x] **Step 5: Manual verification — upstream-plus-self semantics**
 
 Click the `Test` button on a middle node of a chain (A → B → C, click on B). Expected: A's badge also flips to `Passed` as part of the same run (because B's build requires A).
 
-- [ ] **Step 6: Manual verification — failure path + Ask assistant**
+- [x] **Step 6: Manual verification — failure path + Ask assistant**
 
 Configure a component with an invalid API key (e.g., Slack with `xoxb-invalid`). Click Test on that card. Expected:
 1. Badge goes `Testing… → Failed` with the error message inline (e.g., `invalid_auth`)
@@ -1597,23 +1597,23 @@ Configure a component with an invalid API key (e.g., Slack with `xoxb-invalid`).
 3. Clicking Ask assistant appends a `[TEST_FAILURE]` message to the right-pane chat
 4. The assistant responds conversationally with a credentials walkthrough (not generic troubleshooting)
 
-- [ ] **Step 7: Manual verification — Test All**
+- [x] **Step 7: Manual verification — Test All**
 
 Click `Test All`. Expected: badges update on every card as the full flow builds. During the run, the `Test All` button is disabled.
 
-- [ ] **Step 8: Manual verification — tool grouping**
+- [x] **Step 8: Manual verification — tool grouping**
 
 On a flow with an agent-with-tools shape (e.g., `Agent` node with `category=agent` and multiple tool nodes feeding in), confirm tools appear as indented sub-items under the agent card, not as separate cards.
 
-- [ ] **Step 9: Manual verification — parallel branches**
+- [x] **Step 9: Manual verification — parallel branches**
 
 On a diamond flow (A → B, A → C, B → D, C → D), confirm B and C render side-by-side within the same level row.
 
-- [ ] **Step 10: Manual verification — empty flow**
+- [x] **Step 10: Manual verification — empty flow**
 
 Open a brand-new empty flow in test mode. Confirm the empty state renders with `No components yet. Go back to chat and add some.` and a `Back to chat` button that returns to fullscreen chat (Plan 4 layout mode).
 
-- [ ] **Step 11: Report readiness for commit**
+- [x] **Step 11: Report readiness for commit**
 
 If all above steps pass, report to the human: "Plan 5 implementation complete, ready for batched commit". Do NOT run `git commit`. The human will review and author the commit.
 

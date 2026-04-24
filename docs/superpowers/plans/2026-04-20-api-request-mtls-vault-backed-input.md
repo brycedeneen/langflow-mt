@@ -70,7 +70,7 @@
 - Modify: `src/lfx/src/lfx/inputs/inputs.py:410`
 - Create test: `src/lfx/tests/unit/inputs/test_text_file_secret_input.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/lfx/tests/unit/inputs/test_text_file_secret_input.py`:
 
@@ -110,12 +110,12 @@ def test_file_types_accepts_extensions_without_dots():
     assert inp.file_types == ["pem", "crt", "key"]
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `uv run pytest src/lfx/tests/unit/inputs/test_text_file_secret_input.py -v`
 Expected: ImportError / "cannot import name 'TextFileSecretInput'".
 
-- [ ] **Step 3: Implement `TextFileSecretInput`**
+- [x] **Step 3: Implement `TextFileSecretInput`**
 
 Edit `src/lfx/src/lfx/inputs/inputs.py`. Find the `SecretStrInput` class (around line 410) and add immediately after it:
 
@@ -138,12 +138,12 @@ class TextFileSecretInput(SecretStrInput):
     file_types: list[str] = []
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `uv run pytest src/lfx/tests/unit/inputs/test_text_file_secret_input.py -v`
 Expected: 5 passed.
 
-- [ ] **Step 5: Pause for user commit approval**
+- [x] **Step 5: Pause for user commit approval**
 
 Proposed message: `feat(inputs): add TextFileSecretInput for vault-backed text-readable secrets`.
 Do not run `git commit` until the user approves.
@@ -159,7 +159,7 @@ Do not run `git commit` until the user approves.
 - Create test: `src/lfx/tests/unit/base/api_request/__init__.py` (empty)
 - Create test: `src/lfx/tests/unit/base/api_request/test_mtls.py`
 
-- [ ] **Step 1: Write the failing test for the helpers**
+- [x] **Step 1: Write the failing test for the helpers**
 
 Create `src/lfx/tests/unit/base/api_request/test_mtls.py`:
 
@@ -208,12 +208,12 @@ def test_write_secure_tempfile_writes_0600(tmp_path, monkeypatch):
         path.unlink(missing_ok=True)
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `uv run pytest src/lfx/tests/unit/base/api_request/test_mtls.py -v`
 Expected: ModuleNotFoundError for `lfx.base.api_request.mtls`.
 
-- [ ] **Step 3: Create the package and extract the helpers**
+- [x] **Step 3: Create the package and extract the helpers**
 
 Create `src/lfx/src/lfx/base/api_request/__init__.py` (empty file).
 
@@ -323,7 +323,7 @@ async def mtls_temp_files(
             key_path.unlink(missing_ok=True)
 ```
 
-- [ ] **Step 4: Add re-exports in adp/_shared.py to preserve existing callers**
+- [x] **Step 4: Add re-exports in adp/_shared.py to preserve existing callers**
 
 Edit `src/lfx/src/lfx/components/adp/_shared.py`. At the top of the file (after existing imports), add:
 
@@ -336,7 +336,7 @@ from lfx.base.api_request.mtls import _normalize_pem, _write_secure_tempfile  # 
 
 Then delete the original `_normalize_pem` and `_write_secure_tempfile` function bodies in that file (keep `_write_pem_temp_files` since it calls the helpers; it still works because of the import).
 
-- [ ] **Step 5: Run helper tests to verify**
+- [x] **Step 5: Run helper tests to verify**
 
 Run: `uv run pytest src/lfx/tests/unit/base/api_request/test_mtls.py -v`
 Expected: 4 passed.
@@ -345,7 +345,7 @@ Run the existing ADP tests to ensure nothing broke:
 `uv run pytest src/lfx/tests/unit/components/adp/ -v`
 Expected: all existing ADP tests pass (no new failures).
 
-- [ ] **Step 6: Pause for user commit approval**
+- [x] **Step 6: Pause for user commit approval**
 
 Proposed message: `refactor(mtls): extract PEM helpers into lfx.base.api_request.mtls for reuse`.
 
@@ -358,7 +358,7 @@ Proposed message: `refactor(mtls): extract PEM helpers into lfx.base.api_request
 
 Task 2 already shipped the implementation. This task adds behavior tests that exercise it end-to-end.
 
-- [ ] **Step 1: Write the failing async tests**
+- [x] **Step 1: Write the failing async tests**
 
 Append to `src/lfx/tests/unit/base/api_request/test_mtls.py`:
 
@@ -457,12 +457,12 @@ async def test_mtls_temp_files_fixes_literal_backslash_n_on_paste():
         assert content.startswith("-----BEGIN CERTIFICATE-----\n")
 ```
 
-- [ ] **Step 2: Run the new tests to verify they pass**
+- [x] **Step 2: Run the new tests to verify they pass**
 
 Run: `uv run pytest src/lfx/tests/unit/base/api_request/test_mtls.py -v`
 Expected: 11 passed total (4 from Task 2 + 7 new async).
 
-- [ ] **Step 3: Pause for user commit approval**
+- [x] **Step 3: Pause for user commit approval**
 
 Proposed message: `test(mtls): cover mtls_temp_files context manager behavior and cleanup`.
 
@@ -474,7 +474,7 @@ Proposed message: `test(mtls): cover mtls_temp_files context manager behavior an
 - Create: `src/backend/base/langflow/services/variable/auto_secrets.py`
 - Create test: `src/backend/tests/unit/services/variable/test_auto_secrets.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/backend/tests/unit/services/variable/test_auto_secrets.py`:
 
@@ -681,12 +681,12 @@ async def test_promote_upserts_when_value_changed():
     assert out["nodes"][0]["data"]["node"]["template"]["cert_pem"]["load_from_db"] is True
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `uv run pytest src/backend/tests/unit/services/variable/test_auto_secrets.py -v`
 Expected: ModuleNotFoundError.
 
-- [ ] **Step 3: Create the helper module**
+- [x] **Step 3: Create the helper module**
 
 Create `src/backend/base/langflow/services/variable/auto_secrets.py`:
 
@@ -798,7 +798,7 @@ async def promote_plaintext_secrets_to_variables(
     return flow_data
 ```
 
-- [ ] **Step 4: Extend the VariableService with helper methods the new module depends on**
+- [x] **Step 4: Extend the VariableService with helper methods the new module depends on**
 
 The helper expects two new methods on `VariableService`. Open `src/backend/base/langflow/services/variable/service.py` and add them near the existing `create_variable` method (line 386):
 
@@ -855,12 +855,12 @@ async def update_variable_value(
 
 > **Note:** the exact import path for `encrypt_api_key` and the `Variable` model may differ — confirm by grepping `encrypt_api_key\(` and `class Variable\(` in the backend before pasting. The existing `create_variable` around line 386 already uses these imports; mirror them.
 
-- [ ] **Step 5: Run the helper tests to verify pass**
+- [x] **Step 5: Run the helper tests to verify pass**
 
 Run: `uv run pytest src/backend/tests/unit/services/variable/test_auto_secrets.py -v`
 Expected: 6 passed.
 
-- [ ] **Step 6: Pause for user commit approval**
+- [x] **Step 6: Pause for user commit approval**
 
 Proposed message: `feat(variables): add auto-Variable promote helper for TextFileSecretInput`.
 
@@ -872,7 +872,7 @@ Proposed message: `feat(variables): add auto-Variable promote helper for TextFil
 - Modify: `src/backend/base/langflow/services/variable/auto_secrets.py`
 - Modify test: `src/backend/tests/unit/services/variable/test_auto_secrets.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `test_auto_secrets.py`:
 
@@ -939,12 +939,12 @@ async def test_cleanup_no_op_when_no_orphans():
     svc.delete_variable.assert_not_called()
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `uv run pytest src/backend/tests/unit/services/variable/test_auto_secrets.py::test_cleanup_deletes_autosecrets_for_removed_nodes -v`
 Expected: ImportError for `cleanup_orphaned_autosecrets`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Append to `src/backend/base/langflow/services/variable/auto_secrets.py`:
 
@@ -983,12 +983,12 @@ async def cleanup_orphaned_autosecrets(
 
 > **Note:** the existing `delete_variable` on `VariableService` (line 365) takes positional args `(user_id, name, session)`. Either adapt the call to positional or add a keyword-argument wrapper on the service. If you adapt the call, remove the keyword matchers in the test and verify with `await_args.args`.
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `uv run pytest src/backend/tests/unit/services/variable/test_auto_secrets.py -v`
 Expected: 8 passed total.
 
-- [ ] **Step 5: Pause for user commit approval**
+- [x] **Step 5: Pause for user commit approval**
 
 Proposed message: `feat(variables): add cleanup_orphaned_autosecrets for removed nodes`.
 
@@ -1000,7 +1000,7 @@ Proposed message: `feat(variables): add cleanup_orphaned_autosecrets for removed
 - Modify: `src/backend/base/langflow/services/variable/auto_secrets.py`
 - Modify test: `src/backend/tests/unit/services/variable/test_auto_secrets.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append:
 
@@ -1030,11 +1030,11 @@ async def test_delete_autosecrets_for_flow_removes_all_for_that_flow():
     assert svc.delete_variable.await_count == 2
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Expected: ImportError.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Append:
 
@@ -1060,12 +1060,12 @@ async def delete_autosecrets_for_flow(
         )
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `uv run pytest src/backend/tests/unit/services/variable/test_auto_secrets.py -v`
 Expected: 9 passed.
 
-- [ ] **Step 5: Pause for user commit approval**
+- [x] **Step 5: Pause for user commit approval**
 
 Proposed message: `feat(variables): add delete_autosecrets_for_flow cascade helper`.
 
@@ -1077,7 +1077,7 @@ Proposed message: `feat(variables): add delete_autosecrets_for_flow cascade help
 - Modify: `src/backend/base/langflow/services/variable/auto_secrets.py`
 - Modify test: `src/backend/tests/unit/services/variable/test_auto_secrets.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append:
 
@@ -1118,11 +1118,11 @@ def test_blank_autosecrets_ignores_non_autosecret_variables():
     assert field["value"] == "my_global_variable"
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Expected: ImportError.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Append:
 
@@ -1144,11 +1144,11 @@ def blank_autosecrets_for_export(flow_data: dict) -> dict:
     return flow_data
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Expected: 11 passed.
 
-- [ ] **Step 5: Pause for user commit approval**
+- [x] **Step 5: Pause for user commit approval**
 
 Proposed message: `feat(variables): add blank_autosecrets_for_export for safe flow export`.
 
@@ -1159,7 +1159,7 @@ Proposed message: `feat(variables): add blank_autosecrets_for_export for safe fl
 **Files:**
 - Modify: `src/backend/base/langflow/api/v1/flows.py:352–368` (`create_flow`)
 
-- [ ] **Step 1: Write the failing integration-style test (narrow)**
+- [x] **Step 1: Write the failing integration-style test (narrow)**
 
 Create or append to `src/backend/tests/unit/api/v1/test_flows_autosecrets_hook.py`:
 
@@ -1192,7 +1192,7 @@ async def test_create_flow_calls_promote_helper():
 
 > **Note:** If no existing `flows.py` unit tests exist, skip this narrow test and rely on Task 19's integration coverage. Document the decision in the commit message.
 
-- [ ] **Step 2: Wire promotion into `create_flow`**
+- [x] **Step 2: Wire promotion into `create_flow`**
 
 Edit `src/backend/base/langflow/api/v1/flows.py` around line 352. Import at the top of the file:
 
@@ -1225,12 +1225,12 @@ if flow.data is not None:
 
 > **Important:** The auto-Variable name depends on `flow_id`. If the flow doesn't have an id at create time, we must pre-assign one so the Variable name doesn't change on the next save. Verify whether `FlowCreate` gets its id assigned before or after reaching this hook — if after, hoist the id assignment here.
 
-- [ ] **Step 3: Run the hook test**
+- [x] **Step 3: Run the hook test**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_flows_autosecrets_hook.py -v`
 Expected: 1 passed (or skipped if narrow test wasn't feasible).
 
-- [ ] **Step 4: Pause for user commit approval**
+- [x] **Step 4: Pause for user commit approval**
 
 Proposed message: `feat(flows): promote auto-Variables on flow create`.
 
@@ -1241,7 +1241,7 @@ Proposed message: `feat(flows): promote auto-Variables on flow create`.
 **Files:**
 - Modify: `src/backend/base/langflow/api/v1/flows.py:526–575` (`update_flow`)
 
-- [ ] **Step 1: Write the failing narrow test**
+- [x] **Step 1: Write the failing narrow test**
 
 Append to `test_flows_autosecrets_hook.py`:
 
@@ -1262,7 +1262,7 @@ async def test_update_flow_calls_promote_and_cleanup():
     cleanup.assert_awaited_once()
 ```
 
-- [ ] **Step 2: Wire into `update_flow`**
+- [x] **Step 2: Wire into `update_flow`**
 
 Edit `src/backend/base/langflow/api/v1/flows.py`. Add to the existing auto_secrets import:
 
@@ -1295,11 +1295,11 @@ if "data" in update_data and update_data["data"] is not None:
     )
 ```
 
-- [ ] **Step 3: Run**
+- [x] **Step 3: Run**
 
 Expected: 2 passed (this test + the Task 8 test).
 
-- [ ] **Step 4: Pause for user commit approval**
+- [x] **Step 4: Pause for user commit approval**
 
 Proposed message: `feat(flows): promote auto-Variables and clean orphans on flow update`.
 
@@ -1310,7 +1310,7 @@ Proposed message: `feat(flows): promote auto-Variables and clean orphans on flow
 **Files:**
 - Modify: `src/backend/base/langflow/api/v1/flows.py:810–834` (`delete_flow`)
 
-- [ ] **Step 1: Write the failing narrow test**
+- [x] **Step 1: Write the failing narrow test**
 
 Append:
 
@@ -1327,7 +1327,7 @@ async def test_delete_flow_cascades_autosecrets():
     cascade.assert_awaited_once()
 ```
 
-- [ ] **Step 2: Wire into `delete_flow`**
+- [x] **Step 2: Wire into `delete_flow`**
 
 Import `delete_autosecrets_for_flow` (extend the existing import). In `delete_flow`, before the existing `cascade_delete_flow(session, flow.id)` call (~line 833):
 
@@ -1341,11 +1341,11 @@ await delete_autosecrets_for_flow(
 )
 ```
 
-- [ ] **Step 3: Run**
+- [x] **Step 3: Run**
 
 Expected: 3 passed total in the hook test module.
 
-- [ ] **Step 4: Pause for user commit approval**
+- [x] **Step 4: Pause for user commit approval**
 
 Proposed message: `feat(flows): cascade-delete auto-Variables on flow delete`.
 
@@ -1356,7 +1356,7 @@ Proposed message: `feat(flows): cascade-delete auto-Variables on flow delete`.
 **Files:**
 - Modify: `src/backend/base/langflow/api/v1/flows.py:952–1002` (`download_multiple_file`)
 
-- [ ] **Step 1: Write the failing narrow test**
+- [x] **Step 1: Write the failing narrow test**
 
 Append:
 
@@ -1375,7 +1375,7 @@ async def test_download_blanks_autosecrets_in_flow_data():
     blank.assert_called()  # one call per flow
 ```
 
-- [ ] **Step 2: Wire into `download_multiple_file`**
+- [x] **Step 2: Wire into `download_multiple_file`**
 
 Extend import:
 
@@ -1393,11 +1393,11 @@ flow_dict = remove_api_keys(flow_dict)
 # ...continue with existing export logic using flow_dict...
 ```
 
-- [ ] **Step 3: Run**
+- [x] **Step 3: Run**
 
 Expected: 4 passed in hook test module.
 
-- [ ] **Step 4: Pause for user commit approval**
+- [x] **Step 4: Pause for user commit approval**
 
 Proposed message: `feat(flows): blank auto-Variables on flow export`.
 
@@ -1409,7 +1409,7 @@ Proposed message: `feat(flows): blank auto-Variables on flow export`.
 - Modify: `src/backend/base/langflow/api/v1/variable.py:150–190` (`read_variables`)
 - Create test: `src/backend/tests/unit/api/v1/test_variable_listing_filter.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/backend/tests/unit/api/v1/test_variable_listing_filter.py`:
 
@@ -1440,11 +1440,11 @@ async def test_read_variables_excludes_autosecret_prefix(client, logged_in_user,
 
 > **Note:** exact fixture names (`client`, `logged_in_user`, `variable_factory`) depend on the project's test conventions. Find a sibling test that already hits `/api/v1/variables` and mirror its fixtures.
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Expected: the auto-secret name appears in the response.
 
-- [ ] **Step 3: Add the filter**
+- [x] **Step 3: Add the filter**
 
 Edit `src/backend/base/langflow/api/v1/variable.py` around line 171–173 where the response already filters `__FOO__` style names. Extend the filter:
 
@@ -1467,11 +1467,11 @@ from langflow.services.variable.auto_secrets import AUTOSECRET_PREFIX
 
 and use `AUTOSECRET_PREFIX` instead of the literal string above.
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Expected: test passes.
 
-- [ ] **Step 5: Pause for user commit approval**
+- [x] **Step 5: Pause for user commit approval**
 
 Proposed message: `feat(variables): filter auto-secret names from GET /api/v1/variables`.
 
@@ -1484,7 +1484,7 @@ Proposed message: `feat(variables): filter auto-secret names from GET /api/v1/va
 
 Before this task, the component has `enable_mtls`, `client_cert_file` (FileInput), `client_key_file` (FileInput), `client_key_password` (SecretStrInput). After, it has `enable_mtls`, `cert_pem` (TextFileSecretInput), `key_pem` (TextFileSecretInput), `client_key_password` (SecretStrInput with load_from_db=True).
 
-- [ ] **Step 1: Update the field definitions**
+- [x] **Step 1: Update the field definitions**
 
 Edit `src/lfx/src/lfx/components/data_source/api_request.py`. In `APIRequestComponent.inputs`, find the three mTLS fields (currently `FileInput(name="client_cert_file", ...)`, `FileInput(name="client_key_file", ...)`, `SecretStrInput(name="client_key_password", ...)`) and replace them with:
 
@@ -1532,7 +1532,7 @@ from lfx.inputs.inputs import TextFileSecretInput
 
 (Keep the existing imports — SecretStrInput, BoolInput, etc., are still used.)
 
-- [ ] **Step 2: Update the `make_api_request` call site**
+- [x] **Step 2: Update the `make_api_request` call site**
 
 Replace the existing mTLS-cert-building block with:
 
@@ -1575,7 +1575,7 @@ async with ctx as cert_tuple:
 
 Delete the old `# Build mTLS cert parameter if enabled ...` block that used `client_cert_file`, `resolve_path`, etc.
 
-- [ ] **Step 3: Update `update_build_config` for the new field names**
+- [x] **Step 3: Update `update_build_config` for the new field names**
 
 Edit the `update_build_config` method. Replace:
 
@@ -1599,12 +1599,12 @@ if field_name == "enable_mtls":
     return build_config
 ```
 
-- [ ] **Step 4: Run component-level sanity (tests updated in Task 14)**
+- [x] **Step 4: Run component-level sanity (tests updated in Task 14)**
 
 Run: `uv run pytest src/backend/tests/unit/components/data_source/test_api_request_component.py -v`
 Expected: some tests fail because of renamed fields. Task 14 fixes them.
 
-- [ ] **Step 5: Pause for user commit approval**
+- [x] **Step 5: Pause for user commit approval**
 
 Proposed message: `feat(api-request): switch mTLS fields to TextFileSecretInput with mtls_temp_files`.
 
@@ -1615,11 +1615,11 @@ Proposed message: `feat(api-request): switch mTLS fields to TextFileSecretInput 
 **Files:**
 - Modify: `src/backend/tests/unit/components/data_source/test_api_request_component.py`
 
-- [ ] **Step 1: Review current mTLS tests**
+- [x] **Step 1: Review current mTLS tests**
 
 These tests were added by commit `99634195d7` (the one we just cherry-picked). They currently assign file paths to `client_cert_file` / `client_key_file` and assert that httpx receives those paths.
 
-- [ ] **Step 2: Rewrite the mTLS tests for `cert_pem` / `key_pem` strings**
+- [x] **Step 2: Rewrite the mTLS tests for `cert_pem` / `key_pem` strings**
 
 Find `test_mtls_cert_passed_to_client`, `test_mtls_cert_with_password`, and any related tests. Replace the cert-setup with PEM strings and assert against the context manager's 2- or 3-tuple:
 
@@ -1681,7 +1681,7 @@ VALID_KEY_PEM = (  # noqa: S105
 )
 ```
 
-- [ ] **Step 3: Add a new test for the "enable_mtls without cert/key" error path**
+- [x] **Step 3: Add a new test for the "enable_mtls without cert/key" error path**
 
 Add to the same test class:
 
@@ -1695,12 +1695,12 @@ async def test_enable_mtls_without_cert_pem_raises(self, component):
         await component.make_api_request()
 ```
 
-- [ ] **Step 4: Run**
+- [x] **Step 4: Run**
 
 Run: `uv run pytest src/backend/tests/unit/components/data_source/test_api_request_component.py -v`
 Expected: all mTLS tests pass; non-mTLS tests (bearer, form-urlencoded) unchanged.
 
-- [ ] **Step 5: Pause for user commit approval**
+- [x] **Step 5: Pause for user commit approval**
 
 Proposed message: `test(api-request): migrate mTLS tests to cert_pem/key_pem string fields`.
 
@@ -1713,23 +1713,23 @@ Proposed message: `test(api-request): migrate mTLS tests to cert_pem/key_pem str
 
 The APIRequest node in this starter project still has old `client_cert_file` / `client_key_file` keys (and may by now have the concurrent pandas session's regenerated copy). This task brings it in sync with the new schema.
 
-- [ ] **Step 1: Wait for the parallel pandas session to finish / commit its Pokédex changes**
+- [x] **Step 1: Wait for the parallel pandas session to finish / commit its Pokédex changes**
 
 If the other Claude session still has Pokédex dirty, wait for it to commit or ask the user. Do not run Step 2 until the file is stable.
 
-- [ ] **Step 2: Regenerate / edit the APIRequest node in Pokédex**
+- [x] **Step 2: Regenerate / edit the APIRequest node in Pokédex**
 
 Two options, pick whichever your workflow supports:
 
 - **Manual JSON edit:** In the APIRequest node's `template`, remove `client_cert_file` and `client_key_file` (both FileInput entries), add `cert_pem` and `key_pem` entries with `_input_type: "TextFileSecretInput"`, empty value, `load_from_db: false`, `file_types: ["pem", "crt"]` for cert and `["pem", "key"]` for key. Also update the node's `field_order` list to replace the two old names with the two new names and keep `client_key_password` and `bearer_token`.
 - **Langflow starter regen (if the project has a script):** Run `make regenerate-starter-projects` or the equivalent, which dumps the current component schemas into every starter JSON.
 
-- [ ] **Step 3: Run starter-project sanity tests**
+- [x] **Step 3: Run starter-project sanity tests**
 
 Run: `uv run pytest src/backend/tests/unit/initial_setup/ -v`
 Expected: starter-project tests pass.
 
-- [ ] **Step 4: Pause for user commit approval**
+- [x] **Step 4: Pause for user commit approval**
 
 Proposed message: `fix(starter): update Pokédex Agent APIRequest node for cert_pem/key_pem`.
 
@@ -1741,7 +1741,7 @@ Proposed message: `fix(starter): update Pokédex Agent APIRequest node for cert_
 - Modify: the central TypeScript types file for field definitions (likely `src/frontend/src/types/components/index.ts` or similar — grep for `_input_type` / `SecretStrInput` definitions in `src/frontend/src/types`)
 - Modify: `src/frontend/src/components/core/parameterRenderComponent/index.tsx:132`
 
-- [ ] **Step 1: Add `TextFileSecretInput` to the type definitions**
+- [x] **Step 1: Add `TextFileSecretInput` to the type definitions**
 
 Grep the frontend for where `_input_type` is enumerated as a TypeScript union or where `SecretStrInput` is declared as a field type:
 
@@ -1751,7 +1751,7 @@ rg "SecretStrInput|_input_type" src/frontend/src/types/ --type ts
 
 In that file, add `"TextFileSecretInput"` to the union. Also add a `file_types?: string[]` property to the field definition if the type carries per-field extra fields.
 
-- [ ] **Step 2: Register the new renderer case**
+- [x] **Step 2: Register the new renderer case**
 
 Edit `src/frontend/src/components/core/parameterRenderComponent/index.tsx`. In the switch (around line 132 based on `templateData.type`), add a case that routes to the new renderer (created in Task 17):
 
@@ -1773,12 +1773,12 @@ Import at top:
 import TextFileSecretComponent from "./components/textFileSecretComponent";
 ```
 
-- [ ] **Step 3: Verify types compile**
+- [x] **Step 3: Verify types compile**
 
 Run: `cd src/frontend && npm run type-check` (or the project's equivalent).
 Expected: no type errors related to the new case (the component is defined in Task 17; fine to add this case stub first and let type-check fail only until Task 17 lands if TypeScript catches it — commit this task and Task 17 together if needed).
 
-- [ ] **Step 4: Pause for user commit approval**
+- [x] **Step 4: Pause for user commit approval**
 
 Proposed message: `feat(frontend): register TextFileSecretInput renderer dispatch case`.
 
@@ -1789,7 +1789,7 @@ Proposed message: `feat(frontend): register TextFileSecretInput renderer dispatc
 **Files:**
 - Create: `src/frontend/src/components/core/parameterRenderComponent/components/textFileSecretComponent/index.tsx`
 
-- [ ] **Step 1: Implement the renderer**
+- [x] **Step 1: Implement the renderer**
 
 Create `src/frontend/src/components/core/parameterRenderComponent/components/textFileSecretComponent/index.tsx`:
 
@@ -1910,12 +1910,12 @@ export default function TextFileSecretComponent({
 
 > **Note:** Import paths and `InputGlobalComponent` prop names vary by Langflow version. Align to the project conventions: if `InputGlobalComponent` doesn't accept `multiline` / `password`, use whichever prop names it exposes; the behavior contract is "masked, paste-acceptable input". `Tabs` primitives live in `src/frontend/src/components/ui/tabs.tsx` — verify the path.
 
-- [ ] **Step 2: Run frontend type-check**
+- [x] **Step 2: Run frontend type-check**
 
 Run: `cd src/frontend && npm run type-check`
 Expected: passes.
 
-- [ ] **Step 3: Pause for user commit approval**
+- [x] **Step 3: Pause for user commit approval**
 
 Proposed message: `feat(frontend): TextFileSecretComponent renders paste+upload tabs`.
 
@@ -1926,7 +1926,7 @@ Proposed message: `feat(frontend): TextFileSecretComponent renders paste+upload 
 **Files:**
 - Create: `src/frontend/src/components/core/parameterRenderComponent/components/textFileSecretComponent/TextFileSecretInput.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create the test file:
 
@@ -2025,12 +2025,12 @@ declare global {
   () => document.querySelector("input[type=file]") as HTMLInputElement;
 ```
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
 Run: `cd src/frontend && npx vitest run src/components/core/parameterRenderComponent/components/textFileSecretComponent/ -r`
 Expected: 4 passed.
 
-- [ ] **Step 3: Pause for user commit approval**
+- [x] **Step 3: Pause for user commit approval**
 
 Proposed message: `test(frontend): cover TextFileSecretComponent tab + file-read behavior`.
 
@@ -2041,7 +2041,7 @@ Proposed message: `test(frontend): cover TextFileSecretComponent tab + file-read
 **Files:**
 - Create: `src/backend/tests/integration/test_api_request_mtls_autosecrets.py`
 
-- [ ] **Step 1: Write the end-to-end lifecycle test**
+- [x] **Step 1: Write the end-to-end lifecycle test**
 
 ```python
 """Integration test exercising the auto-Variable lifecycle end-to-end:
@@ -2196,12 +2196,12 @@ async def test_full_lifecycle(client, logged_in_user):
 
 > **Note:** the session/DB fixture access differs by project conventions — mirror an existing integration test that queries the test DB directly.
 
-- [ ] **Step 2: Run**
+- [x] **Step 2: Run**
 
 Run: `uv run pytest src/backend/tests/integration/test_api_request_mtls_autosecrets.py -v`
 Expected: passes end-to-end.
 
-- [ ] **Step 3: Pause for user commit approval**
+- [x] **Step 3: Pause for user commit approval**
 
 Proposed message: `test(integration): end-to-end auto-Variable lifecycle for mTLS`.
 

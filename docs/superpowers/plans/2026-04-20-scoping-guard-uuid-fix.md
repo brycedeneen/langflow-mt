@@ -32,14 +32,14 @@ No model, no migration, no schema change. Pure behavior fix.
 - Create: `src/backend/tests/unit/services/database/__init__.py` (empty, if missing)
 - Create: `src/backend/tests/unit/services/database/test_scoping_guard.py`
 
-- [ ] **Step 1: Confirm the directory / `__init__.py` exists**
+- [x] **Step 1: Confirm the directory / `__init__.py` exists**
 
 ```bash
 ls src/backend/tests/unit/services/database/__init__.py 2>/dev/null || \
   : > src/backend/tests/unit/services/database/__init__.py
 ```
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 Create `src/backend/tests/unit/services/database/test_scoping_guard.py`:
 
@@ -188,7 +188,7 @@ async def test_get_current_organization_prefers_oldest_personal_org(client, acti
     )
 ```
 
-- [ ] **Step 3: Run the test to verify it fails**
+- [x] **Step 3: Run the test to verify it fails**
 
 ```bash
 uv run --no-sync pytest src/backend/tests/unit/services/database/test_scoping_guard.py -v --no-header 2>&1 | tail -20
@@ -196,7 +196,7 @@ uv run --no-sync pytest src/backend/tests/unit/services/database/test_scoping_gu
 
 Expected: `test_insert_guard_does_not_duplicate_personal_org` FAILS with `len(mship_after_folder) == 2` (or similar). `test_insert_guard_resolves_via_folder_id` may FAIL or pass by accident. `test_get_current_organization_prefers_oldest_personal_org` FAILS (tiebreaker not yet implemented).
 
-- [ ] **Step 4: Commit the failing test**
+- [x] **Step 4: Commit the failing test**
 
 ```bash
 git add src/backend/tests/unit/services/database/__init__.py src/backend/tests/unit/services/database/test_scoping_guard.py
@@ -212,7 +212,7 @@ Pause here and ask the user before committing — no auto-commit per memory `fee
 **Files:**
 - Modify: `src/backend/base/langflow/services/database/scoping.py` lines 188–216
 
-- [ ] **Step 1: Apply the three-line fix**
+- [x] **Step 1: Apply the three-line fix**
 
 In `src/backend/base/langflow/services/database/scoping.py`, inside `_insert_guard`, change:
 
@@ -290,7 +290,7 @@ And the user_id branch:
 
 The subsequent raw-SQL INSERTs on lines 221–239 already consume `uid_str`, so they now receive hex-formatted input and continue working on both SQLite (direct match) and Postgres (UUID type accepts hex).
 
-- [ ] **Step 2: Run the regression test to verify the fix**
+- [x] **Step 2: Run the regression test to verify the fix**
 
 ```bash
 uv run --no-sync pytest src/backend/tests/unit/services/database/test_scoping_guard.py::test_insert_guard_does_not_duplicate_personal_org src/backend/tests/unit/services/database/test_scoping_guard.py::test_insert_guard_resolves_via_folder_id -v --no-header 2>&1 | tail -10
@@ -298,7 +298,7 @@ uv run --no-sync pytest src/backend/tests/unit/services/database/test_scoping_gu
 
 Expected: Both PASS. `test_get_current_organization_prefers_oldest_personal_org` still FAILS (that's Task 3).
 
-- [ ] **Step 3: Confirm Postgres compatibility**
+- [x] **Step 3: Confirm Postgres compatibility**
 
 `_as_hex` accepts both `UUID` objects and strings, and returns 32-char hex. Postgres's UUID type parses hex unambiguously (no hyphens required; it's documented as `A4xxxxxx…` or `a4xx-xxxx-…` — both valid). Sanity-check by reading `_as_hex`:
 
@@ -315,7 +315,7 @@ print(f'str:     {str(u)}')
 
 Expected output shows the hex form is 32 chars, no dashes.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/scoping.py
@@ -340,7 +340,7 @@ Pause and ask before committing.
 **Files:**
 - Modify: `src/backend/base/langflow/api/utils/org_helpers.py` lines 42–46
 
-- [ ] **Step 1: Apply the fix**
+- [x] **Step 1: Apply the fix**
 
 Change:
 
@@ -364,7 +364,7 @@ to:
     return min(orgs, key=lambda o: o.created_at)
 ```
 
-- [ ] **Step 2: Run the tiebreaker test**
+- [x] **Step 2: Run the tiebreaker test**
 
 ```bash
 uv run --no-sync pytest src/backend/tests/unit/services/database/test_scoping_guard.py::test_get_current_organization_prefers_oldest_personal_org -v --no-header 2>&1 | tail -10
@@ -372,7 +372,7 @@ uv run --no-sync pytest src/backend/tests/unit/services/database/test_scoping_gu
 
 Expected: PASS.
 
-- [ ] **Step 3: Run the full new test module**
+- [x] **Step 3: Run the full new test module**
 
 ```bash
 uv run --no-sync pytest src/backend/tests/unit/services/database/test_scoping_guard.py -v --no-header 2>&1 | tail -10
@@ -380,7 +380,7 @@ uv run --no-sync pytest src/backend/tests/unit/services/database/test_scoping_gu
 
 Expected: 3 passed.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/utils/org_helpers.py
@@ -403,19 +403,19 @@ Pause and ask before committing.
 - Modify: `src/backend/tests/unit/api/v1/test_projects.py` — remove `@pytest.mark.xfail` on `test_read_projects`
 - Modify: `src/backend/tests/unit/api/v1/test_flow_folder_integrity.py` — remove `@pytest.mark.xfail` on `test_flow_created_is_retrievable_in_folder`
 
-- [ ] **Step 1: Remove the xfail from `test_folders.py`**
+- [x] **Step 1: Remove the xfail from `test_folders.py`**
 
 Delete the `@pytest.mark.xfail(...)` block immediately above `async def test_read_folders`. The reason text and `strict=False` kwargs both go. After the edit the function declaration should be the first line of that test (no decorator).
 
-- [ ] **Step 2: Remove the xfail from `test_projects.py`**
+- [x] **Step 2: Remove the xfail from `test_projects.py`**
 
 Same — strip the block above `async def test_read_projects`.
 
-- [ ] **Step 3: Remove the xfail from `test_flow_folder_integrity.py`**
+- [x] **Step 3: Remove the xfail from `test_flow_folder_integrity.py`**
 
 Same — strip the block above `async def test_flow_created_is_retrievable_in_folder`. Also remove the now-unused `import pytest` at the top if it becomes orphan (it is referenced elsewhere in that file — leave alone).
 
-- [ ] **Step 4: Run the three formerly-xfailed tests**
+- [x] **Step 4: Run the three formerly-xfailed tests**
 
 ```bash
 uv run --no-sync pytest \
@@ -427,7 +427,7 @@ uv run --no-sync pytest \
 
 Expected: 3 PASSED, 0 failed, 0 xfailed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/tests/unit/api/v1/test_folders.py src/backend/tests/unit/api/v1/test_projects.py src/backend/tests/unit/api/v1/test_flow_folder_integrity.py
@@ -440,7 +440,7 @@ Pause and ask before committing.
 
 ## Task 5: Broad regression sweep
 
-- [ ] **Step 1: Re-run the full Tier 2 bundle**
+- [x] **Step 1: Re-run the full Tier 2 bundle**
 
 ```bash
 uv run --no-sync pytest \
@@ -459,7 +459,7 @@ uv run --no-sync pytest \
 
 Expected: all passed, 0 xfailed (previously 3).
 
-- [ ] **Step 2: Re-run the Tier 1 bundle to confirm the scoping change didn't regress anything**
+- [x] **Step 2: Re-run the Tier 1 bundle to confirm the scoping change didn't regress anything**
 
 ```bash
 uv run --no-sync pytest \
@@ -474,7 +474,7 @@ uv run --no-sync pytest \
 
 Expected: all passed, no new failures.
 
-- [ ] **Step 3: Run the broader `scoping`-touching surface to catch anything subtler**
+- [x] **Step 3: Run the broader `scoping`-touching surface to catch anything subtler**
 
 ```bash
 uv run --no-sync pytest src/backend/tests/unit/api/v1/ src/backend/tests/unit/api/v2/ --no-header -q 2>&1 | tail -5
@@ -482,7 +482,7 @@ uv run --no-sync pytest src/backend/tests/unit/api/v1/ src/backend/tests/unit/ap
 
 Expected: the same pass/skip/xfail ratio as before the fix, minus the 3 un-xfailed ones.
 
-- [ ] **Step 4: No separate commit — the fix commits already stand**
+- [x] **Step 4: No separate commit — the fix commits already stand**
 
 ---
 

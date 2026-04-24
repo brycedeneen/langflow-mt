@@ -36,7 +36,7 @@
 - Test: `src/backend/tests/unit/services/database/models/organization/test_model.py`
 - Modify: `src/backend/base/langflow/services/database/models/__init__.py` (register import)
 
-- [ ] **Step 1: Write failing test**
+- [x] **Step 1: Write failing test**
 
 `src/backend/tests/unit/services/database/models/organization/test_model.py`:
 ```python
@@ -69,12 +69,12 @@ async def test_organization_slug_unique(async_session):
         await async_session.commit()
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `uv run pytest src/backend/tests/unit/services/database/models/organization/test_model.py -v`
 Expected: FAIL with `ModuleNotFoundError: ...organization.model`.
 
-- [ ] **Step 3: Implement Organization model**
+- [x] **Step 3: Implement Organization model**
 
 `src/backend/base/langflow/services/database/models/organization/model.py`:
 ```python
@@ -110,16 +110,16 @@ __all__ = ["Organization"]
 
 `src/backend/tests/unit/services/database/models/organization/__init__.py`: empty file.
 
-- [ ] **Step 4: Register the model so metadata picks it up**
+- [x] **Step 4: Register the model so metadata picks it up**
 
 Edit `src/backend/base/langflow/services/database/models/__init__.py` and add `Organization` to its imports/`__all__` alongside the existing models (follow the file's existing alphabetical pattern).
 
-- [ ] **Step 5: Run test, verify pass**
+- [x] **Step 5: Run test, verify pass**
 
 Run: `uv run pytest src/backend/tests/unit/services/database/models/organization/test_model.py -v`
 Expected: 2 passed.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/models/organization \
@@ -139,7 +139,7 @@ git commit -m "feat(multi-tenant): add Organization model"
 - Test: `src/backend/tests/unit/services/database/models/membership/test_model.py`
 - Modify: `src/backend/base/langflow/services/database/models/__init__.py`
 
-- [ ] **Step 1: Write failing test**
+- [x] **Step 1: Write failing test**
 
 `src/backend/tests/unit/services/database/models/membership/test_model.py`:
 ```python
@@ -180,11 +180,11 @@ async def test_membership_user_org_unique(async_session):
         await async_session.commit()
 ```
 
-- [ ] **Step 2: Run, verify FAIL** (`ModuleNotFoundError`)
+- [x] **Step 2: Run, verify FAIL** (`ModuleNotFoundError`)
 
 Run: `uv run pytest src/backend/tests/unit/services/database/models/membership/test_model.py -v`
 
-- [ ] **Step 3: Implement Membership model**
+- [x] **Step 3: Implement Membership model**
 
 `src/backend/base/langflow/services/database/models/membership/model.py`:
 ```python
@@ -232,9 +232,9 @@ __all__ = ["Membership", "MembershipRole"]
 
 Add `Membership` and `MembershipRole` to `services/database/models/__init__.py`.
 
-- [ ] **Step 4: Run, verify PASS** (2 passed)
+- [x] **Step 4: Run, verify PASS** (2 passed)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/models/membership \
@@ -259,7 +259,7 @@ The module exports:
 - `allow_cross_org_query()` — context manager that suppresses the SELECT/UPDATE/DELETE guardrail in the current asyncio task.
 - `install_scoping_guards(engine, *, enforce_select: bool)` — registers SQLAlchemy `before_execute` (only if `enforce_select`) and `before_insert` listeners on the given engine.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 `src/backend/tests/unit/services/database/test_scoping.py`:
 ```python
@@ -307,11 +307,11 @@ async def test_insert_without_org_id_raises(async_session, guarded_engine, user_
 
 (`async_engine`, `default_org_id`, `user_id` fixtures: add to a local `conftest.py` next to this test file, building on the existing repo `async_session` fixture.)
 
-- [ ] **Step 2: Run, verify FAIL** (`ModuleNotFoundError`)
+- [x] **Step 2: Run, verify FAIL** (`ModuleNotFoundError`)
 
 Run: `uv run pytest src/backend/tests/unit/services/database/test_scoping.py -v`
 
-- [ ] **Step 3: Implement scoping module**
+- [x] **Step 3: Implement scoping module**
 
 `src/backend/base/langflow/services/database/scoping.py`:
 ```python
@@ -399,9 +399,9 @@ def install_scoping_guards(engine, *, enforce_select: bool) -> None:
             )
 ```
 
-- [ ] **Step 4: Run, verify PASS** (4 passed)
+- [x] **Step 4: Run, verify PASS** (4 passed)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/scoping.py \
@@ -419,7 +419,7 @@ git commit -m "feat(multi-tenant): add scoping guardrails (select/insert)"
 - Modify: `src/backend/base/langflow/api/utils/core.py` (add `CurrentOrg`, `CurrentMembership` aliases)
 - Test: `src/backend/tests/unit/api/test_org_helpers.py`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 `src/backend/tests/unit/api/test_org_helpers.py`:
 ```python
@@ -462,11 +462,11 @@ async def test_non_superuser_acting_as_rejected(async_session, user_with_members
 
 (Add the four fixtures to a `conftest.py` next to this file — they construct rows directly with the existing `async_session`.)
 
-- [ ] **Step 2: Run, verify FAIL** (`ModuleNotFoundError`)
+- [x] **Step 2: Run, verify FAIL** (`ModuleNotFoundError`)
 
 Run: `uv run pytest src/backend/tests/unit/api/test_org_helpers.py -v`
 
-- [ ] **Step 3: Implement dependency module**
+- [x] **Step 3: Implement dependency module**
 
 `src/backend/base/langflow/api/v1/org_helpers.py`:
 ```python
@@ -531,9 +531,9 @@ CurrentOrg = Annotated[Organization, Depends(get_current_organization)]
 CurrentMembership = Annotated[Membership, Depends(get_current_membership)]
 ```
 
-- [ ] **Step 4: Run, verify PASS** (4 passed)
+- [x] **Step 4: Run, verify PASS** (4 passed)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/org_helpers.py \
@@ -567,7 +567,7 @@ This task only changes the SQLModel definitions (so future code & migration can 
 
 **Test:** `src/backend/tests/unit/services/database/test_org_columns.py`
 
-- [ ] **Step 1: Write failing test**
+- [x] **Step 1: Write failing test**
 
 ```python
 import pytest
@@ -590,11 +590,11 @@ async def test_every_tenant_table_has_org_id(async_engine):
     assert missing == [], f"Missing organization_id on: {missing}"
 ```
 
-- [ ] **Step 2: Run, verify FAIL** (every table missing column)
+- [x] **Step 2: Run, verify FAIL** (every table missing column)
 
 Run: `uv run pytest src/backend/tests/unit/services/database/test_org_columns.py -v`
 
-- [ ] **Step 3: Add `organization_id` field to each tenant model**
+- [x] **Step 3: Add `organization_id` field to each tenant model**
 
 In each `<table>/model.py`'s primary table class (the one with `table=True`), add:
 ```python
@@ -607,7 +607,7 @@ For each of the 12 tables, locate the `class Foo(FooBase, table=True):` (or equi
 
 Also update test factories: any test that constructs one of these models without `organization_id` will now fail — search and add `organization_id=<some_org.id>` (a follow-up step in Task 6 will provide a `default_org` fixture for the broad test suite).
 
-- [ ] **Step 4: Run, verify PASS**
+- [x] **Step 4: Run, verify PASS**
 
 Run: `uv run pytest src/backend/tests/unit/services/database/test_org_columns.py -v`
 Expected: PASS.
@@ -616,7 +616,7 @@ Then run a broader smoke check:
 Run: `uv run pytest src/backend/tests/unit/services/database -x -q`
 Expected: only failures should be from constructs missing `organization_id`. Fix those by adding the field where models are instantiated in tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/models \
@@ -632,12 +632,12 @@ git commit -m "feat(multi-tenant): add organization_id FK to all tenant tables"
 - Create: `src/backend/base/langflow/alembic/versions/<timestamp>_multi_tenant_foundation.py` (generated)
 - Test: `src/backend/tests/unit/services/database/test_migration_multi_tenant.py`
 
-- [ ] **Step 1: Generate the migration scaffold**
+- [x] **Step 1: Generate the migration scaffold**
 
 Run: `cd src/backend/base/langflow && uv run alembic revision -m "multi_tenant_foundation"`
 Note the generated filename — refer to it as `<rev>_multi_tenant_foundation.py` below.
 
-- [ ] **Step 2: Write failing migration test**
+- [x] **Step 2: Write failing migration test**
 
 `src/backend/tests/unit/services/database/test_migration_multi_tenant.py`:
 ```python
@@ -673,11 +673,11 @@ async def test_migration_round_trip(alembic_config):
     command.upgrade(alembic_config, "head")
 ```
 
-- [ ] **Step 3: Run, verify FAIL** (migration is a stub)
+- [x] **Step 3: Run, verify FAIL** (migration is a stub)
 
 Run: `uv run pytest src/backend/tests/unit/services/database/test_migration_multi_tenant.py -v`
 
-- [ ] **Step 4: Implement the migration**
+- [x] **Step 4: Implement the migration**
 
 Replace the body of `<rev>_multi_tenant_foundation.py`:
 ```python
@@ -790,16 +790,16 @@ for (uid,) in bind.execute(sa.text('SELECT id FROM "user"')).all():
     )
 ```
 
-- [ ] **Step 5: Run, verify PASS** (both tests pass)
+- [x] **Step 5: Run, verify PASS** (both tests pass)
 
 Run: `uv run pytest src/backend/tests/unit/services/database/test_migration_multi_tenant.py -v`
 
-- [ ] **Step 6: Run the full unit suite — fix any newly-broken tests**
+- [x] **Step 6: Run the full unit suite — fix any newly-broken tests**
 
 Run: `make unit_tests async=false`
 Expected: tests that previously constructed tenant models without `organization_id` may still need fixture updates. Add a session-scoped `default_org` fixture in `src/backend/tests/conftest.py` and update factories.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/backend/base/langflow/alembic/versions/<rev>_multi_tenant_foundation.py \
@@ -816,11 +816,11 @@ git commit -m "feat(multi-tenant): alembic migration creates org+membership and 
 - Modify: `src/backend/base/langflow/services/database/service.py` (call `install_scoping_guards` after engine creation)
 - Test: `src/backend/tests/unit/services/database/test_scoping_installed.py`
 
-- [ ] **Step 1: Find current engine creation**
+- [x] **Step 1: Find current engine creation**
 
 Run: `grep -n "create_async_engine\|self.engine" src/backend/base/langflow/services/database/service.py | head`
 
-- [ ] **Step 2: Write failing test**
+- [x] **Step 2: Write failing test**
 
 ```python
 import os
@@ -844,9 +844,9 @@ async def test_guard_inactive_in_prod(monkeypatch, app_with_prod_env, async_sess
     await async_session.exec(select(Flow).where(Flow.organization_id == default_org_id))
 ```
 
-- [ ] **Step 3: Run, verify FAIL**
+- [x] **Step 3: Run, verify FAIL**
 
-- [ ] **Step 4: Implement install in `service.py`**
+- [x] **Step 4: Implement install in `service.py`**
 
 After the engine is created, add:
 ```python
@@ -857,9 +857,9 @@ install_scoping_guards(self.engine.sync_engine, enforce_select=enforce_select)
 ```
 (Adapt the attribute name to whatever the engine is stored as.)
 
-- [ ] **Step 5: Run, verify PASS**
+- [x] **Step 5: Run, verify PASS**
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/service.py \
@@ -878,11 +878,11 @@ git commit -m "feat(multi-tenant): install scoping guards on db service startup"
 - Modify: CLI superuser creation path (`src/backend/base/langflow/main.py` or `cli.py` — `grep -rn "create_super_user"` to find it)
 - Test: `src/backend/tests/unit/services/database/models/user/test_create_user_personal_org.py`
 
-- [ ] **Step 1: Locate user creation paths**
+- [x] **Step 1: Locate user creation paths**
 
 Run: `grep -rn "def create_user\|create_super_user" src/backend/base/langflow`
 
-- [ ] **Step 2: Write failing test**
+- [x] **Step 2: Write failing test**
 
 ```python
 import pytest
@@ -904,9 +904,9 @@ async def test_create_user_creates_personal_org(async_session):
     assert org.name == "bob's workspace"
 ```
 
-- [ ] **Step 3: Run, verify FAIL**
+- [x] **Step 3: Run, verify FAIL**
 
-- [ ] **Step 4: Implement personal-org creation**
+- [x] **Step 4: Implement personal-org creation**
 
 In the user-creation function (after the User row commits), add:
 ```python
@@ -921,9 +921,9 @@ await session.commit()
 
 Apply the same to the CLI superuser path.
 
-- [ ] **Step 5: Run, verify PASS**
+- [x] **Step 5: Run, verify PASS**
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/models/user/crud.py \
@@ -942,7 +942,7 @@ git commit -m "feat(multi-tenant): auto-create personal org + owner membership o
 - Create: `src/backend/tests/unit/api/multi_tenant_fixtures.py`
 - Modify: `src/backend/tests/conftest.py` (re-export the fixtures)
 
-- [ ] **Step 1: Write the fixtures (no test yet — they're consumed by Tasks 10–16)**
+- [x] **Step 1: Write the fixtures (no test yet — they're consumed by Tasks 10–16)**
 
 `src/backend/tests/unit/api/multi_tenant_fixtures.py`:
 ```python
@@ -983,11 +983,11 @@ async def auth_client_factory(client):
 
 (The exact JWT-creation helper may differ — `grep -rn "create_token\|create_user_token" src/backend/base/langflow/services/auth | head` to confirm and substitute.)
 
-- [ ] **Step 2: Re-export from conftest**
+- [x] **Step 2: Re-export from conftest**
 
 In `src/backend/tests/conftest.py`, add: `from .unit.api.multi_tenant_fixtures import *  # noqa: F401,F403`
 
-- [ ] **Step 3: Commit (no tests change yet)**
+- [x] **Step 3: Commit (no tests change yet)**
 
 ```bash
 git add src/backend/tests/unit/api/multi_tenant_fixtures.py src/backend/tests/conftest.py
@@ -1002,7 +1002,7 @@ git commit -m "test(multi-tenant): add two-org isolation fixtures"
 - Modify: `src/backend/base/langflow/api/v1/flows.py`
 - Test: `src/backend/tests/unit/api/test_flows_org_isolation.py`
 
-- [ ] **Step 1: Write failing isolation tests**
+- [x] **Step 1: Write failing isolation tests**
 
 ```python
 import pytest
@@ -1044,9 +1044,9 @@ async def test_delete_flow_cross_org_returns_404(two_orgs, auth_client_factory, 
     assert resp.status_code == 404
 ```
 
-- [ ] **Step 2: Run, verify FAIL** (current code doesn't filter by org)
+- [x] **Step 2: Run, verify FAIL** (current code doesn't filter by org)
 
-- [ ] **Step 3: Update each route**
+- [x] **Step 3: Update each route**
 
 In `flows.py`, for every route handler that touches Flow:
 1. Add `org: CurrentOrg` to the parameter list (import from `langflow.api.utils.core`).
@@ -1071,12 +1071,12 @@ async def read_flow(
 
 Repeat for `create_flow`, `update_flow`, `delete_flow`, `read_flows` (list), and any flow-by-name lookup.
 
-- [ ] **Step 4: Run, verify PASS**
+- [x] **Step 4: Run, verify PASS**
 
 Run: `uv run pytest src/backend/tests/unit/api/test_flows_org_isolation.py -v`
 Then run the existing flow tests: `uv run pytest src/backend/tests/unit/api/test_endpoints.py -k flow -v` and fix any breakage from missing fixtures.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/flows.py \
@@ -1115,7 +1115,7 @@ For each task, before writing the test, run `grep -n "select(<Model>)" src/backe
 - Modify: `src/backend/base/langflow/api/v2/mcp.py`
 - Test: `src/backend/tests/unit/api/test_mcp_org_isolation.py`
 
-- [ ] **Step 1: Write failing isolation tests**
+- [x] **Step 1: Write failing isolation tests**
 
 ```python
 import pytest
@@ -1148,9 +1148,9 @@ async def test_per_project_mcp_cross_org_returns_404(two_orgs, auth_client_facto
     assert resp.status_code == 404
 ```
 
-- [ ] **Step 2: Run, verify FAIL**
+- [x] **Step 2: Run, verify FAIL**
 
-- [ ] **Step 3: Wire org dep into MCP routes**
+- [x] **Step 3: Wire org dep into MCP routes**
 
 For `handle_global_*` handlers in `mcp.py`: add `org: CurrentOrg`; pass `org.id` into the Flow lookup that builds the tool list.
 
@@ -1158,9 +1158,9 @@ For `mcp_projects.py`'s `verify_project_auth`: add an `organization_id` check �
 
 For `api/v2/mcp.py`: same pattern — add `org: CurrentOrg` and filter every Flow/Folder query by `organization_id`.
 
-- [ ] **Step 4: Run, verify PASS**
+- [x] **Step 4: Run, verify PASS**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/mcp.py \
@@ -1181,7 +1181,7 @@ git commit -m "feat(multi-tenant): scope MCP global and per-project endpoints by
 
 A single parametrized test that asserts `404` for every `(method, path-template)` pair touching a tenant resource cross-org. Adding a new tenant route means adding one row.
 
-- [ ] **Step 1: Write the parametrized test**
+- [x] **Step 1: Write the parametrized test**
 
 ```python
 import pytest
@@ -1214,11 +1214,11 @@ async def test_cross_org_returns_404(method, template, id_key,
 
 The fixture `two_orgs_with_resources` extends `two_orgs` by also creating one of every tenant resource in `org_b`, returning each id as `<resource>_id_b`.
 
-- [ ] **Step 2: Run, verify PASS** (every row should already pass after Tasks 10–16; failures here mean a route was missed)
+- [x] **Step 2: Run, verify PASS** (every row should already pass after Tasks 10–16; failures here mean a route was missed)
 
 Run: `uv run pytest src/backend/tests/unit/api/test_cross_org_matrix.py -v`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/backend/tests/unit/api/test_cross_org_matrix.py \
@@ -1230,12 +1230,12 @@ git commit -m "test(multi-tenant): parametrized cross-org isolation matrix"
 
 ### Task 18: Final smoke — full unit suite + migration round-trip
 
-- [ ] **Step 1: Run full unit suite**
+- [x] **Step 1: Run full unit suite**
 
 Run: `make unit_tests async=false`
 Expected: all green. Fix any factory-construction failures by adding `organization_id=<default_org.id>`.
 
-- [ ] **Step 2: Verify migration round-trip on a fresh DB**
+- [x] **Step 2: Verify migration round-trip on a fresh DB**
 
 ```bash
 cd src/backend/base/langflow
@@ -1246,14 +1246,14 @@ LANGFLOW_DATABASE_URL=sqlite:////tmp/langflow_test.db uv run alembic upgrade hea
 ```
 Expected: each command exits 0 with no errors.
 
-- [ ] **Step 3: Manual smoke — boot the app**
+- [x] **Step 3: Manual smoke — boot the app**
 
 Run: `make backend`
 Expected: server starts; `tail -f logs/...` shows no `MissingOrgFilterError` or `MissingOrgIdOnInsertError`.
 
 Hit a few endpoints with `curl` after creating a fresh user — the user should land in their personal org and see only their own resources.
 
-- [ ] **Step 4: Commit any final fixture cleanups**
+- [x] **Step 4: Commit any final fixture cleanups**
 
 ```bash
 git add -u

@@ -82,7 +82,7 @@ Modify:
 
 Use `alembic revision -m "category and template rework"` to get the `<rev>` prefix. Place the file into the branch's normal revision chain by setting `down_revision` to the current head.
 
-- [ ] **Step 1: Write the schema migration**
+- [x] **Step 1: Write the schema migration**
 
 ```python
 """category and template rework
@@ -192,17 +192,17 @@ def downgrade() -> None:
     op.drop_table("category")
 ```
 
-- [ ] **Step 2: Run migration upgrade against a fresh SQLite DB**
+- [x] **Step 2: Run migration upgrade against a fresh SQLite DB**
 
 Run: `uv run alembic -c src/backend/base/langflow/alembic.ini upgrade head`
 Expected: no errors; `alembic current` shows the new revision.
 
-- [ ] **Step 3: Run migration downgrade to confirm reversibility**
+- [x] **Step 3: Run migration downgrade to confirm reversibility**
 
 Run: `uv run alembic -c src/backend/base/langflow/alembic.ini downgrade -1`
 Expected: no errors; schema returns to the prior revision.
 
-- [ ] **Step 4: Re-run upgrade and commit**
+- [x] **Step 4: Re-run upgrade and commit**
 
 Run: `uv run alembic -c src/backend/base/langflow/alembic.ini upgrade head`
 
@@ -218,7 +218,7 @@ git commit -m "feat(db): schema migration for categories and template rework"
 - Create: `src/backend/base/langflow/services/database/models/category/model.py`
 - Test: `src/backend/tests/unit/services/database/models/test_category.py`
 
-- [ ] **Step 1: Write the failing model test**
+- [x] **Step 1: Write the failing model test**
 
 ```python
 # src/backend/tests/unit/services/database/models/test_category.py
@@ -266,12 +266,12 @@ def test_category_name_is_case_insensitive_unique(session: Session) -> None:
         session.commit()
 ```
 
-- [ ] **Step 2: Run test, confirm ImportError**
+- [x] **Step 2: Run test, confirm ImportError**
 
 Run: `uv run pytest src/backend/tests/unit/services/database/models/test_category.py -v`
 Expected: FAIL with `ModuleNotFoundError: category`
 
-- [ ] **Step 3: Implement the model**
+- [x] **Step 3: Implement the model**
 
 ```python
 # src/backend/base/langflow/services/database/models/category/model.py
@@ -370,12 +370,12 @@ __all__ = [
 ]
 ```
 
-- [ ] **Step 4: Re-run tests — pass**
+- [x] **Step 4: Re-run tests — pass**
 
 Run: `uv run pytest src/backend/tests/unit/services/database/models/test_category.py -v`
 Expected: both tests PASS.
 
-- [ ] **Step 5: Register the model in the models package**
+- [x] **Step 5: Register the model in the models package**
 
 Edit `src/backend/base/langflow/services/database/models/__init__.py` — add:
 
@@ -385,7 +385,7 @@ from langflow.services.database.models.category import Category, TemplateCategor
 
 to both the imports and the `__all__` list (follow the existing style there).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/models/category/ \
@@ -401,7 +401,7 @@ git commit -m "feat(db): add Category model and TemplateCategory join"
 - Modify: `src/backend/base/langflow/services/database/models/template/__init__.py`
 - Test: `src/backend/tests/unit/services/database/models/test_template_extensions.py` (new)
 
-- [ ] **Step 1: Write failing tests for archived_at, scope loosening, and categories relation**
+- [x] **Step 1: Write failing tests for archived_at, scope loosening, and categories relation**
 
 ```python
 # src/backend/tests/unit/services/database/models/test_template_extensions.py
@@ -471,12 +471,12 @@ def test_template_categories_many_to_many(session: Session) -> None:
 
 (`session` and `org_id` fixtures are assumed from `conftest.py`; if a per-test Organization fixture doesn't exist, wrap inserts to create one via the existing `Organization` model — see `src/backend/tests/conftest.py` for patterns.)
 
-- [ ] **Step 2: Run tests — confirm failure**
+- [x] **Step 2: Run tests — confirm failure**
 
 Run: `uv run pytest src/backend/tests/unit/services/database/models/test_template_extensions.py -v`
 Expected: all fail (`archived_at` attribute missing, scope constraint still frozen).
 
-- [ ] **Step 3: Edit `template/model.py` — add `archived_at`, loosen `created_by`, add relationship**
+- [x] **Step 3: Edit `template/model.py` — add `archived_at`, loosen `created_by`, add relationship**
 
 Locate the `Template(SQLModel, table=True)` class. Apply these edits:
 
@@ -511,12 +511,12 @@ Update Pydantic schemas in the same file:
 - `TemplateUpdate`: add `category_ids: list[UUID] | None = None` (None = leave unchanged; `[]` = clear all tags).
 - `TemplateRead` / `TemplateReadDetail`: add `archived_at: datetime | None`, `categories: list[CategoryRead]`.
 
-- [ ] **Step 4: Run tests — pass**
+- [x] **Step 4: Run tests — pass**
 
 Run: `uv run pytest src/backend/tests/unit/services/database/models/test_template_extensions.py -v`
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/models/template/ \
@@ -546,7 +546,7 @@ Treat these as part of the TDD for each task where first referenced — write th
 - Create: `src/backend/base/langflow/api/v1/categories.py`
 - Test: `src/backend/tests/unit/api/v1/test_categories.py`
 
-- [ ] **Step 1: Write failing list and get tests**
+- [x] **Step 1: Write failing list and get tests**
 
 ```python
 # src/backend/tests/unit/api/v1/test_categories.py
@@ -584,12 +584,12 @@ async def test_get_category_404(client: AsyncClient, logged_in_headers: dict) ->
 
 (`seed_categories` and `logged_in_headers` fixtures: add to the test file or `conftest.py`. Seed fixture inserts 3 categories with out-of-order names.)
 
-- [ ] **Step 2: Run, confirm 404s or ImportError**
+- [x] **Step 2: Run, confirm 404s or ImportError**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_categories.py -v`
 Expected: FAIL (router not registered).
 
-- [ ] **Step 3: Create the router with read endpoints**
+- [x] **Step 3: Create the router with read endpoints**
 
 ```python
 # src/backend/base/langflow/api/v1/categories.py
@@ -627,12 +627,12 @@ async def get_category(
 
 Register the router: edit wherever `templates_router` is included in `src/backend/base/langflow/api/v1/__init__.py` and add `from .categories import router as categories_router` + `router.include_router(categories_router)`.
 
-- [ ] **Step 4: Run tests — pass**
+- [x] **Step 4: Run tests — pass**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_categories.py -v`
 Expected: the three tests PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/categories.py \
@@ -647,7 +647,7 @@ git commit -m "feat(api): GET /categories list and get"
 - Modify: `src/backend/base/langflow/api/v1/categories.py`
 - Modify: `src/backend/tests/unit/api/v1/test_categories.py`
 
-- [ ] **Step 1: Write failing tests for create/patch/delete + platform-admin gate**
+- [x] **Step 1: Write failing tests for create/patch/delete + platform-admin gate**
 
 ```python
 @pytest.mark.asyncio
@@ -719,11 +719,11 @@ async def test_delete_category_cascades_links(
     assert t.json().get("categories") == []
 ```
 
-- [ ] **Step 2: Run — expect failures**
+- [x] **Step 2: Run — expect failures**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_categories.py -v`
 
-- [ ] **Step 3: Implement the write endpoints**
+- [x] **Step 3: Implement the write endpoints**
 
 Append to `categories.py`:
 
@@ -802,11 +802,11 @@ async def delete_category(
     await session.commit()
 ```
 
-- [ ] **Step 4: Run tests — pass**
+- [x] **Step 4: Run tests — pass**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_categories.py -v`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/categories.py \
@@ -824,7 +824,7 @@ git commit -m "feat(api): POST/PATCH/DELETE /categories with platform-admin gate
 - Create: `src/backend/base/langflow/api/v1/_template_permissions.py`
 - Test: `src/backend/tests/unit/api/v1/test_template_permissions.py`
 
-- [ ] **Step 1: Test**
+- [x] **Step 1: Test**
 
 ```python
 # src/backend/tests/unit/api/v1/test_template_permissions.py
@@ -887,9 +887,9 @@ def test_other_member_cannot_edit() -> None:
     assert user_can_edit_template(u, t) is False
 ```
 
-- [ ] **Step 2: Run — fail (module missing)**
+- [x] **Step 2: Run — fail (module missing)**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/backend/base/langflow/api/v1/_template_permissions.py
@@ -911,7 +911,7 @@ def user_can_edit_template(user, template) -> bool:
 
 If the `User` class does not yet have `is_org_admin`, add it as a SQLModel-level `@property` that checks the `Membership` table. See `src/backend/base/langflow/services/database/models/membership/model.py` and pattern the helper there or in `api/utils/core.py`. The function here tolerates its absence (returns False) so tests and initial callers work.
 
-- [ ] **Step 4: Run tests — pass. Commit.**
+- [x] **Step 4: Run tests — pass. Commit.**
 
 ```bash
 git add src/backend/base/langflow/api/v1/_template_permissions.py \
@@ -925,7 +925,7 @@ git commit -m "feat(api): user_can_edit_template permission helper"
 - Modify: `src/backend/base/langflow/api/v1/templates.py`
 - Test: `src/backend/tests/unit/api/v1/test_templates_list.py` (new)
 
-- [ ] **Step 1: Write tests**
+- [x] **Step 1: Write tests**
 
 ```python
 # tests cover:
@@ -955,7 +955,7 @@ async def test_list_excludes_archived_by_default(
 
 Flesh out each scenario following the list. Use existing fixtures where they exist; add minimal new ones for org-scoped templates and archived templates.
 
-- [ ] **Step 2: Run — fail. Implement.**
+- [x] **Step 2: Run — fail. Implement.**
 
 In `templates.py`, update the `list_templates` handler signature to:
 
@@ -993,7 +993,7 @@ async def list_templates(
 
 Add required imports (`TemplateCategory`, `Category`, `func`, `Literal`) at top.
 
-- [ ] **Step 3: Run tests — pass. Commit.**
+- [x] **Step 3: Run tests — pass. Commit.**
 
 ```bash
 git add src/backend/base/langflow/api/v1/templates.py \
@@ -1007,7 +1007,7 @@ git commit -m "feat(api): GET /templates query params (category, scope, created_
 - Modify: `src/backend/base/langflow/api/v1/templates.py`
 - Test: `src/backend/tests/unit/api/v1/test_templates_create.py` (new)
 
-- [ ] **Step 1: Write tests**
+- [x] **Step 1: Write tests**
 
 Cover:
 - Platform admin can create `scope=platform`.
@@ -1016,7 +1016,7 @@ Cover:
 - `category_ids` referencing unknown ids → 422.
 - Successful create persists `template_category` links.
 
-- [ ] **Step 2: Run — fail. Implement.**
+- [x] **Step 2: Run — fail. Implement.**
 
 Update `create_template` to:
 - Reject `scope="platform"` unless `user.is_platform_admin`.
@@ -1041,7 +1041,7 @@ if payload.category_ids:
     )
 ```
 
-- [ ] **Step 3: Run — pass. Commit.**
+- [x] **Step 3: Run — pass. Commit.**
 
 ```bash
 git add src/backend/base/langflow/api/v1/templates.py \
@@ -1055,14 +1055,14 @@ git commit -m "feat(api): POST /templates accepts scope, org_id, category_ids"
 - Modify: `src/backend/base/langflow/api/v1/templates.py`
 - Test: `src/backend/tests/unit/api/v1/test_templates_update.py` (new)
 
-- [ ] **Step 1: Write tests covering:**
+- [x] **Step 1: Write tests covering:**
 - Non-editor (per `user_can_edit_template`) → 403.
 - `category_ids=[]` clears all tags.
 - `category_ids=[a, b]` replaces tag set (previous tags removed, new tags added).
 - `category_ids=None` (key omitted from payload) leaves tags untouched.
 - Unknown category id → 422.
 
-- [ ] **Step 2: Fail. Implement.**
+- [x] **Step 2: Fail. Implement.**
 
 Update `update_template` to:
 - Use `user_can_edit_template` for the 403 gate.
@@ -1071,7 +1071,7 @@ Update `update_template` to:
   - Delete all existing `TemplateCategory` rows for this template: `await session.exec(delete(TemplateCategory).where(TemplateCategory.template_id == t.id))`.
   - Insert new rows.
 
-- [ ] **Step 3: Pass. Commit.**
+- [x] **Step 3: Pass. Commit.**
 
 ```bash
 git commit -m "feat(api): PATCH /templates replaces category_ids atomically"
@@ -1083,7 +1083,7 @@ git commit -m "feat(api): PATCH /templates replaces category_ids atomically"
 - Modify: `src/backend/base/langflow/api/v1/templates.py`
 - Test: `src/backend/tests/unit/api/v1/test_template_archive.py` (new)
 
-- [ ] **Step 1: Tests**
+- [x] **Step 1: Tests**
 
 ```python
 @pytest.mark.asyncio
@@ -1121,7 +1121,7 @@ async def test_archive_rejects_non_editor(client, other_user_headers, seed_platf
     assert r.status_code == 403
 ```
 
-- [ ] **Step 2: Run — fail. Implement.**
+- [x] **Step 2: Run — fail. Implement.**
 
 ```python
 @router.post("/{template_id}/archive", response_model=TemplateRead)
@@ -1160,7 +1160,7 @@ async def unarchive_template(
     return t
 ```
 
-- [ ] **Step 3: Pass. Commit.**
+- [x] **Step 3: Pass. Commit.**
 
 ```bash
 git commit -m "feat(api): archive and unarchive endpoints on /templates/{id}"
@@ -1172,14 +1172,14 @@ git commit -m "feat(api): archive and unarchive endpoints on /templates/{id}"
 - Modify: `src/backend/base/langflow/api/v1/templates.py`
 - Test: `src/backend/tests/unit/api/v1/test_templates_delete.py` (new)
 
-- [ ] **Step 1: Tests**
+- [x] **Step 1: Tests**
 
 Cover:
 - Delete succeeds (204) when no Flow references the template.
 - Delete returns 409 with body `{"referencing_flow_ids": [...]}` when at least one Flow has `based_on_template_flow_id == template.id`.
 - Non-editor → 403.
 
-- [ ] **Step 2: Fail. Rewrite `soft_delete_template` into `delete_template`.**
+- [x] **Step 2: Fail. Rewrite `soft_delete_template` into `delete_template`.**
 
 ```python
 from langflow.services.database.models.flow.model import Flow
@@ -1210,7 +1210,7 @@ async def delete_template(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 ```
 
-- [ ] **Step 3: Pass. Commit.**
+- [x] **Step 3: Pass. Commit.**
 
 ```bash
 git commit -m "feat(api): hard DELETE /templates/{id} with 409 guard on active flows"
@@ -1222,7 +1222,7 @@ git commit -m "feat(api): hard DELETE /templates/{id} with 409 guard on active f
 - Modify: `src/backend/base/langflow/api/v1/flows.py` (or wherever `POST /flows` lives — `endpoints.py` if the explore identified that route there)
 - Test: `src/backend/tests/unit/test_flows_archived_template.py` (new)
 
-- [ ] **Step 1: Test**
+- [x] **Step 1: Test**
 
 ```python
 @pytest.mark.asyncio
@@ -1238,7 +1238,7 @@ async def test_create_flow_from_archived_template_returns_422(
     assert "archived" in r.json().get("detail", "").lower()
 ```
 
-- [ ] **Step 2: Fail. Implement.**
+- [x] **Step 2: Fail. Implement.**
 
 Near the top of the POST `/flows` handler (before the `flow = Flow(...)` construction), insert:
 
@@ -1252,7 +1252,7 @@ if payload.based_on_template_id is not None:
         )
 ```
 
-- [ ] **Step 3: Pass. Commit.**
+- [x] **Step 3: Pass. Commit.**
 
 ```bash
 git commit -m "feat(api): reject flow creation when based_on template is archived"
@@ -1269,7 +1269,7 @@ git commit -m "feat(api): reject flow creation when based_on template is archive
 
 The revision needs the JSON content even after the source files are deleted. Create a sibling package directory for this revision holding the fixtures.
 
-- [ ] **Step 1: Copy every starter JSON to a revision-local fixtures folder**
+- [x] **Step 1: Copy every starter JSON to a revision-local fixtures folder**
 
 ```bash
 mkdir -p src/backend/base/langflow/alembic/versions/<rev>_fixtures
@@ -1277,7 +1277,7 @@ cp src/backend/base/langflow/initial_setup/starter_projects/*.json \
    src/backend/base/langflow/alembic/versions/<rev>_fixtures/
 ```
 
-- [ ] **Step 2: Commit the fixture snapshot**
+- [x] **Step 2: Commit the fixture snapshot**
 
 ```bash
 git add src/backend/base/langflow/alembic/versions/<rev>_fixtures/
@@ -1290,7 +1290,7 @@ git commit -m "chore(migration): snapshot starter JSON fixtures for data migrati
 - Modify: `src/backend/base/langflow/alembic/versions/<rev>_category_and_template_rework.py`
 - Test: `src/backend/tests/unit/alembic/test_category_migration.py` (new)
 
-- [ ] **Step 1: Write the migration test**
+- [x] **Step 1: Write the migration test**
 
 ```python
 # src/backend/tests/unit/alembic/test_category_migration.py
@@ -1328,9 +1328,9 @@ def test_category_migration_tags_each_template(alembic_config, db_session):
     assert {c.name for c in t.categories} == {"Prompting"}
 ```
 
-- [ ] **Step 2: Run — fail**
+- [x] **Step 2: Run — fail**
 
-- [ ] **Step 3: Append `upgrade()` with data steps**
+- [x] **Step 3: Append `upgrade()` with data steps**
 
 In the same revision file, extend `upgrade()` after the schema changes with:
 
@@ -1427,7 +1427,7 @@ def upgrade() -> None:
     _data_upgrade()
 ```
 
-- [ ] **Step 4: Run tests — pass. Commit.**
+- [x] **Step 4: Run tests — pass. Commit.**
 
 ```bash
 git commit -m "feat(migration): seed categories and import starter JSON into Template"
@@ -1439,7 +1439,7 @@ git commit -m "feat(migration): seed categories and import starter JSON into Tem
 - Modify: `src/backend/base/langflow/alembic/versions/<rev>_category_and_template_rework.py`
 - Modify: `src/backend/tests/unit/alembic/test_category_migration.py`
 
-- [ ] **Step 1: Add a test asserting starter Flow rows are gone after upgrade**
+- [x] **Step 1: Add a test asserting starter Flow rows are gone after upgrade**
 
 ```python
 def test_old_starter_flow_rows_are_deleted(alembic_config, db_session):
@@ -1462,7 +1462,7 @@ def test_old_starter_flow_rows_are_deleted(alembic_config, db_session):
 
 Seed pattern assumes the starter folder exists pre-migration. If the upgrade runs against a schema where that folder does not exist yet, guard the deletion with a folder-existence check.
 
-- [ ] **Step 2: Fail. Extend `_data_upgrade()`**
+- [x] **Step 2: Fail. Extend `_data_upgrade()`**
 
 ```python
 # At the end of _data_upgrade():
@@ -1481,7 +1481,7 @@ conn.execute(
 
 Verify the folder name matches `STARTER_FOLDER_NAME` in `setup.py:41` *before* committing; use that constant's value literally.
 
-- [ ] **Step 3: Pass. Commit.**
+- [x] **Step 3: Pass. Commit.**
 
 ```bash
 git commit -m "feat(migration): drop shadow starter Flow rows after importing templates"
@@ -1494,13 +1494,13 @@ git commit -m "feat(migration): drop shadow starter Flow rows after importing te
 - Delete: `src/backend/base/langflow/initial_setup/starter_projects/*.json`
 - Modify: any caller importing the removed helpers (check with `rg "load_starter_projects|create_or_update_starter_projects|get_or_create_starter_folder" src/`)
 
-- [ ] **Step 1: Confirm no callers remain outside setup.py itself**
+- [x] **Step 1: Confirm no callers remain outside setup.py itself**
 
 Run: `rg -n "load_starter_projects|create_or_update_starter_projects|get_or_create_starter_folder"`
 
 Expected output: references only in `setup.py` + anywhere these are scheduled (e.g., startup hooks). Update those call sites to remove the invocations.
 
-- [ ] **Step 2: Delete the loader helpers from `setup.py`**
+- [x] **Step 2: Delete the loader helpers from `setup.py`**
 
 Locate and remove: `load_starter_projects` (~line 557), `create_or_update_starter_projects` (~line 1110), `create_new_project` (~line 702), `get_or_create_starter_folder` (~line 748), and any module-level `STARTER_FOLDER_NAME` constant and associated imports that become unused.
 
@@ -1510,13 +1510,13 @@ Run: `rg -n "load_starter_projects|create_or_update_starter_projects|create_new_
 
 Expected: only occurrences are in the Alembic revision fixture folder path string (`"<rev>_fixtures"` doesn't match these) and tests we're about to update.
 
-- [ ] **Step 3: Delete the JSON source files**
+- [x] **Step 3: Delete the JSON source files**
 
 ```bash
 git rm src/backend/base/langflow/initial_setup/starter_projects/*.json
 ```
 
-- [ ] **Step 4: Update `src/backend/tests/unit/test_webhook.py` and other tests that depend on the starter loader**
+- [x] **Step 4: Update `src/backend/tests/unit/test_webhook.py` and other tests that depend on the starter loader**
 
 Use `rg "starter_projects" src/backend/tests/`. For each failing test, replace dependence on the loader with an explicit fixture that creates a `Template` row directly. Pattern:
 
@@ -1530,12 +1530,12 @@ session.add(template)
 await session.commit()
 ```
 
-- [ ] **Step 5: Run the full backend test suite**
+- [x] **Step 5: Run the full backend test suite**
 
 Run: `uv run pytest src/backend/tests/ -x`
 Expected: green, or only failures clearly introduced by test-fixture edits; iterate until green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git commit -m "chore: remove runtime starter loader and JSON fixtures (now DB-resident)"
@@ -1552,7 +1552,7 @@ git commit -m "chore: remove runtime starter loader and JSON fixtures (now DB-re
 - Create: `src/frontend/src/controllers/API/queries/categories/index.ts`
 - Modify: `src/frontend/src/types/api/index.ts` (new `Category` type)
 
-- [ ] **Step 1: Add the `Category` type**
+- [x] **Step 1: Add the `Category` type**
 
 ```ts
 // src/frontend/src/types/api/index.ts — append
@@ -1577,7 +1577,7 @@ scope: "platform" | "org";
 org_id: string | null;
 ```
 
-- [ ] **Step 2: Write the list-categories hook**
+- [x] **Step 2: Write the list-categories hook**
 
 ```ts
 // src/frontend/src/controllers/API/queries/categories/use-list-categories.ts
@@ -1614,12 +1614,12 @@ export { useUpdateCategory } from "./use-update-category";
 export { useDeleteCategory } from "./use-delete-category";
 ```
 
-- [ ] **Step 3: Snapshot / smoke test that the hook compiles**
+- [x] **Step 3: Snapshot / smoke test that the hook compiles**
 
 Run: `npm --prefix src/frontend run typecheck`
 Expected: no new TS errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/frontend/src/controllers/API/queries/categories/ \
@@ -1632,11 +1632,11 @@ git commit -m "feat(frontend): category query hooks"
 **Files:**
 - Modify: `src/frontend/src/modals/templatesModal/index.tsx`
 
-- [ ] **Step 1: Delete the hardcoded array (current lines ~100-134)**
+- [x] **Step 1: Delete the hardcoded array (current lines ~100-134)**
 
 Remove the `const categories: Category[] = [ … "Use Cases" … "Methodology" … ]` constant entirely. Remove its accompanying type definition if no longer used by `navComponent`.
 
-- [ ] **Step 2: Fetch categories via the hook**
+- [x] **Step 2: Fetch categories via the hook**
 
 Near the top of the component body:
 
@@ -1646,15 +1646,15 @@ const { data: apiCategories = [], isPending: isLoadingCategories } = useListCate
 
 Construct the sidebar input from `apiCategories`, plus fixed permanent rows ("Get started", "All templates", "Saved Templates") prepended. Alpha-sort by `name` (server already does, but sort defensively).
 
-- [ ] **Step 3: Pass the sidebar input into `<Nav />` and `<TemplateContentComponent />`**
+- [x] **Step 3: Pass the sidebar input into `<Nav />` and `<TemplateContentComponent />`**
 
 Update `<Nav categories={…} />` to accept the new shape (a flat list after the 3 permanent rows). If `navComponent` today expects grouped `{title, items}` sections, refactor its prop type inline in this step to a flat `items: Category[]` — further admin affordances on the nav are added in Task F3.
 
-- [ ] **Step 4: Typecheck and lint**
+- [x] **Step 4: Typecheck and lint**
 
 Run: `npm --prefix src/frontend run typecheck && npm --prefix src/frontend run lint`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "refactor(frontend): templates modal pulls categories from API"
@@ -1666,15 +1666,15 @@ git commit -m "refactor(frontend): templates modal pulls categories from API"
 - Modify: `src/frontend/src/modals/templatesModal/components/TemplateContentComponent/index.tsx`
 - Modify: the template list hook (`use-list-templates.ts`) to accept a `category` query param.
 
-- [ ] **Step 1: Extend `useListTemplates` to pass optional query params**
+- [x] **Step 1: Extend `useListTemplates` to pass optional query params**
 
 Current signature likely takes no args. Change to accept `{ category?: string; scope?: "platform"|"org"|"all"; created_by_me?: boolean; include_archived?: boolean }`. Encode into the request URL.
 
-- [ ] **Step 2: In `TemplateContentComponent`, remove the client-side tag filter**
+- [x] **Step 2: In `TemplateContentComponent`, remove the client-side tag filter**
 
 Delete: `example.tags?.includes(currentTab ?? "")`. Instead, call `useListTemplates({ category: currentTab === "all-templates" ? undefined : currentTab, created_by_me: currentTab === "saved-templates" ? true : undefined })`.
 
-- [ ] **Step 3: Verify UI**
+- [x] **Step 3: Verify UI**
 
 Start the frontend dev server and the backend:
 
@@ -1684,7 +1684,7 @@ Run (split terminals or `run_in_background`):
 
 Open the templates modal, click several categories, confirm the grid narrows correctly. Switch to "Saved Templates", confirm it only shows user-created rows.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git commit -m "refactor(frontend): use server-side category filter in templates modal"
@@ -1699,7 +1699,7 @@ git commit -m "refactor(frontend): use server-side category filter in templates 
 **Files:**
 - Create: `src/frontend/src/hooks/use-is-platform-admin.ts`
 
-- [ ] **Step 1: Implement the hook**
+- [x] **Step 1: Implement the hook**
 
 ```ts
 // src/frontend/src/hooks/use-is-platform-admin.ts
@@ -1710,11 +1710,11 @@ export function useIsPlatformAdmin(): boolean {
 }
 ```
 
-- [ ] **Step 2: Use it in the templates modal**
+- [x] **Step 2: Use it in the templates modal**
 
 In `templatesModal/index.tsx`, read `const isAdmin = useIsPlatformAdmin();` and pass as a prop to `navComponent` and `TemplateContentComponent`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/frontend/src/hooks/use-is-platform-admin.ts src/frontend/src/modals/templatesModal/index.tsx
@@ -1727,7 +1727,7 @@ git commit -m "feat(frontend): useIsPlatformAdmin hook and gate propagation"
 - Create: `src/frontend/src/modals/templatesModal/components/CategoryEditPopover/index.tsx`
 - Test: `src/frontend/tests/unit/CategoryEditPopover.test.tsx`
 
-- [ ] **Step 1: Write failing component test (Jest + React Testing Library)**
+- [x] **Step 1: Write failing component test (Jest + React Testing Library)**
 
 Test that:
 - Rendering in "create" mode shows empty fields.
@@ -1736,11 +1736,11 @@ Test that:
 - The icon picker dropdown contains items from `LUCIDE_ICON_NAMES`.
 - The color picker renders 8 swatches.
 
-- [ ] **Step 2: Fail. Implement component**
+- [x] **Step 2: Fail. Implement component**
 
 Use Radix `Popover` wrapper (`components/ui/popover.tsx`), an input for `name`, a shadcn `Select` (or existing `select-custom.tsx`) for `icon` whose options are sourced from `LUCIDE_ICON_NAMES` in `SaveAsTemplateModal/iconPicker/lucideIconNames.ts`. Color picker is a horizontal row of 8 `button` pills (one per palette key: slate/amber/violet/emerald/sky/fuchsia/indigo/rose) with an outline on the selected one. Submit button calls `onSubmit(formState)`.
 
-- [ ] **Step 3: Pass. Commit.**
+- [x] **Step 3: Pass. Commit.**
 
 ```bash
 git commit -m "feat(frontend): CategoryEditPopover with icon + color picker"
@@ -1751,23 +1751,23 @@ git commit -m "feat(frontend): CategoryEditPopover with icon + color picker"
 **Files:**
 - Modify: `src/frontend/src/modals/templatesModal/components/navComponent/index.tsx`
 
-- [ ] **Step 1: When `isAdmin`, render a `...` button per category row**
+- [x] **Step 1: When `isAdmin`, render a `...` button per category row**
 
 Use the `dropdown-menu.tsx` primitive. Menu items:
 - **Edit** → opens `CategoryEditPopover` anchored to the row in edit mode.
 - **Delete** → opens a confirm dialog (`components/ui/dialog.tsx`) with the copy from §5.1 of the spec; on confirm, call `useDeleteCategory().mutate(id)`.
 
-- [ ] **Step 2: Add "+ New category" row under the category list when `isAdmin`**
+- [x] **Step 2: Add "+ New category" row under the category list when `isAdmin`**
 
 Clicking opens `CategoryEditPopover` in create mode. On submit, call `useCreateCategory().mutate(form)`.
 
-- [ ] **Step 3: Invalidate list query on successful mutations** — reuse `CATEGORIES_QUERY_KEY` invalidation (already wired in Task E1 hooks).
+- [x] **Step 3: Invalidate list query on successful mutations** — reuse `CATEGORIES_QUERY_KEY` invalidation (already wired in Task E1 hooks).
 
-- [ ] **Step 4: Smoke test in browser (dev server)**
+- [x] **Step 4: Smoke test in browser (dev server)**
 
 Confirm: as admin, hover reveals `...`; Edit updates the row live; Delete removes the row; "+ New category" adds a new row alpha-sorted.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(frontend): inline category CRUD in templates modal sidebar"
@@ -1784,11 +1784,11 @@ git commit -m "feat(frontend): inline category CRUD in templates modal sidebar"
 - Create: `src/frontend/src/controllers/API/queries/templates/use-unarchive-template.ts`
 - Create: `src/frontend/src/controllers/API/queries/templates/use-hard-delete-template.ts`
 
-- [ ] **Step 1: Implement the three mutations**
+- [x] **Step 1: Implement the three mutations**
 
 Each follows the pattern of existing template mutation hooks (`use-update-template.ts`). On success, invalidate the templates query key. For `useHardDeleteTemplate`, on 409 response return the parsed body (`{ referencing_flow_ids }`) so the UI can surface the list.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git commit -m "feat(frontend): template archive, unarchive, hard-delete hooks"
@@ -1802,11 +1802,11 @@ git commit -m "feat(frontend): template archive, unarchive, hard-delete hooks"
 - Modify: `src/frontend/src/modals/templatesModal/components/TemplateCardComponent/index.tsx`
 - Test: `src/frontend/tests/unit/TemplateCardAdminMenu.test.tsx`
 
-- [ ] **Step 1: Write the failing card-menu test**
+- [x] **Step 1: Write the failing card-menu test**
 
 Assert that when `canEdit=true`, the `...` button is rendered and the dropdown shows Edit / Archive / Delete (or Unarchive if the template is already archived).
 
-- [ ] **Step 2: Fail. Implement `TemplateCardAdminMenu`**
+- [x] **Step 2: Fail. Implement `TemplateCardAdminMenu`**
 
 Props:
 ```ts
@@ -1821,19 +1821,19 @@ type Props = {
 
 Render nothing when `!canEdit`. Otherwise render a `dropdown-menu` anchored to a `...` button positioned absolutely in the top-right of the card.
 
-- [ ] **Step 3: Implement `TemplateEditPanel`**
+- [x] **Step 3: Implement `TemplateEditPanel`**
 
 A right-side slide-in panel (can be a stacked `Dialog` or a custom Framer-Motion slide; fall back to `Dialog` if the codebase doesn't already include a side-panel primitive). Fields: name, description, icon (reuse `IconPickerField`), gradient (reuse `GradientPickerField`), categories (reuse `CategoryChipPicker` — built in Task H1). Save calls `useUpdateTemplate().mutate(...)` including `category_ids` from the chip picker.
 
-- [ ] **Step 4: Wire `TemplateCardAdminMenu` into `TemplateCardComponent`**
+- [x] **Step 4: Wire `TemplateCardAdminMenu` into `TemplateCardComponent`**
 
 In `TemplateCardComponent`, compute `canEdit` from: platform admin OR (template scope is 'org' AND (org admin OR template.created_by === userData.id)). Pass through to the menu component. On **Edit**, open `TemplateEditPanel`. On **Archive**/**Unarchive**, call the appropriate mutation. On **Delete**, open a confirm dialog; on 409 response show the referencing flow ids.
 
-- [ ] **Step 5: Smoke test in browser**
+- [x] **Step 5: Smoke test in browser**
 
 Verify: card shows `...` for admin; Edit opens the side-panel; saving updates the card; Archive hides the card immediately (unless "Show archived" is on); Delete shows confirmation and removes or 409s.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git commit -m "feat(frontend): per-template admin menu and edit panel"
@@ -1844,7 +1844,7 @@ git commit -m "feat(frontend): per-template admin menu and edit panel"
 **Files:**
 - Modify: `src/frontend/src/modals/templatesModal/components/TemplateContentComponent/index.tsx`
 
-- [ ] **Step 1: Add a toggle near the section title when admin OR on Saved Templates tab**
+- [x] **Step 1: Add a toggle near the section title when admin OR on Saved Templates tab**
 
 ```tsx
 const [showArchived, setShowArchived] = useState(false);
@@ -1857,15 +1857,15 @@ const canSeeArchived =
 )}
 ```
 
-- [ ] **Step 2: Pass `include_archived` into `useListTemplates`**
+- [x] **Step 2: Pass `include_archived` into `useListTemplates`**
 
 When `showArchived && canSeeArchived`, include `include_archived: true` and (if non-admin) `created_by_me: true`.
 
-- [ ] **Step 3: Render archived cards at 50% opacity with an "Archived" pill; disable Start Building**
+- [x] **Step 3: Render archived cards at 50% opacity with an "Archived" pill; disable Start Building**
 
 In `TemplateCardComponent`, check `template.archived_at !== null` and apply a conditional className (`opacity-50`) plus a pill. Disable the Start Building button (or Start Building equivalent) with a `title` tooltip from §5.3 of the spec.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git commit -m "feat(frontend): Show archived toggle with dimmed cards and disabled build"
@@ -1880,7 +1880,7 @@ git commit -m "feat(frontend): Show archived toggle with dimmed cards and disabl
 **Files:**
 - Create: `src/frontend/src/modals/templatesModal/components/CategoryChipPicker/index.tsx`
 
-- [ ] **Step 1: Implement**
+- [x] **Step 1: Implement**
 
 Props:
 ```ts
@@ -1894,7 +1894,7 @@ Behavior: Fetches categories via `useListCategories`. Renders a search input + a
 
 Since there's no pre-existing chip-input in the codebase (confirmed in the frontend explore), build it from `Input` + `Badge` (`components/ui/badge.tsx` if present; else a simple pill div).
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git commit -m "feat(frontend): CategoryChipPicker component"
@@ -1906,11 +1906,11 @@ git commit -m "feat(frontend): CategoryChipPicker component"
 - Modify: `src/frontend/src/modals/SaveAsTemplateModal/index.tsx`
 - Modify: `src/frontend/src/controllers/API/queries/templates/use-create-template.ts` (accept `category_ids`, `scope`, `org_id`)
 
-- [ ] **Step 1: Add category picker to the form**
+- [x] **Step 1: Add category picker to the form**
 
 Under the existing `description` field, insert `<CategoryChipPicker selectedIds={categoryIds} onChange={setCategoryIds} />`. Pass `categoryIds` into the mutation body.
 
-- [ ] **Step 2: Add scope selector conditionally**
+- [x] **Step 2: Add scope selector conditionally**
 
 ```tsx
 const isPlatformAdmin = useIsPlatformAdmin();
@@ -1937,15 +1937,15 @@ Defaults:
 
 If `useOrganizationMemberships` does not exist yet, add a minimal hook that calls `GET /api/v1/memberships/me` (check whether the backend has it — if not, add that lookup now; it's needed by the frontend here).
 
-- [ ] **Step 3: Wire `scope` and `org_id` into the create-template mutation**
+- [x] **Step 3: Wire `scope` and `org_id` into the create-template mutation**
 
 The create payload should include `scope`, `org_id` (null when platform), and `category_ids`.
 
-- [ ] **Step 4: Smoke test**
+- [x] **Step 4: Smoke test**
 
 As a regular org member: verify Save produces an org-scoped template, visible to another member of the same org. As a platform admin: verify the selector appears and creating a platform-scoped template shows up for all orgs.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "feat(frontend): Save-as-Template — categories chip picker and scope selector"
@@ -1957,19 +1957,19 @@ git commit -m "feat(frontend): Save-as-Template — categories chip picker and s
 
 ### Task I1: Full test suite
 
-- [ ] **Step 1: Backend**
+- [x] **Step 1: Backend**
 
 Run: `uv run pytest src/backend/tests/ -x`
 
 Expected: all green. Fix flakes immediately.
 
-- [ ] **Step 2: Frontend unit**
+- [x] **Step 2: Frontend unit**
 
 Run: `npm --prefix src/frontend test -- --watchAll=false`
 
 Expected: all green.
 
-- [ ] **Step 3: Type + lint**
+- [x] **Step 3: Type + lint**
 
 Run: `npm --prefix src/frontend run typecheck && npm --prefix src/frontend run lint`
 
@@ -1977,12 +1977,12 @@ Expected: no errors.
 
 ### Task I2: Manual UX pass
 
-- [ ] **Step 1: Start both servers**
+- [x] **Step 1: Start both servers**
 
 - Backend: `uv run langflow run --backend-only` (background)
 - Frontend: `npm --prefix src/frontend start` (background)
 
-- [ ] **Step 2: Check a regular user's flow**
+- [x] **Step 2: Check a regular user's flow**
 
 Log in as a non-admin member of an org. Open the templates modal. Confirm:
 - Category sidebar populated from the seeded list (alpha-sorted).
@@ -1992,7 +1992,7 @@ Log in as a non-admin member of an org. Open the templates modal. Confirm:
 - You can archive your own template; it disappears from the grid.
 - Toggle "Show archived" on Saved Templates; the archived row reappears with a pill; Unarchive works.
 
-- [ ] **Step 3: Check a platform admin's flow**
+- [x] **Step 3: Check a platform admin's flow**
 
 Log in as a platform admin. Confirm:
 - Category sidebar has `...` menus; edit renames live; delete removes row; + New category appears in alpha position.
@@ -2000,7 +2000,7 @@ Log in as a platform admin. Confirm:
 - "Show archived" toggle is visible everywhere; archived cards dim.
 - Delete blocks with 409 when flows reference the template; succeeds otherwise.
 
-- [ ] **Step 4: Commit any fixes**
+- [x] **Step 4: Commit any fixes**
 
 ```bash
 git commit -m "fix(frontend/backend): polish from manual UX pass"
@@ -2010,13 +2010,13 @@ git commit -m "fix(frontend/backend): polish from manual UX pass"
 
 `platform-multi-tenant` is the effective main for this fork (per the user's repo convention). Work lands directly on it — there is no upstream PR to `langflow-ai/langflow` planned.
 
-- [ ] **Step 1: Push the branch**
+- [x] **Step 1: Push the branch**
 
 ```bash
 git push
 ```
 
-- [ ] **Step 2 (optional): Open an internal PR for review**
+- [x] **Step 2 (optional): Open an internal PR for review**
 
 Only if the user requests it. Title: `Rework template categories (DB-backed, admin-managed, org-scoped templates)`.
 

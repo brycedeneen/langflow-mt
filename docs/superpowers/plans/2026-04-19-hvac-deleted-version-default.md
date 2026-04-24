@@ -50,7 +50,7 @@ cd src/lfx && LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest tests/unit/services/test_s
 - Modify: `src/lfx/tests/unit/services/test_secret_store.py:117-125` (`test_get_returns_data`)
 - Modify: `src/lfx/src/lfx/services/secret_store/vault.py:23-32` (`VaultSecretStore.get`)
 
-- [ ] **Step 1: Tighten the happy-path test to assert the new kwarg is passed**
+- [x] **Step 1: Tighten the happy-path test to assert the new kwarg is passed**
 
 Replace `test_get_returns_data` in `src/lfx/tests/unit/services/test_secret_store.py` with:
 
@@ -71,7 +71,7 @@ Replace `test_get_returns_data` in `src/lfx/tests/unit/services/test_secret_stor
             )
 ```
 
-- [ ] **Step 2: Run the test and confirm it fails on the kwarg assertion**
+- [x] **Step 2: Run the test and confirm it fails on the kwarg assertion**
 
 ```bash
 export LFX_TEST_ALLOW_LANGFLOW=1
@@ -80,7 +80,7 @@ uv run --directory src/lfx pytest tests/unit/services/test_secret_store.py::Test
 
 Expected: `FAILED` — the `assert_called_once_with` fails because the real call is missing `raise_on_deleted_version=False`. The result equality still passes.
 
-- [ ] **Step 3: Update `VaultSecretStore.get` to pass the kwarg and tolerate the deleted-version shape**
+- [x] **Step 3: Update `VaultSecretStore.get` to pass the kwarg and tolerate the deleted-version shape**
 
 In `src/lfx/src/lfx/services/secret_store/vault.py`, replace the existing `get` method:
 
@@ -102,7 +102,7 @@ Notes for the implementer:
 - The `InvalidPath` branch still handles paths that never existed (hvac raises this regardless of the flag).
 - `(response.get("data") or {}).get("data")` returns `None` both when `data.data is None` (soft-deleted latest version) and when the key is missing. `response["data"]["data"]` would `KeyError` on a malformed response; the chained `.get()` is safer without changing the happy-path contract.
 
-- [ ] **Step 4: Rerun the same test and confirm it passes**
+- [x] **Step 4: Rerun the same test and confirm it passes**
 
 ```bash
 uv run --directory src/lfx pytest tests/unit/services/test_secret_store.py::TestVaultSecretStore::test_get_returns_data -v
@@ -110,7 +110,7 @@ uv run --directory src/lfx pytest tests/unit/services/test_secret_store.py::Test
 
 Expected: `PASSED`.
 
-- [ ] **Step 5: Run the full `TestVaultSecretStore` class to confirm no regressions**
+- [x] **Step 5: Run the full `TestVaultSecretStore` class to confirm no regressions**
 
 ```bash
 uv run --directory src/lfx pytest tests/unit/services/test_secret_store.py::TestVaultSecretStore -v
@@ -118,7 +118,7 @@ uv run --directory src/lfx pytest tests/unit/services/test_secret_store.py::Test
 
 Expected: 7 tests pass (`test_put_calls_vault_create_or_update`, `test_get_returns_data`, `test_get_nonexistent_returns_none`, `test_delete_calls_vault_delete`, `test_delete_nonexistent_is_noop`, `test_list_returns_keys`, `test_list_empty_returns_empty`).
 
-- [ ] **Step 6: Ask the user before committing, then commit**
+- [x] **Step 6: Ask the user before committing, then commit**
 
 Pause and ask the user to confirm the commit. After confirmation:
 
@@ -138,7 +138,7 @@ versions now collapse to None, matching the existing not-found contract."
 **Files:**
 - Modify: `src/lfx/tests/unit/services/test_secret_store.py` (add one method to `TestVaultSecretStore`, just after `test_get_nonexistent_returns_none` at line 137)
 
-- [ ] **Step 1: Add the deleted-version test**
+- [x] **Step 1: Add the deleted-version test**
 
 Insert this method into `TestVaultSecretStore`, immediately after `test_get_nonexistent_returns_none`:
 
@@ -159,7 +159,7 @@ Insert this method into `TestVaultSecretStore`, immediately after `test_get_none
             assert result is None
 ```
 
-- [ ] **Step 2: Run the new test**
+- [x] **Step 2: Run the new test**
 
 ```bash
 uv run --directory src/lfx pytest tests/unit/services/test_secret_store.py::TestVaultSecretStore::test_get_soft_deleted_version_returns_none -v
@@ -167,7 +167,7 @@ uv run --directory src/lfx pytest tests/unit/services/test_secret_store.py::Test
 
 Expected: `PASSED` — after Task 1's code change, the chained `.get()` correctly returns `None` for the deleted-version shape. (The test is pinning the contract rather than driving a code change, but still valuable because a future refactor that reverts to `response["data"]["data"]` would now `TypeError` against this fixture and fail here.)
 
-- [ ] **Step 3: Run the full test file one more time**
+- [x] **Step 3: Run the full test file one more time**
 
 ```bash
 uv run --directory src/lfx pytest tests/unit/services/test_secret_store.py -v
@@ -175,7 +175,7 @@ uv run --directory src/lfx pytest tests/unit/services/test_secret_store.py -v
 
 Expected: all previously-passing tests still pass, plus the new one. Total should be one more than before.
 
-- [ ] **Step 4: Ask the user before committing, then commit**
+- [x] **Step 4: Ask the user before committing, then commit**
 
 Pause and ask. After confirmation:
 
@@ -190,7 +190,7 @@ git commit -m "test(secret-store): cover soft-deleted Vault version returning No
 
 **Files:** none modified — this task is verification only.
 
-- [ ] **Step 1: Confirm the warning is not emitted by the targeted test**
+- [x] **Step 1: Confirm the warning is not emitted by the targeted test**
 
 The lfx `pyproject.toml` sets `--disable-warnings` in `addopts`, which silences warnings in the summary but does not suppress the emission itself. To verify the warning is gone at the source, run the test with pytest's `-W error` override, which turns any emitted DeprecationWarning into a test failure:
 
@@ -202,7 +202,7 @@ uv run --directory src/lfx pytest \
 
 Expected: `PASSED`. If the warning still emitted, pytest would convert it to an error and the test would fail with a traceback pointing at `concurrent/futures/thread.py` and the hvac message.
 
-- [ ] **Step 2: Spot-check the same invocation across the full VaultSecretStore suite**
+- [x] **Step 2: Spot-check the same invocation across the full VaultSecretStore suite**
 
 ```bash
 uv run --directory src/lfx pytest \
@@ -212,7 +212,7 @@ uv run --directory src/lfx pytest \
 
 Expected: all 8 tests (7 pre-existing + the new one from Task 2) pass with no DeprecationWarning-driven failures.
 
-- [ ] **Step 3: No commit for this task.**
+- [x] **Step 3: No commit for this task.**
 
 It's verification-only. If Steps 1–2 pass, the feature is complete.
 

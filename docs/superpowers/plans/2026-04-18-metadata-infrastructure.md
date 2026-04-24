@@ -83,7 +83,7 @@ The authoritative design is `docs/superpowers/specs/2026-04-18-metadata-infrastr
 - Create: `src/backend/base/langflow/services/database/models/_metadata/__init__.py`
 - Create: `src/backend/base/langflow/services/database/models/_metadata/metadata_mixin.py`
 
-- [ ] **Step 1.1: Create the `_metadata` package init**
+- [x] **Step 1.1: Create the `_metadata` package init**
 
 Create `src/backend/base/langflow/services/database/models/_metadata/__init__.py`:
 
@@ -95,7 +95,7 @@ from .metadata_mixin import AgentMetadataMixin
 __all__ = ["AgentMetadataMixin"]
 ```
 
-- [ ] **Step 1.2: Create the mixin**
+- [x] **Step 1.2: Create the mixin**
 
 Create `src/backend/base/langflow/services/database/models/_metadata/metadata_mixin.py`:
 
@@ -127,7 +127,7 @@ class AgentMetadataMixin(SQLModel):
     )
 ```
 
-- [ ] **Step 1.3: Pause for commit**
+- [x] **Step 1.3: Pause for commit**
 
 Do not commit. Show the user the two new files and ask whether to commit. Proposed message: `feat(db): add AgentMetadataMixin for shared metadata columns`.
 
@@ -140,7 +140,7 @@ Do not commit. Show the user the two new files and ask whether to commit. Propos
 - Create: `src/backend/base/langflow/services/database/models/template_metadata/model.py`
 - Test: `src/backend/tests/unit/services/database/models/test_template_metadata_model.py`
 
-- [ ] **Step 2.1: Write the failing model test**
+- [x] **Step 2.1: Write the failing model test**
 
 Create `src/backend/tests/unit/services/database/models/test_template_metadata_model.py`:
 
@@ -242,12 +242,12 @@ def test_template_metadata_updated_at_autobumps(session):
     assert meta.updated_at >= first
 ```
 
-- [ ] **Step 2.2: Run the test to verify it fails**
+- [x] **Step 2.2: Run the test to verify it fails**
 
 Run: `uv run pytest src/backend/tests/unit/services/database/models/test_template_metadata_model.py -v`
 Expected: FAIL with `ImportError: cannot import name 'TemplateMetadata' from 'langflow.services.database.models'`.
 
-- [ ] **Step 2.3: Create the model**
+- [x] **Step 2.3: Create the model**
 
 Create `src/backend/base/langflow/services/database/models/template_metadata/model.py`:
 
@@ -315,7 +315,7 @@ __all__ = [
 ]
 ```
 
-- [ ] **Step 2.4: Register the model and re-run tests**
+- [x] **Step 2.4: Register the model and re-run tests**
 
 Edit `src/backend/base/langflow/services/database/models/__init__.py` — add the import and `__all__` entry alphabetically (between `Organization` and `SSOConfig` by convention):
 
@@ -328,7 +328,7 @@ and add `"TemplateMetadata",` to `__all__`.
 Run: `uv run pytest src/backend/tests/unit/services/database/models/test_template_metadata_model.py -v`
 Expected: all four tests PASS.
 
-- [ ] **Step 2.5: Pause for commit**
+- [x] **Step 2.5: Pause for commit**
 
 Proposed message: `feat(db): add TemplateMetadata model with shared mixin`.
 
@@ -341,7 +341,7 @@ Proposed message: `feat(db): add TemplateMetadata model with shared mixin`.
 - Create: `src/backend/base/langflow/services/database/models/component_metadata/model.py`
 - Test: `src/backend/tests/unit/services/database/models/test_component_metadata_model.py`
 
-- [ ] **Step 3.1: Write the failing test**
+- [x] **Step 3.1: Write the failing test**
 
 Create `src/backend/tests/unit/services/database/models/test_component_metadata_model.py`:
 
@@ -432,12 +432,12 @@ def test_component_metadata_updated_at_autobumps(session):
     assert meta.updated_at >= first
 ```
 
-- [ ] **Step 3.2: Run to verify it fails**
+- [x] **Step 3.2: Run to verify it fails**
 
 Run: `uv run pytest src/backend/tests/unit/services/database/models/test_component_metadata_model.py -v`
 Expected: FAIL with `ImportError`.
 
-- [ ] **Step 3.3: Create the model**
+- [x] **Step 3.3: Create the model**
 
 Create `src/backend/base/langflow/services/database/models/component_metadata/model.py`:
 
@@ -501,7 +501,7 @@ __all__ = [
 ]
 ```
 
-- [ ] **Step 3.4: Register and re-run**
+- [x] **Step 3.4: Register and re-run**
 
 Edit `src/backend/base/langflow/services/database/models/__init__.py` — add:
 
@@ -514,7 +514,7 @@ and `"ComponentMetadata",` to `__all__` (alphabetical order — sits between `Ap
 Run: `uv run pytest src/backend/tests/unit/services/database/models/test_component_metadata_model.py -v`
 Expected: PASS (4 tests).
 
-- [ ] **Step 3.5: Pause for commit**
+- [x] **Step 3.5: Pause for commit**
 
 Proposed message: `feat(db): add ComponentMetadata model`.
 
@@ -525,7 +525,7 @@ Proposed message: `feat(db): add ComponentMetadata model`.
 **Files:**
 - Create: `src/backend/base/langflow/alembic/versions/<rev>_add_template_and_component_metadata.py`
 
-- [ ] **Step 4.1: Generate the revision skeleton**
+- [x] **Step 4.1: Generate the revision skeleton**
 
 Run from repo root:
 
@@ -540,7 +540,7 @@ This creates a file in `alembic/versions/` with a name like `<hash>_add_template
 
 If autogenerate did not produce the tables, see Step 4.2 fallback.
 
-- [ ] **Step 4.2 (fallback if autogenerate is empty): hand-write the migration**
+- [x] **Step 4.2 (fallback if autogenerate is empty): hand-write the migration**
 
 Replace the file body with:
 
@@ -611,12 +611,12 @@ def downgrade() -> None:
     op.drop_table("template_metadata")
 ```
 
-- [ ] **Step 4.3: Apply the migration**
+- [x] **Step 4.3: Apply the migration**
 
 Run: `make alembic-upgrade`
 Expected: alembic logs two `CREATE TABLE` statements and reports the new head.
 
-- [ ] **Step 4.4: Verify round-trip downgrade works**
+- [x] **Step 4.4: Verify round-trip downgrade works**
 
 Run: `make alembic-downgrade`
 Expected: both tables dropped; previous head restored.
@@ -624,7 +624,7 @@ Expected: both tables dropped; previous head restored.
 Re-apply: `make alembic-upgrade`
 Expected: back to the new head.
 
-- [ ] **Step 4.5: Pause for commit**
+- [x] **Step 4.5: Pause for commit**
 
 Proposed message: `feat(db): migration for template_metadata and component_metadata tables`.
 
@@ -638,7 +638,7 @@ The admin API and system-prompt-injection both need to identify starter-project 
 - Create: `src/backend/base/langflow/services/database/models/flow/starter.py`
 - Test: `src/backend/tests/unit/services/database/models/test_flow_starter_helper.py`
 
-- [ ] **Step 5.1: Write the failing test**
+- [x] **Step 5.1: Write the failing test**
 
 Create `src/backend/tests/unit/services/database/models/test_flow_starter_helper.py`:
 
@@ -711,12 +711,12 @@ def test_flow_without_folder_is_not_a_starter(session):
     assert is_flow_a_starter_project(flow, session) is False
 ```
 
-- [ ] **Step 5.2: Run to verify it fails**
+- [x] **Step 5.2: Run to verify it fails**
 
 Run: `uv run pytest src/backend/tests/unit/services/database/models/test_flow_starter_helper.py -v`
 Expected: FAIL with `ModuleNotFoundError`.
 
-- [ ] **Step 5.3: Implement the helper**
+- [x] **Step 5.3: Implement the helper**
 
 Create `src/backend/base/langflow/services/database/models/flow/starter.py`:
 
@@ -759,12 +759,12 @@ def list_starter_project_flows(session: Session) -> list[Flow]:
 
 > **Note:** If the actual starter folder name used at this project is not `"Starter Projects"`, the agent should grep the codebase (`grep -r "STARTER_FOLDER_NAME\|starter projects"`) and adjust the constant to whatever `initial_setup/setup.py` uses. The test uses the constant via import, so the test will still pass either way.
 
-- [ ] **Step 5.4: Run tests**
+- [x] **Step 5.4: Run tests**
 
 Run: `uv run pytest src/backend/tests/unit/services/database/models/test_flow_starter_helper.py -v`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5.5: Pause for commit**
+- [x] **Step 5.5: Pause for commit**
 
 Proposed message: `feat(db): add is_flow_a_starter_project helper`.
 
@@ -777,7 +777,7 @@ Proposed message: `feat(db): add is_flow_a_starter_project helper`.
 - Create: `src/backend/base/langflow/api/v1/admin/metadata.py`
 - Test: `src/backend/tests/unit/api/v1/test_admin_template_metadata_api.py`
 
-- [ ] **Step 6.1: Write the failing test**
+- [x] **Step 6.1: Write the failing test**
 
 Create `src/backend/tests/unit/api/v1/test_admin_template_metadata_api.py`:
 
@@ -840,7 +840,7 @@ async def test_get_template_returns_404_for_unknown_flow(
 
 The fixtures `starter_flow`, `non_starter_flow`, `logged_in_headers`, `logged_in_headers_super_user`, and `client` are provided by the existing conftest. If any are missing (e.g., `starter_flow`), the engineer creates them locally at the top of the test file.
 
-- [ ] **Step 6.2: Add missing fixtures if needed**
+- [x] **Step 6.2: Add missing fixtures if needed**
 
 If the fixtures do not exist, add them to `src/backend/tests/unit/api/v1/test_admin_template_metadata_api.py` as module-level `@pytest.fixture` defs that use the existing `session` fixture to insert a starter folder + flow and a non-starter folder + flow. Exact code:
 
@@ -893,12 +893,12 @@ async def non_starter_flow(session, active_super_user):
     return flow
 ```
 
-- [ ] **Step 6.3: Run to verify it fails**
+- [x] **Step 6.3: Run to verify it fails**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_admin_template_metadata_api.py -v`
 Expected: FAIL with 404 on all endpoints (router not registered).
 
-- [ ] **Step 6.4: Create the admin subpackage and router**
+- [x] **Step 6.4: Create the admin subpackage and router**
 
 Create `src/backend/base/langflow/api/v1/admin/__init__.py`:
 
@@ -1020,7 +1020,7 @@ async def get_template_metadata(
     return row
 ```
 
-- [ ] **Step 6.5: Register the admin router**
+- [x] **Step 6.5: Register the admin router**
 
 Edit `src/backend/base/langflow/api/v1/__init__.py` — add the import (alphabetical between `Admin` imports or at the top of the imports if there are none):
 
@@ -1038,12 +1038,12 @@ app.include_router(admin_metadata_router, prefix="/api/v1")
 
 (Or follow whatever local convention the surrounding `include_router` calls use.)
 
-- [ ] **Step 6.6: Re-run tests**
+- [x] **Step 6.6: Re-run tests**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_admin_template_metadata_api.py -v`
 Expected: 4 tests PASS.
 
-- [ ] **Step 6.7: Pause for commit**
+- [x] **Step 6.7: Pause for commit**
 
 Proposed message: `feat(api): admin GET endpoints for template metadata`.
 
@@ -1055,7 +1055,7 @@ Proposed message: `feat(api): admin GET endpoints for template metadata`.
 - Modify: `src/backend/base/langflow/api/v1/admin/metadata.py`
 - Modify: `src/backend/tests/unit/api/v1/test_admin_template_metadata_api.py`
 
-- [ ] **Step 7.1: Write failing tests**
+- [x] **Step 7.1: Write failing tests**
 
 Append to `src/backend/tests/unit/api/v1/test_admin_template_metadata_api.py`:
 
@@ -1143,12 +1143,12 @@ async def test_delete_template_removes_row_but_keeps_flow(
 
 Add `from sqlmodel import select` and `from langflow.services.database.models import TemplateMetadata, Flow` to the imports at the top of the test file if they're not already there.
 
-- [ ] **Step 7.2: Run to verify failures**
+- [x] **Step 7.2: Run to verify failures**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_admin_template_metadata_api.py -v -k "put or delete"`
 Expected: 405 Method Not Allowed.
 
-- [ ] **Step 7.3: Implement PUT + DELETE**
+- [x] **Step 7.3: Implement PUT + DELETE**
 
 Append to `src/backend/base/langflow/api/v1/admin/metadata.py`:
 
@@ -1211,12 +1211,12 @@ async def delete_template_metadata(flow_id: UUID, *, session: DbSession) -> None
     return None
 ```
 
-- [ ] **Step 7.4: Re-run**
+- [x] **Step 7.4: Re-run**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_admin_template_metadata_api.py -v`
 Expected: all tests PASS.
 
-- [ ] **Step 7.5: Pause for commit**
+- [x] **Step 7.5: Pause for commit**
 
 Proposed message: `feat(api): admin PUT/DELETE for template metadata`.
 
@@ -1228,7 +1228,7 @@ Proposed message: `feat(api): admin PUT/DELETE for template metadata`.
 - Modify: `src/backend/base/langflow/api/v1/admin/metadata.py`
 - Create: `src/backend/tests/unit/api/v1/test_admin_component_metadata_api.py`
 
-- [ ] **Step 8.1: Write failing tests**
+- [x] **Step 8.1: Write failing tests**
 
 Create `src/backend/tests/unit/api/v1/test_admin_component_metadata_api.py`:
 
@@ -1326,12 +1326,12 @@ async def test_components_endpoint_requires_superuser(
     assert response.status_code == 403
 ```
 
-- [ ] **Step 8.2: Run to verify failures**
+- [x] **Step 8.2: Run to verify failures**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_admin_component_metadata_api.py -v`
 Expected: 404 on all endpoints (routes not implemented).
 
-- [ ] **Step 8.3: Implement the component endpoints**
+- [x] **Step 8.3: Implement the component endpoints**
 
 Append to `src/backend/base/langflow/api/v1/admin/metadata.py`:
 
@@ -1468,12 +1468,12 @@ async def delete_component_metadata(
     return None
 ```
 
-- [ ] **Step 8.4: Run tests**
+- [x] **Step 8.4: Run tests**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_admin_component_metadata_api.py -v`
 Expected: all PASS.
 
-- [ ] **Step 8.5: Pause for commit**
+- [x] **Step 8.5: Pause for commit**
 
 Proposed message: `feat(api): admin CRUD for component metadata`.
 
@@ -1485,7 +1485,7 @@ Proposed message: `feat(api): admin CRUD for component metadata`.
 - Modify: `src/backend/base/langflow/services/assistant/tools/catalog.py`
 - Create: `src/backend/tests/unit/services/assistant/tools/test_catalog_merges_metadata.py`
 
-- [ ] **Step 9.1: Write the failing test**
+- [x] **Step 9.1: Write the failing test**
 
 Create `src/backend/tests/unit/services/assistant/tools/test_catalog_merges_metadata.py`:
 
@@ -1555,12 +1555,12 @@ async def test_get_component_schema_returns_null_usage_notes_when_absent():
     assert schema.get("agent_usage_notes") is None
 ```
 
-- [ ] **Step 9.2: Run to verify it fails**
+- [x] **Step 9.2: Run to verify it fails**
 
 Run: `uv run pytest src/backend/tests/unit/services/assistant/tools/test_catalog_merges_metadata.py -v`
 Expected: KeyError or None for `agent_summary`/`agent_usage_notes`.
 
-- [ ] **Step 9.3: Add a small helper for metadata reads**
+- [x] **Step 9.3: Add a small helper for metadata reads**
 
 Create `src/backend/base/langflow/services/assistant/tools/metadata_lookup.py`:
 
@@ -1649,7 +1649,7 @@ async def fetch_template_usage_notes(flow_id: str) -> dict | None:
 
 > **Note:** If `session_getter` is not importable from `langflow.services.deps`, grep for the actual async-session context manager (`get_session`, `session_scope`, etc.) and use that. The rest of the module stays unchanged.
 
-- [ ] **Step 9.4: Modify `search_components` to merge**
+- [x] **Step 9.4: Modify `search_components` to merge**
 
 Edit `src/backend/base/langflow/services/assistant/tools/catalog.py` — add the import:
 
@@ -1671,7 +1671,7 @@ And extend `search_components` to merge after building its base list. Replace th
 
 (If the current `search_components` body names the list something other than `results`, preserve the existing name; just iterate it to splice in `agent_summary`.)
 
-- [ ] **Step 9.5: Modify `get_component_schema` to merge**
+- [x] **Step 9.5: Modify `get_component_schema` to merge**
 
 In the same file, at the end of `get_component_schema`, before the final `return`:
 
@@ -1681,12 +1681,12 @@ In the same file, at the end of `get_component_schema`, before the final `return
     return schema
 ```
 
-- [ ] **Step 9.6: Run the tests**
+- [x] **Step 9.6: Run the tests**
 
 Run: `uv run pytest src/backend/tests/unit/services/assistant/tools/test_catalog_merges_metadata.py -v`
 Expected: all PASS.
 
-- [ ] **Step 9.7: Pause for commit**
+- [x] **Step 9.7: Pause for commit**
 
 Proposed message: `feat(assistant): merge component metadata into catalog tool results`.
 
@@ -1699,7 +1699,7 @@ Proposed message: `feat(assistant): merge component metadata into catalog tool r
 - Modify: `src/backend/base/langflow/services/assistant/tools/registry.py`
 - Create: `src/backend/tests/unit/services/assistant/tools/test_get_template_instructions_tool.py`
 
-- [ ] **Step 10.1: Write the failing test**
+- [x] **Step 10.1: Write the failing test**
 
 Create `src/backend/tests/unit/services/assistant/tools/test_get_template_instructions_tool.py`:
 
@@ -1770,12 +1770,12 @@ async def test_returns_none_when_flow_id_unparseable():
     assert result is None
 ```
 
-- [ ] **Step 10.2: Run to verify it fails**
+- [x] **Step 10.2: Run to verify it fails**
 
 Run: `uv run pytest src/backend/tests/unit/services/assistant/tools/test_get_template_instructions_tool.py -v`
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 10.3: Implement the tool**
+- [x] **Step 10.3: Implement the tool**
 
 Create `src/backend/base/langflow/services/assistant/tools/template_metadata.py`:
 
@@ -1799,7 +1799,7 @@ async def get_template_instructions(flow_id: str) -> dict[str, Any] | None:
     return await fetch_template_usage_notes(flow_id)
 ```
 
-- [ ] **Step 10.4: Register the tool**
+- [x] **Step 10.4: Register the tool**
 
 Edit `src/backend/base/langflow/services/assistant/tools/registry.py` — append to `CATALOG_TOOLS` a new entry:
 
@@ -1834,12 +1834,12 @@ from langflow.services.assistant.tools.template_metadata import get_template_ins
 
 Confirm the dispatch dict name by grep'ing `registry.py` for the existing `search_components` mapping and following its pattern.
 
-- [ ] **Step 10.5: Re-run**
+- [x] **Step 10.5: Re-run**
 
 Run: `uv run pytest src/backend/tests/unit/services/assistant/tools/test_get_template_instructions_tool.py -v`
 Expected: 4 tests PASS.
 
-- [ ] **Step 10.6: Pause for commit**
+- [x] **Step 10.6: Pause for commit**
 
 Proposed message: `feat(assistant): add get_template_instructions tool`.
 
@@ -1852,7 +1852,7 @@ Proposed message: `feat(assistant): add get_template_instructions tool`.
 - Modify: `src/backend/base/langflow/services/assistant/service.py`
 - Create: `src/backend/tests/unit/services/assistant/test_template_prompt_block.py`
 
-- [ ] **Step 11.1: Write the failing test**
+- [x] **Step 11.1: Write the failing test**
 
 Create `src/backend/tests/unit/services/assistant/test_template_prompt_block.py`:
 
@@ -1931,12 +1931,12 @@ async def test_block_excludes_flows_with_null_summary(session, active_super_user
     assert "SilentFlow" not in text
 ```
 
-- [ ] **Step 11.2: Run to verify failures**
+- [x] **Step 11.2: Run to verify failures**
 
 Run: `uv run pytest src/backend/tests/unit/services/assistant/test_template_prompt_block.py -v`
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 11.3: Implement the builder**
+- [x] **Step 11.3: Implement the builder**
 
 Create `src/backend/base/langflow/services/assistant/template_prompt.py`:
 
@@ -1967,7 +1967,7 @@ async def build_available_templates_block() -> str:
     return "\n".join(lines) + "\n"
 ```
 
-- [ ] **Step 11.4: Inject into the assistant system prompt**
+- [x] **Step 11.4: Inject into the assistant system prompt**
 
 Edit `src/backend/base/langflow/services/assistant/service.py` — update `SYSTEM_PROMPT_TEMPLATE` to include a `{available_templates}` placeholder and two new guideline bullets. Replace the existing template with:
 
@@ -2011,7 +2011,7 @@ system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
 
 Because the template placeholder may expand to an empty string, the resulting prompt will have a double-newline between Canvas and Guidelines when there are no templates — that's acceptable whitespace.
 
-- [ ] **Step 11.5: Run tests**
+- [x] **Step 11.5: Run tests**
 
 Run: `uv run pytest src/backend/tests/unit/services/assistant/test_template_prompt_block.py -v`
 Expected: PASS (3 tests).
@@ -2019,7 +2019,7 @@ Expected: PASS (3 tests).
 Also run: `uv run pytest src/backend/tests/unit/services/assistant/test_assistant_service.py -v`
 Expected: existing service tests still pass (the new `available_templates=""` default makes the added format field inert when no templates exist). If the fake-provider test asserts on prompt content and now breaks, update it minimally to include `available_templates=""`.
 
-- [ ] **Step 11.6: Pause for commit**
+- [x] **Step 11.6: Pause for commit**
 
 Proposed message: `feat(assistant): inject available-templates block into system prompt`.
 
@@ -2030,11 +2030,11 @@ Proposed message: `feat(assistant): inject available-templates block into system
 **Files:**
 - Modify: `src/backend/base/langflow/services/assistant/mcp_server.py`
 
-- [ ] **Step 12.1: Confirm current list**
+- [x] **Step 12.1: Confirm current list**
 
 Open `mcp_server.py` and locate `handle_list_tools()`. It contains four hardcoded `types.Tool(...)` entries — one each for `search_components`, `get_component_schema`, `list_categories`, `list_compatible_outputs`.
 
-- [ ] **Step 12.2: Update two descriptions**
+- [x] **Step 12.2: Update two descriptions**
 
 For `search_components`, change the `description` field to mention the new `agent_summary` field in returned rows:
 
@@ -2080,12 +2080,12 @@ elif name == "get_template_instructions":
     result = await get_template_instructions(**arguments)
 ```
 
-- [ ] **Step 12.3: Smoke-test MCP exposure**
+- [x] **Step 12.3: Smoke-test MCP exposure**
 
 Run: `uv run pytest src/backend/tests/unit/services/assistant -k mcp -v`
 Expected: any existing MCP tests still pass. If none exist, skip — the manual verification checklist covers this end-to-end.
 
-- [ ] **Step 12.4: Pause for commit**
+- [x] **Step 12.4: Pause for commit**
 
 Proposed message: `feat(assistant): expose metadata-enriched catalog tools via MCP`.
 
@@ -2096,7 +2096,7 @@ Proposed message: `feat(assistant): expose metadata-enriched catalog tools via M
 **Files:**
 - Create: `src/frontend/src/components/authorization/authSuperuserGuard/index.tsx`
 
-- [ ] **Step 13.1: Create the guard**
+- [x] **Step 13.1: Create the guard**
 
 Create `src/frontend/src/components/authorization/authSuperuserGuard/index.tsx`:
 
@@ -2124,11 +2124,11 @@ export const ProtectedSuperuserRoute = ({ children }: Props) => {
 };
 ```
 
-- [ ] **Step 13.2: No tests in this task**
+- [x] **Step 13.2: No tests in this task**
 
 Unit-testing a guard in isolation is low-value; the route-level test in Task 18 exercises it. Proceed.
 
-- [ ] **Step 13.3: Pause for commit**
+- [x] **Step 13.3: Pause for commit**
 
 Proposed message: `feat(frontend): add ProtectedSuperuserRoute guard`.
 
@@ -2140,7 +2140,7 @@ Proposed message: `feat(frontend): add ProtectedSuperuserRoute guard`.
 - Create: `src/frontend/src/types/metadata/index.ts`
 - Modify: `src/frontend/src/controllers/API/helpers/constants.ts`
 
-- [ ] **Step 14.1: Create the TS types**
+- [x] **Step 14.1: Create the TS types**
 
 Create `src/frontend/src/types/metadata/index.ts`:
 
@@ -2182,7 +2182,7 @@ export type ComponentMetadataWrite = {
 };
 ```
 
-- [ ] **Step 14.2: Add base URL constants**
+- [x] **Step 14.2: Add base URL constants**
 
 Edit `src/frontend/src/controllers/API/helpers/constants.ts` — locate the URL map (search for `TRACES` or `ASSISTANT`) and add:
 
@@ -2193,7 +2193,7 @@ METADATA_COMPONENTS: `/api/v1/admin/metadata/components`,
 
 (Or `getURL("METADATA_TEMPLATES")` depending on the existing helper style — match the surrounding pattern.)
 
-- [ ] **Step 14.3: Pause for commit**
+- [x] **Step 14.3: Pause for commit**
 
 Proposed message: `feat(frontend): add metadata TS types and API URL constants`.
 
@@ -2205,7 +2205,7 @@ Proposed message: `feat(frontend): add metadata TS types and API URL constants`.
 - Create: `src/frontend/src/controllers/API/queries/metadata/index.ts`
 - Create: `src/frontend/src/controllers/API/queries/metadata/use-template-metadata.ts`
 
-- [ ] **Step 15.1: Create the hook module**
+- [x] **Step 15.1: Create the hook module**
 
 Create `src/frontend/src/controllers/API/queries/metadata/use-template-metadata.ts`:
 
@@ -2263,7 +2263,7 @@ export function useDeleteTemplateMetadata() {
 
 > **Note:** `UseRequestProcessor().mutate(...)` may have a different signature in this codebase. Match the pattern from any other `use-*.ts` in `controllers/API/queries/` that already declares a mutation. The important parts: invalidate the `["metadata","templates","list"]` cache key on success.
 
-- [ ] **Step 15.2: Re-export**
+- [x] **Step 15.2: Re-export**
 
 Create `src/frontend/src/controllers/API/queries/metadata/index.ts`:
 
@@ -2271,7 +2271,7 @@ Create `src/frontend/src/controllers/API/queries/metadata/index.ts`:
 export * from "./use-template-metadata";
 ```
 
-- [ ] **Step 15.3: Pause for commit**
+- [x] **Step 15.3: Pause for commit**
 
 Proposed message: `feat(frontend): template metadata query hooks`.
 
@@ -2283,7 +2283,7 @@ Proposed message: `feat(frontend): template metadata query hooks`.
 - Create: `src/frontend/src/controllers/API/queries/metadata/use-component-metadata.ts`
 - Modify: `src/frontend/src/controllers/API/queries/metadata/index.ts`
 
-- [ ] **Step 16.1: Create the hook module**
+- [x] **Step 16.1: Create the hook module**
 
 Create `src/frontend/src/controllers/API/queries/metadata/use-component-metadata.ts`:
 
@@ -2342,7 +2342,7 @@ export function useDeleteComponentMetadata() {
 }
 ```
 
-- [ ] **Step 16.2: Re-export**
+- [x] **Step 16.2: Re-export**
 
 Edit `src/frontend/src/controllers/API/queries/metadata/index.ts`:
 
@@ -2351,7 +2351,7 @@ export * from "./use-template-metadata";
 export * from "./use-component-metadata";
 ```
 
-- [ ] **Step 16.3: Pause for commit**
+- [x] **Step 16.3: Pause for commit**
 
 Proposed message: `feat(frontend): component metadata query hooks`.
 
@@ -2363,7 +2363,7 @@ Proposed message: `feat(frontend): component metadata query hooks`.
 - Create: `src/frontend/src/pages/SettingsPage/pages/MetadataPage/metadata-edit-form.tsx`
 - Create: `src/frontend/src/pages/SettingsPage/pages/MetadataPage/__tests__/metadata-edit-form.test.tsx`
 
-- [ ] **Step 17.1: Write the failing test**
+- [x] **Step 17.1: Write the failing test**
 
 Create the test file at `src/frontend/src/pages/SettingsPage/pages/MetadataPage/__tests__/metadata-edit-form.test.tsx`:
 
@@ -2433,12 +2433,12 @@ describe("MetadataEditForm", () => {
 });
 ```
 
-- [ ] **Step 17.2: Run to verify failure**
+- [x] **Step 17.2: Run to verify failure**
 
 Run: `npm test -- metadata-edit-form`
 Expected: `Cannot find module '../metadata-edit-form'`.
 
-- [ ] **Step 17.3: Implement the form**
+- [x] **Step 17.3: Implement the form**
 
 Create `src/frontend/src/pages/SettingsPage/pages/MetadataPage/metadata-edit-form.tsx`:
 
@@ -2516,12 +2516,12 @@ export function MetadataEditForm({ initial, onSave, onCancel, onDelete }: Props)
 }
 ```
 
-- [ ] **Step 17.4: Run tests**
+- [x] **Step 17.4: Run tests**
 
 Run: `npm test -- metadata-edit-form`
 Expected: all tests PASS.
 
-- [ ] **Step 17.5: Pause for commit**
+- [x] **Step 17.5: Pause for commit**
 
 Proposed message: `feat(frontend): metadata edit form`.
 
@@ -2537,7 +2537,7 @@ Proposed message: `feat(frontend): metadata edit form`.
 - Modify: `src/frontend/src/routes.tsx`
 - Modify: `src/frontend/src/pages/SettingsPage/index.tsx`
 
-- [ ] **Step 18.1: Create the orphan badge**
+- [x] **Step 18.1: Create the orphan badge**
 
 Create `src/frontend/src/pages/SettingsPage/pages/MetadataPage/orphan-badge.tsx`:
 
@@ -2554,7 +2554,7 @@ export function OrphanBadge() {
 }
 ```
 
-- [ ] **Step 18.2: Create the Flows tab**
+- [x] **Step 18.2: Create the Flows tab**
 
 Create `src/frontend/src/pages/SettingsPage/pages/MetadataPage/flows-tab.tsx`:
 
@@ -2645,7 +2645,7 @@ export function FlowsTab() {
 }
 ```
 
-- [ ] **Step 18.3: Create the Components tab**
+- [x] **Step 18.3: Create the Components tab**
 
 Create `src/frontend/src/pages/SettingsPage/pages/MetadataPage/components-tab.tsx`:
 
@@ -2771,7 +2771,7 @@ export function ComponentsTab() {
 }
 ```
 
-- [ ] **Step 18.4: Create the page shell with tabs**
+- [x] **Step 18.4: Create the page shell with tabs**
 
 Create `src/frontend/src/pages/SettingsPage/pages/MetadataPage/index.tsx`:
 
@@ -2801,7 +2801,7 @@ export default function MetadataPage() {
 }
 ```
 
-- [ ] **Step 18.5: Register the route**
+- [x] **Step 18.5: Register the route**
 
 Edit `src/frontend/src/routes.tsx` — add inside the `path="settings"` route block, next to the other settings routes:
 
@@ -2823,7 +2823,7 @@ import MetadataPage from "@/pages/SettingsPage/pages/MetadataPage";
 import { ProtectedSuperuserRoute } from "@/components/authorization/authSuperuserGuard";
 ```
 
-- [ ] **Step 18.6: Add sidebar nav entry**
+- [x] **Step 18.6: Add sidebar nav entry**
 
 Edit `src/frontend/src/pages/SettingsPage/index.tsx` — in the `sidebarNavItems.push(...)` block, add:
 
@@ -2842,17 +2842,17 @@ Edit `src/frontend/src/pages/SettingsPage/index.tsx` — in the `sidebarNavItems
 
 (Optionally wrap in `if (userData?.is_superuser) { sidebarNavItems.push({ ... }); }` so non-superusers don't even see the link — cleaner UX.)
 
-- [ ] **Step 18.7: Run frontend type-check**
+- [x] **Step 18.7: Run frontend type-check**
 
 Run: `npm run typecheck` (or `npx tsc --noEmit` if no script exists)
 Expected: no errors in the new files.
 
-- [ ] **Step 18.8: Run frontend tests**
+- [x] **Step 18.8: Run frontend tests**
 
 Run: `npm test`
 Expected: all tests including `metadata-edit-form.test.tsx` PASS.
 
-- [ ] **Step 18.9: Pause for commit**
+- [x] **Step 18.9: Pause for commit**
 
 Proposed message: `feat(frontend): Flow and Component Management admin page`.
 
@@ -2863,7 +2863,7 @@ Proposed message: `feat(frontend): Flow and Component Management admin page`.
 **Files:**
 - Create: `src/frontend/src/pages/SettingsPage/pages/MetadataPage/__tests__/components-tab.test.tsx`
 
-- [ ] **Step 19.1: Write the test**
+- [x] **Step 19.1: Write the test**
 
 Create the test file:
 
@@ -2919,12 +2919,12 @@ describe("ComponentsTab", () => {
 });
 ```
 
-- [ ] **Step 19.2: Run to verify pass**
+- [x] **Step 19.2: Run to verify pass**
 
 Run: `npm test -- components-tab`
 Expected: PASS.
 
-- [ ] **Step 19.3: Pause for commit**
+- [x] **Step 19.3: Pause for commit**
 
 Proposed message: `test(frontend): components tab orphan rendering`.
 
@@ -2934,11 +2934,11 @@ Proposed message: `test(frontend): components tab orphan rendering`.
 
 After all automated tests pass, walk through this checklist. **Do not commit in this task** — it's a validation gate.
 
-- [ ] **Step 20.1: Dev server boots**
+- [x] **Step 20.1: Dev server boots**
 
 Start both backend and frontend using your normal dev command. Confirm no import or migration errors.
 
-- [ ] **Step 20.2: Superuser route access**
+- [x] **Step 20.2: Superuser route access**
 
 Log in as a user with `is_superuser=True`. Navigate to `/settings/metadata`. Confirm:
 - Page renders with title "Flow and Component Management"
@@ -2946,7 +2946,7 @@ Log in as a user with `is_superuser=True`. Navigate to `/settings/metadata`. Con
 - Flows tab lists starter-project flows only
 - Components tab lists every component from the live catalog plus any rows previously authored
 
-- [ ] **Step 20.3: Non-superuser is blocked**
+- [x] **Step 20.3: Non-superuser is blocked**
 
 Log in as a non-superuser. Navigate to `/settings/metadata`. Confirm:
 - Redirected away from the page (to `/`)
@@ -2954,7 +2954,7 @@ Log in as a non-superuser. Navigate to `/settings/metadata`. Confirm:
 
 Hit `GET /api/v1/admin/metadata/templates` with a non-superuser token directly — expect HTTP 403.
 
-- [ ] **Step 20.4: Template metadata round-trip**
+- [x] **Step 20.4: Template metadata round-trip**
 
 In the Flows tab, click **Add** on a starter-project flow. Fill both textareas. Click **Save**. Confirm:
 - Success toast appears
@@ -2962,31 +2962,31 @@ In the Flows tab, click **Add** on a starter-project flow. Fill both textareas. 
 - Reopening the row shows the saved values
 - Clicking **Delete metadata** removes the row and the list flips back to "no metadata"
 
-- [ ] **Step 20.5: Component metadata round-trip**
+- [x] **Step 20.5: Component metadata round-trip**
 
 Same round-trip on the Components tab (e.g., for `Webhook`).
 
-- [ ] **Step 20.6: Orphan creation + removal**
+- [x] **Step 20.6: Orphan creation + removal**
 
 In the Components tab, use the filter box and the UI flow described in Task 18.3 to author metadata for a made-up name (e.g., `"UpcomingFeatureComponent"`). Confirm it appears with the orphan badge and a **Remove orphan** button. Click it; row goes away.
 
-- [ ] **Step 20.7: System-prompt injection**
+- [x] **Step 20.7: System-prompt injection**
 
 Author metadata for at least one starter template. Start a new ADP Assist conversation. Inspect the debug log (or add a print statement temporarily — remove before commit) for the assembled system prompt. Confirm the `## Available Templates` section lists the template with its summary.
 
-- [ ] **Step 20.8: `get_template_instructions` tool end-to-end**
+- [x] **Step 20.8: `get_template_instructions` tool end-to-end**
 
 In the same conversation, prompt the LLM: "Use the [Template Name] template." Confirm the LLM calls `get_template_instructions(flow_id=...)` and the result contains the full `agent_usage_notes` you authored.
 
-- [ ] **Step 20.9: Component metadata in catalog tools**
+- [x] **Step 20.9: Component metadata in catalog tools**
 
 Author metadata for `Webhook`. In the assistant conversation, ask: "What components do we have for receiving webhooks?" Confirm the LLM's reasoning references the `agent_summary` you authored (either in its reply or via a tool-call trace).
 
-- [ ] **Step 20.10: Flow delete cascades metadata**
+- [x] **Step 20.10: Flow delete cascades metadata**
 
 Delete a starter-project flow via the existing UI. Inspect the `template_metadata` table directly (e.g., `psql` or `sqlite3`) — the row for that flow should be gone.
 
-- [ ] **Step 20.11: Report findings**
+- [x] **Step 20.11: Report findings**
 
 Summarize the manual verification (pass/fail per step) back to the user. Do not mark the overall plan complete until every step passes.
 

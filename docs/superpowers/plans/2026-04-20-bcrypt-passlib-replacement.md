@@ -18,19 +18,19 @@
 
 Before starting Task 1, confirm working state:
 
-- [ ] **Branch check:** Confirm current branch is `platform-multi-tenant`.
+- [x] **Branch check:** Confirm current branch is `platform-multi-tenant`.
   ```bash
   git -C /Users/brycedeneen/dev/langflow rev-parse --abbrev-ref HEAD
   ```
   Expected: `platform-multi-tenant`
 
-- [ ] **Working tree state:** Confirm no unrelated uncommitted changes.
+- [x] **Working tree state:** Confirm no unrelated uncommitted changes.
   ```bash
   git -C /Users/brycedeneen/dev/langflow status --short
   ```
   Expected: only the spec/plan files under `docs/superpowers/`. If anything else, ask user.
 
-- [ ] **Baseline auth tests pass:** Confirm the auth test suite is green before refactoring.
+- [x] **Baseline auth tests pass:** Confirm the auth test suite is green before refactoring.
   ```bash
   cd /Users/brycedeneen/dev/langflow && uv run pytest src/backend/tests/unit/services/auth/test_auth_service.py -v
   ```
@@ -45,7 +45,7 @@ Before starting Task 1, confirm working state:
 **Files:**
 - Modify: `src/backend/tests/unit/services/auth/test_auth_service.py` (insert after the existing `test_password_helpers_roundtrip` at line 129)
 
-- [ ] **Step 1: Write the regression test**
+- [x] **Step 1: Write the regression test**
 
 Insert after `test_password_helpers_roundtrip` (around line 135):
 
@@ -60,14 +60,14 @@ def test_verify_legacy_passlib_hash(auth_service: AuthService):
     assert auth_service.verify_password("wrong-password", legacy_hash) is False
 ```
 
-- [ ] **Step 2: Run the test against current passlib implementation**
+- [x] **Step 2: Run the test against current passlib implementation**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow && uv run pytest src/backend/tests/unit/services/auth/test_auth_service.py::test_verify_legacy_passlib_hash -v
 ```
 Expected: PASS (proves the literal hash and the test mechanics are correct).
 
-- [ ] **Step 3: Stage and ask before committing**
+- [x] **Step 3: Stage and ask before committing**
 
 ```bash
 git -C /Users/brycedeneen/dev/langflow add src/backend/tests/unit/services/auth/test_auth_service.py
@@ -88,7 +88,7 @@ git -C /Users/brycedeneen/dev/langflow commit -m "test(auth): add legacy passlib
 - Create: `src/lfx/tests/unit/services/auth/test_password.py`
 - Reference (do not modify yet): `src/lfx/src/lfx/services/auth/__init__.py`
 
-- [ ] **Step 1: Verify the test directory shape**
+- [x] **Step 1: Verify the test directory shape**
 
 ```bash
 ls /Users/brycedeneen/dev/langflow/src/lfx/tests/unit/services/ 2>/dev/null || echo "MISSING"
@@ -102,7 +102,7 @@ mkdir -p /Users/brycedeneen/dev/langflow/src/lfx/tests/unit/services/auth
 
 If the `auth` subdirectory has no `__init__.py` and other lfx test subdirs use one, create an empty one. (Most pytest setups don't require it, but match the repo convention — check siblings first with `ls /Users/brycedeneen/dev/langflow/src/lfx/tests/unit/services/`.)
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 Create `src/lfx/tests/unit/services/auth/test_password.py`:
 
@@ -147,14 +147,14 @@ def test_verify_password_handles_unicode():
     assert verify_password(pw, hashed) is True
 ```
 
-- [ ] **Step 3: Run tests — verify they fail with import error**
+- [x] **Step 3: Run tests — verify they fail with import error**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow && uv run pytest src/lfx/tests/unit/services/auth/test_password.py -v
 ```
 Expected: FAIL with `ModuleNotFoundError: No module named 'lfx.services.auth.password'`.
 
-- [ ] **Step 4: Implement the module**
+- [x] **Step 4: Implement the module**
 
 Create `src/lfx/src/lfx/services/auth/password.py`:
 
@@ -188,7 +188,7 @@ def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
 ```
 
-- [ ] **Step 5: Run tests — verify they now pass**
+- [x] **Step 5: Run tests — verify they now pass**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow && uv run pytest src/lfx/tests/unit/services/auth/test_password.py -v
@@ -197,7 +197,7 @@ Expected: all 5 tests PASS.
 
 If any test fails: do not move on. Most likely cause is `bcrypt` 4.0.1 returning bytes/str differently than expected — read the actual error before fixing.
 
-- [ ] **Step 6: Stage and ask before committing**
+- [x] **Step 6: Stage and ask before committing**
 
 ```bash
 git -C /Users/brycedeneen/dev/langflow add src/lfx/src/lfx/services/auth/password.py src/lfx/tests/unit/services/auth/
@@ -217,7 +217,7 @@ git -C /Users/brycedeneen/dev/langflow commit -m "feat(auth): add direct-bcrypt 
 - Modify: `src/backend/base/langflow/services/auth/service.py:452-456`
 - Modify: `src/lfx/src/lfx/services/settings/auth.py` (delete line 6 import, delete line 134 `pwd_context` attribute)
 
-- [ ] **Step 1: Re-target `AuthService.verify_password` and `AuthService.get_password_hash`**
+- [x] **Step 1: Re-target `AuthService.verify_password` and `AuthService.get_password_hash`**
 
 In `src/backend/base/langflow/services/auth/service.py`, replace lines 452–456:
 
@@ -245,7 +245,7 @@ with:
 
 **Why local imports:** matches the existing local-import pattern visible elsewhere in this file (e.g., `service.py:459` imports from `langflow.services.auth.utils`) and avoids any chance of a circular import between `lfx.services.auth.*` and the langflow `AuthService`.
 
-- [ ] **Step 2: Delete `pwd_context` from `AuthSettings`**
+- [x] **Step 2: Delete `pwd_context` from `AuthSettings`**
 
 In `src/lfx/src/lfx/services/settings/auth.py`:
 
@@ -261,7 +261,7 @@ b) Delete line 134:
 
 (The blank line above and `model_config = ...` line below stay.)
 
-- [ ] **Step 3: Run the regression test from Task 1 — must still pass**
+- [x] **Step 3: Run the regression test from Task 1 — must still pass**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow && uv run pytest src/backend/tests/unit/services/auth/test_auth_service.py::test_verify_legacy_passlib_hash -v
@@ -270,14 +270,14 @@ Expected: PASS. This proves the legacy-hash compatibility survived the refactor.
 
 If FAIL: stop. Either the local import in Step 1 is wrong, or `bcrypt.checkpw` is rejecting the legacy hash format. Investigate before continuing.
 
-- [ ] **Step 4: Run the full auth test file — confirm no regressions**
+- [x] **Step 4: Run the full auth test file — confirm no regressions**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow && uv run pytest src/backend/tests/unit/services/auth/test_auth_service.py -v
 ```
 Expected: all tests PASS, including `test_password_helpers_roundtrip`, `test_authenticate_user_correct_password`, `test_authenticate_user_wrong_password`, and `test_verify_legacy_passlib_hash`.
 
-- [ ] **Step 5: Verify no source-code references to `pwd_context` or `passlib` remain**
+- [x] **Step 5: Verify no source-code references to `pwd_context` or `passlib` remain**
 
 Use the Grep tool (or `git grep` if doing this manually):
 
@@ -288,7 +288,7 @@ Expected: empty output. (Matches in `docs/`, `uv.lock`, and `pyproject.toml` fil
 
 If any source-code match remains, fix before continuing.
 
-- [ ] **Step 6: Stage and ask before committing**
+- [x] **Step 6: Stage and ask before committing**
 
 ```bash
 git -C /Users/brycedeneen/dev/langflow add src/backend/base/langflow/services/auth/service.py src/lfx/src/lfx/services/settings/auth.py
@@ -307,14 +307,14 @@ Ask user: *"AuthService rewired to direct bcrypt, `pwd_context` deleted, all aut
 - Modify: `src/lfx/pyproject.toml:33` (main deps)
 - Regenerate: `uv.lock`, `src/backend/base/uv.lock`
 
-- [ ] **Step 1: Edit root `pyproject.toml`**
+- [x] **Step 1: Edit root `pyproject.toml`**
 
 Remove this line (currently line 40):
 ```
     "types-passlib>=1.7.7.13",
 ```
 
-- [ ] **Step 2: Edit `src/backend/base/pyproject.toml`**
+- [x] **Step 2: Edit `src/backend/base/pyproject.toml`**
 
 In the main `dependencies = [...]` block, remove:
 ```
@@ -336,7 +336,7 @@ In the `[dependency-groups].dev` block (around line 120), remove:
     "types-passlib>=1.7.7.13",
 ```
 
-- [ ] **Step 3: Edit `src/lfx/pyproject.toml`**
+- [x] **Step 3: Edit `src/lfx/pyproject.toml`**
 
 In the main `dependencies = [...]` block, remove:
 ```
@@ -348,28 +348,28 @@ Add (alphabetically near the top of the list, e.g., after `aiofiles`):
     "bcrypt>=5.0,<6",
 ```
 
-- [ ] **Step 4: Regenerate the root lockfile**
+- [x] **Step 4: Regenerate the root lockfile**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow && uv lock
 ```
 Expected: completes without error. May take 30–90 seconds.
 
-- [ ] **Step 5: Regenerate the backend-base lockfile**
+- [x] **Step 5: Regenerate the backend-base lockfile**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/src/backend/base && uv lock
 ```
 Expected: completes without error.
 
-- [ ] **Step 6: Sync the environment with the new locks**
+- [x] **Step 6: Sync the environment with the new locks**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow && uv sync
 ```
 Expected: `passlib` is uninstalled; `bcrypt` upgraded to 5.x.
 
-- [ ] **Step 7: Verify passlib is fully purged**
+- [x] **Step 7: Verify passlib is fully purged**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow && uv pip list 2>/dev/null | grep -iE "passlib|bcrypt"
@@ -381,28 +381,28 @@ cd /Users/brycedeneen/dev/langflow && uv tree 2>/dev/null | grep -B5 passlib
 
 If a transitive dep pulls passlib, document it (do not block the merge — the goal is removing our *direct* passlib usage). If it's in the lockfile only as a stale artifact, re-run `uv lock --upgrade-package passlib` (it'll drop since nothing requires it).
 
-- [ ] **Step 8: Confirm passlib references in source are also gone**
+- [x] **Step 8: Confirm passlib references in source are also gone**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow && git grep -nE "passlib" -- 'src/' 'pyproject.toml' '*/pyproject.toml' ':!uv.lock' ':!*/uv.lock'
 ```
 Expected: empty output.
 
-- [ ] **Step 9: Re-run the full auth test suite under the new bcrypt 5.x**
+- [x] **Step 9: Re-run the full auth test suite under the new bcrypt 5.x**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow && uv run pytest src/backend/tests/unit/services/auth/ src/lfx/tests/unit/services/auth/ -v
 ```
 Expected: all tests PASS, including `test_verify_legacy_passlib_hash` (proves bcrypt 5.x verifies passlib-1.7.4-generated hashes).
 
-- [ ] **Step 10: Run the broader user/auth-adjacent test suite to catch indirect breakage**
+- [x] **Step 10: Run the broader user/auth-adjacent test suite to catch indirect breakage**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow && uv run pytest src/backend/tests/unit/test_user.py src/backend/tests/unit/test_setup_superuser.py -v
 ```
 Expected: all tests PASS (these exercise password reset and superuser creation, which go through `AuthService`).
 
-- [ ] **Step 11: Stage and ask before committing**
+- [x] **Step 11: Stage and ask before committing**
 
 ```bash
 git -C /Users/brycedeneen/dev/langflow add pyproject.toml src/backend/base/pyproject.toml src/lfx/pyproject.toml uv.lock src/backend/base/uv.lock
@@ -414,21 +414,21 @@ Ask user: *"passlib removed from all 4 dep declarations, bcrypt bumped to 5.x, b
 
 ## Task 5: Final verification
 
-- [ ] **Step 1: Confirm zero passlib references anywhere outside docs**
+- [x] **Step 1: Confirm zero passlib references anywhere outside docs**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow && git grep -nE "passlib|pwd_context|CryptContext" -- ':!docs/' ':!*.lock'
 ```
 Expected: empty.
 
-- [ ] **Step 2: Confirm bcrypt is the only password-related dependency**
+- [x] **Step 2: Confirm bcrypt is the only password-related dependency**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow && uv pip list 2>/dev/null | grep -iE "bcrypt|passlib|argon"
 ```
 Expected: only `bcrypt 5.x`.
 
-- [ ] **Step 3: Smoke-test the API surface**
+- [x] **Step 3: Smoke-test the API surface**
 
 Quick interactive sanity check from the project root:
 
@@ -454,7 +454,7 @@ print('OK: bcrypt direct + AuthService wrappers + legacy compat all working')
 ```
 Expected: prints `OK: ...`.
 
-- [ ] **Step 4: Final state report**
+- [x] **Step 4: Final state report**
 
 Report to user:
 - Files changed (rough count)

@@ -78,7 +78,7 @@
 - Modify: `src/lfx/src/lfx/io/__init__.py` (re-export)
 - Test: `src/lfx/tests/unit/inputs/test_mapping_input.py` (new)
 
-- [ ] **Step 1: Failing tests**
+- [x] **Step 1: Failing tests**
 
 Create `src/lfx/tests/unit/inputs/test_mapping_input.py`:
 
@@ -104,7 +104,7 @@ def test_mapping_input_is_reexported_from_lfx_io():
     assert ReexportedMappingInput is inputs_module.MappingInput
 ```
 
-- [ ] **Step 2: Verify failure**
+- [x] **Step 2: Verify failure**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/inputs/test_mapping_input.py -v
@@ -112,7 +112,7 @@ cd src/lfx && uv run pytest tests/unit/inputs/test_mapping_input.py -v
 
 Expected: FAIL — `AttributeError: MAPPING` (or `MappingInput` not found).
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `src/lfx/src/lfx/inputs/input_mixin.py:18` (FieldTypes enum), add the new entry alphabetically (kept with existing string-enum pattern):
 
@@ -137,7 +137,7 @@ Mixin imports follow whatever pattern `CodeInput` uses — likely already in sco
 
 In `src/lfx/src/lfx/io/__init__.py`, find the existing `CodeInput` re-export and add `MappingInput` in the same place (both the `from lfx.inputs.inputs import ...` block and the `__all__` list, alphabetical).
 
-- [ ] **Step 4: Verify passes**
+- [x] **Step 4: Verify passes**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/inputs/test_mapping_input.py -v
@@ -145,7 +145,7 @@ cd src/lfx && uv run pytest tests/unit/inputs/test_mapping_input.py -v
 
 Expected: all 3 PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/inputs/input_mixin.py \
@@ -165,7 +165,7 @@ HEREDOC + Co-Authored-By trailer.
 - Modify: `src/lfx/src/lfx/components/processing/data_mapper.py`
 - Modify: `src/lfx/tests/unit/components/processing/test_data_mapper_component.py`
 
-- [ ] **Step 1: Append failing assertions to the component tests**
+- [x] **Step 1: Append failing assertions to the component tests**
 
 Add three tests to `test_data_mapper_component.py`:
 
@@ -186,7 +186,7 @@ def test_component_changelog_has_two_entries():
     assert DataMapperComponent.changelog[-1].notes is not None
 ```
 
-- [ ] **Step 2: Verify failure**
+- [x] **Step 2: Verify failure**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_component.py -v
@@ -194,7 +194,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_co
 
 Expected: the three new assertions FAIL (still using `CodeInput`; `version == 1`; one-entry changelog).
 
-- [ ] **Step 3: Implement the migration**
+- [x] **Step 3: Implement the migration**
 
 In `src/lfx/src/lfx/components/processing/data_mapper.py`:
 
@@ -224,7 +224,7 @@ In `src/lfx/src/lfx/components/processing/data_mapper.py`:
    ]
    ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_component.py -v
@@ -233,7 +233,7 @@ cd src/lfx && LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest tests/unit/custom/test_com
 
 Both suites must pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/data_mapper.py \
@@ -249,7 +249,7 @@ git commit -m "feat(lfx/data_mapper): migrate mapping_config to MappingInput (v2
 - Modify: `src/backend/base/langflow/api/v1/<validate-file>.py` (find at plan time — the file containing the existing `/validate/code` handler)
 - Create: `src/backend/tests/unit/api/test_mapping_config_endpoints.py`
 
-- [ ] **Step 1: Locate the sibling endpoint**
+- [x] **Step 1: Locate the sibling endpoint**
 
 ```bash
 grep -rn "validate.*code\|/validate/code" /Users/brycedeneen/dev/langflow/src/backend/base/langflow/api/v1/ | head -5
@@ -257,7 +257,7 @@ grep -rn "validate.*code\|/validate/code" /Users/brycedeneen/dev/langflow/src/ba
 
 Open the file(s) mentioned and confirm which hosts the existing code-validation route — new endpoint colocates there. Common location: `validate.py` or `endpoints.py`.
 
-- [ ] **Step 2: Failing test**
+- [x] **Step 2: Failing test**
 
 Create `src/backend/tests/unit/api/test_mapping_config_endpoints.py`:
 
@@ -342,7 +342,7 @@ async def test_validate_mapping_config_requires_auth(client: AsyncClient):
 
 Note: adjust the `client` / `logged_in_headers` fixture names to match whatever the backend test suite uses (grep existing endpoint tests in `src/backend/tests/unit/api/` for the pattern).
 
-- [ ] **Step 3: Verify failure**
+- [x] **Step 3: Verify failure**
 
 ```bash
 cd src/backend && uv run pytest tests/unit/api/test_mapping_config_endpoints.py -v
@@ -350,7 +350,7 @@ cd src/backend && uv run pytest tests/unit/api/test_mapping_config_endpoints.py 
 
 Expected: 4 tests FAIL with 404.
 
-- [ ] **Step 4: Implement the endpoint**
+- [x] **Step 4: Implement the endpoint**
 
 Inside the validate file identified in Step 1, append:
 
@@ -387,7 +387,7 @@ Implementation notes:
 - `raise HTTPException(status_code=422, detail={"errors": [...]})` — FastAPI serializes `detail` as the response body, but clients often receive `{"detail": {"errors": [...]}}`. Verify against the failing-test expected shape; if the client strips the wrapper, unpack accordingly. Alternative: return a `JSONResponse(status_code=422, content={"errors": [...]})` to control the shape precisely.
 - The 4xx-vs-envelope choice must match the test expectations. Reconcile before calling DONE.
 
-- [ ] **Step 5: Verify passes**
+- [x] **Step 5: Verify passes**
 
 ```bash
 cd src/backend && uv run pytest tests/unit/api/test_mapping_config_endpoints.py -v
@@ -395,7 +395,7 @@ cd src/backend && uv run pytest tests/unit/api/test_mapping_config_endpoints.py 
 
 All 4 tests PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/<validate-file>.py \
@@ -411,7 +411,7 @@ git commit -m "feat(api): POST /utils/validate-mapping-config for Data Mapper mo
 - Modify: same file as Task 3
 - Modify: same test file as Task 3 (append tests)
 
-- [ ] **Step 1: Append failing tests**
+- [x] **Step 1: Append failing tests**
 
 Add to `test_mapping_config_endpoints.py`:
 
@@ -476,7 +476,7 @@ async def test_jsonschema_to_fields_malformed_returns_400(client: AsyncClient, l
         assert r.json() == {"fields": []}
 ```
 
-- [ ] **Step 2: Verify failure**
+- [x] **Step 2: Verify failure**
 
 ```bash
 cd src/backend && uv run pytest tests/unit/api/test_mapping_config_endpoints.py::test_jsonschema_to_fields_basic_object -v
@@ -484,7 +484,7 @@ cd src/backend && uv run pytest tests/unit/api/test_mapping_config_endpoints.py:
 
 Expected: 404.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Append to the same file as Task 3:
 
@@ -543,7 +543,7 @@ async def jsonschema_to_fields(
     return {"fields": fields}
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 ```bash
 cd src/backend && uv run pytest tests/unit/api/test_mapping_config_endpoints.py -v
@@ -551,7 +551,7 @@ cd src/backend && uv run pytest tests/unit/api/test_mapping_config_endpoints.py 
 
 All 7 tests PASS (4 from Task 3 + 3 new).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/<validate-file>.py \
@@ -568,7 +568,7 @@ git commit -m "feat(api): POST /utils/jsonschema-to-fields for Data Mapper modal
 - Create: `src/frontend/src/controllers/API/queries/utils/use-post-jsonschema-to-fields.ts`
 - Possibly create or reuse: `src/frontend/src/controllers/API/queries/monitor/use-get-monitor-builds.ts`
 
-- [ ] **Step 1: Check for an existing monitor-builds hook**
+- [x] **Step 1: Check for an existing monitor-builds hook**
 
 ```bash
 grep -rln "monitor/builds\|useGetMonitorBuilds\|VertexBuildTable" /Users/brycedeneen/dev/langflow/src/frontend/src/controllers/API/ | head -5
@@ -576,7 +576,7 @@ grep -rln "monitor/builds\|useGetMonitorBuilds\|VertexBuildTable" /Users/brycede
 
 If a hook exists, note the import path and reuse in Task 8. If not, create it in Step 3 below.
 
-- [ ] **Step 2: Write validate-mapping-config hook**
+- [x] **Step 2: Write validate-mapping-config hook**
 
 Create `src/frontend/src/controllers/API/queries/utils/use-post-validate-mapping-config.ts`:
 
@@ -620,7 +620,7 @@ export function usePostValidateMappingConfig(): UseMutationResult<
 }
 ```
 
-- [ ] **Step 3: Write jsonschema-to-fields hook**
+- [x] **Step 3: Write jsonschema-to-fields hook**
 
 Create `src/frontend/src/controllers/API/queries/utils/use-post-jsonschema-to-fields.ts`:
 
@@ -654,11 +654,11 @@ export function usePostJsonSchemaToFields(): UseMutationResult<
 }
 ```
 
-- [ ] **Step 4: (If needed) Write monitor-builds hook**
+- [x] **Step 4: (If needed) Write monitor-builds hook**
 
 Only if Step 1 showed no existing hook. Create `src/frontend/src/controllers/API/queries/monitor/use-get-monitor-builds.ts` following the same pattern (query hook, `useQuery`, path `/monitor/builds?flow_id={flowId}`). Use `isPending` not `isLoading` per project convention.
 
-- [ ] **Step 5: Confirm `UTILS` key exists in `getURL`**
+- [x] **Step 5: Confirm `UTILS` key exists in `getURL`**
 
 ```bash
 grep -n "UTILS\|VALIDATE" /Users/brycedeneen/dev/langflow/src/frontend/src/controllers/API/helpers/constants.ts | head -5
@@ -666,7 +666,7 @@ grep -n "UTILS\|VALIDATE" /Users/brycedeneen/dev/langflow/src/frontend/src/contr
 
 If `UTILS` isn't in the URL constants table, add an entry mapping to `/api/v1/utils/{1}`. Model after the existing `VALIDATE` entry (which maps to `/api/v1/validate/{1}`).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/frontend/src/controllers/API/queries/utils/ \
@@ -684,7 +684,7 @@ git commit -m "feat(frontend): add React Query hooks for mapping-config + jsonsc
 **Files:**
 - Create: `src/frontend/src/modals/dataMapperModal/types.ts`
 
-- [ ] **Step 1: Write the types file**
+- [x] **Step 1: Write the types file**
 
 ```typescript
 // Mirror of src/lfx/src/lfx/components/processing/_data_mapper/config_schema.py.
@@ -756,7 +756,7 @@ export const EMPTY_MAPPER_CONFIG: MapperConfig = {
 };
 ```
 
-- [ ] **Step 2: Smoke-check it compiles**
+- [x] **Step 2: Smoke-check it compiles**
 
 ```bash
 cd src/frontend && npx tsc --noEmit src/modals/dataMapperModal/types.ts 2>&1 | head -5
@@ -764,7 +764,7 @@ cd src/frontend && npx tsc --noEmit src/modals/dataMapperModal/types.ts 2>&1 | h
 
 Expected: no output (tsc is silent on success).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/frontend/src/modals/dataMapperModal/types.ts
@@ -779,7 +779,7 @@ git commit -m "feat(frontend/data-mapper): add TS types mirroring MapperConfig"
 - Create: `src/frontend/src/modals/dataMapperModal/util/configBuilder.ts`
 - Create: `src/frontend/tests/unit/dataMapperModal/configBuilder.test.ts`
 
-- [ ] **Step 1: Failing tests**
+- [x] **Step 1: Failing tests**
 
 Create `src/frontend/tests/unit/dataMapperModal/configBuilder.test.ts`:
 
@@ -852,7 +852,7 @@ test("addJoinKey / setJoinKey / removeJoinKey operate on the target input", () =
 });
 ```
 
-- [ ] **Step 2: Verify failure**
+- [x] **Step 2: Verify failure**
 
 ```bash
 cd src/frontend && npx jest tests/unit/dataMapperModal/configBuilder.test.ts
@@ -860,7 +860,7 @@ cd src/frontend && npx jest tests/unit/dataMapperModal/configBuilder.test.ts
 
 Expected: module-not-found on `configBuilder`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `src/frontend/src/modals/dataMapperModal/util/configBuilder.ts`:
 
@@ -962,7 +962,7 @@ export function removeJoinKey(cfg: MapperConfig, alias: string, idx: number): Ma
 }
 ```
 
-- [ ] **Step 4: Verify passes**
+- [x] **Step 4: Verify passes**
 
 ```bash
 cd src/frontend && npx jest tests/unit/dataMapperModal/configBuilder.test.ts
@@ -970,7 +970,7 @@ cd src/frontend && npx jest tests/unit/dataMapperModal/configBuilder.test.ts
 
 All pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/frontend/src/modals/dataMapperModal/util/configBuilder.ts \
@@ -986,7 +986,7 @@ git commit -m "feat(frontend/data-mapper): add pure configBuilder utils"
 - Create: `src/frontend/src/modals/dataMapperModal/util/inferSampleFields.ts`
 - Create: `src/frontend/tests/unit/dataMapperModal/inferSampleFields.test.ts`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```typescript
 // src/frontend/tests/unit/dataMapperModal/inferSampleFields.test.ts
@@ -1038,13 +1038,13 @@ test("ISO datetime string infers datetime", () => {
 });
 ```
 
-- [ ] **Step 2: Verify failure**
+- [x] **Step 2: Verify failure**
 
 ```bash
 cd src/frontend && npx jest tests/unit/dataMapperModal/inferSampleFields.test.ts
 ```
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```typescript
 // src/frontend/src/modals/dataMapperModal/util/inferSampleFields.ts
@@ -1085,7 +1085,7 @@ export function inferSampleFields(sample: unknown): FieldDef[] {
 }
 ```
 
-- [ ] **Step 4: Verify + Commit**
+- [x] **Step 4: Verify + Commit**
 
 Tests pass.
 
@@ -1102,7 +1102,7 @@ git commit -m "feat(frontend/data-mapper): add client-side sample-JSON field inf
 **Files:**
 - Create: `src/frontend/src/modals/dataMapperModal/hooks/useVertexBuildShapes.ts`
 
-- [ ] **Step 1: Implement**
+- [x] **Step 1: Implement**
 
 ```typescript
 // Consumes the existing /monitor/builds query and extracts a `{alias: FieldDef[] | null}` map
@@ -1159,11 +1159,11 @@ export function useVertexBuildShapes({ flowId, upstreams }: UseVertexBuildShapes
 
 **Note:** the exact monitor-builds hook name and response shape must be resolved from Task 5 Step 1. If the existing hook's response format is different (e.g. `{vertex_builds: {...}}` instead of direct map), adjust indexing here. The important invariant is: given a vertex ID, return the latest build's `data` values.
 
-- [ ] **Step 2: No unit test (integration-covered by modal playwright e2e)**
+- [x] **Step 2: No unit test (integration-covered by modal playwright e2e)**
 
 This hook only aggregates existing data; Jest mocking of react-query is possible but low value. Leave the coverage to the e2e test.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/frontend/src/modals/dataMapperModal/hooks/useVertexBuildShapes.ts
@@ -1178,7 +1178,7 @@ git commit -m "feat(frontend/data-mapper): derive upstream field shapes from mon
 - Create: `src/frontend/src/modals/dataMapperModal/components/SchemaSourceTabs.tsx`
 - Create: `src/frontend/tests/unit/dataMapperModal/SchemaSourceTabs.test.tsx`
 
-- [ ] **Step 1: Failing render test**
+- [x] **Step 1: Failing render test**
 
 ```tsx
 import { render, screen, fireEvent } from "@testing-library/react";
@@ -1220,7 +1220,7 @@ test("paste-sample tab renders a textarea", () => {
 });
 ```
 
-- [ ] **Step 2: Verify failure + implement**
+- [x] **Step 2: Verify failure + implement**
 
 ```tsx
 // src/frontend/src/modals/dataMapperModal/components/SchemaSourceTabs.tsx
@@ -1316,7 +1316,7 @@ export function SchemaSourceTabs(props: SchemaSourceTabsProps) {
 }
 ```
 
-- [ ] **Step 3: Verify passes + Commit**
+- [x] **Step 3: Verify passes + Commit**
 
 ```bash
 git add src/frontend/src/modals/dataMapperModal/components/SchemaSourceTabs.tsx \
@@ -1332,7 +1332,7 @@ git commit -m "feat(frontend/data-mapper): add SchemaSourceTabs subcomponent"
 - Create: `src/frontend/src/modals/dataMapperModal/components/JoinKeyEditor.tsx`
 - Create: `src/frontend/tests/unit/dataMapperModal/JoinKeyEditor.test.tsx`
 
-- [ ] **Step 1: Tests + implementation**
+- [x] **Step 1: Tests + implementation**
 
 Tests cover: renders N rows = keys.length, clicking "Add another key" appends one, changing a dropdown calls setJoinKey, clicking "Remove" calls removeJoinKey (last key can't be removed — minimum 1).
 
@@ -1350,7 +1350,7 @@ Implementation: driver-field dropdown is populated from driver's detected fields
 - Create: `src/frontend/src/modals/dataMapperModal/components/TransformCell.tsx`
 - Create: `src/frontend/tests/unit/dataMapperModal/TransformCell.test.tsx`
 
-- [ ] **Step 1: Tests**
+- [x] **Step 1: Tests**
 
 Tests cover each transform type's expected inline UI:
 - `direct`: renders a source-field picker (input alias dropdown + field dropdown)
@@ -1362,7 +1362,7 @@ Tests cover each transform type's expected inline UI:
 
 Each onChange dispatches the appropriate config / sources mutation.
 
-- [ ] **Step 2: Implementation**
+- [x] **Step 2: Implementation**
 
 Component accepts `{mapping: MappingEntry, inputs: InputDef[], onMappingChange: (m: MappingEntry) => void}`. Switches on `mapping.transform` to render the right inline editor. Inline editors are self-contained; they compute the new MappingEntry and call `onMappingChange`.
 
@@ -1381,7 +1381,7 @@ Top bar: lists each connected upstream input as a card. Per card:
 - `SchemaSourceTabs` (from Task 10)
 - `JoinKeyEditor` (from Task 11; hidden on the driver card)
 
-- [ ] **Step 1: Compose**
+- [x] **Step 1: Compose**
 
 This task is mostly composition + layout. No new logic. No standalone unit tests — covered by e2e.
 
@@ -1400,7 +1400,7 @@ Columns: `Destination field`, `Type`, `Required`, `Transform`, `Source / Config`
 - Below the table: an "+ Add field" button (opens an inline form with name / type / required / default, appends via `addDestinationField`).
 - Error chips on rows whose destination is in the current validation error path.
 
-- [ ] **Step 1: Implement, compose, commit**
+- [x] **Step 1: Implement, compose, commit**
 
 **Commit message:** `feat(frontend/data-mapper): assemble DestinationTable`
 
@@ -1422,7 +1422,7 @@ Root component wires everything:
 
 README documents the `suggestionsSlot` extension seam for the assistant team.
 
-- [ ] **Step 1: Implement + commit**
+- [x] **Step 1: Implement + commit**
 
 **Commit message:** `feat(frontend/data-mapper): add DataMapperModal shell`
 
@@ -1439,7 +1439,7 @@ Renders:
 - A small summary chip below the button (e.g. `driver: workers`).
 - Click opens `DataMapperModal`, passing the current value + `onChange` that writes back to the component field.
 
-- [ ] **Step 1: Implement + register**
+- [x] **Step 1: Implement + register**
 
 Add case in `parameterRenderComponent/index.tsx` switch:
 
@@ -1450,7 +1450,7 @@ case "MappingInput":
 
 (Exact line placement: match the alphabetical ordering already in use for the `case` arms.)
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 **Commit message:** `feat(frontend/data-mapper): register MappingInput → MappingComponent renderer`
 
@@ -1461,7 +1461,7 @@ case "MappingInput":
 **Files:**
 - Create: `src/frontend/tests/core/unit/dataMapperModal.spec.ts`
 
-- [ ] **Step 1: Write the spec**
+- [x] **Step 1: Write the spec**
 
 Scenarios:
 1. Happy path: add Data Mapper, connect two upstreams (existing starter flow or quick seed), open modal, set driver, add one join key, define one destination field with direct mapping, save, verify the node's serialized `mapping_config` value contains the expected JSON.
@@ -1471,7 +1471,7 @@ Scenarios:
 
 Follow the pattern of `src/frontend/tests/core/unit/codeAreaModalComponent.spec.ts` for bootstrap + modal interaction helpers.
 
-- [ ] **Step 2: Run locally against a dev server**
+- [x] **Step 2: Run locally against a dev server**
 
 ```bash
 cd src/frontend && npx playwright test tests/core/unit/dataMapperModal.spec.ts
@@ -1479,7 +1479,7 @@ cd src/frontend && npx playwright test tests/core/unit/dataMapperModal.spec.ts
 
 All scenarios green.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 **Commit message:** `test(frontend/data-mapper): playwright e2e for modal configuration`
 
@@ -1490,13 +1490,13 @@ All scenarios green.
 **Files:**
 - Modify: `src/lfx/src/lfx/_assets/component_index.json`
 
-- [ ] **Step 1: Rebuild**
+- [x] **Step 1: Rebuild**
 
 ```bash
 uv run python scripts/build_component_index.py
 ```
 
-- [ ] **Step 2: Verify version bump landed**
+- [x] **Step 2: Verify version bump landed**
 
 ```bash
 grep -c '"version": 2' src/lfx/src/lfx/_assets/component_index.json
@@ -1504,7 +1504,7 @@ grep -c '"version": 2' src/lfx/src/lfx/_assets/component_index.json
 
 Expected: at least one match (the DataMapper entry now shows version 2).
 
-- [ ] **Step 3: Commit only the index file**
+- [x] **Step 3: Commit only the index file**
 
 ```bash
 git add src/lfx/src/lfx/_assets/component_index.json
@@ -1519,7 +1519,7 @@ git commit -m "chore(lfx): rebuild component index for DataMapperComponent v2"
 
 **Files:** none (verification).
 
-- [ ] **Step 1: Backend unit tests (data_mapper + new endpoints)**
+- [x] **Step 1: Backend unit tests (data_mapper + new endpoints)**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/ -v -k data_mapper
@@ -1530,7 +1530,7 @@ cd src/lfx && LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest tests/unit/custom/test_com
 
 All green.
 
-- [ ] **Step 2: Frontend unit tests**
+- [x] **Step 2: Frontend unit tests**
 
 ```bash
 cd src/frontend && npx jest tests/unit/dataMapperModal/
@@ -1538,7 +1538,7 @@ cd src/frontend && npx jest tests/unit/dataMapperModal/
 
 All green.
 
-- [ ] **Step 3: Playwright**
+- [x] **Step 3: Playwright**
 
 ```bash
 cd src/frontend && npx playwright test tests/core/unit/dataMapperModal.spec.ts
@@ -1546,7 +1546,7 @@ cd src/frontend && npx playwright test tests/core/unit/dataMapperModal.spec.ts
 
 All green.
 
-- [ ] **Step 4 (human-in-the-loop): dev server smoke**
+- [x] **Step 4 (human-in-the-loop): dev server smoke**
 
 ```bash
 LFX_DEV=1 make run_cli
@@ -1554,7 +1554,7 @@ LFX_DEV=1 make run_cli
 
 Open a flow, add Data Mapper (now shows version 2), connect two upstreams, open the modal, configure one mapping, save, run the flow. Confirm the mapping runs end-to-end.
 
-- [ ] **Step 5: No commit — verification only.**
+- [x] **Step 5: No commit — verification only.**
 
 ---
 

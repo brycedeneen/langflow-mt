@@ -60,7 +60,7 @@ If Phase 1 finds "no changes needed" for a file, it stays untouched.
 - Read: `docs/superpowers/specs/2026-04-20-pandas-3.0-upgrade-report.md`
 - No edits in this task.
 
-- [ ] **Step 1: Verify pandas 3.0 baseline is committed**
+- [x] **Step 1: Verify pandas 3.0 baseline is committed**
 
 Run from repo root:
 
@@ -72,7 +72,7 @@ Expected: commit `6c295a70dc` ("bump pandas 2.3 -> 3.0, raise Python floor to 3.
 
 If that commit is not present, **stop and ask the user**.
 
-- [ ] **Step 2: Create dedicated worktree**
+- [x] **Step 2: Create dedicated worktree**
 
 ```bash
 git -C /Users/brycedeneen/dev/langflow worktree add -b docling-ecosystem-bump ../langflow-docling-bump platform-multi-tenant
@@ -82,7 +82,7 @@ Expected: worktree created at `/Users/brycedeneen/dev/langflow-docling-bump` on 
 
 All remaining tasks run inside that worktree. Every later `pwd`-sensitive command in this plan assumes you `cd` into the worktree first — or use `git -C <worktree> ...` and absolute paths.
 
-- [ ] **Step 3: Confirm installed docling baseline**
+- [x] **Step 3: Confirm installed docling baseline**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && uv run --all-extras python -c "import docling, docling_core, docling_parse, docling_ibm_models, langchain_docling; print(docling.__version__, docling_core.__version__, docling_parse.__version__, docling_ibm_models.__version__, langchain_docling.__version__)"
@@ -92,7 +92,7 @@ Expected: `2.70.x 2.60.x 4.7.x 3.12.x 1.1.x` (or close to those — exact patch 
 
 Record the exact versions in a scratch note — they are the "before" state for the final report.
 
-- [ ] **Step 4: Confirm rapidocr-onnxruntime baseline**
+- [x] **Step 4: Confirm rapidocr-onnxruntime baseline**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && uv run --all-extras python -c "import rapidocr_onnxruntime; print(rapidocr_onnxruntime.__version__)"
@@ -118,7 +118,7 @@ Expected: `ModuleNotFoundError: No module named 'rapidocr'` (the new package is 
 
 The goal of Phase 1 is to produce a **fixed per-file triage list** before touching pins. No code edits in this phase.
 
-- [ ] **Step 1: Fetch docling CHANGELOG 2.70 → 2.90**
+- [x] **Step 1: Fetch docling CHANGELOG 2.70 → 2.90**
 
 Use WebFetch against `https://github.com/docling-project/docling/blob/main/CHANGELOG.md` (or the raw version). Extract every `Breaking`, `Removed`, `Deprecated`, `Renamed` entry between v2.70.0 and v2.90.0 inclusive.
 
@@ -130,23 +130,23 @@ mkdir -p /tmp/docling-audit && touch /tmp/docling-audit/docling-2.70-to-2.90.md
 
 Populate it with bullet points per breaking/deprecated/renamed item, including the version and the affected symbol.
 
-- [ ] **Step 2: Fetch docling-core CHANGELOG 2.60 → 2.74**
+- [x] **Step 2: Fetch docling-core CHANGELOG 2.60 → 2.74**
 
 Same process against `https://github.com/docling-project/docling-core/blob/main/CHANGELOG.md`. Record into `/tmp/docling-audit/docling-core-2.60-to-2.74.md`.
 
 Focus: `DoclingDocument`, chunking (`HybridChunker`, `HierarchicalChunker`, `HuggingFaceTokenizer`, `OpenAITokenizer`), and `ImageRefMode`, since those are the symbols used in our code.
 
-- [ ] **Step 3: Fetch docling-parse 4.x → 5.x notes**
+- [x] **Step 3: Fetch docling-parse 4.x → 5.x notes**
 
 Against `https://github.com/docling-project/docling-parse/blob/main/CHANGELOG.md`. This is the **major bump** (4 → 5) so has the highest risk. Record into `/tmp/docling-audit/docling-parse-4-to-5.md`.
 
 Docling-parse is a transitive — our code doesn't import it directly. The audit here is for understanding what docling 2.90 is asking for, not direct code fixes.
 
-- [ ] **Step 4: Fetch langchain-docling 1.x notes**
+- [x] **Step 4: Fetch langchain-docling 1.x notes**
 
 Against `https://github.com/langchain-ai/langchain-docling/blob/main/CHANGELOG.md`. We are capping at `<2.0`, so only confirm 1.1.x remains the latest 1.x tag.
 
-- [ ] **Step 5: Fetch rapidocr 3.x migration notes**
+- [x] **Step 5: Fetch rapidocr 3.x migration notes**
 
 Against `https://github.com/RapidAI/RapidOCR` and `https://rapidai.github.io/RapidOCRDocs/main/install_usage/rapidocr/usage/`. The legacy import is `rapidocr_onnxruntime`; the new package is `rapidocr` with a different top-level API. Confirm:
   - whether docling 2.90 invokes OCR through config (string-keyed factory) or through a direct `rapidocr_onnxruntime` import — our code uses `get_ocr_factory(allow_external_plugins=False).create_options(kind=ocr_engine)` in `docling_utils.py`, which is config-based
@@ -154,7 +154,7 @@ Against `https://github.com/RapidAI/RapidOCR` and `https://rapidai.github.io/Rap
 
 Record findings.
 
-- [ ] **Step 6: Grep our six files for direct rapidocr imports**
+- [x] **Step 6: Grep our six files for direct rapidocr imports**
 
 Use the Grep tool, pattern `rapidocr_onnxruntime|from rapidocr|import rapidocr`, paths:
 
@@ -169,13 +169,13 @@ src/lfx/src/lfx/components/files_and_knowledge/file.py
 
 Expected: **zero** direct imports (based on current inspection, OCR is invoked via docling's factory). If any match surfaces, add it to the per-file triage list as a fix.
 
-- [ ] **Step 7: Grep our six files for deprecated docling_core symbols**
+- [x] **Step 7: Grep our six files for deprecated docling_core symbols**
 
 Pull the list of `Deprecated` / `Renamed` items from Step 2 and grep each one across the six files. For any match, record:
   - file + line number
   - whether it's still-works-deprecated (leave alone, note for follow-up) or removed-broken (must fix)
 
-- [ ] **Step 8: Produce the per-file triage list**
+- [x] **Step 8: Produce the per-file triage list**
 
 Append to `/tmp/docling-audit/triage.md` one entry per file:
 
@@ -189,7 +189,7 @@ Append to `/tmp/docling-audit/triage.md` one entry per file:
 
 This is the work plan for Task 3. If Status is "fix required" for more than ~3 files, **stop and report**.
 
-- [ ] **Step 9: Pause for review**
+- [x] **Step 9: Pause for review**
 
 Share the triage list with the user. Proceed to Task 2 once acknowledged.
 
@@ -203,7 +203,7 @@ Share the triage list with the user. Proceed to Task 2 once acknowledged.
 
 Export is the purest smoke target: synchronous, no OCR, no worker process, no HTTP. Start here to validate the test plumbing before moving to the heavier components.
 
-- [ ] **Step 1: Create package marker**
+- [x] **Step 1: Create package marker**
 
 Write to `src/lfx/tests/unit/components/docling/__init__.py`:
 
@@ -212,7 +212,7 @@ Write to `src/lfx/tests/unit/components/docling/__init__.py`:
 
 (An empty file is correct — matches the pattern of other `__init__.py` files under `src/lfx/tests/unit/components/`.)
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 Write to `src/lfx/tests/unit/components/docling/test_export_docling_document.py`:
 
@@ -267,7 +267,7 @@ class TestExportDoclingDocumentSmoke:
         assert len(df) == 1
 ```
 
-- [ ] **Step 3: Run test against current (2.70) baseline**
+- [x] **Step 3: Run test against current (2.70) baseline**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && LFX_TEST_ALLOW_LANGFLOW=1 uv run --all-extras pytest src/lfx/tests/unit/components/docling/test_export_docling_document.py -v
@@ -275,7 +275,7 @@ cd /Users/brycedeneen/dev/langflow-docling-bump && LFX_TEST_ALLOW_LANGFLOW=1 uv 
 
 Expected: **all 5 parametrized cases PASS**. If any fail on the 2.70 baseline, the test is wrong — fix the test (not the component) before proceeding.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Pause and ask the user: "Phase 2 test for export is green on baseline. OK to commit?"
 
@@ -292,7 +292,7 @@ cd /Users/brycedeneen/dev/langflow-docling-bump && git add src/lfx/tests/unit/co
 **Files:**
 - Create: `src/lfx/tests/unit/components/docling/test_chunk_docling_document.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Write to `src/lfx/tests/unit/components/docling/test_chunk_docling_document.py`:
 
@@ -360,7 +360,7 @@ class TestChunkDoclingDocumentSmoke:
 
 Note: the Hugging Face path is intentionally excluded from this smoke test because `HuggingFaceTokenizer.from_pretrained(...)` downloads model weights, which is unacceptable for a unit test. The OpenAI path exercises the same upstream chunking code and only needs `tiktoken` locally.
 
-- [ ] **Step 2: Run test against current (2.70) baseline**
+- [x] **Step 2: Run test against current (2.70) baseline**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && LFX_TEST_ALLOW_LANGFLOW=1 uv run --all-extras pytest src/lfx/tests/unit/components/docling/test_chunk_docling_document.py -v
@@ -368,7 +368,7 @@ cd /Users/brycedeneen/dev/langflow-docling-bump && LFX_TEST_ALLOW_LANGFLOW=1 uv 
 
 Expected: **both tests PASS** on 2.70 baseline.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Pause and ask the user to commit.
 
@@ -385,7 +385,7 @@ cd /Users/brycedeneen/dev/langflow-docling-bump && git add src/lfx/tests/unit/co
 **Files:**
 - Create: `src/lfx/tests/unit/components/docling/test_docling_remote.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Write to `src/lfx/tests/unit/components/docling/test_docling_remote.py`:
 
@@ -491,7 +491,7 @@ class TestDoclingRemoteSmoke:
 
 Note on `BaseFileComponent.BaseFile` construction: if the real dataclass has different required fields than the shape shown above, the Phase 1 audit (Task 1 Step 6 grep area) will surface them — fix the test's construction to match before running.
 
-- [ ] **Step 2: Run test against current (2.70) baseline**
+- [x] **Step 2: Run test against current (2.70) baseline**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && LFX_TEST_ALLOW_LANGFLOW=1 uv run --all-extras pytest src/lfx/tests/unit/components/docling/test_docling_remote.py -v
@@ -501,7 +501,7 @@ Expected: **both tests PASS**.
 
 If the `BaseFile` construction fails (wrong kwargs), inspect `src/lfx/src/lfx/base/data/__init__.py` (or wherever `BaseFileComponent.BaseFile` is defined) and adjust the test — do not skip this step.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Pause and ask the user to commit.
 
@@ -520,7 +520,7 @@ cd /Users/brycedeneen/dev/langflow-docling-bump && git add src/lfx/tests/unit/co
 
 The inline component delegates to `docling_worker` running in a thread, which internally builds a `DocumentConverter`. Building a real converter takes 15–20 minutes on a cold cache — unacceptable for a unit test. We therefore mock `docling_worker` at the module boundary and verify the component's orchestration (thread start, queue drain, error mapping, rollup).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Write to `src/lfx/tests/unit/components/docling/test_docling_inline.py`:
 
@@ -605,7 +605,7 @@ class TestDoclingInlineSmoke:
         worker.assert_not_called()
 ```
 
-- [ ] **Step 2: Run test against current (2.70) baseline**
+- [x] **Step 2: Run test against current (2.70) baseline**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && LFX_TEST_ALLOW_LANGFLOW=1 uv run --all-extras pytest src/lfx/tests/unit/components/docling/test_docling_inline.py -v
@@ -613,7 +613,7 @@ cd /Users/brycedeneen/dev/langflow-docling-bump && LFX_TEST_ALLOW_LANGFLOW=1 uv 
 
 Expected: **all 3 tests PASS**. The third test (empty list) is the cheapest assertion that proves the top-of-function short-circuit works without touching docling imports.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Pause and ask the user to commit.
 
@@ -632,13 +632,13 @@ cd /Users/brycedeneen/dev/langflow-docling-bump && git add src/lfx/tests/unit/co
 
 If the Task 1 triage list had Status `no changes needed` for all six files, **skip this entire task** and proceed directly to Task 7.
 
-- [ ] **Step 1: Apply fixes per triage**
+- [x] **Step 1: Apply fixes per triage**
 
 For each file in the triage list with Status `fix required`, apply the per-line replacements recorded there. Use the Edit tool, one edit per symbol.
 
 Do not bundle unrelated refactors. A bug-fix plan is not the place to rename variables or restructure modules.
 
-- [ ] **Step 2: Re-run the 4 Phase 2 smoke tests on 2.70 baseline**
+- [x] **Step 2: Re-run the 4 Phase 2 smoke tests on 2.70 baseline**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && LFX_TEST_ALLOW_LANGFLOW=1 uv run --all-extras pytest src/lfx/tests/unit/components/docling/ -v
@@ -646,7 +646,7 @@ cd /Users/brycedeneen/dev/langflow-docling-bump && LFX_TEST_ALLOW_LANGFLOW=1 uv 
 
 Expected: **all tests still PASS** (the triage fixes should be forward-compatible edits that work under both 2.70 and 2.90; if a fix is 2.90-only, defer it to Task 8).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Pause and ask the user to commit the preemptive code fixes.
 
@@ -663,7 +663,7 @@ cd /Users/brycedeneen/dev/langflow-docling-bump && git add <files> && git commit
 **Files:**
 - Modify: `src/backend/base/pyproject.toml` (the `[project.optional-dependencies].docling` block, currently around lines 329–332)
 
-- [ ] **Step 1: Edit the docling block**
+- [x] **Step 1: Edit the docling block**
 
 Replace:
 
@@ -685,7 +685,7 @@ docling = [
 
 Leave the surrounding `easyocr = [...]` line and the `langflow-base[docling]` reference in the `complete` block untouched.
 
-- [ ] **Step 2: Verify edit**
+- [x] **Step 2: Verify edit**
 
 Use the Grep tool, pattern `docling-core|docling>=`, path `src/backend/base/pyproject.toml`, to confirm only the two intended lines changed.
 
@@ -696,7 +696,7 @@ Use the Grep tool, pattern `docling-core|docling>=`, path `src/backend/base/pypr
 **Files:**
 - Modify: `pyproject.toml` (lines ~102–112 and ~149–160)
 
-- [ ] **Step 1: Edit the docling optional-dependencies block**
+- [x] **Step 1: Edit the docling optional-dependencies block**
 
 Replace:
 
@@ -730,7 +730,7 @@ docling = [
 
 Changes: `langchain-docling` gets a `<2.0` cap, `rapidocr-onnxruntime>=1.4.4` becomes `rapidocr>=3.8,<4.0`.
 
-- [ ] **Step 2: Update the override-dependencies comment**
+- [x] **Step 2: Update the override-dependencies comment**
 
 In `pyproject.toml` around lines 150–160, find:
 
@@ -767,7 +767,7 @@ override-dependencies = [
 
 Rationale: docling 2.90 declares `pandas>=2.1.4,<4.0.0`, which already allows pandas 3.0. The override comment's docling entry is now obsolete.
 
-- [ ] **Step 3: Verify edits**
+- [x] **Step 3: Verify edits**
 
 Grep `pyproject.toml` for `docling|rapidocr|pandas` and confirm:
   - `rapidocr-onnxruntime` is no longer present
@@ -776,7 +776,7 @@ Grep `pyproject.toml` for `docling|rapidocr|pandas` and confirm:
   - The `docling (<3.0)` line inside the pandas override comment is gone
   - The `"pandas>=3.0,<4.0"` override itself remains (still needed for watsonx + cleanlab-tlm)
 
-- [ ] **Step 4: Remove the docling-specific pandas-3 smoke probe**
+- [x] **Step 4: Remove the docling-specific pandas-3 smoke probe**
 
 The file `src/backend/tests/unit/integration_smoke/test_pandas_3_overrides_docling.py` exists specifically to catch breakage of the docling override. With docling now at 2.90 which allows `pandas<4.0.0`, the override no longer applies to docling and the probe is redundant.
 
@@ -795,7 +795,7 @@ cd /Users/brycedeneen/dev/langflow-docling-bump && git rm src/backend/tests/unit
 **Files:**
 - Modify: `uv.lock`
 
-- [ ] **Step 1: Regenerate**
+- [x] **Step 1: Regenerate**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && uv lock
@@ -807,7 +807,7 @@ If `uv lock` fails with a resolver error:
   - If the error names a **non-docling** transitive (e.g., some random package caps `docling<2.80`), **stop and report** per the abort rule. Do not add more overrides without the user's sign-off.
   - If the error names `pandas` or another package in the existing override list, the override may need an additional line — check with the user.
 
-- [ ] **Step 2: Inspect lock delta**
+- [x] **Step 2: Inspect lock delta**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && git diff --stat uv.lock
@@ -827,7 +827,7 @@ Confirm the target versions are what the spec asks for.
 
 **Files:** none (runtime verification only).
 
-- [ ] **Step 1: Sync**
+- [x] **Step 1: Sync**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && uv sync --all-extras --dev
@@ -835,7 +835,7 @@ cd /Users/brycedeneen/dev/langflow-docling-bump && uv sync --all-extras --dev
 
 Expected: new wheels fetched for docling, docling-core, docling-parse, docling-ibm-models, rapidocr; `rapidocr-onnxruntime` removed.
 
-- [ ] **Step 2: Confirm versions**
+- [x] **Step 2: Confirm versions**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && uv run --all-extras python -c "import docling, docling_core, docling_parse, docling_ibm_models, langchain_docling, rapidocr; print(docling.__version__, docling_core.__version__, docling_parse.__version__, docling_ibm_models.__version__, langchain_docling.__version__, rapidocr.__version__)"
@@ -846,7 +846,7 @@ Expected output (exact patches may drift):
 2.90.x 2.74.x 5.x.x 3.13.x 1.1.x 3.7.x (or later)
 ```
 
-- [ ] **Step 3: Confirm rapidocr-onnxruntime is gone**
+- [x] **Step 3: Confirm rapidocr-onnxruntime is gone**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && uv run --all-extras python -c "import rapidocr_onnxruntime" 2>&1 | head -3
@@ -862,7 +862,7 @@ If the legacy package is still present, inspect `uv.lock` — another extra (not
 
 **Files:** none.
 
-- [ ] **Step 1: Run the four smoke tests**
+- [x] **Step 1: Run the four smoke tests**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && LFX_TEST_ALLOW_LANGFLOW=1 uv run --all-extras pytest src/lfx/tests/unit/components/docling/ -v
@@ -875,7 +875,7 @@ If a test fails:
   - If the failure is an OCR-factory change affecting the `"rapidocr"` string key — follow-up fix in `docling_utils.py` (e.g., remap the kind name).
   - Re-run until green.
 
-- [ ] **Step 2: Run the existing docling_utils tests**
+- [x] **Step 2: Run the existing docling_utils tests**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && LFX_TEST_ALLOW_LANGFLOW=1 uv run --all-extras pytest src/lfx/tests/unit/base/data/test_docling_utils.py -v
@@ -883,7 +883,7 @@ cd /Users/brycedeneen/dev/langflow-docling-bump && LFX_TEST_ALLOW_LANGFLOW=1 uv 
 
 Expected: all tests PASS. These cover the shared `extract_docling_documents` helper across Data / list[Data] / DataFrame inputs.
 
-- [ ] **Step 3: Run the existing UI-config test**
+- [x] **Step 3: Run the existing UI-config test**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && uv run --all-extras pytest src/backend/tests/unit/components/docling/test_chunk_docling_document_component.py -v
@@ -897,7 +897,7 @@ Expected: all tests PASS.
 
 **Files:** none.
 
-- [ ] **Step 1: Backend unit suite**
+- [x] **Step 1: Backend unit suite**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && uv run --all-extras pytest src/backend/tests/unit -x --timeout 300 2>&1 | tail -80
@@ -905,7 +905,7 @@ cd /Users/brycedeneen/dev/langflow-docling-bump && uv run --all-extras pytest sr
 
 Expected: pass, or the same set of pre-existing failures already documented in the pandas-3.0 upgrade report (`docs/superpowers/specs/2026-04-20-pandas-3.0-upgrade-report.md`). Anything new outside that list is docling-induced and must be investigated.
 
-- [ ] **Step 2: lfx unit suite**
+- [x] **Step 2: lfx unit suite**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow-docling-bump && LFX_TEST_ALLOW_LANGFLOW=1 uv run --all-extras pytest src/lfx/tests/unit -x --timeout 300 2>&1 | tail -80
@@ -913,7 +913,7 @@ cd /Users/brycedeneen/dev/langflow-docling-bump && LFX_TEST_ALLOW_LANGFLOW=1 uv 
 
 Expected: same rule — no new failures beyond the pandas-3.0 baseline.
 
-- [ ] **Step 3: Record deltas**
+- [x] **Step 3: Record deltas**
 
 If any tests fail that were green on the pandas-3.0 baseline, write them to `docs/superpowers/specs/2026-04-20-docling-ecosystem-bump-report.md` under a "New failures" heading with one-line diagnosis per test.
 
@@ -926,7 +926,7 @@ If any tests fail that were green on the pandas-3.0 baseline, write them to `doc
 - Delete (already): `src/backend/tests/unit/integration_smoke/test_pandas_3_overrides_docling.py`
 - Create: `docs/superpowers/specs/2026-04-20-docling-ecosystem-bump-report.md`
 
-- [ ] **Step 1: Write the final report**
+- [x] **Step 1: Write the final report**
 
 Write to `docs/superpowers/specs/2026-04-20-docling-ecosystem-bump-report.md`:
 
@@ -984,7 +984,7 @@ Write to `docs/superpowers/specs/2026-04-20-docling-ecosystem-bump-report.md`:
 
 Fill in the bracketed placeholders with real values from Tasks 1, 6, 9, 10, 12.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Pause and ask the user: "Docling bump is complete and verified. OK to commit the pyproject + lockfile changes and the final report?"
 
@@ -1000,7 +1000,7 @@ cd /Users/brycedeneen/dev/langflow-docling-bump && git add docs/superpowers/spec
 
 If the pandas-3 docling probe was removed, include that deletion in the first commit (`git add -u` picks it up, or add the path explicitly).
 
-- [ ] **Step 3: Announce completion**
+- [x] **Step 3: Announce completion**
 
 Report to user: worktree at `../langflow-docling-bump`, branch `docling-ecosystem-bump`, N commits ahead of `platform-multi-tenant`. Ask how they want to integrate (merge into `platform-multi-tenant`, keep worktree, etc.) — do not merge without instructions.
 

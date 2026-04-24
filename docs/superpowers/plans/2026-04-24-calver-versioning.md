@@ -42,7 +42,7 @@ TDD the pure function that does all the version-computation logic.
 - Create: `scripts/tests/test_bump_version.py`
 - Create: `scripts/bump_version.py`
 
-- [ ] **Step 1: Create `scripts/tests/__init__.py`**
+- [x] **Step 1: Create `scripts/tests/__init__.py`**
 
 Create an empty file at `scripts/tests/__init__.py`:
 ```
@@ -50,7 +50,7 @@ Create an empty file at `scripts/tests/__init__.py`:
 
 (Zero bytes. Just needs to exist for pytest discovery.)
 
-- [ ] **Step 2: Create stub `scripts/bump_version.py`**
+- [x] **Step 2: Create stub `scripts/bump_version.py`**
 
 This stub lets the test file import from the module before we implement anything:
 
@@ -77,7 +77,7 @@ def compute_next_version(current: str, today: date, explicit_build: int | None) 
     raise NotImplementedError
 ```
 
-- [ ] **Step 3: Write the failing test file**
+- [x] **Step 3: Write the failing test file**
 
 Create `scripts/tests/test_bump_version.py` with every pure-function test case from the spec:
 
@@ -172,7 +172,7 @@ class TestComputeNextVersion:
             )
 ```
 
-- [ ] **Step 4: Run tests to verify they fail**
+- [x] **Step 4: Run tests to verify they fail**
 
 Run from repo root:
 ```bash
@@ -180,7 +180,7 @@ cd /Users/brycedeneen/dev/langflow && uv run pytest scripts/tests/test_bump_vers
 ```
 Expected: all 12 tests fail with `NotImplementedError` or collection errors.
 
-- [ ] **Step 5: Implement `compute_next_version`**
+- [x] **Step 5: Implement `compute_next_version`**
 
 Replace the `raise NotImplementedError` in `scripts/bump_version.py` with:
 
@@ -230,7 +230,7 @@ def compute_next_version(current: str, today: date, explicit_build: int | None) 
     return f"{yy}.{mdd}.1"
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run:
 ```bash
@@ -250,7 +250,7 @@ TDD three I/O functions: read version from a TOML file, write version to a TOML 
 - Modify: `scripts/bump_version.py` (add functions)
 - Modify: `scripts/tests/test_bump_version.py` (add test classes)
 
-- [ ] **Step 1: Add failing tests for `read_version_from_pyproject`**
+- [x] **Step 1: Add failing tests for `read_version_from_pyproject`**
 
 Append to `scripts/tests/test_bump_version.py`:
 
@@ -287,7 +287,7 @@ class TestReadVersionFromPyproject:
             read_version_from_pyproject(p)
 ```
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run:
 ```bash
@@ -295,7 +295,7 @@ cd /Users/brycedeneen/dev/langflow && uv run pytest scripts/tests/test_bump_vers
 ```
 Expected: 4 tests fail with ImportError (no such name).
 
-- [ ] **Step 3: Implement `read_version_from_pyproject`**
+- [x] **Step 3: Implement `read_version_from_pyproject`**
 
 Add to `scripts/bump_version.py` (after the existing code):
 
@@ -316,7 +316,7 @@ def read_version_from_pyproject(path: Path) -> str:
         raise ValueError(f"{path}: no [project].version field") from exc
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run:
 ```bash
@@ -324,7 +324,7 @@ cd /Users/brycedeneen/dev/langflow && uv run pytest scripts/tests/test_bump_vers
 ```
 Expected: 4 tests pass.
 
-- [ ] **Step 5: Add failing tests for `write_version_to_pyproject`**
+- [x] **Step 5: Add failing tests for `write_version_to_pyproject`**
 
 Append to `scripts/tests/test_bump_version.py`:
 
@@ -405,7 +405,7 @@ class TestWriteVersionToPyproject:
             write_version_to_pyproject(p, "26.424.1")
 ```
 
-- [ ] **Step 6: Run to verify they fail**
+- [x] **Step 6: Run to verify they fail**
 
 Run:
 ```bash
@@ -413,7 +413,7 @@ cd /Users/brycedeneen/dev/langflow && uv run pytest scripts/tests/test_bump_vers
 ```
 Expected: 4 tests fail.
 
-- [ ] **Step 7: Implement `write_version_to_pyproject`**
+- [x] **Step 7: Implement `write_version_to_pyproject`**
 
 Add to `scripts/bump_version.py`:
 
@@ -441,7 +441,7 @@ def write_version_to_pyproject(path: Path, new_version: str) -> None:
     path.write_text(new_content)
 ```
 
-- [ ] **Step 8: Run tests to verify they pass**
+- [x] **Step 8: Run tests to verify they pass**
 
 Run:
 ```bash
@@ -449,7 +449,7 @@ cd /Users/brycedeneen/dev/langflow && uv run pytest scripts/tests/test_bump_vers
 ```
 Expected: 4 tests pass.
 
-- [ ] **Step 9: Add failing tests for `write_version_to_package_json`**
+- [x] **Step 9: Add failing tests for `write_version_to_package_json`**
 
 Append to `scripts/tests/test_bump_version.py`:
 
@@ -490,7 +490,7 @@ class TestWriteVersionToPackageJson:
             write_version_to_package_json(p, "26.424.1")
 ```
 
-- [ ] **Step 10: Run to verify they fail**
+- [x] **Step 10: Run to verify they fail**
 
 Run:
 ```bash
@@ -498,7 +498,7 @@ cd /Users/brycedeneen/dev/langflow && uv run pytest scripts/tests/test_bump_vers
 ```
 Expected: 3 tests fail.
 
-- [ ] **Step 11: Implement `write_version_to_package_json`**
+- [x] **Step 11: Implement `write_version_to_package_json`**
 
 Add to `scripts/bump_version.py`:
 
@@ -524,7 +524,7 @@ def write_version_to_package_json(path: Path, new_version: str) -> None:
     path.write_text(new_content)
 ```
 
-- [ ] **Step 12: Run tests to verify they pass**
+- [x] **Step 12: Run tests to verify they pass**
 
 Run:
 ```bash
@@ -544,7 +544,7 @@ Wire up the script as an executable CLI. Supports `--build N`, `--check`, and pr
 - Modify: `scripts/bump_version.py` (add `main`, file list, `__main__` block)
 - Modify: `scripts/tests/test_bump_version.py` (add CLI tests)
 
-- [ ] **Step 1: Add the TARGET_FILES constant**
+- [x] **Step 1: Add the TARGET_FILES constant**
 
 Append to `scripts/bump_version.py`, after the I/O helpers:
 
@@ -559,7 +559,7 @@ TARGET_FILES: tuple[tuple[str, str], ...] = (
 )
 ```
 
-- [ ] **Step 2: Add failing tests for CLI behavior**
+- [x] **Step 2: Add failing tests for CLI behavior**
 
 Append to `scripts/tests/test_bump_version.py`:
 
@@ -685,7 +685,7 @@ class TestMainCLI:
         assert exit_code != 0
 ```
 
-- [ ] **Step 3: Run to verify they fail**
+- [x] **Step 3: Run to verify they fail**
 
 Run:
 ```bash
@@ -693,7 +693,7 @@ cd /Users/brycedeneen/dev/langflow && uv run pytest scripts/tests/test_bump_vers
 ```
 Expected: 5 tests fail (no such name `main`).
 
-- [ ] **Step 4: Implement `main()`**
+- [x] **Step 4: Implement `main()`**
 
 Append to `scripts/bump_version.py`:
 
@@ -775,7 +775,7 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run:
 ```bash
@@ -783,7 +783,7 @@ cd /Users/brycedeneen/dev/langflow && uv run pytest scripts/tests/test_bump_vers
 ```
 Expected: all tests pass (23 from earlier tasks + 5 CLI tests = 28 total).
 
-- [ ] **Step 6: Sanity-check the script against the real repo (dry run)**
+- [x] **Step 6: Sanity-check the script against the real repo (dry run)**
 
 Run:
 ```bash
@@ -808,7 +808,7 @@ Add `bump-version` and `bump-version-check` targets to the existing `Makefile`.
 **Files:**
 - Modify: `Makefile`
 
-- [ ] **Step 1: Find the right place to insert**
+- [x] **Step 1: Find the right place to insert**
 
 Run:
 ```bash
@@ -816,7 +816,7 @@ cd /Users/brycedeneen/dev/langflow && grep -n "^.PHONY:" Makefile | head -1
 ```
 Expected: one line starting with `.PHONY:` listing all phony targets.
 
-- [ ] **Step 2: Add `bump-version` and `bump-version-check` to `.PHONY`**
+- [x] **Step 2: Add `bump-version` and `bump-version-check` to `.PHONY`**
 
 Edit the first line of `Makefile`. Currently:
 ```
@@ -825,7 +825,7 @@ Edit the first line of `Makefile`. Currently:
 
 Append ` bump-version bump-version-check` to that line (after `docs_install`).
 
-- [ ] **Step 3: Append the target definitions at the end of the Makefile**
+- [x] **Step 3: Append the target definitions at the end of the Makefile**
 
 Append to the end of `Makefile`:
 
@@ -842,7 +842,7 @@ bump-version-check: ## dry-run: show what bump-version would change
 	@uv run python scripts/bump_version.py --check
 ```
 
-- [ ] **Step 4: Verify the target works**
+- [x] **Step 4: Verify the target works**
 
 Run:
 ```bash
@@ -850,7 +850,7 @@ cd /Users/brycedeneen/dev/langflow && make bump-version-check
 ```
 Expected: same output as Task 3 Step 6 (`26.424.1` on stdout, file list on stderr, exit 0).
 
-- [ ] **Step 5: Sanity-check `make help` still works**
+- [x] **Step 5: Sanity-check `make help` still works**
 
 Run:
 ```bash
@@ -874,7 +874,7 @@ Use the script to bump versions, then hand-edit the two inter-package dep pins w
 - Modify: `src/lfx/pyproject.toml` (version)
 - Modify: `src/frontend/package.json` (version)
 
-- [ ] **Step 1: Run the bump script**
+- [x] **Step 1: Run the bump script**
 
 Run:
 ```bash
@@ -882,7 +882,7 @@ cd /Users/brycedeneen/dev/langflow && uv run python scripts/bump_version.py --bu
 ```
 Expected: stdout prints `26.424.1`. Exit 0.
 
-- [ ] **Step 2: Verify all 4 files are at the new version**
+- [x] **Step 2: Verify all 4 files are at the new version**
 
 Run:
 ```bash
@@ -896,7 +896,7 @@ src/lfx/pyproject.toml:version = "26.424.1"
   "version": "26.424.1",
 ```
 
-- [ ] **Step 3: Update the `langflow-base` dep pin in root `pyproject.toml`**
+- [x] **Step 3: Update the `langflow-base` dep pin in root `pyproject.toml`**
 
 Edit `pyproject.toml`. Change line 20:
 ```
@@ -907,7 +907,7 @@ to:
     "langflow-base[complete]>=26.424.1",
 ```
 
-- [ ] **Step 4: Update the `lfx` dep pin in `src/backend/base/pyproject.toml`**
+- [x] **Step 4: Update the `lfx` dep pin in `src/backend/base/pyproject.toml`**
 
 Edit `src/backend/base/pyproject.toml`. Change line 20:
 ```
@@ -918,7 +918,7 @@ to:
     "lfx>=26.424.1",
 ```
 
-- [ ] **Step 5: Confirm no other `~=0.X.Y` pins against these three packages**
+- [x] **Step 5: Confirm no other `~=0.X.Y` pins against these three packages**
 
 Run:
 ```bash
@@ -928,7 +928,7 @@ Expected: no output.
 
 If any matches remain, update them to `>=26.424.1` following the same pattern as Steps 3–4. Stop and report which file(s).
 
-- [ ] **Step 6: Run `uv sync` to verify Python dep resolution**
+- [x] **Step 6: Run `uv sync` to verify Python dep resolution**
 
 Run:
 ```bash
@@ -938,7 +938,7 @@ Expected: exit 0, no "failed to resolve" errors. The workspace packages re-resol
 
 If `uv sync` fails with a dep-resolution error mentioning `langflow`, `langflow-base`, or `lfx`, STOP — there's a pin somewhere that Step 5's grep didn't catch.
 
-- [ ] **Step 7: Run `npm install` in the frontend to verify semver**
+- [x] **Step 7: Run `npm install` in the frontend to verify semver**
 
 Run:
 ```bash
@@ -948,7 +948,7 @@ Expected: exit 0, no "Invalid version" errors.
 
 If npm complains about the version format, STOP and report — semantics of `26.424.1` should be valid but something external may differ.
 
-- [ ] **Step 8: Confirm runtime version reads correctly**
+- [x] **Step 8: Confirm runtime version reads correctly**
 
 Run:
 ```bash
@@ -958,7 +958,7 @@ Expected: `26.424.1`.
 
 If this prints the old `1.8.4`, the editable install didn't pick up the metadata change — re-run `uv sync` or `uv pip install -e .` and try again.
 
-- [ ] **Step 9: Confirm the Makefile version extraction still works**
+- [x] **Step 9: Confirm the Makefile version extraction still works**
 
 Run:
 ```bash
@@ -982,7 +982,7 @@ Confirm the installed script, when run a second time on the same day, proposes t
 
 **Files:** none modified.
 
-- [ ] **Step 1: Dry-run `bump-version-check` after migration**
+- [x] **Step 1: Dry-run `bump-version-check` after migration**
 
 Run:
 ```bash
@@ -996,7 +996,7 @@ cd /Users/brycedeneen/dev/langflow && git status --porcelain pyproject.toml src/
 ```
 (Expected output: the two pyproject.toml files and both package files should still appear modified from the migration — but no additional new modifications from the check run. The key is that `git diff --stat` after this check produces no additional changes relative to the previous step.)
 
-- [ ] **Step 2: Show the final cumulative diff**
+- [x] **Step 2: Show the final cumulative diff**
 
 Run:
 ```bash
@@ -1010,7 +1010,7 @@ Expected:
   - `?? scripts/tests/__init__.py` (new)
   - `?? scripts/tests/test_bump_version.py` (new)
 
-- [ ] **Step 3: Final summary report**
+- [x] **Step 3: Final summary report**
 
 Produce the final summary:
 
@@ -1035,7 +1035,7 @@ Verification:    uv sync                      ✓
 Uncommitted. Ready for user review + commit + push.
 ```
 
-- [ ] **Step 4: Hand off to user**
+- [x] **Step 4: Hand off to user**
 
 Say, verbatim or close to it:
 

@@ -46,7 +46,7 @@ None.
 
 No tests for this task — it's a pure type/constant extension that is exercised by Task 3's tests. Commit is bundled with Task 2.
 
-- [ ] **Step 1: Add `MembershipRole` import to types/components/index.ts**
+- [x] **Step 1: Add `MembershipRole` import to types/components/index.ts**
 
 At the top of `src/frontend/src/types/components/index.ts`, add the import near the other `@/constants` imports (or at the top if none exist):
 
@@ -56,7 +56,7 @@ import type { MembershipRole } from "@/constants/roles";
 
 If the file already has an `import type` from `@/constants/...`, add `MembershipRole` to that import instead of a new line.
 
-- [ ] **Step 2: Extend `UserInputType` with the two new fields**
+- [x] **Step 2: Extend `UserInputType` with the two new fields**
 
 Replace the existing `UserInputType` declaration at `src/frontend/src/types/components/index.ts:443-452`:
 
@@ -75,7 +75,7 @@ export type UserInputType = {
 };
 ```
 
-- [ ] **Step 3: Extend `CONTROL_NEW_USER`**
+- [x] **Step 3: Extend `CONTROL_NEW_USER`**
 
 Replace the existing block at `src/frontend/src/constants/constants.ts:651-656`:
 
@@ -91,12 +91,12 @@ export const CONTROL_NEW_USER = {
 };
 ```
 
-- [ ] **Step 4: Typecheck**
+- [x] **Step 4: Typecheck**
 
 Run: `cd src/frontend && npx tsc --noEmit`
 Expected: passes (or fails only with pre-existing errors unrelated to these files). If there are new errors, they are likely in this file or its direct importers.
 
-- [ ] **Step 5: Do not commit yet**
+- [x] **Step 5: Do not commit yet**
 
 This task's changes will be committed at the end of Task 2.
 
@@ -109,7 +109,7 @@ This task's changes will be committed at the end of Task 2.
 
 This task adds ONLY the `is_platform_admin` checkbox. Org + Role come in Task 3. Small increments keep the diff reviewable.
 
-- [ ] **Step 1: Add `isPlatformAdmin` state and reset**
+- [x] **Step 1: Add `isPlatformAdmin` state and reset**
 
 In `src/frontend/src/modals/userManagementModal/index.tsx`, alongside the existing `isSuperUser` state at line ~36, add:
 
@@ -134,7 +134,7 @@ handleInput({
 });
 ```
 
-- [ ] **Step 2: Render the Platform Admin checkbox, gated**
+- [x] **Step 2: Render the Platform Admin checkbox, gated**
 
 In the checkbox row at lines ~240-297 (the `<div className="flex gap-8">` block containing `is_active` and `is_superuser`), after the `is_superuser` block, add:
 
@@ -167,12 +167,12 @@ In the checkbox row at lines ~240-297 (the `<div className="flex gap-8">` block 
 
 Note: the existing file uses `value={isSuperUser}` on the Checkbox which passes a boolean — this matches the existing primitive usage. Mirror it verbatim.
 
-- [ ] **Step 3: Typecheck**
+- [x] **Step 3: Typecheck**
 
 Run: `cd src/frontend && npx tsc --noEmit`
 Expected: passes.
 
-- [ ] **Step 4: Manual smoke test**
+- [x] **Step 4: Manual smoke test**
 
 Start the frontend dev server (if not running) and confirm by hand:
 1. Log in as a platform admin user. Open `/settings/users`, click "New User". Confirm the Platform Admin checkbox is visible alongside Active and Superuser.
@@ -181,7 +181,7 @@ Start the frontend dev server (if not running) and confirm by hand:
 
 If you cannot run the dev server in this environment, note it explicitly and defer this smoke test to the reviewer.
 
-- [ ] **Step 5: Ask user before committing, then commit**
+- [x] **Step 5: Ask user before committing, then commit**
 
 **Do not commit without asking the operator first.** When approved:
 
@@ -203,7 +203,7 @@ UserInputType and CONTROL_NEW_USER to carry the flag through the form."
 **Files:**
 - Modify: `src/frontend/src/modals/userManagementModal/index.tsx`
 
-- [ ] **Step 1: Add imports**
+- [x] **Step 1: Add imports**
 
 Near the other imports at the top of `src/frontend/src/modals/userManagementModal/index.tsx`, add:
 
@@ -214,7 +214,7 @@ import type { MembershipRole } from "@/constants/roles";
 import { useGetOrganizations } from "@/controllers/API/queries/admin";
 ```
 
-- [ ] **Step 2: Add org/role state**
+- [x] **Step 2: Add org/role state**
 
 Near the other `useState` calls (~line 36), add:
 
@@ -232,7 +232,7 @@ setOrgQuery("");
 setRole("member");
 ```
 
-- [ ] **Step 3: Compute `isCreateMode` + `needsOrg`**
+- [x] **Step 3: Compute `isCreateMode` + `needsOrg`**
 
 Directly after the state block (before the `useEffect`), add:
 
@@ -241,7 +241,7 @@ const isCreateMode = !data;
 const needsOrg = isCreateMode && !isSuperUser && !isPlatformAdmin;
 ```
 
-- [ ] **Step 4: Fetch orgs (gated)**
+- [x] **Step 4: Fetch orgs (gated)**
 
 Below the `needsOrg` derivation:
 
@@ -258,7 +258,7 @@ const hasAnyOrgs = (orgsData?.total ?? orgItems.length) > 0 || orgQuery !== "";
 
 `hasAnyOrgs` stays `true` whenever the user has typed a query (so the "no orgs exist" inline message doesn't appear just because a search has zero results). When the unfiltered fetch returns zero total non-personal orgs, `hasAnyOrgs` is `false`.
 
-- [ ] **Step 5: Clear org/role state when privileged checkboxes flip on**
+- [x] **Step 5: Clear org/role state when privileged checkboxes flip on**
 
 Add a `useEffect`:
 
@@ -274,7 +274,7 @@ useEffect(() => {
 }, [isSuperUser, isPlatformAdmin]);
 ```
 
-- [ ] **Step 6: Render the org + role row**
+- [x] **Step 6: Render the org + role row**
 
 After the checkbox row (`<div className="flex gap-8">...</div>`) and inside the outer `<div className="grid gap-5">`, add:
 
@@ -346,7 +346,7 @@ After the checkbox row (`<div className="flex gap-8">...</div>`) and inside the 
 )}
 ```
 
-- [ ] **Step 7: Disable Save when required fields aren't satisfied**
+- [x] **Step 7: Disable Save when required fields aren't satisfied**
 
 Replace the existing Save submit block at lines ~311-313:
 
@@ -367,12 +367,12 @@ Replace the existing Save submit block at lines ~311-313:
 
 Note: password-mismatch is already prevented on submit by the existing `onSubmit` handler (line ~86); we don't need to duplicate that guard here.
 
-- [ ] **Step 8: Typecheck**
+- [x] **Step 8: Typecheck**
 
 Run: `cd src/frontend && npx tsc --noEmit`
 Expected: passes.
 
-- [ ] **Step 9: Manual smoke test (browser)**
+- [x] **Step 9: Manual smoke test (browser)**
 
 Start the dev server. As a platform admin:
 
@@ -384,7 +384,7 @@ Start the dev server. As a platform admin:
 
 If the dev server can't be run, note it and defer.
 
-- [ ] **Step 10: Ask user before committing, then commit**
+- [x] **Step 10: Ask user before committing, then commit**
 
 **Do not commit without asking the operator first.** When approved:
 
@@ -406,7 +406,7 @@ behavior is unchanged."
 **Files:**
 - Modify: `src/frontend/src/pages/AdminPage/UsersPage.tsx:238-272`
 
-- [ ] **Step 1: Import `useAddMember`**
+- [x] **Step 1: Import `useAddMember`**
 
 Near the existing auth-queries import at `src/frontend/src/pages/AdminPage/UsersPage.tsx:5-10`:
 
@@ -414,7 +414,7 @@ Near the existing auth-queries import at `src/frontend/src/pages/AdminPage/Users
 import { useAddMember } from "@/controllers/API/queries/admin";
 ```
 
-- [ ] **Step 2: Add the `useAddMember` mutation alongside the others**
+- [x] **Step 2: Add the `useAddMember` mutation alongside the others**
 
 After line 60 (`const { mutate: mutateAddUser } = useAddUser();`):
 
@@ -422,7 +422,7 @@ After line 60 (`const { mutate: mutateAddUser } = useAddUser();`):
 const { mutate: mutateAddMember } = useAddMember();
 ```
 
-- [ ] **Step 3: Replace `handleNewUser` with the 3-step orchestration**
+- [x] **Step 3: Replace `handleNewUser` with the 3-step orchestration**
 
 Replace lines 238-272 (`function handleNewUser(user: UserInputType) { ... }`) with:
 
@@ -494,12 +494,12 @@ Key deltas vs. the original:
 - Dedicated, user-actionable error toasts for the two partial-success cases (spec § Failure semantics).
 - `resetFilter()` on the partial-success branches so the newly created user shows up in the list even when the follow-up failed.
 
-- [ ] **Step 4: Typecheck**
+- [x] **Step 4: Typecheck**
 
 Run: `cd src/frontend && npx tsc --noEmit`
 Expected: passes.
 
-- [ ] **Step 5: Manual smoke test (browser)**
+- [x] **Step 5: Manual smoke test (browser)**
 
 As a platform admin:
 
@@ -508,7 +508,7 @@ As a platform admin:
 3. Create a plain user with Org X + role Admin → user appears. Navigate to Admin → Organizations → Org X → confirm the user is listed as Admin. Also confirm they have their personal org (via user detail page).
 4. (Induced failure for step 3) Pick an org the current session would be rejected from adding to (or temporarily stop the backend mid-flow). Confirm the user is created with flags and the partial-success toast fires.
 
-- [ ] **Step 6: Ask user before committing, then commit**
+- [x] **Step 6: Ask user before committing, then commit**
 
 **Do not commit without asking the operator first.** When approved:
 
@@ -531,7 +531,7 @@ visible."
 - Read-only: whole flow in the browser.
 - Optionally Modify: `docs/superpowers/followups.md` if something surfaces that deserves a followup.
 
-- [ ] **Step 1: End-to-end scenarios in the browser**
+- [x] **Step 1: End-to-end scenarios in the browser**
 
 Walk through every row of the spec § Testing matrix:
 1. Superuser-only user → ok.
@@ -542,11 +542,11 @@ Walk through every row of the spec § Testing matrix:
 6. Superuser viewer who is not platform admin → Platform Admin checkbox not rendered.
 7. Edit mode → no new fields visible.
 
-- [ ] **Step 2: Note any divergences**
+- [x] **Step 2: Note any divergences**
 
 If any scenario doesn't behave as specced, DO NOT patch over it silently. Stop, describe the divergence to the operator, and decide together whether to fix in this branch or capture as a followup.
 
-- [ ] **Step 3: Typecheck + lint**
+- [x] **Step 3: Typecheck + lint**
 
 ```bash
 cd src/frontend && npx tsc --noEmit
@@ -554,7 +554,7 @@ cd src/frontend && npx tsc --noEmit
 
 If the frontend has a lint script wired up (check `package.json`), run it against the modified files only.
 
-- [ ] **Step 4: No additional commit**
+- [x] **Step 4: No additional commit**
 
 Task 5 is verification only. Any fix that comes out of it commits separately with its own message, with operator approval.
 

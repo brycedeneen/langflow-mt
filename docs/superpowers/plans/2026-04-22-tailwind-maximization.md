@@ -25,12 +25,12 @@ Before any phase starts, capture baseline numbers so later phases can prove they
 **Files:**
 - Read-only during this task. No writes.
 
-- [ ] **Step 1: Confirm working tree state**
+- [x] **Step 1: Confirm working tree state**
 
 Run: `git status --short`
 Expected: You should see pre-existing modified files from other in-progress work (platform-multi-tenant, tools modal, etc.) — that's fine, it's WIP from the user. **Do not touch or stage any of those files.** Only stage files you explicitly modify as part of this plan.
 
-- [ ] **Step 2: Capture baseline metrics to a scratch file**
+- [x] **Step 2: Capture baseline metrics to a scratch file**
 
 Run (from repo root):
 ```bash
@@ -45,17 +45,17 @@ cd ../..
 
 Expected: files created with numbers. These are the "before" measurements referenced in phase acceptance criteria.
 
-- [ ] **Step 3: Confirm baseline test suite passes**
+- [x] **Step 3: Confirm baseline test suite passes**
 
 Run: `cd src/frontend && npm run type-check && npm run test -- --passWithNoTests --silent`
 Expected: Typecheck clean. Jest passes. If jest has any pre-existing failures, record them in `/tmp/tailwind-max-baseline/preexisting-jest-failures.txt` so later phases don't get blamed for them.
 
-- [ ] **Step 4: Confirm the dev server builds**
+- [x] **Step 4: Confirm the dev server builds**
 
 Run: `cd src/frontend && npm run build`
 Expected: Production bundle builds without errors. Note the output bundle size to `/tmp/tailwind-max-baseline/bundle-size.txt` (grep the vite build output for the final asset sizes).
 
-- [ ] **Step 5: Run Playwright e2e baseline**
+- [x] **Step 5: Run Playwright e2e baseline**
 
 Run: `make tests_frontend` (from repo root)
 Expected: Suite passes. If any pre-existing failures, log to `/tmp/tailwind-max-baseline/preexisting-playwright-failures.txt` and continue. Later phase verification will ignore pre-existing failures but flag any new ones.
@@ -73,7 +73,7 @@ Expected: Suite passes. If any pre-existing failures, log to `/tmp/tailwind-max-
 **Files:**
 - Read-only: `src/frontend/src/**/*.{ts,tsx}`
 
-- [ ] **Step 1: Grep for emotion imports**
+- [x] **Step 1: Grep for emotion imports**
 
 Run (from repo root):
 ```bash
@@ -82,7 +82,7 @@ grep -rn "from ['\"]@emotion/styled['\"]" src/frontend/src --include="*.ts" --in
 ```
 Expected: likely zero results. If zero, `@emotion/*` is unused and safe to remove.
 
-- [ ] **Step 2: Grep for chakra imports**
+- [x] **Step 2: Grep for chakra imports**
 
 Run:
 ```bash
@@ -90,7 +90,7 @@ grep -rn "@chakra-ui" src/frontend/src --include="*.ts" --include="*.tsx"
 ```
 Expected: possibly 1–2 usages. Record every file path found — those are the call sites that need to be migrated before the dep can be removed.
 
-- [ ] **Step 3: Record findings**
+- [x] **Step 3: Record findings**
 
 Write a short note to `/tmp/tailwind-max-baseline/dep-audit.txt` with one section per package: `unused` or `used-at: <paths>`. This drives the decisions in Task 1.2.
 
@@ -100,21 +100,21 @@ Write a short note to `/tmp/tailwind-max-baseline/dep-audit.txt` with one sectio
 - Modify: `src/frontend/package.json`
 - Modify: `src/frontend/package-lock.json` (via `npm install`)
 
-- [ ] **Step 1: Remove unused deps from `package.json`**
+- [x] **Step 1: Remove unused deps from `package.json`**
 
 Edit `src/frontend/package.json`. Remove any of `@emotion/react`, `@emotion/styled`, `@chakra-ui/number-input`, `@chakra-ui/system` that the Task 1.1 audit marked `unused`. Do NOT remove packages still in use — those become follow-up work (see Task 1.2 Step 4 below).
 
-- [ ] **Step 2: Re-install to update lockfile**
+- [x] **Step 2: Re-install to update lockfile**
 
 Run: `cd src/frontend && npm install`
 Expected: lockfile updates, no errors. Node modules shrinks.
 
-- [ ] **Step 3: Typecheck still passes**
+- [x] **Step 3: Typecheck still passes**
 
 Run: `cd src/frontend && npm run type-check`
 Expected: Pass.
 
-- [ ] **Step 4: If any dep was still used, document for follow-up**
+- [x] **Step 4: If any dep was still used, document for follow-up**
 
 If Task 1.1 found real usage of any of these packages, append to `docs/superpowers/followups.md` a one-line entry: `- Migrate <package> call site at <path> and remove dep (discovered during Tailwind Maximization Phase 1, 2026-04-22).` Do NOT attempt to migrate the call site in this phase.
 
@@ -123,7 +123,7 @@ If Task 1.1 found real usage of any of these packages, append to `docs/superpowe
 **Files:**
 - Read-only: `src/frontend/src/style/classes.css`, plus grep the rest of frontend.
 
-- [ ] **Step 1: Extract every selector defined in `classes.css`**
+- [x] **Step 1: Extract every selector defined in `classes.css`**
 
 Run (from repo root):
 ```bash
@@ -132,7 +132,7 @@ wc -l /tmp/tailwind-max-baseline/classes-css-selectors.txt
 ```
 Expected: a list of class names, one per line.
 
-- [ ] **Step 2: For each selector, check if it's referenced anywhere**
+- [x] **Step 2: For each selector, check if it's referenced anywhere**
 
 Run (from repo root):
 ```bash
@@ -145,7 +145,7 @@ cd ../..
 ```
 Expected: a usage-count table. Selectors with count `0` are dead.
 
-- [ ] **Step 3: Decide fate of `classes.css`**
+- [x] **Step 3: Decide fate of `classes.css`**
 
 Inspect `/tmp/tailwind-max-baseline/classes-css-usage.txt`:
 - If **every** selector has count 0: the file is fully dead → Task 1.4 will delete it.
@@ -160,13 +160,13 @@ Write the decision + live-selector relocation targets to `/tmp/tailwind-max-base
 - Modify: `src/frontend/src/index.tsx:7` (remove the import line)
 - Modify (conditional): `src/frontend/src/App.css` or specific consuming component's CSS (if any selectors were live)
 
-- [ ] **Step 1: Relocate any live selectors**
+- [x] **Step 1: Relocate any live selectors**
 
 If `/tmp/tailwind-max-baseline/classes-css-plan.txt` lists live selectors, for each one:
 - Copy the full CSS rule (selector + declarations) from `classes.css` to the target file identified in the plan.
 - Preserve the rule verbatim. Do not re-tailwindify it — that's Phase 4 / Phase 6's job.
 
-- [ ] **Step 2: Delete `classes.css`**
+- [x] **Step 2: Delete `classes.css`**
 
 Run (from repo root):
 ```bash
@@ -174,11 +174,11 @@ git rm src/frontend/src/style/classes.css
 ```
 Expected: file removed.
 
-- [ ] **Step 3: Remove the import from `index.tsx`**
+- [x] **Step 3: Remove the import from `index.tsx`**
 
 Edit `src/frontend/src/index.tsx`. Delete the line `import "./style/classes.css";`.
 
-- [ ] **Step 4: Typecheck + build**
+- [x] **Step 4: Typecheck + build**
 
 Run:
 ```bash
@@ -192,7 +192,7 @@ Expected: Both pass. If build errors mention missing CSS, you missed a live sele
 - Delete: `src/frontend/src/components/ui/simple-sidebar.tsx`
 - Modify: any file importing it.
 
-- [ ] **Step 1: Find every import site**
+- [x] **Step 1: Find every import site**
 
 Run (from repo root):
 ```bash
@@ -200,20 +200,20 @@ grep -rn "simple-sidebar" src/frontend/src --include="*.ts" --include="*.tsx"
 ```
 Expected: a list of imports. For each, note whether it imports `simple-sidebar` or the real `sidebar`.
 
-- [ ] **Step 2: Migrate every `simple-sidebar` import to `sidebar`**
+- [x] **Step 2: Migrate every `simple-sidebar` import to `sidebar`**
 
 For every file that imports from `ui/simple-sidebar`, change the import to `ui/sidebar` and verify the API it was calling (`SidebarProvider`, `SidebarTrigger`, etc.) exists in `ui/sidebar`. The two are near-duplicates; if a prop or export name differs, update the call site to match the `ui/sidebar` API.
 
 If any usage depends on behavior unique to `simple-sidebar` that `sidebar` doesn't provide, stop and escalate — don't force the migration. In that case, leave `simple-sidebar.tsx` in place and record the blocking reason in `/tmp/tailwind-max-baseline/simple-sidebar-blocker.txt`, then skip Step 3.
 
-- [ ] **Step 3: Delete the file**
+- [x] **Step 3: Delete the file**
 
 Run (from repo root):
 ```bash
 git rm src/frontend/src/components/ui/simple-sidebar.tsx
 ```
 
-- [ ] **Step 4: Typecheck + jest + build**
+- [x] **Step 4: Typecheck + jest + build**
 
 Run: `cd src/frontend && npm run type-check && npm run test -- --silent && npm run build`
 Expected: All pass.
@@ -222,7 +222,7 @@ Expected: All pass.
 
 **Files:** None modified this task.
 
-- [ ] **Step 1: Full per-phase verification bar**
+- [x] **Step 1: Full per-phase verification bar**
 
 Run all of the following, all must pass:
 ```bash
@@ -233,7 +233,7 @@ make tests_frontend
 ```
 Expected: Clean across the board (ignoring any pre-existing failures logged in pre-flight Step 5).
 
-- [ ] **Step 2: Manual eyeball of the five anchor surfaces**
+- [x] **Step 2: Manual eyeball of the five anchor surfaces**
 
 Start the dev server: `make frontend` (vite on port 3000, backend on 7860).
 
@@ -246,13 +246,13 @@ Visit and verify no obvious breakage:
 
 No pixel-perfect comparison needed — just no broken layouts, missing components, or console errors.
 
-- [ ] **Step 3: Pause and ask for commit permission**
+- [x] **Step 3: Pause and ask for commit permission**
 
 Write a short summary of what changed in Phase 1 (which deps were removed, whether `classes.css` was fully dead or partially relocated, whether `simple-sidebar.tsx` was deletable). Then ask the user: *"Phase 1 complete and verified. OK to commit?"*
 
 **Do NOT commit without explicit approval.**
 
-- [ ] **Step 4: Commit (after approval)**
+- [x] **Step 4: Commit (after approval)**
 
 Stage only the files this phase modified. Example (adjust paths to match reality):
 ```bash
@@ -301,7 +301,7 @@ For each of these seven components:
 - `src/frontend/src/components/ui/animated-close.tsx`
 - `src/frontend/src/components/core/border-trail.tsx`
 
-- [ ] **Step 1: Grep each for import sites**
+- [x] **Step 1: Grep each for import sites**
 
 Run (from repo root):
 ```bash
@@ -330,11 +330,11 @@ For every call site, decide the replacement using these rules:
 | `<AnimatedClose />` | replace with a plain `<X className="h-4 w-4 transition-transform hover:rotate-90" />` (lucide icon + Tailwind transition). |
 | `<BorderTrail />` | delete or replace with a plain border + Tailwind transition if the element needs emphasis. |
 
-- [ ] **Step 1: Do one component at a time**
+- [x] **Step 1: Do one component at a time**
 
 For each of the 7 components, make the call-site edits, then run `cd src/frontend && npm run type-check`. If typecheck passes, move to the next. If it fails, fix the call site — don't batch mistakes.
 
-- [ ] **Step 2: After all 7 are done, delete the components**
+- [x] **Step 2: After all 7 are done, delete the components**
 
 Run (from repo root):
 ```bash
@@ -347,7 +347,7 @@ git rm src/frontend/src/components/ui/background-gradient.tsx \
        src/frontend/src/components/core/border-trail.tsx
 ```
 
-- [ ] **Step 3: Confirm framer-motion import count dropped**
+- [x] **Step 3: Confirm framer-motion import count dropped**
 
 Run (from repo root):
 ```bash
@@ -359,7 +359,7 @@ Compare to `/tmp/tailwind-max-baseline/framer-motion-import-count.txt`. The new 
 
 **Files:** None modified this task.
 
-- [ ] **Step 1: Full per-phase verification bar**
+- [x] **Step 1: Full per-phase verification bar**
 
 Run:
 ```bash
@@ -370,15 +370,15 @@ make tests_frontend
 ```
 Expected: All pass.
 
-- [ ] **Step 2: Manual eyeball of the five anchor surfaces + any surface that used deleted components**
+- [x] **Step 2: Manual eyeball of the five anchor surfaces + any surface that used deleted components**
 
 Review `/tmp/tailwind-max-baseline/decorative-call-sites.txt` — the files listed tell you which pages used the deleted components. Visit each one in the running dev server and confirm no broken layout. Also re-check the five anchor surfaces.
 
-- [ ] **Step 3: Pause and ask for commit permission**
+- [x] **Step 3: Pause and ask for commit permission**
 
 Summarize: which 7 components deleted, how many call sites migrated, whether the framer-motion import count dropped as expected. Ask the user: *"Phase 2 complete and verified. OK to commit?"*
 
-- [ ] **Step 4: Commit (after approval)**
+- [x] **Step 4: Commit (after approval)**
 
 Stage only this phase's files:
 ```bash
@@ -419,7 +419,7 @@ EOF
 **Files:**
 - Read-only.
 
-- [ ] **Step 1: Extract every `--color-*` token and its current right-hand side**
+- [x] **Step 1: Extract every `--color-*` token and its current right-hand side**
 
 Run (from repo root):
 ```bash
@@ -428,7 +428,7 @@ wc -l /tmp/tailwind-max-baseline/color-tokens-before.txt
 ```
 Expected: ~189 lines (per survey). The file captures the pre-phase state.
 
-- [ ] **Step 2: Build a reference file of computed values**
+- [x] **Step 2: Build a reference file of computed values**
 
 For each token, trace the chain: if the RHS is `var(--foo)`, look up `--foo` elsewhere in `index.css` (in the `:root` / `.dark` / `html` blocks outside `@theme`) and record its value. For tokens wrapped in `hsl(var(--foo))`, record the full HSL triple plus `hsl(...)` wrapper.
 
@@ -441,7 +441,7 @@ This step is the contract for Task 3.3's diff check.
 **Files:**
 - Modify: `src/frontend/src/style/index.css` (`@theme` block only)
 
-- [ ] **Step 1: Replace alias RHS with literal value**
+- [x] **Step 1: Replace alias RHS with literal value**
 
 For each `--color-*: var(--foo);` line in the `@theme` block, replace `var(--foo)` with the ultimate value you recorded in Task 3.1 Step 2. Preserve any `hsl(...)`, `rgb(...)`, or `rgba(...)` wrapper that was there — only collapse the `var()` indirection.
 
@@ -456,7 +456,7 @@ Example after:
 
 Do this for **all** `--color-*` tokens in the `@theme` block. The `:root` / `.dark` / `html` blocks are unchanged in this task.
 
-- [ ] **Step 2: Identify now-orphaned CSS variables**
+- [x] **Step 2: Identify now-orphaned CSS variables**
 
 Any CSS variable defined in `:root` / `.dark` / `html` that existed only to feed a `--color-*` alias is now unused. Grep to confirm zero remaining references, then delete them.
 
@@ -468,7 +468,7 @@ grep -rn "var(--medium-gray)" src/frontend/src --include="*.ts" --include="*.tsx
 
 If grep returns zero results: delete the variable definition from the `:root` / `.dark` block. If it returns results: the variable is still load-bearing somewhere outside `@theme` — leave it alone in this phase. Any live `var(--foo)` call-site cleanup is Phase 6's problem.
 
-- [ ] **Step 3: Verify no syntax errors in the file**
+- [x] **Step 3: Verify no syntax errors in the file**
 
 Run: `cd src/frontend && npm run build`
 Expected: Build succeeds. Vite parses the CSS; a syntax error will fail the build immediately.
@@ -477,11 +477,11 @@ Expected: Build succeeds. Vite parses the CSS; a syntax error will fail the buil
 
 **Files:** Read-only.
 
-- [ ] **Step 1: Re-extract resolved values**
+- [x] **Step 1: Re-extract resolved values**
 
 Repeat Task 3.1 Step 2 against the modified `index.css`. Save as `/tmp/tailwind-max-baseline/color-tokens-resolved-after.txt`.
 
-- [ ] **Step 2: Diff before vs after**
+- [x] **Step 2: Diff before vs after**
 
 Run:
 ```bash
@@ -494,7 +494,7 @@ Expected: **empty output**. Any non-empty diff means a token's final computed va
 
 **Files:** None modified this task.
 
-- [ ] **Step 1: Full per-phase verification bar**
+- [x] **Step 1: Full per-phase verification bar**
 
 Run:
 ```bash
@@ -505,15 +505,15 @@ make tests_frontend
 ```
 Expected: All pass.
 
-- [ ] **Step 2: Manual eyeball of the five anchor surfaces**
+- [x] **Step 2: Manual eyeball of the five anchor surfaces**
 
 Visual spot-check — since Task 3.3's diff check confirmed zero numerical change, there should be no visual drift. But verify the five anchor surfaces render as expected as a sanity check.
 
-- [ ] **Step 3: Pause and ask for commit permission**
+- [x] **Step 3: Pause and ask for commit permission**
 
 Summarize: number of alias tokens flattened, number of orphaned vars deleted, `diff` output (should be empty). Ask the user: *"Phase 3 complete and verified. OK to commit?"*
 
-- [ ] **Step 4: Commit (after approval)**
+- [x] **Step 4: Commit (after approval)**
 
 ```bash
 git add src/frontend/src/style/index.css
@@ -543,7 +543,7 @@ EOF
 **Files:**
 - Read-only.
 
-- [ ] **Step 1: Extract every class defined in `applies.css`**
+- [x] **Step 1: Extract every class defined in `applies.css`**
 
 Run (from repo root):
 ```bash
@@ -553,7 +553,7 @@ wc -l /tmp/tailwind-max-baseline/applies-css-classes.txt
 ```
 Expected: ~200–349 class names (depending on how many classes share a rule block).
 
-- [ ] **Step 2: Count references for each class**
+- [x] **Step 2: Count references for each class**
 
 Run:
 ```bash
@@ -566,7 +566,7 @@ cd ../..
 ```
 Expected: per-class usage count. Rules with count `0` are dead. Count `1` or `2` are inline candidates. Count `≥3` stays.
 
-- [ ] **Step 3: Bucket the classes**
+- [x] **Step 3: Bucket the classes**
 
 Split `/tmp/tailwind-max-baseline/applies-css-usage.txt` into three files:
 ```bash
@@ -582,11 +582,11 @@ Expected: three files. The "inline" bucket drives Task 4.3. The "keep" bucket is
 **Files:**
 - Modify: `src/frontend/src/style/applies.css`
 
-- [ ] **Step 1: For each class in `applies-dead.txt`, remove its rule from `applies.css`**
+- [x] **Step 1: For each class in `applies-dead.txt`, remove its rule from `applies.css`**
 
 A "rule" means: the selector line + the full `{ ... }` block. Be careful with rules that define multiple selectors (`.foo, .bar { @apply ... }`) — if only `.foo` is dead, remove only `.foo` from the selector list; don't delete the whole rule.
 
-- [ ] **Step 2: Build and typecheck still pass**
+- [x] **Step 2: Build and typecheck still pass**
 
 Run: `cd src/frontend && npm run type-check && npm run build`
 Expected: Both pass. No JSX changes were made in this task; anything breaking indicates a grep miss in Task 4.1 (the class is used but wasn't detected).
@@ -599,7 +599,7 @@ Expected: Both pass. No JSX changes were made in this task; anything breaking in
 
 For each class in `/tmp/tailwind-max-baseline/applies-inline.txt`:
 
-- [ ] **Step 1: Capture the class's `@apply` utilities**
+- [x] **Step 1: Capture the class's `@apply` utilities**
 
 Look up the class definition in `applies.css`. Copy the exact list of Tailwind utilities from the `@apply` directive.
 
@@ -611,14 +611,14 @@ Example — if `applies.css` has:
 ```
 Capture: `rounded-md border border-input bg-background px-3 py-2 text-sm`.
 
-- [ ] **Step 2: Find the call sites**
+- [x] **Step 2: Find the call sites**
 
 Run (from repo root):
 ```bash
 grep -rn "primary-input" src/frontend/src --include="*.ts" --include="*.tsx" --include="*.css" | grep -v "src/style/applies.css"
 ```
 
-- [ ] **Step 3: Inline at each call site**
+- [x] **Step 3: Inline at each call site**
 
 At each call site, replace the custom class name with the Tailwind utilities.
 
@@ -635,11 +635,11 @@ If the call site uses template literals or `cn(...)` / `clsx(...)`, inline insid
 
 If the Tailwind string becomes very long (>12 classes), consider using the `cn()` helper that's already in the codebase to keep it readable, but don't introduce any new abstraction — we're trying to remove them.
 
-- [ ] **Step 4: Remove the rule from `applies.css`**
+- [x] **Step 4: Remove the rule from `applies.css`**
 
 Delete the class's full rule block from `applies.css`.
 
-- [ ] **Step 5: After each class, run typecheck**
+- [x] **Step 5: After each class, run typecheck**
 
 Run: `cd src/frontend && npm run type-check`
 Expected: Pass. Do one class at a time and typecheck between to isolate any mistake.
@@ -654,11 +654,11 @@ Expected: Pass. Do one class at a time and typecheck between to isolate any mist
 **Files:**
 - Read-only.
 
-- [ ] **Step 1: Re-run the usage map against the reduced `applies.css`**
+- [x] **Step 1: Re-run the usage map against the reduced `applies.css`**
 
 Run the Task 4.1 Step 2 script again. Every remaining class should have count ≥3.
 
-- [ ] **Step 2: Confirm `applies.css` shrank**
+- [x] **Step 2: Confirm `applies.css` shrank**
 
 Run: `wc -l src/frontend/src/style/applies.css`
 Expected: roughly half the baseline recorded in `/tmp/tailwind-max-baseline/css-line-counts.txt`. If it's less than 40% reduction, re-check the "inline" bucket — some rules may have been skipped. If it's more than 70% reduction, the "keep" threshold may be wrong — double-check that remaining rules really do have ≥3 references.
@@ -667,7 +667,7 @@ Expected: roughly half the baseline recorded in `/tmp/tailwind-max-baseline/css-
 
 **Files:** None modified this task.
 
-- [ ] **Step 1: Full per-phase verification bar**
+- [x] **Step 1: Full per-phase verification bar**
 
 Run:
 ```bash
@@ -678,7 +678,7 @@ make tests_frontend
 ```
 Expected: All pass.
 
-- [ ] **Step 2: Manual eyeball of the five anchor surfaces + broader sampling**
+- [x] **Step 2: Manual eyeball of the five anchor surfaces + broader sampling**
 
 Given this phase's diff is large, spot-check more broadly than the five anchors:
 1. Flow canvas
@@ -692,11 +692,11 @@ Given this phase's diff is large, spot-check more broadly than the five anchors:
 
 Watch for alignment shifts, missing borders, color drift. If anything looks off, identify which call site regressed and fix the inline utility list.
 
-- [ ] **Step 3: Pause and ask for commit permission**
+- [x] **Step 3: Pause and ask for commit permission**
 
 Summarize: how many rules deleted, how many inlined, how many kept, line-count reduction in `applies.css`, any surfaces with notable drift. Ask the user: *"Phase 4 complete and verified. OK to commit?"*
 
-- [ ] **Step 4: Commit (after approval)**
+- [x] **Step 4: Commit (after approval)**
 
 Stage explicitly:
 ```bash
@@ -732,7 +732,7 @@ EOF
 **Files:**
 - Read-only: `src/frontend/src/components/core/accordionComponent/**`
 
-- [ ] **Step 1: Read the wrapper's public API**
+- [x] **Step 1: Read the wrapper's public API**
 
 Read every file in `src/frontend/src/components/core/accordionComponent/` (likely `index.tsx` plus possibly a types file). Record:
 - The exported component name(s) and props signature.
@@ -741,7 +741,7 @@ Read every file in `src/frontend/src/components/core/accordionComponent/` (likel
 
 Save as `/tmp/tailwind-max-baseline/accordion-wrapper-api.txt`.
 
-- [ ] **Step 2: Read the underlying `ui/accordion` API**
+- [x] **Step 2: Read the underlying `ui/accordion` API**
 
 Read `src/frontend/src/components/ui/accordion.tsx`. Record its exported pieces: `Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionContent`, and their props.
 
@@ -752,7 +752,7 @@ This tells you what the direct-use API looks like; Task 5.3 bridges the wrapper'
 **Files:**
 - Read-only.
 
-- [ ] **Step 1: Grep for every importer**
+- [x] **Step 1: Grep for every importer**
 
 Run (from repo root):
 ```bash
@@ -770,15 +770,15 @@ Expected: a list of files.
 
 For each call site:
 
-- [ ] **Step 1: Read the call site**
+- [x] **Step 1: Read the call site**
 
 Identify how the wrapper is used: what props are passed, what children are supplied, what visual behavior the wrapper provides that the raw `ui/accordion` doesn't.
 
-- [ ] **Step 2: Rewrite with `ui/accordion` primitives**
+- [x] **Step 2: Rewrite with `ui/accordion` primitives**
 
 Replace the wrapper's JSX with direct use of `Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionContent`. Apply any props/defaults the wrapper provided inline — don't introduce a new wrapper. If the wrapper's default behavior matters (e.g., default-open), express it via `defaultValue` on `Accordion`.
 
-- [ ] **Step 3: Update the import**
+- [x] **Step 3: Update the import**
 
 Replace:
 ```tsx
@@ -790,7 +790,7 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/
 ```
 (Adjust the import path style to match what the file already uses — `@/` alias vs. relative.)
 
-- [ ] **Step 4: Typecheck after each file**
+- [x] **Step 4: Typecheck after each file**
 
 Run: `cd src/frontend && npm run type-check`
 Expected: Pass. One file at a time.
@@ -800,7 +800,7 @@ Expected: Pass. One file at a time.
 **Files:**
 - Delete: `src/frontend/src/components/core/accordionComponent/`
 
-- [ ] **Step 1: Confirm zero remaining imports**
+- [x] **Step 1: Confirm zero remaining imports**
 
 Run (from repo root):
 ```bash
@@ -808,20 +808,20 @@ grep -rn "accordionComponent" src/frontend/src --include="*.ts" --include="*.tsx
 ```
 Expected: zero results. If any remain, go back to Task 5.3 for that file.
 
-- [ ] **Step 2: Delete the directory**
+- [x] **Step 2: Delete the directory**
 
 ```bash
 git rm -r src/frontend/src/components/core/accordionComponent
 ```
 
-- [ ] **Step 3: Typecheck + build**
+- [x] **Step 3: Typecheck + build**
 
 Run: `cd src/frontend && npm run type-check && npm run build`
 Expected: Both pass.
 
 ### Task 5.5 — Phase 5 verification gate
 
-- [ ] **Step 1: Full per-phase verification bar**
+- [x] **Step 1: Full per-phase verification bar**
 
 Run:
 ```bash
@@ -832,7 +832,7 @@ make tests_frontend
 ```
 Expected: All pass.
 
-- [ ] **Step 2: Eyeball every accordion surface**
+- [x] **Step 2: Eyeball every accordion surface**
 
 Visit each file from `accordion-call-sites.txt` in the running app. Common accordion surfaces:
 - Flow sidebar category groups
@@ -842,11 +842,11 @@ Visit each file from `accordion-call-sites.txt` in the running app. Common accor
 
 Confirm: accordions expand/collapse, default-expanded sections open as expected, trigger styling matches pre-phase behavior.
 
-- [ ] **Step 3: Pause and ask for commit permission**
+- [x] **Step 3: Pause and ask for commit permission**
 
 Summarize: how many call sites migrated, whether wrapper API was fully preserved at each site, whether any surfaces needed extra care. Ask the user: *"Phase 5 complete and verified. OK to commit?"*
 
-- [ ] **Step 4: Commit (after approval)**
+- [x] **Step 4: Commit (after approval)**
 
 ```bash
 git add src/frontend/src/components/core/accordionComponent
@@ -879,7 +879,7 @@ EOF
 **Files:**
 - Read-only during this task.
 
-- [ ] **Step 1: Extract all surviving `--color-*` tokens**
+- [x] **Step 1: Extract all surviving `--color-*` tokens**
 
 Run (from repo root):
 ```bash
@@ -887,7 +887,7 @@ grep -E "^\s*--color-" src/frontend/src/style/index.css | sed 's/^\s*//' > /tmp/
 wc -l /tmp/tailwind-max-baseline/color-tokens-post-phase3.txt
 ```
 
-- [ ] **Step 2: Apply the "keep list" from the spec**
+- [x] **Step 2: Apply the "keep list" from the spec**
 
 Mark these as **keep** (do not snap):
 - `--adp-red`
@@ -903,7 +903,7 @@ Everything else is a **snap candidate**.
 
 Write `/tmp/tailwind-max-baseline/snap-candidates.txt` (one token per line) and `/tmp/tailwind-max-baseline/snap-keeps.txt`.
 
-- [ ] **Step 3: For each snap candidate, find the nearest stock Tailwind shade**
+- [x] **Step 3: For each snap candidate, find the nearest stock Tailwind shade**
 
 Tailwind v4 stock color shades: `slate-{50..950}`, `gray-{50..950}`, `zinc-{50..950}`, `neutral-{50..950}`, `stone-{50..950}`, `red-*`, `orange-*`, `amber-*`, `yellow-*`, `lime-*`, `green-*`, `emerald-*`, `teal-*`, `cyan-*`, `sky-*`, `blue-*`, `indigo-*`, `violet-*`, `purple-*`, `fuchsia-*`, `pink-*`, `rose-*`.
 
@@ -921,7 +921,7 @@ Build `/tmp/tailwind-max-baseline/snap-map.txt` with one line per snap candidate
 
 Tokens that don't snap cleanly (alpha channels, non-standard hues, >2% delta) stay as keeps; append them to `/tmp/tailwind-max-baseline/snap-keeps.txt`.
 
-- [ ] **Step 4: Review the snap map before acting**
+- [x] **Step 4: Review the snap map before acting**
 
 Before proceeding, have the human review `/tmp/tailwind-max-baseline/snap-map.txt`. This is the last checkpoint before call-site churn. Pause and ask: *"Phase 6 snap map ready — N tokens will be deleted and their call sites migrated to stock Tailwind. See /tmp/tailwind-max-baseline/snap-map.txt. OK to proceed?"*
 
@@ -933,7 +933,7 @@ Before proceeding, have the human review `/tmp/tailwind-max-baseline/snap-map.tx
 
 For each entry in `/tmp/tailwind-max-baseline/snap-map.txt`:
 
-- [ ] **Step 1: Find utility-class usages**
+- [x] **Step 1: Find utility-class usages**
 
 Tailwind generates utilities from `--color-*` tokens. `--color-medium-gray` produces `bg-medium-gray`, `text-medium-gray`, `border-medium-gray`, `ring-medium-gray`, `fill-medium-gray`, `stroke-medium-gray`, plus any other color-consuming utility. Also any direct `var(--color-medium-gray)` usage in CSS.
 
@@ -943,17 +943,17 @@ grep -rn "\(bg\|text\|border\|ring\|fill\|stroke\|from\|to\|via\|outline\|divide
 grep -rn "var(--color-medium-gray)" src/frontend/src --include="*.ts" --include="*.tsx" --include="*.css"
 ```
 
-- [ ] **Step 2: Replace at each call site**
+- [x] **Step 2: Replace at each call site**
 
 `bg-medium-gray` → `bg-zinc-500`, `text-medium-gray` → `text-zinc-500`, etc. Preserve any modifier prefixes (`hover:`, `dark:`, etc.). Preserve any arbitrary-value suffixes.
 
 For raw `var(--color-medium-gray)` in CSS: replace with the resolved Tailwind v4 value. (Tailwind v4's stock colors are also exposed as `--color-zinc-500` in the Tailwind-provided token namespace — check whether `index.css`'s `@theme` imports bring them in automatically or whether you need to write the literal value.)
 
-- [ ] **Step 3: Delete the token from `index.css`**
+- [x] **Step 3: Delete the token from `index.css`**
 
 Remove the `--color-medium-gray: ...;` line from the `@theme` block.
 
-- [ ] **Step 4: Typecheck after each token**
+- [x] **Step 4: Typecheck after each token**
 
 Run: `cd src/frontend && npm run type-check`
 
@@ -965,7 +965,7 @@ For tokens with large call-site counts, run every 5 tokens at minimum rather tha
 
 **Files:** Read-only.
 
-- [ ] **Step 1: Count surviving `--color-*` tokens**
+- [x] **Step 1: Count surviving `--color-*` tokens**
 
 Run (from repo root):
 ```bash
@@ -973,7 +973,7 @@ grep -c "^\s*--color-" src/frontend/src/style/index.css > /tmp/tailwind-max-base
 cat /tmp/tailwind-max-baseline/color-token-count-after.txt
 ```
 
-- [ ] **Step 2: Compute reduction**
+- [x] **Step 2: Compute reduction**
 
 Compare against `/tmp/tailwind-max-baseline/color-token-count.txt` (from pre-flight).
 
@@ -983,7 +983,7 @@ Acceptance target: ≥20% fewer tokens. Compute: `(before - after) / before * 10
 
 Phase 6 adds a 12-screen walkthrough on top of the standard per-phase bar.
 
-- [ ] **Step 1: Full per-phase verification bar**
+- [x] **Step 1: Full per-phase verification bar**
 
 Run:
 ```bash
@@ -994,7 +994,7 @@ make tests_frontend
 ```
 Expected: All pass.
 
-- [ ] **Step 2: 12-screen visual walkthrough**
+- [x] **Step 2: 12-screen visual walkthrough**
 
 Start the dev server (`make frontend`) and visit each of the 12 surfaces from the spec. For each, note whether it looks identical to baseline or has drift. If drift is user-perceivable (not just a hex-level pixel shift), identify which snap was responsible and consider rolling it back (add the token to the keep list).
 
@@ -1011,11 +1011,11 @@ Start the dev server (`make frontend`) and visit each of the 12 surfaces from th
 11. Component Assist popover
 12. Note nodes
 
-- [ ] **Step 3: Pause and ask for commit permission**
+- [x] **Step 3: Pause and ask for commit permission**
 
 Summarize: how many tokens snapped vs kept, percent reduction achieved, whether any tokens were rolled back after visual review, any surfaces with residual drift. Ask the user: *"Phase 6 complete and verified. OK to commit?"*
 
-- [ ] **Step 4: Commit (after approval)**
+- [x] **Step 4: Commit (after approval)**
 
 Stage explicitly — this phase touches many files. Check `git status`; stage only the files modified by Tasks 6.2.
 
@@ -1050,7 +1050,7 @@ After Phase 6 commit, record the Phase 7+ follow-ons from the spec in the repo's
 **Files:**
 - Modify: `docs/superpowers/followups.md`
 
-- [ ] **Step 1: Append a section for each deferred follow-on**
+- [x] **Step 1: Append a section for each deferred follow-on**
 
 Add entries for:
 - 7a — Full `framer-motion` removal
@@ -1073,11 +1073,11 @@ Acceptance criteria and expected churn documented in
 Phase 7a.
 ```
 
-- [ ] **Step 2: Pause and ask for commit permission**
+- [x] **Step 2: Pause and ask for commit permission**
 
 Ask the user: *"Follow-ons recorded. OK to commit this final touch?"*
 
-- [ ] **Step 3: Commit (after approval)**
+- [x] **Step 3: Commit (after approval)**
 
 ```bash
 git add docs/superpowers/followups.md
@@ -1090,14 +1090,14 @@ git commit -m "docs: record tailwind-max phase 7+ follow-ons"
 
 Before declaring the entire plan complete, verify:
 
-- [ ] Every phase committed with user approval (no unauthorized commits).
-- [ ] Every phase left the working tree in a shippable state (typecheck, jest, Playwright, production build all green per-phase).
-- [ ] Bundle size at end of Phase 6 is ≤ bundle size at start of Phase 1 (no accidental bloat).
-- [ ] `applies.css` line count dropped by ≥40% from baseline.
-- [ ] `style/index.css` `--color-*` token count dropped by ≥20% from baseline.
-- [ ] Seven decorative components deleted in Phase 2; `simple-sidebar.tsx` deleted in Phase 1; `accordionComponent/` deleted in Phase 5.
-- [ ] `classes.css` deleted (or its live selectors relocated and the file deleted).
-- [ ] At least one unused styling dep removed in Phase 1.
-- [ ] Phase 7+ follow-ons recorded in `docs/superpowers/followups.md`.
-- [ ] No `git add -A` or `git commit -a` was ever used.
-- [ ] No upstream PR was created.
+- [x] Every phase committed with user approval (no unauthorized commits).
+- [x] Every phase left the working tree in a shippable state (typecheck, jest, Playwright, production build all green per-phase).
+- [x] Bundle size at end of Phase 6 is ≤ bundle size at start of Phase 1 (no accidental bloat).
+- [x] `applies.css` line count dropped by ≥40% from baseline.
+- [x] `style/index.css` `--color-*` token count dropped by ≥20% from baseline.
+- [x] Seven decorative components deleted in Phase 2; `simple-sidebar.tsx` deleted in Phase 1; `accordionComponent/` deleted in Phase 5.
+- [x] `classes.css` deleted (or its live selectors relocated and the file deleted).
+- [x] At least one unused styling dep removed in Phase 1.
+- [x] Phase 7+ follow-ons recorded in `docs/superpowers/followups.md`.
+- [x] No `git add -A` or `git commit -a` was ever used.
+- [x] No upstream PR was created.

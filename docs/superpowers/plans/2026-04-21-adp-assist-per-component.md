@@ -90,11 +90,11 @@ Memory callouts to respect during execution:
 **Files:**
 - Modify: `src/frontend/src/style/index.css`
 
-- [ ] **Step 1: Locate the `:root` HSL variable block**
+- [x] **Step 1: Locate the `:root` HSL variable block**
 
 Open `src/frontend/src/style/index.css` and find the `:root` block that defines variables like `--primary`, `--destructive` in HSL triples (around line ~450 based on prior greps). Variables are stored as three space-separated numbers so they can be consumed via `hsl(var(--name))`.
 
-- [ ] **Step 2: Add `--color-adp-red`**
+- [x] **Step 2: Add `--color-adp-red`**
 
 Add these two lines alongside the existing accent tokens (place near `--accent-red-foreground`):
 
@@ -110,11 +110,11 @@ Then, in the `@theme inline { }` block at the top of the file (where `--color-*`
   --color-adp-red-foreground: hsl(var(--adp-red-foreground));
 ```
 
-- [ ] **Step 3: Smoke-check in the dev server**
+- [x] **Step 3: Smoke-check in the dev server**
 
 Run `cd src/frontend && npm run dev`. Open http://localhost:3000, inspect any element, add the class `bg-adp-red` in DevTools, and confirm it renders as `#ED1C2E`. Kill the dev server when done.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/frontend/src/style/index.css
@@ -131,7 +131,7 @@ git commit -m "feat(style): add ADP brand-red CSS variable for assistant surface
 - Create: `src/backend/tests/unit/services/component_assist/__init__.py`
 - Create: `src/backend/tests/unit/services/component_assist/test_schemas.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/backend/tests/unit/services/component_assist/test_schemas.py`:
 
@@ -199,14 +199,14 @@ def test_propose_config_update_requires_node_id_and_patch():
         ProposeConfigUpdate(node_id="n1", patch="nope", rationale="x")  # patch must be dict
 ```
 
-- [ ] **Step 2: Run the test and confirm it fails**
+- [x] **Step 2: Run the test and confirm it fails**
 
 ```bash
 uv run pytest src/backend/tests/unit/services/component_assist/test_schemas.py -v
 ```
 Expected: `ModuleNotFoundError` or collection errors — the module doesn't exist yet.
 
-- [ ] **Step 3: Implement the schemas**
+- [x] **Step 3: Implement the schemas**
 
 Create `src/backend/base/langflow/services/component_assist/__init__.py`:
 
@@ -272,18 +272,18 @@ class ProposeConfigUpdate(BaseModel):
     rationale: str = ""
 ```
 
-- [ ] **Step 4: Create the test package marker**
+- [x] **Step 4: Create the test package marker**
 
 Create `src/backend/tests/unit/services/component_assist/__init__.py` (empty file).
 
-- [ ] **Step 5: Run tests and confirm they pass**
+- [x] **Step 5: Run tests and confirm they pass**
 
 ```bash
 uv run pytest src/backend/tests/unit/services/component_assist/test_schemas.py -v
 ```
 Expected: 4 passed.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/component_assist/ \
@@ -300,7 +300,7 @@ git commit -m "feat(component-assist): request/tool pydantic schemas"
 - Create: `src/backend/base/langflow/services/component_assist/guides/.gitkeep` (empty)
 - Create: `src/backend/tests/unit/services/component_assist/test_guide_registry.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create the test file:
 
@@ -369,14 +369,14 @@ def test_yaml_bundle_loads_and_merges(tmp_path: Path, monkeypatch: pytest.Monkey
     assert bundle == {"A": "from-a", "B": "from-b"}
 ```
 
-- [ ] **Step 2: Run and confirm failure**
+- [x] **Step 2: Run and confirm failure**
 
 ```bash
 uv run pytest src/backend/tests/unit/services/component_assist/test_guide_registry.py -v
 ```
 Expected: ImportError — `guide_registry` doesn't exist.
 
-- [ ] **Step 3: Implement the registry**
+- [x] **Step 3: Implement the registry**
 
 Create `src/backend/base/langflow/services/component_assist/guide_registry.py`:
 
@@ -446,21 +446,21 @@ def reset_cache() -> None:
     _cached_bundle = None
 ```
 
-- [ ] **Step 4: Create the guides directory placeholder**
+- [x] **Step 4: Create the guides directory placeholder**
 
 ```bash
 mkdir -p src/backend/base/langflow/services/component_assist/guides
 touch src/backend/base/langflow/services/component_assist/guides/.gitkeep
 ```
 
-- [ ] **Step 5: Run and confirm passing**
+- [x] **Step 5: Run and confirm passing**
 
 ```bash
 uv run pytest src/backend/tests/unit/services/component_assist/test_guide_registry.py -v
 ```
 Expected: 4 passed.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/component_assist/guide_registry.py \
@@ -477,7 +477,7 @@ git commit -m "feat(component-assist): guide registry with class-attr and YAML r
 - Create: `src/backend/base/langflow/services/component_assist/prompt.py`
 - Create: `src/backend/tests/unit/services/component_assist/test_prompt.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 """Tests for the component assist prompt builder."""
@@ -530,14 +530,14 @@ def test_prompt_renders_neighbors_when_present():
     assert "neighbors" in prompt.lower()
 ```
 
-- [ ] **Step 2: Run and confirm failure**
+- [x] **Step 2: Run and confirm failure**
 
 ```bash
 uv run pytest src/backend/tests/unit/services/component_assist/test_prompt.py -v
 ```
 Expected: ImportError.
 
-- [ ] **Step 3: Implement the prompt builder**
+- [x] **Step 3: Implement the prompt builder**
 
 ```python
 """Build the per-turn system prompt for the component assist service."""
@@ -606,14 +606,14 @@ def build_system_prompt(
     return "\n\n".join(parts)
 ```
 
-- [ ] **Step 4: Run and confirm passing**
+- [x] **Step 4: Run and confirm passing**
 
 ```bash
 uv run pytest src/backend/tests/unit/services/component_assist/test_prompt.py -v
 ```
 Expected: 3 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/component_assist/prompt.py \
@@ -629,7 +629,7 @@ git commit -m "feat(component-assist): system prompt builder"
 - Create: `src/backend/base/langflow/services/component_assist/service.py`
 - Create: `src/backend/tests/unit/services/component_assist/test_service.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 This test uses a dummy LLM client that yields a scripted sequence of chunks and records calls. It asserts SSE event order and that invalid patches trigger one retry before erroring.
 
@@ -753,14 +753,14 @@ async def test_node_id_mismatch_is_rejected():
     assert events[-1]["type"] == "error"
 ```
 
-- [ ] **Step 2: Run and confirm failure**
+- [x] **Step 2: Run and confirm failure**
 
 ```bash
 uv run pytest src/backend/tests/unit/services/component_assist/test_service.py -v
 ```
 Expected: ImportError.
 
-- [ ] **Step 3: Implement the service**
+- [x] **Step 3: Implement the service**
 
 Create `src/backend/base/langflow/services/component_assist/service.py`:
 
@@ -876,14 +876,14 @@ class ComponentAssistService:
             )
 ```
 
-- [ ] **Step 4: Run and confirm passing**
+- [x] **Step 4: Run and confirm passing**
 
 ```bash
 uv run pytest src/backend/tests/unit/services/component_assist/test_service.py -v
 ```
 Expected: 3 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/component_assist/service.py \
@@ -900,11 +900,11 @@ git commit -m "feat(component-assist): stateless streaming service with single r
 - Modify: `src/backend/base/langflow/api/router.py`
 - Create: `src/backend/tests/unit/api/v1/test_component_assist_endpoint.py`
 
-- [ ] **Step 1: Locate the existing assistant router**
+- [x] **Step 1: Locate the existing assistant router**
 
 Read `src/backend/base/langflow/api/v1/assistant.py` around the `POST /flows/{flow_id}/messages` endpoint (approximately line 300). Note the dependencies it uses: `CurrentActiveUser`, `CurrentOrg`, `DbSession`, and `_get_flow_with_org_check`. Also note the imports for `EventSourceResponse` and how it constructs the provider client.
 
-- [ ] **Step 2: Write the failing endpoint test**
+- [x] **Step 2: Write the failing endpoint test**
 
 ```python
 """Endpoint tests for POST /api/v1/assistant/components/messages."""
@@ -982,14 +982,14 @@ async def test_happy_path_streams_events(
 
 Note: `client_authed`, `client_other_org`, `own_flow_id`, `other_org_flow_id`, and `scripted_llm_patch` are fixtures that follow the same pattern as existing endpoint tests under `src/backend/tests/unit/api/v1/`. If a similar fixture set doesn't already exist, add them to `src/backend/tests/unit/api/v1/conftest.py` mirroring `test_assistant_endpoint.py`.
 
-- [ ] **Step 3: Run and confirm failure**
+- [x] **Step 3: Run and confirm failure**
 
 ```bash
 uv run pytest src/backend/tests/unit/api/v1/test_component_assist_endpoint.py -v
 ```
 Expected: fixture or import errors.
 
-- [ ] **Step 4: Implement the endpoint**
+- [x] **Step 4: Implement the endpoint**
 
 Create `src/backend/base/langflow/api/v1/component_assist.py`:
 
@@ -1063,7 +1063,7 @@ async def component_assist_messages(
 
 Note on helper imports: `_get_flow_with_org_check` and `_build_llm_client` may be private to `assistant.py`. If they are not importable as-is, refactor them into `src/backend/base/langflow/api/v1/_assistant_shared.py` in a preliminary sub-commit and import from there. Keep their signatures identical.
 
-- [ ] **Step 5: Register the router**
+- [x] **Step 5: Register the router**
 
 Open `src/backend/base/langflow/api/router.py`. Find the block that includes `assistant_router` (or equivalent) with `router_v1.include_router(...)`. Add next to it:
 
@@ -1073,14 +1073,14 @@ from langflow.api.v1.component_assist import router as component_assist_router
 router_v1.include_router(component_assist_router)
 ```
 
-- [ ] **Step 6: Run and confirm passing**
+- [x] **Step 6: Run and confirm passing**
 
 ```bash
 uv run pytest src/backend/tests/unit/api/v1/test_component_assist_endpoint.py -v
 ```
 Expected: 3 passed.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/component_assist.py \
@@ -1098,7 +1098,7 @@ git commit -m "feat(api): POST /api/v1/assistant/components/messages SSE endpoin
 - Create: `src/frontend/src/modals/ComponentAssistPopover/types.ts`
 - Create: `src/frontend/src/stores/__tests__/componentAssistStore.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { act, renderHook } from "@testing-library/react";
@@ -1157,7 +1157,7 @@ describe("componentAssistStore", () => {
 });
 ```
 
-- [ ] **Step 2: Create the types file**
+- [x] **Step 2: Create the types file**
 
 ```ts
 // src/frontend/src/modals/ComponentAssistPopover/types.ts
@@ -1174,7 +1174,7 @@ export type ProposalPayload = {
 };
 ```
 
-- [ ] **Step 3: Implement the store**
+- [x] **Step 3: Implement the store**
 
 ```ts
 // src/frontend/src/stores/componentAssistStore.ts
@@ -1296,14 +1296,14 @@ const useComponentAssistStore = create<ComponentAssistState>((set, get) => ({
 export default useComponentAssistStore;
 ```
 
-- [ ] **Step 4: Run and confirm passing**
+- [x] **Step 4: Run and confirm passing**
 
 ```bash
 cd src/frontend && npm test -- --testPathPattern=componentAssistStore
 ```
 Expected: 3 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/frontend/src/stores/componentAssistStore.ts \
@@ -1320,7 +1320,7 @@ git commit -m "feat(component-assist): zustand store for ephemeral popover state
 - Create: `src/frontend/src/modals/ComponentAssistPopover/hooks/use-component-assist-stream.ts`
 - Create: `src/frontend/src/modals/ComponentAssistPopover/__tests__/use-component-assist-stream.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { act, renderHook, waitFor } from "@testing-library/react";
@@ -1398,7 +1398,7 @@ describe("useComponentAssistStream", () => {
 });
 ```
 
-- [ ] **Step 2: Implement the hook**
+- [x] **Step 2: Implement the hook**
 
 ```ts
 // src/frontend/src/modals/ComponentAssistPopover/hooks/use-component-assist-stream.ts
@@ -1519,14 +1519,14 @@ export function useComponentAssistStream(flowId: string) {
 }
 ```
 
-- [ ] **Step 3: Run and confirm passing**
+- [x] **Step 3: Run and confirm passing**
 
 ```bash
 cd src/frontend && npm test -- --testPathPattern=use-component-assist-stream
 ```
 Expected: 2 tests pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/frontend/src/modals/ComponentAssistPopover/hooks/ \
@@ -1542,7 +1542,7 @@ git commit -m "feat(component-assist): SSE streaming hook with abort + proposal 
 - Create: `src/frontend/src/modals/ComponentAssistPopover/components/ProposalBlock.tsx`
 - Create: `src/frontend/src/modals/ComponentAssistPopover/__tests__/ProposalBlock.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 import { fireEvent, render, screen } from "@testing-library/react";
@@ -1603,7 +1603,7 @@ describe("ProposalBlock", () => {
 });
 ```
 
-- [ ] **Step 2: Implement the component**
+- [x] **Step 2: Implement the component**
 
 ```tsx
 // src/frontend/src/modals/ComponentAssistPopover/components/ProposalBlock.tsx
@@ -1673,14 +1673,14 @@ export function ProposalBlock({ proposal, currentTemplate, onApply, onDismiss }:
 }
 ```
 
-- [ ] **Step 3: Run and confirm passing**
+- [x] **Step 3: Run and confirm passing**
 
 ```bash
 cd src/frontend && npm test -- --testPathPattern=ProposalBlock
 ```
 Expected: 3 tests pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/frontend/src/modals/ComponentAssistPopover/components/ProposalBlock.tsx \
@@ -1696,7 +1696,7 @@ git commit -m "feat(component-assist): inline ProposalBlock with Apply/Dismiss"
 - Create: `src/frontend/src/modals/ComponentAssistPopover/index.tsx`
 - Create: `src/frontend/src/modals/ComponentAssistPopover/__tests__/ComponentAssistPopover.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 import { act, fireEvent, render, screen } from "@testing-library/react";
@@ -1742,7 +1742,7 @@ describe("ComponentAssistPopover", () => {
 });
 ```
 
-- [ ] **Step 2: Implement the popover**
+- [x] **Step 2: Implement the popover**
 
 ```tsx
 // src/frontend/src/modals/ComponentAssistPopover/index.tsx
@@ -1922,7 +1922,7 @@ export default function ComponentAssistPopover() {
 }
 ```
 
-- [ ] **Step 3: Mount the popover in the flow page**
+- [x] **Step 3: Mount the popover in the flow page**
 
 Open `src/frontend/src/pages/FlowPage/index.tsx` (or wherever the top-level flow page is rendered — verify with a quick grep for `<AssistantPanel`). Add `<ComponentAssistPopover />` as a sibling of the existing `<AssistantPanel>`:
 
@@ -1932,14 +1932,14 @@ import ComponentAssistPopover from "@/modals/ComponentAssistPopover";
 <ComponentAssistPopover />
 ```
 
-- [ ] **Step 4: Run and confirm passing**
+- [x] **Step 4: Run and confirm passing**
 
 ```bash
 cd src/frontend && npm test -- --testPathPattern=ComponentAssistPopover
 ```
 Expected: 3 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/frontend/src/modals/ComponentAssistPopover/index.tsx \
@@ -1955,11 +1955,11 @@ git commit -m "feat(component-assist): draggable popover with chat UI and apply 
 **Files:**
 - Modify: `src/frontend/src/pages/FlowPage/components/nodeToolbarComponent/index.tsx`
 
-- [ ] **Step 1: Locate the toolbar button render block**
+- [x] **Step 1: Locate the toolbar button render block**
 
 Open `src/frontend/src/pages/FlowPage/components/nodeToolbarComponent/index.tsx`. Find the `renderToolbarButtons` memoized JSX fragment (around line 499). Note the `ToolbarButton` pattern: `<ToolbarButton icon label onClick shortcut dataTestId />`.
 
-- [ ] **Step 2: Wire up the open-assist action**
+- [x] **Step 2: Wire up the open-assist action**
 
 At the top of the component, import the store and add a handler:
 
@@ -1971,7 +1971,7 @@ const openComponentAssist = useComponentAssistStore((s) => s.open);
 const anchorRef = useRef<HTMLDivElement>(null);
 ```
 
-- [ ] **Step 3: Read the `assist_enabled` flag off the node**
+- [x] **Step 3: Read the `assist_enabled` flag off the node**
 
 The component's `assist_enabled` class attribute is exposed on the node's frontend template as part of the normal build-config path. Confirm by inspecting `data.node.template.assist_enabled` in a logged-out `console.log(data)` on a DataMapper node; otherwise it's available via `data.node.metadata.assist_enabled` (verify with a grep in `src/frontend/src/` for how other ClassVar flags like `legacy` surface on the frontend).
 
@@ -1983,7 +1983,7 @@ const assistEnabled = (data?.node?.metadata?.assist_enabled ?? data?.node?.templ
 
 If neither location carries the flag, add a small backend adjustment (in a preliminary task committed separately): in the component's frontend-node serializer, emit `metadata.assist_enabled = getattr(cls, "assist_enabled", True)`. Never invent a new API surface — use whichever existing class-level-flag pathway `legacy` rides on.
 
-- [ ] **Step 4: Add the Assist button to the toolbar fragment, gated by the flag**
+- [x] **Step 4: Add the Assist button to the toolbar fragment, gated by the flag**
 
 Insert this `ToolbarButton` at the start of the existing button list (leftmost), wrapped in the enablement check:
 
@@ -2004,11 +2004,11 @@ Insert this `ToolbarButton` at the start of the existing button list (leftmost),
 
 If `ToolbarButton` doesn't accept `iconClassName`, extend its props (one-line addition in `ToolbarButton.tsx`) to forward a classname into the `ForwardedIconComponent`.
 
-- [ ] **Step 5: Attach the anchor ref to the toolbar wrapper**
+- [x] **Step 5: Attach the anchor ref to the toolbar wrapper**
 
 Find the outer `<div>` that wraps the toolbar buttons. Attach `ref={anchorRef}` so the popover can anchor off its screen rect.
 
-- [ ] **Step 6: Manual smoke test (including opt-out)**
+- [x] **Step 6: Manual smoke test (including opt-out)**
 
 ```bash
 make backend  # terminal 1
@@ -2021,7 +2021,7 @@ Open `http://localhost:3000`, open a flow that contains a DataMapper component a
 
 Kill the dev processes.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/frontend/src/pages/FlowPage/components/nodeToolbarComponent/index.tsx \
@@ -2042,7 +2042,7 @@ git commit -m "feat(component-assist): add Assist icon to node toolbar"
 
 ### 12A · DataMapper opt-out
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 """DataMapper must opt out of ADP Assist; the reference component must expose a guide."""
@@ -2069,14 +2069,14 @@ def test_reference_component_has_guide():
     assert is_assist_enabled(TextOperationsComponent) is True
 ```
 
-- [ ] **Step 2: Run and confirm failure**
+- [x] **Step 2: Run and confirm failure**
 
 ```bash
 LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest src/lfx/tests/unit/components/processing/test_assist_opt_out_and_guide.py -v
 ```
 Expected: `AttributeError` / assertion failure on both tests.
 
-- [ ] **Step 3: Add the opt-out to DataMapperComponent**
+- [x] **Step 3: Add the opt-out to DataMapperComponent**
 
 Open `src/lfx/src/lfx/components/processing/data_mapper.py`. Locate the `DataMapperComponent` class definition. Add **exactly one** class attribute (plus the `ClassVar` import if it isn't already present). Do not touch anything else.
 
@@ -2089,7 +2089,7 @@ class DataMapperComponent(Component):
     # ... rest of class unchanged ...
 ```
 
-- [ ] **Step 4: Confirm DataMapper test passes; reference-guide test still fails**
+- [x] **Step 4: Confirm DataMapper test passes; reference-guide test still fails**
 
 ```bash
 LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest src/lfx/tests/unit/components/processing/test_assist_opt_out_and_guide.py::test_data_mapper_opts_out_of_assist -v
@@ -2103,7 +2103,7 @@ Expected: still fails (no guide yet).
 
 ### 12B · Reference guide on `TextOperationsComponent`
 
-- [ ] **Step 5: Add `assist_guide` to the reference component**
+- [x] **Step 5: Add `assist_guide` to the reference component**
 
 Open `src/lfx/src/lfx/components/processing/text_operations.py`. If this component doesn't exist, grep `src/lfx/src/lfx/components/` for a high-traffic processing component with rich metadata (populated `description` and per-input `info` strings on at least 3 inputs) and substitute it throughout — then update the test's import line accordingly.
 
@@ -2134,24 +2134,24 @@ When proposing config:
     # ... rest of class unchanged ...
 ```
 
-- [ ] **Step 6: Run and confirm both tests pass**
+- [x] **Step 6: Run and confirm both tests pass**
 
 ```bash
 LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest src/lfx/tests/unit/components/processing/test_assist_opt_out_and_guide.py -v
 ```
 Expected: 2 passed.
 
-- [ ] **Step 7: Apply component-authoring ritual for modified components**
+- [x] **Step 7: Apply component-authoring ritual for modified components**
 
 Per `.claude/skills/langflow-component-authoring/SKILL.md`, bump the `version` and append to the changelog for **both** `DataMapperComponent` (opt-out contract added) and the reference component (guide added). Minimal, literal changelog entries only — do not expand either file's scope beyond these additions.
 
-- [ ] **Step 8: Rebuild the component index**
+- [x] **Step 8: Rebuild the component index**
 
 ```bash
 uv run python scripts/build_component_index.py
 ```
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/data_mapper.py \
@@ -2171,7 +2171,7 @@ git commit -m "feat(lfx): opt DataMapper out of ADP Assist + seed reference assi
 
 **⚠ DataMapper hands-off:** this smoke test must NOT use `DataMapperComponent` — that component has opted out of ADP Assist. Use any other non-excluded component (e.g., `TextOperationsComponent`, matching the reference guide added in Task 12).
 
-- [ ] **Step 1: Write the smoke test**
+- [x] **Step 1: Write the smoke test**
 
 ```python
 """End-to-end smoke: Source → TextOperations, Assist proposes a config, apply succeeds."""
@@ -2271,14 +2271,14 @@ async def test_data_mapper_opts_out_endpoint_returns_400(
 
 Fixtures `flow_with_source_and_text_ops` and `scripted_llm_proposes_config` go into `src/backend/tests/integration/conftest.py`. Model them on the existing endpoint-test fixtures under `src/backend/tests/unit/api/v1/conftest.py`. The scripted LLM fixture monkeypatches `_build_llm_client` to return a stub that yields a `tool_call` event whose `patch` uses `TextOperationsComponent`'s actual template keys (at minimum the `operation` field). If `TextOperationsComponent` doesn't exist, substitute the component chosen in Task 12 Step 5 — update the fixture and the test's type names together.
 
-- [ ] **Step 2: Run and confirm passing**
+- [x] **Step 2: Run and confirm passing**
 
 ```bash
 uv run pytest src/backend/tests/integration/test_component_assist_smoke.py -v
 ```
 Expected: 1 passed.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/backend/tests/integration/test_component_assist_smoke.py \

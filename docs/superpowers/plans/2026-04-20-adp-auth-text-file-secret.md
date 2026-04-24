@@ -70,7 +70,7 @@
 - Modify: `src/lfx/src/lfx/inputs/inputs.py` (near `SecretStrInput` class ~line 410)
 - Create test: `src/lfx/tests/unit/inputs/test_secret_str_input.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/lfx/tests/unit/inputs/test_secret_str_input.py`:
 
@@ -107,7 +107,7 @@ def test_auto_promote_false_is_serialized():
     assert dumped["auto_promote"] is False
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```
 cd /Users/brycedeneen/dev/langflow/.worktrees/adp-auth-vault-backed-pem
@@ -116,7 +116,7 @@ LFX_TEST_ALLOW_LANGFLOW=1 .venv/bin/pytest src/lfx/tests/unit/inputs/test_secret
 
 Expected: `AttributeError: 'SecretStrInput' object has no attribute 'auto_promote'` (or similar Pydantic validation error).
 
-- [ ] **Step 3: Add the `auto_promote` field**
+- [x] **Step 3: Add the `auto_promote` field**
 
 Edit `src/lfx/src/lfx/inputs/inputs.py`. Find the `SecretStrInput` class header `class SecretStrInput(BaseInputMixin, DatabaseLoadMixin):` (~line 410). Look at the existing class attributes (`field_type`, `password`, `load_from_db`, `track_in_telemetry`). Add `auto_promote` using the same style:
 
@@ -134,11 +134,11 @@ class SecretStrInput(BaseInputMixin, DatabaseLoadMixin):
     JSON (rare)."""
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Same command as Step 2. Expected: 5 passed.
 
-- [ ] **Step 5: Pause for user commit approval**
+- [x] **Step 5: Pause for user commit approval**
 
 Proposed message: `feat(inputs): add auto_promote=True default on SecretStrInput`
 
@@ -150,7 +150,7 @@ Proposed message: `feat(inputs): add auto_promote=True default on SecretStrInput
 - Modify: `src/backend/base/langflow/services/variable/service.py` (add a method near existing `create_variable` / `list_autosecret_names_for_flow`)
 - Modify test: `src/backend/tests/unit/services/variable/test_auto_secrets.py` (or a new sibling — prefer extending existing if fixture setup matches)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `src/backend/tests/unit/services/variable/test_auto_secrets.py` (or `test_service.py` if that's where existing VariableService tests live — check `grep -rn "class.*VariableService\|def test_.*variable" src/backend/tests/unit/services/variable/` first):
 
@@ -193,7 +193,7 @@ async def test_has_user_managed_variable_false_for_autosecret():
 
 > **Note:** the `test_auto_secrets.py` tests are pure helper tests — they can't cover service SQL behavior. Write a direct `test_service.py`-style test instead. Check whether `src/backend/tests/unit/services/variable/test_service.py` exists; if yes, extend it with a DB-backed test of `has_user_managed_variable` using the existing DB fixture. If no, defer the DB test to the integration layer (Task 5) and make this step a simple API-shape test (method exists, takes keyword args, returns bool).
 
-- [ ] **Step 2: Run test to verify it fails (or skip if no suitable location)**
+- [x] **Step 2: Run test to verify it fails (or skip if no suitable location)**
 
 ```
 .venv/bin/pytest src/backend/tests/unit/services/variable/ -v -k has_user_managed
@@ -201,7 +201,7 @@ async def test_has_user_managed_variable_false_for_autosecret():
 
 Expected: `AttributeError: 'VariableService' object has no attribute 'has_user_managed_variable'` OR skip if DB fixtures aren't available (cover via integration test in Task 5).
 
-- [ ] **Step 3: Implement the method**
+- [x] **Step 3: Implement the method**
 
 Edit `src/backend/base/langflow/services/variable/service.py`. Find `list_autosecret_names_for_flow` (added in the previous feature). Add `has_user_managed_variable` immediately after it, mirroring its imports and query shape:
 
@@ -238,11 +238,11 @@ async def has_user_managed_variable(
 
 > **Note:** verify `Variable.name.not_like(...)` is the right SQLModel/SQLAlchemy API on this project — if the existing `list_autosecret_names_for_flow` uses `Variable.name.like(...)`, the `not_like` form is the complement. If not available, use `~Variable.name.like(...)`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Same command as Step 2. Expected: passing (or covered by integration test deferral).
 
-- [ ] **Step 5: Pause for user commit approval**
+- [x] **Step 5: Pause for user commit approval**
 
 Proposed message: `feat(variables): add has_user_managed_variable for auto-promote guardrail`
 
@@ -254,7 +254,7 @@ Proposed message: `feat(variables): add has_user_managed_variable for auto-promo
 - Modify: `src/backend/base/langflow/services/variable/auto_secrets.py` — rename `_iter_textfilesecret_fields` → `_iter_promotable_fields`, change predicate
 - Modify: `src/backend/tests/unit/services/variable/test_auto_secrets.py` — update imports/references if any test imports the helper by name
 
-- [ ] **Step 1: Write a failing test for the generalized walker**
+- [x] **Step 1: Write a failing test for the generalized walker**
 
 Append to `src/backend/tests/unit/services/variable/test_auto_secrets.py`:
 
@@ -361,7 +361,7 @@ def test_iter_promotable_fields_ignores_missing_auto_promote_key():
     assert list(_iter_promotable_fields(flow_data)) == []
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```
 .venv/bin/pytest src/backend/tests/unit/services/variable/test_auto_secrets.py -v -k _iter_promotable_fields
@@ -369,7 +369,7 @@ def test_iter_promotable_fields_ignores_missing_auto_promote_key():
 
 Expected: `ImportError: cannot import name '_iter_promotable_fields'`.
 
-- [ ] **Step 3: Rename + generalize the walker**
+- [x] **Step 3: Rename + generalize the walker**
 
 Edit `src/backend/base/langflow/services/variable/auto_secrets.py`. Find `_iter_textfilesecret_fields`. Rename it to `_iter_promotable_fields` and change the predicate. Also update ALL internal call sites in the same file (`promote_plaintext_secrets_to_variables`, `cleanup_orphaned_autosecrets`, `blank_autosecrets_for_export` — 3 callers).
 
@@ -404,7 +404,7 @@ def _iter_promotable_fields(flow_data: dict) -> list[tuple[str, str, dict]]:
 
 Update the three internal call sites in the same file: replace every `_iter_textfilesecret_fields(` with `_iter_promotable_fields(`.
 
-- [ ] **Step 4: Run all `test_auto_secrets.py` tests**
+- [x] **Step 4: Run all `test_auto_secrets.py` tests**
 
 ```
 .venv/bin/pytest src/backend/tests/unit/services/variable/test_auto_secrets.py -v
@@ -412,7 +412,7 @@ Update the three internal call sites in the same file: replace every `_iter_text
 
 Expected: the existing 11 tests + 4 new ones pass. Any existing tests that imported `_iter_textfilesecret_fields` by name need updating to the new name. Fix them by search-replace.
 
-- [ ] **Step 5: Pause for user commit approval**
+- [x] **Step 5: Pause for user commit approval**
 
 Proposed message: `refactor(variables): rename walker to _iter_promotable_fields + use auto_promote flag`
 
@@ -424,7 +424,7 @@ Proposed message: `refactor(variables): rename walker to _iter_promotable_fields
 - Modify: `src/backend/base/langflow/services/variable/auto_secrets.py` — add a `has_user_managed_variable` call in `promote_plaintext_secrets_to_variables`
 - Modify test: `src/backend/tests/unit/services/variable/test_auto_secrets.py` — cover the new path
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `src/backend/tests/unit/services/variable/test_auto_secrets.py`:
 
@@ -528,7 +528,7 @@ async def test_promote_short_circuits_on_any_autosecret_prefix():
     assert field["value"] == foreign_autosecret
 ```
 
-- [ ] **Step 2: Run tests (expecting 2 of 3 to fail)**
+- [x] **Step 2: Run tests (expecting 2 of 3 to fail)**
 
 ```
 .venv/bin/pytest src/backend/tests/unit/services/variable/test_auto_secrets.py -v
@@ -536,7 +536,7 @@ async def test_promote_short_circuits_on_any_autosecret_prefix():
 
 Expected: `test_promote_preserves_user_managed_variable_reference` fails (user-managed preservation not implemented) and `test_promote_short_circuits_on_any_autosecret_prefix` may fail depending on current behavior. `test_promote_promotes_when_value_does_not_match_any_variable` should already pass (default path).
 
-- [ ] **Step 3: Update `promote_plaintext_secrets_to_variables`**
+- [x] **Step 3: Update `promote_plaintext_secrets_to_variables`**
 
 Edit `src/backend/base/langflow/services/variable/auto_secrets.py`. Find `promote_plaintext_secrets_to_variables`. Replace its body with:
 
@@ -609,7 +609,7 @@ async def promote_plaintext_secrets_to_variables(
     return flow_data
 ```
 
-- [ ] **Step 4: Update existing tests that don't mock `has_user_managed_variable`**
+- [x] **Step 4: Update existing tests that don't mock `has_user_managed_variable`**
 
 Any previously passing test that calls `promote_plaintext_secrets_to_variables` without configuring `svc.has_user_managed_variable` will fail (AsyncMock default is to return a MagicMock, truthy, short-circuiting promotion). Fix by adding `svc.has_user_managed_variable = AsyncMock(return_value=False)` to each test's setup.
 
@@ -621,7 +621,7 @@ Search the test file for existing tests that use the promote helper and add the 
 (`test_promote_skips_non_textfilesecret_fields` doesn't reach the user-managed check because the walker skips the field — it's fine.)
 (`test_promote_skips_already_promoted_reference` also short-circuits at the AUTOSECRET_PREFIX check — fine.)
 
-- [ ] **Step 5: Run all auto_secrets tests**
+- [x] **Step 5: Run all auto_secrets tests**
 
 ```
 .venv/bin/pytest src/backend/tests/unit/services/variable/test_auto_secrets.py -v
@@ -629,7 +629,7 @@ Search the test file for existing tests that use the promote helper and add the 
 
 Expected: all previously passing + the 3 new tests pass.
 
-- [ ] **Step 6: Pause for user commit approval**
+- [x] **Step 6: Pause for user commit approval**
 
 Proposed message: `feat(variables): preserve user-managed Variable refs in promote helper`
 
@@ -640,7 +640,7 @@ Proposed message: `feat(variables): preserve user-managed Variable refs in promo
 **Files:**
 - Modify: `src/backend/tests/unit/api/v1/test_flow_autosecret_lifecycle.py`
 
-- [ ] **Step 1: Add two new integration test functions**
+- [x] **Step 1: Add two new integration test functions**
 
 Append to `src/backend/tests/unit/api/v1/test_flow_autosecret_lifecycle.py` (use the same fixture pattern as existing tests):
 
@@ -736,7 +736,7 @@ async def test_create_flow_preserves_user_managed_variable_reference(
     assert api_key_field["load_from_db"] is True
 ```
 
-- [ ] **Step 2: Run the integration test suite**
+- [x] **Step 2: Run the integration test suite**
 
 ```
 .venv/bin/pytest src/backend/tests/unit/api/v1/test_flow_autosecret_lifecycle.py -v
@@ -744,7 +744,7 @@ async def test_create_flow_preserves_user_managed_variable_reference(
 
 Expected: previously passing 5 + new 2 pass (7 total).
 
-- [ ] **Step 3: Pause for user commit approval**
+- [x] **Step 3: Pause for user commit approval**
 
 Proposed message: `test(integration): cover auto-promote for bare SecretStrInput and user-Variable preservation`
 
@@ -757,7 +757,7 @@ Proposed message: `test(integration): cover auto-promote for bare SecretStrInput
 
 This is the first ADP-specific task. It tightens the connection dataclass, converts `build_mtls_httpx_client` to an async context manager, deletes `_write_pem_temp_files` and `_MTLSClient`, and removes re-exports that are no longer used.
 
-- [ ] **Step 1: Survey in-repo usages of soon-to-be-deleted helpers**
+- [x] **Step 1: Survey in-repo usages of soon-to-be-deleted helpers**
 
 ```
 grep -rn "_write_pem_temp_files\|_MTLSClient\|cert_source\|cert_path\|key_path" src/lfx/src/lfx/components/adp/ src/lfx/tests/unit/components/adp/
@@ -765,7 +765,7 @@ grep -rn "_write_pem_temp_files\|_MTLSClient\|cert_source\|cert_path\|key_path" 
 
 Report what callers exist for each symbol. Any caller outside `_shared.py` needs updating in Task 7 or Task 9+.
 
-- [ ] **Step 2: Edit the dataclass**
+- [x] **Step 2: Edit the dataclass**
 
 Edit `src/lfx/src/lfx/components/adp/_shared.py`. Find the `ADPConnection` dataclass (~line 55). Replace it with:
 
@@ -790,7 +790,7 @@ class ADPConnection:
 
 Drop `cert_source: Literal["path", "pem"]`, `cert_path: str | None = None`, `key_path: str | None = None`.
 
-- [ ] **Step 3: Replace `build_mtls_httpx_client` with async context manager**
+- [x] **Step 3: Replace `build_mtls_httpx_client` with async context manager**
 
 In the same file, find `build_mtls_httpx_client` (~line 111). Replace the entire function + the `_MTLSClient` subclass + `_write_pem_temp_files` with:
 
@@ -824,7 +824,7 @@ async def build_mtls_httpx_client(
 
 Delete the `_MTLSClient` subclass body, the `_write_pem_temp_files` function, and any module-level re-exports of `_normalize_pem` / `_write_secure_tempfile` that are no longer referenced.
 
-- [ ] **Step 4: Verify import integrity**
+- [x] **Step 4: Verify import integrity**
 
 ```
 .venv/bin/python -c "from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token; print('imports OK')"
@@ -832,7 +832,7 @@ Delete the `_MTLSClient` subclass body, the `_write_pem_temp_files` function, an
 
 Expected: `imports OK`. If the `fetch_token` function in the same file calls `build_mtls_httpx_client`, it needs updating to use the new context manager shape — handled in Task 7 Step 4.
 
-- [ ] **Step 5: Stage and pause**
+- [x] **Step 5: Stage and pause**
 
 `git add src/lfx/src/lfx/components/adp/_shared.py`. Wait for user approval.
 
@@ -850,7 +850,7 @@ Proposed commit: `refactor(adp): simplify ADPConnection and convert build_mtls_h
 - Modify: `src/lfx/src/lfx/components/adp/adp_trigger.py` — same
 - Modify: `src/lfx/src/lfx/components/adp/adp_auth.py` — removes the ADPConnection construction fields that no longer exist (this overlaps with Task 9 but the dataclass change forces it here to keep `_shared.py` in a working state)
 
-- [ ] **Step 1: Inspect each caller**
+- [x] **Step 1: Inspect each caller**
 
 ```
 grep -rn "build_mtls_httpx_client\|ADPConnection(" src/lfx/src/lfx/components/adp/
@@ -861,7 +861,7 @@ For each, check whether the call site:
 - Uses `client = build_mtls_httpx_client(conn)` without `async with` — change required to wrap in context manager.
 - Constructs `ADPConnection(cert_source=..., cert_path=..., key_path=...)` — must drop those keyword args and use `cert_pem`/`key_pem` instead.
 
-- [ ] **Step 2: Update `fetch_token` in `_shared.py`**
+- [x] **Step 2: Update `fetch_token` in `_shared.py`**
 
 Find `fetch_token` (~line 203) and update its call to `build_mtls_httpx_client`:
 
@@ -878,11 +878,11 @@ async def fetch_token(conn: ADPConnection, *, force: bool = False) -> None:
 
 (If already in this shape, no change.)
 
-- [ ] **Step 3: Update `adp_api_request.py`, `adp_mcp.py`, `adp_worker_tools.py`, `adp_trigger.py`**
+- [x] **Step 3: Update `adp_api_request.py`, `adp_mcp.py`, `adp_worker_tools.py`, `adp_trigger.py`**
 
 For each file, find each `build_mtls_httpx_client` call. The shape in Task 6 is an async context manager. Confirm each caller uses `async with build_mtls_httpx_client(conn, timeout=...) as client:`. If the previous code already had this pattern, no change needed. If any caller has `client = build_mtls_httpx_client(...)` without `async with`, wrap it.
 
-- [ ] **Step 4: Update ADPAuthComponent's `ADPConnection` construction (partial)**
+- [x] **Step 4: Update ADPAuthComponent's `ADPConnection` construction (partial)**
 
 Open `src/lfx/src/lfx/components/adp/adp_auth.py`. Find `build_connection` (~line 77). It currently constructs `ADPConnection(client_id=..., client_secret=..., cert_source=source, cert_path=..., key_path=..., cert_pem=..., key_pem=..., token_url=...)`.
 
@@ -913,7 +913,7 @@ if not self.key_pem:
 
 The full field-definition swap (`cert_source` TabInput removal, `cert_path`/`key_path` removal, `cert_pem`/`key_pem` type conversion to TextFileSecretInput) happens in Task 9 — but the above partial update is required NOW so `adp_auth.py` doesn't construct an ADPConnection with deleted keyword args.
 
-- [ ] **Step 5: Import check across all 5 files**
+- [x] **Step 5: Import check across all 5 files**
 
 ```
 for f in src/lfx/src/lfx/components/adp/{adp_auth,adp_api_request,adp_mcp,adp_worker_tools,adp_trigger}.py; do
@@ -923,7 +923,7 @@ done
 
 Expected: each prints `OK:`.
 
-- [ ] **Step 6: Stage and pause**
+- [x] **Step 6: Stage and pause**
 
 `git add src/lfx/src/lfx/components/adp/`. Wait for user approval.
 
@@ -936,7 +936,7 @@ Proposed commit: `refactor(adp): update build_mtls_httpx_client call sites to as
 **Files:**
 - Modify: `src/lfx/tests/unit/components/adp/test_shared.py`
 
-- [ ] **Step 1: Run the existing tests to see what breaks**
+- [x] **Step 1: Run the existing tests to see what breaks**
 
 ```
 LFX_TEST_ALLOW_LANGFLOW=1 .venv/bin/pytest src/lfx/tests/unit/components/adp/test_shared.py -v 2>&1 | tail -40
@@ -944,11 +944,11 @@ LFX_TEST_ALLOW_LANGFLOW=1 .venv/bin/pytest src/lfx/tests/unit/components/adp/tes
 
 Expected: many failures related to `cert_source`, `cert_path`, `key_path`, `_write_pem_temp_files`, and `_MTLSClient` (all deleted in Task 6). Note which tests are in each bucket.
 
-- [ ] **Step 2: Delete tests that exercise the path-mode branch**
+- [x] **Step 2: Delete tests that exercise the path-mode branch**
 
 Any test whose name matches `*path*cert*` or that constructs `ADPConnection(cert_source="path", ...)` — delete those test functions entirely. Keep tests that use `cert_source="pem"` or the PEM-mode path (update them per Step 3).
 
-- [ ] **Step 3: Update PEM-mode tests for the new context-manager shape**
+- [x] **Step 3: Update PEM-mode tests for the new context-manager shape**
 
 For any test that calls `build_mtls_httpx_client(conn)` and expects a plain client, rewrite to use async context:
 
@@ -967,11 +967,11 @@ async def test_build_mtls_httpx_client_yields_client_with_cert():
     # After exit they're cleaned up — covered by mtls_temp_files tests, not here.
 ```
 
-- [ ] **Step 4: Delete tests for `_write_pem_temp_files`**
+- [x] **Step 4: Delete tests for `_write_pem_temp_files`**
 
 Search for `_write_pem_temp_files` in `test_shared.py` and delete those tests. The underlying PEM-writing behavior is already tested by `mtls_temp_files` in `src/lfx/tests/unit/base/api_request/test_mtls.py`.
 
-- [ ] **Step 5: Run tests to verify pass**
+- [x] **Step 5: Run tests to verify pass**
 
 ```
 LFX_TEST_ALLOW_LANGFLOW=1 .venv/bin/pytest src/lfx/tests/unit/components/adp/test_shared.py -v
@@ -979,7 +979,7 @@ LFX_TEST_ALLOW_LANGFLOW=1 .venv/bin/pytest src/lfx/tests/unit/components/adp/tes
 
 Expected: all remaining tests pass.
 
-- [ ] **Step 6: Pause for user commit approval**
+- [x] **Step 6: Pause for user commit approval**
 
 Proposed commit: `test(adp): migrate shared helper tests to async CM and PEM-only shape`
 
@@ -992,7 +992,7 @@ Proposed commit: `test(adp): migrate shared helper tests to async CM and PEM-onl
 
 Task 7 Step 4 already updated `build_connection`'s `ADPConnection` construction. This task completes the input-list changes (TabInput removal, field type conversion) and adds the version/changelog.
 
-- [ ] **Step 1: Update imports**
+- [x] **Step 1: Update imports**
 
 Edit `src/lfx/src/lfx/components/adp/adp_auth.py`. Update imports at the top:
 
@@ -1009,7 +1009,7 @@ from lfx.schema.dotdict import dotdict
 
 Remove `TabInput` if no longer needed. Remove `set_field_display` import if `update_build_config` is deleted (see Step 4).
 
-- [ ] **Step 2: Rewrite the `inputs` list**
+- [x] **Step 2: Rewrite the `inputs` list**
 
 Locate the `inputs = [...]` list. Replace with:
 
@@ -1059,7 +1059,7 @@ inputs = [
 
 Drop the `cert_source` TabInput, the `cert_path` + `key_path` MessageTextInput fields, and the original `cert_pem` + `key_pem` SecretStrInput fields.
 
-- [ ] **Step 3: Add version + changelog**
+- [x] **Step 3: Add version + changelog**
 
 Immediately after `name = "ADPAuth"` (class attribute), add:
 
@@ -1090,7 +1090,7 @@ Immediately after `name = "ADPAuth"` (class attribute), add:
     ]
 ```
 
-- [ ] **Step 4: Simplify or remove `update_build_config`**
+- [x] **Step 4: Simplify or remove `update_build_config`**
 
 Locate `update_build_config` (~line 119). It currently handles the `cert_source` field change. Since `cert_source` is gone, this method has no remaining logic. Delete the method entirely.
 
@@ -1103,7 +1103,7 @@ def update_build_config(self, build_config: dotdict, field_value, field_name: st
 
 Prefer deleting if the base class tolerates its absence.
 
-- [ ] **Step 5: Verify imports + class parses**
+- [x] **Step 5: Verify imports + class parses**
 
 ```
 .venv/bin/python -c "from lfx.components.adp.adp_auth import ADPAuthComponent; print(ADPAuthComponent.version, len(ADPAuthComponent.changelog))"
@@ -1111,7 +1111,7 @@ Prefer deleting if the base class tolerates its absence.
 
 Expected: `2 1`.
 
-- [ ] **Step 6: Stage and pause**
+- [x] **Step 6: Stage and pause**
 
 `git add src/lfx/src/lfx/components/adp/adp_auth.py`. Wait for user approval.
 
@@ -1124,7 +1124,7 @@ Proposed commit: `feat(adp-auth): migrate to TextFileSecretInput and bump to v2`
 **Files:**
 - Modify: `src/lfx/tests/unit/components/adp/test_adp_auth.py`
 
-- [ ] **Step 1: Run existing tests to see breakage**
+- [x] **Step 1: Run existing tests to see breakage**
 
 ```
 LFX_TEST_ALLOW_LANGFLOW=1 .venv/bin/pytest src/lfx/tests/unit/components/adp/test_adp_auth.py -v 2>&1 | tail -40
@@ -1132,13 +1132,13 @@ LFX_TEST_ALLOW_LANGFLOW=1 .venv/bin/pytest src/lfx/tests/unit/components/adp/tes
 
 Expected: failures on tests referencing `cert_source`, `cert_path`, `key_path`, `update_build_config`'s cert_source handling.
 
-- [ ] **Step 2: Delete tests that exercise removed behavior**
+- [x] **Step 2: Delete tests that exercise removed behavior**
 
 - Tests that exercise `update_build_config(field_name="cert_source")` — delete.
 - Tests that construct the component with `cert_source="File Path"` or `cert_path=...` — delete.
 - Tests that assert `cert_path` / `key_path` are in the input list — delete.
 
-- [ ] **Step 3: Update remaining tests for new field types**
+- [x] **Step 3: Update remaining tests for new field types**
 
 Any test that constructs the component and sets `component.cert_pem = "..."` or `component.key_pem = "..."` should keep working — the field names are unchanged, only the input type and encryption pathway differ.
 
@@ -1162,7 +1162,7 @@ def test_adp_auth_version_and_changelog():
     assert ADPAuthComponent.changelog[0].version == 2
 ```
 
-- [ ] **Step 4: Run the test suite**
+- [x] **Step 4: Run the test suite**
 
 ```
 LFX_TEST_ALLOW_LANGFLOW=1 .venv/bin/pytest src/lfx/tests/unit/components/adp/test_adp_auth.py -v
@@ -1170,7 +1170,7 @@ LFX_TEST_ALLOW_LANGFLOW=1 .venv/bin/pytest src/lfx/tests/unit/components/adp/tes
 
 Expected: all remaining tests pass.
 
-- [ ] **Step 5: Pause for user commit approval**
+- [x] **Step 5: Pause for user commit approval**
 
 Proposed commit: `test(adp-auth): migrate test suite to TextFileSecretInput shape`
 
@@ -1184,7 +1184,7 @@ Proposed commit: `test(adp-auth): migrate test suite to TextFileSecretInput shap
 - Modify: `src/lfx/tests/unit/components/adp/test_adp_worker_tools.py`
 - Modify: `src/lfx/tests/unit/components/adp/test_adp_trigger.py`
 
-- [ ] **Step 1: Run each file to identify breakage**
+- [x] **Step 1: Run each file to identify breakage**
 
 ```
 for f in test_adp_api_request test_adp_mcp test_adp_worker_tools test_adp_trigger; do
@@ -1195,7 +1195,7 @@ done
 
 Expected: failures where tests construct `ADPConnection(cert_source="pem", ...)` or `ADPConnection(cert_source="path", ...)`.
 
-- [ ] **Step 2: Fix each file by search-replace**
+- [x] **Step 2: Fix each file by search-replace**
 
 For each file, find every `ADPConnection(...)` and update to the new shape (no `cert_source`, no `cert_path`, no `key_path`). Example:
 
@@ -1224,11 +1224,11 @@ ADPConnection(
 
 Delete any test that explicitly exercised the path-mode (e.g. `cert_source="path", cert_path="/tmp/..."`). Those scenarios are gone.
 
-- [ ] **Step 3: Run each file to verify green**
+- [x] **Step 3: Run each file to verify green**
 
 Same command as Step 1, expect all pass.
 
-- [ ] **Step 4: Pause for user commit approval**
+- [x] **Step 4: Pause for user commit approval**
 
 Proposed commit: `test(adp): update call sites for simplified ADPConnection shape`
 
@@ -1239,7 +1239,7 @@ Proposed commit: `test(adp): update call sites for simplified ADPConnection shap
 **Files:**
 - Potentially modify: `src/backend/base/langflow/initial_setup/starter_projects/*.json` (whichever starter projects reference ADP components)
 
-- [ ] **Step 1: Identify which starter projects reference ADP**
+- [x] **Step 1: Identify which starter projects reference ADP**
 
 ```
 grep -l "ADPAuth\|ADPAPIRequest\|ADPConnection" src/backend/base/langflow/initial_setup/starter_projects/*.json
@@ -1247,7 +1247,7 @@ grep -l "ADPAuth\|ADPAPIRequest\|ADPConnection" src/backend/base/langflow/initia
 
 Expected: possibly zero, possibly one (ADP Worker Sync to SFTP — check).
 
-- [ ] **Step 2: Run the regeneration script**
+- [x] **Step 2: Run the regeneration script**
 
 ```
 cd /Users/brycedeneen/dev/langflow/.worktrees/adp-auth-vault-backed-pem
@@ -1257,14 +1257,14 @@ git status --short
 
 Expected: one or more starter JSON files modified. Confirm by eye that only ADP-affected starters changed. If the script also regenerates unrelated starters (because the worktree's installed-dep versions differ from baseline), revert those unrelated changes (use the pattern from the first feature: keep only the targeted regen, revert the rest via `git checkout --` on each unrelated file).
 
-- [ ] **Step 3: Stage the ADP-affected starter(s) only**
+- [x] **Step 3: Stage the ADP-affected starter(s) only**
 
 ```
 git add <ADP-affected starter paths only>
 git status --short
 ```
 
-- [ ] **Step 4: Pause for user commit approval**
+- [x] **Step 4: Pause for user commit approval**
 
 Proposed commit: `chore(starter): regenerate ADP-using starters for TextFileSecretInput migration`
 

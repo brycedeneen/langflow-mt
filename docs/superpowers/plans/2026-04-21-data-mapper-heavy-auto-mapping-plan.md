@@ -34,7 +34,7 @@ Purpose: given a `MapperConfig` and a list of proposed `MappingEntry` objects, r
 - Create: `src/frontend/src/modals/dataMapperModal/util/filterEligibleSuggestions.ts`
 - Create: `src/frontend/src/modals/dataMapperModal/util/__tests__/filterEligibleSuggestions.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // src/frontend/src/modals/dataMapperModal/util/__tests__/filterEligibleSuggestions.test.ts
@@ -119,12 +119,12 @@ describe("filterEligibleSuggestions", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd src/frontend && npx jest src/modals/dataMapperModal/util/__tests__/filterEligibleSuggestions --no-coverage`
 Expected: FAIL with "Cannot find module '../filterEligibleSuggestions'".
 
-- [ ] **Step 3: Implement the utility**
+- [x] **Step 3: Implement the utility**
 
 ```ts
 // src/frontend/src/modals/dataMapperModal/util/filterEligibleSuggestions.ts
@@ -152,12 +152,12 @@ export function filterEligibleSuggestions(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd src/frontend && npx jest src/modals/dataMapperModal/util/__tests__/filterEligibleSuggestions --no-coverage`
 Expected: PASS — 8 tests.
 
-- [ ] **Step 5: Commit (ask first)**
+- [x] **Step 5: Commit (ask first)**
 
 ```bash
 git add src/frontend/src/modals/dataMapperModal/util/filterEligibleSuggestions.ts \
@@ -175,7 +175,7 @@ Purpose: merge a single `MappingEntry` into a `MapperConfig`. If the destination
 - Create: `src/frontend/src/modals/dataMapperModal/util/applyMappingSuggestion.ts`
 - Create: `src/frontend/src/modals/dataMapperModal/util/__tests__/applyMappingSuggestion.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // src/frontend/src/modals/dataMapperModal/util/__tests__/applyMappingSuggestion.test.ts
@@ -238,12 +238,12 @@ describe("applyMappingSuggestion", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd src/frontend && npx jest src/modals/dataMapperModal/util/__tests__/applyMappingSuggestion --no-coverage`
 Expected: FAIL with "Cannot find module '../applyMappingSuggestion'".
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // src/frontend/src/modals/dataMapperModal/util/applyMappingSuggestion.ts
@@ -264,12 +264,12 @@ export function applyMappingSuggestion(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd src/frontend && npx jest src/modals/dataMapperModal/util/__tests__/applyMappingSuggestion --no-coverage`
 Expected: PASS — 4 tests.
 
-- [ ] **Step 5: Commit (ask first)**
+- [x] **Step 5: Commit (ask first)**
 
 ```bash
 git add src/frontend/src/modals/dataMapperModal/util/applyMappingSuggestion.ts \
@@ -288,7 +288,7 @@ Purpose: wrap the `POST /api/v1/session/DataMapperAutoMap/run` call with the sam
 - Create: `src/frontend/src/controllers/API/queries/assistant/__tests__/use-data-mapper-auto-map.test.tsx`
 - Reference pattern: `src/frontend/src/controllers/API/queries/assistant/use-template-assistant.ts` and `__tests__/use-greet-conversation.test.tsx`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // src/frontend/src/controllers/API/queries/assistant/__tests__/use-data-mapper-auto-map.test.tsx
@@ -343,12 +343,12 @@ describe("useDataMapperAutoMapMutation", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd src/frontend && npx jest src/controllers/API/queries/assistant/__tests__/use-data-mapper-auto-map --no-coverage`
 Expected: FAIL with "Cannot find module '../use-data-mapper-auto-map'".
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // src/frontend/src/controllers/API/queries/assistant/use-data-mapper-auto-map.ts
@@ -383,12 +383,12 @@ export const useDataMapperAutoMapMutation = () =>
   });
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd src/frontend && npx jest src/controllers/API/queries/assistant/__tests__/use-data-mapper-auto-map --no-coverage`
 Expected: PASS — 2 tests.
 
-- [ ] **Step 5: Commit (ask first)**
+- [x] **Step 5: Commit (ask first)**
 
 ```bash
 git add src/frontend/src/controllers/API/queries/assistant/use-data-mapper-auto-map.ts \
@@ -406,7 +406,7 @@ Purpose: own the state machine for the Suggest flow. Idle → fetching → {pend
 - Create: `src/frontend/src/modals/dataMapperModal/hooks/useMappingSuggestions.ts`
 - Create: `src/frontend/src/modals/dataMapperModal/hooks/__tests__/useMappingSuggestions.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // src/frontend/src/modals/dataMapperModal/hooks/__tests__/useMappingSuggestions.test.tsx
@@ -534,12 +534,12 @@ describe("useMappingSuggestions", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd src/frontend && npx jest src/modals/dataMapperModal/hooks/__tests__/useMappingSuggestions --no-coverage`
 Expected: FAIL with "Cannot find module '../useMappingSuggestions'".
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // src/frontend/src/modals/dataMapperModal/hooks/useMappingSuggestions.ts
@@ -665,12 +665,12 @@ export function useMappingSuggestions({ config }: UseMappingSuggestionsArgs) {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd src/frontend && npx jest src/modals/dataMapperModal/hooks/__tests__/useMappingSuggestions --no-coverage`
 Expected: PASS — 8 tests.
 
-- [ ] **Step 5: Commit (ask first)**
+- [x] **Step 5: Commit (ask first)**
 
 ```bash
 git add src/frontend/src/modals/dataMapperModal/hooks/useMappingSuggestions.ts \
@@ -688,7 +688,7 @@ Purpose: the stateless component that renders inside the modal's `suggestionsSlo
 - Create: `src/frontend/src/modals/dataMapperModal/components/MappingSuggestions.tsx`
 - Create: `src/frontend/src/modals/dataMapperModal/components/__tests__/MappingSuggestions.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // src/frontend/src/modals/dataMapperModal/components/__tests__/MappingSuggestions.test.tsx
@@ -759,12 +759,12 @@ describe("MappingSuggestions", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd src/frontend && npx jest src/modals/dataMapperModal/components/__tests__/MappingSuggestions --no-coverage`
 Expected: FAIL with "Cannot find module '../MappingSuggestions'".
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```tsx
 // src/frontend/src/modals/dataMapperModal/components/MappingSuggestions.tsx
@@ -845,12 +845,12 @@ export function MappingSuggestions({
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd src/frontend && npx jest src/modals/dataMapperModal/components/__tests__/MappingSuggestions --no-coverage`
 Expected: PASS — 8 tests.
 
-- [ ] **Step 5: Commit (ask first)**
+- [x] **Step 5: Commit (ask first)**
 
 ```bash
 git add src/frontend/src/modals/dataMapperModal/components/MappingSuggestions.tsx \
@@ -869,7 +869,7 @@ Combined task — these land together to avoid a broken intermediate state. The 
 - Modify: `src/frontend/src/modals/dataMapperModal/components/DestinationTable.tsx` (props interface at lines 17–21; row loop at line 181)
 - Create: `src/frontend/src/modals/dataMapperModal/components/__tests__/DestinationTable.pending.test.tsx`
 
-- [ ] **Step 1: Write the failing test** (new test file; do not modify any existing DestinationTable tests)
+- [x] **Step 1: Write the failing test** (new test file; do not modify any existing DestinationTable tests)
 
 ```tsx
 // src/frontend/src/modals/dataMapperModal/components/__tests__/DestinationTable.pending.test.tsx
@@ -970,12 +970,12 @@ describe("DestinationTable — pending row rendering", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd src/frontend && npx jest src/modals/dataMapperModal/components/__tests__/DestinationTable.pending --no-coverage`
 Expected: FAIL — props `pendingSuggestions`, `showPendingSuggestions`, etc. not on DestinationTable yet.
 
-- [ ] **Step 3: Extend DestinationTable props and row rendering**
+- [x] **Step 3: Extend DestinationTable props and row rendering**
 
 In `src/frontend/src/modals/dataMapperModal/components/DestinationTable.tsx`:
 
@@ -1034,7 +1034,7 @@ Style the row: if `pendingEntry` is truthy, set `background: "#3b82f615"`, `bord
 
 Also: destructure `props` into a single object inside the component body so the closure captures the correct `pendingSuggestions` etc.
 
-- [ ] **Step 4: Extend DataMapperModal props**
+- [x] **Step 4: Extend DataMapperModal props**
 
 In `src/frontend/src/modals/dataMapperModal/index.tsx`, replace the props interface (lines 15–24) with:
 
@@ -1070,7 +1070,7 @@ Destructure the new props in the component signature. At the `<DestinationTable 
 />
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `cd src/frontend && npx jest src/modals/dataMapperModal/components/__tests__/DestinationTable.pending --no-coverage`
 Expected: PASS — 5 tests.
@@ -1080,7 +1080,7 @@ Also run the existing DestinationTable + DataMapperModal test files to confirm n
 Run: `cd src/frontend && npx jest src/modals/dataMapperModal/ --no-coverage`
 Expected: PASS — all pre-existing tests unaffected.
 
-- [ ] **Step 6: Commit (ask first)**
+- [x] **Step 6: Commit (ask first)**
 
 ```bash
 git add src/frontend/src/modals/dataMapperModal/index.tsx \
@@ -1099,7 +1099,7 @@ Purpose: wire up the suggestion state in the input renderer. Mount `<MappingSugg
 - Modify: `src/frontend/src/components/core/parameterRenderComponent/components/mappingComponent/index.tsx`
 - Create: `src/frontend/src/components/core/parameterRenderComponent/components/mappingComponent/__tests__/suggestions.test.tsx`
 
-- [ ] **Step 1: Write the failing integration test**
+- [x] **Step 1: Write the failing integration test**
 
 ```tsx
 // src/frontend/src/components/core/parameterRenderComponent/components/mappingComponent/__tests__/suggestions.test.tsx
@@ -1176,12 +1176,12 @@ describe("MappingComponent suggestions integration", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd src/frontend && npx jest src/components/core/parameterRenderComponent/components/mappingComponent/__tests__/suggestions --no-coverage`
 Expected: FAIL — Suggest button doesn't exist yet (slot is empty).
 
-- [ ] **Step 3: Wire up the orchestration in MappingComponent**
+- [x] **Step 3: Wire up the orchestration in MappingComponent**
 
 In `src/frontend/src/components/core/parameterRenderComponent/components/mappingComponent/index.tsx`, at the top of the component body (after `const [open, setOpen] = useState(false);`):
 
@@ -1267,7 +1267,7 @@ Pass these to the modal (replace the existing `<DataMapperModal ...>` block with
 )}
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd src/frontend && npx jest src/components/core/parameterRenderComponent/components/mappingComponent/ --no-coverage`
 Expected: PASS — 2 new tests; no regressions on pre-existing tests.
@@ -1277,7 +1277,7 @@ Also run the modal tests one more time to make sure nothing drifted:
 Run: `cd src/frontend && npx jest src/modals/dataMapperModal/ --no-coverage`
 Expected: all PASS.
 
-- [ ] **Step 5: Commit (ask first)**
+- [x] **Step 5: Commit (ask first)**
 
 ```bash
 git add src/frontend/src/components/core/parameterRenderComponent/components/mappingComponent/index.tsx \
@@ -1363,16 +1363,16 @@ Destination "source_system" where no input field is available:
     "sources": [], "config": {"value": "langflow"} }
 ```
 
-- [ ] **Step 1: Boot the dev server**
+- [x] **Step 1: Boot the dev server**
 
 Run (from repo root): `LFX_DEV=1 make run_cli`
 Expected: server starts on `http://localhost:3000` (frontend) + backend on its usual port. Confirm by opening the UI.
 
-- [ ] **Step 2: Open the Langflow builder and create a new flow**
+- [x] **Step 2: Open the Langflow builder and create a new flow**
 
 Name it exactly `DataMapperAutoMap` (this becomes the slug the frontend uses).
 
-- [ ] **Step 3: Build the flow graph as described above**
+- [x] **Step 3: Build the flow graph as described above**
 
 Nodes to add (in order):
 - `Chat Input` component
@@ -1421,7 +1421,7 @@ def clean_llm_output(raw: str) -> str:
 result = clean_llm_output(llm_output)
 ```
 
-- [ ] **Step 4: Test the flow interactively in the UI**
+- [x] **Step 4: Test the flow interactively in the UI**
 
 Use the Langflow playground to send a sample `input_value` — a JSON blob like:
 
@@ -1434,15 +1434,15 @@ Use the Langflow playground to send a sample `input_value` — a JSON blob like:
 
 Expected: a JSON array containing one `template` entry for `full_name`. If the output is wrong, iterate on the prompt or node config in the UI.
 
-- [ ] **Step 5: Export the flow**
+- [x] **Step 5: Export the flow**
 
 Use Langflow's "Export" function to download the flow JSON. Rename the exported file to `DataMapperAutoMap.json`.
 
-- [ ] **Step 6: Drop into the agentic flows directory**
+- [x] **Step 6: Drop into the agentic flows directory**
 
 Move the exported file to `src/backend/base/langflow/agentic/flows/DataMapperAutoMap.json`.
 
-- [ ] **Step 7: Open the JSON and sanity-check two top-level fields**
+- [x] **Step 7: Open the JSON and sanity-check two top-level fields**
 
 Open the file. Confirm:
 - `"name": "DataMapperAutoMap"` — this is the slug the frontend POSTs to.
@@ -1450,12 +1450,12 @@ Open the file. Confirm:
 
 If either is wrong, edit the JSON directly (these two fields are the only ones safe to hand-edit).
 
-- [ ] **Step 8: Restart the dev server and confirm the flow loads**
+- [x] **Step 8: Restart the dev server and confirm the flow loads**
 
 Run: stop the dev server (Ctrl-C), then `LFX_DEV=1 make run_cli` again.
 Expected: startup logs include a line like `loaded agentic flow: DataMapperAutoMap` (exact wording depends on the loader — check `src/backend/base/langflow/initial_setup/setup.py:693` for the `load_agentic_flows` implementation).
 
-- [ ] **Step 9: Smoke test via curl**
+- [x] **Step 9: Smoke test via curl**
 
 ```bash
 curl -X POST http://localhost:<backend-port>/api/v1/session/DataMapperAutoMap/run \
@@ -1466,7 +1466,7 @@ curl -X POST http://localhost:<backend-port>/api/v1/session/DataMapperAutoMap/ru
 
 Expected: a 200 response with a message containing a JSON array with at least one entry.
 
-- [ ] **Step 10: Commit (ask first)**
+- [x] **Step 10: Commit (ask first)**
 
 ```bash
 git add src/backend/base/langflow/agentic/flows/DataMapperAutoMap.json
@@ -1482,12 +1482,12 @@ Purpose: guard against the flow JSON being broken or moved. No LLM-provider mock
 **Files:**
 - Create: `src/backend/tests/unit/initial_setup/test_agentic_flows_registration.py` (or extend the existing loader test if one exists — search first for any `test_load_agentic_flows` file)
 
-- [ ] **Step 1: Search for an existing loader test**
+- [x] **Step 1: Search for an existing loader test**
 
 Run: `grep -rn "load_agentic_flows" src/backend/tests/ src/lfx/tests/`
 If a test exists, extend it. If not, create a new one.
 
-- [ ] **Step 2: Write the test**
+- [x] **Step 2: Write the test**
 
 ```python
 # src/backend/tests/unit/initial_setup/test_agentic_flows_registration.py
@@ -1515,12 +1515,12 @@ async def test_data_mapper_auto_map_flow_has_required_shape():
     assert len(flow["data"]["data"]["nodes"]) > 0
 ```
 
-- [ ] **Step 3: Run the test**
+- [x] **Step 3: Run the test**
 
 Run: `cd src/backend && uv run pytest tests/unit/initial_setup/test_agentic_flows_registration.py -v`
 Expected: PASS — both tests.
 
-- [ ] **Step 4: Commit (ask first)**
+- [x] **Step 4: Commit (ask first)**
 
 ```bash
 git add src/backend/tests/unit/initial_setup/test_agentic_flows_registration.py
@@ -1536,7 +1536,7 @@ Purpose: end-to-end coverage for the happy path and key failure paths. Route-int
 **Files:**
 - Create: `src/frontend/tests/core/unit/dataMapperAutoMapping.spec.ts`
 
-- [ ] **Step 1: Write the spec**
+- [x] **Step 1: Write the spec**
 
 ```ts
 // src/frontend/tests/core/unit/dataMapperAutoMapping.spec.ts
@@ -1668,14 +1668,14 @@ test.describe("Data Mapper — heavy auto-mapping", () => {
 });
 ```
 
-- [ ] **Step 2: Run the spec against a live dev server**
+- [x] **Step 2: Run the spec against a live dev server**
 
 Prerequisites: `LFX_DEV=1 make run_cli` is running AND `DataMapperAutoMap.json` is present. If either is missing, the first test will hang on the `beforeEach` flow setup.
 
 Run: `cd src/frontend && npx playwright test tests/core/unit/dataMapperAutoMapping.spec.ts`
 Expected: 5 tests PASS. If they fail, iterate — the `beforeEach` is the likely failure point since it adapts from the existing `dataMapperModal.spec.ts`.
 
-- [ ] **Step 3: Commit (ask first)**
+- [x] **Step 3: Commit (ask first)**
 
 ```bash
 git add src/frontend/tests/core/unit/dataMapperAutoMapping.spec.ts
@@ -1691,7 +1691,7 @@ Purpose: document the slot is now filled in production; run a human-eyes smoke t
 **Files:**
 - Modify: `src/frontend/src/modals/dataMapperModal/README.md`
 
-- [ ] **Step 1: Update the README**
+- [x] **Step 1: Update the README**
 
 Replace the "Extension seam — `suggestionsSlot`" section (search for it in `src/frontend/src/modals/dataMapperModal/README.md`) with text like:
 
@@ -1709,7 +1709,7 @@ Callers can still pass a custom `suggestionsSlot` for bespoke integrations — t
 When `pendingSuggestions` is non-empty and `showPendingSuggestions` is true, the destination table renders proposed rows in a blue "pending" state with per-row ✓/✗ handlers (`onAcceptSuggestion(destination)` / `onRejectSuggestion(destination)`). The modal is agnostic about how suggestions are generated — it only renders what it's given.
 ```
 
-- [ ] **Step 2: Run the full frontend test suite and the backend suite**
+- [x] **Step 2: Run the full frontend test suite and the backend suite**
 
 Run: `cd src/frontend && npx jest src/modals/dataMapperModal src/components/core/parameterRenderComponent/components/mappingComponent src/controllers/API/queries/assistant --no-coverage`
 Expected: ALL PASS.
@@ -1717,7 +1717,7 @@ Expected: ALL PASS.
 Run: `cd src/backend && uv run pytest tests/unit/initial_setup/test_agentic_flows_registration.py -v`
 Expected: PASS.
 
-- [ ] **Step 3: Manual smoke test**
+- [x] **Step 3: Manual smoke test**
 
 With `LFX_DEV=1 make run_cli` running and the flow shipped:
 1. Open a flow, drop a Data Mapper component onto the canvas.
@@ -1729,7 +1729,7 @@ With `LFX_DEV=1 make run_cli` running and the flow shipped:
 
 Record any regressions in the plan's open questions section.
 
-- [ ] **Step 4: Commit (ask first)**
+- [x] **Step 4: Commit (ask first)**
 
 ```bash
 git add src/frontend/src/modals/dataMapperModal/README.md
@@ -1740,9 +1740,9 @@ git commit -m "docs(data-mapper): document suggestionsSlot implementation"
 
 ## Post-plan checklist
 
-- [ ] All 11 tasks committed.
-- [ ] Manual smoke test passed.
-- [ ] Full `src/frontend && npx jest src/modals/dataMapperModal/ --no-coverage` passes.
-- [ ] Full `cd src/backend && uv run pytest tests/unit/initial_setup/ -v` passes.
-- [ ] Playwright spec `dataMapperAutoMapping.spec.ts` passes against a live server with the shipped flow.
-- [ ] Heavy-auto-mapping follow-ups (confidence scores, conflict panel, row-level redo, per-org prompts, streaming rows) documented somewhere — either updated spec or new kickoff for Phase 2.
+- [x] All 11 tasks committed.
+- [x] Manual smoke test passed.
+- [x] Full `src/frontend && npx jest src/modals/dataMapperModal/ --no-coverage` passes.
+- [x] Full `cd src/backend && uv run pytest tests/unit/initial_setup/ -v` passes.
+- [x] Playwright spec `dataMapperAutoMapping.spec.ts` passes against a live server with the shipped flow.
+- [x] Heavy-auto-mapping follow-ups (confidence scores, conflict panel, row-level redo, per-org prompts, streaming rows) documented somewhere — either updated spec or new kickoff for Phase 2.

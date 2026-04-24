@@ -84,13 +84,13 @@
 **Files:**
 - Create: `src/backend/base/langflow/alembic/versions/<new-rev>_add_cost_and_flow_usage.py`
 
-- [ ] **Step 1: Generate skeleton**
+- [x] **Step 1: Generate skeleton**
 
 Run: `cd src/backend/base && uv run alembic revision -m "add_cost_and_flow_usage"`
 
 Record `<new-rev>` and `<prev-rev>`.
 
-- [ ] **Step 2: Fill in the migration body**
+- [x] **Step 2: Fill in the migration body**
 
 ```python
 """add_cost_and_flow_usage
@@ -171,7 +171,7 @@ def downgrade() -> None:
         batch_op.drop_column('flow_run_id')
 ```
 
-- [ ] **Step 3: Round-trip**
+- [x] **Step 3: Round-trip**
 
 Run: `cd src/backend/base && uv run alembic upgrade head && uv run alembic downgrade -1 && uv run alembic upgrade head`
 
@@ -188,7 +188,7 @@ Expected: clean.
 - Create: `src/backend/base/langflow/services/database/models/flow_usage_daily/{__init__.py,model.py}`.
 - Modify: `src/backend/base/langflow/services/database/models/__init__.py` — re-export new types.
 
-- [ ] **Step 1: `TraceTable` column**
+- [x] **Step 1: `TraceTable` column**
 
 In `traces/model.py`, inside the `TraceTable` class, alongside `flow_id`:
 
@@ -199,7 +199,7 @@ In `traces/model.py`, inside the `TraceTable` class, alongside `flow_id`:
     )
 ```
 
-- [ ] **Step 2: `FlowRun` columns**
+- [x] **Step 2: `FlowRun` columns**
 
 In `flow_run/model.py`, add alongside the other optional fields:
 
@@ -213,7 +213,7 @@ In `flow_run/model.py`, add alongside the other optional fields:
 
 Import `JSON` from `sqlalchemy` if not already.
 
-- [ ] **Step 3: `OrgUsageDaily.cost_cents`**
+- [x] **Step 3: `OrgUsageDaily.cost_cents`**
 
 Add:
 
@@ -221,7 +221,7 @@ Add:
     cost_cents: int = Field(default=0, nullable=False)
 ```
 
-- [ ] **Step 4: Create `FlowUsageDaily`**
+- [x] **Step 4: Create `FlowUsageDaily`**
 
 `src/backend/base/langflow/services/database/models/flow_usage_daily/model.py`:
 
@@ -265,7 +265,7 @@ __all__ = ["FlowUsageDaily"]
 
 Update the shared models `__init__.py` to re-export.
 
-- [ ] **Step 5: Import-check**
+- [x] **Step 5: Import-check**
 
 Run: `cd src/backend && uv run python -c "from langflow.services.database.models import FlowUsageDaily; print('ok')"`
 
@@ -309,7 +309,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 **Files:**
 - Modify: `src/backend/base/pyproject.toml`
 
-- [ ] **Step 1: Move `litellm` from `[litellm]` extra to the main `dependencies` list**
+- [x] **Step 1: Move `litellm` from `[litellm]` extra to the main `dependencies` list**
 
 Find the existing extra at around line 276:
 
@@ -319,13 +319,13 @@ litellm = ["litellm>=1.60.2,<2.0.0"]
 
 Move `"litellm>=1.60.2,<2.0.0"` into the main `dependencies` array (top-level of the backend package). Remove the extra entry (or leave it as a no-op alias if other install paths rely on it — check the uv.lock + other pyproject references first).
 
-- [ ] **Step 2: Refresh the lock**
+- [x] **Step 2: Refresh the lock**
 
 Run: `cd src/backend/base && uv sync`
 
 Expected: litellm appears in `uv.lock`, no conflicts.
 
-- [ ] **Step 3: Verify import**
+- [x] **Step 3: Verify import**
 
 Run: `cd src/backend && uv run python -c "import litellm; print(hasattr(litellm, 'model_cost'))"`
 
@@ -342,7 +342,7 @@ Expected: `True`.
 - Create: `src/backend/tests/unit/services/pricing/test_service.py`
 - Modify: `src/backend/base/langflow/services/schema.py`, `services/deps.py`, `services/utils.py`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `src/backend/tests/unit/services/pricing/test_service.py`:
 
@@ -391,7 +391,7 @@ Run: `cd src/backend && uv run pytest tests/unit/services/pricing/test_service.p
 
 Expected: FAIL — module not found.
 
-- [ ] **Step 2: Write `service.py`**
+- [x] **Step 2: Write `service.py`**
 
 ```python
 from __future__ import annotations
@@ -489,7 +489,7 @@ class PricingService(Service):
         return int(round(cents))
 ```
 
-- [ ] **Step 3: Factory + registration**
+- [x] **Step 3: Factory + registration**
 
 `src/backend/base/langflow/services/pricing/factory.py`:
 
@@ -530,7 +530,7 @@ def get_pricing_service():
 
 Register the factory in `services/utils.py` near the others.
 
-- [ ] **Step 4: Settings**
+- [x] **Step 4: Settings**
 
 In `src/lfx/src/lfx/services/settings/base.py`, add:
 
@@ -548,7 +548,7 @@ In `src/lfx/src/lfx/services/settings/base.py`, add:
     """JSON map of model-name -> {input_cents_per_1k, output_cents_per_1k}."""
 ```
 
-- [ ] **Step 5: Run tests — expect pass**
+- [x] **Step 5: Run tests — expect pass**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/pricing/test_service.py -v`
 
@@ -562,7 +562,7 @@ Expected: 3 PASS.
 - Create: `src/backend/base/langflow/worker_app/pricing_refresh.py`
 - Modify: `src/backend/base/langflow/worker_app/settings.py`
 
-- [ ] **Step 1: Write the cron body**
+- [x] **Step 1: Write the cron body**
 
 ```python
 # src/backend/base/langflow/worker_app/pricing_refresh.py
@@ -581,7 +581,7 @@ async def refresh_pricing_cache(ctx) -> None:
         logger.exception("refresh_pricing_cache failed: %s", exc)
 ```
 
-- [ ] **Step 2: Register the cron**
+- [x] **Step 2: Register the cron**
 
 Edit `src/backend/base/langflow/worker_app/settings.py`:
 
@@ -596,7 +596,7 @@ cron_jobs = [
 ]
 ```
 
-- [ ] **Step 3: Commit Phase B**
+- [x] **Step 3: Commit Phase B**
 
 ```bash
 git add src/backend/base/langflow/services/pricing/ \
@@ -633,7 +633,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 - Modify: `src/backend/base/langflow/services/tracing/native.py`
 - Modify: `src/backend/base/langflow/services/tracing/schemas.py` (if `TraceContext` is there; otherwise inline in service.py).
 
-- [ ] **Step 1: Extend `TraceContext` to carry `run_id`**
+- [x] **Step 1: Extend `TraceContext` to carry `run_id`**
 
 Locate the `TraceContext` dataclass (grep `class TraceContext`). Add:
 
@@ -641,7 +641,7 @@ Locate the `TraceContext` dataclass (grep `class TraceContext`). Add:
 run_id: UUID | None = None
 ```
 
-- [ ] **Step 2: Pass `run_id` into `start_tracers`**
+- [x] **Step 2: Pass `run_id` into `start_tracers`**
 
 In `services/tracing/service.py:264`, find:
 
@@ -662,7 +662,7 @@ Inside the body where `TraceContext(...)` is constructed (line ~283), add `run_i
 
 Then in `_initialize_native_tracer(trace_context)` (line ~292) propagate `run_id` into `NativeTracer(...)`.
 
-- [ ] **Step 3: `NativeTracer` accepts + stores `run_id`**
+- [x] **Step 3: `NativeTracer` accepts + stores `run_id`**
 
 In `services/tracing/native.py:58-110`, add `run_id: UUID | None = None` to `__init__`. Store `self.run_id = run_id`.
 
@@ -672,13 +672,13 @@ In the `TraceTable(...)` instantiation site (inside `end()` or equivalent), incl
 flow_run_id=self.run_id,
 ```
 
-- [ ] **Step 4: Verify call-sites in the worker pass `run_id`**
+- [x] **Step 4: Verify call-sites in the worker pass `run_id`**
 
 Find the call to `start_tracers` (grep for `start_tracers(`). Ensure the arq worker passes `run_id=run.id`.
 
 If not already, wire it at the call site in `worker_app/execute.py` or in `Graph.initialize_run` (depending on who calls `start_tracers`).
 
-- [ ] **Step 5: Smoke**
+- [x] **Step 5: Smoke**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/tracing -v`
 
@@ -695,7 +695,7 @@ Expected: `ok`.
 - Create: `src/backend/base/langflow/services/cost/__init__.py`
 - Create: `src/backend/tests/unit/services/cost/test_compute.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `src/backend/tests/unit/services/cost/test_compute.py`:
 
@@ -781,7 +781,7 @@ Run: `cd src/backend && uv run pytest tests/unit/services/cost/test_compute.py -
 
 Expected: FAIL.
 
-- [ ] **Step 2: Write `compute.py`**
+- [x] **Step 2: Write `compute.py`**
 
 ```python
 # src/backend/base/langflow/services/cost/compute.py
@@ -857,7 +857,7 @@ async def compute_cost_for_run(
 
 `__init__.py`: `from langflow.services.cost.compute import compute_cost_for_run`.
 
-- [ ] **Step 3: Run tests — expect pass**
+- [x] **Step 3: Run tests — expect pass**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/cost/test_compute.py -v`
 
@@ -870,7 +870,7 @@ Expected: PASS.
 **Files:**
 - Modify: `src/backend/base/langflow/services/metering/service.py`
 
-- [ ] **Step 1: Add an upsert helper for `FlowUsageDaily`**
+- [x] **Step 1: Add an upsert helper for `FlowUsageDaily`**
 
 Append to `metering/service.py`:
 
@@ -916,11 +916,11 @@ async def upsert_flow_usage_daily(
     await session.exec(stmt)
 ```
 
-- [ ] **Step 2: Also extend `upsert_org_usage_daily` to accept `cost_cents_delta`**
+- [x] **Step 2: Also extend `upsert_org_usage_daily` to accept `cost_cents_delta`**
 
 Modify the existing helper signature and the upsert's `set_` clause to include `cost_cents`. Default `cost_cents_delta: int = 0` for backward compatibility.
 
-- [ ] **Step 3: Extend `record_run_completion_and_eval`**
+- [x] **Step 3: Extend `record_run_completion_and_eval`**
 
 After the existing token-sum call, before the threshold eval, add:
 
@@ -961,13 +961,13 @@ And extend the existing `upsert_org_usage_daily` call to include `cost_cents_del
         )
 ```
 
-- [ ] **Step 4: Update the existing metering test**
+- [x] **Step 4: Update the existing metering test**
 
 In `tests/unit/services/metering/test_service.py`, extend `test_record_run_completion_upserts_counters_and_fires_threshold` to assert:
 - `run.cost_cents is not None` (0 is fine if no spans).
 - A `FlowUsageDaily` row exists for this flow.
 
-- [ ] **Step 5: Run tests — expect pass**
+- [x] **Step 5: Run tests — expect pass**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/metering tests/unit/services/cost -v`
 
@@ -1011,7 +1011,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 - Create: `src/backend/base/langflow/services/cost/estimator.py`
 - Create: `src/backend/tests/unit/services/cost/test_estimator.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `src/backend/tests/unit/services/cost/test_estimator.py`:
 
@@ -1081,7 +1081,7 @@ Run: `cd src/backend && uv run pytest tests/unit/services/cost/test_estimator.py
 
 Expected: FAIL.
 
-- [ ] **Step 2: Write `estimator.py`**
+- [x] **Step 2: Write `estimator.py`**
 
 ```python
 # src/backend/base/langflow/services/cost/estimator.py
@@ -1201,7 +1201,7 @@ def estimate_flow_cost(
     )
 ```
 
-- [ ] **Step 3: Run tests — expect pass**
+- [x] **Step 3: Run tests — expect pass**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/cost/test_estimator.py -v`
 
@@ -1216,7 +1216,7 @@ Expected: PASS.
 - Create: `src/backend/tests/unit/api/v1/test_flows_cost.py`
 - Modify: `src/backend/base/langflow/api/router.py` — include `flows_cost` router.
 
-- [ ] **Step 1: Write the test first**
+- [x] **Step 1: Write the test first**
 
 ```python
 # src/backend/tests/unit/api/v1/test_flows_cost.py
@@ -1248,7 +1248,7 @@ async def test_estimate_cost_endpoint(
     assert "per_component" in body
 ```
 
-- [ ] **Step 2: Write the router**
+- [x] **Step 2: Write the router**
 
 ```python
 # src/backend/base/langflow/api/v1/flows_cost.py
@@ -1303,7 +1303,7 @@ async def estimate_cost(
     )
 ```
 
-- [ ] **Step 3: Register the router**
+- [x] **Step 3: Register the router**
 
 In `src/backend/base/langflow/api/router.py`, include it next to the existing flow routes:
 
@@ -1312,7 +1312,7 @@ from langflow.api.v1.flows_cost import router as flows_cost_router
 router_v1.include_router(flows_cost_router)
 ```
 
-- [ ] **Step 4: Commit Phase D**
+- [x] **Step 4: Commit Phase D**
 
 ```bash
 git add src/backend/base/langflow/services/cost/estimator.py \
@@ -1344,7 +1344,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 - Create: `src/backend/tests/unit/api/v1/admin/test_usage_dashboard.py`
 - Modify: `src/backend/base/langflow/api/v1/admin/__init__.py` — include the router.
 
-- [ ] **Step 1: Write the test skeleton (happy-path only)**
+- [x] **Step 1: Write the test skeleton (happy-path only)**
 
 ```python
 # src/backend/tests/unit/api/v1/admin/test_usage_dashboard.py
@@ -1391,7 +1391,7 @@ async def test_usage_kpi_endpoint_returns_current_period(
     assert body["cost_cents"] >= 12
 ```
 
-- [ ] **Step 2: Write the router**
+- [x] **Step 2: Write the router**
 
 ```python
 # src/backend/base/langflow/api/v1/admin/usage_dashboard.py
@@ -1561,7 +1561,7 @@ async def org_usage_per_flow(
     )
 ```
 
-- [ ] **Step 3: Register the router**
+- [x] **Step 3: Register the router**
 
 In `api/v1/admin/__init__.py`, include it; but note the routes are org-scoped (not admin-prefixed). Register separately in `api/router.py`:
 
@@ -1572,7 +1572,7 @@ router_v1.include_router(usage_dashboard_router)
 
 *(Rename the file move if that's cleaner — the router uses `/orgs/:id/...` prefix, not `/admin/orgs/:id/...`.)*
 
-- [ ] **Step 4: Flow cost-summary endpoint**
+- [x] **Step 4: Flow cost-summary endpoint**
 
 Add to `api/v1/flows_cost.py`:
 
@@ -1612,13 +1612,13 @@ async def flow_cost_summary(
     }
 ```
 
-- [ ] **Step 5: Run tests — expect pass**
+- [x] **Step 5: Run tests — expect pass**
 
 Run: `cd src/backend && uv run pytest tests/unit/api/v1/admin/test_usage_dashboard.py tests/unit/api/v1/test_flows_cost.py -v`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit Phase E**
+- [x] **Step 6: Commit Phase E**
 
 ```bash
 git add src/backend/base/langflow/api/v1/admin/usage_dashboard.py \
@@ -1647,7 +1647,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 
 ### Task F1: Install recharts + register URL constants
 
-- [ ] **Step 1: Install**
+- [x] **Step 1: Install**
 
 ```bash
 cd src/frontend && npm install recharts
@@ -1655,7 +1655,7 @@ cd src/frontend && npm install recharts
 
 Expected: recharts appears in `package.json` and `package-lock.json`.
 
-- [ ] **Step 2: Register URL keys**
+- [x] **Step 2: Register URL keys**
 
 In `src/frontend/src/controllers/API/helpers/constants.ts`, add:
 
@@ -1692,7 +1692,7 @@ Files listed in "Frontend — create" above. Each hook is 15-25 lines following 
 - Create: `src/frontend/src/pages/AdminPage/organizations/components/PerFlowTable.tsx`
 - Modify: `src/frontend/src/pages/AdminPage/organizations/OrganizationDetailPage.tsx:53-64` — add third tab.
 
-- [ ] **Step 1: Add "Usage & Alerts" tab wrapping both the dashboard and the Plan 3 thresholds/rules**
+- [x] **Step 1: Add "Usage & Alerts" tab wrapping both the dashboard and the Plan 3 thresholds/rules**
 
 Wire `<OrganizationUsageTab />` under a new `<TabsTrigger value="usage">Usage & Alerts</TabsTrigger>`. The tab content lays out:
 
@@ -1701,7 +1701,7 @@ Wire `<OrganizationUsageTab />` under a new `<TabsTrigger value="usage">Usage & 
 3. `<PerFlowTable />` (sortable by cost_cents default).
 4. Plan 3's thresholds + alert rules admin UI nested below (or as sub-tabs).
 
-- [ ] **Step 2: `UsageKpiCards.tsx` (representative snippet)**
+- [x] **Step 2: `UsageKpiCards.tsx` (representative snippet)**
 
 ```tsx
 import { useState } from "react";
@@ -1750,7 +1750,7 @@ function formatCents(cents: number): string {
 }
 ```
 
-- [ ] **Step 3: `UsageChart.tsx` using recharts**
+- [x] **Step 3: `UsageChart.tsx` using recharts**
 
 ```tsx
 import { useState } from "react";
@@ -1793,11 +1793,11 @@ export default function UsageChart({ orgId }: Props) {
 }
 ```
 
-- [ ] **Step 4: `PerFlowTable.tsx`**
+- [x] **Step 4: `PerFlowTable.tsx`**
 
 Render a simple HTML table (pattern from `AdminAuditLogsPage`) with columns: Flow, Runs, Run-minutes, Tokens, Cost. Click-through to `/flow/:id` (the builder). Paginate via existing data from `useGetOrgUsageFlows`.
 
-- [ ] **Step 5: Type-check**
+- [x] **Step 5: Type-check**
 
 Run: `cd src/frontend && npx tsc --noEmit --pretty --project tsconfig.json`
 
@@ -1811,7 +1811,7 @@ Expected: no errors.
 - Create: `src/frontend/src/components/core/flowToolbarComponent/components/cost-estimate-badge.tsx`
 - Modify: `src/frontend/src/components/core/flowToolbarComponent/components/flow-toolbar-options.tsx`
 
-- [ ] **Step 1: Write the badge**
+- [x] **Step 1: Write the badge**
 
 ```tsx
 // cost-estimate-badge.tsx
@@ -1881,7 +1881,7 @@ export default function CostEstimateBadge() {
 }
 ```
 
-- [ ] **Step 2: Mount in `flow-toolbar-options.tsx`**
+- [x] **Step 2: Mount in `flow-toolbar-options.tsx`**
 
 Edit the file (line ~19):
 
@@ -1979,11 +1979,11 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 
 ### Task G1: End-to-end smoke
 
-- [ ] **Step 1: Start full stack**
+- [x] **Step 1: Start full stack**
 
 Backend + FE dev servers.
 
-- [ ] **Step 2: Checklist**
+- [x] **Step 2: Checklist**
 
 | Step | Expected |
 |---|---|
@@ -1995,7 +1995,7 @@ Backend + FE dev servers.
 | Navigate to FlowPage for a flow that has ≥1 run | CostSummarySection shows 30-day cost + sparkline. |
 | Flip `cost_tracking_enabled = False` via env + restart | Run completes, no cost written. Dashboard cost stays at previous totals. |
 
-- [ ] **Step 3: Run full test suites**
+- [x] **Step 3: Run full test suites**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/pricing tests/unit/services/cost tests/unit/services/metering tests/unit/api/v1 -q`
 

@@ -31,7 +31,7 @@
 
 **Files:** none modified
 
-- [ ] **Step 1: Confirm working directory and baseline**
+- [x] **Step 1: Confirm working directory and baseline**
 
 Run:
 ```bash
@@ -39,7 +39,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && pwd && node -v && npm -v
 ```
 Expected: path ends in `src/frontend`, Node ≥ v20.19, npm ≥ 10.
 
-- [ ] **Step 2: Capture the current outdated list as a reference**
+- [x] **Step 2: Capture the current outdated list as a reference**
 
 Run:
 ```bash
@@ -49,7 +49,7 @@ Expected: 11 packages listed — `@biomejs/biome`, `@tailwindcss/vite`, `@tansta
 
 If the set doesn't match, stop and report — the baseline has drifted since the spec was written.
 
-- [ ] **Step 3: Confirm clean-ish working tree for the frontend**
+- [x] **Step 3: Confirm clean-ish working tree for the frontend**
 
 Run:
 ```bash
@@ -76,7 +76,7 @@ export function cn(...inputs: ClassValue[]): string {
 ```
 This is the standard shadcn `cn()` helper using the default `twMerge` export with no custom config. v3 keeps this signature; the expected change set is zero code edits. We still scan first in case something has been added since the plan was written.
 
-- [ ] **Step 1: Verify call-site scan is still a single file**
+- [x] **Step 1: Verify call-site scan is still a single file**
 
 Run:
 ```bash
@@ -90,7 +90,7 @@ src/frontend/src/utils/utils.ts:39:  return twMerge(clsx(inputs));
 
 If additional matches appear — especially any `extendTailwindMerge` or `createTailwindMerge` call — stop and inspect them before proceeding. Those APIs changed shape in v3 (top-level `classGroups` / `conflictingClassGroups` moved under `extend` / `override`, validator names renamed).
 
-- [ ] **Step 2: Bump the `tailwind-merge` range in `package.json`**
+- [x] **Step 2: Bump the `tailwind-merge` range in `package.json`**
 
 Edit `src/frontend/package.json`. Change:
 ```json
@@ -101,7 +101,7 @@ to:
     "tailwind-merge": "^3.5.0",
 ```
 
-- [ ] **Step 3: Install**
+- [x] **Step 3: Install**
 
 Run:
 ```bash
@@ -111,7 +111,7 @@ Expected: exit 0. `package-lock.json` updates to resolve `tailwind-merge@3.5.0` 
 
 If npm prints `ERESOLVE` peer-dep errors, stop and report — do NOT use `--legacy-peer-deps` or `--force` without asking.
 
-- [ ] **Step 4: Type-check**
+- [x] **Step 4: Type-check**
 
 Run:
 ```bash
@@ -121,7 +121,7 @@ Expected: exit 0, no output.
 
 If tsc fails inside `utils.ts` or a consumer of `cn()`, that means the v3 type signature moved — likely fixable with a narrow type import. Stop and report the error message before touching code.
 
-- [ ] **Step 5: Lint**
+- [x] **Step 5: Lint**
 
 Run:
 ```bash
@@ -129,7 +129,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npm run lint
 ```
 Expected: exit 0.
 
-- [ ] **Step 6: Jest**
+- [x] **Step 6: Jest**
 
 Run:
 ```bash
@@ -137,7 +137,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npm test -- --ci
 ```
 Expected: exit 0, all test suites pass.
 
-- [ ] **Step 7: Record Phase 1 versions**
+- [x] **Step 7: Record Phase 1 versions**
 
 Run:
 ```bash
@@ -156,7 +156,7 @@ Expected: single line showing `tailwind-merge@3.5.0` (or newer 3.x). Save this o
 
 **Packages this phase bumps:** `@tailwindcss/vite` 4.2.2→4.2.4, `tailwindcss` 4.2.2→4.2.4, `@tanstack/react-query` 5.99.2→5.100.1, `axios` 1.15.1→1.15.2, `dompurify` 3.4.0→3.4.1, `lucide-react` 1.8.0→1.9.0, `react-hook-form` 7.72.1→7.73.1, `react-router-dom` 7.14.1→7.14.2, `vite` 8.0.8→8.0.10.
 
-- [ ] **Step 1: Run `npm update` to pull caret-range bumps**
+- [x] **Step 1: Run `npm update` to pull caret-range bumps**
 
 Run:
 ```bash
@@ -164,7 +164,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npm update
 ```
 Expected: exit 0. Output lists packages moved; `package.json` is untouched, `package-lock.json` updates.
 
-- [ ] **Step 2: Confirm the nine packages moved**
+- [x] **Step 2: Confirm the nine packages moved**
 
 Run:
 ```bash
@@ -174,7 +174,7 @@ Expected: each row shows the latest versions listed above (or newer patch).
 
 If any row is still on the pre-bump version, stop — there may be a peer-dep block.
 
-- [ ] **Step 3: Type-check**
+- [x] **Step 3: Type-check**
 
 Run:
 ```bash
@@ -182,7 +182,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npx tsc --noEmit --pretty --p
 ```
 Expected: exit 0.
 
-- [ ] **Step 4: Lint**
+- [x] **Step 4: Lint**
 
 Run:
 ```bash
@@ -190,7 +190,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npm run lint
 ```
 Expected: exit 0.
 
-- [ ] **Step 5: Jest**
+- [x] **Step 5: Jest**
 
 Run:
 ```bash
@@ -210,7 +210,7 @@ Expected: exit 0.
 
 **Context:** `@biomejs/biome` is pinned at exact `2.4.12` (no caret) in `devDependencies`, so `npm update` does not move it. It's the linter and formatter, so the verification bar is just lint + jest (no separate tsc run after the others already passed).
 
-- [ ] **Step 1: Edit the pin**
+- [x] **Step 1: Edit the pin**
 
 Edit `src/frontend/package.json`. In the `devDependencies` block, change:
 ```json
@@ -223,7 +223,7 @@ to:
 
 Keep the exact pin — do NOT add a caret.
 
-- [ ] **Step 2: Install**
+- [x] **Step 2: Install**
 
 Run:
 ```bash
@@ -231,7 +231,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npm install
 ```
 Expected: exit 0.
 
-- [ ] **Step 3: Confirm biome bumped**
+- [x] **Step 3: Confirm biome bumped**
 
 Run:
 ```bash
@@ -239,7 +239,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npx @biomejs/biome --version
 ```
 Expected: output includes `2.4.13`.
 
-- [ ] **Step 4: Lint (biome is the linter — this is the real test)**
+- [x] **Step 4: Lint (biome is the linter — this is the real test)**
 
 Run:
 ```bash
@@ -249,7 +249,7 @@ Expected: exit 0.
 
 If 2.4.13 introduced a new lint rule and a file now fails, stop and report. Options will be: (a) fix the code, (b) disable the new rule in `biome.json`, (c) defer the biome bump. Ask before choosing.
 
-- [ ] **Step 5: Jest (confirms no regression from biome's internal changes)**
+- [x] **Step 5: Jest (confirms no regression from biome's internal changes)**
 
 Run:
 ```bash
@@ -265,7 +265,7 @@ Expected: exit 0.
 
 **Files:** none modified
 
-- [ ] **Step 1: Confirm `npm outdated` is clean**
+- [x] **Step 1: Confirm `npm outdated` is clean**
 
 Run:
 ```bash
@@ -275,7 +275,7 @@ Expected: exit=0 and empty output (no packages listed), OR exit=1 with only in-`
 
 If any of the 11 original packages still shows up, stop and report.
 
-- [ ] **Step 2: Show the diff the user is about to review**
+- [x] **Step 2: Show the diff the user is about to review**
 
 Run:
 ```bash
@@ -283,7 +283,7 @@ cd /Users/brycedeneen/dev/langflow && git diff --stat src/frontend/package.json 
 ```
 Expected: stat shows both files modified; `package.json` diff shows the two manual edits (`tailwind-merge` range, `@biomejs/biome` exact) and nothing else.
 
-- [ ] **Step 3: Produce the final summary report**
+- [x] **Step 3: Produce the final summary report**
 
 Format:
 ```
@@ -315,7 +315,7 @@ Code edits beyond manifests: <none | describe>
 Uncommitted — ready for manual UI testing.
 ```
 
-- [ ] **Step 4: Hand off to user**
+- [x] **Step 4: Hand off to user**
 
 Say, verbatim or close to it:
 

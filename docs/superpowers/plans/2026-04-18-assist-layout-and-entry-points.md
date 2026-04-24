@@ -97,7 +97,7 @@ Set to `true` **only** when the flow was created through the "Build with ADP Ass
 - Modify: `src/backend/base/langflow/services/database/models/flow/model.py`
 - Test: `src/backend/tests/unit/services/database/models/test_flow_model_built_with_assist.py`
 
-- [ ] **Step 1.1: Write the failing test**
+- [x] **Step 1.1: Write the failing test**
 
 Create `src/backend/tests/unit/services/database/models/test_flow_model_built_with_assist.py`:
 
@@ -149,12 +149,12 @@ def test_built_with_assist_is_persistable_and_readable(session):
     assert loaded.built_with_assist is True
 ```
 
-- [ ] **Step 1.2: Run to verify failure**
+- [x] **Step 1.2: Run to verify failure**
 
 Run: `uv run pytest src/backend/tests/unit/services/database/models/test_flow_model_built_with_assist.py -v`
 Expected: FAIL with `TypeError: __init__() got an unexpected keyword argument 'built_with_assist'` (or `AttributeError` on the first test).
 
-- [ ] **Step 1.3: Add the column**
+- [x] **Step 1.3: Add the column**
 
 Edit `src/backend/base/langflow/services/database/models/flow/model.py`. In the `FlowBase` class (near the existing `webhook` field around line where `webhook: bool | None` is declared), add:
 
@@ -166,12 +166,12 @@ Edit `src/backend/base/langflow/services/database/models/flow/model.py`. In the 
     )
 ```
 
-- [ ] **Step 1.4: Verify tests pass**
+- [x] **Step 1.4: Verify tests pass**
 
 Run: `uv run pytest src/backend/tests/unit/services/database/models/test_flow_model_built_with_assist.py -v`
 Expected: 2 PASS.
 
-- [ ] **Step 1.5: Pause for commit**
+- [x] **Step 1.5: Pause for commit**
 
 Stage with `git add`. Do not commit.
 
@@ -182,12 +182,12 @@ Stage with `git add`. Do not commit.
 **Files:**
 - Create: `src/backend/base/langflow/alembic/versions/<rev>_add_built_with_assist_to_flow.py`
 
-- [ ] **Step 2.1: Verify current head**
+- [x] **Step 2.1: Verify current head**
 
 Run: `cd src/backend/base/langflow && uv run alembic heads`
 Expected: one head (`460a5ee548b6` — the metadata infrastructure migration). If there are multiple heads, STOP and escalate — the chain is branched.
 
-- [ ] **Step 2.2: Generate the revision**
+- [x] **Step 2.2: Generate the revision**
 
 Run from repo root:
 
@@ -202,7 +202,7 @@ Open the generated file. Verify:
 
 If autogenerate produced something unexpected (e.g., also tries to alter unrelated columns), trim to just the `built_with_assist` add/drop.
 
-- [ ] **Step 2.3: Hand-write fallback (only if autogen was empty)**
+- [x] **Step 2.3: Hand-write fallback (only if autogen was empty)**
 
 Replace the upgrade/downgrade with:
 
@@ -219,12 +219,12 @@ def downgrade() -> None:
         batch_op.drop_column("built_with_assist")
 ```
 
-- [ ] **Step 2.4: Apply the migration**
+- [x] **Step 2.4: Apply the migration**
 
 Run: `make alembic-upgrade`
 Expected: one `ALTER TABLE flow ADD COLUMN built_with_assist` and "Target revision: <new hash> (head)".
 
-- [ ] **Step 2.5: Verify column**
+- [x] **Step 2.5: Verify column**
 
 Run:
 
@@ -239,11 +239,11 @@ with psycopg.connect('postgresql://postgres:mysecretpassword@localhost:5432/lang
 
 Expected: `[('built_with_assist', 'boolean', 'YES')]`.
 
-- [ ] **Step 2.6: Roundtrip**
+- [x] **Step 2.6: Roundtrip**
 
 Run: `make alembic-downgrade` (column dropped) → `make alembic-upgrade` (column recreated). Both should succeed.
 
-- [ ] **Step 2.7: Pause for commit**
+- [x] **Step 2.7: Pause for commit**
 
 Stage with `git add`. Do not commit.
 
@@ -254,7 +254,7 @@ Stage with `git add`. Do not commit.
 **Files:**
 - Modify: `src/frontend/src/types/flow/index.ts`
 
-- [ ] **Step 3.1: Edit the TS type**
+- [x] **Step 3.1: Edit the TS type**
 
 Open `src/frontend/src/types/flow/index.ts`. Find the `FlowType` type alias. Add `built_with_assist?: boolean;` after `webhook?: boolean;`:
 
@@ -263,12 +263,12 @@ Open `src/frontend/src/types/flow/index.ts`. Find the `FlowType` type alias. Add
   built_with_assist?: boolean;
 ```
 
-- [ ] **Step 3.2: Verify tsc**
+- [x] **Step 3.2: Verify tsc**
 
 Run: `cd src/frontend && npx tsc --noEmit 2>&1 | grep -i "built_with_assist" | head -5`
 Expected: no errors mentioning the new field.
 
-- [ ] **Step 3.3: Pause for commit**
+- [x] **Step 3.3: Pause for commit**
 
 Stage with `git add`.
 
@@ -280,7 +280,7 @@ Stage with `git add`.
 - Modify: `src/frontend/src/stores/assistantStore.ts`
 - Test: `src/frontend/src/stores/__tests__/assistantStore-layout.test.ts`
 
-- [ ] **Step 4.1: Write the failing test**
+- [x] **Step 4.1: Write the failing test**
 
 Create `src/frontend/src/stores/__tests__/assistantStore-layout.test.ts`:
 
@@ -323,12 +323,12 @@ describe("assistantStore layout mode", () => {
 });
 ```
 
-- [ ] **Step 4.2: Run to verify failure**
+- [x] **Step 4.2: Run to verify failure**
 
 Run: `cd src/frontend && npx jest assistantStore-layout`
 Expected: FAIL on the first `toBe("panel")` assertion with `undefined`.
 
-- [ ] **Step 4.3: Extend the store**
+- [x] **Step 4.3: Extend the store**
 
 Edit `src/frontend/src/stores/assistantStore.ts`. Find the `AssistantStoreState` type and add:
 
@@ -348,12 +348,12 @@ In the store body (`create<AssistantStoreState>((set, get) => ({ ... }))`), add 
   setSelectedTestComponent: (id) => set({ selectedTestComponent: id }),
 ```
 
-- [ ] **Step 4.4: Verify tests pass**
+- [x] **Step 4.4: Verify tests pass**
 
 Run: `cd src/frontend && npx jest assistantStore-layout`
 Expected: 4 tests PASS.
 
-- [ ] **Step 4.5: Pause for commit**
+- [x] **Step 4.5: Pause for commit**
 
 Stage.
 
@@ -365,7 +365,7 @@ Stage.
 - Create: `src/frontend/src/modals/AssistantPanel/mode-toggle-button.tsx`
 - Modify: `src/frontend/src/modals/AssistantPanel/components/panel-header.tsx`
 
-- [ ] **Step 5.1: Create the toggle button**
+- [x] **Step 5.1: Create the toggle button**
 
 Create `src/frontend/src/modals/AssistantPanel/mode-toggle-button.tsx`:
 
@@ -395,7 +395,7 @@ export function ModeToggleButton() {
 }
 ```
 
-- [ ] **Step 5.2: Render the button in the panel header**
+- [x] **Step 5.2: Render the button in the panel header**
 
 Edit `src/frontend/src/modals/AssistantPanel/components/panel-header.tsx`. Add the import:
 
@@ -405,12 +405,12 @@ import { ModeToggleButton } from "../mode-toggle-button";
 
 Render `<ModeToggleButton />` just before the existing Close button. (Look for the existing close button JSX — it's in the header's right-side button cluster. Insert the new button before it so the order is Clear → Enter Fullscreen → Close.)
 
-- [ ] **Step 5.3: Verify tsc**
+- [x] **Step 5.3: Verify tsc**
 
 Run: `cd src/frontend && npx tsc --noEmit 2>&1 | grep -E "mode-toggle|panel-header" | head -10`
 Expected: no errors in the two files you touched.
 
-- [ ] **Step 5.4: Pause for commit**
+- [x] **Step 5.4: Pause for commit**
 
 ---
 
@@ -419,7 +419,7 @@ Expected: no errors in the two files you touched.
 **Files:**
 - Create: `src/frontend/src/modals/AssistantPanel/fullscreen-shell.tsx`
 
-- [ ] **Step 6.1: Create the component**
+- [x] **Step 6.1: Create the component**
 
 Create `src/frontend/src/modals/AssistantPanel/fullscreen-shell.tsx`:
 
@@ -505,12 +505,12 @@ export function FullscreenShell({ flowId, onSend }: Props) {
 
 **Note:** If `Composer`, `MessageList`, or `SettingsRequired` are default exports in the existing `components/*.tsx` files rather than named exports, use default imports (e.g., `import Composer from "./components/composer"`). Look at how `AssistantPanel/index.tsx` imports them today and match.
 
-- [ ] **Step 6.2: Verify tsc**
+- [x] **Step 6.2: Verify tsc**
 
 Run: `cd src/frontend && npx tsc --noEmit 2>&1 | grep fullscreen-shell | head -5`
 Expected: no errors specific to this file. Fix any import shape mismatches.
 
-- [ ] **Step 6.3: Pause for commit**
+- [x] **Step 6.3: Pause for commit**
 
 ---
 
@@ -519,7 +519,7 @@ Expected: no errors specific to this file. Fix any import shape mismatches.
 **Files:**
 - Create: `src/frontend/src/modals/AssistantPanel/test-shell.tsx`
 
-- [ ] **Step 7.1: Create the component**
+- [x] **Step 7.1: Create the component**
 
 Create `src/frontend/src/modals/AssistantPanel/test-shell.tsx`:
 
@@ -608,12 +608,12 @@ export function TestShell({ flowId, onSend }: Props) {
 }
 ```
 
-- [ ] **Step 7.2: Verify tsc**
+- [x] **Step 7.2: Verify tsc**
 
 Run: `cd src/frontend && npx tsc --noEmit 2>&1 | grep test-shell | head -5`
 Expected: clean.
 
-- [ ] **Step 7.3: Pause for commit**
+- [x] **Step 7.3: Pause for commit**
 
 ---
 
@@ -623,7 +623,7 @@ Expected: clean.
 - Modify: `src/frontend/src/modals/AssistantPanel/index.tsx`
 - Test: `src/frontend/src/modals/AssistantPanel/__tests__/shell-switch.test.tsx`
 
-- [ ] **Step 8.1: Write the failing test**
+- [x] **Step 8.1: Write the failing test**
 
 Create `src/frontend/src/modals/AssistantPanel/__tests__/shell-switch.test.tsx`:
 
@@ -694,12 +694,12 @@ describe("AssistantPanel shell switch", () => {
 });
 ```
 
-- [ ] **Step 8.2: Run to verify failure**
+- [x] **Step 8.2: Run to verify failure**
 
 Run: `cd src/frontend && npx jest shell-switch`
 Expected: tests that assert on `adp-assist-*-btn` fail because `AssistantPanel` always renders the panel shell today.
 
-- [ ] **Step 8.3: Refactor `AssistantPanel/index.tsx`**
+- [x] **Step 8.3: Refactor `AssistantPanel/index.tsx`**
 
 Edit `src/frontend/src/modals/AssistantPanel/index.tsx`. Add the two new imports alongside the existing ones:
 
@@ -730,12 +730,12 @@ if (layoutMode === "test") {
 
 Leave the existing panel-shell JSX (the 400px `<div>` with `PanelHeader`, `MessageList`, `Composer`) unchanged — it now only renders when `layoutMode === "panel"`.
 
-- [ ] **Step 8.4: Run tests**
+- [x] **Step 8.4: Run tests**
 
 Run: `cd src/frontend && npx jest shell-switch`
 Expected: 4 PASS.
 
-- [ ] **Step 8.5: Pause for commit**
+- [x] **Step 8.5: Pause for commit**
 
 ---
 
@@ -744,7 +744,7 @@ Expected: 4 PASS.
 **Files:**
 - Modify: `src/frontend/src/pages/FlowPage/index.tsx`
 
-- [ ] **Step 9.1: Hide the canvas when fullscreen**
+- [x] **Step 9.1: Hide the canvas when fullscreen**
 
 Edit `src/frontend/src/pages/FlowPage/index.tsx`. Near where `AssistantPanel` is rendered at the bottom, and where the canvas (`<FlowPageMainContent>`) is rendered, read `layoutMode` from the store:
 
@@ -770,12 +770,12 @@ Wrap or conditionally hide the canvas when `isOverlay` is true — the overlay s
 
 This is the minimum — the overlay covers the canvas visually via `z-50`, and we just ensure the canvas can't receive events when hidden.
 
-- [ ] **Step 9.2: Verify tsc**
+- [x] **Step 9.2: Verify tsc**
 
 Run: `cd src/frontend && npx tsc --noEmit 2>&1 | grep "pages/FlowPage/index" | head -5`
 Expected: no errors.
 
-- [ ] **Step 9.3: Pause for commit**
+- [x] **Step 9.3: Pause for commit**
 
 ---
 
@@ -784,7 +784,7 @@ Expected: no errors.
 **Files:**
 - Create: `src/frontend/src/utils/assist-entry.ts`
 
-- [ ] **Step 10.1: Create the helper**
+- [x] **Step 10.1: Create the helper**
 
 Create `src/frontend/src/utils/assist-entry.ts`:
 
@@ -813,7 +813,7 @@ export function openFlowInFullscreenAssist(
 }
 ```
 
-- [ ] **Step 10.2: Pause for commit**
+- [x] **Step 10.2: Pause for commit**
 
 ---
 
@@ -822,7 +822,7 @@ export function openFlowInFullscreenAssist(
 **Files:**
 - Create: `src/frontend/src/modals/templatesModal/components/BlankFlowCardComponent/index.tsx`
 
-- [ ] **Step 11.1: Create the component**
+- [x] **Step 11.1: Create the component**
 
 Create `src/frontend/src/modals/templatesModal/components/BlankFlowCardComponent/index.tsx`:
 
@@ -868,7 +868,7 @@ export function BlankFlowCardComponent({ selected, onSelect }: Props) {
 }
 ```
 
-- [ ] **Step 11.2: Pause for commit**
+- [x] **Step 11.2: Pause for commit**
 
 ---
 
@@ -878,7 +878,7 @@ export function BlankFlowCardComponent({ selected, onSelect }: Props) {
 - Create: `src/frontend/src/modals/templatesModal/components/actionBar.tsx`
 - Test: `src/frontend/src/modals/templatesModal/__tests__/action-bar.test.tsx`
 
-- [ ] **Step 12.1: Write the failing test**
+- [x] **Step 12.1: Write the failing test**
 
 Create `src/frontend/src/modals/templatesModal/__tests__/action-bar.test.tsx`:
 
@@ -943,12 +943,12 @@ describe("ActionBar", () => {
 });
 ```
 
-- [ ] **Step 12.2: Run to verify failure**
+- [x] **Step 12.2: Run to verify failure**
 
 Run: `cd src/frontend && npx jest action-bar.test`
 Expected: module not found.
 
-- [ ] **Step 12.3: Create the component**
+- [x] **Step 12.3: Create the component**
 
 Create `src/frontend/src/modals/templatesModal/components/actionBar.tsx`:
 
@@ -1007,12 +1007,12 @@ export function ActionBar({
 }
 ```
 
-- [ ] **Step 12.4: Run tests**
+- [x] **Step 12.4: Run tests**
 
 Run: `cd src/frontend && npx jest action-bar.test`
 Expected: 3 PASS.
 
-- [ ] **Step 12.5: Pause for commit**
+- [x] **Step 12.5: Pause for commit**
 
 ---
 
@@ -1021,11 +1021,11 @@ Expected: 3 PASS.
 **Files:**
 - Modify: `src/frontend/src/modals/templatesModal/components/TemplateCardComponent/index.tsx`
 
-- [ ] **Step 13.1: Read the existing file**
+- [x] **Step 13.1: Read the existing file**
 
 Open `src/frontend/src/modals/templatesModal/components/TemplateCardComponent/index.tsx`. Identify the outer element (likely a `<Card>` or `<button>`).
 
-- [ ] **Step 13.2: Add `selected` + `onSelect` props**
+- [x] **Step 13.2: Add `selected` + `onSelect` props**
 
 Modify the component's props:
 
@@ -1059,7 +1059,7 @@ The exact code depends on the existing component. Illustration of the minimum ch
 
 Remove any direct `addFlow()` call from this file — the template creation now happens at the modal level via the action bar.
 
-- [ ] **Step 13.3: Pause for commit**
+- [x] **Step 13.3: Pause for commit**
 
 ---
 
@@ -1070,7 +1070,7 @@ Remove any direct `addFlow()` call from this file — the template creation now 
 - Modify: `src/frontend/src/modals/templatesModal/components/GetStartedComponent/index.tsx`
 - Modify: `src/frontend/src/modals/templatesModal/components/TemplateContentComponent/index.tsx`
 
-- [ ] **Step 14.1: Add selection state in the modal**
+- [x] **Step 14.1: Add selection state in the modal**
 
 Edit `src/frontend/src/modals/templatesModal/index.tsx`. Add state:
 
@@ -1082,7 +1082,7 @@ const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
 Pass `selectedTemplate` + `onSelectTemplate={setSelectedTemplate}` to both `GetStartedComponent` and `TemplateContentComponent` (same props). Also pass `selectedTemplate` to `BlankFlowCardComponent` inside `GetStartedComponent` (see 14.2).
 
-- [ ] **Step 14.2: Render the blank card in `GetStartedComponent`**
+- [x] **Step 14.2: Render the blank card in `GetStartedComponent`**
 
 Edit `src/frontend/src/modals/templatesModal/components/GetStartedComponent/index.tsx`. At the top of the grid (before the existing template card loop), render:
 
@@ -1101,11 +1101,11 @@ Add the import:
 import { BlankFlowCardComponent } from "../BlankFlowCardComponent";
 ```
 
-- [ ] **Step 14.3: Thread props through `TemplateContentComponent`**
+- [x] **Step 14.3: Thread props through `TemplateContentComponent`**
 
 Edit `src/frontend/src/modals/templatesModal/components/TemplateContentComponent/index.tsx` — add the same two props and forward `selected` / `onSelect` down to each `TemplateCardComponent`.
 
-- [ ] **Step 14.4: Replace the footer with the ActionBar**
+- [x] **Step 14.4: Replace the footer with the ActionBar**
 
 Back in `src/frontend/src/modals/templatesModal/index.tsx`. Replace the existing `BaseModal.Footer` block (the one with the "Start from scratch" text + "Blank Flow" button) with:
 
@@ -1162,12 +1162,12 @@ const handleCreateFromSelection = async (withAssist: boolean) => {
 
 If the correct call requires a template object rather than an id, resolve the template at the modal level (store the `FlowType` object instead of a string id) — that's a small refactor of the selection state.
 
-- [ ] **Step 14.5: Smoke-test tsc**
+- [x] **Step 14.5: Smoke-test tsc**
 
 Run: `cd src/frontend && npx tsc --noEmit 2>&1 | grep -E "templatesModal|ActionBar|BlankFlow" | head -10`
 Expected: clean.
 
-- [ ] **Step 14.6: Pause for commit**
+- [x] **Step 14.6: Pause for commit**
 
 ---
 
@@ -1179,7 +1179,7 @@ Expected: clean.
 
 **Note on WIP file:** `flows.py` is a file the repo owner was actively editing when this plan was written (it has uncommitted changes on webhook auth). Be extra careful: read-before-edit, preserve all surrounding code, and never re-run `git add` on lines you didn't intend to stage. If there's any ambiguity, escalate.
 
-- [ ] **Step 15.1: Write the failing test**
+- [x] **Step 15.1: Write the failing test**
 
 Create `src/backend/tests/unit/api/v1/test_flow_create_built_with_assist.py`:
 
@@ -1241,24 +1241,24 @@ async def test_create_flow_without_built_with_assist_defaults_to_false(
         assert row.built_with_assist is False
 ```
 
-- [ ] **Step 15.2: Run to verify (may already pass)**
+- [x] **Step 15.2: Run to verify (may already pass)**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_flow_create_built_with_assist.py -v`
 
 Because `built_with_assist` is a field on `FlowBase` → `FlowCreate`, the existing flow-create endpoint may already honor it via Pydantic deserialization. If the tests already pass, skip Step 15.3 and go to 15.4.
 
-- [ ] **Step 15.3 (only if 15.2 failed): Wire the flag through**
+- [x] **Step 15.3 (only if 15.2 failed): Wire the flag through**
 
 Open `src/backend/base/langflow/api/v1/flows.py`. Find the `create_flow` handler. It takes a `FlowCreate`-shaped body. Confirm the handler constructs the DB row via `Flow(**flow_create.model_dump())` or similar — if so, nothing to add; the field rides along. If the handler copies fields explicitly (e.g., `Flow(name=flow_create.name, data=flow_create.data, ...)`), append `built_with_assist=getattr(flow_create, "built_with_assist", False)`.
 
 **Do not restructure or refactor.** The minimum edit is adding one kwarg to the Flow constructor or one line to an explicit field-copy block.
 
-- [ ] **Step 15.4: Re-run the tests**
+- [x] **Step 15.4: Re-run the tests**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_flow_create_built_with_assist.py -v`
 Expected: 2 PASS.
 
-- [ ] **Step 15.5: Pause for commit**
+- [x] **Step 15.5: Pause for commit**
 
 ---
 
@@ -1267,7 +1267,7 @@ Expected: 2 PASS.
 **Files:**
 - Modify: `src/frontend/src/modals/templatesModal/index.tsx`
 
-- [ ] **Step 16.1: Extend the create call**
+- [x] **Step 16.1: Extend the create call**
 
 In the `handleCreateFromSelection` handler added in Task 14.4, pass `built_with_assist: withAssist` to `addFlow`. Example adjustments:
 
@@ -1296,7 +1296,7 @@ const id = await addFlow({
 
 Leave pre-existing call sites of `addFlow` alone — only the new one in Task 14's handler should set `built_with_assist`.
 
-- [ ] **Step 16.2: Pause for commit**
+- [x] **Step 16.2: Pause for commit**
 
 ---
 
@@ -1307,7 +1307,7 @@ Leave pre-existing call sites of `addFlow` alone — only the new one in Task 14
 - Test: `src/frontend/src/pages/MainPage/components/list/__tests__/adp-assist-button.test.tsx`
 - Modify: `src/frontend/src/pages/MainPage/components/list/index.tsx`
 
-- [ ] **Step 17.1: Write the failing test**
+- [x] **Step 17.1: Write the failing test**
 
 Create `src/frontend/src/pages/MainPage/components/list/__tests__/adp-assist-button.test.tsx`:
 
@@ -1356,12 +1356,12 @@ describe("AdpAssistButton", () => {
 });
 ```
 
-- [ ] **Step 17.2: Run to verify failure**
+- [x] **Step 17.2: Run to verify failure**
 
 Run: `cd src/frontend && npx jest adp-assist-button.test`
 Expected: module not found.
 
-- [ ] **Step 17.3: Create the component**
+- [x] **Step 17.3: Create the component**
 
 Create `src/frontend/src/pages/MainPage/components/list/adp-assist-button.tsx`:
 
@@ -1400,7 +1400,7 @@ export function AdpAssistButton({ flowId, builtWithAssist }: Props) {
 }
 ```
 
-- [ ] **Step 17.4: Render the button in the flow card**
+- [x] **Step 17.4: Render the button in the flow card**
 
 Edit `src/frontend/src/pages/MainPage/components/list/index.tsx`. Add the import:
 
@@ -1422,12 +1422,12 @@ In the actions cluster (the right-side `<div className="ml-5 flex items-center g
 </div>
 ```
 
-- [ ] **Step 17.5: Run tests**
+- [x] **Step 17.5: Run tests**
 
 Run: `cd src/frontend && npx jest adp-assist-button.test`
 Expected: 2 PASS.
 
-- [ ] **Step 17.6: Pause for commit**
+- [x] **Step 17.6: Pause for commit**
 
 ---
 
@@ -1435,15 +1435,15 @@ Expected: 2 PASS.
 
 After all automated tests pass, walk through this checklist. **Do not commit in this task** — it is a validation gate.
 
-- [ ] **Step 18.1: Dev server boots**
+- [x] **Step 18.1: Dev server boots**
 
 Run `LFX_DEV=1 make run_cli`. Confirm: no import errors; migration auto-applies; `flow` table has the new `built_with_assist` column.
 
-- [ ] **Step 18.2: Panel mode unchanged (regression)**
+- [x] **Step 18.2: Panel mode unchanged (regression)**
 
 On an existing flow, click the toolbar "Assistant" button. Confirm the 400px right-sidebar panel still opens as before. Send a test message — it should still route through the usual assistant codepath.
 
-- [ ] **Step 18.3: Enter fullscreen from the panel**
+- [x] **Step 18.3: Enter fullscreen from the panel**
 
 With the panel open, click the new Maximize icon in the header. Confirm:
 - Overlay covers the entire viewport.
@@ -1451,19 +1451,19 @@ With the panel open, click the new Maximize icon in the header. Confirm:
 - Test, View Canvas, Close buttons all clickable.
 - Composer + messages visible inside.
 
-- [ ] **Step 18.4: View Canvas returns to panel**
+- [x] **Step 18.4: View Canvas returns to panel**
 
 From fullscreen, click View Canvas. Confirm: overlay disappears, panel reappears at 400px.
 
-- [ ] **Step 18.5: Close button exits entirely**
+- [x] **Step 18.5: Close button exits entirely**
 
 From fullscreen, click Close. Confirm: overlay disappears AND the panel does not reappear. Re-open via toolbar button → panel mode again.
 
-- [ ] **Step 18.6: Test mode shows placeholder**
+- [x] **Step 18.6: Test mode shows placeholder**
 
 From fullscreen, click Test. Confirm: split view renders with "Pipeline view will appear here (Plan 5)." on the left + chat on the right. Back to chat button returns to fullscreen.
 
-- [ ] **Step 18.7: Templates modal selection**
+- [x] **Step 18.7: Templates modal selection**
 
 Open the templates modal. Confirm:
 - "Blank Flow" now appears as the first card in the grid (with the Plus icon).
@@ -1472,21 +1472,21 @@ Open the templates modal. Confirm:
 - The footer shows three buttons: Cancel, Start Building, Build with ADP Assist.
 - With nothing selected, the two right-side buttons are disabled.
 
-- [ ] **Step 18.8: Start Building path**
+- [x] **Step 18.8: Start Building path**
 
 Select a template (any). Click Start Building. Confirm:
 - Modal closes.
 - You land on the new flow's canvas.
 - Panel is closed (default behavior).
 
-- [ ] **Step 18.9: Build with ADP Assist path**
+- [x] **Step 18.9: Build with ADP Assist path**
 
 Create another flow: select a template, click Build with ADP Assist. Confirm:
 - Modal closes.
 - You land on the new flow's canvas.
 - Fullscreen ADP Assist overlay is open.
 
-- [ ] **Step 18.10: `built_with_assist` persisted**
+- [x] **Step 18.10: `built_with_assist` persisted**
 
 Run the SQL:
 
@@ -1502,14 +1502,14 @@ with psycopg.connect('postgresql://postgres:mysecretpassword@localhost:5432/lang
 
 Expected: the flow you created via Build with ADP Assist shows `True`; the one created via Start Building shows `False`.
 
-- [ ] **Step 18.11: Flow-list ADP Assist button**
+- [x] **Step 18.11: Flow-list ADP Assist button**
 
 Navigate to the main flow list. Confirm:
 - Each flow card has a small Bot icon button next to the ellipsis menu.
 - Clicking it opens the flow in fullscreen ADP Assist.
 - The icon is highlighted (primary color) on the flow that has `built_with_assist=true`.
 
-- [ ] **Step 18.12: Report results**
+- [x] **Step 18.12: Report results**
 
 Report to the controller: which steps passed, which didn't, and any surprises.
 

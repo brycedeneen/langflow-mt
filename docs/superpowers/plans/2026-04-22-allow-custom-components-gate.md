@@ -53,7 +53,7 @@
 - Create: `src/lfx/src/lfx/utils/component_aliases.py`
 - Create: `src/lfx/tests/unit/utils/test_flow_validation.py`
 
-- [ ] **Step 1: Fetch upstream's files**
+- [x] **Step 1: Fetch upstream's files**
 
 The upstream PR is large but the two files we need are self-contained. Pull them directly from the PR branch:
 
@@ -79,7 +79,7 @@ curl -sL https://raw.githubusercontent.com/langflow-ai/langflow/main/src/lfx/src
 
 Expected: both files downloaded; `flow_validation.py` defines a function that takes a flow dict and raises on any unrecognised `code` payload. The exact name upstream uses may vary (`validate_flow`, `check_flow_code`, etc.) — we will rename to `validate_flow_components` in Step 3.
 
-- [ ] **Step 2: Write the failing gate-unit tests**
+- [x] **Step 2: Write the failing gate-unit tests**
 
 Create `src/lfx/tests/unit/utils/test_flow_validation.py`:
 
@@ -209,13 +209,13 @@ def test_missing_code_field_is_treated_as_custom():
         )
 ```
 
-- [ ] **Step 3: Run tests to verify they fail**
+- [x] **Step 3: Run tests to verify they fail**
 
 Run: `cd src/lfx && uv run pytest tests/unit/utils/test_flow_validation.py -v`
 
 Expected: all tests FAIL with `ModuleNotFoundError: No module named 'lfx.utils.flow_validation'`. This is the TDD red.
 
-- [ ] **Step 4: Drop in the ported files and add the platform-admin bypass**
+- [x] **Step 4: Drop in the ported files and add the platform-admin bypass**
 
 Copy the fetched files into place:
 
@@ -255,7 +255,7 @@ If upstream's function takes a `settings` object instead of the `allow_custom` b
 
 Preserve upstream's cache-loading code and the cold-cache-fail-closed behavior verbatim — these are correctness-critical and we inherit them deliberately.
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `cd src/lfx && LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest tests/unit/utils/test_flow_validation.py -v`
 
@@ -263,7 +263,7 @@ Run: `cd src/lfx && LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest tests/unit/utils/tes
 
 Expected: all 6 tests PASS.
 
-- [ ] **Step 6: Ask the user before committing, then commit**
+- [x] **Step 6: Ask the user before committing, then commit**
 
 ```bash
 git add src/lfx/src/lfx/utils/flow_validation.py \
@@ -296,7 +296,7 @@ EOF
 - Modify: `src/backend/base/langflow/services/settings/base.py`
 - Create: `src/backend/tests/unit/services/test_settings_allow_custom.py`
 
-- [ ] **Step 1: Write the failing settings test**
+- [x] **Step 1: Write the failing settings test**
 
 Create `src/backend/tests/unit/services/test_settings_allow_custom.py`:
 
@@ -338,13 +338,13 @@ def test_allow_custom_components_parses_falsy(monkeypatch, falsy):
     assert settings.allow_custom_components is False
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `uv run pytest src/backend/tests/unit/services/test_settings_allow_custom.py -v`
 
 Expected: FAIL with `AttributeError: 'Settings' object has no attribute 'allow_custom_components'`.
 
-- [ ] **Step 3: Add the setting**
+- [x] **Step 3: Add the setting**
 
 Edit `src/backend/base/langflow/services/settings/base.py`. Near other boolean feature-flag fields (search for an existing `bool = Field(default=False, ...)` entry to find the right region), add:
 
@@ -361,13 +361,13 @@ allow_custom_components: bool = Field(
 
 Pydantic's `BaseSettings` pulls `LANGFLOW_ALLOW_CUSTOM_COMPONENTS` automatically via the existing `env_prefix="LANGFLOW_"` on the settings model (verify the prefix by searching for `env_prefix` in the file). No custom validator needed — Pydantic's default bool parser handles `"true"`, `"1"`, `"True"`, `"false"`, `"0"`, `"False"`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `uv run pytest src/backend/tests/unit/services/test_settings_allow_custom.py -v`
 
 Expected: all 9 tests PASS (default + 4 truthy + 4 falsy).
 
-- [ ] **Step 5: Ask the user before committing, then commit**
+- [x] **Step 5: Ask the user before committing, then commit**
 
 ```bash
 git add src/backend/base/langflow/services/settings/base.py \
@@ -394,7 +394,7 @@ The frontend guard hook reads `config.allow_custom_components`. The backend conf
 - Modify: `src/backend/base/langflow/api/v1/endpoints.py` (around line 1225)
 - Modify: `src/frontend/src/controllers/API/queries/config/use-get-config.ts`
 
-- [ ] **Step 1: Write the failing config-response test**
+- [x] **Step 1: Write the failing config-response test**
 
 Append to `src/backend/tests/unit/services/test_settings_allow_custom.py` (same file as Task 2):
 
@@ -411,13 +411,13 @@ async def test_config_endpoint_surfaces_allow_custom_components(client, logged_i
 
 Note: `logged_in_headers` is an existing fixture in this repo's conftest (search `def logged_in_headers` if you need to confirm). If the fixture lives in a different conftest scope, copy the fixture shape used by neighbouring `test_*.py` files under `src/backend/tests/unit/services/`.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `uv run pytest src/backend/tests/unit/services/test_settings_allow_custom.py::test_config_endpoint_surfaces_allow_custom_components -v`
 
 Expected: FAIL — `"allow_custom_components" not in body`.
 
-- [ ] **Step 3: Add the field to the backend response**
+- [x] **Step 3: Add the field to the backend response**
 
 Edit `src/backend/base/langflow/api/v1/endpoints.py`. Around line 1225, `get_config` returns a dict assembled from the settings service. Find the return statement and add the new key. Example patch shape (exact keys already in the response will differ — keep them and add ours):
 
@@ -430,7 +430,7 @@ return {
 
 If the response is typed via a Pydantic `ConfigResponse` model elsewhere in the file, add a corresponding `allow_custom_components: bool = False` field to that model too (grep `class ConfigResponse` in the same file).
 
-- [ ] **Step 4: Add the field to the TypeScript interface**
+- [x] **Step 4: Add the field to the TypeScript interface**
 
 Edit `src/frontend/src/controllers/API/queries/config/use-get-config.ts`. Around the `ConfigResponse` interface (extends `BaseConfig`), add the new field:
 
@@ -449,19 +449,19 @@ export interface ConfigResponse extends BaseConfig {
 }
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `uv run pytest src/backend/tests/unit/services/test_settings_allow_custom.py -v`
 
 Expected: all 10 tests PASS (9 from Task 2 + the new config test).
 
-- [ ] **Step 6: Type-check the frontend change**
+- [x] **Step 6: Type-check the frontend change**
 
 Run: `cd src/frontend && npm run type-check 2>&1 | tail -20`
 
 Expected: no new errors. If consumers of `ConfigResponse` complain that `allow_custom_components` is missing in test fixtures, those fixtures are Task 8's problem — ignore for now.
 
-- [ ] **Step 7: Ask the user before committing, then commit**
+- [x] **Step 7: Ask the user before committing, then commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/endpoints.py \
@@ -490,7 +490,7 @@ This is the primary defence. Even if the create/upload/template gates fail to ca
 - Modify: `src/lfx/src/lfx/graph/graph/base.py`
 - Test: add to `src/backend/tests/unit/api/v1/test_custom_component_gate.py` (new file — create in this task)
 
-- [ ] **Step 1: Create the API-enforcement test file with the execution scenario**
+- [x] **Step 1: Create the API-enforcement test file with the execution scenario**
 
 Create `src/backend/tests/unit/api/v1/test_custom_component_gate.py`:
 
@@ -649,13 +649,13 @@ async def test_execution_blocks_custom_component_for_tenant(client, tenant_and_a
 
 Note: if the SSE build endpoint path differs on this branch, replace the URL. Search: `grep -nE "@router.*build" src/backend/base/langflow/api/v1/*.py`.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_custom_component_gate.py::test_execution_blocks_custom_component_for_tenant -v`
 
 Expected: FAIL — build succeeds (or errors for an unrelated reason) because no gate is wired into the execution path yet.
 
-- [ ] **Step 3: Wire the gate into the build-vertex entry**
+- [x] **Step 3: Wire the gate into the build-vertex entry**
 
 Edit `src/lfx/src/lfx/graph/graph/base.py`. Find the entry point that receives the flow dict before any vertex runs (usually a method like `Graph.from_flow`, `build_graph`, or the constructor — the exact name varies by branch; search `flow_data` and `def __init__` / `def from_payload` in the file). Add the gate call immediately after the flow dict is accepted and before any node is materialised:
 
@@ -712,19 +712,19 @@ graph = Graph(
 
 Keep defaults `False` / `False` on the `Graph.__init__` kwargs so unit tests and CLI paths that construct Graphs directly without a user context remain safe-by-default (they will behave exactly as before: custom code is only allowed when the caller opts in).
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_custom_component_gate.py::test_execution_blocks_custom_component_for_tenant -v`
 
 Expected: PASS — either the POST returns 403 or the SSE body contains "custom" (the assertion accepts either).
 
-- [ ] **Step 5: Regression-run the build-path tests**
+- [x] **Step 5: Regression-run the build-path tests**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/ -v -k "build" --timeout 60`
 
 Expected: all PASS. If any existing test constructs a `Graph` directly without passing `caller_is_platform_admin=True` AND relies on a custom-code fixture, it will now fail — fix those fixtures by either (a) using a shipped component in the fixture flow, or (b) passing `caller_is_platform_admin=True` explicitly.
 
-- [ ] **Step 6: Ask the user before committing, then commit**
+- [x] **Step 6: Ask the user before committing, then commit**
 
 ```bash
 git add src/lfx/src/lfx/graph/graph/base.py \
@@ -756,7 +756,7 @@ EOF
 - Modify: `src/backend/base/langflow/api/v1/flows.py` (around line 360)
 - Test: append to `src/backend/tests/unit/api/v1/test_custom_component_gate.py`
 
-- [ ] **Step 1: Append failing create-flow tests**
+- [x] **Step 1: Append failing create-flow tests**
 
 Append to `src/backend/tests/unit/api/v1/test_custom_component_gate.py`:
 
@@ -797,13 +797,13 @@ async def test_create_flow_accepts_custom_component_for_platform_admin(client, t
             await session.commit()
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_custom_component_gate.py -v -k "create_flow"`
 
 Expected: `test_create_flow_rejects_custom_component_for_tenant` FAILS (returns 201 — the vulnerability); `test_create_flow_accepts_custom_component_for_platform_admin` PASSES.
 
-- [ ] **Step 3: Wire the gate into `create_flow`**
+- [x] **Step 3: Wire the gate into `create_flow`**
 
 Edit `src/backend/base/langflow/api/v1/flows.py`. At the top of `create_flow` (around line 360, after `async def create_flow(...):` and before the existing body), add:
 
@@ -835,19 +835,19 @@ If the imports at the top of `flows.py` don't already include `HTTPException`, `
 
 Note: `body.data` is the flow dict. If this endpoint binds the request body to a different name, use that name.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_custom_component_gate.py -v -k "create_flow"`
 
 Expected: both tests PASS.
 
-- [ ] **Step 5: Regression-run flow CRUD tests**
+- [x] **Step 5: Regression-run flow CRUD tests**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_flows_*.py -v --timeout 60`
 
 Expected: all PASS. If any test creates a flow containing custom code as a non-superuser, it will 403 — fix the fixture by using a shipped-component flow.
 
-- [ ] **Step 6: Ask the user before committing, then commit**
+- [x] **Step 6: Ask the user before committing, then commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/flows.py \
@@ -873,7 +873,7 @@ EOF
 - Modify: `src/backend/base/langflow/api/v1/flows.py` (around line 913)
 - Test: append to `src/backend/tests/unit/api/v1/test_custom_component_gate.py`
 
-- [ ] **Step 1: Append failing upload test**
+- [x] **Step 1: Append failing upload test**
 
 Append to `src/backend/tests/unit/api/v1/test_custom_component_gate.py`:
 
@@ -915,13 +915,13 @@ async def test_upload_flow_accepts_custom_component_for_platform_admin(client, t
         await session.commit()
 ```
 
-- [ ] **Step 2: Run tests to verify tenant case fails**
+- [x] **Step 2: Run tests to verify tenant case fails**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_custom_component_gate.py -v -k "upload"`
 
 Expected: `test_upload_flow_rejects_custom_component_for_tenant` FAILS; admin case PASSES.
 
-- [ ] **Step 3: Wire the gate into `upload_file`**
+- [x] **Step 3: Wire the gate into `upload_file`**
 
 Edit `src/backend/base/langflow/api/v1/flows.py`, around line 913 in `upload_file`. The handler reads uploaded JSON and builds a list of flows. After the JSON is parsed into `flow_dicts` (or the local equivalent — read the existing body to find the variable name) and BEFORE any DB insert, add:
 
@@ -944,13 +944,13 @@ for flow_dict in flow_dicts:
 
 The imports (`get_settings_service`, `validate_flow_components`, `CustomComponentNotAllowedError`, `HTTPException`) were already added in Task 5 — no new import lines.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_custom_component_gate.py -v -k "upload"`
 
 Expected: both PASS.
 
-- [ ] **Step 5: Ask the user before committing, then commit**
+- [x] **Step 5: Ask the user before committing, then commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/flows.py \
@@ -976,7 +976,7 @@ EOF
 - Modify: `src/backend/base/langflow/api/v1/templates.py` (inside `create_template`, after `_load_source_and_blank` returns)
 - Test: append to `src/backend/tests/unit/api/v1/test_custom_component_gate.py`
 
-- [ ] **Step 1: Append failing template-create test**
+- [x] **Step 1: Append failing template-create test**
 
 Append to `src/backend/tests/unit/api/v1/test_custom_component_gate.py`:
 
@@ -1021,13 +1021,13 @@ async def test_create_template_rejects_custom_source_flow_for_tenant(client, ten
                 await session.commit()
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_custom_component_gate.py::test_create_template_rejects_custom_source_flow_for_tenant -v`
 
 Expected: FAIL. If the current code returns 403 for a different reason (e.g. `create_template` is superuser-only on this branch), make the test caller a superuser/platform-admin with a non-admin tenant org, OR adjust the test to use the admin user and force the gate to fire. Simplest: if `create_template` currently requires superuser, the gate still needs to run for superuser paths too — verify by reading the handler. The org binding shipped in commit `112e55edbe` may have relaxed who can call it; re-read the handler before adapting.
 
-- [ ] **Step 3: Wire the gate into `create_template`**
+- [x] **Step 3: Wire the gate into `create_template`**
 
 Edit `src/backend/base/langflow/api/v1/templates.py`. Find `create_template` (grep `async def create_template`). The 2026-04-22 security fix added a call to `_load_source_and_blank(...)` that returns `(blanked_nodes, edges)`. Add the gate **after** that returns and before the `Template(...)` row is constructed:
 
@@ -1067,25 +1067,25 @@ except CustomComponentNotAllowedError as err:
 
 Add the imports to the existing import block at the top of the file (`HTTPException` is likely already present since the 2026-04-22 security fix uses it; only `get_settings_service` and the two lfx symbols are new).
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_custom_component_gate.py::test_create_template_rejects_custom_source_flow_for_tenant -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Regression-run the template suites**
+- [x] **Step 5: Regression-run the template suites**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_templates_cross_org.py src/backend/tests/unit/api/v1/test_templates_endpoints.py src/backend/tests/unit/api/v1/test_templates_create_with_categories.py -v --timeout 60`
 
 Expected: all PASS. The 2026-04-22 security-fix suites (cross-org, scoping) must still pass — the new gate layers on top of their checks and does not interfere.
 
-- [ ] **Step 6: Run the full new-gate file**
+- [x] **Step 6: Run the full new-gate file**
 
 Run: `uv run pytest src/backend/tests/unit/api/v1/test_custom_component_gate.py -v`
 
 Expected: all 5 tests PASS (execution + 2× create_flow + 2× upload + 1× template-create — adjust count if earlier tasks added more scenarios).
 
-- [ ] **Step 7: Ask the user before committing, then commit**
+- [x] **Step 7: Ask the user before committing, then commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/templates.py \
@@ -1111,7 +1111,7 @@ EOF
 - Create: `src/frontend/src/utils/customComponentGuards.ts`
 - Create: `src/frontend/src/utils/__tests__/customComponentGuards.test.tsx`
 
-- [ ] **Step 1: Write the failing hook tests**
+- [x] **Step 1: Write the failing hook tests**
 
 Create `src/frontend/src/utils/__tests__/customComponentGuards.test.tsx`:
 
@@ -1188,13 +1188,13 @@ describe("useCustomComponentsAllowed", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd src/frontend && npx jest src/utils/__tests__/customComponentGuards.test.tsx`
 
 Expected: FAIL — module `../customComponentGuards` does not exist.
 
-- [ ] **Step 3: Implement the hook**
+- [x] **Step 3: Implement the hook**
 
 Create `src/frontend/src/utils/customComponentGuards.ts`:
 
@@ -1241,19 +1241,19 @@ export function flowJsonHasCustomComponent(flow: unknown): boolean {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd src/frontend && npx jest src/utils/__tests__/customComponentGuards.test.tsx`
 
 Expected: all 5 tests PASS.
 
-- [ ] **Step 5: Type-check**
+- [x] **Step 5: Type-check**
 
 Run: `cd src/frontend && npm run type-check 2>&1 | tail -10`
 
 Expected: no new errors.
 
-- [ ] **Step 6: Ask the user before committing, then commit**
+- [x] **Step 6: Ask the user before committing, then commit**
 
 ```bash
 git add src/frontend/src/utils/customComponentGuards.ts \
@@ -1279,13 +1279,13 @@ EOF
 - Modify: `src/frontend/src/pages/FlowPage/components/flowSidebarComponent/components/sidebarFooterButtons.tsx` (around line 80)
 - Modify the existing test: `src/frontend/src/pages/FlowPage/components/flowSidebarComponent/components/__tests__/sidebarFooterButtons.test.tsx`
 
-- [ ] **Step 1: Read the existing component**
+- [x] **Step 1: Read the existing component**
 
 Run: `cat src/frontend/src/pages/FlowPage/components/flowSidebarComponent/components/sidebarFooterButtons.tsx`
 
 Note the JSX around the `data-testid="sidebar-custom-component-button"` element (line 72-ish). The pattern on this branch wraps the clickable region in a button with an `onClick={...}` that calls `addComponent(customComponent, "CustomComponent")`.
 
-- [ ] **Step 2: Append a failing test to the existing test file**
+- [x] **Step 2: Append a failing test to the existing test file**
 
 Append to `src/frontend/src/pages/FlowPage/components/flowSidebarComponent/components/__tests__/sidebarFooterButtons.test.tsx`:
 
@@ -1323,13 +1323,13 @@ describe("custom-component gate", () => {
 
 If the existing test file uses static ESM imports at the top (which conflicts with the `jest.doMock` pattern), a simpler approach: add `jest.mock("@/utils/customComponentGuards", ...)` at the top-level of the file with a mutable return, and push/pop the return value in the two tests. Pick whichever matches the file's style.
 
-- [ ] **Step 3: Run tests to verify the new cases fail**
+- [x] **Step 3: Run tests to verify the new cases fail**
 
 Run: `cd src/frontend && npx jest src/pages/FlowPage/components/flowSidebarComponent/components/__tests__/sidebarFooterButtons.test.tsx`
 
 Expected: the two new tests FAIL — the button is not yet gated. Existing tests in the file still PASS.
 
-- [ ] **Step 4: Wire the guard into the component**
+- [x] **Step 4: Wire the guard into the component**
 
 Edit `src/frontend/src/pages/FlowPage/components/flowSidebarComponent/components/sidebarFooterButtons.tsx`. At the top with the other imports, add:
 
@@ -1362,13 +1362,13 @@ Find the existing button element (around line 72 on the current branch — the o
 
 If the button is wrapped in a styled component (e.g. a shadcn `<Button>`) that uses `className` for disabled styling, use the library's standard disabled pattern (the `disabled` prop is the invariant API).
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `cd src/frontend && npx jest src/pages/FlowPage/components/flowSidebarComponent/components/__tests__/sidebarFooterButtons.test.tsx`
 
 Expected: all tests PASS.
 
-- [ ] **Step 6: Ask the user before committing, then commit**
+- [x] **Step 6: Ask the user before committing, then commit**
 
 ```bash
 git add src/frontend/src/pages/FlowPage/components/flowSidebarComponent/components/sidebarFooterButtons.tsx \
@@ -1394,7 +1394,7 @@ The code editor modal already has a `readonly` prop. Callers that open the modal
 **Files:**
 - Modify: `src/frontend/src/pages/FlowPage/components/nodeToolbarComponent/components/toolbar-modals.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `src/frontend/src/utils/__tests__/customComponentGuards.test.tsx` (same file as Task 8):
 
@@ -1450,13 +1450,13 @@ describe("CodeAreaModal integration (Task 10 verification)", () => {
 
 The exact shape of `ToolbarModals` props (`data`, `openModal`, `setOpenModal`) may differ on this branch. Read `toolbar-modals.tsx` before running the test; adjust the render call to satisfy required props. The assertion (`received.readonly`) is the load-bearing line.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd src/frontend && npx jest src/utils/__tests__/customComponentGuards.test.tsx -t "CodeAreaModal"`
 
 Expected: both new tests FAIL — `received.readonly` is `undefined` because `toolbar-modals.tsx` doesn't pass the prop yet.
 
-- [ ] **Step 3: Wire the guard into the toolbar modal**
+- [x] **Step 3: Wire the guard into the toolbar modal**
 
 Edit `src/frontend/src/pages/FlowPage/components/nodeToolbarComponent/components/toolbar-modals.tsx`. At the top:
 
@@ -1481,13 +1481,13 @@ Find the `<CodeAreaModal ...>` JSX element. Add/override the `readonly` prop:
 
 If the component already sets `readonly` conditionally, combine: `readonly={existingCondition || !customAllowed}`.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd src/frontend && npx jest src/utils/__tests__/customComponentGuards.test.tsx`
 
 Expected: all tests in the file PASS.
 
-- [ ] **Step 5: Ask the user before committing, then commit**
+- [x] **Step 5: Ask the user before committing, then commit**
 
 ```bash
 git add src/frontend/src/pages/FlowPage/components/nodeToolbarComponent/components/toolbar-modals.tsx \
@@ -1514,7 +1514,7 @@ When a tenant drops or pastes a JSON file containing a custom-code node, surface
 **Files:**
 - Modify: `src/frontend/src/hooks/flows/use-upload-flow.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/frontend/src/hooks/flows/__tests__/use-upload-flow-custom-gate.test.tsx`:
 
@@ -1616,13 +1616,13 @@ describe("useUploadFlow custom-component gate", () => {
 
 The exact hook API (`uploadFlows` vs `getFlowsFromFiles`) is what `use-upload-flow.ts` exports. Read the file to see the concrete export shape and adjust the call accordingly. The test's load-bearing assertion is `setErrorData` called with a "Custom components are not allowed" title in the gated case.
 
-- [ ] **Step 2: Run test to verify gated case fails**
+- [x] **Step 2: Run test to verify gated case fails**
 
 Run: `cd src/frontend && npx jest src/hooks/flows/__tests__/use-upload-flow-custom-gate.test.tsx`
 
 Expected: the "blocks upload" test FAILS — upload proceeds and `setErrorData` is never called.
 
-- [ ] **Step 3: Wire the precheck into the hook**
+- [x] **Step 3: Wire the precheck into the hook**
 
 Edit `src/frontend/src/hooks/flows/use-upload-flow.ts`. At the top of the file, import the new helpers and the alert store:
 
@@ -1668,19 +1668,19 @@ const useUploadFlow = () => {
 
 If the file currently structures the upload path differently, preserve its shape — the only additions are (a) the guard check, (b) the early return with `setErrorData` when the guard rejects.
 
-- [ ] **Step 4: Run test to verify both cases pass**
+- [x] **Step 4: Run test to verify both cases pass**
 
 Run: `cd src/frontend && npx jest src/hooks/flows/__tests__/use-upload-flow-custom-gate.test.tsx`
 
 Expected: both tests PASS.
 
-- [ ] **Step 5: Type-check**
+- [x] **Step 5: Type-check**
 
 Run: `cd src/frontend && npm run type-check 2>&1 | tail -10`
 
 Expected: no new errors.
 
-- [ ] **Step 6: Ask the user before committing, then commit**
+- [x] **Step 6: Ask the user before committing, then commit**
 
 ```bash
 git add src/frontend/src/hooks/flows/use-upload-flow.ts \
@@ -1704,7 +1704,7 @@ EOF
 
 **Goal:** exercise all three deployment postures end-to-end in a browser before merging.
 
-- [ ] **Step 1: Start the dev stack with the gate ON (default)**
+- [x] **Step 1: Start the dev stack with the gate ON (default)**
 
 From repo root:
 
@@ -1716,7 +1716,7 @@ make dev
 
 Wait for the server to bind and the frontend to compile.
 
-- [ ] **Step 2: Exercise as a tenant (non-platform-admin)**
+- [x] **Step 2: Exercise as a tenant (non-platform-admin)**
 
 Log in as a tenant user who has at least one org membership but does NOT have `is_platform_admin=true`. Verify:
 
@@ -1726,7 +1726,7 @@ Log in as a tenant user who has at least one org membership but does NOT have `i
 - ✅ `curl`-style direct POST to `/api/v1/flows/` with a custom-code body returns **403** with the correct detail string.
 - ✅ A flow built entirely from catalog components builds and runs normally.
 
-- [ ] **Step 3: Exercise as a platform admin**
+- [x] **Step 3: Exercise as a platform admin**
 
 Log in as a user with `is_platform_admin=true`. Verify:
 
@@ -1734,7 +1734,7 @@ Log in as a user with `is_platform_admin=true`. Verify:
 - ✅ Backend POST with a custom-code body returns **201**.
 - ✅ Custom-component flows execute successfully.
 
-- [ ] **Step 4: Flip the fleet flag and verify full-permissive mode**
+- [x] **Step 4: Flip the fleet flag and verify full-permissive mode**
 
 Restart with:
 
@@ -1748,7 +1748,7 @@ Log in again as the **tenant** (non-admin). Verify:
 - ✅ Backend POST with custom-code body returns **201**.
 - ✅ `GET /api/v1/config` response has `allow_custom_components: true`.
 
-- [ ] **Step 5: Record results in the plan**
+- [x] **Step 5: Record results in the plan**
 
 Nothing to commit. If any scenario failed, treat it as a blocker and open the appropriate earlier task for revision before merging.
 

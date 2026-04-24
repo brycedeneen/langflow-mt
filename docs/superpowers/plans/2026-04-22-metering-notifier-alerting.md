@@ -86,13 +86,13 @@
 **Files:**
 - Create: `src/backend/base/langflow/alembic/versions/<new-rev>_add_metering_tables.py`
 
-- [ ] **Step 1: Generate a skeleton migration**
+- [x] **Step 1: Generate a skeleton migration**
 
 Run: `cd src/backend/base && uv run alembic revision -m "add_metering_tables"`
 
 Expected: prints the new file path under `alembic/versions/`. Record `<new-rev>` and `<prev-rev>` (printed as "Generating .../<new-rev>_add_metering_tables.py").
 
-- [ ] **Step 2: Replace the migration body**
+- [x] **Step 2: Replace the migration body**
 
 Edit the generated file to match this exact template (preserve the auto-generated `revision` / `down_revision` lines — don't overwrite them):
 
@@ -220,7 +220,7 @@ def downgrade() -> None:
 
 Replace the two `<new-rev>` placeholders and the `<prev-rev>` placeholder with the values alembic generated. Keep the `Create Date` as generated.
 
-- [ ] **Step 3: Apply + rollback to verify migration works both directions**
+- [x] **Step 3: Apply + rollback to verify migration works both directions**
 
 Run: `cd src/backend/base && uv run alembic upgrade head`
 
@@ -238,7 +238,7 @@ Expected: both succeed; tables round-trip cleanly.
 - Create: `src/backend/base/langflow/services/database/models/org_usage_daily/__init__.py`
 - Create: `src/backend/base/langflow/services/database/models/org_usage_daily/model.py`
 
-- [ ] **Step 1: Write `model.py`**
+- [x] **Step 1: Write `model.py`**
 
 Create `src/backend/base/langflow/services/database/models/org_usage_daily/model.py`:
 
@@ -272,7 +272,7 @@ class OrgUsageDaily(SQLModel, table=True):
     )
 ```
 
-- [ ] **Step 2: Re-export from `__init__.py`**
+- [x] **Step 2: Re-export from `__init__.py`**
 
 Create `src/backend/base/langflow/services/database/models/org_usage_daily/__init__.py`:
 
@@ -290,7 +290,7 @@ __all__ = ["OrgUsageDaily"]
 - Create: `src/backend/base/langflow/services/database/models/org_usage_threshold/__init__.py`
 - Create: `src/backend/base/langflow/services/database/models/org_usage_threshold/model.py`
 
-- [ ] **Step 1: Write `model.py`**
+- [x] **Step 1: Write `model.py`**
 
 ```python
 from __future__ import annotations
@@ -342,7 +342,7 @@ class OrgUsageThreshold(SQLModel, table=True):
     )
 ```
 
-- [ ] **Step 2: Re-export**
+- [x] **Step 2: Re-export**
 
 ```python
 # src/backend/base/langflow/services/database/models/org_usage_threshold/__init__.py
@@ -363,7 +363,7 @@ __all__ = ["OrgUsageThreshold", "UsageMetric", "UsagePeriod"]
 - Create: `src/backend/base/langflow/services/database/models/alert_rule/__init__.py`
 - Create: `src/backend/base/langflow/services/database/models/alert_rule/model.py`
 
-- [ ] **Step 1: Write `model.py`**
+- [x] **Step 1: Write `model.py`**
 
 ```python
 from __future__ import annotations
@@ -416,7 +416,7 @@ class AlertRule(SQLModel, table=True):
     )
 ```
 
-- [ ] **Step 2: Re-export**
+- [x] **Step 2: Re-export**
 
 ```python
 # src/backend/base/langflow/services/database/models/alert_rule/__init__.py
@@ -433,7 +433,7 @@ __all__ = ["AlertRule", "AlertRuleType"]
 - Create: `src/backend/base/langflow/services/database/models/admin_notification/__init__.py`
 - Create: `src/backend/base/langflow/services/database/models/admin_notification/model.py`
 
-- [ ] **Step 1: Write `model.py`**
+- [x] **Step 1: Write `model.py`**
 
 ```python
 from __future__ import annotations
@@ -494,7 +494,7 @@ class AdminNotification(SQLModel, table=True):
     )
 ```
 
-- [ ] **Step 2: Re-export**
+- [x] **Step 2: Re-export**
 
 ```python
 # src/backend/base/langflow/services/database/models/admin_notification/__init__.py
@@ -513,7 +513,7 @@ __all__ = [
 ]
 ```
 
-- [ ] **Step 3: Register all four models in the shared package index**
+- [x] **Step 3: Register all four models in the shared package index**
 
 Open `src/backend/base/langflow/services/database/models/__init__.py` and add these re-exports next to the existing ones (look for the block that re-exports `Organization`, `Flow`, etc.):
 
@@ -526,7 +526,7 @@ from langflow.services.database.models.org_usage_threshold import OrgUsageThresh
 
 Add their names to `__all__` if the module has one.
 
-- [ ] **Step 4: Import-check**
+- [x] **Step 4: Import-check**
 
 Run: `cd src/backend && uv run python -c "from langflow.services.database.models import AdminNotification, AlertRule, OrgUsageDaily, OrgUsageThreshold; print('ok')"`
 
@@ -536,7 +536,7 @@ Expected: `ok`.
 
 ### Task A6: Commit Phase A
 
-- [ ] **Step 1: Stage + commit**
+- [x] **Step 1: Stage + commit**
 
 ```bash
 git add src/backend/base/langflow/alembic/versions/<new-rev>_add_metering_tables.py \
@@ -573,7 +573,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 - Create: `src/backend/base/langflow/services/notifier/__init__.py`
 - Create: `src/backend/base/langflow/services/notifier/protocol.py`
 
-- [ ] **Step 1: Write protocol + event dataclass**
+- [x] **Step 1: Write protocol + event dataclass**
 
 `src/backend/base/langflow/services/notifier/protocol.py`:
 
@@ -609,7 +609,7 @@ class UsageAlertNotifier(Protocol):
     async def notify(self, event: UsageAlertEvent) -> None: ...
 ```
 
-- [ ] **Step 2: Re-export**
+- [x] **Step 2: Re-export**
 
 `src/backend/base/langflow/services/notifier/__init__.py`:
 
@@ -628,7 +628,7 @@ __all__ = ["UsageAlertEvent", "UsageAlertNotifier"]
 - Create: `src/backend/tests/unit/services/notifier/__init__.py` (empty)
 - Create: `src/backend/tests/unit/services/notifier/test_dispatcher.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `src/backend/tests/unit/services/notifier/test_dispatcher.py`:
 
@@ -702,7 +702,7 @@ Run: `cd src/backend && uv run pytest tests/unit/services/notifier/test_dispatch
 
 Expected: FAIL with `ModuleNotFoundError: No module named 'langflow.services.notifier.dispatcher'`.
 
-- [ ] **Step 2: Write the dispatcher**
+- [x] **Step 2: Write the dispatcher**
 
 `src/backend/base/langflow/services/notifier/dispatcher.py`:
 
@@ -745,7 +745,7 @@ class UsageAlertDispatcher:
             )
 ```
 
-- [ ] **Step 3: Run tests — expect pass**
+- [x] **Step 3: Run tests — expect pass**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/notifier/test_dispatcher.py -v`
 
@@ -759,7 +759,7 @@ Expected: 3 PASS.
 - Create: `src/backend/base/langflow/services/notifier/in_app.py`
 - Create: `src/backend/tests/unit/services/notifier/test_in_app.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `src/backend/tests/unit/services/notifier/test_in_app.py`:
 
@@ -817,7 +817,7 @@ Run: `cd src/backend && uv run pytest tests/unit/services/notifier/test_in_app.p
 
 Expected: FAIL with `ModuleNotFoundError: No module named 'langflow.services.notifier.in_app'`.
 
-- [ ] **Step 2: Write the notifier**
+- [x] **Step 2: Write the notifier**
 
 `src/backend/base/langflow/services/notifier/in_app.py`:
 
@@ -865,7 +865,7 @@ class InAppNotifier(UsageAlertNotifier):
             await session.commit()
 ```
 
-- [ ] **Step 3: Run tests — expect pass**
+- [x] **Step 3: Run tests — expect pass**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/notifier/test_in_app.py -v`
 
@@ -881,7 +881,7 @@ Expected: PASS.
 - Modify: `src/backend/base/langflow/services/deps.py`
 - Modify: `src/backend/base/langflow/services/utils.py`
 
-- [ ] **Step 1: Write the factory**
+- [x] **Step 1: Write the factory**
 
 `src/backend/base/langflow/services/notifier/factory.py`:
 
@@ -911,7 +911,7 @@ class UsageAlertDispatcherFactory(ServiceFactory):
         return UsageAlertDispatcher(notifiers)
 ```
 
-- [ ] **Step 2: Add the enum value**
+- [x] **Step 2: Add the enum value**
 
 Edit `src/backend/base/langflow/services/schema.py` and add the new value at the bottom of the enum (preserving existing order):
 
@@ -919,7 +919,7 @@ Edit `src/backend/base/langflow/services/schema.py` and add the new value at the
     USAGE_ALERT_DISPATCHER = "usage_alert_dispatcher"
 ```
 
-- [ ] **Step 3: Add the getter**
+- [x] **Step 3: Add the getter**
 
 Append to `src/backend/base/langflow/services/deps.py` (after the existing `get_variable_service`):
 
@@ -931,7 +931,7 @@ def get_usage_alert_dispatcher():
     return get_service(ServiceType.USAGE_ALERT_DISPATCHER, UsageAlertDispatcherFactory())
 ```
 
-- [ ] **Step 4: Register the factory at startup**
+- [x] **Step 4: Register the factory at startup**
 
 In `src/backend/base/langflow/services/utils.py`, near line 254 (where `variable_factory.VariableServiceFactory()` is registered), add:
 
@@ -942,7 +942,7 @@ In `src/backend/base/langflow/services/utils.py`, near line 254 (where `variable
 
 Place the import at the top of the function alongside the other factory imports (or keep it local — follow whichever style is used by neighbouring factories). If there's an existing import block for the factories, add the `notifier_factory` import there and drop the in-function import.
 
-- [ ] **Step 5: Smoke-test**
+- [x] **Step 5: Smoke-test**
 
 Run: `cd src/backend && uv run python -c "
 import asyncio
@@ -963,7 +963,7 @@ Expected: prints `UsageAlertDispatcher`.
 
 ### Task B5: Commit Phase B
 
-- [ ] **Step 1: Stage and commit**
+- [x] **Step 1: Stage and commit**
 
 ```bash
 git add src/backend/base/langflow/services/notifier/ \
@@ -999,7 +999,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 - Create: `src/backend/tests/unit/services/metering/__init__.py` (empty)
 - Create: `src/backend/tests/unit/services/metering/test_service.py`
 
-- [ ] **Step 1: Write the failing test for the upsert helper**
+- [x] **Step 1: Write the failing test for the upsert helper**
 
 `src/backend/tests/unit/services/metering/test_service.py`:
 
@@ -1084,7 +1084,7 @@ Run: `cd src/backend && uv run pytest tests/unit/services/metering/test_service.
 
 Expected: FAIL — module not found.
 
-- [ ] **Step 2: Write the helper**
+- [x] **Step 2: Write the helper**
 
 `src/backend/base/langflow/services/metering/service.py`:
 
@@ -1153,7 +1153,7 @@ from langflow.services.metering.service import upsert_org_usage_daily
 __all__ = ["upsert_org_usage_daily"]
 ```
 
-- [ ] **Step 3: Run tests — expect pass**
+- [x] **Step 3: Run tests — expect pass**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/metering/test_service.py -v`
 
@@ -1167,7 +1167,7 @@ Expected: 3 PASS.
 - Modify: `src/backend/base/langflow/services/metering/service.py`
 - Modify: `src/backend/tests/unit/services/metering/test_service.py` — add one test
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to the existing test module:
 
@@ -1232,7 +1232,7 @@ Run: `cd src/backend && uv run pytest tests/unit/services/metering/test_service.
 
 Expected: FAIL — `sum_tokens_for_flow_day` not defined.
 
-- [ ] **Step 2: Write the helper**
+- [x] **Step 2: Write the helper**
 
 Append to `src/backend/base/langflow/services/metering/service.py`:
 
@@ -1276,7 +1276,7 @@ from langflow.services.metering.service import sum_tokens_for_flow_day, upsert_o
 __all__ = ["sum_tokens_for_flow_day", "upsert_org_usage_daily"]
 ```
 
-- [ ] **Step 3: Run tests — expect pass**
+- [x] **Step 3: Run tests — expect pass**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/metering/test_service.py -v`
 
@@ -1286,7 +1286,7 @@ Expected: 4 PASS.
 
 ### Task C3: Commit Phase C
 
-- [ ] **Step 1: Commit**
+- [x] **Step 1: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/metering/ \
@@ -1315,7 +1315,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 - Create: `src/backend/base/langflow/services/metering/thresholds.py`
 - Create: `src/backend/tests/unit/services/metering/test_thresholds.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `src/backend/tests/unit/services/metering/test_thresholds.py`:
 
@@ -1399,7 +1399,7 @@ Run: `cd src/backend && uv run pytest tests/unit/services/metering/test_threshol
 
 Expected: FAIL — module not found.
 
-- [ ] **Step 2: Write the evaluator**
+- [x] **Step 2: Write the evaluator**
 
 `src/backend/base/langflow/services/metering/thresholds.py`:
 
@@ -1433,7 +1433,7 @@ def check_threshold_crossed(
     return True
 ```
 
-- [ ] **Step 3: Run tests — expect pass**
+- [x] **Step 3: Run tests — expect pass**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/metering/test_thresholds.py -v`
 
@@ -1447,7 +1447,7 @@ Expected: 7 PASS.
 - Create: `src/backend/base/langflow/services/metering/rules.py`
 - Create: `src/backend/tests/unit/services/metering/test_rules.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `src/backend/tests/unit/services/metering/test_rules.py`:
 
@@ -1573,7 +1573,7 @@ Run: `cd src/backend && uv run pytest tests/unit/services/metering/test_rules.py
 
 Expected: FAIL — module not found.
 
-- [ ] **Step 2: Write the evaluators**
+- [x] **Step 2: Write the evaluators**
 
 `src/backend/base/langflow/services/metering/rules.py`:
 
@@ -1652,7 +1652,7 @@ def eval_sla_duration(
     return current_run.duration_seconds > max_seconds
 ```
 
-- [ ] **Step 3: Run tests — expect pass**
+- [x] **Step 3: Run tests — expect pass**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/metering/test_rules.py -v`
 
@@ -1666,7 +1666,7 @@ Expected: 8 PASS.
 - Modify: `src/backend/base/langflow/services/metering/service.py`
 - Modify: `src/backend/tests/unit/services/metering/test_service.py`
 
-- [ ] **Step 1: Write the integration test**
+- [x] **Step 1: Write the integration test**
 
 Append to `test_service.py`:
 
@@ -1749,7 +1749,7 @@ Run: `cd src/backend && uv run pytest tests/unit/services/metering/test_service.
 
 Expected: FAIL — `record_run_completion_and_eval` not defined.
 
-- [ ] **Step 2: Write the function**
+- [x] **Step 2: Write the function**
 
 Append to `src/backend/base/langflow/services/metering/service.py`:
 
@@ -2034,7 +2034,7 @@ __all__ = [
 ]
 ```
 
-- [ ] **Step 2: Run tests — expect pass**
+- [x] **Step 2: Run tests — expect pass**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/metering/ -v`
 
@@ -2047,7 +2047,7 @@ Expected: all PASS.
 **Files:**
 - Modify: `src/backend/base/langflow/worker_app/execute.py:171-190`
 
-- [ ] **Step 1: Add a kill-switch setting**
+- [x] **Step 1: Add a kill-switch setting**
 
 Edit `src/backend/base/langflow/services/settings/base.py` and add (near existing toggles):
 
@@ -2057,7 +2057,7 @@ Edit `src/backend/base/langflow/services/settings/base.py` and add (near existin
 
 If the file uses pydantic-settings, this reads from `LANGFLOW_METERING_ENABLED`.
 
-- [ ] **Step 2: Insert the hook call**
+- [x] **Step 2: Insert the hook call**
 
 Open `src/backend/base/langflow/worker_app/execute.py`. Find the post-commit block (line ~171). After the Prometheus metrics block (ending at line ~189), and before `await concurrency.release(org_id_captured)` (line ~190), insert:
 
@@ -2077,7 +2077,7 @@ Open `src/backend/base/langflow/worker_app/execute.py`. Find the post-commit blo
 
 (Place inside the `async with session_factory() as session:` block so `session` is still in scope. If the session has already exited that block, move the code to its own `async with session_factory() as session:` block.)
 
-- [ ] **Step 3: Sanity run the test module + the existing execute tests**
+- [x] **Step 3: Sanity run the test module + the existing execute tests**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/metering/ tests/unit/workers/ -v` (if `tests/unit/workers/` exists — use `grep -rln "worker_app/execute" src/backend/tests` to find the actual test file).
 
@@ -2087,7 +2087,7 @@ Expected: all PASS. If no `workers` test exists, that's acceptable — proceed.
 
 ### Task D5: Commit Phase D
 
-- [ ] **Step 1: Commit**
+- [x] **Step 1: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/metering/ \
@@ -2120,7 +2120,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 - Create: `src/backend/base/langflow/api/v1/admin/notifications.py`
 - Create: `src/backend/tests/unit/api/v1/admin/test_notifications.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `src/backend/tests/unit/api/v1/admin/test_notifications.py`:
 
@@ -2246,7 +2246,7 @@ Run: `cd src/backend && uv run pytest tests/unit/api/v1/admin/test_notifications
 
 Expected: FAIL (all four tests; router not wired yet).
 
-- [ ] **Step 2: Write the router**
+- [x] **Step 2: Write the router**
 
 `src/backend/base/langflow/api/v1/admin/notifications.py`:
 
@@ -2369,7 +2369,7 @@ async def mark_all_read(
     await session.commit()
 ```
 
-- [ ] **Step 3: Register the router**
+- [x] **Step 3: Register the router**
 
 Edit `src/backend/base/langflow/api/v1/admin/__init__.py`:
 
@@ -2392,7 +2392,7 @@ router.include_router(_notifications_router)
 __all__ = ["router"]
 ```
 
-- [ ] **Step 4: Run tests — expect pass**
+- [x] **Step 4: Run tests — expect pass**
 
 Run: `cd src/backend && uv run pytest tests/unit/api/v1/admin/test_notifications.py -v`
 
@@ -2407,7 +2407,7 @@ Expected: 4 PASS.
 - Create: `src/backend/tests/unit/api/v1/admin/test_usage_thresholds.py`
 - Modify: `src/backend/base/langflow/api/v1/admin/__init__.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `src/backend/tests/unit/api/v1/admin/test_usage_thresholds.py`:
 
@@ -2489,7 +2489,7 @@ Run: `cd src/backend && uv run pytest tests/unit/api/v1/admin/test_usage_thresho
 
 Expected: FAIL — endpoint not wired.
 
-- [ ] **Step 2: Write the router**
+- [x] **Step 2: Write the router**
 
 `src/backend/base/langflow/api/v1/admin/usage_thresholds.py`:
 
@@ -2616,11 +2616,11 @@ async def delete_threshold(
     await session.commit()
 ```
 
-- [ ] **Step 3: Register the router**
+- [x] **Step 3: Register the router**
 
 Edit `src/backend/base/langflow/api/v1/admin/__init__.py` to include `_usage_thresholds_router` the same way as `_notifications_router` was wired.
 
-- [ ] **Step 4: Run tests — expect pass**
+- [x] **Step 4: Run tests — expect pass**
 
 Run: `cd src/backend && uv run pytest tests/unit/api/v1/admin/test_usage_thresholds.py -v`
 
@@ -2647,7 +2647,7 @@ Request body shapes:
 
 Config validation: for `consecutive_failures`, require `n: int > 0`. For `error_rate`, require `window_minutes: int > 0, min_samples: int > 0, rate_pct: float 0-100`. For `sla_duration`, require `max_seconds: number > 0`. Validate in the `create` / `patch` endpoints; reject with 422 on violations.
 
-- [ ] **Step 1: Write the mirror test + rule-config validation tests**
+- [x] **Step 1: Write the mirror test + rule-config validation tests**
 
 Mirror `test_usage_thresholds.py` and add:
 
@@ -2663,11 +2663,11 @@ async def test_alert_rule_rejects_invalid_consecutive_failures_config(
     assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 ```
 
-- [ ] **Step 2: Write the router and validation**
+- [x] **Step 2: Write the router and validation**
 
 Mirror `usage_thresholds.py`. In create/patch, call a helper `_validate_rule_config(rule_type, config)` that raises `HTTPException(422)` on violations per the rules above.
 
-- [ ] **Step 3: Run tests — expect pass**
+- [x] **Step 3: Run tests — expect pass**
 
 Run: `cd src/backend && uv run pytest tests/unit/api/v1/admin/test_alert_rules.py -v`
 
@@ -2677,7 +2677,7 @@ Expected: PASS.
 
 ### Task E4: Commit Phase E
 
-- [ ] **Step 1: Commit**
+- [x] **Step 1: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/admin/notifications.py \
@@ -2712,7 +2712,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 - Create: the 4 notification hook files listed under "Frontend — create" above.
 - Modify: `src/frontend/src/controllers/API/helpers/constants.ts` (add `ADMIN_NOTIFICATIONS`).
 
-- [ ] **Step 1: Register the URL constant**
+- [x] **Step 1: Register the URL constant**
 
 Find the existing URL map (grep for `ADMIN_ORGS`). Add:
 
@@ -2724,7 +2724,7 @@ ADMIN_ALERT_RULES: `${BASE_URL_API}v1/admin/orgs/`,  // per-org list/create; ful
 ADMIN_ALERT_RULE: `${BASE_URL_API}v1/admin/alert-rules/`,  // PATCH / DELETE by id
 ```
 
-- [ ] **Step 2: Write `useGetAdminNotifications`**
+- [x] **Step 2: Write `useGetAdminNotifications`**
 
 `src/frontend/src/controllers/API/queries/admin/use-get-admin-notifications.ts`:
 
@@ -2763,7 +2763,7 @@ export const useGetAdminNotifications: useQueryFunctionType<Params, Response> = 
 };
 ```
 
-- [ ] **Step 3: Write the other 3 notification hooks**
+- [x] **Step 3: Write the other 3 notification hooks**
 
 Copy the shape of `use-get-admin-notifications` for:
 - `use-get-unread-notifications-count.ts` — GET `/admin/notifications/unread-count`, query key `["admin", "notifications", "unread-count"]`, returns `{ unread: number }`.
@@ -2790,7 +2790,7 @@ Query keys:
 - Create: `src/frontend/src/components/core/adminNotificationBell/index.tsx`
 - Create: `src/frontend/src/components/core/adminNotificationBell/__tests__/index.test.tsx`
 
-- [ ] **Step 1: Write the failing render test**
+- [x] **Step 1: Write the failing render test**
 
 `__tests__/index.test.tsx`:
 
@@ -2821,7 +2821,7 @@ describe("AdminNotificationBell", () => {
 });
 ```
 
-- [ ] **Step 2: Write the bell component**
+- [x] **Step 2: Write the bell component**
 
 `index.tsx`:
 
@@ -2861,13 +2861,13 @@ export default function AdminNotificationBell() {
 }
 ```
 
-- [ ] **Step 3: Run the test — expect pass**
+- [x] **Step 3: Run the test — expect pass**
 
 Run: `cd src/frontend && npx jest src/components/core/adminNotificationBell/__tests__/index.test.tsx`
 
 Expected: PASS.
 
-- [ ] **Step 4: Mount in the main header**
+- [x] **Step 4: Mount in the main header**
 
 Find the main header that renders the user avatar / settings gear (grep for `userData` in `src/frontend/src/pages/MainPage/`). Add a conditional render:
 
@@ -2885,7 +2885,7 @@ Place it next to the existing header-right actions.
 - Create: `src/frontend/src/pages/AdminPage/AdminNotificationsPage/index.tsx`
 - Modify: `src/frontend/src/routes.tsx`
 
-- [ ] **Step 1: Write the page**
+- [x] **Step 1: Write the page**
 
 ```typescript
 import { useState } from "react";
@@ -2964,7 +2964,7 @@ export default function AdminNotificationsPage() {
 }
 ```
 
-- [ ] **Step 2: Register the route**
+- [x] **Step 2: Register the route**
 
 In `src/frontend/src/routes.tsx`, next to other admin routes (around line 46-243), add:
 
@@ -2980,7 +2980,7 @@ And in the admin route group:
 <Route path="notifications" element={<AdminNotificationsPage />} />
 ```
 
-- [ ] **Step 3: Type-check**
+- [x] **Step 3: Type-check**
 
 Run: `cd src/frontend && npx tsc --noEmit --pretty --project tsconfig.json`
 
@@ -2994,7 +2994,7 @@ Expected: no errors.
 - Create: `src/frontend/src/pages/AdminPage/OrgDetailPage/UsageTab.tsx`
 - Modify: `src/frontend/src/pages/AdminPage/OrgDetailPage/index.tsx` — mount `<UsageTab />` inside the existing tab layout.
 
-- [ ] **Step 1: Write `UsageTab`**
+- [x] **Step 1: Write `UsageTab`**
 
 The component has two sub-sections:
 
@@ -3028,11 +3028,11 @@ export default function UsageTab() {
 
 Each section uses the matching create/patch/delete hooks + the existing `Button`, `Input`, and `Select` primitives from `components/ui/`. Follow the form patterns in existing admin pages (e.g., `OrganizationDetailPage/index.tsx`).
 
-- [ ] **Step 2: Wire the tab in the existing org detail page**
+- [x] **Step 2: Wire the tab in the existing org detail page**
 
 Add a `<Tabs>` section (or extend the existing tab set) to surface `<UsageTab />` under a label like "Usage & Alerts".
 
-- [ ] **Step 3: Type-check + manual smoke**
+- [x] **Step 3: Type-check + manual smoke**
 
 Run: `cd src/frontend && npx tsc --noEmit --pretty --project tsconfig.json`
 
@@ -3044,7 +3044,7 @@ Start the dev server (`npm start`) and verify: as platform admin, `/admin/organi
 
 ### Task F6: Commit Phase F
 
-- [ ] **Step 1: Commit**
+- [x] **Step 1: Commit**
 
 ```bash
 git add src/frontend/src/controllers/API/queries/admin/ \
@@ -3076,11 +3076,11 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 
 ### Task G1: End-to-end smoke test
 
-- [ ] **Step 1: Start the full stack**
+- [x] **Step 1: Start the full stack**
 
 Run: `cd src/backend/base && uv run langflow run` (or the project's make target). Separately `cd src/frontend && npm start`.
 
-- [ ] **Step 2: Walk through the super-admin experience**
+- [x] **Step 2: Walk through the super-admin experience**
 
 | Step | Expected |
 |---|---|
@@ -3093,14 +3093,14 @@ Run: `cd src/backend/base && uv run langflow run` (or the project's make target)
 | Create alert rule: sla_duration, max_seconds=1 | Row appears |
 | Execute a run that takes > 1s | Second notification lands |
 
-- [ ] **Step 3: Walk through the non-admin experience**
+- [x] **Step 3: Walk through the non-admin experience**
 
 As a regular member:
 - `/admin/notifications` should redirect or show a 403 page.
 - The bell is not rendered in the header.
 - Direct API call to `/api/v1/admin/notifications` returns 403.
 
-- [ ] **Step 4: Run full test suites**
+- [x] **Step 4: Run full test suites**
 
 Run: `cd src/backend && uv run pytest tests/unit/services/metering tests/unit/services/notifier tests/unit/api/v1/admin -v`
 
@@ -3114,7 +3114,7 @@ Run: `cd src/frontend && npx tsc --noEmit --pretty --project tsconfig.json`
 
 Expected: no errors.
 
-- [ ] **Step 5: Final housekeeping commit (if needed)**
+- [x] **Step 5: Final housekeeping commit (if needed)**
 
 If any incidental fixes landed during smoke, stage and commit with a descriptive message. Otherwise skip.
 

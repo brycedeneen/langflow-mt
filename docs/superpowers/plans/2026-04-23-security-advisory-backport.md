@@ -54,7 +54,7 @@
 - Modify: `src/backend/base/langflow/api/build.py:299-338` (defensive guard)
 - Test: `src/backend/tests/unit/api/v1/test_build_public_tmp_data_removed.py` (create)
 
-- [ ] **Step 1: Write the failing regression test**
+- [x] **Step 1: Write the failing regression test**
 
 Create `src/backend/tests/unit/api/v1/test_build_public_tmp_data_removed.py`:
 
@@ -105,7 +105,7 @@ async def test_build_public_tmp_rejects_data_param(client):
     assert "attacker_node" not in resp.text
 ```
 
-- [ ] **Step 2: Run the test — confirm it fails on the current MISSING state**
+- [x] **Step 2: Run the test — confirm it fails on the current MISSING state**
 
 Run:
 ```bash
@@ -113,7 +113,7 @@ uv run --active pytest src/backend/tests/unit/api/v1/test_build_public_tmp_data_
 ```
 Expected: FAIL or, at minimum, show that the endpoint accepts the `data` field (may 404 later in the handler due to missing flow, but the schema-layer gate is not present).
 
-- [ ] **Step 3: Remove `data` from the public endpoint signature**
+- [x] **Step 3: Remove `data` from the public endpoint signature**
 
 Edit `src/backend/base/langflow/api/v1/chat.py`. Find (lines 580–595):
 
@@ -156,7 +156,7 @@ async def build_public_tmp(
 ):
 ```
 
-- [ ] **Step 4: Remove `data` from the `start_flow_build` call**
+- [x] **Step 4: Remove `data` from the `start_flow_build` call**
 
 In the same file, find (around line 634):
 
@@ -195,7 +195,7 @@ Replace with (remove the `data=data,` line):
         )
 ```
 
-- [ ] **Step 5: Add defensive guard in `generate_flow_events.create_graph`**
+- [x] **Step 5: Add defensive guard in `generate_flow_events.create_graph`**
 
 Edit `src/backend/base/langflow/api/build.py`. In the inner `create_graph` function (around lines 299–338), add a defensive check at the top that forces `data=None` whenever `source_flow_id` is provided. `source_flow_id` is set only by the public-flow path, so this protects future regressions. Find:
 
@@ -265,7 +265,7 @@ Replace with:
         )
 ```
 
-- [ ] **Step 6: Run the test to verify it passes**
+- [x] **Step 6: Run the test to verify it passes**
 
 Run:
 ```bash
@@ -273,7 +273,7 @@ uv run --active pytest src/backend/tests/unit/api/v1/test_build_public_tmp_data_
 ```
 Expected: PASS — the endpoint now returns 4xx (likely 422) when `data` is supplied.
 
-- [ ] **Step 7: Regression-run existing public-build suites**
+- [x] **Step 7: Regression-run existing public-build suites**
 
 Run:
 ```bash
@@ -281,7 +281,7 @@ uv run --active pytest src/backend/tests/unit/api/v1/ -v -k "public_tmp or build
 ```
 Expected: all PASS. If any test was relying on passing `data` to the public endpoint — that test was exercising the vulnerability. Update the test to POST to the authenticated endpoint instead, or mark it xfail with a reference to this CVE.
 
-- [ ] **Step 8: Ask the user before committing, then commit**
+- [x] **Step 8: Ask the user before committing, then commit**
 
 Proposed commit message:
 ```
@@ -336,7 +336,7 @@ EOF
 - Modify: `src/backend/base/langflow/api/v1/files.py:138-164`
 - Test: `src/backend/tests/unit/api/v1/test_download_image_ownership.py` (create)
 
-- [ ] **Step 1: Write the failing regression test**
+- [x] **Step 1: Write the failing regression test**
 
 Create `src/backend/tests/unit/api/v1/test_download_image_ownership.py`:
 
@@ -414,7 +414,7 @@ async def test_download_image_denies_cross_user(client, two_users_with_flow):
     assert resp.status_code == 404, resp.text
 ```
 
-- [ ] **Step 2: Run the tests — confirm they fail**
+- [x] **Step 2: Run the tests — confirm they fail**
 
 Run:
 ```bash
@@ -422,7 +422,7 @@ uv run --active pytest src/backend/tests/unit/api/v1/test_download_image_ownersh
 ```
 Expected: both tests FAIL. `download_image` currently accepts anonymous calls and returns 500 ("content type not found") rather than a 4xx, meaning the endpoint is reachable without auth.
 
-- [ ] **Step 3: Add `Depends(get_flow)` to `download_image`**
+- [x] **Step 3: Add `Depends(get_flow)` to `download_image`**
 
 Edit `src/backend/base/langflow/api/v1/files.py`. Find (lines 138–164):
 
@@ -496,7 +496,7 @@ async def download_image(
 
 Note: `Annotated`, `Depends`, `Flow`, `StorageService`, and `get_storage_service` are already imported at the top of the file (lines 6, 10, 17, 19, 18 respectively). No import changes needed.
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run:
 ```bash
@@ -504,7 +504,7 @@ uv run --active pytest src/backend/tests/unit/api/v1/test_download_image_ownersh
 ```
 Expected: both tests PASS.
 
-- [ ] **Step 5: Regression-run existing v1/files tests**
+- [x] **Step 5: Regression-run existing v1/files tests**
 
 Run:
 ```bash
@@ -512,7 +512,7 @@ uv run --active pytest src/backend/tests/unit/api/v1/ -v -k files
 ```
 Expected: all PASS. If any legacy test was calling `download_image` without a bearer token, update it to authenticate and to scope to its own flow.
 
-- [ ] **Step 6: Ask the user before committing, then commit**
+- [x] **Step 6: Ask the user before committing, then commit**
 
 ```bash
 git add \
@@ -555,7 +555,7 @@ Upstream fixed both layers: strip directory components at the API boundary with 
 - Modify: `src/backend/base/langflow/services/storage/local.py:100-126`
 - Test: `src/backend/tests/unit/api/v2/test_files_path_traversal.py` (create)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/backend/tests/unit/api/v2/test_files_path_traversal.py`:
 
@@ -624,7 +624,7 @@ async def test_local_storage_containment(tmp_path):
 
 Note: the storage-layer test `__new__` + direct attribute assignment is the minimum-invasive way to exercise `save_file` without the session/service wiring. If the real `StorageService.__init__` needs running, a fuller fixture may be swapped in; the core assertion is containment.
 
-- [ ] **Step 2: Run the tests — confirm they fail**
+- [x] **Step 2: Run the tests — confirm they fail**
 
 Run:
 ```bash
@@ -632,7 +632,7 @@ uv run --active pytest src/backend/tests/unit/api/v2/test_files_path_traversal.p
 ```
 Expected: both tests FAIL — current API accepts `../../evil.txt`; current storage layer happily writes to `<data_dir>/victim/../../escapee.txt` which resolves outside `<data_dir>`.
 
-- [ ] **Step 3: Sanitize filename at the v2 API boundary**
+- [x] **Step 3: Sanitize filename at the v2 API boundary**
 
 Edit `src/backend/base/langflow/api/v2/files.py`. Find (around line 165):
 
@@ -669,7 +669,7 @@ Replace with:
             root_filename, file_extension = new_filename, ""
 ```
 
-- [ ] **Step 4: Add containment check in `LocalStorageService.save_file`**
+- [x] **Step 4: Add containment check in `LocalStorageService.save_file`**
 
 Edit `src/backend/base/langflow/services/storage/local.py`. Find (around lines 113–117):
 
@@ -705,7 +705,7 @@ Replace with:
         try:
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run:
 ```bash
@@ -713,7 +713,7 @@ uv run --active pytest src/backend/tests/unit/api/v2/test_files_path_traversal.p
 ```
 Expected: both tests PASS.
 
-- [ ] **Step 6: Regression-run v2 files suite**
+- [x] **Step 6: Regression-run v2 files suite**
 
 Run:
 ```bash
@@ -721,7 +721,7 @@ uv run --active pytest src/backend/tests/unit/api/v2/ -v -k files
 ```
 Expected: all PASS. If any existing test uploads with a legitimate filename that happens to contain a subdirectory-looking prefix, the sanitization will trim it — update the test to use plain filenames.
 
-- [ ] **Step 7: Ask the user before committing, then commit**
+- [x] **Step 7: Ask the user before committing, then commit**
 
 ```bash
 git add \
@@ -770,7 +770,7 @@ Our fork already has a `LANGFLOW_ALLOW_CUSTOM_COMPONENTS` gate: the central help
 - Modify: `src/backend/base/langflow/agentic/api/schemas.py` — add `executed: bool = False` to `ValidationResult` (non-breaking; default preserves current callers).
 - Test: `src/backend/tests/unit/agentic/helpers/test_validation_gated.py` (create)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/backend/tests/unit/agentic/helpers/test_validation_gated.py`:
 
@@ -885,7 +885,7 @@ class Benign(Component):
         mock_create_class.assert_called_once()
 ```
 
-- [ ] **Step 2: Run the tests — confirm they fail**
+- [x] **Step 2: Run the tests — confirm they fail**
 
 Run:
 ```bash
@@ -893,7 +893,7 @@ uv run --active pytest src/backend/tests/unit/agentic/helpers/test_validation_ga
 ```
 Expected: FAIL — current signature does not accept gate kwargs, so all four tests raise `TypeError`.
 
-- [ ] **Step 3: Add `executed` field to `ValidationResult`**
+- [x] **Step 3: Add `executed` field to `ValidationResult`**
 
 Inspect the schema first:
 ```bash
@@ -913,7 +913,7 @@ class ValidationResult(BaseModel):
 
 If the `ValidationResult` class has a different shape than expected (e.g. uses a `dataclass`), adapt the field addition accordingly — the essential property is that new callers can read `.executed` and old callers that ignore the field still compile.
 
-- [ ] **Step 4: Gate `create_class` in `validate_component_code`**
+- [x] **Step 4: Gate `create_class` in `validate_component_code`**
 
 Replace `src/backend/base/langflow/agentic/helpers/validation.py` in full:
 
@@ -1055,7 +1055,7 @@ def validate_component_code(
         )
 ```
 
-- [ ] **Step 5: Plumb gate flags through the two call sites in `assistant_service.py`**
+- [x] **Step 5: Plumb gate flags through the two call sites in `assistant_service.py`**
 
 Inspect the two call sites first:
 ```bash
@@ -1081,7 +1081,7 @@ from langflow.api.utils.core import resolve_component_gate_flags
 
 Read each call site's function enclosing the `validate_component_code` call and apply the appropriate pattern. Record the exact changes made.
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run:
 ```bash
@@ -1089,7 +1089,7 @@ uv run --active pytest src/backend/tests/unit/agentic/helpers/test_validation_ga
 ```
 Expected: all four tests PASS.
 
-- [ ] **Step 7: Regression-run the broader agentic test suite**
+- [x] **Step 7: Regression-run the broader agentic test suite**
 
 Run:
 ```bash
@@ -1097,7 +1097,7 @@ uv run --active pytest src/backend/tests/unit/agentic/ -v
 ```
 Expected: all PASS. If any existing test exercises `validate_component_code` without gate flags, it will hit the new `_ast_only_validate` path — that's correct behavior for "no flags supplied" (secure default). If the test's intent was to exercise the exec path, update it to pass `allow_custom_components=True` explicitly.
 
-- [ ] **Step 8: Ask the user before committing, then commit**
+- [x] **Step 8: Ask the user before committing, then commit**
 
 ```bash
 git add \
@@ -1141,7 +1141,7 @@ EOF
 - Create: `docs/superpowers/security-review-2026-04-23/revert-audit.md`
 - Modify: `docs/superpowers/followups.md` (append structured follow-up entries)
 
-- [ ] **Step 1: Inventory the revert**
+- [x] **Step 1: Inventory the revert**
 
 Run:
 ```bash
@@ -1150,7 +1150,7 @@ wc -l /tmp/reverted-files.txt
 ```
 Expected: ~2,374 file paths (matches the earlier `git show --stat` tail).
 
-- [ ] **Step 2: Filter to security-adjacent directories**
+- [x] **Step 2: Filter to security-adjacent directories**
 
 Run:
 ```bash
@@ -1160,7 +1160,7 @@ head -80 /tmp/reverted-sec-files.txt
 ```
 Expected: several hundred paths. Scan visually for files not already handled by Tasks 1–4 that smell like hardening (`ssrf_protection`, `sanitize`, `validate`, `auth/utils.py`, `api_key`, `profile_pictures`, etc.).
 
-- [ ] **Step 3: For each candidate, fetch the revert's diff for that file and classify it**
+- [x] **Step 3: For each candidate, fetch the revert's diff for that file and classify it**
 
 For each file path the user or reviewer flags as potentially interesting, run:
 ```bash
@@ -1172,7 +1172,7 @@ Classify the change into one of:
 - **Feature / UI / test** with no security implication: skip.
 - **Non-applicable to our fork** (file was replaced on our branch, e.g. watsonx, custom-components gate): skip with note.
 
-- [ ] **Step 4: Write the audit report**
+- [x] **Step 4: Write the audit report**
 
 Create `docs/superpowers/security-review-2026-04-23/revert-audit.md` with the following structure:
 
@@ -1212,7 +1212,7 @@ re-investigate them>
 - <N> SKIP with recorded reason.
 ```
 
-- [ ] **Step 5: Append structured follow-ups**
+- [x] **Step 5: Append structured follow-ups**
 
 For each `RE-APPLY` or `INVESTIGATE` candidate, append an entry to `docs/superpowers/followups.md` under a new section:
 
@@ -1232,7 +1232,7 @@ For each `RE-APPLY` or `INVESTIGATE` candidate, append an entry to `docs/superpo
 (repeat per candidate)
 ```
 
-- [ ] **Step 6: Ask the user before committing, then commit**
+- [x] **Step 6: Ask the user before committing, then commit**
 
 ```bash
 git add \
@@ -1257,12 +1257,12 @@ EOF
 
 After all five tasks land on `platform-multi-tenant`:
 
-- [ ] `uv run --active pytest src/backend/tests/unit/api/v1/test_build_public_tmp_data_removed.py src/backend/tests/unit/api/v1/test_download_image_ownership.py src/backend/tests/unit/api/v2/test_files_path_traversal.py src/backend/tests/unit/agentic/helpers/test_validation_gated.py -v` — all PASS.
-- [ ] `uv run --active pytest src/backend/tests/unit/api/ src/backend/tests/unit/agentic/ -v` — no new failures vs. baseline.
-- [ ] `git diff --stat 642e39fcb8..HEAD | grep -E '(api/v1/chat|api/v1/files|api/v2/files|storage/local|agentic/helpers/validation|agentic/api/schemas|agentic/services/assistant_service)\.py'` — exactly the expected files, nothing unexpected.
-- [ ] `docs/superpowers/security-review-2026-04-23/revert-audit.md` exists and enumerates candidates.
-- [ ] `docs/superpowers/followups.md` has a new `## 2026-04-23 — Revert-audit follow-ups` section.
-- [ ] No commits have been pushed anywhere; branch is still `platform-multi-tenant` locally.
+- [x] `uv run --active pytest src/backend/tests/unit/api/v1/test_build_public_tmp_data_removed.py src/backend/tests/unit/api/v1/test_download_image_ownership.py src/backend/tests/unit/api/v2/test_files_path_traversal.py src/backend/tests/unit/agentic/helpers/test_validation_gated.py -v` — all PASS.
+- [x] `uv run --active pytest src/backend/tests/unit/api/ src/backend/tests/unit/agentic/ -v` — no new failures vs. baseline.
+- [x] `git diff --stat 642e39fcb8..HEAD | grep -E '(api/v1/chat|api/v1/files|api/v2/files|storage/local|agentic/helpers/validation|agentic/api/schemas|agentic/services/assistant_service)\.py'` — exactly the expected files, nothing unexpected.
+- [x] `docs/superpowers/security-review-2026-04-23/revert-audit.md` exists and enumerates candidates.
+- [x] `docs/superpowers/followups.md` has a new `## 2026-04-23 — Revert-audit follow-ups` section.
+- [x] No commits have been pushed anywhere; branch is still `platform-multi-tenant` locally.
 
 ---
 

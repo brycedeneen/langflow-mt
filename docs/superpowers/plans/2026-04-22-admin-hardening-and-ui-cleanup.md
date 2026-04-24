@@ -55,7 +55,7 @@ No further audit required. Proceed to Task 1.
 **Files:**
 - Test: `src/backend/tests/unit/api/v1/test_endpoints.py` (add a new test alongside the existing ones).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to the bottom of `src/backend/tests/unit/api/v1/test_endpoints.py` (it can live after `test_update_component_model_name_options`):
 
@@ -101,7 +101,7 @@ async def test_custom_component_build_requires_superuser(
     assert response.status_code == status.HTTP_403_FORBIDDEN, response.text
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd src/backend && uv run pytest tests/unit/api/v1/test_endpoints.py::test_update_component_requires_superuser tests/unit/api/v1/test_endpoints.py::test_custom_component_build_requires_superuser -v`
 
@@ -116,7 +116,7 @@ Do **not** commit yet.
 **Files:**
 - Modify: `src/backend/base/langflow/api/v1/endpoints.py:1128-1160`
 
-- [ ] **Step 1: Add the import and the dependency**
+- [x] **Step 1: Add the import and the dependency**
 
 At the top of `src/backend/base/langflow/api/v1/endpoints.py`, find the existing `from langflow.services.auth.utils import …` line (it already imports `get_current_active_user`) and add `get_current_active_superuser` to the same import:
 
@@ -138,7 +138,7 @@ Run: `grep -n "get_current_active_superuser" src/backend/base/langflow/api/v1/en
 
 Expected output includes a line with the import and later the two `Depends(...)` usages.
 
-- [ ] **Step 2: Swap the dependency on `POST /custom_component`**
+- [x] **Step 2: Swap the dependency on `POST /custom_component`**
 
 In `endpoints.py`, replace lines 1134-1137:
 
@@ -162,7 +162,7 @@ async def custom_component(
 
 If `User` and `Depends` are not already imported at the top of the file, add them (they are likely already present; check with `grep -n "from fastapi import" src/backend/base/langflow/api/v1/endpoints.py` and `grep -n "from langflow.services.database.models.user" src/backend/base/langflow/api/v1/endpoints.py`).
 
-- [ ] **Step 3: Swap the dependency on `POST /custom_component/update`**
+- [x] **Step 3: Swap the dependency on `POST /custom_component/update`**
 
 Same file, replace lines 1156-1160:
 
@@ -184,13 +184,13 @@ async def custom_component_update(
 ):
 ```
 
-- [ ] **Step 4: Run the failing tests — expect pass**
+- [x] **Step 4: Run the failing tests — expect pass**
 
 Run: `cd src/backend && uv run pytest tests/unit/api/v1/test_endpoints.py::test_update_component_requires_superuser tests/unit/api/v1/test_endpoints.py::test_custom_component_build_requires_superuser -v`
 
 Expected: both PASS.
 
-- [ ] **Step 5: Fix the two existing tests that previously used `logged_in_headers`**
+- [x] **Step 5: Fix the two existing tests that previously used `logged_in_headers`**
 
 The existing `test_update_component_outputs` (around line 37) and `test_update_component_model_name_options` (around line 57) both call `POST /custom_component/update` with `logged_in_headers` (non-super). They will now fail with 403. Switch them to use `logged_in_headers_super_user`:
 
@@ -212,13 +212,13 @@ async def test_update_component_outputs(client: AsyncClient, logged_in_headers_s
 
 Apply the same change to `test_update_component_model_name_options` (both the signature and the single `headers=logged_in_headers` call).
 
-- [ ] **Step 6: Run the full endpoints test module**
+- [x] **Step 6: Run the full endpoints test module**
 
 Run: `cd src/backend && uv run pytest tests/unit/api/v1/test_endpoints.py -v`
 
 Expected: all PASS (the two new negative tests, the two existing tests on the super fixture, plus the rest of the module).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/endpoints.py src/backend/tests/unit/api/v1/test_endpoints.py
@@ -242,7 +242,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 - Create: `src/frontend/src/pages/FlowPage/components/nodeToolbarComponent/utils/can-view-code-button.ts`
 - Create: `src/frontend/src/pages/FlowPage/components/nodeToolbarComponent/utils/__tests__/can-view-code-button.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/frontend/src/pages/FlowPage/components/nodeToolbarComponent/utils/__tests__/can-view-code-button.test.ts`:
 
@@ -268,13 +268,13 @@ describe("canViewCodeButton", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `cd src/frontend && npx jest src/pages/FlowPage/components/nodeToolbarComponent/utils/__tests__/can-view-code-button.test.ts`
 
 Expected: FAIL with "Cannot find module '../can-view-code-button'".
 
-- [ ] **Step 3: Write the helper**
+- [x] **Step 3: Write the helper**
 
 Create `src/frontend/src/pages/FlowPage/components/nodeToolbarComponent/utils/can-view-code-button.ts`:
 
@@ -292,7 +292,7 @@ export function canViewCodeButton({
 }
 ```
 
-- [ ] **Step 4: Run the test — expect pass**
+- [x] **Step 4: Run the test — expect pass**
 
 Run: `cd src/frontend && npx jest src/pages/FlowPage/components/nodeToolbarComponent/utils/__tests__/can-view-code-button.test.ts`
 
@@ -305,7 +305,7 @@ Expected: all 4 tests PASS.
 **Files:**
 - Modify: `src/frontend/src/pages/FlowPage/components/nodeToolbarComponent/index.tsx:115-127`
 
-- [ ] **Step 1: Add the helper import**
+- [x] **Step 1: Add the helper import**
 
 Near the other relative imports at the top of `nodeToolbarComponent/index.tsx`, add:
 
@@ -313,7 +313,7 @@ Near the other relative imports at the top of `nodeToolbarComponent/index.tsx`, 
 import { canViewCodeButton } from "./utils/can-view-code-button";
 ```
 
-- [ ] **Step 2: Drop `isAdmin` from the store selector and replace the `canViewCode` line**
+- [x] **Step 2: Drop `isAdmin` from the store selector and replace the `canViewCode` line**
 
 Replace lines 115-127:
 
@@ -351,13 +351,13 @@ const canViewCode = useMemo(
 
 Note: since there's only one value left, the `useShallow` wrapper is unnecessary — a plain selector avoids the memoization overhead.
 
-- [ ] **Step 3: Verify `useShallow` is still referenced in the file**
+- [x] **Step 3: Verify `useShallow` is still referenced in the file**
 
 Run: `grep -n "useShallow" src/frontend/src/pages/FlowPage/components/nodeToolbarComponent/index.tsx`
 
 If no matches remain, remove the `import { useShallow } from "zustand/react/shallow";` line (or equivalent). If matches remain, leave the import alone.
 
-- [ ] **Step 4: Type-check & run the helper's tests**
+- [x] **Step 4: Type-check & run the helper's tests**
 
 Run: `cd src/frontend && npx jest src/pages/FlowPage/components/nodeToolbarComponent/utils/__tests__/can-view-code-button.test.ts`
 
@@ -374,7 +374,7 @@ Expected: no errors in the modified file.
 **Files:**
 - Modify: `src/frontend/src/pages/FlowPage/components/InspectionPanel/components/InspectionPanelHeader.tsx:30-57, 198-212`
 
-- [ ] **Step 1: Add the auth store import and superuser read**
+- [x] **Step 1: Add the auth store import and superuser read**
 
 At the top of `InspectionPanelHeader.tsx`, next to the existing store imports (around line 12), add:
 
@@ -389,7 +389,7 @@ const isSuperuser =
   useAuthStore((state) => state.userData?.is_superuser) === true;
 ```
 
-- [ ] **Step 2: Tighten the `handleOpenCode` callback**
+- [x] **Step 2: Tighten the `handleOpenCode` callback**
 
 Replace lines 53-57:
 
@@ -411,7 +411,7 @@ const handleOpenCode = useCallback(() => {
 }, [hasCode, isSuperuser]);
 ```
 
-- [ ] **Step 3: Tighten the `CodeAreaModal` render gate**
+- [x] **Step 3: Tighten the `CodeAreaModal` render gate**
 
 Replace the conditional around line 198:
 
@@ -425,7 +425,7 @@ After:
 {hasCode && openCodeModal && isSuperuser && (
 ```
 
-- [ ] **Step 4: Type-check**
+- [x] **Step 4: Type-check**
 
 Run: `cd src/frontend && npx tsc --noEmit --pretty --project tsconfig.json`
 
@@ -435,7 +435,7 @@ Expected: no new errors.
 
 ## Task 6: Frontend — commit the Code-button tightening
 
-- [ ] **Step 1: Stage and commit**
+- [x] **Step 1: Stage and commit**
 
 ```bash
 git add \
@@ -463,7 +463,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 **Files:**
 - Modify: `src/frontend/src/components/core/flowToolbarComponent/components/deploy-dropdown.tsx`
 
-- [ ] **Step 1: Remove the `ENABLE_WIDGET` import**
+- [x] **Step 1: Remove the `ENABLE_WIDGET` import**
 
 Replace line 20:
 
@@ -477,7 +477,7 @@ After:
 import { ENABLE_PUBLISH } from "@/customization/feature-flags";
 ```
 
-- [ ] **Step 2: Remove the `EmbedModal` import**
+- [x] **Step 2: Remove the `EmbedModal` import**
 
 Delete line 23:
 
@@ -485,7 +485,7 @@ Delete line 23:
 import EmbedModal from "@/modals/EmbedModal/embed-modal";
 ```
 
-- [ ] **Step 3: Remove the `openEmbedModal` state**
+- [x] **Step 3: Remove the `openEmbedModal` state**
 
 Delete line 45:
 
@@ -493,7 +493,7 @@ Delete line 45:
 const [openEmbedModal, setOpenEmbedModal] = useState(false);
 ```
 
-- [ ] **Step 4: Remove the menu item block**
+- [x] **Step 4: Remove the menu item block**
 
 Delete lines 161-169 (the `{ENABLE_WIDGET && (…)}` block):
 
@@ -509,7 +509,7 @@ Delete lines 161-169 (the `{ENABLE_WIDGET && (…)}` block):
 )}
 ```
 
-- [ ] **Step 5: Remove the `<EmbedModal>` render**
+- [x] **Step 5: Remove the `<EmbedModal>` render**
 
 Delete lines 235-243 (the `<EmbedModal … />` block):
 
@@ -525,13 +525,13 @@ Delete lines 235-243 (the `<EmbedModal … />` block):
 ></EmbedModal>
 ```
 
-- [ ] **Step 6: Check whether `isAuth` is still referenced**
+- [x] **Step 6: Check whether `isAuth` is still referenced**
 
 Run: `grep -n "isAuth" src/frontend/src/components/core/flowToolbarComponent/components/deploy-dropdown.tsx`
 
 If no matches remain besides the `const isAuth = useAuthStore(...)` declaration (around line 57), delete the declaration and the `useAuthStore` import if it has no other reference. If any match remains, leave everything alone.
 
-- [ ] **Step 7: Verify the file still compiles**
+- [x] **Step 7: Verify the file still compiles**
 
 Run: `cd src/frontend && npx tsc --noEmit --pretty --project tsconfig.json`
 
@@ -547,7 +547,7 @@ Expected: no errors in `deploy-dropdown.tsx`.
 - Delete: `src/frontend/src/modals/apiModal/utils/__tests__/get-widget-code.test.ts`
 - Modify: `src/frontend/src/types/tweaks/index.ts:7`
 
-- [ ] **Step 1: Delete the three files**
+- [x] **Step 1: Delete the three files**
 
 ```bash
 rm src/frontend/src/modals/EmbedModal/embed-modal.tsx
@@ -558,7 +558,7 @@ rm src/frontend/src/modals/apiModal/utils/__tests__/get-widget-code.test.ts
 
 If `rmdir` fails, it means the directory has other files — `ls src/frontend/src/modals/EmbedModal/` to investigate, then remove what's orphaned.
 
-- [ ] **Step 2: Remove `getWidgetCode` from `GetCodeType` consumers**
+- [x] **Step 2: Remove `getWidgetCode` from `GetCodeType` consumers**
 
 Open `src/frontend/src/types/tweaks/index.ts` and delete the `getWidgetCode` line (line 7):
 
@@ -572,13 +572,13 @@ After:
 
 Leave the other `get*Code` entries intact; `GetCodeType` itself stays.
 
-- [ ] **Step 3: Ensure nothing else imports the removed modules**
+- [x] **Step 3: Ensure nothing else imports the removed modules**
 
 Run: `grep -rn "get-widget-code\|EmbedModal\|getWidgetCode\|embed-modal" src/frontend/src`
 
 Expected: no results (zero hits).
 
-- [ ] **Step 4: Type-check**
+- [x] **Step 4: Type-check**
 
 Run: `cd src/frontend && npx tsc --noEmit --pretty --project tsconfig.json`
 
@@ -591,7 +591,7 @@ Expected: no errors.
 **Files:**
 - Modify: `src/frontend/src/customization/feature-flags.ts:13`
 
-- [ ] **Step 1: Delete the flag**
+- [x] **Step 1: Delete the flag**
 
 Open `src/frontend/src/customization/feature-flags.ts` and delete line 13:
 
@@ -603,13 +603,13 @@ export const ENABLE_WIDGET = true;
 After:
 *(line removed)*
 
-- [ ] **Step 2: Confirm no residual references**
+- [x] **Step 2: Confirm no residual references**
 
 Run: `grep -rn "ENABLE_WIDGET" src/frontend/src`
 
 Expected: no results.
 
-- [ ] **Step 3: Type-check**
+- [x] **Step 3: Type-check**
 
 Run: `cd src/frontend && npx tsc --noEmit --pretty --project tsconfig.json`
 
@@ -619,7 +619,7 @@ Expected: no errors.
 
 ## Task 10: Frontend — commit the Embed removal
 
-- [ ] **Step 1: Stage and commit**
+- [x] **Step 1: Stage and commit**
 
 ```bash
 git add \
@@ -648,25 +648,25 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 
 ## Task 11: Full verification pass
 
-- [ ] **Step 1: Run the full frontend test suite**
+- [x] **Step 1: Run the full frontend test suite**
 
 Run: `cd src/frontend && npm test`
 
 Expected: all PASS. No "Cannot find module" errors for the deleted files.
 
-- [ ] **Step 2: Run the full frontend lint + type-check**
+- [x] **Step 2: Run the full frontend lint + type-check**
 
 Run: `cd src/frontend && npx tsc --noEmit --pretty --project tsconfig.json && npx @biomejs/biome check --diagnostic-level=error`
 
 Expected: exit 0.
 
-- [ ] **Step 3: Run the focused backend tests**
+- [x] **Step 3: Run the focused backend tests**
 
 Run: `cd src/backend && uv run pytest tests/unit/api/v1/test_endpoints.py -v`
 
 Expected: all PASS.
 
-- [ ] **Step 4: Manual smoke test checklist**
+- [x] **Step 4: Manual smoke test checklist**
 
 Start the backend + frontend dev servers. Then, as each role:
 

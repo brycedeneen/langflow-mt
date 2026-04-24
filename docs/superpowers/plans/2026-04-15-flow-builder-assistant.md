@@ -72,7 +72,7 @@
 - Create: `src/backend/base/langflow/services/database/models/assistant/model.py`
 - Create: Alembic migration (auto-generated)
 
-- [ ] **Step 1: Write the failing test for model creation**
+- [x] **Step 1: Write the failing test for model creation**
 
 Create `src/backend/tests/unit/test_assistant_models.py`:
 
@@ -185,12 +185,12 @@ async def test_conversation_messages_ordered(session: AsyncSession):
     assert [m.content for m in messages] == ["msg 0", "msg 1", "msg 2"]
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `cd src/backend && python -m pytest tests/unit/test_assistant_models.py -v`
 Expected: FAIL — `ModuleNotFoundError: No module named 'langflow.services.database.models.assistant'`
 
-- [ ] **Step 3: Implement the models**
+- [x] **Step 3: Implement the models**
 
 Create `src/backend/base/langflow/services/database/models/assistant/__init__.py`:
 
@@ -266,7 +266,7 @@ class AssistantMessage(SQLModel, table=True):
     conversation: AssistantConversation = Relationship(back_populates="messages")
 ```
 
-- [ ] **Step 4: Register the model in the database models `__init__`**
+- [x] **Step 4: Register the model in the database models `__init__`**
 
 Add the import to `src/backend/base/langflow/services/database/models/__init__.py` so alembic sees it. Find where other models are imported and add:
 
@@ -274,7 +274,7 @@ Add the import to `src/backend/base/langflow/services/database/models/__init__.p
 from langflow.services.database.models.assistant import AssistantConversation, AssistantMessage  # noqa: F401
 ```
 
-- [ ] **Step 5: Generate and review alembic migration**
+- [x] **Step 5: Generate and review alembic migration**
 
 Run:
 ```bash
@@ -283,7 +283,7 @@ cd src/backend/base && python -m alembic revision --autogenerate -m "add_assista
 
 Review the generated migration file. It should create `assistant_conversation` and `assistant_message` tables with all columns and indices.
 
-- [ ] **Step 6: Run migration and tests**
+- [x] **Step 6: Run migration and tests**
 
 Run:
 ```bash
@@ -292,7 +292,7 @@ cd src/backend && python -m pytest tests/unit/test_assistant_models.py -v
 ```
 Expected: All 4 tests PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/database/models/assistant/ \
@@ -313,7 +313,7 @@ git commit -m "feat(assistant): add conversation + message DB models and migrati
 
 These wrap the existing `agentic/utils/component_search.py` functions into a tool-friendly interface.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `src/backend/tests/unit/test_assistant_catalog.py`:
 
@@ -386,12 +386,12 @@ async def test_list_compatible_outputs():
         assert "output_types" in comp or "type" in comp
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd src/backend && python -m pytest tests/unit/test_assistant_catalog.py -v`
 Expected: FAIL — `ModuleNotFoundError`
 
-- [ ] **Step 3: Implement catalog tools**
+- [x] **Step 3: Implement catalog tools**
 
 Create `src/backend/base/langflow/services/assistant/__init__.py`:
 
@@ -478,12 +478,12 @@ async def list_compatible_outputs(input_type: str) -> list[dict[str, Any]]:
     return compatible
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `cd src/backend && python -m pytest tests/unit/test_assistant_catalog.py -v`
 Expected: All tests PASS (or some skip if no OpenAI component is registered in the test environment).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/assistant/ \
@@ -500,7 +500,7 @@ git commit -m "feat(assistant): add catalog tools wrapping component search"
 
 This exposes the catalog tools as an MCP server, reusable by Claude Desktop/Cursor/external clients.
 
-- [ ] **Step 1: Implement the MCP server**
+- [x] **Step 1: Implement the MCP server**
 
 Create `src/backend/base/langflow/services/assistant/mcp_server.py`:
 
@@ -597,7 +597,7 @@ async def handle_call_tool(name: str, arguments: dict[str, Any] | None) -> list[
     return [types.TextContent(type="text", text=json.dumps(result, default=str))]
 ```
 
-- [ ] **Step 2: Register the MCP server in the API router**
+- [x] **Step 2: Register the MCP server in the API router**
 
 Add an SSE transport endpoint for the catalog MCP server. Create or extend `src/backend/base/langflow/api/v1/assistant.py` (we'll add REST endpoints in a later task):
 
@@ -627,7 +627,7 @@ async def catalog_mcp_messages(request: Request) -> Response:
     return Response(status_code=202)
 ```
 
-- [ ] **Step 3: Wire the router into the app**
+- [x] **Step 3: Wire the router into the app**
 
 Find where other routers are included (likely `src/backend/base/langflow/api/v1/__init__.py` or the app factory) and add:
 
@@ -637,7 +637,7 @@ from langflow.api.v1.assistant import router as assistant_router
 app.include_router(assistant_router)
 ```
 
-- [ ] **Step 4: Manual smoke test**
+- [x] **Step 4: Manual smoke test**
 
 Start the dev server and test with an MCP client or curl:
 ```bash
@@ -645,7 +645,7 @@ curl -N http://localhost:7860/api/v1/assistant/catalog-mcp/sse
 ```
 Should see the SSE connection open and wait.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/assistant/mcp_server.py \
@@ -663,7 +663,7 @@ git commit -m "feat(assistant): expose component catalog as MCP server"
 
 These are in-process Python functions that modify a flow's `data` (nodes/edges JSON). They do NOT directly write to DB — they mutate a dict and return patches. The caller (`AssistantService`) persists.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `src/backend/tests/unit/test_assistant_mutation.py`:
 
@@ -824,12 +824,12 @@ class TestAddStickyNote:
         assert "TODO: Set your API key" in str(node["data"])
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd src/backend && python -m pytest tests/unit/test_assistant_mutation.py -v`
 Expected: FAIL — `ModuleNotFoundError`
 
-- [ ] **Step 3: Implement mutation tools**
+- [x] **Step 3: Implement mutation tools**
 
 Create `src/backend/base/langflow/services/assistant/tools/mutation.py`:
 
@@ -1027,12 +1027,12 @@ class FlowMutationTools:
         }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `cd src/backend && python -m pytest tests/unit/test_assistant_mutation.py -v`
 Expected: All tests PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/assistant/tools/mutation.py \
@@ -1049,7 +1049,7 @@ git commit -m "feat(assistant): add flow mutation tools (add/connect/set/remove/
 
 Collects all tools (catalog + mutation) and converts to provider-native tool definitions.
 
-- [ ] **Step 1: Implement the tool registry**
+- [x] **Step 1: Implement the tool registry**
 
 Create `src/backend/base/langflow/services/assistant/tools/registry.py`:
 
@@ -1209,7 +1209,7 @@ def is_mutation_tool(name: str) -> bool:
     return any(t["name"] == name for t in MUTATION_TOOLS)
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/assistant/tools/registry.py
@@ -1224,7 +1224,7 @@ git commit -m "feat(assistant): add tool registry with provider-native format co
 - Create: `src/backend/base/langflow/services/assistant/providers/__init__.py`
 - Create: `src/backend/base/langflow/services/assistant/providers/base.py`
 
-- [ ] **Step 1: Define the provider interface and fake**
+- [x] **Step 1: Define the provider interface and fake**
 
 Create `src/backend/base/langflow/services/assistant/providers/__init__.py`:
 
@@ -1327,7 +1327,7 @@ class FakeProviderClient(ProviderClient):
             yield event
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/assistant/providers/
@@ -1342,7 +1342,7 @@ git commit -m "feat(assistant): add provider ABC and fake provider for tests"
 - Create: `src/backend/base/langflow/services/assistant/context_window.py`
 - Test: `src/backend/tests/unit/test_assistant_context_window.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `src/backend/tests/unit/test_assistant_context_window.py`:
 
@@ -1403,12 +1403,12 @@ class TestPackMessages:
         assert len(result) == 1
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd src/backend && python -m pytest tests/unit/test_assistant_context_window.py -v`
 Expected: FAIL — `ModuleNotFoundError`
 
-- [ ] **Step 3: Implement context window packing**
+- [x] **Step 3: Implement context window packing**
 
 Create `src/backend/base/langflow/services/assistant/context_window.py`:
 
@@ -1466,12 +1466,12 @@ def pack_messages(
     return [messages[i] for i in selected_indices]
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `cd src/backend && python -m pytest tests/unit/test_assistant_context_window.py -v`
 Expected: All tests PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/assistant/context_window.py \
@@ -1489,7 +1489,7 @@ git commit -m "feat(assistant): add context window packing with tool-pair safety
 
 The core orchestrator: builds context, runs the tool loop, streams events, persists messages.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `src/backend/tests/unit/test_assistant_service.py`:
 
@@ -1612,12 +1612,12 @@ async def test_error_in_provider():
     assert "error" in types
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd src/backend && python -m pytest tests/unit/test_assistant_service.py -v`
 Expected: FAIL — `ModuleNotFoundError`
 
-- [ ] **Step 3: Implement AssistantService**
+- [x] **Step 3: Implement AssistantService**
 
 Create `src/backend/base/langflow/services/assistant/service.py`:
 
@@ -1811,12 +1811,12 @@ class AssistantService:
         return get_tools_for_openai()
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `cd src/backend && python -m pytest tests/unit/test_assistant_service.py -v`
 Expected: All 4 tests PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/assistant/service.py \
@@ -1831,7 +1831,7 @@ git commit -m "feat(assistant): add AssistantService with tool-calling loop"
 **Files:**
 - Create: `src/backend/base/langflow/services/assistant/providers/openai_provider.py`
 
-- [ ] **Step 1: Implement OpenAI provider**
+- [x] **Step 1: Implement OpenAI provider**
 
 Create `src/backend/base/langflow/services/assistant/providers/openai_provider.py`:
 
@@ -1935,7 +1935,7 @@ class OpenAIProviderClient(ProviderClient):
             yield event
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/assistant/providers/openai_provider.py
@@ -1949,7 +1949,7 @@ git commit -m "feat(assistant): add OpenAI provider adapter"
 **Files:**
 - Create: `src/backend/base/langflow/services/assistant/providers/anthropic_provider.py`
 
-- [ ] **Step 1: Implement Anthropic provider**
+- [x] **Step 1: Implement Anthropic provider**
 
 Create `src/backend/base/langflow/services/assistant/providers/anthropic_provider.py`:
 
@@ -2067,7 +2067,7 @@ class AnthropicProviderClient(ProviderClient):
             yield event
 ```
 
-- [ ] **Step 2: Update providers `__init__.py`**
+- [x] **Step 2: Update providers `__init__.py`**
 
 Edit `src/backend/base/langflow/services/assistant/providers/__init__.py`:
 
@@ -2079,7 +2079,7 @@ from langflow.services.assistant.providers.openai_provider import OpenAIProvider
 __all__ = ["AnthropicProviderClient", "FakeProviderClient", "OpenAIProviderClient", "ProviderClient"]
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/backend/base/langflow/services/assistant/providers/
@@ -2094,7 +2094,7 @@ git commit -m "feat(assistant): add Anthropic provider adapter"
 - Modify: `src/backend/base/langflow/api/v1/assistant.py`
 - Test: `src/backend/tests/integration/test_assistant_api.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `src/backend/tests/integration/test_assistant_api.py`:
 
@@ -2162,12 +2162,12 @@ async def test_put_settings(client: AsyncClient, logged_in_headers: dict):
     assert data["has_key"] is True
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd src/backend && python -m pytest tests/integration/test_assistant_api.py -v`
 Expected: FAIL
 
-- [ ] **Step 3: Implement API endpoints**
+- [x] **Step 3: Implement API endpoints**
 
 Rewrite `src/backend/base/langflow/api/v1/assistant.py` with the full endpoints:
 
@@ -2476,12 +2476,12 @@ async def put_settings(
     return {"status": "ok"}
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `cd src/backend && python -m pytest tests/integration/test_assistant_api.py -v`
 Expected: Tests PASS (adjust fixtures as needed for the test environment).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/assistant.py \
@@ -2497,7 +2497,7 @@ git commit -m "feat(assistant): add REST + SSE API endpoints"
 - Create: `src/frontend/src/stores/assistantStore.ts`
 - Create: `src/frontend/src/controllers/API/queries/assistant.ts`
 
-- [ ] **Step 1: Create the Zustand store**
+- [x] **Step 1: Create the Zustand store**
 
 Create `src/frontend/src/stores/assistantStore.ts`:
 
@@ -2583,7 +2583,7 @@ const useAssistantStore = create<AssistantStoreState>((set, get) => ({
 export default useAssistantStore;
 ```
 
-- [ ] **Step 2: Create the API client**
+- [x] **Step 2: Create the API client**
 
 Create `src/frontend/src/controllers/API/queries/assistant.ts`:
 
@@ -2621,7 +2621,7 @@ export function createMessageSSEUrl(flowId: string): string {
 }
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/frontend/src/stores/assistantStore.ts \
@@ -2636,7 +2636,7 @@ git commit -m "feat(assistant): add frontend store and API client"
 **Files:**
 - Create: `src/frontend/src/modals/AssistantPanel/hooks/use-assistant-stream.ts`
 
-- [ ] **Step 1: Implement the SSE hook**
+- [x] **Step 1: Implement the SSE hook**
 
 Create `src/frontend/src/modals/AssistantPanel/hooks/use-assistant-stream.ts`:
 
@@ -2776,7 +2776,7 @@ function applyFlowPatch(patch: any) {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/frontend/src/modals/AssistantPanel/hooks/use-assistant-stream.ts
@@ -2790,7 +2790,7 @@ git commit -m "feat(assistant): add SSE stream hook with flow patch application"
 **Files:**
 - Create: `src/frontend/src/modals/AssistantPanel/hooks/use-assistant-conversation.ts`
 
-- [ ] **Step 1: Implement the conversation hook**
+- [x] **Step 1: Implement the conversation hook**
 
 Create `src/frontend/src/modals/AssistantPanel/hooks/use-assistant-conversation.ts`:
 
@@ -2841,7 +2841,7 @@ export function useAssistantConversation(flowId: string) {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/frontend/src/modals/AssistantPanel/hooks/use-assistant-conversation.ts
@@ -2860,7 +2860,7 @@ git commit -m "feat(assistant): add conversation history loader hook"
 - Create: `src/frontend/src/modals/AssistantPanel/components/panel-header.tsx`
 - Create: `src/frontend/src/modals/AssistantPanel/components/settings-required.tsx`
 
-- [ ] **Step 1: Create composer**
+- [x] **Step 1: Create composer**
 
 Create `src/frontend/src/modals/AssistantPanel/components/composer.tsx`:
 
@@ -2916,7 +2916,7 @@ export default function Composer({ onSend }: Props) {
 }
 ```
 
-- [ ] **Step 2: Create message component**
+- [x] **Step 2: Create message component**
 
 Create `src/frontend/src/modals/AssistantPanel/components/message.tsx`:
 
@@ -2952,7 +2952,7 @@ export default function Message({ message }: Props) {
 }
 ```
 
-- [ ] **Step 3: Create tool-call-card**
+- [x] **Step 3: Create tool-call-card**
 
 Create `src/frontend/src/modals/AssistantPanel/components/tool-call-card.tsx`:
 
@@ -2986,7 +2986,7 @@ export default function ToolCallCard({ message }: Props) {
 }
 ```
 
-- [ ] **Step 4: Create message-list**
+- [x] **Step 4: Create message-list**
 
 Create `src/frontend/src/modals/AssistantPanel/components/message-list.tsx`:
 
@@ -3022,7 +3022,7 @@ export default function MessageList() {
 }
 ```
 
-- [ ] **Step 5: Create panel-header**
+- [x] **Step 5: Create panel-header**
 
 Create `src/frontend/src/modals/AssistantPanel/components/panel-header.tsx`:
 
@@ -3065,7 +3065,7 @@ export default function PanelHeader({ flowId, onClear }: Props) {
 }
 ```
 
-- [ ] **Step 6: Create settings-required**
+- [x] **Step 6: Create settings-required**
 
 Create `src/frontend/src/modals/AssistantPanel/components/settings-required.tsx`:
 
@@ -3094,7 +3094,7 @@ export default function SettingsRequired() {
 }
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/frontend/src/modals/AssistantPanel/components/
@@ -3109,7 +3109,7 @@ git commit -m "feat(assistant): add panel UI components (composer, messages, hea
 - Create: `src/frontend/src/modals/AssistantPanel/index.tsx`
 - Modify: The flow editor layout to add the panel and toggle button
 
-- [ ] **Step 1: Create panel shell**
+- [x] **Step 1: Create panel shell**
 
 Create `src/frontend/src/modals/AssistantPanel/index.tsx`:
 
@@ -3158,7 +3158,7 @@ export default function AssistantPanel({ flowId }: Props) {
 }
 ```
 
-- [ ] **Step 2: Add toggle button and panel to the flow editor**
+- [x] **Step 2: Add toggle button and panel to the flow editor**
 
 Find the flow editor layout component (likely in `src/frontend/src/pages/FlowPage/` or similar). Add:
 
@@ -3197,7 +3197,7 @@ import AssistantPanel from "@/modals/AssistantPanel";
 
 (Exact file paths and insertion points depend on current layout structure — the implementer should find the flow editor's root layout component and add the panel as a flex sibling.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/frontend/src/modals/AssistantPanel/index.tsx
@@ -3214,7 +3214,7 @@ git commit -m "feat(assistant): add dockable panel to flow editor"
 - Modify: `src/frontend/src/pages/SettingsPage/index.tsx` (add sidebar entry)
 - Modify: Routes file to add the route
 
-- [ ] **Step 1: Create the settings page**
+- [x] **Step 1: Create the settings page**
 
 Create `src/frontend/src/pages/SettingsPage/pages/AssistantSettingsPage/index.tsx`:
 
@@ -3355,7 +3355,7 @@ export default function AssistantSettingsPage() {
 }
 ```
 
-- [ ] **Step 2: Add sidebar entry to SettingsPage**
+- [x] **Step 2: Add sidebar entry to SettingsPage**
 
 In `src/frontend/src/pages/SettingsPage/index.tsx`, add to the `sidebarNavItems` array:
 
@@ -3367,7 +3367,7 @@ In `src/frontend/src/pages/SettingsPage/index.tsx`, add to the `sidebarNavItems`
 },
 ```
 
-- [ ] **Step 3: Add route**
+- [x] **Step 3: Add route**
 
 Find the routes configuration (likely `src/frontend/src/routes.tsx` or similar) and add:
 
@@ -3380,7 +3380,7 @@ Find the routes configuration (likely `src/frontend/src/routes.tsx` or similar) 
 
 as a child of the settings route, importing `AssistantSettingsPage` from `@/pages/SettingsPage/pages/AssistantSettingsPage`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/frontend/src/pages/SettingsPage/pages/AssistantSettingsPage/ \
@@ -3396,7 +3396,7 @@ git commit -m "feat(assistant): add Assistant Settings page with provider/model/
 **Files:**
 - Modify: `src/frontend/src/modals/AssistantPanel/index.tsx`
 
-- [ ] **Step 1: Add polling and banner**
+- [x] **Step 1: Add polling and banner**
 
 Add to `AssistantPanel/index.tsx`:
 
@@ -3455,7 +3455,7 @@ function handleRefresh() {
 )}
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/frontend/src/modals/AssistantPanel/index.tsx
@@ -3469,7 +3469,7 @@ git commit -m "feat(assistant): add stale-history polling banner"
 **Files:**
 - Create: `src/frontend/tests/e2e/assistant.spec.ts`
 
-- [ ] **Step 1: Write the golden-path e2e test**
+- [x] **Step 1: Write the golden-path e2e test**
 
 Create `src/frontend/tests/e2e/assistant.spec.ts`:
 
@@ -3522,12 +3522,12 @@ test.describe("Flow Builder Assistant", () => {
 });
 ```
 
-- [ ] **Step 2: Run e2e tests**
+- [x] **Step 2: Run e2e tests**
 
 Run: `cd src/frontend && npx playwright test tests/e2e/assistant.spec.ts`
 Expected: Tests pass against a running dev server (may need test fixtures/mocks adjusted).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/frontend/tests/e2e/assistant.spec.ts

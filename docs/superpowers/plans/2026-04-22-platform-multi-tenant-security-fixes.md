@@ -39,7 +39,7 @@
 - Modify: `src/backend/base/langflow/api/v1/templates.py:101-140`
 - Test: `src/backend/tests/unit/api/v1/test_templates_cross_org.py` (create)
 
-- [ ] **Step 1: Write the failing cross-org list test**
+- [x] **Step 1: Write the failing cross-org list test**
 
 Create `src/backend/tests/unit/api/v1/test_templates_cross_org.py`:
 
@@ -161,13 +161,13 @@ async def test_list_templates_does_not_leak_other_org(client, two_tenants):
     )
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pytest src/backend/tests/unit/api/v1/test_templates_cross_org.py::test_list_templates_does_not_leak_other_org -v`
 
 Expected: FAIL — `tmpl_b_id` is present in the response body (current code returns all rows).
 
-- [ ] **Step 3: Add org-scope filter to `list_templates`**
+- [x] **Step 3: Add org-scope filter to `list_templates`**
 
 Edit `src/backend/base/langflow/api/v1/templates.py`. Replace the current body of `list_templates` (lines 101–140) so that non-platform-admin callers only see `scope=platform` OR `scope=org` rows whose `org_id` is in the caller's memberships.
 
@@ -226,13 +226,13 @@ Replace with:
 
 Note: `col` and `select` are already imported at module top; no new imports needed.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pytest src/backend/tests/unit/api/v1/test_templates_cross_org.py::test_list_templates_does_not_leak_other_org -v`
 
 Expected: PASS.
 
-- [ ] **Step 5: Add a positive test — platform-scope rows remain visible to all**
+- [x] **Step 5: Add a positive test — platform-scope rows remain visible to all**
 
 Append to `test_templates_cross_org.py`:
 
@@ -274,7 +274,7 @@ Run: `pytest src/backend/tests/unit/api/v1/test_templates_cross_org.py -v -k pla
 
 Expected: PASS.
 
-- [ ] **Step 6: Ask the user before committing, then commit**
+- [x] **Step 6: Ask the user before committing, then commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/templates.py src/backend/tests/unit/api/v1/test_templates_cross_org.py
@@ -301,7 +301,7 @@ EOF
 - Modify: `src/backend/base/langflow/api/v1/templates.py:143-160`
 - Test: `src/backend/tests/unit/api/v1/test_templates_cross_org.py` (append)
 
-- [ ] **Step 1: Write the failing cross-org GET test**
+- [x] **Step 1: Write the failing cross-org GET test**
 
 Append to `src/backend/tests/unit/api/v1/test_templates_cross_org.py`:
 
@@ -325,13 +325,13 @@ async def test_get_template_allows_own_org(client, two_tenants):
     assert resp.json()["id"] == str(two_tenants["tmpl_a_id"])
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pytest src/backend/tests/unit/api/v1/test_templates_cross_org.py -v -k "get_template"`
 
 Expected: `test_get_template_denies_cross_org` FAILS (returns 200 with node data — the vulnerability); `test_get_template_allows_own_org` PASSES.
 
-- [ ] **Step 3: Add a shared membership helper + org check to `get_template`**
+- [x] **Step 3: Add a shared membership helper + org check to `get_template`**
 
 Edit `src/backend/base/langflow/api/v1/templates.py`. Immediately below `_load_source_and_blank` (line 98), add a helper:
 
@@ -393,19 +393,19 @@ async def get_template(
 
 Note: The `_user` param is renamed to `current_user` so we can pass it to the authorization helper.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `pytest src/backend/tests/unit/api/v1/test_templates_cross_org.py -v`
 
 Expected: all four tests (list_cross_org, list_platform_visible, get_denies_cross_org, get_allows_own_org) PASS.
 
-- [ ] **Step 5: Regression-run the existing template endpoint test suite**
+- [x] **Step 5: Regression-run the existing template endpoint test suite**
 
 Run: `pytest src/backend/tests/unit/api/v1/test_templates_endpoints.py src/backend/tests/unit/api/v1/test_templates_list_filters.py src/backend/tests/unit/api/v1/test_template_permissions.py -v`
 
 Expected: all PASS. If any new failure appears (e.g. a suite that GETs a template as a non-member superuser), investigate — superusers satisfy `is_platform_admin` so they should still pass; a failure usually means a fixture uses a non-superuser caller without wiring membership.
 
-- [ ] **Step 6: Ask the user before committing, then commit**
+- [x] **Step 6: Ask the user before committing, then commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/templates.py src/backend/tests/unit/api/v1/test_templates_cross_org.py
@@ -432,7 +432,7 @@ EOF
 - Modify: `src/backend/base/langflow/api/v1/templates.py:83-98, 192-227`
 - Test: `src/backend/tests/unit/api/v1/test_templates_cross_org.py` (append)
 
-- [ ] **Step 1: Write the failing cross-org create test**
+- [x] **Step 1: Write the failing cross-org create test**
 
 Append to `src/backend/tests/unit/api/v1/test_templates_cross_org.py`:
 
@@ -502,13 +502,13 @@ async def test_create_template_rejects_cross_org_source_flow(client, two_tenants
                 await session.commit()
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pytest src/backend/tests/unit/api/v1/test_templates_cross_org.py::test_create_template_rejects_cross_org_source_flow -v`
 
 Expected: FAIL — server returns 201 with the victim's (password-blanked) `system_prompt` value preserved. That is the exploit.
 
-- [ ] **Step 3: Bind the source-flow load to `body.org_id`**
+- [x] **Step 3: Bind the source-flow load to `body.org_id`**
 
 Edit `src/backend/base/langflow/api/v1/templates.py`. Change `_load_source_and_blank`'s signature and WHERE clause:
 
@@ -568,7 +568,7 @@ async def _load_source_and_blank(
     return blanked, edges
 ```
 
-- [ ] **Step 4: Update `create_template` to pass the org binding**
+- [x] **Step 4: Update `create_template` to pass the org binding**
 
 In the same file, update the single call site in `create_template` (line 225). Replace:
 
@@ -590,7 +590,7 @@ With:
     )
 ```
 
-- [ ] **Step 5: Update `update_template` to pass the org binding**
+- [x] **Step 5: Update `update_template` to pass the org binding**
 
 `update_template` currently uses `get_current_active_superuser` so it is not reachable by the cross-tenant attacker today, but the helper's new signature is keyword-only and the call site must compile. Replace (line 294):
 
@@ -614,19 +614,19 @@ With:
 
 This also fixes a latent hole: when `update_template` is reopened to non-superusers in a later phase, the binding is already in place.
 
-- [ ] **Step 6: Run the new test to verify it passes**
+- [x] **Step 6: Run the new test to verify it passes**
 
 Run: `pytest src/backend/tests/unit/api/v1/test_templates_cross_org.py::test_create_template_rejects_cross_org_source_flow -v`
 
 Expected: PASS — server returns 404 and no template row is created.
 
-- [ ] **Step 7: Regression-run template-create suites**
+- [x] **Step 7: Regression-run template-create suites**
 
 Run: `pytest src/backend/tests/unit/api/v1/test_templates_endpoints.py src/backend/tests/unit/api/v1/test_templates_create_with_categories.py -v`
 
 Expected: all PASS. If any failure is due to a fixture that hands a non-member flow to a non-superuser — that is the bug, fix the fixture by (a) making the caller a superuser, or (b) creating the flow under the caller's org.
 
-- [ ] **Step 8: Ask the user before committing, then commit**
+- [x] **Step 8: Ask the user before committing, then commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/templates.py src/backend/tests/unit/api/v1/test_templates_cross_org.py
@@ -656,7 +656,7 @@ EOF
 - Modify: `src/backend/base/langflow/api/v1/assistant.py:80, 109-130`
 - Test: `src/backend/tests/unit/api/v1/test_assistant_settings_encryption.py` (create)
 
-- [ ] **Step 1: Write the failing encryption test**
+- [x] **Step 1: Write the failing encryption test**
 
 Create `src/backend/tests/unit/api/v1/test_assistant_settings_encryption.py`:
 
@@ -747,13 +747,13 @@ async def test_assistant_api_key_stored_encrypted(client, assistant_user):
         assert decrypt_api_key(row.value) == "sk-plaintext-test"
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pytest src/backend/tests/unit/api/v1/test_assistant_settings_encryption.py::test_assistant_api_key_stored_encrypted -v`
 
 Expected: FAIL — `row.value` equals the plaintext `"sk-plaintext-test"`.
 
-- [ ] **Step 3: Add encrypt/decrypt imports and sentinel list of credential fields**
+- [x] **Step 3: Add encrypt/decrypt imports and sentinel list of credential fields**
 
 Edit `src/backend/base/langflow/api/v1/assistant.py`. In the imports block (near line 13), add:
 
@@ -770,7 +770,7 @@ Below the existing `ASSISTANT_VAR_NAMES` constant at line 80, add:
 ASSISTANT_ENCRYPTED_VAR_NAMES = frozenset({"assistant.api_key"})
 ```
 
-- [ ] **Step 4: Encrypt on write in `_upsert_variable`**
+- [x] **Step 4: Encrypt on write in `_upsert_variable`**
 
 Replace the existing `_upsert_variable` (lines 109–130) with:
 
@@ -805,13 +805,13 @@ async def _upsert_variable(
         session.add(var)
 ```
 
-- [ ] **Step 5: Run the encryption test to verify it passes**
+- [x] **Step 5: Run the encryption test to verify it passes**
 
 Run: `pytest src/backend/tests/unit/api/v1/test_assistant_settings_encryption.py::test_assistant_api_key_stored_encrypted -v`
 
 Expected: PASS — `row.value` now starts with `gAAAAA` and round-trips through `decrypt_api_key`.
 
-- [ ] **Step 6: Do NOT commit yet** — the write path is encrypted but the read path in `_load_assistant_settings` still passes the raw column value to the provider SDK. Task 5 fixes the read path. Running the assistant end-to-end before Task 5 would break existing settings. Proceed directly to Task 5 and commit once both are done.
+- [x] **Step 6: Do NOT commit yet** — the write path is encrypted but the read path in `_load_assistant_settings` still passes the raw column value to the provider SDK. Task 5 fixes the read path. Running the assistant end-to-end before Task 5 would break existing settings. Proceed directly to Task 5 and commit once both are done.
 
 ---
 
@@ -821,7 +821,7 @@ Expected: PASS — `row.value` now starts with `gAAAAA` and round-trips through 
 - Modify: `src/backend/base/langflow/api/v1/assistant.py:95-106`
 - Test: `src/backend/tests/unit/api/v1/test_assistant_settings_encryption.py` (append)
 
-- [ ] **Step 1: Write the failing round-trip test**
+- [x] **Step 1: Write the failing round-trip test**
 
 Append to `src/backend/tests/unit/api/v1/test_assistant_settings_encryption.py`:
 
@@ -847,13 +847,13 @@ async def test_assistant_settings_round_trip_decrypts(client, assistant_user):
     assert body["has_key"] is True
 ```
 
-- [ ] **Step 2: Run test — may already pass if GET doesn't decrypt, but must not regress**
+- [x] **Step 2: Run test — may already pass if GET doesn't decrypt, but must not regress**
 
 Run: `pytest src/backend/tests/unit/api/v1/test_assistant_settings_encryption.py::test_assistant_settings_round_trip_decrypts -v`
 
 Expected: depending on how `has_key` is computed this may already pass. The substantive fix below ensures the provider client receives the *decrypted* value when the assistant actually runs.
 
-- [ ] **Step 3: Decrypt on read in `_load_assistant_settings`**
+- [x] **Step 3: Decrypt on read in `_load_assistant_settings`**
 
 Edit `src/backend/base/langflow/api/v1/assistant.py`. Replace the body of `_load_assistant_settings` (lines 95–106) with:
 
@@ -893,19 +893,19 @@ async def _load_assistant_settings(session, org_id: UUID, user_id: UUID) -> dict
 
 (`logger` is already imported at line 13.)
 
-- [ ] **Step 4: Run the full assistant encryption suite**
+- [x] **Step 4: Run the full assistant encryption suite**
 
 Run: `pytest src/backend/tests/unit/api/v1/test_assistant_settings_encryption.py -v`
 
 Expected: both tests PASS.
 
-- [ ] **Step 5: Regression-run any existing assistant tests**
+- [x] **Step 5: Regression-run any existing assistant tests**
 
 Run: `pytest src/backend/tests/unit/api/v1/ -v -k assistant`
 
 Expected: all PASS. Any suite that seeded `Variable(name="assistant.api_key", value="sk-foo", ...)` directly — i.e. wrote a *plaintext* value under the old contract — will now fail at the read site because the decrypt step rejects it. Fix those fixtures by routing through `encrypt_api_key(...)` first.
 
-- [ ] **Step 6: Ask the user before committing, then commit Tasks 4 + 5 together**
+- [x] **Step 6: Ask the user before committing, then commit Tasks 4 + 5 together**
 
 ```bash
 git add src/backend/base/langflow/api/v1/assistant.py src/backend/tests/unit/api/v1/test_assistant_settings_encryption.py
@@ -937,7 +937,7 @@ EOF
 **Files:**
 - Create: `src/backend/base/langflow/alembic/versions/<rev>_encrypt_assistant_settings.py`
 
-- [ ] **Step 1: Inspect the current head**
+- [x] **Step 1: Inspect the current head**
 
 Run: `uvx --from alembic alembic -c src/backend/base/langflow/alembic.ini current 2>&1 | tail -5`
 
@@ -945,13 +945,13 @@ Run: `uvx --from alembic alembic -c src/backend/base/langflow/alembic.ini curren
 
 Expected: a revision id, e.g. `fd531f8868b1 (head)`. Record this as `DOWN_REV`.
 
-- [ ] **Step 2: Generate a fresh revision id**
+- [x] **Step 2: Generate a fresh revision id**
 
 Run: `uv run python -c "import uuid; print(uuid.uuid4().hex[:12])"`
 
 Record the output as `NEW_REV`.
 
-- [ ] **Step 3: Create the migration file**
+- [x] **Step 3: Create the migration file**
 
 Create `src/backend/base/langflow/alembic/versions/<NEW_REV>_encrypt_assistant_settings.py`:
 
@@ -1018,13 +1018,13 @@ def downgrade() -> None:
 
 Replace `<NEW_REV>` and `<DOWN_REV>` in both the filename and the body with the recorded values.
 
-- [ ] **Step 4: Run the migration against a fresh dev DB**
+- [x] **Step 4: Run the migration against a fresh dev DB**
 
 Run: `cd src/backend/base && uv run alembic upgrade head`
 
 Expected: applies cleanly.
 
-- [ ] **Step 5: Write a test that seeds a plaintext row and verifies the migration re-encrypts it**
+- [x] **Step 5: Write a test that seeds a plaintext row and verifies the migration re-encrypts it**
 
 Append to `src/backend/tests/unit/api/v1/test_assistant_settings_encryption.py`:
 
@@ -1080,13 +1080,13 @@ Replace `<NEW_REV>` in the `from ... import ...` line with the recorded revision
 
 Note: if the test harness boots a fresh DB per test run via `alembic upgrade head`, the migration covers the seeded row automatically. The inline re-invocation is a fallback for harnesses that truncate between tests. If the first branch (`row.value.startswith("gAAAAA")`) is always taken in CI, delete the fallback to keep the test honest.
 
-- [ ] **Step 6: Run the full encryption suite**
+- [x] **Step 6: Run the full encryption suite**
 
 Run: `pytest src/backend/tests/unit/api/v1/test_assistant_settings_encryption.py -v`
 
 Expected: all three tests PASS.
 
-- [ ] **Step 7: Ask the user before committing, then commit**
+- [x] **Step 7: Ask the user before committing, then commit**
 
 ```bash
 git add src/backend/base/langflow/alembic/versions/*_encrypt_assistant_settings.py src/backend/tests/unit/api/v1/test_assistant_settings_encryption.py
@@ -1120,7 +1120,7 @@ Because of this design surface, squeezing the backport into this security-fix pl
 **Files:**
 - Modify: `docs/superpowers/followups.md` (append)
 
-- [ ] **Step 1: Append a follow-up section**
+- [x] **Step 1: Append a follow-up section**
 
 Append to `docs/superpowers/followups.md`:
 
@@ -1144,7 +1144,7 @@ Append to `docs/superpowers/followups.md`:
 **Cross-ref:** flagged in `docs/superpowers/plans/2026-04-22-platform-multi-tenant-security-fixes.md` as out of scope.
 ```
 
-- [ ] **Step 2: Ask the user before committing, then commit**
+- [x] **Step 2: Ask the user before committing, then commit**
 
 ```bash
 git add docs/superpowers/followups.md

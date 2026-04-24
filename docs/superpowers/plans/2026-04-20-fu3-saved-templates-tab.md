@@ -69,7 +69,7 @@ Behavior:
 
 ### Steps
 
-- [ ] **Step 1: Write the failing test file**
+- [x] **Step 1: Write the failing test file**
 
 Create `src/frontend/src/modals/templatesModal/components/SavedTemplatesContent/__tests__/SavedTemplatesContent.test.tsx`:
 
@@ -228,14 +228,14 @@ describe("SavedTemplatesContent", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test and confirm it fails (file not yet created)**
+- [x] **Step 2: Run the test and confirm it fails (file not yet created)**
 
 Run: `cd src/frontend && npx jest src/modals/templatesModal/components/SavedTemplatesContent -c test.config.js`
 Expected: FAIL — `Cannot find module '../index'`.
 
 (If the above config path is not the project's jest config, use whatever the existing tests use. Check `src/frontend/package.json` scripts for the `test` entry, and the existing `src/frontend/src/modals/templatesModal/__tests__/action-bar.test.tsx` passes via `npm test` or `npx jest` at the `src/frontend` root. Prefer the same invocation.)
 
-- [ ] **Step 3: Implement `SavedTemplatesContent`**
+- [x] **Step 3: Implement `SavedTemplatesContent`**
 
 Create `src/frontend/src/modals/templatesModal/components/SavedTemplatesContent/index.tsx`:
 
@@ -335,17 +335,17 @@ export default function SavedTemplatesContent({
 }
 ```
 
-- [ ] **Step 4: Run the test and confirm it passes**
+- [x] **Step 4: Run the test and confirm it passes**
 
 Run: the same jest invocation as Step 2.
 Expected: PASS — all five tests green.
 
-- [ ] **Step 5: Type-check the new file**
+- [x] **Step 5: Type-check the new file**
 
 Run: `cd src/frontend && npx tsc --noEmit`
 Expected: no new errors in `SavedTemplatesContent/index.tsx`. (Pre-existing errors in unrelated files are acceptable — only new ones matter.)
 
-- [ ] **Step 6: Stage and ask user before committing**
+- [x] **Step 6: Stage and ask user before committing**
 
 ```bash
 git add src/frontend/src/modals/templatesModal/components/SavedTemplatesContent
@@ -366,7 +366,7 @@ Proposed message:
 
 ### Steps
 
-- [ ] **Step 1: Write the failing nav + rendering test**
+- [x] **Step 1: Write the failing nav + rendering test**
 
 Create `src/frontend/src/modals/templatesModal/__tests__/TemplatesModal.saved-tab.test.tsx`:
 
@@ -433,12 +433,12 @@ describe("TemplatesModal — Saved Templates tab", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test and confirm it fails**
+- [x] **Step 2: Run the test and confirm it fails**
 
 Run: jest targeting `TemplatesModal.saved-tab.test.tsx`.
 Expected: FAIL — `Unable to find element by: [data-testid="side_nav_options_saved-templates"]`.
 
-- [ ] **Step 3: Add the nav item and render branch**
+- [x] **Step 3: Add the nav item and render branch**
 
 In `src/frontend/src/modals/templatesModal/index.tsx`:
 
@@ -529,12 +529,12 @@ with:
             </main>
 ```
 
-- [ ] **Step 4: Run the test and confirm it passes**
+- [x] **Step 4: Run the test and confirm it passes**
 
 Run: jest targeting `TemplatesModal.saved-tab.test.tsx`.
 Expected: PASS.
 
-- [ ] **Step 5: Stage and ask user before committing**
+- [x] **Step 5: Stage and ask user before committing**
 
 ```bash
 git add src/frontend/src/modals/templatesModal/index.tsx src/frontend/src/modals/templatesModal/__tests__/TemplatesModal.saved-tab.test.tsx
@@ -555,7 +555,7 @@ Proposed message:
 
 ### Steps
 
-- [ ] **Step 1: Extend the test to cover template-driven flow creation**
+- [x] **Step 1: Extend the test to cover template-driven flow creation**
 
 Append this test suite to `TemplatesModal.saved-tab.test.tsx` (inside the same `describe`, or a new sibling `describe`):
 
@@ -694,12 +694,12 @@ describe("TemplatesModal — Saved Templates tab", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test and confirm it fails**
+- [x] **Step 2: Run the test and confirm it fails**
 
 Run: jest targeting `TemplatesModal.saved-tab.test.tsx`.
 Expected: the new `"creates a flow from a saved template"` case FAILS — `mockAddFlow` was not called, because the modal does not yet know about `tpl:` prefixed ids.
 
-- [ ] **Step 3: Update `handleCreateFromSelection` to resolve `tpl:` selections**
+- [x] **Step 3: Update `handleCreateFromSelection` to resolve `tpl:` selections**
 
 In `src/frontend/src/modals/templatesModal/index.tsx`:
 
@@ -796,24 +796,24 @@ import type { FlowType } from "@/types/flow";
 
 Use the simpler `FlowType` cast version. (Replace the import block and payload construction accordingly.)
 
-- [ ] **Step 4: Run the test and confirm it passes**
+- [x] **Step 4: Run the test and confirm it passes**
 
 Run: jest targeting `TemplatesModal.saved-tab.test.tsx`.
 Expected: both test cases PASS.
 
-- [ ] **Step 5: Sanity-check the existing starter-flow path still works**
+- [x] **Step 5: Sanity-check the existing starter-flow path still works**
 
 Confirm no regression in the non-`tpl:` branches by grep-inspecting the diff:
 
 Run: `git diff src/frontend/src/modals/templatesModal/index.tsx`
 Expected: the `"blank"` branch still calls `addFlow({ new_blank: true, ... })`; the `examples.find(...)` branch is unchanged; only the new `tpl:` branch and analytics renaming are added.
 
-- [ ] **Step 6: Type-check the modal**
+- [x] **Step 6: Type-check the modal**
 
 Run: `cd src/frontend && npx tsc --noEmit`
 Expected: no new errors.
 
-- [ ] **Step 7: Stage and ask user before committing**
+- [x] **Step 7: Stage and ask user before committing**
 
 ```bash
 git add src/frontend/src/modals/templatesModal/index.tsx src/frontend/src/modals/templatesModal/__tests__/TemplatesModal.saved-tab.test.tsx
@@ -830,46 +830,46 @@ Proposed message:
 
 UI changes require a browser check (per AGENTS.md / project standard).
 
-- [ ] **Step 1: Start the dev stack**
+- [x] **Step 1: Start the dev stack**
 
 Run whatever the repo uses locally (per AGENTS.md — typically `make run` or similar). If the frontend dev server alone is enough, `cd src/frontend && npm run dev` against a backend that's already up.
 
-- [ ] **Step 2: Save a template**
+- [x] **Step 2: Save a template**
 
 In the UI:
 1. Log in as a superuser (create-template requires superuser).
 2. Open any flow.
 3. From the flow toolbar's deploy dropdown, pick "Save as Template" and save with a distinctive name, icon, and gradient.
 
-- [ ] **Step 3: Verify it shows up in the New Flow modal**
+- [x] **Step 3: Verify it shows up in the New Flow modal**
 
 1. Return to the flows list / main page.
 2. Open "New Flow".
 3. Click the new **Saved Templates** nav item.
 4. Confirm the template you saved appears, with the icon and gradient chosen in Save-as-Template.
 
-- [ ] **Step 4: Verify flow creation from the saved template**
+- [x] **Step 4: Verify flow creation from the saved template**
 
 1. Select the card.
 2. Click **Start building**.
 3. Confirm you're navigated to a new flow at `/flow/<id>` (or `/folder/...`).
 4. Open the flow and confirm nodes + edges match the template source (password-flagged fields should be blank — that's expected per Save-as-Template blanking).
 
-- [ ] **Step 5: Spot-check the empty state**
+- [x] **Step 5: Spot-check the empty state**
 
 As a separate user (or by deleting the single template you created), confirm the "No saved templates yet." copy appears.
 
-- [ ] **Step 6: Spot-check existing tabs**
+- [x] **Step 6: Spot-check existing tabs**
 
 Click "Get started" and "All templates" — the starter flows should render exactly as before.
 
-- [ ] **Step 7: If anything fails, return to the relevant task; do not skip verification.**
+- [x] **Step 7: If anything fails, return to the relevant task; do not skip verification.**
 
 ---
 
 ## Post-implementation
 
-- [ ] **Final: Report what changed, what was verified, and any deferred items.** (Memory follow-up — after user approval — may update `project_template_management_state.md` to reflect FU-3 as done.)
+- [x] **Final: Report what changed, what was verified, and any deferred items.** (Memory follow-up — after user approval — may update `project_template_management_state.md` to reflect FU-3 as done.)
 
 ---
 

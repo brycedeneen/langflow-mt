@@ -54,11 +54,11 @@
 **Files:**
 - Modify: `src/lfx/pyproject.toml`
 
-- [ ] **Step 1: Locate the runtime dependencies list**
+- [x] **Step 1: Locate the runtime dependencies list**
 
 Open `src/lfx/pyproject.toml` and find the `[project]` table's `dependencies = [...]` array.
 
-- [ ] **Step 2: Add `asteval`**
+- [x] **Step 2: Add `asteval`**
 
 Add this line alphabetically into the list:
 
@@ -66,7 +66,7 @@ Add this line alphabetically into the list:
     "asteval>=1.0,<2.0",
 ```
 
-- [ ] **Step 3: Sync and verify**
+- [x] **Step 3: Sync and verify**
 
 Run (from repo root):
 
@@ -76,7 +76,7 @@ cd src/lfx && uv sync
 
 Expected: no errors; `asteval` shown in output.
 
-- [ ] **Step 4: Confirm import works**
+- [x] **Step 4: Confirm import works**
 
 Run:
 
@@ -86,7 +86,7 @@ cd src/lfx && uv run python -c "import asteval; print(asteval.__version__)"
 
 Expected: prints a version string (e.g. `1.0.6`).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/pyproject.toml src/lfx/uv.lock
@@ -105,7 +105,7 @@ git commit -m "chore(lfx): add asteval runtime dependency for Data Mapper expres
 - Create: `src/lfx/src/lfx/components/processing/_data_mapper/engine.py`
 - Create: `src/lfx/tests/unit/components/processing/test_data_mapper_imports.py`
 
-- [ ] **Step 1: Write the smoke test**
+- [x] **Step 1: Write the smoke test**
 
 Create `src/lfx/tests/unit/components/processing/test_data_mapper_imports.py`:
 
@@ -125,7 +125,7 @@ def test_submodules_import():
     assert all([config_schema, engine, join, transforms])
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_imports.py -v
@@ -133,7 +133,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_im
 
 Expected: FAIL — `ModuleNotFoundError: No module named 'lfx.components.processing._data_mapper'`.
 
-- [ ] **Step 3: Create the package directory and stub files**
+- [x] **Step 3: Create the package directory and stub files**
 
 Create `src/lfx/src/lfx/components/processing/_data_mapper/__init__.py`:
 
@@ -165,7 +165,7 @@ Create `src/lfx/src/lfx/components/processing/_data_mapper/engine.py`:
 """Row orchestration + output packaging for DataMapperComponent."""
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_imports.py -v
@@ -173,7 +173,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_im
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/_data_mapper/ \
@@ -189,7 +189,7 @@ git commit -m "feat(lfx/data_mapper): scaffold _data_mapper engine package"
 - Modify: `src/lfx/src/lfx/components/processing/_data_mapper/transforms.py`
 - Create: `src/lfx/tests/unit/components/processing/test_data_mapper_transforms.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/lfx/tests/unit/components/processing/test_data_mapper_transforms.py`:
 
@@ -218,7 +218,7 @@ def test_dispatch_unknown_transform_type_raises():
         dispatch(mapping, ctx, variable_resolver=lambda name: None)
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_transforms.py -v
@@ -226,7 +226,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_tr
 
 Expected: FAIL — `ImportError: cannot import name '_MISSING' from ...`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Replace the stub in `src/lfx/src/lfx/components/processing/_data_mapper/transforms.py`:
 
@@ -287,7 +287,7 @@ def dispatch(
 _DISPATCH: dict[str, Callable[..., Any]] = {}
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_transforms.py -v
@@ -295,7 +295,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_tr
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/_data_mapper/transforms.py \
@@ -311,7 +311,7 @@ git commit -m "feat(lfx/data_mapper): add _MISSING sentinel and transform dispat
 - Modify: `src/lfx/src/lfx/components/processing/_data_mapper/transforms.py`
 - Modify: `src/lfx/tests/unit/components/processing/test_data_mapper_transforms.py`
 
-- [ ] **Step 1: Append failing tests**
+- [x] **Step 1: Append failing tests**
 
 Add to `test_data_mapper_transforms.py`:
 
@@ -362,7 +362,7 @@ def test_direct_transform_explicit_none_is_preserved():
     assert dispatch(_direct("workers", "user_id"), ctx, variable_resolver=lambda n: None) is None
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_transforms.py -v
@@ -370,7 +370,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_tr
 
 Expected: FAIL — `ValueError: unknown transform type: 'direct'`.
 
-- [ ] **Step 3: Implement the direct evaluator**
+- [x] **Step 3: Implement the direct evaluator**
 
 Append to `src/lfx/src/lfx/components/processing/_data_mapper/transforms.py` (before the final `_DISPATCH: dict ... = {}` line — change that line to the fully-populated dict at the bottom):
 
@@ -401,7 +401,7 @@ _DISPATCH: dict[str, Callable[..., Any]] = {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_transforms.py -v
@@ -409,7 +409,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_tr
 
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/_data_mapper/transforms.py \
@@ -425,7 +425,7 @@ git commit -m "feat(lfx/data_mapper): add 'direct' field-pass-through transform"
 - Modify: `src/lfx/src/lfx/components/processing/_data_mapper/transforms.py`
 - Modify: `src/lfx/tests/unit/components/processing/test_data_mapper_transforms.py`
 
-- [ ] **Step 1: Append failing tests**
+- [x] **Step 1: Append failing tests**
 
 Add to `test_data_mapper_transforms.py`:
 
@@ -451,7 +451,7 @@ def test_static_returns_none_verbatim_not_missing():
     assert dispatch(_static(None), {}, variable_resolver=lambda n: None) is None
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_transforms.py -v -k static
@@ -459,7 +459,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_tr
 
 Expected: FAIL — `ValueError: unknown transform type: 'static'`.
 
-- [ ] **Step 3: Implement the static evaluator**
+- [x] **Step 3: Implement the static evaluator**
 
 Append to `transforms.py`:
 
@@ -481,7 +481,7 @@ _DISPATCH: dict[str, Callable[..., Any]] = {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_transforms.py -v
@@ -489,7 +489,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_tr
 
 Expected: all PASS (previous direct tests + new static tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/_data_mapper/transforms.py \
@@ -505,7 +505,7 @@ git commit -m "feat(lfx/data_mapper): add 'static' literal-value transform"
 - Modify: `src/lfx/src/lfx/components/processing/_data_mapper/transforms.py`
 - Modify: `src/lfx/tests/unit/components/processing/test_data_mapper_transforms.py`
 
-- [ ] **Step 1: Append failing tests**
+- [x] **Step 1: Append failing tests**
 
 Add to `test_data_mapper_transforms.py`:
 
@@ -533,7 +533,7 @@ def test_variable_requires_config_variable_name():
         dispatch(mapping, {}, variable_resolver=lambda n: None)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_transforms.py -v -k variable
@@ -541,7 +541,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_tr
 
 Expected: FAIL — `ValueError: unknown transform type: 'variable'`.
 
-- [ ] **Step 3: Implement the variable evaluator**
+- [x] **Step 3: Implement the variable evaluator**
 
 Append to `transforms.py`:
 
@@ -573,7 +573,7 @@ _DISPATCH: dict[str, Callable[..., Any]] = {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_transforms.py -v
@@ -581,7 +581,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_tr
 
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/_data_mapper/transforms.py \
@@ -597,7 +597,7 @@ git commit -m "feat(lfx/data_mapper): add 'variable' transform with pluggable re
 - Modify: `src/lfx/src/lfx/components/processing/_data_mapper/transforms.py`
 - Modify: `src/lfx/tests/unit/components/processing/test_data_mapper_transforms.py`
 
-- [ ] **Step 1: Append failing tests**
+- [x] **Step 1: Append failing tests**
 
 Add to `test_data_mapper_transforms.py`:
 
@@ -645,7 +645,7 @@ def test_template_requires_config_template():
         dispatch(mapping, {}, variable_resolver=lambda n: None)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_transforms.py -v -k template
@@ -653,7 +653,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_tr
 
 Expected: FAIL — `ValueError: unknown transform type: 'template'`.
 
-- [ ] **Step 3: Implement the template evaluator**
+- [x] **Step 3: Implement the template evaluator**
 
 Append to `transforms.py`:
 
@@ -691,7 +691,7 @@ _DISPATCH: dict[str, Callable[..., Any]] = {
 
 Note on `ChainableUndefined`: undefined top-level names or missing attributes on `SimpleNamespace` render as empty strings (via `__str__`) and propagate through further attribute access without raising.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_transforms.py -v
@@ -699,7 +699,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_tr
 
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/_data_mapper/transforms.py \
@@ -715,7 +715,7 @@ git commit -m "feat(lfx/data_mapper): add 'template' Jinja2 transform with lenie
 - Modify: `src/lfx/src/lfx/components/processing/_data_mapper/transforms.py`
 - Modify: `src/lfx/tests/unit/components/processing/test_data_mapper_transforms.py`
 
-- [ ] **Step 1: Append failing tests**
+- [x] **Step 1: Append failing tests**
 
 Add to `test_data_mapper_transforms.py`:
 
@@ -775,7 +775,7 @@ def test_expression_syntax_error_raises_value_error():
         dispatch(_expr("x ++"), flat, variable_resolver=lambda n: None)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_transforms.py -v -k expression
@@ -783,7 +783,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_tr
 
 Expected: FAIL — `ValueError: unknown transform type: 'expression'`.
 
-- [ ] **Step 3: Implement the expression evaluator**
+- [x] **Step 3: Implement the expression evaluator**
 
 Append to `transforms.py`:
 
@@ -839,7 +839,7 @@ _DISPATCH: dict[str, Callable[..., Any]] = {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_transforms.py -v
@@ -847,7 +847,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_tr
 
 Expected: all PASS. If the dunder test fails because `asteval` allows attribute access on an object, the pre-filter at `_FORBIDDEN_EXPR_TOKENS` should catch it; verify.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/_data_mapper/transforms.py \
@@ -863,7 +863,7 @@ git commit -m "feat(lfx/data_mapper): add 'expression' asteval-backed transform"
 - Modify: `src/lfx/src/lfx/components/processing/_data_mapper/transforms.py`
 - Modify: `src/lfx/tests/unit/components/processing/test_data_mapper_transforms.py`
 
-- [ ] **Step 1: Append failing tests**
+- [x] **Step 1: Append failing tests**
 
 Add to `test_data_mapper_transforms.py`:
 
@@ -934,7 +934,7 @@ def test_array_explicit_none_source_is_preserved():
     assert result == [None, "x"]
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_transforms.py -v -k array
@@ -942,7 +942,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_tr
 
 Expected: FAIL — `ValueError: unknown transform type: 'array'`.
 
-- [ ] **Step 3: Implement the array evaluator**
+- [x] **Step 3: Implement the array evaluator**
 
 Append to `transforms.py`:
 
@@ -989,7 +989,7 @@ _DISPATCH: dict[str, Callable[..., Any]] = {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_transforms.py -v
@@ -997,7 +997,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_tr
 
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/_data_mapper/transforms.py \
@@ -1013,7 +1013,7 @@ git commit -m "feat(lfx/data_mapper): add 'array' source-aggregation transform"
 - Modify: `src/lfx/src/lfx/components/processing/_data_mapper/config_schema.py`
 - Create: `src/lfx/tests/unit/components/processing/test_data_mapper_config_schema.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `src/lfx/tests/unit/components/processing/test_data_mapper_config_schema.py`:
 
@@ -1133,7 +1133,7 @@ def test_transform_type_enum_is_enforced():
         MapperConfig.model_validate(cfg)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_config_schema.py -v
@@ -1141,7 +1141,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_co
 
 Expected: FAIL — `ImportError: cannot import name 'MapperConfig'`.
 
-- [ ] **Step 3: Implement the Pydantic models**
+- [x] **Step 3: Implement the Pydantic models**
 
 Replace `src/lfx/src/lfx/components/processing/_data_mapper/config_schema.py`:
 
@@ -1266,7 +1266,7 @@ class MapperConfig(BaseModel):
         return self
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_config_schema.py -v
@@ -1274,7 +1274,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_co
 
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/_data_mapper/config_schema.py \
@@ -1290,7 +1290,7 @@ git commit -m "feat(lfx/data_mapper): add Pydantic config schema with graph vali
 - Modify: `src/lfx/src/lfx/components/processing/_data_mapper/join.py`
 - Create: `src/lfx/tests/unit/components/processing/test_data_mapper_join.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `src/lfx/tests/unit/components/processing/test_data_mapper_join.py`:
 
@@ -1370,7 +1370,7 @@ def test_missing_lookup_key_is_treated_as_none_key():
     assert lookup(index, driver_row, join) == {"other_field": "x"}
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_join.py -v
@@ -1378,7 +1378,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_jo
 
 Expected: FAIL — `ImportError: cannot import name 'build_index'`.
 
-- [ ] **Step 3: Implement the join module**
+- [x] **Step 3: Implement the join module**
 
 Replace `src/lfx/src/lfx/components/processing/_data_mapper/join.py`:
 
@@ -1428,7 +1428,7 @@ def lookup(
     return index.get(key)
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_join.py -v
@@ -1436,7 +1436,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_jo
 
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/_data_mapper/join.py \
@@ -1452,7 +1452,7 @@ git commit -m "feat(lfx/data_mapper): add composite-key left-join index with col
 - Modify: `src/lfx/src/lfx/components/processing/_data_mapper/engine.py`
 - Create: `src/lfx/tests/unit/components/processing/test_data_mapper_engine.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `src/lfx/tests/unit/components/processing/test_data_mapper_engine.py`:
 
@@ -1659,7 +1659,7 @@ def test_run_single_record_input_treated_as_one_row_list():
     assert out == [{"External_ID": "u-1"}]
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_engine.py -v
@@ -1667,7 +1667,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_en
 
 Expected: FAIL — `ImportError: cannot import name 'run'`.
 
-- [ ] **Step 3: Implement the engine**
+- [x] **Step 3: Implement the engine**
 
 Replace `src/lfx/src/lfx/components/processing/_data_mapper/engine.py`:
 
@@ -1849,7 +1849,7 @@ def run(
     return output_rows
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_engine.py -v
@@ -1857,7 +1857,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_en
 
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/_data_mapper/engine.py \
@@ -1873,7 +1873,7 @@ git commit -m "feat(lfx/data_mapper): add execution engine with left-join + coer
 - Modify: `src/lfx/src/lfx/components/processing/_data_mapper/engine.py`
 - Modify: `src/lfx/tests/unit/components/processing/test_data_mapper_engine.py`
 
-- [ ] **Step 1: Append failing tests**
+- [x] **Step 1: Append failing tests**
 
 Add to `test_data_mapper_engine.py`:
 
@@ -1941,7 +1941,7 @@ def test_package_output_empty_rows_auto_single():
     assert result.data == {}
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_engine.py -v -k package_output
@@ -1949,7 +1949,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_en
 
 Expected: FAIL — `ImportError: cannot import name 'package_output'`.
 
-- [ ] **Step 3: Implement `package_output`**
+- [x] **Step 3: Implement `package_output`**
 
 Append to `src/lfx/src/lfx/components/processing/_data_mapper/engine.py`:
 
@@ -1994,7 +1994,7 @@ def package_output(
     raise ValueError(msg)
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_engine.py -v
@@ -2002,7 +2002,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_en
 
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/_data_mapper/engine.py \
@@ -2017,7 +2017,7 @@ git commit -m "feat(lfx/data_mapper): add output packaging for Data/DataFrame/Me
 **Files:**
 - Modify: `src/lfx/src/lfx/components/processing/_data_mapper/__init__.py`
 
-- [ ] **Step 1: Replace the package `__init__.py`**
+- [x] **Step 1: Replace the package `__init__.py`**
 
 ```python
 """Engine package for DataMapperComponent. Not a public Langflow surface."""
@@ -2029,7 +2029,7 @@ from lfx.components.processing._data_mapper.transforms import _MISSING
 __all__ = ["MapperConfig", "_MISSING", "package_output", "run"]
 ```
 
-- [ ] **Step 2: Run existing tests to verify nothing broke**
+- [x] **Step 2: Run existing tests to verify nothing broke**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_imports.py tests/unit/components/processing/test_data_mapper_engine.py -v
@@ -2037,7 +2037,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_im
 
 Expected: all PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/_data_mapper/__init__.py
@@ -2052,7 +2052,7 @@ git commit -m "feat(lfx/data_mapper): expose run, MapperConfig, _MISSING from pa
 - Create: `src/lfx/src/lfx/components/processing/data_mapper.py`
 - Create: `src/lfx/tests/unit/components/processing/test_data_mapper_component.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `src/lfx/tests/unit/components/processing/test_data_mapper_component.py`:
 
@@ -2252,7 +2252,7 @@ async def test_component_unknown_variable_becomes_blank():
     assert result.data["Maybe"] == ""
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_component.py -v
@@ -2260,7 +2260,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_co
 
 Expected: FAIL — `ImportError: cannot import name 'DataMapperComponent'`.
 
-- [ ] **Step 3: Implement the component shell**
+- [x] **Step 3: Implement the component shell**
 
 Create `src/lfx/src/lfx/components/processing/data_mapper.py`:
 
@@ -2510,7 +2510,7 @@ class DataMapperComponent(Component):
 
 **Note on `pytest.mark.asyncio`:** `pytest-asyncio` should already be a test dep of `lfx`. If the tests fail with `'asyncio' mark is unknown`, verify in `src/lfx/pyproject.toml` under `[dependency-groups].dev` — it's present in most Langflow test suites. If truly absent, add it to the dev deps and re-sync; otherwise the mark is already configured by `conftest.py`.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_component.py -v
@@ -2518,7 +2518,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_co
 
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/data_mapper.py \
@@ -2534,7 +2534,7 @@ git commit -m "feat(lfx/data_mapper): add DataMapperComponent shell with four ou
 - Modify: `src/lfx/src/lfx/components/processing/data_mapper.py`
 - Modify: `src/lfx/tests/unit/components/processing/test_data_mapper_component.py`
 
-- [ ] **Step 1: Append failing tests**
+- [x] **Step 1: Append failing tests**
 
 Add to `test_data_mapper_component.py`:
 
@@ -2583,7 +2583,7 @@ def test_update_outputs_ignores_other_fields():
     assert frontend_node["outputs"] == [{"name": "existing"}]
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_component.py -v -k update_outputs
@@ -2591,7 +2591,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_co
 
 Expected: FAIL — `AttributeError: ... has no attribute 'update_outputs'`.
 
-- [ ] **Step 3: Append `update_outputs` + `update_frontend_node`**
+- [x] **Step 3: Append `update_outputs` + `update_frontend_node`**
 
 Append to `src/lfx/src/lfx/components/processing/data_mapper.py` inside `DataMapperComponent`:
 
@@ -2655,7 +2655,7 @@ Append to `src/lfx/src/lfx/components/processing/data_mapper.py` inside `DataMap
         return new_frontend_node
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_component.py -v
@@ -2663,7 +2663,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_co
 
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/data_mapper.py \
@@ -2678,7 +2678,7 @@ git commit -m "feat(lfx/data_mapper): filter visible outputs by output_type sele
 **Files:**
 - Modify: `src/lfx/src/lfx/components/processing/__init__.py`
 
-- [ ] **Step 1: Add discovery-level registration test**
+- [x] **Step 1: Add discovery-level registration test**
 
 Append to `src/lfx/tests/unit/components/processing/test_data_mapper_component.py`:
 
@@ -2691,7 +2691,7 @@ def test_component_is_discoverable_from_bundle():
     assert "DataMapperComponent" in processing.__all__
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_component.py::test_component_is_discoverable_from_bundle -v
@@ -2699,7 +2699,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_co
 
 Expected: FAIL — `AttributeError: module 'lfx.components.processing' has no attribute 'DataMapperComponent'`.
 
-- [ ] **Step 3: Add to the three registration points**
+- [x] **Step 3: Add to the three registration points**
 
 In `src/lfx/src/lfx/components/processing/__init__.py`:
 
@@ -2723,7 +2723,7 @@ In the `__all__` list, add:
 
 (Keep `__all__` sorted alphabetically to match the file's existing style.)
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_component.py::test_component_is_discoverable_from_bundle -v
@@ -2731,7 +2731,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/test_data_mapper_co
 
 Expected: PASS.
 
-- [ ] **Step 5: Run the component-changelog tests (required by authoring skill)**
+- [x] **Step 5: Run the component-changelog tests (required by authoring skill)**
 
 ```bash
 cd src/lfx && LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest tests/unit/custom/test_component_changelog.py -v
@@ -2739,7 +2739,7 @@ cd src/lfx && LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest tests/unit/custom/test_com
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/processing/__init__.py \
@@ -2754,7 +2754,7 @@ git commit -m "feat(lfx/processing): register DataMapperComponent in bundle"
 **Files:**
 - Modify: `src/lfx/src/lfx/_assets/component_index.json`
 
-- [ ] **Step 1: Run the index build script**
+- [x] **Step 1: Run the index build script**
 
 From repo root:
 
@@ -2764,7 +2764,7 @@ uv run python scripts/build_component_index.py
 
 Expected: script prints progress and exits 0. If the script path or command differs, check the loader skill document — the canonical command is documented there.
 
-- [ ] **Step 2: Verify the index now references DataMapperComponent**
+- [x] **Step 2: Verify the index now references DataMapperComponent**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow && grep -c DataMapperComponent src/lfx/src/lfx/_assets/component_index.json
@@ -2772,7 +2772,7 @@ cd /Users/brycedeneen/dev/langflow && grep -c DataMapperComponent src/lfx/src/lf
 
 Expected: `>= 1` (one or more matches).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/lfx/src/lfx/_assets/component_index.json
@@ -2785,7 +2785,7 @@ git commit -m "chore(lfx): rebuild component index for DataMapperComponent"
 
 **Files:** none (manual verification)
 
-- [ ] **Step 1: Start the dev server with forced component discovery**
+- [x] **Step 1: Start the dev server with forced component discovery**
 
 From repo root, in a separate terminal:
 
@@ -2795,7 +2795,7 @@ LFX_DEV=1 make run_cli
 
 Expected: server starts, logs report component discovery including `DataMapperComponent`.
 
-- [ ] **Step 2: Check the component catalog over the API**
+- [x] **Step 2: Check the component catalog over the API**
 
 ```bash
 curl -s http://localhost:7860/api/v1/all | python -c "import sys, json; d = json.load(sys.stdin); print('DataMapper found:', 'DataMapper' in json.dumps(d))"
@@ -2803,15 +2803,15 @@ curl -s http://localhost:7860/api/v1/all | python -c "import sys, json; d = json
 
 Expected: `DataMapper found: True`.
 
-- [ ] **Step 3: Check the frontend**
+- [x] **Step 3: Check the frontend**
 
 Open http://localhost:7860, open a flow, search the components sidebar for "Data Mapper". Confirm it appears under the "processing" category with the "shuffle" icon.
 
-- [ ] **Step 4: Tear down**
+- [x] **Step 4: Tear down**
 
 Stop the server with Ctrl-C.
 
-- [ ] **Step 5: No commit needed**
+- [x] **Step 5: No commit needed**
 
 This is a manual verification task. Document the result in the follow-up session if anything fails.
 
@@ -2821,7 +2821,7 @@ This is a manual verification task. Document the result in the follow-up session
 
 **Files:** none (verification)
 
-- [ ] **Step 1: Run all data mapper tests**
+- [x] **Step 1: Run all data mapper tests**
 
 ```bash
 cd src/lfx && uv run pytest tests/unit/components/processing/ -v -k data_mapper
@@ -2829,7 +2829,7 @@ cd src/lfx && uv run pytest tests/unit/components/processing/ -v -k data_mapper
 
 Expected: all green. Test count approx: imports (2) + transforms (35+) + config_schema (10) + join (6) + engine (16+) + component (12+) = ~80 tests.
 
-- [ ] **Step 2: Run the component-changelog suite once more**
+- [x] **Step 2: Run the component-changelog suite once more**
 
 ```bash
 cd src/lfx && LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest tests/unit/custom/test_component_changelog.py -v
@@ -2837,7 +2837,7 @@ cd src/lfx && LFX_TEST_ALLOW_LANGFLOW=1 uv run pytest tests/unit/custom/test_com
 
 Expected: PASS.
 
-- [ ] **Step 3: No commit needed**
+- [x] **Step 3: No commit needed**
 
 Verification only.
 
