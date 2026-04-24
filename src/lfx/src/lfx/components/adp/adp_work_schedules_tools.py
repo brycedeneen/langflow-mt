@@ -70,8 +70,8 @@ def build_work_schedule_event(
     action: Action,
     associate_oid: str,
     fields: dict[str, Any] | None = None,
-    item_id: str | None = None,
     context_pin_fields: dict[str, Any] | None = None,
+    additional_transform_fields: dict[str, Any] | None = None,
     effective_date: str | None = None,
     event_reason_code: str | None = None,
 ) -> dict[str, Any]:
@@ -82,19 +82,27 @@ def build_work_schedule_event(
     meta = _SCOPE_META[scope]
     transform_key = meta["transform_key"]
 
+    # ADP puts work-schedules natural-key pins at the TOP LEVEL of eventContext
+    # (not nested under the transform key). Natural keys vary by scope+action:
+    #   schedule.remove       → {associateOID, scheduleID}
+    #   schedule_day.add      → {associateOID, schedulePeriod}
+    #   schedule_day.change   → {associateOID, schedulePeriod}
+    #   schedule_day.remove   → {associateOID, scheduleDayDate}  (+ schedulePeriod sometimes)
+    #   schedule_entry.change → {associateOID, schedulePeriod, scheduleDayDate, scheduleEntryID}
     event_context: dict[str, Any] = {"associateOID": associate_oid}
-    if action in ("change", "copy", "remove"):
-        pin: dict[str, Any] = {}
-        if item_id:
-            pin["itemID"] = item_id
-        if context_pin_fields:
-            for k, v in context_pin_fields.items():
-                pin[k] = v
-        if action in ("change", "remove") and not pin:
-            msg = f"{action!r} action on scope={scope!r} requires item_id or context_pin_fields"
+    if context_pin_fields:
+        for k, v in context_pin_fields.items():
+            event_context[k] = v
+
+    # change/remove must identify the target — require a pin.
+    if action in ("change", "remove"):
+        if not context_pin_fields:
+            msg = (
+                f"{action!r} on scope={scope!r} requires context_pin_fields "
+                "(e.g. scheduleID / schedulePeriod / scheduleDayDate / scheduleEntryID "
+                "depending on scope)."
+            )
             raise ValueError(msg)
-        if pin:
-            event_context[transform_key] = pin
 
     transform: dict[str, Any] = {}
     if effective_date:
@@ -103,6 +111,12 @@ def build_work_schedule_event(
         transform["eventReasonCode"] = {"codeValue": event_reason_code}
     if action != "remove":
         transform[transform_key] = dict(fields or {})
+    # additional_transform_fields carries top-level transform keys like
+    # `workerCopyTo`, `startDateCopyTo`, `eventStatusCode` that ADP expects
+    # outside the scope entity.
+    if additional_transform_fields:
+        for k, v in additional_transform_fields.items():
+            transform[k] = v
 
     return {"events": [{"data": {"eventContext": event_context, "transform": transform}}]}
 
@@ -129,22 +143,36 @@ class ManageWorkScheduleInput(BaseModel):
         ),
     )
     associate_oid: str = Field(description="ADP associate OID of the worker.")
-    item_id: str | None = Field(
-        default=None,
-        description="Existing schedule/day/entry itemID (required for change/remove).",
-    )
     fields: dict[str, Any] = Field(
         default_factory=dict,
         description=(
-            "Transform payload under the scope-specific key. For 'schedule': scheduleStartDate, "
-            "scheduleEndDate, scheduleDays[]. For 'schedule_day': scheduleDate, scheduleEntries[]. "
-            "For 'schedule_entry': startPeriod, endPeriod, positionID, laborAllocations[]. Pass "
-            "ADP-shaped dicts."
+            "Transform payload under the scope-specific entity key "
+            "(workSchedule / scheduleDay / scheduleEntry). Example fields per scope: "
+            "schedule → schedulePeriod, scheduleDays[]; "
+            "schedule_day → daySequenceNumber, scheduleDayDate, scheduleEntries[]; "
+            "schedule_entry → categoryTypeCode, shiftTypeCode, dateTimePeriod, payCode. "
+            "Pass ADP-shaped dicts."
         ),
     )
     context_pin_fields: dict[str, Any] = Field(
         default_factory=dict,
-        description="Fields to pin the entity in eventContext alongside or instead of item_id.",
+        description=(
+            "Natural-key pins merged into the TOP LEVEL of eventContext. Required for change/"
+            "remove. Typical pins per scope+action:\n"
+            "- schedule.remove → {'scheduleID': '...'}\n"
+            "- schedule_day.add / .change → {'schedulePeriod': {'startDate': '...', 'endDate': '...'}}\n"
+            "- schedule_day.remove → {'scheduleDayDate': 'YYYY-MM-DD'} (+ schedulePeriod if needed)\n"
+            "- schedule_entry.change → {'schedulePeriod': {...}, 'scheduleDayDate': '...', "
+            "'scheduleEntryID': '...'}"
+        ),
+    )
+    additional_transform_fields: dict[str, Any] = Field(
+        default_factory=dict,
+        description=(
+            "Extra top-level transform fields outside the scope entity. Commonly used for "
+            "copy operations: {'workerCopyTo': {'associateOID': '...'}, 'startDateCopyTo': '...'}. "
+            "Also used for {'eventStatusCode': {'codeValue': '...'}}."
+        ),
     )
     effective_date: str | None = Field(
         default=None, description="Optional ISO-8601 effective date merged into transform.",
@@ -164,7 +192,7 @@ class ADPWorkSchedulesToolsComponent(Component):
     )
     icon = "CalendarDays"
     name = "ADPWorkSchedulesTools"
-    version: int = 1
+    version: int = 2
     changelog: ClassVar[list[ChangelogEntry]] = [
         ChangelogEntry(
             version=1,
@@ -172,6 +200,24 @@ class ADPWorkSchedulesToolsComponent(Component):
                 "Initial release — 2 consolidated agent tools covering ADP WFN time/work-schedules "
                 "v1: `get_worker_work_schedules` (read) + `manage_work_schedule` (9 mutation "
                 "endpoints via scope/action literals). Mutation gated behind `enable_mutations`."
+            ),
+        ),
+        ChangelogEntry(
+            version=2,
+            changes=(
+                "Corrected `manage_work_schedule` envelope shape after HAR-sample review:\n"
+                "- Removed `item_id` input — ADP's actual event envelopes pin natural keys at the "
+                "TOP LEVEL of eventContext, not nested under the transform key.\n"
+                "- Added `additional_transform_fields` input for top-level transform keys "
+                "(workerCopyTo, startDateCopyTo, eventStatusCode).\n"
+                "- Tool description now documents the scope-specific pin keys "
+                "(scheduleID / schedulePeriod / scheduleDayDate / scheduleEntryID)."
+            ),
+            notes=(
+                "If you were using the previous `item_id` input, switch to `context_pin_fields` "
+                "with the scope's natural key: e.g. {'scheduleID': '...'} for schedule.remove or "
+                "{'schedulePeriod': {...}, 'scheduleDayDate': '...', 'scheduleEntryID': '...'} for "
+                "schedule_entry.change."
             ),
         ),
     ]
@@ -278,8 +324,8 @@ class ADPWorkSchedulesToolsComponent(Component):
                     action=action,
                     associate_oid=kwargs["associate_oid"],
                     fields=kwargs.get("fields") or {},
-                    item_id=kwargs.get("item_id"),
                     context_pin_fields=kwargs.get("context_pin_fields") or {},
+                    additional_transform_fields=kwargs.get("additional_transform_fields") or {},
                     effective_date=kwargs.get("effective_date"),
                     event_reason_code=kwargs.get("event_reason_code"),
                 )

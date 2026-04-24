@@ -1,0 +1,146 @@
+{
+  "tile": "benefits/external-plans/v1",
+  "samples": [
+    {
+      "filename": "Scenario_1_Custom_Example_benefitPlan.add_request_27828.json",
+      "status": 200,
+      "body": {
+        "TransmissionGUID": "89f072f1-1403-4b41-a21c-8c554159063a",
+        "SenderName": "Carrier Name",
+        "BenefitAdministratorPlatform": "ADP Workforce Now",
+        "ReceiverName": "ADP",
+        "CreationDateTime": "2019-10-14T00:00:00+01:00",
+        "TestProductionCode": "Test",
+        "TransmissionTypeCode": "FullFile",
+        "SchemaVersionIdentifier": "1",
+        "Employers": {
+          "Employer": [
+            {
+              "EmployerPartyID": "00000000-0000-0000-0000-000000000000",
+              "FederalEmployerIdentificationNumber": "",
+              "MasterAgreementNumber": "00812561",
+              "EmployerName": "Test Client 0",
+              "EmployerAddress": {
+                "FirstLineAddress": "",
+                "SecondLineAddress": "",
+                "ThirdLineAddress": "",
+                "CityName": "",
+                "StateProvinceCode": "AB",
+                "PostalCode": "",
+                "CountryCode": "USA"
+              },
+              "ClientEvents": {
+                "ClientEvent": [
+                  {
+                    "EventID": "2819a987-d99a-4828-a84b-b67fec02891d",
+                    "EventTypeCode": "Coverage",
+                    "EventDate": "2019-10-14",
+                    "TransactionDate": "2019-10-14",
+                    "CarrierProvidesFMLAForClient": true,
+                    "BenefitPlanEvents": {
+                      "BenefitPlanEvent": [
+                        {
+                          "PlanDisplayName": "Accidental Death & Dismemberment",
+                          "BenefitPlanIdentifier": "ADD02-0007",
+                          "ProductType": "AD&D",
+                          "CoverageTier": "Employee",
+                          "Self-Indicator": "false",
+                          "ErisaID": "Non-Exempt",
+                          "HipaaEligible": "false",
+                          "CobraEligible": "false",
+                          "Cobra": "false",
+                          "GroupPolicyNumber": "00812563",
+                          "PlanAnniversary": {
+                            "AnniversaryMonth": "3",
+                            "AnniversaryDayOfMonth": "01"
+                          },
+                          "RateGuaranteeExpirationDate": "2023-02-28",
+                          "ContactInformation": {
+                            "MemberServicesPhone": "2077916512",
+                            "ContactPerson": "JENNIFER GONDEK"
+                          },
+                          "EligibilityGroups": {
+                            "EligibilityGroup": [
+                              {
+                                "BenefitClassName": "THE NON UNION LIFE 2X SALARY TO MAX OF 500K AND AD&D 5XSALARY TO MAX OF 500K",
+                                "BenefitClassIdentifier": "0007",
+                                "BillGroupIdentifier": "0000",
+                                "EffectiveDate": "2020-03-01",
+                                "CoverageParameters": {
+                                  "CoverageParameter": [
+                                    {
+                                      "InsuranceParameters": {
+                                        "InsuranceParameter": [
+                                          {
+                                            "InsuranceParameterType": "Base",
+                                            "MultipleOfEarnings": 2.0,
+                                            "DollarMinimum": "500000.0",
+                                            "DollarMaximum": "500000.0"
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                },
+                                "Rates": {
+                                  "Rate": [
+                                    {
+                                      "Differentiators": {
+                                        "Differentiator": [
+                                          {
+                                            "RateDifferentiatorType": "NONE"
+                                          }
+                                        ]
+                                      },
+                                      "Buyup": "false",
+                                      "RateAmount": "0.03",
+                                      "RateUnitType": "DOLLARS_PER_1000_COVERED_VOLUME"
+                                    }
+                                  ]
+                                },
+                                "ContributionSplits": {
+                                  "ContributionSplit": [
+                                    {
+                                      "ContributorType": "EMPLOYER",
+                                      "Buyup": "false",
+                                      "PercentageOfContribution": "100"
+                                    }
+                                  ]
+                                },
+                                "ProbationRules": {
+                                  "ProbationRule": [
+                                    {
+                                      "ProbationType": "NEW_HIRE",
+                                      "ProbationRuleType": "OTHER"
+                                    }
+                                  ]
+                                },
+                                "TerminationRule": "ON_EMPLOYEE_TERMINATION",
+                                "BenefitEarningsDefinitions": {
+                                  "BenefitEarningsDefinition": [
+                                    {
+                                      "BenefitEarningsType": "PAYROLL_BASE_SALARY",
+                                      "Description": "CONTRACT MODIFICATION"
+                                    }
+                                  ]
+                                },
+                                "RoundingRule": "NEXT_1000_DOLLARS",
+                                "AgeReductions": {}
+                              }
+                            ]
+                          },
+                          "RetroactiveTerminationLimitMonths": "3",
+                          "BillingCutoffDayOfMonth": "20"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

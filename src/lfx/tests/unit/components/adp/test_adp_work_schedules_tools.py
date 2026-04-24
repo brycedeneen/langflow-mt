@@ -1,4 +1,8 @@
-"""Tests for ADPWorkSchedulesToolsComponent."""
+"""Tests for ADPWorkSchedulesToolsComponent.
+
+Shapes asserted below are grounded in the HAR-sampled ADP request payloads
+under docs/adp-api-specs/time/work-schedules/v1/har-samples.json.
+"""
 
 from unittest.mock import AsyncMock, patch
 
@@ -27,78 +31,169 @@ def test_event_path_supported_combos():
 
 
 def test_event_path_unsupported_combos():
-    # schedule_entry supports only change
     for bad in [("schedule_entry", "add"), ("schedule_entry", "copy"), ("schedule_entry", "remove")]:
         with pytest.raises(ValueError, match="Unsupported"):
             event_path(*bad)
 
 
-# ------------- builder -------------
+# ------------- builder: add -------------
 
 
-def test_build_schedule_add():
+def test_build_schedule_add_matches_har_shape():
+    # HAR sample: Specifies_the_API_used_to_add_a_work_schedule_Provide_Example_workSchedule.add_request_3871.json
+    # ctx: {associateOID}; transform: {workSchedule: {schedulePeriod, scheduleDays}}
     body = build_work_schedule_event(
         scope="schedule",
         action="add",
         associate_oid="G3ABC",
         fields={
-            "scheduleStartDate": "2024-06-01",
-            "scheduleEndDate": "2024-06-07",
+            "schedulePeriod": {"startDate": "2024-06-01", "endDate": "2024-06-07"},
+            "scheduleDays": [],
         },
-        effective_date="2024-06-01",
-        event_reason_code="NEW_SCHEDULE",
     )
     event = body["events"][0]
     assert event["data"]["eventContext"] == {"associateOID": "G3ABC"}
-    transform = event["data"]["transform"]
-    assert transform["effectiveDateTime"] == "2024-06-01"
-    assert transform["eventReasonCode"] == {"codeValue": "NEW_SCHEDULE"}
-    assert transform["workSchedule"]["scheduleStartDate"] == "2024-06-01"
+    assert event["data"]["transform"]["workSchedule"]["schedulePeriod"]["startDate"] == "2024-06-01"
 
 
-def test_build_schedule_day_change_pins_item():
+def test_build_schedule_day_add_with_schedule_period_pin():
+    # HAR sample: workScheduleDay.add request — ctx has associateOID + schedulePeriod.
     body = build_work_schedule_event(
         scope="schedule_day",
-        action="change",
+        action="add",
         associate_oid="G3ABC",
-        item_id="DAY-1",
-        fields={"scheduleDate": "2024-06-02"},
+        context_pin_fields={
+            "schedulePeriod": {"startDate": "2024-06-01", "endDate": "2024-06-07"},
+        },
+        fields={
+            "daySequenceNumber": 1,
+            "scheduleDayDate": "2024-06-02",
+            "scheduleEntries": [],
+        },
     )
-    event = body["events"][0]
-    assert event["data"]["eventContext"] == {
+    ctx = body["events"][0]["data"]["eventContext"]
+    assert ctx == {
         "associateOID": "G3ABC",
-        "scheduleDay": {"itemID": "DAY-1"},
+        "schedulePeriod": {"startDate": "2024-06-01", "endDate": "2024-06-07"},
     }
-    assert event["data"]["transform"]["scheduleDay"]["scheduleDate"] == "2024-06-02"
+    day = body["events"][0]["data"]["transform"]["scheduleDay"]
+    assert day["daySequenceNumber"] == 1
+    assert day["scheduleDayDate"] == "2024-06-02"
 
 
-def test_build_schedule_remove_omits_transform_entity_key():
-    body = build_work_schedule_event(
-        scope="schedule",
-        action="remove",
-        associate_oid="G3ABC",
-        item_id="SCH-1",
-    )
-    transform = body["events"][0]["data"]["transform"]
-    assert "workSchedule" not in transform
+# ------------- builder: change -------------
 
 
-def test_build_schedule_entry_change_uses_schedule_entry_key():
+def test_build_schedule_entry_change_matches_har_pins():
+    # HAR sample ctx keys: associateOID, schedulePeriod, scheduleDayDate, scheduleEntryID.
+    # transform: eventStatusCode + scheduleEntry.
     body = build_work_schedule_event(
         scope="schedule_entry",
         action="change",
         associate_oid="G3ABC",
-        item_id="ENT-1",
-        fields={"positionID": "POS-42"},
+        context_pin_fields={
+            "schedulePeriod": {"startDate": "2024-06-01", "endDate": "2024-06-07"},
+            "scheduleDayDate": "2024-06-03",
+            "scheduleEntryID": "ENT-1",
+        },
+        additional_transform_fields={"eventStatusCode": {"codeValue": "Complete"}},
+        fields={
+            "categoryTypeCode": {"codeValue": "Work"},
+            "shiftTypeCode": {"codeValue": "Regular"},
+            "dateTimePeriod": {"startDateTime": "2024-06-03T09:00:00-04:00"},
+        },
     )
-    assert "scheduleEntry" in body["events"][0]["data"]["transform"]
-    assert body["events"][0]["data"]["eventContext"]["scheduleEntry"] == {"itemID": "ENT-1"}
+    ctx = body["events"][0]["data"]["eventContext"]
+    assert ctx["associateOID"] == "G3ABC"
+    assert ctx["scheduleEntryID"] == "ENT-1"
+    assert ctx["scheduleDayDate"] == "2024-06-03"
+    assert "schedulePeriod" in ctx
+    transform = body["events"][0]["data"]["transform"]
+    assert transform["eventStatusCode"] == {"codeValue": "Complete"}
+    assert transform["scheduleEntry"]["categoryTypeCode"] == {"codeValue": "Work"}
 
 
-def test_build_remove_without_identifier_raises():
-    with pytest.raises(ValueError, match="requires item_id"):
+# ------------- builder: copy -------------
+
+
+def test_build_schedule_copy_uses_transform_copy_fields():
+    # HAR sample: workSchedule.copy — transform has workerCopyTo, startDateCopyTo, workSchedule.
+    body = build_work_schedule_event(
+        scope="schedule",
+        action="copy",
+        associate_oid="G3ABC",
+        additional_transform_fields={
+            "workerCopyTo": {"associateOID": "G3XYZ"},
+            "startDateCopyTo": "2024-06-08",
+        },
+        fields={"scheduleDays": []},
+    )
+    transform = body["events"][0]["data"]["transform"]
+    assert transform["workerCopyTo"] == {"associateOID": "G3XYZ"}
+    assert transform["startDateCopyTo"] == "2024-06-08"
+    assert transform["workSchedule"] == {"scheduleDays": []}
+
+
+def test_build_schedule_day_copy_has_start_date_copy_to():
+    body = build_work_schedule_event(
+        scope="schedule_day",
+        action="copy",
+        associate_oid="G3ABC",
+        additional_transform_fields={"startDateCopyTo": "2024-06-10"},
+        fields={
+            "scheduleDayDate": "2024-06-02",
+            "scheduleEntries": [],
+        },
+    )
+    transform = body["events"][0]["data"]["transform"]
+    assert transform["startDateCopyTo"] == "2024-06-10"
+    assert transform["scheduleDay"]["scheduleDayDate"] == "2024-06-02"
+
+
+# ------------- builder: remove -------------
+
+
+def test_build_schedule_remove_uses_schedule_id_pin():
+    # HAR sample: workSchedule.remove ctx = {associateOID, scheduleID}. transform empty.
+    body = build_work_schedule_event(
+        scope="schedule",
+        action="remove",
+        associate_oid="G3ABC",
+        context_pin_fields={"scheduleID": "SCH-1"},
+    )
+    ctx = body["events"][0]["data"]["eventContext"]
+    assert ctx == {"associateOID": "G3ABC", "scheduleID": "SCH-1"}
+    transform = body["events"][0]["data"]["transform"]
+    # No workSchedule entity key on remove.
+    assert "workSchedule" not in transform
+
+
+def test_build_schedule_day_remove_uses_day_date_pin():
+    # HAR sample: workScheduleDay.remove ctx = {associateOID, scheduleDayDate}.
+    body = build_work_schedule_event(
+        scope="schedule_day",
+        action="remove",
+        associate_oid="G3ABC",
+        context_pin_fields={"scheduleDayDate": "2024-06-02"},
+        additional_transform_fields={"eventStatusCode": {"codeValue": "Complete"}},
+    )
+    ctx = body["events"][0]["data"]["eventContext"]
+    assert ctx == {"associateOID": "G3ABC", "scheduleDayDate": "2024-06-02"}
+    assert body["events"][0]["data"]["transform"]["eventStatusCode"] == {"codeValue": "Complete"}
+
+
+def test_build_remove_without_pin_raises():
+    with pytest.raises(ValueError, match="requires context_pin_fields"):
         build_work_schedule_event(
             scope="schedule", action="remove", associate_oid="G3ABC",
+        )
+
+
+def test_build_change_without_pin_raises():
+    with pytest.raises(ValueError, match="requires context_pin_fields"):
+        build_work_schedule_event(
+            scope="schedule_entry", action="change", associate_oid="G3ABC",
+            fields={"categoryTypeCode": {"codeValue": "Work"}},
         )
 
 
@@ -148,8 +243,8 @@ async def test_manage_routes_schedule_day_copy(adp_connection):
                 "scope": "schedule_day",
                 "action": "copy",
                 "associate_oid": "G3ABC",
-                "item_id": "DAY-1",
-                "fields": {"scheduleDate": "2024-06-08"},
+                "additional_transform_fields": {"startDateCopyTo": "2024-06-08"},
+                "fields": {"scheduleDayDate": "2024-06-01"},
             },
         )
     assert mock_post.call_args.kwargs["path"] == "/events/time/v1/work-schedule-day.copy"
@@ -165,4 +260,18 @@ async def test_manage_unsupported_combo_returns_422(adp_connection):
             {"scope": "schedule_entry", "action": "add", "associate_oid": "G3ABC"},
         )
     assert result["status_code"] == 422
+    mock_post.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_manage_missing_pin_returns_422(adp_connection):
+    c = _make(adp_connection, enable_mutations=True)
+    mock_post = AsyncMock()
+    with patch.object(c, "_post_event", new=mock_post):
+        tools = await c.build_tools()
+        result = await next(t for t in tools if t.name == "manage_work_schedule").ainvoke(
+            {"scope": "schedule", "action": "remove", "associate_oid": "G3ABC"},
+        )
+    assert result["status_code"] == 422
+    assert "context_pin_fields" in result["error"]
     mock_post.assert_not_called()

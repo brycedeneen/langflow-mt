@@ -60,13 +60,21 @@ class ADPBenefitsToolsComponent(Component):
     )
     icon = "ShieldPlus"
     name = "ADPBenefitsTools"
-    version: int = 1
+    version: int = 2
     changelog: ClassVar[list[ChangelogEntry]] = [
         ChangelogEntry(
             version=1,
             changes=(
                 "Initial release — `get_associate_beneficiaries`, `get_associate_dependents`, "
                 "plus gated `publish_external_benefit_plans` + `confirm_external_benefit_plan_data`."
+            ),
+        ),
+        ChangelogEntry(
+            version=2,
+            changes=(
+                "Enriched `publish_external_benefit_plans` tool description with the PascalCase "
+                "carrier-feed schema (TransmissionGUID, Employers[].Employer[].ClientEvents[]...) "
+                "now that HAR samples are available. No behavioral change."
             ),
         ),
     ]
@@ -171,8 +179,15 @@ class ADPBenefitsToolsComponent(Component):
             StructuredTool.from_function(
                 name="publish_external_benefit_plans",
                 description=(
-                    "POST external benefit plans to ADP WFN. Body shape is defined by ADP's "
-                    "external-partner integration docs — pass the JSON payload as `body`."
+                    "POST external benefit plans to ADP WFN (carrier-to-ADP feed). Unlike ADP's "
+                    "event-envelope APIs, this endpoint uses a PascalCase EDI-style payload with "
+                    "top-level TransmissionGUID, SenderName, ReceiverName, CreationDateTime, "
+                    "TestProductionCode ('Test'|'Production'), TransmissionTypeCode ('FullFile'|"
+                    "'Delta'), SchemaVersionIdentifier, and Employers.Employer[] — each Employer "
+                    "carries ClientEvents.ClientEvent[].BenefitPlanEvents.BenefitPlanEvent[] with "
+                    "plan details (PlanDisplayName, BenefitPlanIdentifier, ProductType, "
+                    "CoverageTier, GroupPolicyNumber, PlanAnniversary, enrollments, rate tiers, "
+                    "etc.). Pass the full JSON payload as `body` per ADP's carrier-feed docs."
                 ),
                 coroutine=_publish_external_benefit_plans,
                 args_schema=ExternalBenefitBodyInput,

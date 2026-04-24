@@ -1,0 +1,2034 @@
+{
+  "tile": "time/work-schedules/v1",
+  "samples": [
+    {
+      "filename": "1._Successful_request_without_payCode_and_allocation_in_the_payload._Provide_Example_workScheduleDay.add_request_8574.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "schedulePeriod": {
+                  "startDate": "2024-04-03",
+                  "endDate": "2024-04-03"
+                }
+              },
+              "transform": {
+                "scheduleDay": {
+                  "daySequenceNumber": 1,
+                  "scheduleDayDate": "2024-04-03",
+                  "scheduleEntries": [
+                    {
+                      "dateTimePeriod": {
+                        "startDateTime": "2024-04-03T17:00:00Z",
+                        "endDateTime": "2024-04-03T18:00:00Z"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "2._Successful_request_with_payCode_in_the_payload_Custom_Example_workScheduleDay.add_request_8575.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "G3RW7347TXSJ5XEF",
+                "schedulePeriod": {
+                  "startDate": "2024-04-05",
+                  "endDate": "2024-04-05"
+                }
+              },
+              "transform": {
+                "scheduleDay": {
+                  "daySequenceNumber": 1,
+                  "scheduleDayDate": "2024-04-05",
+                  "scheduleEntries": [
+                    {
+                      "dateTimePeriod": {
+                        "startDateTime": "2024-04-05T17:00:00-04:00",
+                        "endDateTime": "2024-04-05T18:00:00-04:00"
+                      }
+                    },
+                    {
+                      "categoryTypeCode": {
+                        "codeValue": "PAYCODE"
+                      },
+                      "payCode": {
+                        "codeValue": "HOLIDAY"
+                      },
+                      "dateTimePeriod": {
+                        "startDateTime": "2024-04-05T19:00:00Z",
+                        "endDateTime": "2024-04-05T20:00:00Z"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "001000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "dateTimePeriod": {
+                        "startDateTime": "2024-04-05T21:00:00Z",
+                        "endDateTime": "2024-04-05T22:00:00Z"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "3._Successful_request_with_allocation_in_the_payload._Custom_Example_workScheduleDay.add_request_8576.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "schedulePeriod": {
+                  "startDate": "2024-04-05",
+                  "endDate": "2024-04-05"
+                }
+              },
+              "transform": {
+                "scheduleDay": {
+                  "daySequenceNumber": 1,
+                  "scheduleDayDate": "2024-04-05",
+                  "scheduleEntries": [
+                    {
+                      "dateTimePeriod": {
+                        "startDateTime": "2024-04-05T17:00:00-04:00",
+                        "endDateTime": "2024-04-05T18:00:00-04:00"
+                      }
+                    },
+                    {
+                      "categoryTypeCode": {
+                        "codeValue": "PAYCODE"
+                      },
+                      "payCode": {
+                        "codeValue": "HOLIDAY"
+                      },
+                      "dateTimePeriod": {
+                        "startDateTime": "2024-04-05T19:00:00Z",
+                        "endDateTime": "2024-04-05T20:00:00Z"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "001000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "dateTimePeriod": {
+                        "startDateTime": "2024-04-05T21:00:00Z",
+                        "endDateTime": "2024-04-05T22:00:00Z"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "4._Successful_request_with_notes_in_the_payload._Custom_Example_workScheduleDay.add_request_8577.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "G3RW7347TXSJ5XEF",
+                "schedulePeriod": {
+                  "startDate": "2024-04-21",
+                  "endDate": "2024-04-21"
+                }
+              },
+              "transform": {
+                "scheduleDay": {
+                  "daySequenceNumber": 1,
+                  "scheduleDayDate": "2024-04-21",
+                  "scheduleEntries": [
+                    {
+                      "dateTimePeriod": {
+                        "startDateTime": "2024-04-21T21:00:00Z",
+                        "endDateTime": "2024-04-21T22:00:00Z"
+                      },
+                      "entryComments": [
+                        {
+                          "textValue": "Leaving earlier on Tuesdays - need to pick up kids"
+                        }
+                      ],
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "001000"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Meal Plan"
+                          },
+                          "allocationCode": {
+                            "codeValue": "30ACTL"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "5._Partially_unsuccessful_request_when_the_shift_timing_overlaps_with_the_scheduled_shifts._Custom_Example_workScheduleDay.add_request_8578.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "G3RW7347TXSJ5XEF",
+                "schedulePeriod": {
+                  "startDate": "2024-04-18",
+                  "endDate": "2024-04-18"
+                }
+              },
+              "transform": {
+                "scheduleDay": {
+                  "daySequenceNumber": 1,
+                  "scheduleDayDate": "2024-04-18",
+                  "scheduleEntries": [
+                    {
+                      "dateTimePeriod": {
+                        "startDateTime": "2024-04-18T09:00:00-04:00",
+                        "endDateTime": "2024-04-18T10:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "001000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "categoryTypeCode": {
+                        "codeValue": "PAYCODE"
+                      },
+                      "payCode": {
+                        "codeValue": "HOLIDAY"
+                      },
+                      "dateTimePeriod": {
+                        "startDateTime": "2024-04-18T17:00:00Z",
+                        "endDateTime": "2024-04-18T18:00:00Z"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "001000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "dateTimePeriod": {
+                        "startDateTime": "2024-04-18T21:00:00Z",
+                        "endDateTime": "2024-04-18T22:00:00Z"
+                      },
+                      "entryComments": [
+                        {
+                          "textValue": "Leaving earlier on Tuesdays - need to pick up kids"
+                        }
+                      ],
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "001000"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Meal Plan"
+                          },
+                          "allocationCode": {
+                            "codeValue": "30ACTL"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "6._Partially_unsuccessful_request_when_any_part_of_the_shift_overlaps_with_the_scheduled_shifts._Provide_Example_workScheduleDay.add_request_8579.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "G3RW7347TXSJ5XEF",
+                "schedulePeriod": {
+                  "startDate": "2024-04-18",
+                  "endDate": "2024-04-18"
+                }
+              },
+              "transform": {
+                "scheduleDay": {
+                  "daySequenceNumber": 1,
+                  "scheduleDayDate": "2024-04-18",
+                  "scheduleEntries": [
+                    {
+                      "dateTimePeriod": {
+                        "startDateTime": "2024-04-18T09:00:00-04:00",
+                        "endDateTime": "2024-04-18T10:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "001000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "categoryTypeCode": {
+                        "codeValue": "PAYCODE"
+                      },
+                      "payCode": {
+                        "codeValue": "HOLIDAY"
+                      },
+                      "dateTimePeriod": {
+                        "startDateTime": "2024-04-18T17:00:00Z",
+                        "endDateTime": "2024-04-18T18:00:00Z"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "001000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "dateTimePeriod": {
+                        "startDateTime": "2024-04-18T21:00:00Z",
+                        "endDateTime": "2024-04-18T22:00:00Z"
+                      },
+                      "entryComments": [
+                        {
+                          "textValue": "Leaving earlier on Tuesdays - need to pick up kids"
+                        }
+                      ],
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "001000"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Meal Plan"
+                          },
+                          "allocationCode": {
+                            "codeValue": "30ACTL"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "7._Partial_unsuccessful_request_when_the_payCode_value_is_invalid._Provide_Example_workScheduleDay.add_request_8580.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "G3RW7347TXSJ5XEF",
+                "schedulePeriod": {
+                  "startDate": "2024-04-18",
+                  "endDate": "2024-04-18"
+                }
+              },
+              "transform": {
+                "scheduleDay": {
+                  "daySequenceNumber": 1,
+                  "scheduleDayDate": "2024-04-18",
+                  "scheduleEntries": [
+                    {
+                      "categoryTypeCode": {
+                        "codeValue": "PAYCODE"
+                      },
+                      "payCode": {
+                        "codeValue": "HOLIDAY"
+                      },
+                      "dateTimePeriod": {
+                        "startDateTime": "2024-04-18T17:00:00Z",
+                        "endDateTime": "2024-04-18T18:00:00Z"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "0014566"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "dateTimePeriod": {
+                        "startDateTime": "2024-04-18T23:00:00Z",
+                        "endDateTime": "2024-04-18T23:30:00Z"
+                      },
+                      "entryComments": [
+                        {
+                          "textValue": "Leaving earlier on Tuesdays - need to pick up kids"
+                        }
+                      ],
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "001000"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Meal Plan"
+                          },
+                          "allocationCode": {
+                            "codeValue": "30ACTL"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Specifies_the_API_used_to_add_a_work_schedule_Provide_Example_workSchedule.add_request_3870.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "serviceCategoryCode": {
+              "codeValue": "time"
+            },
+            "eventNameCode": {
+              "codeValue": "workSchedule.add"
+            },
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}"
+              },
+              "transform": {
+                "workSchedule": {
+                  "schedulePeriod": {
+                    "startDate": "2024-04-15",
+                    "endDate": "2024-04-15"
+                  },
+                  "scheduleDays": [
+                    {
+                      "daySequenceNumber": 1,
+                      "scheduleDayDate": "2024-04-15",
+                      "scheduleEntries": [
+                        {
+                          "categoryTypeCode": {
+                            "codeValue": "PAYCODE"
+                          },
+                          "shiftTypeCode": {
+                            "codeValue": "REGULAR"
+                          },
+                          "payCode": {
+                            "codeValue": "HOLIDAY"
+                          },
+                          "dateTimePeriod": {
+                            "startDateTime": "2024-04-15T21:00:00-06:00",
+                            "endDateTime": "2024-04-15T22:00:00-06:00"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "1._Specifies_the_API_used_to_change_the_work_schedule._Provide_Example_workScheduleDay.change_request_8590.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "serviceCategoryCode": {
+              "codeValue": "time"
+            },
+            "eventNameCode": {
+              "codeValue": "workScheduleDay.change"
+            },
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "schedulePeriod": {
+                  "startDate": "2019-05-20",
+                  "endDate": "2019-05-20"
+                }
+              },
+              "transform": {
+                "scheduleDay": {
+                  "daySequenceNumber": 1,
+                  "scheduleDayDate": "2019-05-20",
+                  "scheduleEntries": [
+                    {
+                      "scheduleEntryID": "100117024620",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T09:00:00-04:00",
+                        "endDateTime": "2019-05-20T12:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024621",
+                      "categoryTypeCode": {
+                        "codeValue": "PAYCODE"
+                      },
+                      "payCode": {
+                        "codeValue": "AWARD"
+                      },
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T12:00:00-04:00",
+                        "endDateTime": "2019-05-20T13:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024622",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T13:00:00-04:00",
+                        "endDateTime": "2019-05-20T18:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Job"
+                          },
+                          "allocationCode": {
+                            "codeValue": "job1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "ShiftRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "OVLPSHIFT1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "FlexitimeRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "FlexTimeRule01"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "LunchPlan"
+                          },
+                          "allocationCode": {
+                            "codeValue": "30AUTO"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Location",
+                            "shortName": "Location"
+                          },
+                          "allocationCode": {
+                            "codeValue": "Head Office NY",
+                            "shortName": "CA"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "2._Unsuccessful_request_when_the_department_number_is_Invalid._Provide_Example_workScheduleDay.change_request_8591.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "serviceCategoryCode": {
+              "codeValue": "time"
+            },
+            "eventNameCode": {
+              "codeValue": "workScheduleDay.change"
+            },
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "schedulePeriod": {
+                  "startDate": "2019-05-20",
+                  "endDate": "2019-05-20"
+                }
+              },
+              "transform": {
+                "scheduleDay": {
+                  "daySequenceNumber": 1,
+                  "scheduleDayDate": "2019-05-20",
+                  "scheduleEntries": [
+                    {
+                      "scheduleEntryID": "100117024620",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T09:00:00-04:00",
+                        "endDateTime": "2019-05-20T12:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000XX"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024621",
+                      "categoryTypeCode": {
+                        "codeValue": "PAYCODE"
+                      },
+                      "payCode": {
+                        "codeValue": "AWARD"
+                      },
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T12:00:00-04:00",
+                        "endDateTime": "2019-05-20T13:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000XX"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024622",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T13:00:00-04:00",
+                        "endDateTime": "2019-05-20T18:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000XX"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Job"
+                          },
+                          "allocationCode": {
+                            "codeValue": "job1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "ShiftRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "OVLPSHIFT1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "FlexitimeRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "FlexTimeRule01"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "LunchPlan"
+                          },
+                          "allocationCode": {
+                            "codeValue": "30AUTO"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Location",
+                            "shortName": "Location"
+                          },
+                          "allocationCode": {
+                            "codeValue": "Head Office NY",
+                            "shortName": "CA"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "3._Unsuccessful_request_when_scheduleEntryID_is_Invalid._Provide_Example_workScheduleDay.change_request_8592.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "serviceCategoryCode": {
+              "codeValue": "time"
+            },
+            "eventNameCode": {
+              "codeValue": "workScheduleDay.change"
+            },
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "schedulePeriod": {
+                  "startDate": "2019-05-20",
+                  "endDate": "2019-05-20"
+                }
+              },
+              "transform": {
+                "scheduleDay": {
+                  "daySequenceNumber": 1,
+                  "scheduleDayDate": "2019-05-20",
+                  "scheduleEntries": [
+                    {
+                      "scheduleEntryID": "100117024620XXX",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T09:00:00-04:00",
+                        "endDateTime": "2019-05-20T12:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024621XXX",
+                      "categoryTypeCode": {
+                        "codeValue": "PAYCODE"
+                      },
+                      "payCode": {
+                        "codeValue": "AWARD"
+                      },
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T12:00:00-04:00",
+                        "endDateTime": "2019-05-20T13:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024622XXX",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T13:00:00-04:00",
+                        "endDateTime": "2019-05-20T18:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Job"
+                          },
+                          "allocationCode": {
+                            "codeValue": "job1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "ShiftRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "OVLPSHIFT1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "FlexitimeRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "FlexTimeRule01"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "LunchPlan"
+                          },
+                          "allocationCode": {
+                            "codeValue": "30AUTO"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Location",
+                            "shortName": "Location"
+                          },
+                          "allocationCode": {
+                            "codeValue": "Head Office NY",
+                            "shortName": "CA"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "4._Unsuccessful_request_when_the_payCode_is_Invalid._Provide_Example_workScheduleDay.change_request_8593.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "schedulePeriod": {
+                  "startDate": "2019-05-20",
+                  "endDate": "2019-05-20"
+                }
+              },
+              "transform": {
+                "scheduleDay": {
+                  "daySequenceNumber": 1,
+                  "scheduleDayDate": "2019-05-20",
+                  "scheduleEntries": [
+                    {
+                      "scheduleEntryID": "100117024620",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T09:00:00-04:00",
+                        "endDateTime": "2019-05-20T12:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024621",
+                      "categoryTypeCode": {
+                        "codeValue": "PAYCODE"
+                      },
+                      "payCode": {
+                        "codeValue": "AWARD"
+                      },
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T12:00:00-04:00",
+                        "endDateTime": "2019-05-20T13:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024622",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T13:00:00-04:00",
+                        "endDateTime": "2019-05-20T18:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Job"
+                          },
+                          "allocationCode": {
+                            "codeValue": "job1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "ShiftRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "OVLPSHIFT1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "FlexitimeRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "FlexTimeRule01"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "LunchPlan"
+                          },
+                          "allocationCode": {
+                            "codeValue": "30AUTO"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Location",
+                            "shortName": "Location"
+                          },
+                          "allocationCode": {
+                            "codeValue": "Head Office NY",
+                            "shortName": "CA"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "5._Unsuccessful_request_when_allocation_is_Invalid._Provide_Example_workScheduleDay.change_request_8594.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "serviceCategoryCode": {
+              "codeValue": "time"
+            },
+            "eventNameCode": {
+              "codeValue": "workScheduleDay.change"
+            },
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "schedulePeriod": {
+                  "startDate": "2019-05-20",
+                  "endDate": "2019-05-20"
+                }
+              },
+              "transform": {
+                "scheduleDay": {
+                  "daySequenceNumber": 1,
+                  "scheduleDayDate": "2019-05-20",
+                  "scheduleEntries": [
+                    {
+                      "scheduleEntryID": "100117024620",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T09:00:00-04:00",
+                        "endDateTime": "2019-05-20T12:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024621",
+                      "categoryTypeCode": {
+                        "codeValue": "PAYCODE"
+                      },
+                      "payCode": {
+                        "codeValue": "AWARD"
+                      },
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T12:00:00-04:00",
+                        "endDateTime": "2019-05-20T13:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024622",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T13:00:00-04:00",
+                        "endDateTime": "2019-05-20T18:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Job"
+                          },
+                          "allocationCode": {
+                            "codeValue": "job1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "ShiftRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "OVLPSHIFT1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "FlexitimeRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "FlexTimeRule01"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "LunchPlan"
+                          },
+                          "allocationCode": {
+                            "codeValue": "30AUTO"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Location",
+                            "shortName": "Location"
+                          },
+                          "allocationCode": {
+                            "codeValue": "Head Office NY",
+                            "shortName": "CA"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "6._Failure_request_when_endDateTime_is_Invalid._Provide_Example_workScheduleDay.change_request_8595.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "serviceCategoryCode": {
+              "codeValue": "time"
+            },
+            "eventNameCode": {
+              "codeValue": "workScheduleDay.change"
+            },
+            "data": {
+              "eventContext": {
+                "associateOID": "G3A0ZFJNX6ZDVC1P",
+                "schedulePeriod": {
+                  "startDate": "2019-05-20",
+                  "endDate": "2019-05-20"
+                }
+              },
+              "transform": {
+                "scheduleDay": {
+                  "daySequenceNumber": 1,
+                  "scheduleDayDate": "2019-05-20",
+                  "scheduleEntries": [
+                    {
+                      "scheduleEntryID": "100117024620",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T09:00:00-04:00",
+                        "endDateTime": "2019-05-20T12:"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024621",
+                      "categoryTypeCode": {
+                        "codeValue": "PAYCODE"
+                      },
+                      "payCode": {
+                        "codeValue": "AWARD"
+                      },
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T12:00:00-04:00",
+                        "endDateTime": "2019-05-20"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024622",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T13:00:00-04:00",
+                        "endDateTime": "2019-05-20T18::00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Job"
+                          },
+                          "allocationCode": {
+                            "codeValue": "job1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "ShiftRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "OVLPSHIFT1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "FlexitimeRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "FlexTimeRule01"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "LunchPlan"
+                          },
+                          "allocationCode": {
+                            "codeValue": "30AUTO"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Location",
+                            "shortName": "Location"
+                          },
+                          "allocationCode": {
+                            "codeValue": "Head Office NY",
+                            "shortName": "CA"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Changes_a_entry_within_an_existing_employee_schedule_requestSample_20_workScheduleEntry.change_request_43687.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "serviceCategoryCode": {
+              "codeValue": "time"
+            },
+            "eventNameCode": {
+              "codeValue": "workScheduleEntry.change"
+            },
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "schedulePeriod": {
+                  "startDate": "2024-03-24",
+                  "endDate": "2024-03-24"
+                },
+                "scheduleDayDate": "2024-03-24",
+                "scheduleEntryID": "631749813086642719"
+              },
+              "transform": {
+                "eventStatusCode": {
+                  "codeValue": "submit"
+                },
+                "scheduleEntry": {
+                  "categoryTypeCode": {
+                    "codeValue": "SHIFT"
+                  },
+                  "shiftTypeCode": {
+                    "codeValue": "REGULAR"
+                  },
+                  "dateTimePeriod": {
+                    "startDateTime": "2024-03-24T01:00:00-06:00",
+                    "endDateTime": "2024-03-24T02:10:00-06:00"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Unsucessful_when_Request_payload_is_not_valid._requestSample_20_workScheduleEntry.change_request_43688.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "serviceCategoryCode": {
+              "codeValue": "time"
+            },
+            "eventNameCode": {
+              "codeValue": "workScheduleEntry.change"
+            },
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "schedulePeriod": {
+                  "startDate": "2024-03-17",
+                  "endDate": "2024-03-17"
+                },
+                "scheduleDayDate": "2024-03-17",
+                "scheduleEntryID": "17383659921995503"
+              },
+              "transform": {
+                "eventStatusCode": {
+                  "codeValue": "submit"
+                },
+                "scheduleEntry": {
+                  "categoryTypeCode": {
+                    "codeValue": "SHIFT"
+                  },
+                  "shiftTypeCode": {
+                    "codeValue": "REGULAR"
+                  },
+                  "dateTimePeriod": {
+                    "startDateTime": "2024-03-17T01:00:00-06:00",
+                    "endDateTime": "2024-03-17T02:10:00-06:00"
+                  },
+                  "payCode": {
+                    "codeValue": "asdasd"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "changes_an_employees_work_schedule._Provide_Example_workSchedule.change_request_3871.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}"
+              },
+              "transform": {
+                "workSchedule": {
+                  "schedulePeriod": {
+                    "startDate": "2019-05-11",
+                    "endDate": "2019-05-22"
+                  },
+                  "scheduleDays": [
+                    {
+                      "scheduleDayDate": "2019-05-10",
+                      "scheduleEntries": [
+                        {
+                          "scheduleEntryID": "100116991632",
+                          "categoryTypeCode": {
+                            "codeValue": "SHIFT"
+                          },
+                          "earningAllocations": [
+                            {
+                              "allocationTypeCode": {
+                                "codeValue": "Department"
+                              },
+                              "allocationCode": {
+                                "codeValue": "003000"
+                              }
+                            }
+                          ],
+                          "entryComments": [
+                            {
+                              "commentTypeCode": {
+                                "shortName": "Punch Comment"
+                              },
+                              "textValue": "Change Comments"
+                            }
+                          ],
+                          "dateTimePeriod": {
+                            "startDateTime": "2019-05-10T09:00:00-04:00",
+                            "endDateTime": "2019-05-10T13:00:00-04:00"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleDayDate": "2019-05-11",
+                      "scheduleEntries": [
+                        {
+                          "scheduleEntryID": "100116991634",
+                          "categoryTypeCode": {
+                            "codeValue": "SHIFT"
+                          },
+                          "earningAllocations": [],
+                          "entryComments": [],
+                          "dateTimePeriod": {
+                            "startDateTime": "2019-05-11T09:00:00-04:00",
+                            "endDateTime": "2019-05-11T13:00:00-04:00"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleDayDate": "2019-05-12",
+                      "scheduleEntries": [
+                        {
+                          "scheduleEntryID": "100116991635",
+                          "categoryTypeCode": {
+                            "codeValue": "SHIFT"
+                          },
+                          "earningAllocations": [],
+                          "entryComments": [],
+                          "dateTimePeriod": {
+                            "startDateTime": "2019-05-12T09:00:00-04:00",
+                            "endDateTime": "2019-05-12T12:00:00-04:00"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleDayDate": "2019-05-13",
+                      "scheduleEntries": [
+                        {
+                          "scheduleEntryID": "100116991636",
+                          "categoryTypeCode": {
+                            "codeValue": "SHIFT"
+                          },
+                          "earningAllocations": [],
+                          "entryComments": [],
+                          "dateTimePeriod": {
+                            "startDateTime": "2019-05-13T09:00:00-04:00",
+                            "endDateTime": "2019-05-13T14:00:00-04:00"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            "links": []
+          }
+        ]
+      }
+    },
+    {
+      "filename": "1._Specifies_the_API_used_to_copy_the_work_schedule._Provide_Example_workScheduleDay.copy_request_8598.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}"
+              },
+              "transform": {
+                "startDateCopyTo": "2019-05-21",
+                "scheduleDay": {
+                  "scheduleDayDate": "2019-05-20",
+                  "scheduleEntries": [
+                    {
+                      "scheduleEntryID": "100117024620",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T09:00:00-04:00",
+                        "endDateTime": "2019-05-20T12:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024621",
+                      "categoryTypeCode": {
+                        "codeValue": "PAYCODE"
+                      },
+                      "payCode": {
+                        "codeValue": "AWARD"
+                      },
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T12:00:00-04:00",
+                        "endDateTime": "2019-05-20T13:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024622",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T13:00:00-04:00",
+                        "endDateTime": "2019-05-20T18:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Job"
+                          },
+                          "allocationCode": {
+                            "codeValue": "job1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "ShiftRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "OVLPSHIFT1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "FlexitimeRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "FlexTimeRule01"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "LunchPlan"
+                          },
+                          "allocationCode": {
+                            "codeValue": "30AUTO"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Location",
+                            "shortName": "Location"
+                          },
+                          "allocationCode": {
+                            "codeValue": "Head Office NY",
+                            "shortName": "CA"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "2._Unsuccessful_request_call_when_all_schedule_times_are_overlapped_with_existing_scheduled_times._Provide_Example_workScheduleDay.copy_request_8599.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}"
+              },
+              "transform": {
+                "startDateCopyTo": "2019-05-21",
+                "scheduleDay": {
+                  "scheduleDayDate": "2019-05-20",
+                  "scheduleEntries": [
+                    {
+                      "scheduleEntryID": "100117024620",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T09:00:00-04:00",
+                        "endDateTime": "2019-05-20T12:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024621",
+                      "categoryTypeCode": {
+                        "codeValue": "PAYCODE"
+                      },
+                      "payCode": {
+                        "codeValue": "AWARD"
+                      },
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T12:00:00-04:00",
+                        "endDateTime": "2019-05-20T13:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024622",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T13:00:00-04:00",
+                        "endDateTime": "2019-05-20T18:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Job"
+                          },
+                          "allocationCode": {
+                            "codeValue": "job1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "ShiftRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "OVLPSHIFT1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "FlexitimeRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "FlexTimeRule01"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "LunchPlan"
+                          },
+                          "allocationCode": {
+                            "codeValue": "30AUTO"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Location",
+                            "shortName": "Location"
+                          },
+                          "allocationCode": {
+                            "codeValue": "Head Office NY",
+                            "shortName": "CA"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "3._Unsuccessful_request_call_when_any_of_the_time_is_overlapped_with_existing_scheduled_time._Provide_Example_workScheduleDay.copy_request_8600.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}"
+              },
+              "transform": {
+                "startDateCopyTo": "2019-05-21",
+                "scheduleDay": {
+                  "scheduleDayDate": "2019-05-20",
+                  "scheduleEntries": [
+                    {
+                      "scheduleEntryID": "100117024620",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T09:00:00-04:00",
+                        "endDateTime": "2019-05-20T12:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024621",
+                      "categoryTypeCode": {
+                        "codeValue": "PAYCODE"
+                      },
+                      "payCode": {
+                        "codeValue": "AWARD"
+                      },
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T12:00:00-04:00",
+                        "endDateTime": "2019-05-20T13:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleEntryID": "100117024622",
+                      "dateTimePeriod": {
+                        "startDateTime": "2019-05-20T13:00:00-04:00",
+                        "endDateTime": "2019-05-20T18:00:00-04:00"
+                      },
+                      "earningAllocations": [
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Department"
+                          },
+                          "allocationCode": {
+                            "codeValue": "003000"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Job"
+                          },
+                          "allocationCode": {
+                            "codeValue": "job1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "ShiftRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "OVLPSHIFT1"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "FlexitimeRule"
+                          },
+                          "allocationCode": {
+                            "codeValue": "FlexTimeRule01"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "LunchPlan"
+                          },
+                          "allocationCode": {
+                            "codeValue": "30AUTO"
+                          }
+                        },
+                        {
+                          "allocationTypeCode": {
+                            "codeValue": "Location",
+                            "shortName": "Location"
+                          },
+                          "allocationCode": {
+                            "codeValue": "Head Office NY",
+                            "shortName": "CA"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Copy_the_work_schedule_of_an_employee_Provide_Example_workSchedule.copy_request_3872.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}"
+              },
+              "transform": {
+                "workerCopyTo": {
+                  "associateOID": "{{employeeAOID}}"
+                },
+                "startDateCopyTo": "2019-05-10",
+                "workSchedule": {
+                  "scheduleDays": [
+                    {
+                      "scheduleDayDate": "2019-05-10",
+                      "scheduleEntries": [
+                        {
+                          "scheduleEntryID": "100116991632",
+                          "categoryTypeCode": {
+                            "codeValue": "SHIFT"
+                          },
+                          "earningAllocations": [
+                            {
+                              "allocationTypeCode": {
+                                "codeValue": "Department"
+                              },
+                              "allocationCode": {
+                                "codeValue": "003000"
+                              }
+                            }
+                          ],
+                          "entryComments": [
+                            {
+                              "commentTypeCode": {
+                                "shortName": "Punch Comment"
+                              },
+                              "textValue": "Change Comments"
+                            }
+                          ],
+                          "dateTimePeriod": {
+                            "startDateTime": "2019-05-10T09:00:00-04:00",
+                            "endDateTime": "2019-05-10T13:00:00-04:00"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleDayDate": "2019-05-11",
+                      "scheduleEntries": [
+                        {
+                          "scheduleEntryID": "100116991634",
+                          "categoryTypeCode": {
+                            "codeValue": "SHIFT"
+                          },
+                          "earningAllocations": [],
+                          "entryComments": [],
+                          "dateTimePeriod": {
+                            "startDateTime": "2019-05-11T09:00:00-04:00",
+                            "endDateTime": "2019-05-11T13:00:00-04:00"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleDayDate": "2019-05-12",
+                      "scheduleEntries": [
+                        {
+                          "scheduleEntryID": "100116991635",
+                          "categoryTypeCode": {
+                            "codeValue": "SHIFT"
+                          },
+                          "earningAllocations": [],
+                          "entryComments": [],
+                          "dateTimePeriod": {
+                            "startDateTime": "2019-05-12T09:00:00-04:00",
+                            "endDateTime": "2019-05-12T12:00:00-04:00"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "scheduleDayDate": "2019-05-13",
+                      "scheduleEntries": [
+                        {
+                          "scheduleEntryID": "100116991636",
+                          "categoryTypeCode": {
+                            "codeValue": "SHIFT"
+                          },
+                          "earningAllocations": [],
+                          "entryComments": [],
+                          "dateTimePeriod": {
+                            "startDateTime": "2019-05-13T09:00:00-04:00",
+                            "endDateTime": "2019-05-13T14:00:00-04:00"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            "links": []
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Specifies_the_API_used_to_remove_the_work_schedule._Provide_Example_workScheduleDay.remove_request_8597.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "scheduleDayDate": "2019-05-14"
+              },
+              "transform": {
+                "eventStatusCode": {
+                  "codeValue": "submit"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "filename": "Removing_work_schedule_for_an_employee_Provide_Example_workSchedule.remove_request_3873.json",
+      "status": 200,
+      "body": {
+        "events": [
+          {
+            "data": {
+              "eventContext": {
+                "associateOID": "{{employeeAOID}}",
+                "scheduleID": "2019-05-10zz2019-05-14"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
