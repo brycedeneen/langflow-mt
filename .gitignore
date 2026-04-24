@@ -295,3 +295,8 @@ AGENTS.md
 
 .worktrees/
 CLAUDE.local.md
+
+# Raw HAR session captures from the ADP developer portal — scratch inputs
+# that shouldn't be committed. Sanitized extracts live in har-samples.json.
+docs/adp-api-specs/*.har
+docs/adp-api-specs/**/*.har
