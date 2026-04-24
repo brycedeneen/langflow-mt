@@ -162,6 +162,7 @@ async def list_templates(
     scope: Literal["platform", "org", "all"] = Query(default="all", description="Filter by template scope"),
     created_by_me: bool = Query(default=False, description="Return only templates created by the current user"),
     include_archived: bool = Query(default=False, description="Include archived templates"),
+    tag_id: list[UUID] | None = Query(default=None, description="Filter by tag_id (repeatable; OR semantics)"),
 ) -> list[TemplateRead]:
     # Guard: only platform admins (or own-rows requests) may browse archived templates
     if include_archived and not getattr(current_user, "is_platform_admin", False) and not created_by_me:
@@ -188,6 +189,14 @@ async def list_templates(
             .join(TemplateCategory, TemplateCategory.template_id == Template.id)
             .join(Category, Category.id == TemplateCategory.category_id)
             .where(Category.name.ilike(category))
+        )
+
+    if tag_id:
+        stmt = (
+            stmt
+            .join(TemplateTag, TemplateTag.template_id == Template.id)
+            .where(col(TemplateTag.tag_id).in_(tag_id))
+            .distinct()
         )
 
     # Tenant scoping: platform admins see all rows; everyone else sees

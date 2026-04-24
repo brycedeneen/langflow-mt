@@ -12,7 +12,7 @@ from uuid import UUID, uuid4
 import orjson
 from aiofile import async_open
 from anyio import Path
-from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 from fastapi_pagination import Page, Params
@@ -436,6 +436,7 @@ async def read_flows(
     folder_id: UUID | None = None,
     params: Annotated[Params, Depends()],
     header_flows: bool = False,
+    tag_id: Annotated[list[UUID] | None, Query()] = None,
 ):
     """Retrieve a list of flows with pagination support.
 
@@ -490,6 +491,13 @@ async def read_flows(
 
         if components_only:
             stmt = stmt.where(Flow.is_component == True)  # noqa: E712
+
+        if tag_id:
+            stmt = (
+                stmt.join(FlowTag, FlowTag.flow_id == Flow.id)
+                .where(col(FlowTag.tag_id).in_(tag_id))
+                .distinct()
+            )
 
         if get_all:
             flows = (await session.exec(stmt)).all()
