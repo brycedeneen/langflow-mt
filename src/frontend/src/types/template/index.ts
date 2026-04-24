@@ -1,3 +1,5 @@
+import type { TagRead } from "@/types/tag";
+
 export type MembershipOrg = {
   id: string;
   name: string;
@@ -36,6 +38,7 @@ export type TemplateRead = {
   org_id: string | null;
   created_by: string | null;
   categories: Category[];
+  tags?: TagRead[];
 };
 
 export type TemplateReadDetail = TemplateRead & {

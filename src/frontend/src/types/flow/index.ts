@@ -1,6 +1,7 @@
 import type { Edge, Node, ReactFlowJsonObject } from "@xyflow/react";
 import type { BuildStatus } from "../../constants/enums";
 import type { APIClassType, OutputFieldType } from "../api/index";
+import type { TagRead } from "@/types/tag";
 
 export type PaginatedFlowsType = {
   items: FlowType[];
@@ -26,7 +27,7 @@ export type FlowType = {
   user_id?: string;
   icon?: string;
   gradient?: string;
-  tags?: string[];
+  tags?: TagRead[]; // populated by GET /api/v1/flows/ and folder listings
   icon_bg_color?: string;
   folder_id?: string;
   webhook?: boolean;
