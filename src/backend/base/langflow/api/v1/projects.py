@@ -19,6 +19,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 from langflow.api.utils import CurrentActiveUser, DbSession, cascade_delete_flow, custom_params, remove_api_keys
+from langflow.api.utils.authz import assert_org_role
 from langflow.api.utils.core import CurrentOrg
 from langflow.api.utils.mcp.config_utils import validate_mcp_server_for_project
 from langflow.api.v1.auth_helpers import handle_auth_settings_update
@@ -46,6 +47,7 @@ from langflow.services.database.models.folder.model import (
     FolderUpdate,
 )
 from langflow.services.database.models.folder.pagination_model import FolderWithPaginatedFlows
+from langflow.services.database.models.membership.model import MembershipRole
 from langflow.services.deps import get_service, get_settings_service, get_storage_service
 from langflow.services.schema import ServiceType
 
@@ -60,24 +62,23 @@ async def create_project(
     current_user: CurrentActiveUser,
     current_org: CurrentOrg,
 ):
+    await assert_org_role(current_user, current_org.id, MembershipRole.MEMBER, session=session)
     try:
         new_project = Folder.model_validate(project, from_attributes=True)
         new_project.user_id = current_user.id
         new_project.organization_id = current_org.id
-        # First check if the project.name is unique
-        # there might be flows with name like: "MyFlow", "MyFlow (1)", "MyFlow (2)"
-        # so we need to check if the name is unique with `like` operator
-        # if we find a flow with the same name, we add a number to the end of the name
-        # based on the highest number found
+        # Name uniqueness is scoped to the organization.
         if (
             await session.exec(
-                statement=select(Folder).where(Folder.name == new_project.name).where(Folder.user_id == current_user.id)
+                statement=select(Folder).where(
+                    Folder.name == new_project.name, Folder.organization_id == current_org.id
+                )
             )
         ).first():
             project_results = await session.exec(
                 select(Folder).where(
                     Folder.name.like(f"{new_project.name}%"),  # type: ignore[attr-defined]
-                    Folder.user_id == current_user.id,
+                    Folder.organization_id == current_org.id,
                 )
             )
             if project_results:
@@ -218,13 +219,11 @@ async def read_projects(
     current_user: CurrentActiveUser,
     current_org: CurrentOrg,
 ):
+    await assert_org_role(current_user, current_org.id, MembershipRole.VIEWER, session=session)
     try:
         projects = (
             await session.exec(
-                select(Folder).where(
-                    or_(Folder.user_id == current_user.id, Folder.user_id == None),  # noqa: E711
-                    or_(Folder.organization_id == current_org.id, Folder.organization_id == None),  # noqa: E711
-                )
+                select(Folder).where(Folder.organization_id == current_org.id)
             )
         ).all()
         projects = [project for project in projects if project.name != STARTER_FOLDER_NAME]
@@ -250,6 +249,7 @@ async def read_project(
     is_flow: bool = False,
     search: str = "",
 ):
+    await assert_org_role(current_user, current_org.id, MembershipRole.VIEWER, session=session)
     try:
         project = (
             await session.exec(
@@ -257,8 +257,7 @@ async def read_project(
                 .options(selectinload(Folder.flows))
                 .where(
                     Folder.id == project_id,
-                    Folder.user_id == current_user.id,
-                    or_(Folder.organization_id == current_org.id, Folder.organization_id == None),  # noqa: E711
+                    Folder.organization_id == current_org.id,
                 )
             )
         ).first()
@@ -294,11 +293,8 @@ async def read_project(
 
             return FolderWithPaginatedFlows(folder=FolderRead.model_validate(project), flows=paginated_flows)
 
-        # If no pagination requested, return all flows for the current user
-        flows_from_current_user_in_project = [flow for flow in project.flows if flow.user_id == current_user.id]
-        project.flows = flows_from_current_user_in_project
-
-        # Convert to FolderReadWithFlows while session is still active to avoid detached instance errors
+        # Return every flow in the project. Org scoping on the folder select already
+        # guarantees the flows belong to the caller's org.
         return FolderReadWithFlows.model_validate(project, from_attributes=True)
 
     except Exception as e:
@@ -315,13 +311,13 @@ async def update_project(
     current_org: CurrentOrg,
     background_tasks: BackgroundTasks,
 ):
+    await assert_org_role(current_user, current_org.id, MembershipRole.MEMBER, session=session)
     try:
         existing_project = (
             await session.exec(
                 select(Folder).where(
                     Folder.id == project_id,
-                    Folder.user_id == current_user.id,
-                    or_(Folder.organization_id == current_org.id, Folder.organization_id == None),  # noqa: E711
+                    Folder.organization_id == current_org.id,
                 )
             )
         ).first()
@@ -332,7 +328,9 @@ async def update_project(
         raise HTTPException(status_code=404, detail="Project not found")
 
     result = await session.exec(
-        select(Flow.id, Flow.is_component).where(Flow.folder_id == existing_project.id, Flow.user_id == current_user.id)
+        select(Flow.id, Flow.is_component).where(
+            Flow.folder_id == existing_project.id, Flow.organization_id == current_org.id
+        )
     )
     flows_and_components = result.all()
 
@@ -509,28 +507,32 @@ async def delete_project(
     current_user: CurrentActiveUser,
     current_org: CurrentOrg,
 ):
+    await assert_org_role(current_user, current_org.id, MembershipRole.MEMBER, session=session)
     try:
-        flows = (
-            await session.exec(select(Flow).where(Flow.folder_id == project_id, Flow.user_id == current_user.id))
-        ).all()
-        if len(flows) > 0:
-            for flow in flows:
-                await cascade_delete_flow(session, flow.id)
-
         project = (
             await session.exec(
                 select(Folder).where(
                     Folder.id == project_id,
-                    Folder.user_id == current_user.id,
-                    or_(Folder.organization_id == current_org.id, Folder.organization_id == None),  # noqa: E711
+                    Folder.organization_id == current_org.id,
                 )
             )
         ).first()
+        if project is None:
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        flows = (
+            await session.exec(
+                select(Flow).where(
+                    Flow.folder_id == project_id, Flow.organization_id == current_org.id
+                )
+            )
+        ).all()
+        for flow in flows:
+            await cascade_delete_flow(session, flow.id)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
-
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
 
     # Prevent deletion of the Langflow Assistant folder
     if project.name == ASSISTANT_FOLDER_NAME:
@@ -613,11 +615,11 @@ async def download_file(
     current_org: CurrentOrg,
 ):
     """Download all flows from project as a zip file."""
+    await assert_org_role(current_user, current_org.id, MembershipRole.VIEWER, session=session)
     try:
         query = select(Folder).where(
             Folder.id == project_id,
-            Folder.user_id == current_user.id,
-            or_(Folder.organization_id == current_org.id, Folder.organization_id == None),  # noqa: E711
+            Folder.organization_id == current_org.id,
         )
         result = await session.exec(query)
         project = result.first()
@@ -668,7 +670,8 @@ async def upload_file(
     current_user: CurrentActiveUser,
     current_org: CurrentOrg,
 ):
-    """Upload flows from a file."""
+    """Upload flows from a file (Member+)."""
+    await assert_org_role(current_user, current_org.id, MembershipRole.MEMBER, session=session)
     contents = await file.read()
     data = orjson.loads(contents)
 

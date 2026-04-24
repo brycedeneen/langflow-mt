@@ -10,8 +10,10 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from langflow.api.utils import CurrentActiveUser, DbSession, DbSessionReadOnly
-from langflow.api.utils.core import remove_api_keys
+from langflow.api.utils.authz import assert_org_role
+from langflow.api.utils.core import CurrentOrg, remove_api_keys
 from langflow.services.database.models.flow.model import Flow, FlowRead
+from langflow.services.database.models.membership.model import MembershipRole
 from langflow.services.database.models.flow_version.crud import (
     create_flow_version_entry,
     delete_flow_version_entry,
@@ -65,8 +67,10 @@ def _version_to_read_full(entry: FlowVersion, *, strip_keys: bool = False) -> Fl
     return result
 
 
-async def _get_user_flow(session: AsyncSession, flow_id: UUID, user_id: UUID) -> Flow:
-    result = await session.exec(select(Flow).where(Flow.id == flow_id, Flow.user_id == user_id))
+async def _get_org_flow(session: AsyncSession, flow_id: UUID, organization_id: UUID) -> Flow:
+    result = await session.exec(
+        select(Flow).where(Flow.id == flow_id, Flow.organization_id == organization_id)
+    )
     flow = result.first()
     if not flow:
         raise HTTPException(status_code=404, detail="Flow not found")
@@ -88,12 +92,14 @@ def _translate_version_error(exc: FlowVersionError) -> HTTPException:
 async def list_flow_versions(
     flow_id: UUID,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
     session: DbSessionReadOnly,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> FlowVersionListResponse:
-    await _get_user_flow(session, flow_id, current_user.id)
-    entries = await get_flow_version_list(session, flow_id, current_user.id, limit, offset)
+    flow = await _get_org_flow(session, flow_id, current_org.id)
+    await assert_org_role(current_user, flow.organization_id, MembershipRole.VIEWER, session=session)
+    entries = await get_flow_version_list(session, flow_id, flow.organization_id, limit, offset)
     max_entries = get_settings_service().settings.max_flow_version_entries_per_flow
     return FlowVersionListResponse(
         entries=[_version_to_read(e) for e in entries],
@@ -111,11 +117,15 @@ async def get_single_flow_version(
     flow_id: UUID,
     version_id: UUID,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
     session: DbSessionReadOnly,
 ) -> FlowVersionReadWithData:
-    await _get_user_flow(session, flow_id, current_user.id)
+    flow = await _get_org_flow(session, flow_id, current_org.id)
+    await assert_org_role(current_user, flow.organization_id, MembershipRole.VIEWER, session=session)
     try:
-        entry = await get_flow_version_entry_or_raise(session, version_id, current_user.id, flow_id=flow_id)
+        entry = await get_flow_version_entry_or_raise(
+            session, version_id, flow.organization_id, flow_id=flow_id
+        )
     except FlowVersionNotFoundError as exc:
         raise HTTPException(status_code=404, detail="Version entry not found") from exc
     return _version_to_read_full(entry, strip_keys=True)
@@ -125,10 +135,12 @@ async def get_single_flow_version(
 async def create_snapshot(
     flow_id: UUID,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
     session: DbSession,
     body: FlowVersionCreate | None = None,
 ) -> FlowVersionRead:
-    flow = await _get_user_flow(session, flow_id, current_user.id)
+    flow = await _get_org_flow(session, flow_id, current_org.id)
+    await assert_org_role(current_user, flow.organization_id, MembershipRole.MEMBER, session=session)
     description = body.description if body else None
 
     try:
@@ -144,6 +156,7 @@ async def create_snapshot(
             session,
             flow_id=flow.id,
             user_id=current_user.id,
+            organization_id=flow.organization_id,
             data=data,
             description=description,
         )
@@ -157,15 +170,19 @@ async def activate_version(
     flow_id: UUID,
     version_id: UUID,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
     session: DbSession,
     *,
     save_draft: Annotated[bool, Query()] = True,
 ) -> FlowRead:
-    flow = await _get_user_flow(session, flow_id, current_user.id)
+    flow = await _get_org_flow(session, flow_id, current_org.id)
+    await assert_org_role(current_user, flow.organization_id, MembershipRole.MEMBER, session=session)
 
     # Verify version entry belongs to this flow
     try:
-        target_entry = await get_flow_version_entry_or_raise(session, version_id, current_user.id, flow_id=flow_id)
+        target_entry = await get_flow_version_entry_or_raise(
+            session, version_id, flow.organization_id, flow_id=flow_id
+        )
     except FlowVersionNotFoundError as exc:
         raise HTTPException(status_code=404, detail="Version entry not found") from exc
 
@@ -193,6 +210,7 @@ async def activate_version(
                     session,
                     flow_id=flow.id,
                     user_id=current_user.id,
+                    organization_id=flow.organization_id,
                     data=current_data,
                     description=f"Auto-saved before activating v{target_entry.version_number}",
                 )
@@ -225,14 +243,18 @@ async def delete_version_entry(
     flow_id: UUID,
     version_id: UUID,
     current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
     session: DbSession,
 ) -> None:
-    await _get_user_flow(session, flow_id, current_user.id)
+    flow = await _get_org_flow(session, flow_id, current_org.id)
+    await assert_org_role(current_user, flow.organization_id, MembershipRole.MEMBER, session=session)
 
     # Verify entry belongs to this flow, then delete
     try:
-        await get_flow_version_entry_or_raise(session, version_id, current_user.id, flow_id=flow_id)
-        await delete_flow_version_entry(session, version_id, current_user.id)
+        await get_flow_version_entry_or_raise(
+            session, version_id, flow.organization_id, flow_id=flow_id
+        )
+        await delete_flow_version_entry(session, version_id, flow.organization_id)
     except FlowVersionError as exc:
         raise _translate_version_error(exc) from exc
     await logger.adebug("Deleted version entry %s for flow %s", version_id, flow_id)

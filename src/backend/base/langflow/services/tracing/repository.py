@@ -132,7 +132,7 @@ async def fetch_trace_summary_data(session: AsyncSession, trace_ids: list[UUID])
 
 
 async def fetch_traces(
-    user_id: UUID,
+    organization_id: UUID,
     flow_id: UUID | None,
     session_id: str | None,
     status: SpanStatus | None,
@@ -142,19 +142,19 @@ async def fetch_traces(
     page: int,
     size: int,
 ) -> TraceListResponse:
-    """Fetch a paginated list of traces for a user, with optional filters."""
+    """Fetch a paginated list of traces scoped to an organization, with optional filters."""
     try:
         async with session_scope() as session:
             stmt = (
                 select(TraceTable)
                 .join(Flow, col(TraceTable.flow_id) == col(Flow.id))
-                .where(col(Flow.user_id) == user_id)
+                .where(col(Flow.organization_id) == organization_id)
             )
             count_stmt = (
                 select(func.count())
                 .select_from(TraceTable)
                 .join(Flow, col(TraceTable.flow_id) == col(Flow.id))
-                .where(col(Flow.user_id) == user_id)
+                .where(col(Flow.organization_id) == organization_id)
             )
 
             # Build filter expressions once and apply them to both statements,
@@ -215,14 +215,14 @@ async def fetch_traces(
         raise
 
 
-async def fetch_single_trace(user_id: UUID, trace_id: UUID) -> TraceRead | None:
-    """Fetch a single trace with its full hierarchical span tree."""
+async def fetch_single_trace(organization_id: UUID, trace_id: UUID) -> TraceRead | None:
+    """Fetch a single trace (scoped to an organization) with its full hierarchical span tree."""
     async with session_scope() as session:
         stmt = (
             select(TraceTable)
             .join(Flow, col(TraceTable.flow_id) == col(Flow.id))
             .where(col(TraceTable.id) == trace_id)
-            .where(col(Flow.user_id) == user_id)
+            .where(col(Flow.organization_id) == organization_id)
         )
         trace = (await session.exec(stmt)).first()
 

@@ -50,8 +50,7 @@ async def two_orgs(async_session):
 
 @pytest.mark.asyncio
 async def test_read_flow_scopes_by_organization(async_session, two_orgs):
-    """A flow owned by user_a in org_b must NOT leak to user_a when queried in org_a."""
-    # Edge case: user_a has a flow mis-tagged to org_b (shouldn't happen, but proves the filter)
+    """A flow in org_b must not be visible when reading in org_a's context."""
     flow_leak = Flow(
         name="leak",
         user_id=two_orgs["user_a"].id,
@@ -62,21 +61,11 @@ async def test_read_flow_scopes_by_organization(async_session, two_orgs):
     await async_session.commit()
 
     # Reading in org_a's context: should return None
-    result = await _read_flow(
-        async_session,
-        flow_leak.id,
-        user_id=two_orgs["user_a"].id,
-        organization_id=two_orgs["org_a"].id,
-    )
+    result = await _read_flow(async_session, flow_leak.id, two_orgs["org_a"].id)
     assert result is None
 
     # Reading in org_b's context: finds it
-    result = await _read_flow(
-        async_session,
-        flow_leak.id,
-        user_id=two_orgs["user_a"].id,
-        organization_id=two_orgs["org_b"].id,
-    )
+    result = await _read_flow(async_session, flow_leak.id, two_orgs["org_b"].id)
     assert result is not None
     assert result.id == flow_leak.id
 
@@ -92,14 +81,8 @@ async def test_list_query_filters_by_organization(async_session, two_orgs):
     )
     await async_session.commit()
 
-    stmt = (
-        select(Flow)
-        .where(Flow.user_id == two_orgs["user_a"].id)
-        .where(
-            (Flow.organization_id == two_orgs["org_a"].id)
-            | (Flow.organization_id == None)  # noqa: E711
-        )
-    )
+    # Org-only scoping — matches the production read_flows query.
+    stmt = select(Flow).where(Flow.organization_id == two_orgs["org_a"].id)
     rows = (await async_session.exec(stmt)).all()
     names = [r.name for r in rows]
     assert "a" in names

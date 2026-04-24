@@ -21,8 +21,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlmodel import col, select
 
+from langflow.api.utils.authz import assert_org_role
+from langflow.api.utils.core import CurrentOrg
 from langflow.services.auth.utils import get_current_active_user
 from langflow.services.database.models.flow.model import Flow
+from langflow.services.database.models.membership.model import MembershipRole
 from langflow.services.database.models.traces.model import (
     SpanStatus,
     TraceListResponse,
@@ -45,6 +48,7 @@ router = APIRouter(prefix="/monitor/traces", tags=["Traces"])
 @router.get("", response_model_by_alias=True)
 async def get_traces(
     current_user: Annotated[User, Depends(get_current_active_user)],
+    current_org: CurrentOrg,
     flow_id: Annotated[UUID | None, Query()] = None,
     session_id: Annotated[str | None, Query()] = None,
     status: Annotated[SpanStatus | None, Query()] = None,
@@ -71,12 +75,14 @@ async def get_traces(
         List of traces
     """
     try:
+        async with session_scope() as session:
+            await assert_org_role(current_user, current_org.id, MembershipRole.VIEWER, session=session)
         sanitized_query = sanitize_query_string(query)
         # Frontend uses 0-based pages; repository expects 1-based.
         effective_page = max(page, 1)
         return await asyncio.wait_for(
             fetch_traces(
-                current_user.id,
+                current_org.id,
                 flow_id,
                 session_id,
                 status,
@@ -103,6 +109,7 @@ async def get_traces(
 async def get_trace(
     trace_id: UUID,
     current_user: Annotated[User, Depends(get_current_active_user)],
+    current_org: CurrentOrg,
 ) -> TraceRead:
     """Get a single trace with its hierarchical span tree.
 
@@ -114,8 +121,10 @@ async def get_trace(
         TraceRead containing the trace and its hierarchical span tree.
     """
     try:
+        async with session_scope() as session:
+            await assert_org_role(current_user, current_org.id, MembershipRole.VIEWER, session=session)
         result = await asyncio.wait_for(
-            fetch_single_trace(current_user.id, trace_id),
+            fetch_single_trace(current_org.id, trace_id),
             timeout=DB_TIMEOUT,
         )
         if result is None:
@@ -139,20 +148,17 @@ async def get_trace(
 async def delete_trace(
     trace_id: UUID,
     current_user: Annotated[User, Depends(get_current_active_user)],
+    current_org: CurrentOrg,
 ) -> None:
-    """Delete a trace and all its spans.
-
-    Args:
-        trace_id: The ID of the trace to delete.
-        current_user: The authenticated user (required for authorization).
-    """
+    """Delete a trace and all its spans (Member+ in the trace's flow's org)."""
     try:
         async with session_scope() as session:
+            await assert_org_role(current_user, current_org.id, MembershipRole.MEMBER, session=session)
             stmt = (
                 select(TraceTable)
                 .join(Flow, col(TraceTable.flow_id) == col(Flow.id))
                 .where(col(TraceTable.id) == trace_id)
-                .where(col(Flow.user_id) == current_user.id)
+                .where(col(Flow.organization_id) == current_org.id)
             )
             trace = (await session.exec(stmt)).first()
 
@@ -171,16 +177,17 @@ async def delete_trace(
 async def delete_traces_by_flow(
     flow_id: Annotated[UUID, Query()],
     current_user: Annotated[User, Depends(get_current_active_user)],
+    current_org: CurrentOrg,
 ) -> None:
-    """Delete all traces for a flow.
-
-    Args:
-        flow_id: The ID of the flow whose traces should be deleted.
-        current_user: The authenticated user (required for authorization).
-    """
+    """Delete all traces for a flow (Member+ in the flow's org)."""
     try:
         async with session_scope() as session:
-            flow_stmt = select(Flow).where(col(Flow.id) == flow_id).where(col(Flow.user_id) == current_user.id)
+            await assert_org_role(current_user, current_org.id, MembershipRole.MEMBER, session=session)
+            flow_stmt = (
+                select(Flow)
+                .where(col(Flow.id) == flow_id)
+                .where(col(Flow.organization_id) == current_org.id)
+            )
             flow = (await session.exec(flow_stmt)).first()
 
             if not flow:

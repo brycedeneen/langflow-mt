@@ -30,9 +30,9 @@ from langflow.api.utils import (
     resolve_component_gate_flags,
     validate_is_component,
 )
+from langflow.api.utils.authz import assert_org_role
 from langflow.api.utils.core import CurrentOrg
 from langflow.api.v1.schemas import FlowListCreate
-from langflow.helpers.user import get_user_by_flow_id_or_endpoint_name
 from langflow.initial_setup.constants import STARTER_FOLDER_NAME
 from langflow.services.auth.utils import get_current_active_user
 from langflow.services.database.models.flow.model import (
@@ -43,6 +43,7 @@ from langflow.services.database.models.flow.model import (
     FlowRead,
     FlowUpdate,
 )
+from langflow.services.database.models.membership.model import MembershipRole
 from langflow.services.database.models.template.model import Template
 from langflow.services.database.models.flow.utils import generate_webhook_api_key, get_webhook_component_in_flow
 from lfx.services.secret_store import get_secret_store
@@ -218,8 +219,8 @@ async def _new_flow(
     session: AsyncSession,
     flow: FlowCreate,
     user_id: UUID,
+    organization_id: UUID,
     storage_service: StorageService,
-    organization_id: UUID | None = None,
     flow_id: UUID | None = None,
     fail_on_endpoint_conflict: bool = False,
     validate_folder: bool = False,
@@ -229,36 +230,43 @@ async def _new_flow(
     Args:
         session: Database session.
         flow: Flow creation data.
-        user_id: Owner of the new flow.
+        user_id: created_by attribution for the new flow.
+        organization_id: Org that owns the new flow; scopes all uniqueness / folder checks.
         storage_service: Service for filesystem operations.
         flow_id: Allows PUT upsert to create flows with a specific ID for syncing between instances.
         fail_on_endpoint_conflict: PUT should fail predictably on conflicts rather than silently renaming.
-        validate_folder: Validates folder_id exists and belongs to user when upserting from external sources.
+        validate_folder: Validates folder_id exists in the org when upserting from external sources.
     """
     try:
         # Validate fs_path if provided (will raise HTTPException if invalid)
         await _verify_fs_path(flow.fs_path, user_id, storage_service)
 
-        # Validate folder_id if requested
+        # Validate folder_id if requested (org-scoped)
         if validate_folder and flow.folder_id is not None:
             folder = (
-                await session.exec(select(Folder).where(Folder.id == flow.folder_id, Folder.user_id == user_id))
+                await session.exec(
+                    select(Folder).where(
+                        Folder.id == flow.folder_id, Folder.organization_id == organization_id
+                    )
+                )
             ).first()
             if not folder:
                 raise HTTPException(status_code=400, detail="Folder not found")
 
-        # Set user_id (ignore any user_id from body for security)
+        # Stamp created_by (ignore any user_id from body for security)
         flow.user_id = user_id
 
-        # Check if the flow.name is unique
-        # there might be flows with name like: "MyFlow", "MyFlow (1)", "MyFlow (2)"
-        # so we need to check if the name is unique with `like` operator
-        # if we find a flow with the same name, we add a number to the end of the name
-        # based on the highest number found
-        if (await session.exec(select(Flow).where(Flow.name == flow.name).where(Flow.user_id == user_id))).first():
+        # Name uniqueness is scoped to the organization.
+        if (
+            await session.exec(
+                select(Flow).where(Flow.name == flow.name, Flow.organization_id == organization_id)
+            )
+        ).first():
             flows = (
                 await session.exec(
-                    select(Flow).where(Flow.name.like(f"{flow.name} (%")).where(Flow.user_id == user_id)  # type: ignore[attr-defined]
+                    select(Flow)
+                    .where(Flow.name.like(f"{flow.name} (%"))  # type: ignore[attr-defined]
+                    .where(Flow.organization_id == organization_id)
                 )
             ).all()
             if flows:
@@ -283,12 +291,15 @@ async def _new_flow(
             else:
                 flow.name = f"{flow.name} (1)"
 
-        # Check if the endpoint is unique
+        # Endpoint-name uniqueness is scoped to the organization.
         if (
             flow.endpoint_name
             and (
                 await session.exec(
-                    select(Flow).where(Flow.endpoint_name == flow.endpoint_name).where(Flow.user_id == user_id)
+                    select(Flow).where(
+                        Flow.endpoint_name == flow.endpoint_name,
+                        Flow.organization_id == organization_id,
+                    )
                 )
             ).first()
         ):
@@ -300,7 +311,7 @@ async def _new_flow(
                 await session.exec(
                     select(Flow)
                     .where(Flow.endpoint_name.like(f"{flow.endpoint_name}-%"))  # type: ignore[union-attr]
-                    .where(Flow.user_id == user_id)
+                    .where(Flow.organization_id == organization_id)
                 )
             ).all()
             if flows:
@@ -318,28 +329,30 @@ async def _new_flow(
         if flow_id is not None:
             db_flow.id = flow_id
 
-        if organization_id is not None:
-            db_flow.organization_id = organization_id
+        db_flow.organization_id = organization_id
 
         db_flow.updated_at = datetime.now(timezone.utc)
 
         # Provision webhook API key if flow has a webhook component
         webhook_component = get_webhook_component_in_flow(db_flow.data or {})
         db_flow.webhook = webhook_component is not None
-        if db_flow.webhook and organization_id:
+        if db_flow.webhook:
             await _provision_webhook_api_key(
                 org_id=str(organization_id),
                 flow_id=str(db_flow.id),
                 has_webhook=True,
             )
 
-        # Validate folder_id exists, or fall back to default folder
+        # Validate folder_id exists in the org, else fall back to default folder
         if db_flow.folder_id is not None:
             folder_exists = (
-                await session.exec(select(Folder).where(Folder.id == db_flow.folder_id, Folder.user_id == user_id))
+                await session.exec(
+                    select(Folder).where(
+                        Folder.id == db_flow.folder_id, Folder.organization_id == organization_id
+                    )
+                )
             ).first()
             if not folder_exists:
-                # Folder doesn't exist or doesn't belong to user, use default
                 db_flow.folder_id = None
 
         if db_flow.folder_id is None:
@@ -373,6 +386,7 @@ async def create_flow(
     current_org: CurrentOrg,
     storage_service: Annotated[StorageService, Depends(get_storage_service)],
 ):
+    await assert_org_role(current_user, current_org.id, MembershipRole.MEMBER, session=session)
     # Gate: block custom-component code on creation for non-admin callers.
     # Mirrors the execution-path gate in langflow.api.utils.core.build_graph_from_data.
     try:
@@ -483,10 +497,9 @@ async def read_flows(
         if not folder_id:
             folder_id = default_folder_id
 
-        stmt = select(Flow).where(Flow.user_id == current_user.id)
-        # Multi-tenant scoping: only return flows in the caller's organization,
-        # or legacy flows with no organization assigned yet (backfill edge case).
-        stmt = stmt.where((Flow.organization_id == current_org.id) | (Flow.organization_id == None))  # noqa: E711
+        # Absolute org scoping — org_id is non-nullable on flow after the
+        # multi_tenant_foundation backfill, so no legacy NULL leg is needed.
+        stmt = select(Flow).where(Flow.organization_id == current_org.id)
 
         if remove_example_flows:
             stmt = stmt.where(Flow.folder_id != starter_folder_id)
@@ -527,13 +540,10 @@ async def read_flows(
 async def _read_flow(
     session: AsyncSession,
     flow_id: UUID,
-    user_id: UUID,
-    organization_id: UUID | None = None,
+    organization_id: UUID,
 ):
-    """Read a flow, scoped to user_id and (if provided) organization_id."""
-    stmt = select(Flow).where(Flow.id == flow_id).where(Flow.user_id == user_id)
-    if organization_id is not None:
-        stmt = stmt.where(Flow.organization_id == organization_id)
+    """Read a flow, scoped to the caller's organization."""
+    stmt = select(Flow).where(Flow.id == flow_id, Flow.organization_id == organization_id)
     return (await session.exec(stmt)).first()
 
 
@@ -545,11 +555,12 @@ async def read_flow(
     current_user: CurrentActiveUser,
     current_org: CurrentOrg,
 ):
-    """Read a flow."""
-    if user_flow := await _read_flow(session, flow_id, current_user.id, organization_id=current_org.id):
-        # Convert to FlowRead while session is still active to avoid detached instance errors
-        return FlowRead.model_validate(user_flow, from_attributes=True)
-    raise HTTPException(status_code=404, detail="Flow not found")
+    """Read a flow (Viewer+ in the flow's organization)."""
+    flow = await _read_flow(session, flow_id, current_org.id)
+    if flow is None:
+        raise HTTPException(status_code=404, detail="Flow not found")
+    await assert_org_role(current_user, flow.organization_id, MembershipRole.VIEWER, session=session)
+    return FlowRead.model_validate(flow, from_attributes=True)
 
 
 @router.get("/public_flow/{flow_id}", response_model=FlowRead, status_code=200)
@@ -558,13 +569,13 @@ async def read_public_flow(
     session: DbSession,
     flow_id: UUID,
 ):
-    """Read a public flow."""
-    access_type = (await session.exec(select(Flow.access_type).where(Flow.id == flow_id))).first()
-    if access_type is not AccessTypeEnum.PUBLIC:
+    """Read a public flow — no auth required; access_type == PUBLIC is the ACL."""
+    flow = (await session.exec(select(Flow).where(Flow.id == flow_id))).first()
+    if flow is None:
+        raise HTTPException(status_code=404, detail="Flow not found")
+    if flow.access_type is not AccessTypeEnum.PUBLIC:
         raise HTTPException(status_code=403, detail="Flow is not public")
-
-    current_user = await get_user_by_flow_id_or_endpoint_name(str(flow_id))
-    return await read_flow(session=session, flow_id=flow_id, current_user=current_user)
+    return FlowRead.model_validate(flow, from_attributes=True)
 
 
 @router.patch("/{flow_id}", response_model=FlowRead, status_code=200)
@@ -577,18 +588,14 @@ async def update_flow(
     current_org: CurrentOrg,
     storage_service: Annotated[StorageService, Depends(get_storage_service)],
 ):
-    """Update a flow."""
+    """Update a flow (Member+ in the flow's organization)."""
     settings_service = get_settings_service()
     try:
-        db_flow = await _read_flow(
-            session=session,
-            flow_id=flow_id,
-            user_id=current_user.id,
-            organization_id=current_org.id,
-        )
+        db_flow = await _read_flow(session, flow_id, current_org.id)
 
         if not db_flow:
             raise HTTPException(status_code=404, detail="Flow not found")
+        await assert_org_role(current_user, db_flow.organization_id, MembershipRole.MEMBER, session=session)
 
         update_data = flow.model_dump(exclude_unset=True, exclude_none=True)
 
@@ -633,15 +640,16 @@ async def update_flow(
             )
         db_flow.updated_at = datetime.now(timezone.utc)
 
-        # Validate folder_id exists, or fall back to default folder
+        # Validate folder_id exists in the org, else fall back to default folder
         if db_flow.folder_id is not None:
             folder_exists = (
                 await session.exec(
-                    select(Folder).where(Folder.id == db_flow.folder_id, Folder.user_id == current_user.id)
+                    select(Folder).where(
+                        Folder.id == db_flow.folder_id, Folder.organization_id == current_org.id
+                    )
                 )
             ).first()
             if not folder_exists:
-                # Folder doesn't exist or doesn't belong to user, use default
                 db_flow.folder_id = None
 
         if db_flow.folder_id is None:
@@ -687,37 +695,35 @@ async def upsert_flow(
 ):
     """Create or update a flow with a specific ID (upsert).
 
-    - If the flow doesn't exist: creates it with the specified ID
-    - If the flow exists and belongs to the current user: updates it
-    - If the flow exists but belongs to another user: returns 404
+    - If the flow doesn't exist: creates it (Member+ in current org).
+    - If the flow exists in the caller's org: updates it (Member+).
+    - If the flow exists in another org: returns 404 (no existence leak).
 
     Returns 201 for creation, 200 for update.
     """
     from fastapi.responses import JSONResponse
 
+    await assert_org_role(current_user, current_org.id, MembershipRole.MEMBER, session=session)
+
     try:
-        # Check if flow exists (without user filter to distinguish ownership vs CREATE)
-        existing_flow = (await session.exec(select(Flow).where(Flow.id == flow_id))).first()
+        existing_flow = await _read_flow(session, flow_id, current_org.id)
 
         if existing_flow is not None:
-            # Flow exists - check ownership AND org (return 404 to avoid leaking resource existence)
-            if existing_flow.user_id != current_user.id or (
-                existing_flow.organization_id is not None
-                and existing_flow.organization_id != current_org.id
-            ):
-                raise HTTPException(status_code=404, detail="Flow not found")
-
-            # UPDATE path
+            # Also catch the case where the flow exists in another org — 404 to avoid existence leak.
             flow_read = await _update_existing_flow(
                 session=session,
                 existing_flow=existing_flow,
                 flow=flow,
                 current_user=current_user,
+                organization_id=current_org.id,
                 storage_service=storage_service,
             )
             status_code = 200
         else:
-            # CREATE path - flow doesn't exist
+            # Differentiate "does not exist anywhere" (CREATE) from "exists in another org" (404).
+            any_flow = (await session.exec(select(Flow.id).where(Flow.id == flow_id))).first()
+            if any_flow is not None:
+                raise HTTPException(status_code=404, detail="Flow not found")
             flow_read = await _new_flow(
                 session=session,
                 flow=flow,
@@ -750,12 +756,13 @@ async def _update_existing_flow(
     existing_flow: Flow,
     flow: FlowCreate,
     current_user,
+    organization_id: UUID,
     storage_service: StorageService,
 ) -> FlowRead:
     """Update an existing flow (PUT update path).
 
     Similar to update_flow but:
-    - Fails on name/endpoint_name conflict with OTHER flows (409)
+    - Fails on name/endpoint_name conflict with OTHER flows in the same org (409)
     - Keeps existing folder_id if not provided in request
     """
     settings_service = get_settings_service()
@@ -765,21 +772,25 @@ async def _update_existing_flow(
     if flow.fs_path is not None:
         await _verify_fs_path(flow.fs_path, user_id, storage_service)
 
-    # Validate folder_id if provided
+    # Validate folder_id if provided (org-scoped)
     if flow.folder_id is not None:
         folder = (
-            await session.exec(select(Folder).where(Folder.id == flow.folder_id, Folder.user_id == user_id))
+            await session.exec(
+                select(Folder).where(
+                    Folder.id == flow.folder_id, Folder.organization_id == organization_id
+                )
+            )
         ).first()
         if not folder:
             raise HTTPException(status_code=400, detail="Folder not found")
 
-    # Check name uniqueness (excluding current flow)
+    # Check name uniqueness within the org (excluding current flow)
     if flow.name and flow.name != existing_flow.name:
         name_conflict = (
             await session.exec(
                 select(Flow).where(
                     Flow.name == flow.name,
-                    Flow.user_id == user_id,
+                    Flow.organization_id == organization_id,
                     Flow.id != existing_flow.id,
                 )
             )
@@ -787,13 +798,13 @@ async def _update_existing_flow(
         if name_conflict:
             raise HTTPException(status_code=409, detail="Name must be unique")
 
-    # Check endpoint_name uniqueness (excluding current flow)
+    # Check endpoint_name uniqueness within the org (excluding current flow)
     if flow.endpoint_name and flow.endpoint_name != existing_flow.endpoint_name:
         endpoint_conflict = (
             await session.exec(
                 select(Flow).where(
                     Flow.endpoint_name == flow.endpoint_name,
-                    Flow.user_id == user_id,
+                    Flow.organization_id == organization_id,
                     Flow.id != existing_flow.id,
                 )
             )
@@ -842,18 +853,17 @@ async def generate_or_reset_webhook_api_key(
     current_user: CurrentActiveUser,
     current_org: CurrentOrg,
 ):
-    """Generate or reset the webhook API key for a flow.
+    """Generate or reset the webhook API key for a flow (Member+).
 
     Returns the new API key. The key is only shown once — if the user loses it,
     they must generate a new one (which invalidates the previous key).
     """
-    flow = await _read_flow(session, flow_id, current_user.id, organization_id=current_org.id)
+    flow = await _read_flow(session, flow_id, current_org.id)
     if not flow:
         raise HTTPException(status_code=404, detail="Flow not found")
+    await assert_org_role(current_user, flow.organization_id, MembershipRole.MEMBER, session=session)
     if not flow.webhook:
         raise HTTPException(status_code=400, detail="Flow does not have a webhook component")
-    if not flow.organization_id:
-        raise HTTPException(status_code=400, detail="Flow has no organization")
 
     store = get_secret_store()
     path = f"{flow.organization_id}/webhooks/{flow_id}"
@@ -876,15 +886,11 @@ async def delete_flow(
     current_user: CurrentActiveUser,
     current_org: CurrentOrg,
 ):
-    """Delete a flow."""
-    flow = await _read_flow(
-        session=session,
-        flow_id=flow_id,
-        user_id=current_user.id,
-        organization_id=current_org.id,
-    )
+    """Delete a flow (Member+ in the flow's organization)."""
+    flow = await _read_flow(session, flow_id, current_org.id)
     if not flow:
         raise HTTPException(status_code=404, detail="Flow not found")
+    await assert_org_role(current_user, flow.organization_id, MembershipRole.MEMBER, session=session)
     # Clean up webhook API key from secret store
     if flow.webhook and flow.organization_id:
         await _cleanup_webhook_api_key(
@@ -909,7 +915,8 @@ async def create_flows(
     current_user: CurrentActiveUser,
     current_org: CurrentOrg,
 ):
-    """Create multiple new flows."""
+    """Create multiple new flows (Member+)."""
+    await assert_org_role(current_user, current_org.id, MembershipRole.MEMBER, session=session)
     db_flows = []
     for flow in flow_list.flows:
         flow.user_id = current_user.id
@@ -935,7 +942,8 @@ async def upload_file(
     folder_id: UUID | None = None,
     storage_service: Annotated[StorageService, Depends(get_storage_service)],
 ):
-    """Upload flows from a file."""
+    """Upload flows from a file (Member+)."""
+    await assert_org_role(current_user, current_org.id, MembershipRole.MEMBER, session=session)
     contents = await file.read()
     data = orjson.loads(contents)
 
@@ -1014,14 +1022,12 @@ async def delete_multiple_flows(
 
     """
     try:
+        await assert_org_role(user, current_org.id, MembershipRole.MEMBER, session=db)
         flows_to_delete = (
             await db.exec(
                 select(Flow)
                 .where(col(Flow.id).in_(flow_ids))
-                .where(Flow.user_id == user.id)
-                .where(
-                    (Flow.organization_id == current_org.id) | (Flow.organization_id == None)  # noqa: E711
-                )
+                .where(Flow.organization_id == current_org.id)
             )
         ).all()
         for flow in flows_to_delete:
@@ -1029,6 +1035,8 @@ async def delete_multiple_flows(
 
         await db.flush()
         return {"deleted": len(flows_to_delete)}
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
@@ -1040,14 +1048,14 @@ async def download_multiple_file(
     current_org: CurrentOrg,
     db: DbSession,
 ):
-    """Download all flows as a zip file."""
+    """Download flows as a zip file (Viewer+ in the current org)."""
+    await assert_org_role(user, current_org.id, MembershipRole.VIEWER, session=db)
     flows = (
         await db.exec(
             select(Flow).where(
                 and_(
-                    Flow.user_id == user.id,
+                    Flow.organization_id == current_org.id,
                     Flow.id.in_(flow_ids),  # type: ignore[attr-defined]
-                    (Flow.organization_id == current_org.id) | (Flow.organization_id == None),  # noqa: E711
                 )
             )
         )

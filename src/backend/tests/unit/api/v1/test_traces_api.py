@@ -21,6 +21,7 @@ from uuid import UUID, uuid4
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from langflow.api.utils.org_helpers import get_current_organization
 from langflow.api.v1.traces import router
 from langflow.services.auth.utils import get_current_active_user
 from langflow.services.database.models.traces.model import (
@@ -32,6 +33,7 @@ from langflow.services.database.models.traces.model import (
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
 _FAKE_USER_ID = uuid4()
+_FAKE_ORG_ID = uuid4()
 _FAKE_FLOW_ID = uuid4()
 _FAKE_TRACE_ID = uuid4()
 
@@ -42,11 +44,30 @@ def _make_fake_user() -> MagicMock:
     return user
 
 
+def _make_fake_org() -> MagicMock:
+    org = MagicMock()
+    org.id = _FAKE_ORG_ID
+    return org
+
+
 def _make_app() -> FastAPI:
     app = FastAPI()
     app.include_router(router)
     app.dependency_overrides[get_current_active_user] = _make_fake_user
+    app.dependency_overrides[get_current_organization] = _make_fake_org
     return app
+
+
+@pytest.fixture(autouse=True)
+def _bypass_org_role():
+    """Route-level assert_org_role needs a real Membership row. These tests mock
+    fetch_* and don't touch the DB, so short-circuit the role check here.
+    """
+    async def _ok(*_args, **_kwargs):
+        return None
+
+    with patch("langflow.api.v1.traces.assert_org_role", side_effect=_ok):
+        yield
 
 
 @pytest.fixture
@@ -289,17 +310,17 @@ class TestGetTrace:
         resp = client.get("/monitor/traces/not-a-uuid")
         assert resp.status_code == 422
 
-    def test_should_pass_correct_user_id_to_fetch(self, client: TestClient):
+    def test_should_pass_correct_organization_id_to_fetch(self, client: TestClient):
         captured: list[UUID] = []
 
-        async def _fetch(user_id, _trace_id):
-            captured.append(user_id)
+        async def _fetch(organization_id, _trace_id):
+            captured.append(organization_id)
             return _make_trace_read()
 
         with patch("langflow.api.v1.traces.fetch_single_trace", side_effect=_fetch):
             client.get(self._path())
 
-        assert captured == [_FAKE_USER_ID]
+        assert captured == [_FAKE_ORG_ID]
 
 
 class TestDeleteTrace:

@@ -33,13 +33,14 @@ async def create_flow_version_entry(
     session: AsyncSession,
     flow_id: UUID,
     user_id: UUID,
+    organization_id: UUID,
     data: dict | None,
     description: str | None = None,
 ) -> FlowVersion:
     """Create a version entry with retry on version number collision.
 
-    NOTE: This function does NOT verify that user_id owns the flow.
-    Callers are responsible for checking ownership before calling this.
+    user_id is the creator-attribution stamp; organization_id is the scope.
+    Callers are responsible for role-checking before calling this.
     """
     entry: FlowVersion | None = None
     for attempt in range(MAX_VERSION_RETRIES):
@@ -47,6 +48,7 @@ async def create_flow_version_entry(
         entry = FlowVersion(
             flow_id=flow_id,
             user_id=user_id,
+            organization_id=organization_id,
             data=data,
             description=description,
             version_number=version_number,
@@ -118,13 +120,13 @@ async def create_flow_version_entry(
 async def get_flow_version_list(
     session: AsyncSession,
     flow_id: UUID,
-    user_id: UUID,
+    organization_id: UUID,
     limit: int = 50,
     offset: int = 0,
 ) -> list[FlowVersion]:
     result = await session.exec(
         select(FlowVersion)
-        .where(FlowVersion.flow_id == flow_id, FlowVersion.user_id == user_id)
+        .where(FlowVersion.flow_id == flow_id, FlowVersion.organization_id == organization_id)
         .order_by(col(FlowVersion.version_number).desc())
         .offset(offset)
         .limit(limit)
@@ -135,23 +137,27 @@ async def get_flow_version_list(
 async def get_flow_version_entry(
     session: AsyncSession,
     version_id: UUID,
-    user_id: UUID,
+    organization_id: UUID,
 ) -> FlowVersion | None:
-    result = await session.exec(select(FlowVersion).where(FlowVersion.id == version_id, FlowVersion.user_id == user_id))
+    result = await session.exec(
+        select(FlowVersion).where(
+            FlowVersion.id == version_id, FlowVersion.organization_id == organization_id
+        )
+    )
     return result.first()
 
 
 async def get_flow_version_entry_or_raise(
     session: AsyncSession,
     version_id: UUID,
-    user_id: UUID,
+    organization_id: UUID,
     flow_id: UUID | None = None,
 ) -> FlowVersion:
     """Get a version entry or raise FlowVersionNotFoundError.
 
     If flow_id is provided, also verifies the entry belongs to that flow.
     """
-    entry = await get_flow_version_entry(session, version_id, user_id)
+    entry = await get_flow_version_entry(session, version_id, organization_id)
     if not entry or (flow_id is not None and entry.flow_id != flow_id):
         msg = f"Version entry {version_id} not found"
         raise FlowVersionNotFoundError(msg)
@@ -161,9 +167,9 @@ async def get_flow_version_entry_or_raise(
 async def delete_flow_version_entry(
     session: AsyncSession,
     version_id: UUID,
-    user_id: UUID,
+    organization_id: UUID,
 ) -> None:
-    entry = await get_flow_version_entry(session, version_id, user_id)
+    entry = await get_flow_version_entry(session, version_id, organization_id)
     if not entry:
         msg = f"Version entry {version_id} not found"
         raise FlowVersionNotFoundError(msg)
