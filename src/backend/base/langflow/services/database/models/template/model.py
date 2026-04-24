@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 
 from langflow.services.database.models.category.model import CategoryRead, TemplateCategory
 from langflow.services.database.models.tag.model import TemplateTag
+from langflow.services.database.models.tag.schema import TagRead
 
 
 def _utc_now() -> datetime:
@@ -124,6 +125,10 @@ class TemplateRead(BaseModel):
     gradient: str | None
     archived_at: datetime | None
     categories: list[CategoryRead]
+    tags: list[TagRead] = PydanticField(
+        default_factory=list,
+        description="Tags assigned to this template via template_tag",
+    )
     created_at: datetime
     updated_at: datetime
 

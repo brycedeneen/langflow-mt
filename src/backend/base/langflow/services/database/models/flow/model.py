@@ -20,6 +20,7 @@ from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 from langflow.schema.data import Data
 
 from langflow.services.database.models.tag.model import FlowTag
+from langflow.services.database.models.tag.schema import TagRead
 
 if TYPE_CHECKING:
     from langflow.services.database.models.folder.model import Folder
@@ -252,7 +253,10 @@ class FlowRead(FlowBase):
     id: UUID
     user_id: UUID | None = Field()
     folder_id: UUID | None = Field()
-    tags: list[str] | None = Field(None, description="The tags of the flow")
+    tags: list[TagRead] = Field(
+        default_factory=list,
+        description="Tags assigned to this flow via flow_tag",
+    )
 
 
 class FlowHeader(BaseModel):
@@ -269,7 +273,10 @@ class FlowHeader(BaseModel):
     description: str | None = Field(None, description="A description of the flow")
     data: dict | None = Field(None, description="The data of the component, if is_component is True")
     access_type: AccessTypeEnum | None = Field(None, description="The access type of the flow")
-    tags: list[str] | None = Field(None, description="The tags of the flow")
+    tags: list[TagRead] = Field(
+        default_factory=list,
+        description="Tags assigned to this flow via flow_tag",
+    )
     mcp_enabled: bool | None = Field(None, description="Flag indicating whether the flow is exposed in the MCP server")
     action_name: str | None = Field(None, description="The name of the action associated with the flow")
     action_description: str | None = Field(None, description="The description of the action associated with the flow")

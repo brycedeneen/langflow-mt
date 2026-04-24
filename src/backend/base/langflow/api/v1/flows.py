@@ -20,6 +20,7 @@ from fastapi_pagination.ext.sqlmodel import apaginate
 from lfx.log import logger
 from pydantic import BaseModel
 from sqlalchemy import delete as sa_delete
+from sqlalchemy.orm import selectinload
 from sqlmodel import and_, col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -356,6 +357,9 @@ async def _new_flow(
         # Persist and refresh
         await session.flush()
         await session.refresh(db_flow)
+        # Explicitly materialize the tags collection so FlowRead can serialize it
+        # without triggering a lazy-load in async context (MissingGreenlet).
+        await session.refresh(db_flow, attribute_names=["tags"])
         await _save_flow_to_fs(db_flow, user_id, storage_service)
 
         # Convert to FlowRead while session is still active
@@ -477,11 +481,19 @@ async def read_flows(
             folder_id = default_folder_id
 
         if auth_settings.AUTO_LOGIN:
-            stmt = select(Flow).where(
-                (Flow.user_id == None) | (Flow.user_id == current_user.id)  # noqa: E711
+            stmt = (
+                select(Flow)
+                .options(selectinload(Flow.tags))
+                .where(
+                    (Flow.user_id == None) | (Flow.user_id == current_user.id)  # noqa: E711
+                )
             )
         else:
-            stmt = select(Flow).where(Flow.user_id == current_user.id)
+            stmt = (
+                select(Flow)
+                .options(selectinload(Flow.tags))
+                .where(Flow.user_id == current_user.id)
+            )
         # Multi-tenant scoping: only return flows in the caller's organization,
         # or legacy flows with no organization assigned yet (backfill edge case).
         stmt = stmt.where((Flow.organization_id == current_org.id) | (Flow.organization_id == None))  # noqa: E711
@@ -536,7 +548,12 @@ async def _read_flow(
     organization_id: UUID | None = None,
 ):
     """Read a flow, scoped to user_id and (if provided) organization_id."""
-    stmt = select(Flow).where(Flow.id == flow_id).where(Flow.user_id == user_id)
+    stmt = (
+        select(Flow)
+        .options(selectinload(Flow.tags))
+        .where(Flow.id == flow_id)
+        .where(Flow.user_id == user_id)
+    )
     if organization_id is not None:
         stmt = stmt.where(Flow.organization_id == organization_id)
     return (await session.exec(stmt)).first()
@@ -656,6 +673,8 @@ async def update_flow(
         session.add(db_flow)
         await session.flush()
         await session.refresh(db_flow)
+        # Ensure tags is materialized for FlowRead serialization in async context.
+        await session.refresh(db_flow, attribute_names=["tags"])
         await _save_flow_to_fs(db_flow, current_user.id, storage_service)
 
         # Convert to FlowRead while session is still active to avoid detached instance errors
@@ -702,7 +721,11 @@ async def upsert_flow(
 
     try:
         # Check if flow exists (without user filter to distinguish ownership vs CREATE)
-        existing_flow = (await session.exec(select(Flow).where(Flow.id == flow_id))).first()
+        existing_flow = (
+            await session.exec(
+                select(Flow).options(selectinload(Flow.tags)).where(Flow.id == flow_id)
+            )
+        ).first()
 
         if existing_flow is not None:
             # Flow exists - check ownership AND org (return 404 to avoid leaking resource existence)
@@ -834,6 +857,8 @@ async def _update_existing_flow(
     session.add(existing_flow)
     await session.flush()
     await session.refresh(existing_flow)
+    # Ensure tags is materialized for FlowRead serialization in async context.
+    await session.refresh(existing_flow, attribute_names=["tags"])
     await _save_flow_to_fs(existing_flow, user_id, storage_service)
 
     return FlowRead.model_validate(existing_flow, from_attributes=True)
@@ -968,6 +993,8 @@ async def create_flows(
     await session.flush()
     for db_flow in db_flows:
         await session.refresh(db_flow)
+        # Ensure tags is materialized for FlowRead serialization in async context.
+        await session.refresh(db_flow, attribute_names=["tags"])
 
     return [FlowRead.model_validate(db_flow, from_attributes=True) for db_flow in db_flows]
 
@@ -1149,7 +1176,13 @@ async def read_basic_examples(
             return []
 
         # Get all flows in the starter folder
-        all_starter_folder_flows = (await session.exec(select(Flow).where(Flow.folder_id == starter_folder.id))).all()
+        all_starter_folder_flows = (
+            await session.exec(
+                select(Flow)
+                .options(selectinload(Flow.tags))
+                .where(Flow.folder_id == starter_folder.id)
+            )
+        ).all()
 
         flow_reads = [FlowRead.model_validate(flow, from_attributes=True) for flow in all_starter_folder_flows]
         all_starter_folder_flows_response = compress_response(flow_reads)

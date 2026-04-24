@@ -172,7 +172,7 @@ async def list_templates(
                    "Add ?created_by_me=true to list only your own archived templates.",
         )
 
-    stmt = select(Template).where(Template.deleted_at.is_(None)).options(selectinload(Template.categories))
+    stmt = select(Template).where(Template.deleted_at.is_(None)).options(selectinload(Template.categories), selectinload(Template.tags))
 
     if not include_archived:
         stmt = stmt.where(Template.archived_at.is_(None))
@@ -237,7 +237,7 @@ async def get_template(
             select(Template)
             .where(Template.id == template_id)
             .where(Template.deleted_at.is_(None))
-            .options(selectinload(Template.categories))
+            .options(selectinload(Template.categories), selectinload(Template.tags))
         )
     ).one_or_none()
     if row is None:
@@ -341,7 +341,7 @@ async def create_template(
     await session.exec(
         select(Template)
         .where(Template.id == row.id)
-        .options(selectinload(Template.categories))
+        .options(selectinload(Template.categories), selectinload(Template.tags))
     )
     await session.refresh(row)
     # Re-fetch with categories eager-loaded
@@ -349,7 +349,7 @@ async def create_template(
         await session.exec(
             select(Template)
             .where(Template.id == row.id)
-            .options(selectinload(Template.categories))
+            .options(selectinload(Template.categories), selectinload(Template.tags))
         )
     ).one()
     return TemplateReadDetail.model_validate(row, from_attributes=True)
@@ -423,7 +423,7 @@ async def update_template(
         await session.exec(
             select(Template)
             .where(Template.id == row.id)
-            .options(selectinload(Template.categories))
+            .options(selectinload(Template.categories), selectinload(Template.tags))
         )
     ).one()
     return TemplateReadDetail.model_validate(row, from_attributes=True)
@@ -536,7 +536,7 @@ async def patch_template(
         await session.exec(
             select(Template)
             .where(Template.id == row.id)
-            .options(selectinload(Template.categories))
+            .options(selectinload(Template.categories), selectinload(Template.tags))
         )
     ).one()
     return TemplateReadDetail.model_validate(row, from_attributes=True)
@@ -554,7 +554,7 @@ async def archive_template(
             select(Template)
             .where(Template.id == template_id)
             .where(Template.deleted_at.is_(None))
-            .options(selectinload(Template.categories))
+            .options(selectinload(Template.categories), selectinload(Template.tags))
         )
     ).one_or_none()
     if row is None:
@@ -569,7 +569,7 @@ async def archive_template(
             await session.exec(
                 select(Template)
                 .where(Template.id == template_id)
-                .options(selectinload(Template.categories))
+                .options(selectinload(Template.categories), selectinload(Template.tags))
             )
         ).one()
     return TemplateRead.model_validate(row, from_attributes=True)
@@ -587,7 +587,7 @@ async def unarchive_template(
             select(Template)
             .where(Template.id == template_id)
             .where(Template.deleted_at.is_(None))
-            .options(selectinload(Template.categories))
+            .options(selectinload(Template.categories), selectinload(Template.tags))
         )
     ).one_or_none()
     if row is None:
@@ -602,7 +602,7 @@ async def unarchive_template(
             await session.exec(
                 select(Template)
                 .where(Template.id == template_id)
-                .options(selectinload(Template.categories))
+                .options(selectinload(Template.categories), selectinload(Template.tags))
             )
         ).one()
     return TemplateRead.model_validate(row, from_attributes=True)
