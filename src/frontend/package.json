@@ -84,7 +84,7 @@
     "vite-plugin-svgr": "^5.2.0",
     "web-vitals": "^5.2.0",
     "whatwg-fetch": "^3.6.20",
-    "zod": "^4.3.6",
+    "zod": "^3.25.76",
     "zustand": "^5.0.12"
   },
   "scripts": {
@@ -147,6 +147,7 @@
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
     "jest-junit": "^16.0.0",
+    "openapi-zod-client": "^1.18.3",
     "postcss": "^8.5.10",
     "storybook": "^10.3.5",
     "tailwindcss": "^4.2.2",
