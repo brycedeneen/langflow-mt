@@ -247,7 +247,7 @@ export default function TemplateCardComponent({
           </p>
           {/* Tag chips — up to 3 with +N overflow (spec B.6). Wrapped in
               length > 0 so cards without tags do not render an empty row. */}
-          {/* TODO: Server-side Flow/Template read shapes don't yet expose tags — see types/tag/runtime-validate.ts. */}
+          {/* template.tags is populated by TemplateRead (0b5d4aae7c). */}
           {(() => {
             const cardTags = coerceTagList(
               (templateData as { tags?: unknown } | undefined)?.tags,

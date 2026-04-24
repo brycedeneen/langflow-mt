@@ -35,9 +35,11 @@ function adaptTemplateToFlowLike(template: TemplateRead): FlowType {
 function buildParams(
   currentTab: string,
   includeArchived: boolean,
+  selectedTagIds: string[],
 ): ListTemplatesParams | undefined {
   const base: ListTemplatesParams = {};
   if (includeArchived) base.include_archived = true;
+  if (selectedTagIds.length > 0) base.tag_id = selectedTagIds;
 
   if (currentTab === "all-templates") {
     return Object.keys(base).length ? base : undefined;
@@ -63,9 +65,20 @@ export default function TemplateContentComponent({
   const showArchivedToggleVisible = isAdmin || currentTab === "saved";
   const [showArchived, setShowArchived] = useState(false);
 
+  // Tag filter state — threaded into useListTemplates via the ?tag_id= query
+  // param. The chip row shows the full tag vocabulary from useListTags() so
+  // users can pick any defined tag, even after a filter narrows the grid.
+  const { data: allTags = [] } = useListTags();
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+
   const params = useMemo(
-    () => buildParams(currentTab, showArchivedToggleVisible && showArchived),
-    [currentTab, showArchived, showArchivedToggleVisible],
+    () =>
+      buildParams(
+        currentTab,
+        showArchivedToggleVisible && showArchived,
+        selectedTagIds,
+      ),
+    [currentTab, showArchived, showArchivedToggleVisible, selectedTagIds],
   );
 
   const { data: templateData = [], isPending } = useListTemplates(params);
@@ -79,18 +92,6 @@ export default function TemplateContentComponent({
   const [filteredExamples, setFilteredExamples] = useState(examples);
   const [filteredRaw, setFilteredRaw] = useState<TemplateRead[]>(templateData);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  // Tag filter state — client-side only. Today this is a no-op filter
-  // because TemplateRead does not yet expose a flow_tag-backed tag list.
-  // The filter row is still rendered so the UI is ready when the backend
-  // catches up.
-  //
-  // TODO: Filter templates by tag_id once TemplateRead exposes the new
-  // template_tag-backed tag list. Today the state is held locally but
-  // does not filter `filteredRaw` / `filteredExamples`. Same data gap as
-  // the flow list (see Task 10 plan + the TODOs in Task 9).
-  const { data: allTags = [] } = useListTags();
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   const fuse = useMemo(
     () => new Fuse(examples, { keys: ["name", "description"] }),
