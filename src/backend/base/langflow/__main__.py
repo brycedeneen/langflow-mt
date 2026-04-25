@@ -63,6 +63,11 @@ from langflow.cli.worker_cmd import worker_cmd  # noqa: E402
 
 app.command(name="worker", help="Run a distributed flow-execution worker")(worker_cmd)
 
+# Register the singleton scheduler subcommand
+from langflow.cli.scheduler_cmd import scheduler_cmd  # noqa: E402
+
+app.command(name="scheduler", help="Run the singleton scheduler (cron + delayed enqueue)")(scheduler_cmd)
+
 
 class ProcessManager:
     """Manages the lifecycle of the backend process."""
