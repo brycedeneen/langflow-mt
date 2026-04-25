@@ -70,3 +70,25 @@ test("is idempotent on already-v4 source", () => {
   const output = rewriteV3ToV4(input);
   assert.equal(output, input);
 });
+
+test("handles nested .passthrough() — outer wrapping an inner that also passes through", () => {
+  // This pattern is emitted ~77 times by openapi-zod-client when an inline
+  // `z.object({}).partial().passthrough()` field appears inside an outer
+  // schema that itself ends with `.passthrough()`.
+  const input = [
+    `export const Foo = z`,
+    `  .object({`,
+    `    template: z.object({}).partial().passthrough().optional(),`,
+    `  })`,
+    `  .passthrough();`,
+  ].join("\n");
+  const output = rewriteV3ToV4(input);
+  assert.equal(
+    output,
+    [
+      `export const Foo = z.looseObject({`,
+      `    template: z.looseObject({}).partial().optional(),`,
+      `  });`,
+    ].join("\n"),
+  );
+});

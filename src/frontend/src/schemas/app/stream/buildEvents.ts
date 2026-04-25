@@ -8,18 +8,18 @@ import { registerSchema } from "@/lib/schema-registry";
 //   end_vertex, build_start, build_end
 // Webhook SSE hook also observes: connected, heartbeat (custom event names)
 
-const TokenEventSchema = z.object({ event: z.literal("token"), data: z.record(z.unknown()) });
-const VerticesSortedEventSchema = z.object({ event: z.literal("vertices_sorted"), data: z.record(z.unknown()) });
+const TokenEventSchema = z.object({ event: z.literal("token"), data: z.record(z.string(), z.unknown()) });
+const VerticesSortedEventSchema = z.object({ event: z.literal("vertices_sorted"), data: z.record(z.string(), z.unknown()) });
 const ErrorEventSchema = z.object({
   event: z.literal("error"),
-  data: z.object({ message: z.string() }).passthrough(),
+  data: z.looseObject({ message: z.string() }),
 });
-const EndEventSchema = z.object({ event: z.literal("end"), data: z.record(z.unknown()).optional() });
-const AddMessageEventSchema = z.object({ event: z.literal("add_message"), data: z.record(z.unknown()) });
-const RemoveMessageEventSchema = z.object({ event: z.literal("remove_message"), data: z.record(z.unknown()) });
-const EndVertexEventSchema = z.object({ event: z.literal("end_vertex"), data: z.record(z.unknown()) });
-const BuildStartEventSchema = z.object({ event: z.literal("build_start"), data: z.record(z.unknown()) });
-const BuildEndEventSchema = z.object({ event: z.literal("build_end"), data: z.record(z.unknown()) });
+const EndEventSchema = z.object({ event: z.literal("end"), data: z.record(z.string(), z.unknown()).optional() });
+const AddMessageEventSchema = z.object({ event: z.literal("add_message"), data: z.record(z.string(), z.unknown()) });
+const RemoveMessageEventSchema = z.object({ event: z.literal("remove_message"), data: z.record(z.string(), z.unknown()) });
+const EndVertexEventSchema = z.object({ event: z.literal("end_vertex"), data: z.record(z.string(), z.unknown()) });
+const BuildStartEventSchema = z.object({ event: z.literal("build_start"), data: z.record(z.string(), z.unknown()) });
+const BuildEndEventSchema = z.object({ event: z.literal("build_end"), data: z.record(z.string(), z.unknown()) });
 
 export const BuildEventSchema = z.discriminatedUnion("event", [
   TokenEventSchema,

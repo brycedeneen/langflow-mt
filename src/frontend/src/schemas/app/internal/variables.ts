@@ -2,17 +2,15 @@ import { z } from "zod";
 import { registerSchema } from "@/lib/schema-registry";
 
 // VariableRead — sourced from services/database/models/variable/model.py
-export const VariableReadSchema = z
-  .object({
-    id: z.string().uuid(),
-    name: z.string().optional().nullable(),
-    type: z.string().optional().nullable(),
-    value: z.string().optional().nullable(),
-    default_fields: z.array(z.string()).optional().nullable(),
-    validation_error: z.string().optional().nullable(),
-    is_valid: z.boolean().optional().nullable(),
-  })
-  .passthrough();
+export const VariableReadSchema = z.looseObject({
+  id: z.string().uuid(),
+  name: z.string().optional().nullable(),
+  type: z.string().optional().nullable(),
+  value: z.string().optional().nullable(),
+  default_fields: z.array(z.string()).optional().nullable(),
+  validation_error: z.string().optional().nullable(),
+  is_valid: z.boolean().optional().nullable(),
+});
 
 export type VariableRead = z.infer<typeof VariableReadSchema>;
 

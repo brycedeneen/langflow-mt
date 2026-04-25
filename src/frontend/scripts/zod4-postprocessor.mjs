@@ -27,31 +27,36 @@ export function rewriteV3ToV4(source) {
 }
 
 function rewriteObjectMethodToWrapper(src, method, wrapper) {
+  // Scan right-to-left so OUTER `.METHOD()` calls are rewritten BEFORE any
+  // nested INNER `.METHOD()` they contain. Left-to-right would corrupt the
+  // output: rewriting the inner first leaves the outer's argument range
+  // pointing at stale offsets in the original `src`, and the algorithm has no
+  // way to reconcile that with already-emitted prefix bytes.
   const needle = `.${method}()`;
-  let out = "";
-  let i = 0;
-  while (i < src.length) {
-    const next = src.indexOf(needle, i);
-    if (next < 0) {
-      out += src.slice(i);
-      break;
-    }
-    if (insideStringLiteral(src, next)) {
-      out += src.slice(i, next + needle.length);
-      i = next + needle.length;
+  let cur = src;
+  let pos = cur.length;
+  while (pos > 0) {
+    const next = cur.lastIndexOf(needle, pos);
+    if (next < 0) break;
+    if (insideStringLiteral(cur, next)) {
+      pos = next - 1;
       continue;
     }
-
-    const replaced = tryRewriteAt(src, next, method, wrapper);
+    const replaced = tryRewriteAt(cur, next, method, wrapper);
     if (replaced === null) {
-      out += src.slice(i, next + needle.length);
-      i = next + needle.length;
-    } else {
-      out += src.slice(i, replaced.start) + replaced.text;
-      i = replaced.end;
+      pos = next - 1;
+      continue;
     }
+    cur = cur.slice(0, replaced.start) + replaced.text + cur.slice(replaced.end);
+    // Resume scanning from the END of the replacement, working leftward. The
+    // outer `.${method}()` we just rewrote is gone, but the args we wrapped
+    // may themselves contain another `.${method}()` (e.g. inline
+    // `z.object({}).partial().passthrough()` nested inside a passthrough'd
+    // outer). Resuming from inside the replacement lets the next iteration
+    // find that inner one.
+    pos = replaced.start + replaced.text.length - 1;
   }
-  return out;
+  return cur;
 }
 
 function tryRewriteAt(src, methodIdx, method, wrapper) {

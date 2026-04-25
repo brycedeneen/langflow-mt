@@ -6,12 +6,10 @@ import { registerSchema } from "@/lib/schema-registry";
 //   parsedData.chunk — string token appended to the message buffer
 // The stream is closed via a custom "close" SSE event (not via this schema).
 
-export const ChatMessageChunkSchema = z
-  .object({
-    chunk: z.string().optional(),
-    done: z.boolean().optional(),
-  })
-  .passthrough();
+export const ChatMessageChunkSchema = z.looseObject({
+  chunk: z.string().optional(),
+  done: z.boolean().optional(),
+});
 
 registerSchema("stream.chatMessages", "permissive");
 

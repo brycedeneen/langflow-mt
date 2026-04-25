@@ -2,7 +2,7 @@ import type { z } from "zod";
 import { getMode } from "./schema-registry";
 import { ValidationError, reportParseFailure } from "./schema-errors";
 
-export function validatedQueryFn<TSchema extends z.ZodTypeAny>(
+export function validatedQueryFn<TSchema extends z.ZodType>(
   id: string,
   schema: TSchema,
   call: () => Promise<unknown>,
@@ -18,7 +18,7 @@ export function validatedQueryFn<TSchema extends z.ZodTypeAny>(
   };
 }
 
-export function validatedMutationFn<TReqSchema extends z.ZodTypeAny, TResSchema extends z.ZodTypeAny>(
+export function validatedMutationFn<TReqSchema extends z.ZodType, TResSchema extends z.ZodType>(
   id: string,
   reqSchema: TReqSchema,
   resSchema: TResSchema,

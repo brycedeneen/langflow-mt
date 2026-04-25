@@ -12,51 +12,44 @@ import { registerSchema } from "@/lib/schema-registry";
 // Shared shapes
 // ---------------------------------------------------------------------------
 
-export const FlowReadSchema = z
-  .object({
-    id: z.string().optional(),
-    name: z.string().optional(),
-    description: z.string().optional(),
-    data: z.record(z.unknown()).optional(),
-    is_component: z.boolean().optional(),
-    updated_at: z.string().optional(),
-    created_at: z.string().optional(),
-    folder_id: z.string().optional(),
-    user_id: z.string().optional(),
-  })
-  .passthrough();
+export const FlowReadSchema = z.looseObject({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
+  is_component: z.boolean().optional(),
+  updated_at: z.string().optional(),
+  created_at: z.string().optional(),
+  folder_id: z.string().optional(),
+  user_id: z.string().optional(),
+});
 
-export const FolderReadSchema = z
-  .object({
-    id: z.string().optional(),
-    name: z.string().optional(),
-    description: z.string().optional(),
-    parent_id: z.string().nullable().optional(),
-    user_id: z.string().optional(),
-    created_at: z.string().optional(),
-    updated_at: z.string().optional(),
-  })
-  .passthrough();
+export const FolderReadSchema = z.looseObject({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+  parent_id: z.string().nullable().optional(),
+  user_id: z.string().optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
+});
 
 export const FolderReadWithFlowsSchema = FolderReadSchema.extend({
   flows: z.array(FlowReadSchema).optional(),
-}).passthrough();
+});
 
-export const FolderWithPaginatedFlowsSchema = z
-  .object({
-    folder: FolderReadSchema.optional(),
-    flows: z
-      .object({
-        items: z.array(FlowReadSchema).optional(),
-        total: z.number().optional(),
-        page: z.number().optional(),
-        size: z.number().optional(),
-        pages: z.number().optional(),
-      })
-      .passthrough()
-      .optional(),
-  })
-  .passthrough();
+export const FolderWithPaginatedFlowsSchema = z.looseObject({
+  folder: FolderReadSchema.optional(),
+  flows: z
+    .looseObject({
+      items: z.array(FlowReadSchema).optional(),
+      total: z.number().optional(),
+      page: z.number().optional(),
+      size: z.number().optional(),
+      pages: z.number().optional(),
+    })
+    .optional(),
+});
 
 // ---------------------------------------------------------------------------
 // Route: POST /folders/  → 307 redirect → FolderRead
