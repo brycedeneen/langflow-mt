@@ -23,7 +23,7 @@ class ApiKeyBase(SQLModel):
 
 
 class ApiKey(ApiKeyBase, table=True):  # type: ignore[call-arg]
-    id: UUIDstr = Field(default_factory=uuid4, primary_key=True, unique=True)
+    id: UUIDstr = Field(default_factory=uuid4, primary_key=True)
     created_at: datetime | None = Field(
         default=None, sa_column=Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     )

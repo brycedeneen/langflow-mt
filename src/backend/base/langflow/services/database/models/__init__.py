@@ -26,6 +26,7 @@ from .traces.model import SpanTable, TraceTable
 from .transactions import TransactionTable
 from .user import User
 from .variable import Variable
+from .vertex_builds.model import VertexBuildTable
 
 __all__ = [
     "AdminNotification",
@@ -64,4 +65,5 @@ __all__ = [
     "TransactionTable",
     "User",
     "Variable",
+    "VertexBuildTable",
 ]
