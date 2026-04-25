@@ -91,3 +91,24 @@ class PricingService(Service):
             + (output_tokens / 1000.0) * price.output_cents_per_1k
         )
         return int(round(cents))
+
+    def compute_cost_micros(
+        self, model: str, *, input_tokens: int, output_tokens: int
+    ) -> int | None:
+        """Return cost in micro-USD (millionths of a dollar) or None when the model has no pricing data.
+
+        Distinct from compute_cost_cents because:
+          - Returns None on unknown model (vs 0), so the caller can distinguish "unpriced" from "free".
+          - Preserves sub-cent precision (1 cent = 10_000 micros), so the UI can render "<$0.01" for tiny costs.
+        """
+        price = self.get_price(model)
+        if price is None:
+            if model not in self._unknown_logged:
+                logger.warning("unknown model for pricing: %s", model)
+                self._unknown_logged.add(model)
+            return None
+        cents = (
+            (input_tokens / 1000.0) * price.input_cents_per_1k
+            + (output_tokens / 1000.0) * price.output_cents_per_1k
+        )
+        return int(round(cents * 10_000))
