@@ -396,7 +396,7 @@ Add the column to `AdminNotification`:
 ```python
 audience_user_id: UUID | None = Field(
     default=None,
-    sa_column=Column(ForeignKey("user.id", ondelete="CASCADE"), nullable=True),
+    sa_column=Column(ForeignKey("user.id", ondelete="SET NULL"), nullable=True),
 )
 ```
 
@@ -552,7 +552,7 @@ def upgrade() -> None:
         sa.Column(
             "audience_user_id",
             sa.UUID(),
-            sa.ForeignKey("user.id", ondelete="CASCADE"),
+            sa.ForeignKey("user.id", ondelete="SET NULL"),
             nullable=True,
         ),
     )

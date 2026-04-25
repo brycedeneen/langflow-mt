@@ -67,7 +67,7 @@ class AdminNotification(SQLModel, table=True):
     )
     audience_user_id: UUID | None = Field(
         default=None,
-        sa_column=Column(ForeignKey("user.id", ondelete="CASCADE"), nullable=True),
+        sa_column=Column(ForeignKey("user.id", ondelete="SET NULL"), nullable=True),
     )
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
