@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { memo, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import ShadTooltip from "@/components/common/shadTooltipComponent";
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
 import { ENABLE_MCP_COMPOSER } from "@/customization/feature-flags";
@@ -10,7 +11,7 @@ import { Button } from "../../../../ui/button";
 import { Skeleton } from "../../../../ui/skeleton";
 import type { InputProps, ToolsComponentType } from "../../types";
 
-export default function ToolsComponent({
+function ToolsComponent({
   description,
   value,
   editNode = false,
@@ -159,3 +160,5 @@ export default function ToolsComponent({
     </div>
   );
 }
+
+export default memo(ToolsComponent, areInputPropsEqual);

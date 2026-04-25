@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
 import DictAreaModal from "../../../../../modals/dictAreaModal";
@@ -7,7 +8,7 @@ import ForwardedIconComponent from "../../../../common/genericIconComponent";
 import { Button } from "../../../../ui/button";
 import type { InputProps } from "../../types";
 
-export default function DictComponent({
+function DictComponent({
   value,
   handleOnNewValue,
   disabled,
@@ -68,3 +69,5 @@ export default function DictComponent({
     </div>
   );
 }
+
+export default memo(DictComponent, areInputPropsEqual);

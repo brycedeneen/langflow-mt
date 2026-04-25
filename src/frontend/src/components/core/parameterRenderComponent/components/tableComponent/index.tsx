@@ -15,7 +15,8 @@ import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the 
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the grid
 import { AgGridReact, type AgGridReactProps } from "ag-grid-react";
 import cloneDeep from "lodash";
-import { type ElementRef, forwardRef, useRef, useState } from "react";
+import { type ElementRef, forwardRef, memo, useRef, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import TableOptions from "./components/TableOptions";
 import resetGrid from "./utils/reset-grid-columns";
 
@@ -530,4 +531,4 @@ const TableComponent = forwardRef<
   },
 );
 
-export default TableComponent;
+export default memo(TableComponent, areInputPropsEqual);

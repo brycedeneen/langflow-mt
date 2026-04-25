@@ -1,7 +1,9 @@
+import { memo } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { Switch } from "../../../../ui/switch";
 import type { InputProps, ToggleComponentType } from "../../types";
 
-export default function ToggleShadComponent({
+function ToggleShadComponent({
   value,
   editNode,
   handleOnNewValue,
@@ -61,3 +63,5 @@ export default function ToggleShadComponent({
     </div>
   );
 }
+
+export default memo(ToggleShadComponent, areInputPropsEqual);

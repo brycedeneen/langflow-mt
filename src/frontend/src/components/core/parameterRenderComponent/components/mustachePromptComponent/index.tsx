@@ -1,3 +1,5 @@
+import { memo } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import SanitizedHTMLWrapper from "@/components/common/sanitizedHTMLWrapper";
 import MustachePromptModal from "@/modals/mustachePromptModal";
@@ -13,7 +15,7 @@ const promptContentClasses = {
   disabled: "disabled-state",
 };
 
-export default function MustachePromptAreaComponent({
+function MustachePromptAreaComponent({
   field_name,
   nodeClass,
   handleOnNewValue,
@@ -102,3 +104,5 @@ export default function MustachePromptAreaComponent({
     </div>
   );
 }
+
+export default memo(MustachePromptAreaComponent, areInputPropsEqual);

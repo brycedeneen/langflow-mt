@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 
 import LoadingTextComponent from "@/components/common/loadingTextComponent";
 import { useGetEnabledModels } from "@/controllers/API/queries/models/use-get-enabled-models";
@@ -27,7 +28,7 @@ import type {
 
 export type { ModelOption, SelectedModel } from "./types";
 
-export default function ModelInputComponent({
+function ModelInputComponent({
   id,
   value,
   disabled,
@@ -346,3 +347,5 @@ export default function ModelInputComponent({
     </>
   );
 }
+
+export default memo(ModelInputComponent, areInputPropsEqual);

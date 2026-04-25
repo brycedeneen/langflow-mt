@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import QueryModal from "@/modals/queryModal";
 import { cn } from "../../../../../utils/utils";
 import IconComponent from "../../../../common/genericIconComponent";
@@ -23,7 +24,7 @@ const externalLinkIconClasses = {
   iconTop: "top-[-1.7rem]",
 };
 
-export default function QueryComponent({
+function QueryComponent({
   value,
   disabled,
   handleOnNewValue,
@@ -105,3 +106,5 @@ export default function QueryComponent({
     </div>
   );
 }
+
+export default memo(QueryComponent, areInputPropsEqual);

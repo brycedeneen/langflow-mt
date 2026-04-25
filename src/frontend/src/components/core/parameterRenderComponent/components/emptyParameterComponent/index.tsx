@@ -1,6 +1,8 @@
+import { memo } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import type { InputProps } from "../../types";
 
-export function EmptyParameterComponent({
+function EmptyParameterComponentInner({
   id,
   value,
   editNode,
@@ -13,3 +15,5 @@ export function EmptyParameterComponent({
   }
   return <div id={id}></div>;
 }
+
+export const EmptyParameterComponent = memo(EmptyParameterComponentInner, areInputPropsEqual);

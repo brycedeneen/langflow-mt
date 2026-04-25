@@ -4,7 +4,8 @@ import type {
 } from "ag-grid-community";
 import type { AgGridReact } from "ag-grid-react";
 import { cloneDeep } from "lodash";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import ShadTooltip from "@/components/common/shadTooltipComponent";
 import TableModal from "@/modals/tableModal";
 import { isMarkdownTable } from "@/utils/markdownUtils";
@@ -13,7 +14,7 @@ import { ForwardedIconComponent } from "../../../../common/genericIconComponent"
 import { Button } from "../../../../ui/button";
 import type { InputProps, TableComponentType } from "../../types";
 
-export default function TableNodeComponent({
+function TableNodeComponent({
   tableTitle,
   description,
   value,
@@ -315,3 +316,5 @@ export default function TableNodeComponent({
     </div>
   );
 }
+
+export default memo(TableNodeComponent, areInputPropsEqual);

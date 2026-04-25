@@ -1,11 +1,12 @@
 import { MinusIcon, PlusIcon } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
 import { cn } from "@/utils/utils";
 import { handleKeyDown } from "../../../../../utils/reactflowUtils";
 import type { InputProps, IntComponentType } from "../../types";
 
-export default function IntComponent({
+function IntComponent({
   value,
   handleOnNewValue,
   rangeSpec,
@@ -195,3 +196,5 @@ export default function IntComponent({
     </div>
   );
 }
+
+export default memo(IntComponent, areInputPropsEqual);

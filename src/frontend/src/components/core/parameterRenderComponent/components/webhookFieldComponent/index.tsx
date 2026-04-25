@@ -1,4 +1,5 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { AuthContext } from "@/contexts/authContext";
 import { useGetBuildsMutation } from "@/controllers/API/queries/_builds/use-get-builds-polling-mutation";
 import SecretKeyModalButton from "@/customization/components/custom-secret-key-modal-button";
@@ -24,7 +25,7 @@ import { Button } from "../../../../ui/button";
 import { Input } from "../../../../ui/input";
 import { cn } from "../../../../../utils/utils";
 
-export default function WebhookFieldComponent({
+function WebhookFieldComponent({
   value,
   handleOnNewValue,
   editNode = false,
@@ -113,6 +114,8 @@ export default function WebhookFieldComponent({
     </div>
   );
 }
+
+export default memo(WebhookFieldComponent, areInputPropsEqual);
 
 function WebhookApiKeyField({ flowId }: { flowId: string }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);

@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from "react";
+import { memo, useMemo, useRef, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { customGetHostProtocol } from "@/customization/utils/custom-get-host-protocol";
 import useAlertStore from "@/stores/alertStore";
 import useFlowStore from "@/stores/flowStore";
@@ -28,7 +29,7 @@ const externalLinkIconClasses = {
   iconTop: "top-[-1.7rem]",
 };
 
-export default function CopyFieldAreaComponent({
+function CopyFieldAreaComponent({
   value,
   handleOnNewValue,
   editNode = false,
@@ -120,3 +121,5 @@ export default function CopyFieldAreaComponent({
     </div>
   );
 }
+
+export default memo(CopyFieldAreaComponent, areInputPropsEqual);

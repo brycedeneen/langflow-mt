@@ -1,3 +1,5 @@
+import { memo } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { isWebhookLikeNodeType } from "@/utils/webhookNodeTypes";
 import type { InputProps, StrRenderComponentType } from "../../types";
 import CopyFieldAreaComponent from "../copyFieldAreaComponent";
@@ -6,7 +8,7 @@ import InputGlobalComponent from "../inputGlobalComponent";
 import TextAreaComponent from "../textAreaComponent";
 import WebhookFieldComponent from "../webhookFieldComponent";
 
-export function StrRenderComponent({
+function StrRenderComponentInner({
   templateData,
   name,
   display_name,
@@ -87,3 +89,5 @@ export function StrRenderComponent({
     );
   }
 }
+
+export const StrRenderComponent = memo(StrRenderComponentInner, areInputPropsEqual);
