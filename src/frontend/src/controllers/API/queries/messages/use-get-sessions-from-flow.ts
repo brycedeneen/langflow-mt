@@ -1,5 +1,7 @@
 import { keepPreviousData } from "@tanstack/react-query";
+import { z } from "zod";
 import useFlowStore from "@/stores/flowStore";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useQueryFunctionType } from "../../../../types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -27,7 +29,15 @@ export const useGetSessionsFromFlowQuery: useQueryFunctionType<
     }
 
     if (!isPlaygroundPage) {
-      return await api.get<string[]>(`${getURL("MESSAGES")}/sessions`, config);
+      const sessions = await validatedQueryFn(
+        "api.monitor.get_message_sessions_api_v1_monitor_messages_sessions_get",
+        z.array(z.string()),
+        async () =>
+          (
+            await api.get<unknown>(`${getURL("MESSAGES")}/sessions`, config)
+          ).data,
+      )();
+      return { data: sessions };
     } else {
       // For playground mode, get sessions from sessionStorage
       const data = JSON.parse(window.sessionStorage.getItem(id ?? "") || "[]");

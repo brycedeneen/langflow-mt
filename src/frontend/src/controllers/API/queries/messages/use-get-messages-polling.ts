@@ -1,7 +1,10 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import type { ColDef, ColGroupDef } from "ag-grid-community";
 import { useEffect, useRef } from "react";
+import { z } from "zod";
 import { useMessagesStore } from "@/stores/messagesStore";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { MessageRead } from "@/schemas/api/_generated";
 import {
   extractColumnsFromRows,
   prepareSessionIdForAPI,
@@ -122,11 +125,15 @@ export const useGetMessagesPollingMutation = (
         config["params"] = { ...config["params"], ...processedParams };
       }
 
-      const data = await api.get<any>(`${getURL("MESSAGES")}`, config);
-      const columns = extractColumnsFromRows(data.data, mode, excludedFields);
-      useMessagesStore.getState().setMessages(data.data);
+      const rows = await validatedQueryFn(
+        "api.monitor.get_messages_api_v1_monitor_messages_get",
+        z.array(MessageRead),
+        async () => (await api.get<unknown>(`${getURL("MESSAGES")}`, config)).data,
+      )();
+      const columns = extractColumnsFromRows(rows, mode, excludedFields);
+      useMessagesStore.getState().setMessages(rows as any[]);
 
-      return { rows: data.data, columns };
+      return { rows, columns };
     } finally {
       requestInProgressRef.current[requestId] = false;
     }

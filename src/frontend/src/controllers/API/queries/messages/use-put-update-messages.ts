@@ -1,6 +1,8 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import { useGetFlowId } from "@/modals/IOModal/hooks/useGetFlowId";
 import useFlowStore from "@/stores/flowStore";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { MessageRead } from "@/schemas/api/_generated";
 import type { useMutationFunctionType } from "@/types/api";
 import type { Message } from "@/types/messages";
 import { api } from "../../api";
@@ -44,11 +46,18 @@ export const useUpdateMessage: useMutationFunctionType<
       };
       sessionStorage.setItem(flowId, JSON.stringify(messages));
     } else {
-      const result = await api.put(
-        `${getURL("MESSAGES")}/${message.id}`,
-        message,
-      );
-      return result.data;
+      const result = await validatedQueryFn(
+        "api.monitor.update_message_api_v1_monitor_messages__message_id__put",
+        MessageRead,
+        async () =>
+          (
+            await api.put<unknown>(
+              `${getURL("MESSAGES")}/${message.id}`,
+              message,
+            )
+          ).data,
+      )();
+      return result as unknown as Message;
     }
   };
 
