@@ -1,21 +1,33 @@
 from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from sqlmodel import select
+from redis.asyncio import Redis
+from taskiq import TaskiqDepends
 
 from langflow.services.database.models.flow_run.model import FlowRun, RunStatus
 from langflow.services.runs.concurrency import OrgConcurrency
+from langflow.worker_app.brokers import broker_default, broker_webhooks
+from langflow.worker_app.deps import get_db_sessionmaker, get_redis
 
 STALE_AFTER_SECONDS = 60
 
 
-async def reap_lost_runs(ctx) -> None:
-    session_factory = ctx["db_sessionmaker"]
-    redis = ctx["redis"]
+@broker_default.task(
+    task_name="reap_lost_runs",
+    schedule=[{"cron": "* * * * *"}],  # every minute
+)
+async def reap_lost_runs(
+    *,
+    sessionmaker=TaskiqDepends(get_db_sessionmaker),
+    redis: Redis = TaskiqDepends(get_redis),
+) -> None:
+    from langflow.worker_app.webhook import deliver_webhook  # avoid circular
+
     concurrency = OrgConcurrency(redis)
     cutoff = datetime.now(timezone.utc) - timedelta(seconds=STALE_AFTER_SECONDS)
 
     reaped_rows = []
-    async with session_factory() as session:
+    async with sessionmaker() as session:
         stmt = select(FlowRun).where(
             FlowRun.status == RunStatus.RUNNING,
             FlowRun.heartbeat_at < cutoff,
@@ -30,7 +42,6 @@ async def reap_lost_runs(ctx) -> None:
         await session.commit()
 
     for run_id in reaped_rows:
-        await ctx["arq"].enqueue_job(
-            "deliver_webhook", str(run_id), "run.failed",
-            _queue_name=ctx["settings"].queue_webhooks,
+        await deliver_webhook.kicker().with_broker(broker_webhooks).kiq(
+            str(run_id), "run.failed"
         )
