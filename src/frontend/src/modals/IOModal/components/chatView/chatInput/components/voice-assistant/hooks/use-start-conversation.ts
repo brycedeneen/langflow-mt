@@ -1,6 +1,5 @@
-// TODO: Phase 2.e follow-up — this hook uses WebSocket, not EventSource.
-// validatedEventStream only accepts EventSource. A future validatedSocket helper
-// would be needed to wrap wsRef.current.onmessage = handleWebSocketMessage here.
+import { validatedSocket } from "@/lib/validated-socket";
+import { VoiceAssistantMessageSchema } from "@/schemas/app/stream/voiceAssistant";
 import { getLocalStorage } from "@/utils/local-storage-util";
 
 export const useStartConversation = (
@@ -65,7 +64,16 @@ export const useStartConversation = (
       }
     };
 
-    wsRef.current.onmessage = handleWebSocketMessage;
+    validatedSocket(
+      "stream.voiceAssistant",
+      VoiceAssistantMessageSchema,
+      wsRef.current,
+      (msg) => {
+        // Re-wrap validated data as a synthetic MessageEvent for the existing handler.
+        const syntheticEvent = { data: JSON.stringify(msg) } as MessageEvent;
+        handleWebSocketMessage(syntheticEvent);
+      },
+    );
 
     wsRef.current.onclose = (event) => {
       if (event.code !== 1000) {
