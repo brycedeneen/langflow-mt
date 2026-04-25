@@ -8,11 +8,11 @@ import { TEMPLATES_QUERY_KEY } from "./use-list-templates";
 export function useHardDeleteTemplate() {
   const { mutate, queryClient } = UseRequestProcessor();
   const fn = async ({ templateId }: { templateId: string }): Promise<void> => {
-    // TODO: Phase 2.c follow-up — no distinct "hard_delete" operation id in the
-    // OpenAPI registry. This hook hits the same DELETE /templates/{id} endpoint
-    // as useDeleteTemplate. Using the soft-delete op id as the closest match.
+    // Synthetic operation id for Sentry telemetry distinguishability.
+    // The id is manually registered in generated.meta.ts (see MANUAL ADDITION note).
+    // Do NOT replace with the soft-delete id — that defeats the purpose.
     await validatedQueryFn(
-      "api.templates.delete_template_api_v1_templates__template_id__delete",
+      "api.templates.hard_delete_template_api_v1_templates__template_id__hard_delete_post",
       z.unknown(),
       async () => (await api.delete<unknown>(`${getURL("TEMPLATES")}/${templateId}`)).data,
     )();

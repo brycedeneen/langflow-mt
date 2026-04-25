@@ -144,6 +144,13 @@ export type ValidateProviderResponse = z.infer<
 // Route: GET /models/enabled_models
 // Function: get_enabled_models
 // Response: { enabled_models: dict[str, dict[str, bool]] }
+//
+// NOTE (soft-spot-3): .passthrough() is intentional here. The consumer
+// (ModelSelection.tsx) accesses enabled_models[providerName]?.[modelName] via
+// dynamic keys — fully covered by z.record(z.record(z.boolean())). The outer
+// .passthrough() lets future runtime-injected fields survive without schema
+// failures. Tightening further is low-value: the inner record already enforces
+// the boolean values the UI reads.
 // ---------------------------------------------------------------------------
 registerSchema("api.models.get_enabled_models", "permissive");
 

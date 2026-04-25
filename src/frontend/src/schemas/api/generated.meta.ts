@@ -207,6 +207,12 @@ export const SCHEMA_MODES: Array<[string, "permissive" | "strict"]> = [
   ["api.health_check.health_check_health_check_get", "permissive"],
   ["api.log.stream_logs_logs_stream_get", "permissive"],
   ["api.log.logs_logs_get", "permissive"],
+  // MANUAL ADDITION — do NOT remove or let `make gen_frontend_schemas` overwrite.
+  // This synthetic id distinguishes hard-delete telemetry from soft-delete in Sentry.
+  // The backend uses DELETE /templates/{id} for soft-delete but a future
+  // POST /templates/{id}/hard_delete for irreversible removal; the id below
+  // mirrors that anticipated route name so Sentry traces are distinguishable.
+  ["api.templates.hard_delete_template_api_v1_templates__template_id__hard_delete_post", "permissive"],
 ];
 
 SCHEMA_MODES.forEach(([id, mode]) => registerSchema(id, mode));

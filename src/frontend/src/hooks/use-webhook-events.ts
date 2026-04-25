@@ -1,14 +1,11 @@
 /**
  * Hook for real-time webhook build events via Server-Sent Events (SSE).
  * Provides live build feedback when webhooks are triggered externally.
- *
- * TODO: Phase 2.e follow-up — this hook uses named SSE event types via addEventListener
- * (vertices_sorted, build_start, end_vertex, end, error) rather than onmessage.
- * validatedEventStream only wraps onmessage. A future validatedNamedEventStream helper
- * that accepts a record of { eventName: schema } would be needed to cover these call sites.
  */
 
 import { useEffect, useMemo, useRef } from "react";
+import { validatedNamedEventStream } from "@/lib/validated-named-event-stream";
+import { BuildEventSchema } from "@/schemas/app/stream/buildEvents";
 import { BuildStatus } from "@/constants/enums";
 import useAuthStore from "@/stores/authStore";
 import useFlowStore from "@/stores/flowStore";
@@ -165,16 +162,53 @@ export function useWebhookEvents() {
       // SSE connection error - handled silently
     };
 
-    eventSource.addEventListener(
+    // Helper to adapt validated data back to the MessageEvent-based handlers.
+    function toMsgEvent(data: unknown): MessageEvent {
+      return { data: JSON.stringify(data) } as MessageEvent;
+    }
+
+    const cleanupVerticesSorted = validatedNamedEventStream(
+      "stream.buildEvents",
+      BuildEventSchema,
+      eventSource,
       SSE_EVENTS.VERTICES_SORTED,
-      handleVerticesSorted,
+      (msg) => { handleVerticesSorted(toMsgEvent(msg)); },
     );
-    eventSource.addEventListener(SSE_EVENTS.BUILD_START, handleBuildStart);
-    eventSource.addEventListener(SSE_EVENTS.END_VERTEX, handleEndVertex);
-    eventSource.addEventListener(SSE_EVENTS.END, handleEnd);
-    eventSource.addEventListener(SSE_EVENTS.ERROR, handleError);
+    const cleanupBuildStart = validatedNamedEventStream(
+      "stream.buildEvents",
+      BuildEventSchema,
+      eventSource,
+      SSE_EVENTS.BUILD_START,
+      (msg) => { handleBuildStart(toMsgEvent(msg)); },
+    );
+    const cleanupEndVertex = validatedNamedEventStream(
+      "stream.buildEvents",
+      BuildEventSchema,
+      eventSource,
+      SSE_EVENTS.END_VERTEX,
+      (msg) => { handleEndVertex(toMsgEvent(msg)); },
+    );
+    const cleanupEnd = validatedNamedEventStream(
+      "stream.buildEvents",
+      BuildEventSchema,
+      eventSource,
+      SSE_EVENTS.END,
+      (msg) => { handleEnd(toMsgEvent(msg)); },
+    );
+    const cleanupError = validatedNamedEventStream(
+      "stream.buildEvents",
+      BuildEventSchema,
+      eventSource,
+      SSE_EVENTS.ERROR,
+      (msg) => { handleError(toMsgEvent(msg)); },
+    );
 
     return () => {
+      cleanupVerticesSorted();
+      cleanupBuildStart();
+      cleanupEndVertex();
+      cleanupEnd();
+      cleanupError();
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
         eventSourceRef.current = null;

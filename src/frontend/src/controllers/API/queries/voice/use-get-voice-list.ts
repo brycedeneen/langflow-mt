@@ -32,12 +32,16 @@ export const useGetVoiceList = (elevenlabsApiKey: string, options?: any) => {
       return [];
     }
 
+    // Map to { name, value, voice_id } so:
+    //   - VoiceSelect and allVoices consumers read .value (required by SelectItem)
+    //   - setVoices receives objects with the correct .voice_id field (store type)
     const voicesMapped = data.map((voice) => ({
       name: voice.name ?? "",
       value: voice.voice_id ?? "",
+      voice_id: voice.voice_id ?? "",
     }));
 
-    setVoices(voicesMapped as unknown as { name: string; voice_id: string }[]);
+    setVoices(voicesMapped);
     return voicesMapped;
   };
 
