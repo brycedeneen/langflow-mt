@@ -196,3 +196,52 @@ class RequestCache:
             # closure-scoped to one build_tools() call and bounded by max_entries,
             # (b) ADP read patterns rarely exceed max_entries unique URLs per turn.
             self._locks.pop(evicted_key, None)
+
+
+HTTP_UNAUTHORIZED = 401
+HTTP_CLIENT_ERROR_MIN = 400
+
+
+async def cached_get_json(
+    *,
+    client: httpx.AsyncClient,
+    cache: RequestCache,
+    url: str,
+    headers: Mapping[str, str],
+    params: Mapping[str, Any] | None = None,
+    timeout: float = 30.0,
+) -> dict[str, Any]:
+    """Cache-aware GET returning parsed JSON.
+
+    Caches the parsed JSON dict on 2xx. On any error (>=400 or non-JSON),
+    returns ``{"error": ..., "status_code": ...}`` and does NOT cache.
+    Bearer tokens in ``headers`` are passed through but never participate in the key.
+
+    The 401-refresh dance is the caller's responsibility — this helper does not retry.
+    """
+    key = RequestCache.make_key("GET", url, params)
+
+    # Fast path: cache hit within TTL.
+    entry = cache._entries.get(key)
+    if entry and entry.expires_at > time.monotonic():
+        cache._entries.move_to_end(key)
+        return entry.value
+
+    # Miss — fetch, only store on success.
+    response = await client.request(
+        method="GET", url=url, headers=dict(headers), params=dict(params or {}), timeout=timeout,
+    )
+    if response.status_code >= HTTP_CLIENT_ERROR_MIN:
+        try:
+            detail = response.json()
+        except ValueError:
+            detail = response.text
+        return {"error": detail, "status_code": response.status_code}
+
+    result = response.json()
+
+    # Re-route through the lock-protected store path so concurrent callers also benefit.
+    async def _return_existing() -> dict[str, Any]:
+        return result
+
+    return await cache.get_or_fetch(key, _return_existing)

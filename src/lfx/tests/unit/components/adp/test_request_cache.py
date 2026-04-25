@@ -1,14 +1,15 @@
-"""Tests for RequestCache — closure-scoped read cache for ADP tools."""
+"""Tests for RequestCache and cached_get_json."""
 
 from __future__ import annotations
 
 import asyncio
 import time
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 
-from lfx.components.adp._shared import RequestCache
+from lfx.components.adp._shared import RequestCache, cached_get_json
 
 
 @pytest.mark.asyncio
@@ -156,3 +157,51 @@ def test_query_params_order_normalized():
     key1 = RequestCache.make_key("GET", "https://api.adp.com/hr/v2/workers", {"limit": 10, "offset": 0})
     key2 = RequestCache.make_key("GET", "https://api.adp.com/hr/v2/workers", {"offset": 0, "limit": 10})
     assert key1 == key2
+
+
+@pytest.mark.asyncio
+async def test_cached_get_json_caches_2xx_response():
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    response_payload = {"workers": [{"associateOID": "G3ABC"}]}
+    mock_response = MagicMock(spec=httpx.Response)
+    mock_response.status_code = 200
+    mock_response.json.return_value = response_payload
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.return_value = mock_response
+
+    url = "https://api.adp.com/hr/v2/workers/G3ABC"
+    headers = {"Authorization": "Bearer T1"}
+
+    first = await cached_get_json(client=client, cache=cache, url=url, headers=headers)
+    second = await cached_get_json(client=client, cache=cache, url=url, headers=headers)
+
+    assert first == response_payload
+    assert second == response_payload
+    assert client.request.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_cached_get_json_does_not_cache_errors():
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    error_response = MagicMock(spec=httpx.Response)
+    error_response.status_code = 500
+    error_response.json.return_value = {"message": "boom"}
+    error_response.text = ""
+
+    success_response = MagicMock(spec=httpx.Response)
+    success_response.status_code = 200
+    success_response.json.return_value = {"workers": []}
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.side_effect = [error_response, success_response]
+
+    url = "https://api.adp.com/hr/v2/workers/G3ABC"
+    headers = {"Authorization": "Bearer T1"}
+
+    first = await cached_get_json(client=client, cache=cache, url=url, headers=headers)
+    second = await cached_get_json(client=client, cache=cache, url=url, headers=headers)
+
+    assert first == {"error": {"message": "boom"}, "status_code": 500}
+    assert second == {"workers": []}  # not served from cache; second request fired
+    assert client.request.await_count == 2
