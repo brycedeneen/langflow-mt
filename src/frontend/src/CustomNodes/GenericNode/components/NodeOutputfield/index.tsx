@@ -170,9 +170,13 @@ function NodeOutputField({
   );
 
   const emptyOutput = useMemo(() => {
-    return Object.keys(flowPoolNode?.data?.outputs ?? {})?.every(
-      (key) => flowPoolNode?.data?.outputs[key]?.message?.length === 0,
-    );
+    return Object.keys(flowPoolNode?.data?.outputs ?? {})?.every((key) => {
+      const message = flowPoolNode?.data?.outputs[key]?.message;
+      return (
+        (typeof message === "string" || Array.isArray(message)) &&
+        message.length === 0
+      );
+    });
   }, [flowPoolNode?.data?.outputs]);
 
   const disabledOutput = useMemo(

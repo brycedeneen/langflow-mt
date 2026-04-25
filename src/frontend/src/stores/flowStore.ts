@@ -838,14 +838,16 @@ const useFlowStore = create<FlowStoreType>((set, get) => ({
           ENABLE_DATASTAX_LANGFLOW &&
           vertexBuildData?.id?.includes("AstraDB")
         ) {
-          const search_results: LogsLogType[] = Object.values(
-            vertexBuildData?.data?.logs?.search_results,
+          const search_results = Object.values(
+            (vertexBuildData?.data?.logs?.search_results ?? {}) as unknown as
+              | Record<string, LogsLogType>,
           );
           search_results.forEach((log) => {
+            const message = typeof log.message === "string" ? log.message : "";
             if (
-              log.message.includes("Adding") &&
-              log.message.includes("documents") &&
-              log.message.includes("Vector Store")
+              message.includes("Adding") &&
+              message.includes("documents") &&
+              message.includes("Vector Store")
             ) {
               trackDataLoaded(
                 get().currentFlow?.id,

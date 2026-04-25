@@ -1,8 +1,11 @@
+import { memo } from "react";
 import { convertTestName } from "@/components/common/storeCardComponent/utils/convert-test-name";
 import { Badge } from "@/components/ui/badge";
 import { nodeColorsName } from "@/utils/styleUtils";
 
-export default function HandleTooltipComponent({
+// memo: parent (HandleRenderComponent) re-renders on hover/connection state;
+// all 6 props here are primitives, so default identity check is a clear win.
+function HandleTooltipComponent({
   isInput,
   tooltipTitle,
   isConnecting,
@@ -76,3 +79,5 @@ export default function HandleTooltipComponent({
     </div>
   );
 }
+
+export default memo(HandleTooltipComponent);

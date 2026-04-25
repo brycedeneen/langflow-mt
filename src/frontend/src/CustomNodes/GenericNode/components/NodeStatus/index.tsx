@@ -17,7 +17,7 @@ import { useDarkStore } from "@/stores/darkStore";
 import useFlowStore from "@/stores/flowStore";
 import { useShortcutsStore } from "@/stores/shortcuts";
 import { useUtilityStore } from "@/stores/utilityStore";
-import type { VertexBuildTypeAPI } from "@/types/api";
+import type { InputFieldType, VertexBuildTypeAPI } from "@/types/api";
 import type { NodeDataType } from "@/types/flow";
 import { formatTokenCount } from "@/utils/format-token-count";
 import { findLastNode } from "@/utils/reactflowUtils";
@@ -68,9 +68,11 @@ export default function NodeStatus({
 
   const nodeAuth = Object.values(data.node?.template ?? {}).find(
     (value) => value.type === "auth",
-  );
+  ) as
+    | (InputFieldType & { value?: string; auth_tooltip?: string })
+    | undefined;
 
-  const connectionLink = nodeAuth?.value;
+  const connectionLink: string = nodeAuth?.value ?? "";
   const apiKeyValue =
     (data.node?.template as Record<string, { value?: string }>)?.api_key
       ?.value ?? "";

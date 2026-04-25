@@ -148,12 +148,15 @@ function validateModelValue(
   const modelField = template[modelFieldKey];
   if (!modelField) return template;
 
-  const options = modelField.options || [];
-  const currentValue = modelField.value;
+  const options = (modelField.options as ModelOptionType[] | undefined) || [];
+  const currentValue = modelField.value as
+    | ModelOptionType
+    | ModelOptionType[]
+    | undefined;
 
   // Filter out disabled provider placeholders to get actual available models
   const availableOptions = options.filter(
-    (opt: ModelOptionType) => !opt?.metadata?.is_disabled_provider,
+    (opt) => !opt?.metadata?.is_disabled_provider,
   );
 
   // Get current model name from value

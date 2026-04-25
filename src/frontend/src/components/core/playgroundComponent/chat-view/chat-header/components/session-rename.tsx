@@ -9,11 +9,11 @@ interface SessionRenameProps {
 }
 
 // Controlled inline rename; closes on blur/Enter/Escape and auto-focuses/selects.
-export const SessionRename: React.FC<SessionRenameProps> = ({
+export const SessionRename = ({
   sessionId,
   onSave,
   onDone,
-}) => {
+}: SessionRenameProps): JSX.Element => {
   const [value, setValue] = useState(sessionId);
   const inputRef = useRef<HTMLInputElement>(null);
 

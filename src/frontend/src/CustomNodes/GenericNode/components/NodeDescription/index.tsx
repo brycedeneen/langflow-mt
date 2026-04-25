@@ -6,6 +6,10 @@ import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import { handleKeyDown } from "@/utils/reactflowUtils";
 import { cn } from "@/utils/utils";
 
+// memo: hoisted to module scope so we don't recreate a fresh memo wrapper on
+// every NodeDescription render (which would defeat the memoization entirely).
+const MemoizedMarkdown = memo(Markdown);
+
 export default function NodeDescription({
   description,
   selected,
@@ -67,8 +71,6 @@ export default function NodeDescription({
   useEffect(() => {
     setNodeDescription(description ?? "");
   }, [description]);
-
-  const MemoizedMarkdown = memo(Markdown);
 
   const renderedDescription = useMemo(() => {
     if (description === "" || !description) {

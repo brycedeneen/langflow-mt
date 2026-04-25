@@ -35,6 +35,19 @@ export default function InputListComponent({
   }
   if (!value?.length) value = [""];
 
+  // Stable per-row React keys so removing a middle row doesn't shift focus
+  // onto an unrelated input. We can't add an _id field to the wire format
+  // (it's a `string[]` boundary), so we maintain a parallel ids ref that
+  // stays in lockstep with `value` via the explicit add/remove handlers
+  // below; on external value-length changes we best-effort grow/truncate.
+  const idsRef = useRef<string[]>([]);
+  while (idsRef.current.length < value.length) {
+    idsRef.current.push(crypto.randomUUID());
+  }
+  if (idsRef.current.length > value.length) {
+    idsRef.current = idsRef.current.slice(0, value.length);
+  }
+
   if (!showParameter) {
     return null;
   }
@@ -53,6 +66,7 @@ export default function InputListComponent({
       e.preventDefault();
       const newInputList = _.cloneDeep(value);
       newInputList.push("");
+      idsRef.current = [...idsRef.current, crypto.randomUUID()];
       handleOnNewValue({ value: newInputList });
     },
     [value, handleOnNewValue],
@@ -63,6 +77,7 @@ export default function InputListComponent({
       e.preventDefault();
       const newInputList = _.cloneDeep(value);
       newInputList.splice(index, 1);
+      idsRef.current = idsRef.current.filter((_, i) => i !== index);
       handleOnNewValue({ value: newInputList });
       setDropdownOpen(null);
     },
@@ -95,7 +110,10 @@ export default function InputListComponent({
 
       <div className="flex w-full flex-col gap-2">
         {value.map((singleValue, index) => (
-          <div key={index} className="flex w-full items-center">
+          <div
+            key={idsRef.current[index] ?? `input-list-fallback-${index}`}
+            className="flex w-full items-center"
+          >
             <div className="group relative flex-1">
               <CursorInput
                 ref={index === 0 ? inputRef : null}

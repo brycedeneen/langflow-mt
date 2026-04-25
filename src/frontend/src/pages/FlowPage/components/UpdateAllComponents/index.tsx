@@ -116,7 +116,10 @@ export default function UpdateAllComponents() {
         const thisNodeTemplate = templates[node.data.type]?.template;
         if (!thisNodeTemplate?.code) return Promise.resolve();
 
-        const currentCode = thisNodeTemplate.code.value;
+        const currentCode =
+          typeof thisNodeTemplate.code.value === "string"
+            ? thisNodeTemplate.code.value
+            : "";
 
         return new Promise((resolve) => {
           validateComponentCode({

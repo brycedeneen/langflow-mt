@@ -33,11 +33,11 @@ type TriggerProps = {
   className?: string;
 };
 
-const Content: React.FC<ContentProps> = ({
+const Content = ({
   children,
   overflowHidden,
   className,
-}) => {
+}: ContentProps): JSX.Element => {
   return (
     <div
       className={cn(
@@ -50,12 +50,12 @@ const Content: React.FC<ContentProps> = ({
     </div>
   );
 };
-const Trigger: React.FC<TriggerProps> = ({
+const Trigger = ({
   children,
   asChild,
   disable,
   className,
-}) => {
+}: TriggerProps): JSX.Element => {
   const childCount = React.Children.count(children);
   const isEmptyFragment =
     React.isValidElement(children) &&
@@ -90,11 +90,7 @@ const Trigger: React.FC<TriggerProps> = ({
   );
 };
 
-const Header: React.FC<{
-  children: ReactNode;
-  description?: string | JSX.Element | null;
-  clampDescription?: number;
-}> = ({
+const Header = ({
   children,
   description,
   clampDescription,
@@ -115,7 +111,13 @@ const Header: React.FC<{
   );
 };
 
-const Footer: React.FC<{
+const Footer = ({
+  children,
+  submit,
+  close,
+  centered,
+  className,
+}: {
   children?: ReactNode;
   submit?: {
     label: string;
@@ -128,7 +130,7 @@ const Footer: React.FC<{
   close?: boolean;
   centered?: boolean;
   className?: string;
-}> = ({ children, submit, close, centered, className }) => {
+}): JSX.Element => {
   return (
     <div
       className={cn(

@@ -8,13 +8,7 @@ import { cn } from "../../../utils/utils";
 import { Input } from "../../ui/input";
 import { Textarea } from "../../ui/textarea";
 
-export const EditFlowSettings: React.FC<
-  InputProps & {
-    submitForm?: () => void;
-    locked?: boolean;
-    setLocked?: (v: boolean) => void;
-  }
-> = ({
+export const EditFlowSettings = ({
   name,
   invalidNameList = [],
   description,

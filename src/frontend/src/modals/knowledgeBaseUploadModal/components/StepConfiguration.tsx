@@ -128,7 +128,7 @@ export function StepConfiguration({
                 editNode={false}
                 disabled={false}
                 handleOnNewValue={({ value }) => {
-                  onEmbeddingModelChange(value);
+                  onEmbeddingModelChange(value as ModelOption[]);
                   onFieldChange?.();
                 }}
                 options={embeddingModelOptions}

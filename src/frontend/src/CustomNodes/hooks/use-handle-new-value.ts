@@ -116,7 +116,7 @@ const useHandleOnNewValue = ({
       }
 
       const shouldDebounce = DEBOUNCE_FIELD_LIST.includes(
-        parameter?._input_type,
+        (parameter?._input_type as string) ?? "",
       );
 
       if (!options?.skipSnapshot) takeSnapshot();

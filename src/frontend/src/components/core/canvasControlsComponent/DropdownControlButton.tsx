@@ -1,4 +1,3 @@
-import React from "react";
 import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils/utils";
@@ -18,7 +17,7 @@ export type DropdownControlButtonProps = {
   externalLink?: boolean;
 };
 
-const DropdownControlButton: React.FC<DropdownControlButtonProps> = ({
+const DropdownControlButton = ({
   tooltipText,
   onClick = () => {},
   disabled,
@@ -29,7 +28,7 @@ const DropdownControlButton: React.FC<DropdownControlButtonProps> = ({
   hasToogle = false,
   toggleValue = false,
   externalLink = false,
-}) => (
+}: DropdownControlButtonProps): JSX.Element => (
   <Button
     data-testid={testId}
     className={cn(

@@ -147,8 +147,9 @@ export type NodeInputFieldComponentType = {
 };
 
 export type IOJSONInputComponentType = {
-  value: any;
-  onChange: (value) => void;
+  // JSON editor accepts any JSON-serialisable value (object, array, scalar).
+  value: unknown;
+  onChange: (value: unknown) => void;
   left?: boolean;
   output?: boolean;
 };
@@ -192,7 +193,7 @@ export type RangeSpecType = {
 export type IntComponentType = {
   value: number;
   disabled?: boolean;
-  rangeSpec: RangeSpecType;
+  rangeSpec?: RangeSpecType;
   onChange: (value: number, dbValue?: boolean, skipSnapshot?: boolean) => void;
   editNode?: boolean;
   id?: string;
@@ -206,7 +207,7 @@ export type FloatComponentType = {
     dbValue?: boolean,
     skipSnapshot?: boolean,
   ) => void;
-  rangeSpec: RangeSpecType;
+  rangeSpec?: RangeSpecType;
   editNode?: boolean;
   id?: string;
 };
@@ -214,7 +215,7 @@ export type FloatComponentType = {
 export type SliderComponentType = {
   value: string;
   disabled?: boolean;
-  rangeSpec: RangeSpecType;
+  rangeSpec?: RangeSpecType;
   editNode?: boolean;
   id?: string;
   minLabel?: string;

@@ -75,7 +75,7 @@ export default function DropdownComponent({
           handleOnNewValue={(data) => {
             handleOnNewValue({
               value: data.value === true ? options[0] : null,
-              toggle_value: data.value,
+              toggle_value: Boolean(data.value),
             });
           }}
           editNode={editNode}

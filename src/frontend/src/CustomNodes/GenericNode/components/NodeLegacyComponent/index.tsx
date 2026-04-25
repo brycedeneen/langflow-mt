@@ -1,9 +1,12 @@
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import useFlowStore from "@/stores/flowStore";
 import { cn } from "@/utils/utils";
 import { useGetReplacementComponents } from "../../hooks/use-get-replacement-components";
 
-export default function NodeLegacyComponent({
+// memo: parent passes a useCallback'd setDismissAll + stable replacement array
+// from data.node; this banner stays static across most GenericNode re-renders.
+function NodeLegacyComponent({
   legacy,
   replacement,
   setDismissAll,
@@ -81,3 +84,5 @@ export default function NodeLegacyComponent({
     </div>
   );
 }
+
+export default memo(NodeLegacyComponent);

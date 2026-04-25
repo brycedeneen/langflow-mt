@@ -1,5 +1,6 @@
 import { useState } from "react";
 import InputFileComponent from "@/components/core/parameterRenderComponent/components/inputFileComponent";
+import type { handleOnNewValueType } from "@/CustomNodes/hooks/use-handle-new-value";
 
 type FolderSelectionData = {
   value?: string;
@@ -16,9 +17,10 @@ export default function FolderSelectionExample() {
   const [value, setValue] = useState<string>("");
   const [filePath, setFilePath] = useState<string>("");
 
-  const handleOnNewValue = (data: Partial<FolderSelectionData>) => {
-    setValue(data.value ?? "");
-    setFilePath(data.file_path ?? "");
+  const handleOnNewValue: handleOnNewValueType = (data) => {
+    setValue(typeof data.value === "string" ? data.value : "");
+    const fp = (data as Partial<FolderSelectionData>).file_path;
+    setFilePath(typeof fp === "string" ? fp : "");
   };
 
   return (

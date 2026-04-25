@@ -1,4 +1,3 @@
-import type React from "react";
 import useFlowStore from "@/stores/flowStore";
 import type { APIClassType } from "@/types/api";
 import JsonEditor from "../jsonEditor";
@@ -11,17 +10,17 @@ interface JsonOutputViewComponentProps {
   outputName: string;
 }
 
-const JsonOutputViewComponent: React.FC<JsonOutputViewComponentProps> = ({
+const JsonOutputViewComponent = ({
   data,
   nodeId,
   outputName,
-}) => {
+}: JsonOutputViewComponentProps): JSX.Element => {
   const jsonData = typeof data === "string" ? JSON.parse(data) : data;
   const setNode = useFlowStore((state) => state.setNode);
   const node = useFlowStore((state) => state.getNode(nodeId));
   const outputs = (node?.data.node as APIClassType)?.outputs;
   const output = outputs?.find((o) => o.name === outputName);
-  const initialFilter = output?.options?.filter;
+  const initialFilter = output?.options?.filter as string | undefined;
 
   return (
     <div className="flex h-full flex-1 flex-col">

@@ -1,12 +1,13 @@
-import type { FC } from "react";
 import MCPLangflow from "@/assets/MCPLangflow.png";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { Button } from "@/components/ui/button";
 import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
 
-export const MCPServerNotice: FC<{
+export const MCPServerNotice = ({
+  handleDismissDialog,
+}: {
   handleDismissDialog: () => void;
-}> = ({ handleDismissDialog }) => {
+}): JSX.Element => {
   const navigate = useCustomNavigate();
   return (
     <div className="relative flex flex-col gap-3 rounded-xl border p-4 shadow-md">
