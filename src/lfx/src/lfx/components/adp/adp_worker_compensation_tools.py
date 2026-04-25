@@ -1,4 +1,4 @@
-"""ADPWorkerCompensationToolsComponent — compensation-change tools for Langflow Agents.
+"""ADP worker compensation tools — compensation-change tools for Langflow Agents.
 
 Backs the ADP WFN `workers-compensation-management v2` tile. All operations are
 mutations (event POSTs); reads live on the Workers v2 tile. Mutations are
@@ -8,20 +8,29 @@ add/remove are high-blast-radius.
 
 from __future__ import annotations
 
-from typing import Any, ClassVar
+from typing import Any
 
-import httpx
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
-from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
-from lfx.custom.custom_component.changelog import ChangelogEntry
-from lfx.custom.custom_component.component import Component
-from lfx.field_typing import Tool
-from lfx.io import BoolInput, HandleInput, Output
+from lfx.components.adp._shared import (
+    HTTP_CLIENT_ERROR_MIN,
+    HTTP_UNAUTHORIZED,
+    ADPConnection,
+    RequestCache,
+    build_mtls_httpx_client,
+    fetch_token,
+    validate_adp_url,
+)
+from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
-HTTP_UNAUTHORIZED = 401
-HTTP_CLIENT_ERROR_MIN = 400
+
+# ---------------------------------------------------------------------------
+# Backward-compat stub — orchestrator will update __init__.py later.
+# ---------------------------------------------------------------------------
+class ADPWorkerCompensationToolsComponent:
+    """Deprecated stub — use build_worker_compensation_tools instead."""
+
 
 PATH_ADD_ADDITIONAL = "/events/hr/v1/worker.work-assignment.additional-remuneration.add"
 PATH_CHANGE_ADDITIONAL = "/events/hr/v1/worker.work-assignment.additional-remuneration.change"
@@ -214,155 +223,86 @@ class RemoveAdditionalRemunerationInput(BaseModel):
     reason_code: str | None = Field(default=None, description="ADP event reason code. Optional.")
 
 
-class ADPWorkerCompensationToolsComponent(Component):
-    display_name = "ADP Worker Compensation Tools"
-    description = (
-        "Compensation-change tools for Langflow Agents, backing ADP WFN "
-        "`workers-compensation-management v2`. Exposes change-base-pay and add/change/remove "
-        "additional-remuneration (bonus, allowance, commission). "
-        "Mutations are gated behind an opt-in toggle."
-    )
-    icon = "CircleDollarSign"
-    name = "ADPWorkerCompensationTools"
-    version: int = 1
-    changelog: ClassVar[list[ChangelogEntry]] = [
-        ChangelogEntry(
-            version=1,
-            changes=(
-                "Initial release — 4 agent tools for ADP WFN worker-compensation-management v2: "
-                "`change_employee_base_pay`, `add_employee_additional_remuneration`, "
-                "`change_employee_additional_remuneration`, `remove_employee_additional_remuneration`. "
-                "All mutations gated behind the `enable_mutations` input (default off)."
-            ),
-        ),
-    ]
-
-    inputs = [
-        HandleInput(
-            name="connection",
-            display_name="ADP Connection",
-            input_types=["ADPConnection"],
-            info="Connection produced by an ADP Auth component.",
-            required=True,
-        ),
-        BoolInput(
-            name="enable_mutations",
-            display_name="Enable Mutations",
-            info=(
-                "Expose the salary-change and bonus add/change/remove tools to the agent. "
-                "Off by default — these are high-blast-radius writes. Turn on only when the flow "
-                "is meant to act on compensation data."
-            ),
-            value=False,
-        ),
-    ]
-
-    outputs = [
-        Output(display_name="Tools", name="tools", method="build_tools"),
-    ]
-
-    async def _execute_request(
-        self,
-        client: httpx.AsyncClient,
-        *,
-        url: str,
-        headers: dict[str, str],
-        json_body: dict[str, Any],
-        timeout: float,
-    ) -> httpx.Response:
-        return await client.request(
-            method="POST",
-            url=url,
-            headers=headers,
-            json=json_body,
-            timeout=timeout,
-        )
-
-    async def _post_event(self, conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
-        url = f"{conn.api_base_url}{path}"
-        validate_adp_url(url, field_name="api_base_url")
-        headers = {"Authorization": f"Bearer {conn.access_token}"}
-
-        async with build_mtls_httpx_client(conn, timeout=30.0) as client:
-            response = await self._execute_request(client, url=url, headers=headers, json_body=body, timeout=30.0)
-
-            if response.status_code == HTTP_UNAUTHORIZED:
-                await fetch_token(conn, force=True)
-                headers["Authorization"] = f"Bearer {conn.access_token}"
-                response = await self._execute_request(
-                    client, url=url, headers=headers, json_body=body, timeout=30.0,
-                )
-
-        if response.status_code >= HTTP_CLIENT_ERROR_MIN:
-            try:
-                detail = response.json()
-            except ValueError:
-                detail = response.text
-            return {"error": detail, "status_code": response.status_code}
-
+async def _post_event(conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
+    """POST a single ADP event, with one 401-refresh retry."""
+    url = f"{conn.api_base_url}{path}"
+    validate_adp_url(url, field_name="api_base_url")
+    headers = {"Authorization": f"Bearer {conn.access_token}"}
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
+        response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+        if response.status_code == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+    if response.status_code >= HTTP_CLIENT_ERROR_MIN:
         try:
-            return response.json()
+            detail = response.json()
         except ValueError:
-            return {"ok": True, "status_code": response.status_code}
+            detail = response.text
+        return {"error": detail, "status_code": response.status_code}
+    try:
+        return response.json()
+    except ValueError:
+        return {"ok": True, "status_code": response.status_code}
 
-    async def build_tools(self) -> list[Tool]:
-        if not self.enable_mutations:
-            return []
 
-        conn: ADPConnection = self.connection
-        component = self
+def build_worker_compensation_tools(
+    connection: ADPConnection,
+    request_cache: RequestCache,  # accepted for registry uniformity; unused for writes  # noqa: ARG001
+) -> list[Tool]:
+    conn = connection
 
-        async def _change_employee_base_pay(**kwargs: Any) -> dict[str, Any]:
-            body = build_change_base_pay_event(**kwargs)
-            return await component._post_event(conn, path=PATH_CHANGE_BASE, body=body)
+    async def _change_employee_base_pay(**kwargs: Any) -> dict[str, Any]:
+        body = build_change_base_pay_event(**kwargs)
+        return await _post_event(conn, path=PATH_CHANGE_BASE, body=body)
 
-        async def _add_employee_additional_remuneration(**kwargs: Any) -> dict[str, Any]:
-            body = build_add_additional_remuneration_event(**kwargs)
-            return await component._post_event(conn, path=PATH_ADD_ADDITIONAL, body=body)
+    async def _add_employee_additional_remuneration(**kwargs: Any) -> dict[str, Any]:
+        body = build_add_additional_remuneration_event(**kwargs)
+        return await _post_event(conn, path=PATH_ADD_ADDITIONAL, body=body)
 
-        async def _change_employee_additional_remuneration(**kwargs: Any) -> dict[str, Any]:
-            body = build_change_additional_remuneration_event(**kwargs)
-            return await component._post_event(conn, path=PATH_CHANGE_ADDITIONAL, body=body)
+    async def _change_employee_additional_remuneration(**kwargs: Any) -> dict[str, Any]:
+        body = build_change_additional_remuneration_event(**kwargs)
+        return await _post_event(conn, path=PATH_CHANGE_ADDITIONAL, body=body)
 
-        async def _remove_employee_additional_remuneration(**kwargs: Any) -> dict[str, Any]:
-            body = build_remove_additional_remuneration_event(**kwargs)
-            return await component._post_event(conn, path=PATH_REMOVE_ADDITIONAL, body=body)
+    async def _remove_employee_additional_remuneration(**kwargs: Any) -> dict[str, Any]:
+        body = build_remove_additional_remuneration_event(**kwargs)
+        return await _post_event(conn, path=PATH_REMOVE_ADDITIONAL, body=body)
 
-        return [
-            StructuredTool.from_function(
-                name="change_employee_base_pay",
-                description=(
-                    "Change an employee's base (salary) pay. Requires the employee's associate OID "
-                    "and the specific work assignment's item ID. Returns the ADP event response."
-                ),
-                coroutine=_change_employee_base_pay,
-                args_schema=ChangeBasePayInput,
+    return [
+        StructuredTool.from_function(
+            name="change_employee_base_pay",
+            description=(
+                "Change an employee's base (salary) pay. Requires the employee's associate OID "
+                "and the specific work assignment's item ID. Returns the ADP event response."
             ),
-            StructuredTool.from_function(
-                name="add_employee_additional_remuneration",
-                description=(
-                    "Add an additional remuneration (bonus, allowance, commission) to an employee's "
-                    "work assignment. Use `name_code` to specify the type (e.g. 'Bonus')."
-                ),
-                coroutine=_add_employee_additional_remuneration,
-                args_schema=AddAdditionalRemunerationInput,
+            coroutine=_change_employee_base_pay,
+            args_schema=ChangeBasePayInput,
+        ),
+        StructuredTool.from_function(
+            name="add_employee_additional_remuneration",
+            description=(
+                "Add an additional remuneration (bonus, allowance, commission) to an employee's "
+                "work assignment. Use `name_code` to specify the type (e.g. 'Bonus')."
             ),
-            StructuredTool.from_function(
-                name="change_employee_additional_remuneration",
-                description=(
-                    "Change an existing additional-remuneration entry on an employee's work "
-                    "assignment. Requires both the work-assignment itemID and the specific "
-                    "additional-remuneration entry's itemID."
-                ),
-                coroutine=_change_employee_additional_remuneration,
-                args_schema=ChangeAdditionalRemunerationInput,
+            coroutine=_add_employee_additional_remuneration,
+            args_schema=AddAdditionalRemunerationInput,
+        ),
+        StructuredTool.from_function(
+            name="change_employee_additional_remuneration",
+            description=(
+                "Change an existing additional-remuneration entry on an employee's work "
+                "assignment. Requires both the work-assignment itemID and the specific "
+                "additional-remuneration entry's itemID."
             ),
-            StructuredTool.from_function(
-                name="remove_employee_additional_remuneration",
-                description=(
-                    "Remove an additional-remuneration entry from an employee's work assignment."
-                ),
-                coroutine=_remove_employee_additional_remuneration,
-                args_schema=RemoveAdditionalRemunerationInput,
+            coroutine=_change_employee_additional_remuneration,
+            args_schema=ChangeAdditionalRemunerationInput,
+        ),
+        StructuredTool.from_function(
+            name="remove_employee_additional_remuneration",
+            description=(
+                "Remove an additional-remuneration entry from an employee's work assignment."
             ),
-        ]
+            coroutine=_remove_employee_additional_remuneration,
+            args_schema=RemoveAdditionalRemunerationInput,
+        ),
+    ]

@@ -1,18 +1,23 @@
-"""Tests for ADPWorkerBusinessCommunicationToolsComponent."""
+"""Tests for adp_worker_business_communication_tools — build_worker_business_communication_tools builder."""
 
-from unittest.mock import AsyncMock, patch
+from contextlib import asynccontextmanager
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
-
+from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_worker_business_communication_tools import (
-    ADPWorkerBusinessCommunicationToolsComponent,
     build_business_communication_event,
+    build_worker_business_communication_tools,
     event_path,
 )
 
 
-def _make_component(connection, *, enable_mutations: bool = False):
-    return ADPWorkerBusinessCommunicationToolsComponent(connection=connection, enable_mutations=enable_mutations)
+def _make_connection(*, access_token="fake-token", api_base_url="https://api.adp.com"):  # noqa: S107
+    conn = MagicMock()
+    conn.access_token = access_token
+    conn.api_base_url = api_base_url
+    return conn
 
 
 def test_event_path_formatting():
@@ -82,27 +87,34 @@ def test_build_additional_fields_merged():
 
 
 @pytest.mark.asyncio
-async def test_build_tools_disabled_empty(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=False)
-    assert await c.build_tools() == []
-
-
-@pytest.mark.asyncio
-async def test_build_tools_enabled_one_tool(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    tools = await c.build_tools()
+async def test_build_tools_returns_one_tool():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    tools = build_worker_business_communication_tools(conn, cache)
     assert len(tools) == 1
     assert tools[0].name == "manage_worker_business_communication"
 
 
 @pytest.mark.asyncio
-async def test_manage_routes_correct_path(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={})
+async def test_manage_routes_correct_path():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
-        tool = tools[0]
+    response = MagicMock(spec=httpx.Response)
+    response.status_code = 200
+    response.json.return_value = {}
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.return_value = response
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    tools = build_worker_business_communication_tools(conn, cache)
+    tool = tools[0]
+
+    with patch("lfx.components.adp.adp_worker_business_communication_tools.build_mtls_httpx_client", fake_client):
         await tool.ainvoke(
             {
                 "action": "add",
@@ -112,20 +124,28 @@ async def test_manage_routes_correct_path(adp_connection):
             },
         )
 
-    assert mock_post.call_args.kwargs["path"] == "/events/hr/v1/worker.business-communication.email.add"
+    posted_url = client.request.call_args.kwargs.get("url") or client.request.call_args.args[1]
+    assert "/events/hr/v1/worker.business-communication.email.add" in posted_url
 
 
 @pytest.mark.asyncio
-async def test_manage_remove_without_id_returns_validation(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock()
+async def test_manage_remove_without_id_returns_validation():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
-        tool = tools[0]
+    client = AsyncMock(spec=httpx.AsyncClient)
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    tools = build_worker_business_communication_tools(conn, cache)
+    tool = tools[0]
+
+    with patch("lfx.components.adp.adp_worker_business_communication_tools.build_mtls_httpx_client", fake_client):
         result = await tool.ainvoke(
             {"action": "remove", "channel": "fax", "associate_oid": "G3ABC"},
         )
 
     assert result["status_code"] == 422
-    mock_post.assert_not_called()
+    client.request.assert_not_called()

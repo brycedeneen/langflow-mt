@@ -1,20 +1,25 @@
-"""Tests for ADPWorkerDeploymentToolsComponent."""
+"""Tests for adp_worker_deployment_tools — build_worker_deployment_tools builder."""
 
-from unittest.mock import AsyncMock, patch
+from contextlib import asynccontextmanager
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
-
+from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_worker_deployment_tools import (
-    ADPWorkerDeploymentToolsComponent,
     PATH_CHANGE_STANDARD_HOURS,
     PATH_CHANGE_WORKER_TYPE,
     build_change_standard_hours_event,
     build_change_worker_type_event,
+    build_worker_deployment_tools,
 )
 
 
-def _make_component(connection, *, enable_mutations: bool = False):
-    return ADPWorkerDeploymentToolsComponent(connection=connection, enable_mutations=enable_mutations)
+def _make_connection(*, access_token="fake-token", api_base_url="https://api.adp.com"):  # noqa: S107
+    conn = MagicMock()
+    conn.access_token = access_token
+    conn.api_base_url = api_base_url
+    return conn
 
 
 def test_build_change_standard_hours_event():
@@ -49,15 +54,10 @@ def test_build_change_worker_type_event():
 
 
 @pytest.mark.asyncio
-async def test_build_tools_disabled_returns_empty(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=False)
-    assert await c.build_tools() == []
-
-
-@pytest.mark.asyncio
-async def test_build_tools_enabled_returns_two_tools(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    tools = await c.build_tools()
+async def test_build_tools_returns_two_tools():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    tools = build_worker_deployment_tools(conn, cache)
     assert {t.name for t in tools} == {
         "change_employee_standard_hours",
         "change_employee_worker_type",
@@ -65,20 +65,63 @@ async def test_build_tools_enabled_returns_two_tools(adp_connection):
 
 
 @pytest.mark.asyncio
-async def test_tool_routes_to_correct_paths(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={"confirmMessage": {"requestID": "R-1"}})
+async def test_tool_routes_to_correct_paths():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
-        hours = next(t for t in tools if t.name == "change_employee_standard_hours")
-        await hours.ainvoke({
+    response = MagicMock(spec=httpx.Response)
+    response.status_code = 200
+    response.json.return_value = {"confirmMessage": {"requestID": "R-1"}}
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.return_value = response
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    tools = {t.name: t for t in build_worker_deployment_tools(conn, cache)}
+
+    with patch("lfx.components.adp.adp_worker_deployment_tools.build_mtls_httpx_client", fake_client):
+        await tools["change_employee_standard_hours"].ainvoke({
             "associate_oid": "G3ABC", "work_assignment_item_id": "WA-1", "hours_quantity": 40.0,
         })
-        wtype = next(t for t in tools if t.name == "change_employee_worker_type")
-        await wtype.ainvoke({
+        await tools["change_employee_worker_type"].ainvoke({
             "associate_oid": "G3ABC", "work_assignment_item_id": "WA-1", "worker_type_code": "Regular",
         })
 
-    assert mock_post.call_args_list[0].kwargs["path"] == PATH_CHANGE_STANDARD_HOURS
-    assert mock_post.call_args_list[1].kwargs["path"] == PATH_CHANGE_WORKER_TYPE
+    posted_urls = [c.kwargs.get("url") or c.args[1] for c in client.request.call_args_list]
+    assert any(PATH_CHANGE_STANDARD_HOURS in u for u in posted_urls)
+    assert any(PATH_CHANGE_WORKER_TYPE in u for u in posted_urls)
+
+
+@pytest.mark.asyncio
+async def test_unauthorized_triggers_refresh_and_retry():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    tools = build_worker_deployment_tools(conn, cache)
+    tool = next(t for t in tools if t.name == "change_employee_worker_type")
+
+    unauthorized = MagicMock(spec=httpx.Response)
+    unauthorized.status_code = 401
+    unauthorized.json.return_value = {"message": "unauthorized"}
+
+    success = MagicMock(spec=httpx.Response)
+    success.status_code = 200
+    success.json.return_value = {"ok": True}
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.side_effect = [unauthorized, success]
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_worker_deployment_tools.build_mtls_httpx_client", fake_client), \
+         patch("lfx.components.adp.adp_worker_deployment_tools.fetch_token", AsyncMock()) as fetch_mock:
+        await tool.ainvoke({
+            "associate_oid": "G3ABC", "work_assignment_item_id": "WA-1", "worker_type_code": "Regular",
+        })
+
+    fetch_mock.assert_awaited_once()
+    assert client.request.await_count == 2

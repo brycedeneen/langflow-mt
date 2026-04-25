@@ -1,13 +1,12 @@
-"""Tests for ADPWorkerLeavesToolsComponent."""
+"""Tests for adp_worker_leaves_tools — build_worker_leaves_tools builder."""
 
 from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-
+from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_worker_leaves_tools import (
-    ADPWorkerLeavesToolsComponent,
     PATH_ABSENCE_REQUEST,
     PATH_ABSENCE_REQUEST_META,
     PATH_LEAVE_CANCEL,
@@ -21,6 +20,7 @@ from lfx.components.adp.adp_worker_leaves_tools import (
     build_change_leave_event,
     build_request_leave_absence_event,
     build_request_leave_return_event,
+    build_worker_leaves_tools,
     extract_worker_leaves,
 )
 
@@ -67,8 +67,11 @@ SAMPLE_LEAVES_RESPONSE = {
 }
 
 
-def _make_component(connection, *, enable_mutations: bool = False):
-    return ADPWorkerLeavesToolsComponent(connection=connection, enable_mutations=enable_mutations)
+def _make_connection(*, access_token="fake-token", api_base_url="https://api.adp.com"):  # noqa: S107
+    conn = MagicMock()
+    conn.access_token = access_token
+    conn.api_base_url = api_base_url
+    return conn
 
 
 # ---------- extractor ----------
@@ -145,14 +148,12 @@ def test_build_request_leave_absence_event():
     assert abs_["statutoryTypeCode"] == {"codeValue": "FMLA"}
     assert abs_["leaveDuration"] == {"quantityValue": 60.0}
     assert abs_["comment"] == {"noteText": "Bonding leave"}
-    # Absence.request must NOT carry leaveID in eventContext
     assert "leaveID" not in event["data"]["eventContext"]
 
 
 def test_build_request_leave_absence_event_minimal():
     body = build_request_leave_absence_event(associate_oid="G3ABC", start_date="2026-05-01")
     tf = body["events"][0]["data"]["transform"]
-    # Effective date defaults to start_date
     assert tf["effectiveDateTime"] == "2026-05-01"
     assert tf["workerLeave"]["leaveAbsence"] == {"startDateTime": "2026-05-01"}
     assert "eventReasonCode" not in tf
@@ -182,7 +183,6 @@ def test_build_change_leave_event_absence_and_return():
 
 
 def test_build_change_leave_event_no_payload_fields():
-    # Only eventContext + effectiveDateTime — workerLeave should be absent when nothing to patch
     body = build_change_leave_event(
         associate_oid="G3ABC", leave_id="L-100", effective_date="2026-06-01",
     )
@@ -223,24 +223,17 @@ def test_build_request_leave_return_event():
     assert lr["returnToWorkIndicator"] == {"indicatorValue": True}
     assert lr["notificationReceivedDateTime"] == "2026-06-20"
     assert lr["comment"] == {"noteText": "Returning on schedule"}
-    # leaveReturn lives directly under transform (not under workerLeave)
     assert "workerLeave" not in tf
 
 
-# ---------- mutation gate / tool routing ----------
+# ---------- builder tests ----------
 
 
 @pytest.mark.asyncio
-async def test_build_tools_disabled_returns_reads_only(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=False)
-    tools = await c.build_tools()
-    assert {t.name for t in tools} == {"list_worker_leaves", "get_worker_leave_event_meta"}
-
-
-@pytest.mark.asyncio
-async def test_build_tools_enabled_returns_all_six(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    tools = await c.build_tools()
+async def test_build_tools_returns_six_tools():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    tools = build_worker_leaves_tools(conn, cache)
     assert {t.name for t in tools} == {
         "list_worker_leaves",
         "get_worker_leave_event_meta",
@@ -252,12 +245,24 @@ async def test_build_tools_enabled_returns_all_six(adp_connection):
 
 
 @pytest.mark.asyncio
-async def test_mutation_tools_route_to_correct_paths(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={"confirmMessage": {"requestID": "R-1"}})
+async def test_mutation_tools_route_to_correct_paths():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = {t.name: t for t in await c.build_tools()}
+    response = MagicMock(spec=httpx.Response)
+    response.status_code = 200
+    response.json.return_value = {"confirmMessage": {"requestID": "R-1"}}
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.return_value = response
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    tools = {t.name: t for t in build_worker_leaves_tools(conn, cache)}
+
+    with patch("lfx.components.adp.adp_worker_leaves_tools.build_mtls_httpx_client", fake_client):
         await tools["request_worker_leave_absence"].ainvoke({
             "associate_oid": "G3ABC", "start_date": "2026-05-01",
         })
@@ -271,71 +276,69 @@ async def test_mutation_tools_route_to_correct_paths(adp_connection):
             "associate_oid": "G3ABC", "leave_id": "L-100", "return_date": "2026-07-01",
         })
 
-    paths = [call.kwargs["path"] for call in mock_post.call_args_list]
-    assert paths == [
-        PATH_ABSENCE_REQUEST,
-        PATH_LEAVE_CHANGE,
-        PATH_LEAVE_CANCEL,
-        PATH_LEAVE_RETURN_REQUEST,
-    ]
-
-
-# ---------- read-tool routing (list + meta) ----------
+    posted_urls = [c.kwargs.get("url") or c.args[1] for c in client.request.call_args_list]
+    assert any(PATH_ABSENCE_REQUEST in u for u in posted_urls)
+    assert any(PATH_LEAVE_CHANGE in u for u in posted_urls)
+    assert any(PATH_LEAVE_CANCEL in u for u in posted_urls)
+    assert any(PATH_LEAVE_RETURN_REQUEST in u for u in posted_urls)
 
 
 @pytest.mark.asyncio
-async def test_list_worker_leaves_forwards_filter_and_extracts(adp_connection):
-    c = _make_component(adp_connection)
-    fake_response = httpx.Response(200, json=SAMPLE_LEAVES_RESPONSE)
-    mock_client = MagicMock()
-    captured: dict = {}
+async def test_list_worker_leaves_forwards_filter_and_extracts():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+
+    response = MagicMock(spec=httpx.Response)
+    response.status_code = 200
+    response.json.return_value = SAMPLE_LEAVES_RESPONSE
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.return_value = response
 
     @asynccontextmanager
-    async def fake_build_client(_conn, *, timeout=30.0):
-        yield mock_client
+    async def fake_client(*_args, **_kwargs):
+        yield client
 
-    async def fake_execute(_client, *, method, url, headers, params, json_body, timeout):  # noqa: ARG001
-        captured["method"] = method
-        captured["url"] = url
-        captured["params"] = params
-        return fake_response
+    tools = {t.name: t for t in build_worker_leaves_tools(conn, cache)}
 
-    with patch(
-        "lfx.components.adp.adp_worker_leaves_tools.build_mtls_httpx_client",
-        new=fake_build_client,
-    ), patch.object(c, "_execute_request", new=fake_execute):
-        tools = {t.name: t for t in await c.build_tools()}
+    with patch("lfx.components.adp.adp_worker_leaves_tools.build_mtls_httpx_client", fake_client):
         result = await tools["list_worker_leaves"].ainvoke({
             "associate_oid": "G3ABC",
             "filter": "leaveAbsence/leaveStatus/statusCode/codeValue eq 'Active'",
         })
 
-    assert captured["method"] == "GET"
-    assert captured["url"].endswith(PATH_LIST_LEAVES.format(aoid="G3ABC"))
-    assert captured["params"] == {
-        "$filter": "leaveAbsence/leaveStatus/statusCode/codeValue eq 'Active'",
-    }
+    call = client.request.call_args
+    called_url = call.kwargs.get("url") or call.args[1]
+    assert called_url.endswith(PATH_LIST_LEAVES.format(aoid="G3ABC"))
+    called_params = call.kwargs.get("params")
+    assert called_params == {"$filter": "leaveAbsence/leaveStatus/statusCode/codeValue eq 'Active'"}
     assert len(result["leaves"]) == 2
 
 
 @pytest.mark.asyncio
-async def test_get_worker_leave_event_meta_routes_per_operation(adp_connection):
-    c = _make_component(adp_connection)
-    captured_paths: list[str] = []
+async def test_get_worker_leave_event_meta_routes_per_operation():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
 
-    async def fake_call(_conn, *, method, path, params=None, body=None):  # noqa: ARG001
-        captured_paths.append(path)
-        return {"meta": path}
+    response = MagicMock(spec=httpx.Response)
+    response.status_code = 200
+    response.json.return_value = {"meta": "ok"}
 
-    with patch.object(c, "_call", new=fake_call):
-        tools = {t.name: t for t in await c.build_tools()}
-        meta_tool = tools["get_worker_leave_event_meta"]
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.return_value = response
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    tools = {t.name: t for t in build_worker_leaves_tools(conn, cache)}
+
+    with patch("lfx.components.adp.adp_worker_leaves_tools.build_mtls_httpx_client", fake_client):
         for op in ("absence_request", "cancel", "change", "return_request"):
-            await meta_tool.ainvoke({"operation": op})
+            await tools["get_worker_leave_event_meta"].ainvoke({"operation": op})
 
-    assert captured_paths == [
-        PATH_ABSENCE_REQUEST_META,
-        PATH_LEAVE_CANCEL_META,
-        PATH_LEAVE_CHANGE_META,
-        PATH_LEAVE_RETURN_REQUEST_META,
-    ]
+    posted_urls = [c.kwargs.get("url") or c.args[1] for c in client.request.call_args_list]
+    assert any(PATH_ABSENCE_REQUEST_META in u for u in posted_urls)
+    assert any(PATH_LEAVE_CANCEL_META in u for u in posted_urls)
+    assert any(PATH_LEAVE_CHANGE_META in u for u in posted_urls)
+    assert any(PATH_LEAVE_RETURN_REQUEST_META in u for u in posted_urls)

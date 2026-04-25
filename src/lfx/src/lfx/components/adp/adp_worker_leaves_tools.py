@@ -1,27 +1,35 @@
-"""ADPWorkerLeavesToolsComponent — worker-leaves read + event tools.
+"""ADP worker leaves tools — worker-leaves read + event tools.
 
 Backs the ADP WFN `worker-leaves v2` tile. Exposes a list-leaves read plus the
 four leave-event POSTs (request absence, change, cancel, return from leave),
 with the four `/meta` discovery endpoints consolidated into a single tool.
-Event POSTs are gated behind `enable_mutations`.
 """
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, Literal
+from typing import Any, Literal
 
-import httpx
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
-from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
-from lfx.custom.custom_component.changelog import ChangelogEntry
-from lfx.custom.custom_component.component import Component
-from lfx.field_typing import Tool
-from lfx.io import BoolInput, HandleInput, Output
+from lfx.components.adp._shared import (
+    HTTP_CLIENT_ERROR_MIN,
+    HTTP_UNAUTHORIZED,
+    ADPConnection,
+    RequestCache,
+    build_mtls_httpx_client,
+    fetch_token,
+    validate_adp_url,
+)
+from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
-HTTP_UNAUTHORIZED = 401
-HTTP_CLIENT_ERROR_MIN = 400
+
+# ---------------------------------------------------------------------------
+# Backward-compat stub — orchestrator will update __init__.py later.
+# ---------------------------------------------------------------------------
+class ADPWorkerLeavesToolsComponent:
+    """Deprecated stub — use build_worker_leaves_tools instead."""
+
 
 PATH_LIST_LEAVES = "/hr/v2/workers/{aoid}/leaves"
 PATH_ABSENCE_REQUEST = "/events/hr/v1/worker.leave.absence.request"
@@ -82,19 +90,19 @@ def extract_worker_leaves(worker_leaves: list[dict[str, Any]]) -> dict[str, Any]
     per leave (preserving the worker/assignment keys on each) so an agent can
     reason about a single row at a time.
     """
-    rows: list[dict[str, Any]] = []
-    for wl in worker_leaves or []:
-        worker_id_obj = wl.get("workerID") or {}
-        for leaf in wl.get("leaves") or []:
-            rows.append({
-                "associateOID": wl.get("associateOID"),
-                "workerID": worker_id_obj.get("idValue"),
-                "workAssignmentID": wl.get("workAssignmentID"),
-                "itemID": leaf.get("itemID"),
-                "effectiveDateTime": leaf.get("effectiveDateTime"),
-                "leaveAbsence": _leave_absence_summary(leaf.get("leaveAbsence")),
-                "leaveReturn": _leave_return_summary(leaf.get("leaveReturn")),
-            })
+    rows: list[dict[str, Any]] = [
+        {
+            "associateOID": wl.get("associateOID"),
+            "workerID": (wl.get("workerID") or {}).get("idValue"),
+            "workAssignmentID": wl.get("workAssignmentID"),
+            "itemID": leaf.get("itemID"),
+            "effectiveDateTime": leaf.get("effectiveDateTime"),
+            "leaveAbsence": _leave_absence_summary(leaf.get("leaveAbsence")),
+            "leaveReturn": _leave_return_summary(leaf.get("leaveReturn")),
+        }
+        for wl in (worker_leaves or [])
+        for leaf in (wl.get("leaves") or [])
+    ]
     return {"leaves": rows}
 
 
@@ -407,218 +415,145 @@ class RequestLeaveReturnInput(BaseModel):
     reason_code: str | None = Field(default=None, description="ADP event reason code. Optional.")
 
 
-# ---------- Component ----------
+# ---------- HTTP helpers ----------
 
 
-class ADPWorkerLeavesToolsComponent(Component):
-    display_name = "ADP Worker Leaves Tools"
-    description = (
-        "Worker leaves tools for Langflow Agents, backing ADP WFN `worker-leaves v2`. "
-        "Reads: list an employee's leaves, fetch leave-event meta schemas. "
-        "Mutations: request absence, change, cancel, request return from leave. "
-        "Event POSTs are gated behind `enable_mutations`."
-    )
-    icon = "CalendarOff"
-    name = "ADPWorkerLeavesTools"
-    version: int = 1
-    changelog: ClassVar[list[ChangelogEntry]] = [
-        ChangelogEntry(
-            version=1,
-            changes=(
-                "Initial release — 6 agent tools for ADP WFN worker-leaves v2: "
-                "`list_worker_leaves` and `get_worker_leave_event_meta` (reads, consolidating the "
-                "4 /meta endpoints); `request_worker_leave_absence`, `change_worker_leave`, "
-                "`cancel_worker_leave`, `request_worker_leave_return` (mutations, gated behind "
-                "`enable_mutations`, default off)."
-            ),
-        ),
-    ]
+async def _call(
+    conn: ADPConnection,
+    *,
+    method: str,
+    path: str,
+    params: dict[str, str] | None = None,
+    body: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    url = f"{conn.api_base_url}{path}"
+    validate_adp_url(url, field_name="api_base_url")
+    headers = {"Authorization": f"Bearer {conn.access_token}"}
 
-    inputs = [
-        HandleInput(
-            name="connection",
-            display_name="ADP Connection",
-            input_types=["ADPConnection"],
-            info="Connection produced by an ADP Auth component.",
-            required=True,
-        ),
-        BoolInput(
-            name="enable_mutations",
-            display_name="Enable Mutations",
-            info=(
-                "Expose the 4 leave-event mutation tools (request absence, change, cancel, "
-                "request return). Off by default — leaves touch payroll and benefits."
-            ),
-            value=False,
-        ),
-    ]
-
-    outputs = [
-        Output(display_name="Tools", name="tools", method="build_tools"),
-    ]
-
-    async def _execute_request(
-        self,
-        client: httpx.AsyncClient,
-        *,
-        method: str,
-        url: str,
-        headers: dict[str, str],
-        params: dict[str, str] | None,
-        json_body: dict[str, Any] | None,
-        timeout: float,
-    ) -> httpx.Response:
-        return await client.request(
-            method=method,
-            url=url,
-            headers=headers,
-            params=params,
-            json=json_body,
-            timeout=timeout,
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
+        response = await client.request(
+            method=method, url=url, headers=headers, params=params, json=body, timeout=30.0,
         )
-
-    async def _call(
-        self,
-        conn: ADPConnection,
-        *,
-        method: str,
-        path: str,
-        params: dict[str, str] | None = None,
-        body: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        url = f"{conn.api_base_url}{path}"
-        validate_adp_url(url, field_name="api_base_url")
-        headers = {"Authorization": f"Bearer {conn.access_token}"}
-
-        async with build_mtls_httpx_client(conn, timeout=30.0) as client:
-            response = await self._execute_request(
-                client, method=method, url=url, headers=headers,
-                params=params, json_body=body, timeout=30.0,
+        if response.status_code == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            response = await client.request(
+                method=method, url=url, headers=headers, params=params, json=body, timeout=30.0,
             )
-            if response.status_code == HTTP_UNAUTHORIZED:
-                await fetch_token(conn, force=True)
-                headers["Authorization"] = f"Bearer {conn.access_token}"
-                response = await self._execute_request(
-                    client, method=method, url=url, headers=headers,
-                    params=params, json_body=body, timeout=30.0,
-                )
 
-        if response.status_code >= HTTP_CLIENT_ERROR_MIN:
-            try:
-                detail = response.json()
-            except ValueError:
-                detail = response.text
-            return {"error": detail, "status_code": response.status_code}
+    if response.status_code >= HTTP_CLIENT_ERROR_MIN:
         try:
-            return response.json()
+            detail = response.json()
         except ValueError:
-            return {"ok": True, "status_code": response.status_code}
+            detail = response.text
+        return {"error": detail, "status_code": response.status_code}
+    try:
+        return response.json()
+    except ValueError:
+        return {"ok": True, "status_code": response.status_code}
 
-    async def _post_event(self, conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
-        return await self._call(conn, method="POST", path=path, body=body)
 
-    async def build_tools(self) -> list[Tool]:
-        conn: ADPConnection = self.connection
-        component = self
+async def _post_event(conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
+    return await _call(conn, method="POST", path=path, body=body)
 
-        async def _list_worker_leaves(associate_oid: str, filter: str | None = None) -> dict[str, Any]:  # noqa: A002
-            path = PATH_LIST_LEAVES.format(aoid=associate_oid)
-            params = {"$filter": filter} if filter else None
-            result = await component._call(conn, method="GET", path=path, params=params)
-            if "error" in result:
-                return result
-            return extract_worker_leaves(result.get("workerLeaves") or [])
 
-        async def _get_worker_leave_event_meta(
-            operation: str, filter: str | None = None,  # noqa: A002
-        ) -> dict[str, Any]:
-            path = _META_OPERATIONS[operation]
-            params = {"$filter": filter} if filter else None
-            return await component._call(conn, method="GET", path=path, params=params)
+def build_worker_leaves_tools(
+    connection: ADPConnection,
+    request_cache: RequestCache,  # accepted for registry uniformity; reads don't use shared cache  # noqa: ARG001
+) -> list[Tool]:
+    conn = connection
 
-        read_tools = [
-            StructuredTool.from_function(
-                name="list_worker_leaves",
-                description=(
-                    "List an employee's leaves (absence + return entries) by ADP associate OID. "
-                    "Each row includes itemID (pass to change/cancel/return as `leave_id`), leave "
-                    "type/sub-type, start/expected-end dates, statutory flags, payment status, and "
-                    "return details when present. Supports an optional $filter."
-                ),
-                coroutine=_list_worker_leaves,
-                args_schema=ListWorkerLeavesInput,
+    async def _list_worker_leaves(associate_oid: str, filter: str | None = None) -> dict[str, Any]:  # noqa: A002
+        path = PATH_LIST_LEAVES.format(aoid=associate_oid)
+        params = {"$filter": filter} if filter else None
+        result = await _call(conn, method="GET", path=path, params=params)
+        if "error" in result:
+            return result
+        return extract_worker_leaves(result.get("workerLeaves") or [])
+
+    async def _get_worker_leave_event_meta(
+        operation: str, filter: str | None = None,  # noqa: A002
+    ) -> dict[str, Any]:
+        path = _META_OPERATIONS[operation]
+        params = {"$filter": filter} if filter else None
+        return await _call(conn, method="GET", path=path, params=params)
+
+    async def _request_worker_leave_absence(**kw: Any) -> dict[str, Any]:
+        body = build_request_leave_absence_event(**kw)
+        return await _post_event(conn, path=PATH_ABSENCE_REQUEST, body=body)
+
+    async def _change_worker_leave(**kw: Any) -> dict[str, Any]:
+        body = build_change_leave_event(**kw)
+        return await _post_event(conn, path=PATH_LEAVE_CHANGE, body=body)
+
+    async def _cancel_worker_leave(**kw: Any) -> dict[str, Any]:
+        body = build_cancel_leave_event(**kw)
+        return await _post_event(conn, path=PATH_LEAVE_CANCEL, body=body)
+
+    async def _request_worker_leave_return(**kw: Any) -> dict[str, Any]:
+        body = build_request_leave_return_event(**kw)
+        return await _post_event(conn, path=PATH_LEAVE_RETURN_REQUEST, body=body)
+
+    return [
+        StructuredTool.from_function(
+            name="list_worker_leaves",
+            description=(
+                "List an employee's leaves (absence + return entries) by ADP associate OID. "
+                "Each row includes itemID (pass to change/cancel/return as `leave_id`), leave "
+                "type/sub-type, start/expected-end dates, statutory flags, payment status, and "
+                "return details when present. Supports an optional $filter."
             ),
-            StructuredTool.from_function(
-                name="get_worker_leave_event_meta",
-                description=(
-                    "Fetch the meta/discovery schema for a leave event (absence_request, cancel, "
-                    "change, or return_request). Rarely agent-facing — use when you need the set "
-                    "of valid codes/fields for a given event."
-                ),
-                coroutine=_get_worker_leave_event_meta,
-                args_schema=GetLeaveEventMetaInput,
+            coroutine=_list_worker_leaves,
+            args_schema=ListWorkerLeavesInput,
+        ),
+        StructuredTool.from_function(
+            name="get_worker_leave_event_meta",
+            description=(
+                "Fetch the meta/discovery schema for a leave event (absence_request, cancel, "
+                "change, or return_request). Rarely agent-facing — use when you need the set "
+                "of valid codes/fields for a given event."
             ),
-        ]
-
-        if not self.enable_mutations:
-            return read_tools
-
-        async def _request_worker_leave_absence(**kw: Any) -> dict[str, Any]:
-            body = build_request_leave_absence_event(**kw)
-            return await component._post_event(conn, path=PATH_ABSENCE_REQUEST, body=body)
-
-        async def _change_worker_leave(**kw: Any) -> dict[str, Any]:
-            body = build_change_leave_event(**kw)
-            return await component._post_event(conn, path=PATH_LEAVE_CHANGE, body=body)
-
-        async def _cancel_worker_leave(**kw: Any) -> dict[str, Any]:
-            body = build_cancel_leave_event(**kw)
-            return await component._post_event(conn, path=PATH_LEAVE_CANCEL, body=body)
-
-        async def _request_worker_leave_return(**kw: Any) -> dict[str, Any]:
-            body = build_request_leave_return_event(**kw)
-            return await component._post_event(conn, path=PATH_LEAVE_RETURN_REQUEST, body=body)
-
-        return [
-            *read_tools,
-            StructuredTool.from_function(
-                name="request_worker_leave_absence",
-                description=(
-                    "Request a new leave of absence for an employee. Provide the associate OID, "
-                    "start_date, and leave_type_code; optional fields cover expected end date, "
-                    "statutory flags (e.g. FMLA), payment status, and sub-type."
-                ),
-                coroutine=_request_worker_leave_absence,
-                args_schema=RequestLeaveAbsenceInput,
+            coroutine=_get_worker_leave_event_meta,
+            args_schema=GetLeaveEventMetaInput,
+        ),
+        StructuredTool.from_function(
+            name="request_worker_leave_absence",
+            description=(
+                "Request a new leave of absence for an employee. Provide the associate OID, "
+                "start_date, and leave_type_code; optional fields cover expected end date, "
+                "statutory flags (e.g. FMLA), payment status, and sub-type."
             ),
-            StructuredTool.from_function(
-                name="change_worker_leave",
-                description=(
-                    "Change an existing leave. Requires the leave's itemID (from list_worker_leaves) "
-                    "and an effective_date. Any combination of absence fields (start/end/type) and "
-                    "return fields (return_date, return_to_work_indicator) may be supplied — only "
-                    "the supplied ones are patched."
-                ),
-                coroutine=_change_worker_leave,
-                args_schema=ChangeLeaveInput,
+            coroutine=_request_worker_leave_absence,
+            args_schema=RequestLeaveAbsenceInput,
+        ),
+        StructuredTool.from_function(
+            name="change_worker_leave",
+            description=(
+                "Change an existing leave. Requires the leave's itemID (from list_worker_leaves) "
+                "and an effective_date. Any combination of absence fields (start/end/type) and "
+                "return fields (return_date, return_to_work_indicator) may be supplied — only "
+                "the supplied ones are patched."
             ),
-            StructuredTool.from_function(
-                name="cancel_worker_leave",
-                description=(
-                    "Cancel an existing leave. Requires the leave's itemID (from list_worker_leaves) "
-                    "and an effective_date."
-                ),
-                coroutine=_cancel_worker_leave,
-                args_schema=CancelLeaveInput,
+            coroutine=_change_worker_leave,
+            args_schema=ChangeLeaveInput,
+        ),
+        StructuredTool.from_function(
+            name="cancel_worker_leave",
+            description=(
+                "Cancel an existing leave. Requires the leave's itemID (from list_worker_leaves) "
+                "and an effective_date."
             ),
-            StructuredTool.from_function(
-                name="request_worker_leave_return",
-                description=(
-                    "Request an employee's return from leave. Requires the leave's itemID, a "
-                    "return_date, and return_to_work_indicator (default True). Set the indicator "
-                    "False to record a denied return."
-                ),
-                coroutine=_request_worker_leave_return,
-                args_schema=RequestLeaveReturnInput,
+            coroutine=_cancel_worker_leave,
+            args_schema=CancelLeaveInput,
+        ),
+        StructuredTool.from_function(
+            name="request_worker_leave_return",
+            description=(
+                "Request an employee's return from leave. Requires the leave's itemID, a "
+                "return_date, and return_to_work_indicator (default True). Set the indicator "
+                "False to record a denied return."
             ),
-        ]
+            coroutine=_request_worker_leave_return,
+            args_schema=RequestLeaveReturnInput,
+        ),
+    ]

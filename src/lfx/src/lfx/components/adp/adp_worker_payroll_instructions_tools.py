@@ -1,9 +1,9 @@
-"""ADPWorkerPayrollInstructionsToolsComponent — payroll-instruction read + general-deduction tools.
+"""ADP worker payroll instructions tools — payroll-instruction read + general-deduction tools.
 
 Backs the ADP WFN `payroll/worker-payroll-instructions v1` tile. Exposes:
 
 - `get_worker_payroll_instructions` (read; list + detail consolidated)
-- `manage_worker_general_deduction` (write; gated — consolidates start/change/stop)
+- `manage_worker_general_deduction` (write; consolidates start/change/stop)
 
 The tile's reads cover all payroll-instruction types (general deductions,
 garnishments, memos, earnings, benefits, retirement). The mutation endpoints
@@ -12,20 +12,29 @@ only cover general deductions, so the single write tool is scoped accordingly.
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, Literal
+from typing import Any, Literal
 
-import httpx
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
-from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
-from lfx.custom.custom_component.changelog import ChangelogEntry
-from lfx.custom.custom_component.component import Component
-from lfx.field_typing import Tool
-from lfx.io import BoolInput, HandleInput, Output
+from lfx.components.adp._shared import (
+    HTTP_CLIENT_ERROR_MIN,
+    HTTP_UNAUTHORIZED,
+    ADPConnection,
+    RequestCache,
+    build_mtls_httpx_client,
+    fetch_token,
+    validate_adp_url,
+)
+from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
-HTTP_UNAUTHORIZED = 401
-HTTP_CLIENT_ERROR_MIN = 400
+
+# ---------------------------------------------------------------------------
+# Backward-compat stub — orchestrator will update __init__.py later.
+# ---------------------------------------------------------------------------
+class ADPWorkerPayrollInstructionsToolsComponent:
+    """Deprecated stub — use build_worker_payroll_instructions_tools instead."""
+
 
 PATH_LIST = "/payroll/v1/workers/{aoid}/payroll-instructions"
 PATH_DETAIL = "/payroll/v1/workers/{aoid}/payroll-instructions/{payroll_instruction_id}"
@@ -83,7 +92,7 @@ def _build_general_deduction_payload(
     return payload
 
 
-def build_general_deduction_event(  # noqa: C901, PLR0912
+def build_general_deduction_event(
     *,
     action: Literal["start", "change", "stop"],
     associate_oid: str,
@@ -131,8 +140,7 @@ def build_general_deduction_event(  # noqa: C901, PLR0912
         ctx_payroll_instruction["generalDeductionInstruction"] = {}
 
     if additional_context_fields:
-        for key, value in additional_context_fields.items():
-            ctx_payroll_instruction[key] = value
+        ctx_payroll_instruction.update(additional_context_fields)
 
     event_context: dict[str, Any] = {
         "worker": {"associateOID": associate_oid},
@@ -159,8 +167,7 @@ def build_general_deduction_event(  # noqa: C901, PLR0912
             transform["payrollInstruction"] = {"generalDeductionInstruction": gdi}
 
     if additional_transform_fields:
-        for key, value in additional_transform_fields.items():
-            transform[key] = value
+        transform.update(additional_transform_fields)
 
     return {
         "events": [
@@ -184,7 +191,7 @@ class GetPayrollInstructionsInput(BaseModel):
 
 class DeductionGoal(BaseModel):
     goal_limit_amount: float | None = Field(default=None, description="Total goal/cap amount.")
-    goal_id: str | None = Field(default=None, description="Goal identifier (1–9 per ADP docs).")
+    goal_id: str | None = Field(default=None, description="Goal identifier (1-9 per ADP docs).")
     goal_balance_amount: float | None = Field(default=None, description="Current goal balance (already deducted).")
     currency_code: str | None = Field(
         default=None, description="ISO-4217 currency code. Omit to match HAR examples (ADP infers).",
@@ -241,167 +248,99 @@ class ManageGeneralDeductionInput(BaseModel):
     )
 
 
-class ADPWorkerPayrollInstructionsToolsComponent(Component):
-    display_name = "ADP Worker Payroll Instructions Tools"
-    description = (
-        "Read + general-deduction management tools for ADP WFN "
-        "`payroll/worker-payroll-instructions v1`. `get_worker_payroll_instructions` lists "
-        "or fetches a worker's payroll instructions. `manage_worker_general_deduction` "
-        "consolidates start/change/stop into one tool; gated behind `enable_mutations`."
-    )
-    icon = "Receipt"
-    name = "ADPWorkerPayrollInstructionsTools"
-    version: int = 1
-    changelog: ClassVar[list[ChangelogEntry]] = [
-        ChangelogEntry(
-            version=1,
-            changes=(
-                "Initial release — 2 agent tools for ADP WFN payroll/worker-payroll-instructions "
-                "v1: `get_worker_payroll_instructions` (list + detail) and "
-                "`manage_worker_general_deduction` (consolidated start/change/stop via an "
-                "`action` literal). Mutation gated behind the `enable_mutations` input "
-                "(default off)."
-            ),
-        ),
-    ]
+# ---------- HTTP helpers ----------
 
-    inputs = [
-        HandleInput(
-            name="connection",
-            display_name="ADP Connection",
-            input_types=["ADPConnection"],
-            info="Connection produced by an ADP Auth component.",
-            required=True,
-        ),
-        BoolInput(
-            name="enable_mutations",
-            display_name="Enable Mutations",
-            info=(
-                "Expose the general-deduction management tool to the agent. Off by default — "
-                "deduction changes are high-blast-radius. Turn on only when the flow is meant "
-                "to act on deduction data."
-            ),
-            value=False,
-        ),
-    ]
 
-    outputs = [
-        Output(display_name="Tools", name="tools", method="build_tools"),
-    ]
+async def _call(
+    conn: ADPConnection,
+    *,
+    method: str,
+    path: str,
+    body: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    url = f"{conn.api_base_url}{path}"
+    validate_adp_url(url, field_name="api_base_url")
+    headers = {"Authorization": f"Bearer {conn.access_token}"}
 
-    async def _execute_request(
-        self,
-        client: httpx.AsyncClient,
-        *,
-        method: str,
-        url: str,
-        headers: dict[str, str],
-        json_body: dict[str, Any] | None,
-        timeout: float,
-    ) -> httpx.Response:
-        return await client.request(
-            method=method,
-            url=url,
-            headers=headers,
-            json=json_body,
-            timeout=timeout,
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
+        response = await client.request(
+            method=method, url=url, headers=headers, json=body, timeout=30.0,
         )
-
-    async def _call(
-        self,
-        conn: ADPConnection,
-        *,
-        method: str,
-        path: str,
-        body: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        url = f"{conn.api_base_url}{path}"
-        validate_adp_url(url, field_name="api_base_url")
-        headers = {"Authorization": f"Bearer {conn.access_token}"}
-
-        async with build_mtls_httpx_client(conn, timeout=30.0) as client:
-            response = await self._execute_request(
-                client, method=method, url=url, headers=headers, json_body=body, timeout=30.0,
+        if response.status_code == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            response = await client.request(
+                method=method, url=url, headers=headers, json=body, timeout=30.0,
             )
-            if response.status_code == HTTP_UNAUTHORIZED:
-                await fetch_token(conn, force=True)
-                headers["Authorization"] = f"Bearer {conn.access_token}"
-                response = await self._execute_request(
-                    client, method=method, url=url, headers=headers, json_body=body, timeout=30.0,
-                )
 
-        if response.status_code >= HTTP_CLIENT_ERROR_MIN:
-            try:
-                detail = response.json()
-            except ValueError:
-                detail = response.text
-            return {"error": detail, "status_code": response.status_code}
+    if response.status_code >= HTTP_CLIENT_ERROR_MIN:
         try:
-            return response.json()
+            detail = response.json()
         except ValueError:
-            return {"ok": True, "status_code": response.status_code}
+            detail = response.text
+        return {"error": detail, "status_code": response.status_code}
+    try:
+        return response.json()
+    except ValueError:
+        return {"ok": True, "status_code": response.status_code}
 
-    async def _post_event(self, conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
-        return await self._call(conn, method="POST", path=path, body=body)
 
-    async def build_tools(self) -> list[Tool]:
-        conn: ADPConnection = self.connection
-        component = self
+async def _post_event(conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
+    return await _call(conn, method="POST", path=path, body=body)
 
-        async def _get_worker_payroll_instructions(
-            associate_oid: str, payroll_instruction_id: str | None = None,
-        ) -> dict[str, Any]:
-            if payroll_instruction_id:
-                path = PATH_DETAIL.format(
-                    aoid=associate_oid, payroll_instruction_id=payroll_instruction_id,
-                )
-            else:
-                path = PATH_LIST.format(aoid=associate_oid)
-            return await component._call(conn, method="GET", path=path)
 
-        tools: list[Tool] = [
-            StructuredTool.from_function(
-                name="get_worker_payroll_instructions",
-                description=(
-                    "Get a worker's payroll instructions (general deductions, garnishments, memos, "
-                    "earnings, benefits, retirement). If `payroll_instruction_id` is provided, "
-                    "fetches that single instruction; otherwise lists all. Each entry includes "
-                    "itemID values you can pass to `manage_worker_general_deduction` as `item_id`."
-                ),
-                coroutine=_get_worker_payroll_instructions,
-                args_schema=GetPayrollInstructionsInput,
+def build_worker_payroll_instructions_tools(
+    connection: ADPConnection,
+    request_cache: RequestCache,  # accepted for registry uniformity; reads don't use shared cache  # noqa: ARG001
+) -> list[Tool]:
+    conn = connection
+
+    async def _get_worker_payroll_instructions(
+        associate_oid: str, payroll_instruction_id: str | None = None,
+    ) -> dict[str, Any]:
+        if payroll_instruction_id:
+            path = PATH_DETAIL.format(
+                aoid=associate_oid, payroll_instruction_id=payroll_instruction_id,
+            )
+        else:
+            path = PATH_LIST.format(aoid=associate_oid)
+        return await _call(conn, method="GET", path=path)
+
+    async def _manage_worker_general_deduction(**kwargs: Any) -> dict[str, Any]:
+        normalized = dict(kwargs)
+        goal = normalized.get("deduction_goal")
+        if goal is not None and hasattr(goal, "model_dump"):
+            normalized["deduction_goal"] = goal.model_dump()
+        action = normalized["action"]
+        try:
+            body = build_general_deduction_event(**normalized)
+        except ValueError as err:
+            return {"error": str(err), "status_code": 422}
+        path = _ACTION_PATHS[action]
+        return await _post_event(conn, path=path, body=body)
+
+    return [
+        StructuredTool.from_function(
+            name="get_worker_payroll_instructions",
+            description=(
+                "Get a worker's payroll instructions (general deductions, garnishments, memos, "
+                "earnings, benefits, retirement). If `payroll_instruction_id` is provided, "
+                "fetches that single instruction; otherwise lists all. Each entry includes "
+                "itemID values you can pass to `manage_worker_general_deduction` as `item_id`."
             ),
-        ]
-
-        if not self.enable_mutations:
-            return tools
-
-        async def _manage_worker_general_deduction(**kwargs: Any) -> dict[str, Any]:
-            normalized = dict(kwargs)
-            goal = normalized.get("deduction_goal")
-            if goal is not None and hasattr(goal, "model_dump"):
-                normalized["deduction_goal"] = goal.model_dump()
-            action = normalized["action"]
-            try:
-                body = build_general_deduction_event(**normalized)
-            except ValueError as err:
-                return {"error": str(err), "status_code": 422}
-            path = _ACTION_PATHS[action]
-            return await component._post_event(conn, path=path, body=body)
-
-        tools.append(
-            StructuredTool.from_function(
-                name="manage_worker_general_deduction",
-                description=(
-                    "Manage a worker's general-deduction instruction. Set `action='start'` to add "
-                    "a new deduction (needs deduction_code, rate, optional goal), `'change'` to "
-                    "update an existing one (needs item_id + deduction_code + fields to change), "
-                    "or `'stop'` to end one (needs item_id). All actions need associate_oid, "
-                    "payroll_file_number, payroll_agreement_id, and effective_date."
-                ),
-                coroutine=_manage_worker_general_deduction,
-                args_schema=ManageGeneralDeductionInput,
+            coroutine=_get_worker_payroll_instructions,
+            args_schema=GetPayrollInstructionsInput,
+        ),
+        StructuredTool.from_function(
+            name="manage_worker_general_deduction",
+            description=(
+                "Manage a worker's general-deduction instruction. Set `action='start'` to add "
+                "a new deduction (needs deduction_code, rate, optional goal), `'change'` to "
+                "update an existing one (needs item_id + deduction_code + fields to change), "
+                "or `'stop'` to end one (needs item_id). All actions need associate_oid, "
+                "payroll_file_number, payroll_agreement_id, and effective_date."
             ),
-        )
-
-        return tools
+            coroutine=_manage_worker_general_deduction,
+            args_schema=ManageGeneralDeductionInput,
+        ),
+    ]
