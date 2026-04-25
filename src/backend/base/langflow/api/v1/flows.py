@@ -12,7 +12,7 @@ from uuid import UUID, uuid4
 import orjson
 from aiofile import async_open
 from anyio import Path
-from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 from fastapi_pagination import Page, Params
@@ -32,6 +32,7 @@ from langflow.api.utils import (
 )
 from langflow.api.utils.authz import assert_org_role
 from langflow.api.utils.core import CurrentOrg
+from langflow.api.v1.admin.audit_logs import AuditLogListResponse, AuditLogRead
 from langflow.api.v1.schemas import FlowListCreate
 from langflow.initial_setup.constants import STARTER_FOLDER_NAME
 from langflow.services.auth.utils import get_current_active_user
@@ -43,6 +44,8 @@ from langflow.services.database.models.flow.model import (
     FlowRead,
     FlowUpdate,
 )
+from langflow.services.database.models.audit_log import AuditTargetType
+from langflow.services.database.models.audit_log.model import AuditAction
 from langflow.services.database.models.membership.model import MembershipRole
 from langflow.services.database.models.template.model import Template
 from langflow.services.database.models.flow.utils import generate_webhook_api_key, get_webhook_component_in_flow
@@ -54,7 +57,7 @@ from lfx.services.secret_store import get_secret_store
 from langflow.services.database.models.folder.constants import DEFAULT_FOLDER_NAME
 from langflow.services.database.models.folder.model import Folder
 from langflow.services.database.models.folder.utils import get_default_folder_id
-from langflow.services.deps import get_settings_service, get_storage_service, get_variable_service
+from langflow.services.deps import get_audit_service, get_settings_service, get_storage_service, get_variable_service
 from langflow.services.variable.auto_secrets import (
     blank_autosecrets_for_export,
     cleanup_orphaned_autosecrets,
@@ -1188,3 +1191,49 @@ async def expand_compact_flow_endpoint(
         raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@router.get("/{flow_id}/audit-logs", response_model=AuditLogListResponse)
+async def list_flow_audit_logs(
+    *,
+    session: DbSession,
+    flow_id: UUID,
+    current_user: CurrentActiveUser,
+    current_org: CurrentOrg,  # noqa: ARG001 - resolves caller's active org context for header consistency
+    action: Annotated[AuditAction | None, Query()] = None,
+    from_: Annotated[datetime | None, Query(alias="from")] = None,
+    to: Annotated[datetime | None, Query()] = None,
+    page: Annotated[int, Query(ge=1)] = 1,
+    size: Annotated[int, Query(ge=1, le=200)] = 50,
+) -> AuditLogListResponse:
+    """List audit log entries for a single flow (Viewer+ on the flow's organization).
+
+    The endpoint forces ``target_type=FLOW`` and ``target_id={flow_id}`` server-side,
+    ignoring any client-provided overrides, so callers cannot exfiltrate other targets'
+    audit entries.
+    """
+    # Resolve the flow by id alone so authz can be checked against the flow's actual
+    # ``organization_id`` and a non-member receives 403 (rather than the 404 a strictly
+    # org-scoped lookup would produce).
+    flow = (await session.exec(select(Flow).where(Flow.id == flow_id))).first()
+    if flow is None:
+        raise HTTPException(status_code=404, detail="Flow not found")
+    await assert_org_role(current_user, flow.organization_id, MembershipRole.VIEWER, session=session)
+
+    service = get_audit_service()
+    rows, total = await service.query(
+        org_id=flow.organization_id,
+        target_type=AuditTargetType.FLOW,
+        target_id=flow_id,
+        action=action,
+        from_=from_,
+        to=to,
+        page=page,
+        size=size,
+    )
+    return AuditLogListResponse(
+        items=[AuditLogRead.model_validate(r, from_attributes=True) for r in rows],
+        total=total,
+        page=page,
+        size=size,
+    )

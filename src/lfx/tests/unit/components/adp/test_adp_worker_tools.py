@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-
 from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_worker_tools import (
     build_worker_tools,
@@ -107,7 +106,7 @@ SAMPLE_WORKER_RESPONSE = {
 }
 
 
-def _make_connection(*, access_token="T1", api_base_url="https://api.adp.com"):
+def _make_connection(*, access_token="fake-token", api_base_url="https://api.adp.com"):  # noqa: S107
     conn = MagicMock()
     conn.access_token = access_token
     conn.api_base_url = api_base_url
@@ -119,7 +118,7 @@ def _make_connection(*, access_token="T1", api_base_url="https://api.adp.com"):
 # ---------------------------------------------------------------------------
 
 
-def test_extract_name(adp_connection):
+def test_extract_name(adp_connection):  # noqa: ARG001
     worker = SAMPLE_WORKER_RESPONSE["workers"][0]
     result = extract_name(worker)
     assert result == {
@@ -128,7 +127,7 @@ def test_extract_name(adp_connection):
     }
 
 
-def test_extract_name_missing_preferred(adp_connection):
+def test_extract_name_missing_preferred(adp_connection):  # noqa: ARG001
     worker = {
         "person": {
             "legalName": {"givenName": "Jane", "familyName1": "Doe"},
@@ -141,7 +140,7 @@ def test_extract_name_missing_preferred(adp_connection):
     }
 
 
-def test_extract_addresses(adp_connection):
+def test_extract_addresses(adp_connection):  # noqa: ARG001
     worker = SAMPLE_WORKER_RESPONSE["workers"][0]
     result = extract_addresses(worker)
     assert result == {
@@ -156,13 +155,13 @@ def test_extract_addresses(adp_connection):
     }
 
 
-def test_extract_addresses_missing(adp_connection):
+def test_extract_addresses_missing(adp_connection):  # noqa: ARG001
     worker = {"person": {}}
     result = extract_addresses(worker)
     assert result == {"legalAddress": None}
 
 
-def test_extract_contact_information(adp_connection):
+def test_extract_contact_information(adp_connection):  # noqa: ARG001
     worker = SAMPLE_WORKER_RESPONSE["workers"][0]
     result = extract_contact_information(worker)
     assert result == {
@@ -172,13 +171,13 @@ def test_extract_contact_information(adp_connection):
     }
 
 
-def test_extract_contact_information_missing(adp_connection):
+def test_extract_contact_information_missing(adp_connection):  # noqa: ARG001
     worker = {"person": {}}
     result = extract_contact_information(worker)
     assert result == {"emails": [], "landlines": [], "mobiles": []}
 
 
-def test_extract_job(adp_connection):
+def test_extract_job(adp_connection):  # noqa: ARG001
     worker = SAMPLE_WORKER_RESPONSE["workers"][0]
     result = extract_job(worker)
     assert result == {
@@ -191,7 +190,7 @@ def test_extract_job(adp_connection):
     }
 
 
-def test_extract_job_missing_assignment(adp_connection):
+def test_extract_job_missing_assignment(adp_connection):  # noqa: ARG001
     worker = {"workAssignments": [], "workerStatus": {"statusCode": {"codeValue": "Active"}}}
     result = extract_job(worker)
     assert result == {
@@ -204,7 +203,7 @@ def test_extract_job_missing_assignment(adp_connection):
     }
 
 
-def test_extract_compensation(adp_connection):
+def test_extract_compensation(adp_connection):  # noqa: ARG001
     worker = SAMPLE_WORKER_RESPONSE["workers"][0]
     result = extract_compensation(worker)
     assert result == {
@@ -220,7 +219,7 @@ def test_extract_compensation(adp_connection):
     }
 
 
-def test_extract_compensation_missing_assignment(adp_connection):
+def test_extract_compensation_missing_assignment(adp_connection):  # noqa: ARG001
     worker = {"workAssignments": []}
     result = extract_compensation(worker)
     assert result == {
@@ -229,7 +228,7 @@ def test_extract_compensation_missing_assignment(adp_connection):
     }
 
 
-def test_extract_ids(adp_connection):
+def test_extract_ids(adp_connection):  # noqa: ARG001
     worker = SAMPLE_WORKER_RESPONSE["workers"][0]
     result = extract_ids(worker)
     assert result == {
@@ -239,7 +238,7 @@ def test_extract_ids(adp_connection):
     }
 
 
-def test_extract_ids_missing(adp_connection):
+def test_extract_ids_missing(adp_connection):  # noqa: ARG001
     worker = {"associateOID": "G3ABC"}
     result = extract_ids(worker)
     assert result == {
@@ -249,7 +248,7 @@ def test_extract_ids_missing(adp_connection):
     }
 
 
-def test_extract_dates(adp_connection):
+def test_extract_dates(adp_connection):  # noqa: ARG001
     worker = SAMPLE_WORKER_RESPONSE["workers"][0]
     result = extract_dates(worker)
     assert result["firstHireDate"] == "2019-05-01"
@@ -261,14 +260,14 @@ def test_extract_dates(adp_connection):
     assert "leaveOfAbsenceReturnDate" in result
 
 
-def test_extract_dates_missing(adp_connection):
+def test_extract_dates_missing(adp_connection):  # noqa: ARG001
     worker = {}
     result = extract_dates(worker)
     assert result["firstHireDate"] is None
     assert result["terminationDate"] is None
 
 
-def test_extract_status(adp_connection):
+def test_extract_status(adp_connection):  # noqa: ARG001
     worker = SAMPLE_WORKER_RESPONSE["workers"][0]
     result = extract_status(worker)
     assert result == {
@@ -278,13 +277,13 @@ def test_extract_status(adp_connection):
     }
 
 
-def test_extract_status_missing(adp_connection):
+def test_extract_status_missing(adp_connection):  # noqa: ARG001
     worker = {}
     result = extract_status(worker)
     assert result == {"statusCode": None, "reasonCode": None, "effectiveDate": None}
 
 
-def test_extract_business_communication(adp_connection):
+def test_extract_business_communication(adp_connection):  # noqa: ARG001
     worker = SAMPLE_WORKER_RESPONSE["workers"][0]
     result = extract_business_communication(worker)
     assert result == {
@@ -294,7 +293,7 @@ def test_extract_business_communication(adp_connection):
     }
 
 
-def test_extract_business_communication_missing(adp_connection):
+def test_extract_business_communication_missing(adp_connection):  # noqa: ARG001
     worker = {}
     result = extract_business_communication(worker)
     assert result == {"emails": [], "landlines": [], "mobiles": []}
@@ -440,3 +439,31 @@ async def test_error_response_not_cached():
     assert first.get("status_code") == 500
     assert "legalName" in second  # not served from cache; refetched
     assert client.request.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_unauthorized_twice_does_not_loop():
+    """If the post-refresh retry also returns 401, surface the error and do not loop."""
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    tools = build_worker_tools(conn, cache)
+    get_name = next(t for t in tools if t.name == "get_employee_name")
+
+    unauthorized = MagicMock(spec=httpx.Response)
+    unauthorized.status_code = 401
+    unauthorized.json.return_value = {"message": "unauthorized"}
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.side_effect = [unauthorized, unauthorized]
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_worker_tools.build_mtls_httpx_client", fake_client), \
+         patch("lfx.components.adp.adp_worker_tools.fetch_token", AsyncMock()) as fetch_token_mock:
+        result = await get_name.ainvoke({"associate_oid": "G3ABC"})
+
+    assert result.get("status_code") == 401
+    fetch_token_mock.assert_awaited_once()  # one refresh, no looping
+    assert client.request.await_count == 2  # no third attempt

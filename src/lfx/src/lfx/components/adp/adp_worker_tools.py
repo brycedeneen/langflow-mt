@@ -16,7 +16,7 @@ from lfx.components.adp._shared import (
     fetch_token,
     validate_adp_url,
 )
-from lfx.field_typing import Tool
+from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
 
 def extract_name(worker: dict[str, Any]) -> dict[str, Any]:
@@ -213,6 +213,15 @@ class WorkerToolInput(BaseModel):
     associate_oid: str = Field(description="The ADP associate OID (unique employee identifier)")
 
 
+def _process_worker_result(result: dict[str, Any]) -> dict[str, Any]:
+    if "error" in result:
+        return result
+    workers = result.get("workers", [])
+    if not workers:
+        return {"error": "No worker found", "status_code": 404}
+    return workers[0]
+
+
 async def _fetch_worker(
     conn: ADPConnection,
     associate_oid: str,
@@ -221,6 +230,12 @@ async def _fetch_worker(
 ) -> dict[str, Any]:
     url = f"{conn.api_base_url}/hr/v2/workers/{associate_oid}"
     validate_adp_url(url, field_name="api_base_url")
+    key = RequestCache.make_key("GET", url, None)
+
+    # Peek before opening the mTLS client so cache hits skip PEM-file churn.
+    cached = request_cache.peek(key)
+    if cached is not None:
+        return _process_worker_result(cached)
 
     async with build_mtls_httpx_client(conn, timeout=30.0) as client:
         headers = {"Authorization": f"Bearer {conn.access_token}"}
@@ -230,12 +245,7 @@ async def _fetch_worker(
             headers["Authorization"] = f"Bearer {conn.access_token}"
             result = await cached_get_json(client=client, cache=request_cache, url=url, headers=headers)
 
-    if "error" in result:
-        return result
-    workers = result.get("workers", [])
-    if not workers:
-        return {"error": "No worker found", "status_code": 404}
-    return workers[0]
+    return _process_worker_result(result)
 
 
 def build_worker_tools(connection: ADPConnection, request_cache: RequestCache) -> list[Tool]:
@@ -296,19 +306,28 @@ def build_worker_tools(connection: ADPConnection, request_cache: RequestCache) -
         ),
         StructuredTool.from_function(
             name="get_employee_job",
-            description="Get an employee's job details (title, department, location, manager) by their ADP associate OID.",
+            description=(
+                "Get an employee's job details (title, department, location, manager) "
+                "by their ADP associate OID."
+            ),
             coroutine=_get_employee_job,
             args_schema=WorkerToolInput,
         ),
         StructuredTool.from_function(
             name="get_employee_compensation",
-            description="Get an employee's compensation details (base pay, additional remunerations) by their ADP associate OID.",
+            description=(
+                "Get an employee's compensation details (base pay, additional remunerations) "
+                "by their ADP associate OID."
+            ),
             coroutine=_get_employee_compensation,
             args_schema=WorkerToolInput,
         ),
         StructuredTool.from_function(
             name="get_employee_ids",
-            description="Get an employee's identifiers (associateOID, workerID, alternateIDs) by their ADP associate OID.",
+            description=(
+                "Get an employee's identifiers (associateOID, workerID, alternateIDs) "
+                "by their ADP associate OID."
+            ),
             coroutine=_get_employee_ids,
             args_schema=WorkerToolInput,
         ),
