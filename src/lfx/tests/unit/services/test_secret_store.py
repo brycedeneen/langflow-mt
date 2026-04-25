@@ -21,7 +21,16 @@ class ConcreteSecretStore(SecretStore):
         self._store.pop(path, None)
 
     async def list(self, prefix: str) -> list[str]:
-        return [k for k in self._store if k.startswith(prefix)]
+        seen: set[str] = set()
+        for key in self._store:
+            if not key.startswith(prefix):
+                continue
+            rest = key[len(prefix):]
+            if not rest:
+                continue
+            head, sep, _ = rest.partition("/")
+            seen.add(head + ("/" if sep else ""))
+        return sorted(seen)
 
 
 class TestSecretStoreABC:
@@ -57,14 +66,36 @@ class TestSecretStoreABC:
         await store.put("org1/webhooks/flow1", {"key": "a"})
         await store.put("org1/webhooks/flow2", {"key": "b"})
         await store.put("org2/webhooks/flow3", {"key": "c"})
+        # Immediate children of "org1/webhooks/" are leaf names (no trailing /).
         result = await store.list("org1/webhooks/")
-        assert sorted(result) == ["org1/webhooks/flow1", "org1/webhooks/flow2"]
+        assert result == ["flow1", "flow2"]
 
     @pytest.mark.asyncio
     async def test_list_empty_prefix(self):
         store = ConcreteSecretStore()
         result = await store.list("nonexistent/")
         assert result == []
+
+    @pytest.mark.asyncio
+    async def test_list_returns_directory_markers_for_subdirs(self):
+        """Sub-directory entries end with `/`; leaves don't."""
+        store = ConcreteSecretStore()
+        await store.put("a/b/c", {"v": 1})
+        await store.put("a/b/d", {"v": 2})
+        await store.put("a/e", {"v": 3})
+        # At "a/", children are "b/" (subdir) and "e" (leaf).
+        assert await store.list("a/") == ["b/", "e"]
+        # At "a/b/", both children are leaves.
+        assert await store.list("a/b/") == ["c", "d"]
+
+    @pytest.mark.asyncio
+    async def test_list_excludes_exact_match_prefix(self):
+        """A key that equals the prefix is not its own child."""
+        store = ConcreteSecretStore()
+        await store.put("a/b/", {"v": 1})  # the directory itself
+        await store.put("a/b/c", {"v": 2})
+        # "a/b/" is the directory; "c" is the only child.
+        assert await store.list("a/b/") == ["c"]
 
     def test_cannot_instantiate_abc_directly(self):
         with pytest.raises(TypeError):

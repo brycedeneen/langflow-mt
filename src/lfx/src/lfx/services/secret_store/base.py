@@ -26,4 +26,13 @@ class SecretStore(ABC):
 
     @abstractmethod
     async def list(self, prefix: str) -> list[str]:
-        """List secret keys under a prefix."""
+        """List immediate children under a prefix (KV v2 LIST semantics).
+
+        Returns relative names — sub-directory entries end with ``/``, leaf
+        entries do not. Callers walking deeper structure must recurse explicitly.
+
+        Example:
+            Store has keys: ``["a/b/c", "a/b/d", "a/e"]``.
+            ``store.list("a/")``  → ``["b/", "e"]``
+            ``store.list("a/b/")`` → ``["c", "d"]``
+        """
