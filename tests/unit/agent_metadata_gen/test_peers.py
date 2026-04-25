@@ -77,9 +77,54 @@ def test_format_peers_block_returns_placeholder_when_empty():
     assert format_peers_block([], exclude="X") == "(no peers in this category)"
 
 
+def test_format_peers_block_marks_canonical_peers():
+    """`is_canonical=True` peers render with a `(canonical alternative)` marker so the
+    prompt rule can bias the LLM toward picking them for the tradeoff sentence."""
+    peers = [
+        PeerEntry(component_name="Plain", category="x", display_name="Plain", description="ordinary"),
+        PeerEntry(
+            component_name="DataMapper",
+            category="x",
+            display_name="Data Mapper",
+            description="hand-flagged",
+            is_canonical=True,
+        ),
+    ]
+    block = format_peers_block(peers, exclude="X")
+    assert "- Plain — Plain — ordinary" in block
+    assert "- DataMapper (canonical alternative) — Data Mapper — hand-flagged" in block
+
+
 def test_hand_authored_data_mapper_entry_present():
     """The DataMapper hand-authored entry is the canonical example."""
     assert "DataMapper" in HAND_AUTHORED_PEERS
     entry = HAND_AUTHORED_PEERS["DataMapper"]
     assert entry.category == "processing"
     assert "low cost" in entry.description.lower() or "precise" in entry.description.lower()
+
+
+def test_hand_authored_peer_appears_in_extra_categories():
+    """Hand-authored peers with `extra_categories` show up in those categories' peer lists.
+
+    DataMapper (home category=processing) declares extra_categories=("llm_operations",)
+    so that StructuredOutput (in llm_operations) sees it as a peer for the canonical
+    "Prefer over Data Mapper when ..." tradeoff sentence.
+    """
+    classes = [
+        (_comp("StructuredOutputComponent", category="llm_operations", description="LLM-driven extraction"), "llm_operations"),
+    ]
+    idx = build_peer_index(classes)
+    names_in_llm_ops = sorted(p.component_name for p in idx["llm_operations"])
+    assert "DataMapper" in names_in_llm_ops
+    assert "StructuredOutputComponent" in names_in_llm_ops
+
+
+def test_hand_authored_peer_still_appears_in_home_category():
+    """Adding extra_categories must not remove the peer from its primary category."""
+    classes = [
+        (_comp("OtherProcessing", category="processing", description="some processing"), "processing"),
+    ]
+    idx = build_peer_index(classes)
+    names_in_processing = sorted(p.component_name for p in idx["processing"])
+    assert "DataMapper" in names_in_processing
+    assert "OtherProcessing" in names_in_processing

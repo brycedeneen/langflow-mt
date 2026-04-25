@@ -29,6 +29,13 @@ Use this only when you can articulate a clear, one-line "use this when ... /
 use the peer when ..." distinction. If no peer materially overlaps, omit
 sentence 3 - do not write filler.
 
+If a peer is tagged "(canonical alternative)" in the list below, that means
+it has been hand-flagged as the most important comparison to make for
+components like this. When such a peer genuinely overlaps with this
+component, prefer it as the tradeoff target over a less-important peer.
+Only fall back to a non-canonical peer when no canonical one materially
+overlaps.
+
 Rules:
 - Second person ("you help the user...").
 - Don't repeat the display name verbatim.
