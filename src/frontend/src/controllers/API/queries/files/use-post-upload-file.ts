@@ -1,7 +1,7 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import { z } from "zod";
 import { validatedQueryFn } from "@/lib/validated-fetch";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -17,7 +17,7 @@ export const usePostUploadFile: useMutationFunctionType<
 > = (options?) => {
   const { mutate } = UseRequestProcessor();
 
-  const postUploadFileFn = async (payload: IPostUploadFile): Promise<any> => {
+  const postUploadFileFn = async (payload: IPostUploadFile): Promise<unknown> => {
     const formData = new FormData();
     formData.append("file", payload.file);
 
@@ -34,7 +34,7 @@ export const usePostUploadFile: useMutationFunctionType<
     )();
   };
 
-  const mutation: UseMutationResult<IPostUploadFile, any, IPostUploadFile> =
+  const mutation: UseMutationResult<IPostUploadFile, ApiError, IPostUploadFile> =
     mutate(
       ["usePostUploadFile"],
       async (payload: IPostUploadFile) => {

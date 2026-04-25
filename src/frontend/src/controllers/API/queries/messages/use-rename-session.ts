@@ -6,7 +6,7 @@ import { usePlaygroundStore } from "@/stores/playgroundStore";
 import { validatedQueryFn } from "@/lib/validated-fetch";
 import { MessageRead } from "@/schemas/api/_generated";
 import { z } from "zod";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import type { Message } from "@/types/messages";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -114,7 +114,7 @@ export const useUpdateSessionName: useMutationFunctionType<
     }
   };
 
-  const mutation: UseMutationResult<Message[], any, UpdateSessionParams> =
+  const mutation: UseMutationResult<Message[], ApiError, UpdateSessionParams> =
     mutate(["useUpdateSessionName"], updateSessionApi, {
       onMutate: (variables) => {},
       onSuccess: (data, variables, context, ...rest) => {

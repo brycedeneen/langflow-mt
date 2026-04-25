@@ -1,5 +1,5 @@
 import type { UseMutationResult } from "@tanstack/react-query";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -16,14 +16,14 @@ export const useCancelIngestion: useMutationFunctionType<
 
   const cancelIngestionFn = async (
     params: CancelIngestionParams,
-  ): Promise<any> => {
-    const response = await api.post<any>(
+  ): Promise<unknown> => {
+    const response = await api.post<unknown>(
       `${getURL("KNOWLEDGE_BASES")}/${params.kb_name}/cancel`,
     );
     return response.data;
   };
 
-  const mutation: UseMutationResult<any, any, CancelIngestionParams> = mutate(
+  const mutation: UseMutationResult<unknown, ApiError, CancelIngestionParams> = mutate(
     ["useCancelIngestion"],
     cancelIngestionFn,
     {

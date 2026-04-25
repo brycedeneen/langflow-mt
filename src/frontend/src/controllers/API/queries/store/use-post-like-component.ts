@@ -15,9 +15,9 @@ export const usePostLikeComponent: useMutationFunctionType<
 
   const postLikeComponent = async (
     payload: IPostLikeComponent,
-  ): Promise<any> => {
+  ): Promise<unknown> => {
     const { componentId } = payload;
-    return await api.post<any>(`${getURL("STORE")}/users/likes/${componentId}`);
+    return await api.post<unknown>(`${getURL("STORE")}/users/likes/${componentId}`);
   };
 
   const mutation = mutate(["usePostLikeComponent"], postLikeComponent, options);

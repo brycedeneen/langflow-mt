@@ -2,7 +2,7 @@ import type { UseMutationResult } from "@tanstack/react-query";
 import type { ReactFlowJsonObject } from "@xyflow/react";
 import { validatedQueryFn } from "@/lib/validated-fetch";
 import { FlowRead } from "@/schemas/api/_generated";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -27,7 +27,7 @@ export const usePatchUpdateFlow: useMutationFunctionType<
   const PatchUpdateFlowFn = async ({
     id,
     ...payload
-  }: IPatchUpdateFlow): Promise<any> => {
+  }: IPatchUpdateFlow): Promise<unknown> => {
     const parsed = await validatedQueryFn(
       "api.flows.update_flow_api_v1_flows__flow_id__patch",
       FlowRead,
@@ -36,12 +36,12 @@ export const usePatchUpdateFlow: useMutationFunctionType<
     return parsed;
   };
 
-  const mutation: UseMutationResult<IPatchUpdateFlow, any, IPatchUpdateFlow> =
+  const mutation: UseMutationResult<IPatchUpdateFlow, ApiError, IPatchUpdateFlow> =
     mutate(["usePatchUpdateFlow"], PatchUpdateFlowFn, {
       onSettled: (res) => {
         if (res) {
           queryClient.refetchQueries({
-            queryKey: ["useGetFolders", res.folder_id],
+            queryKey: ["useGetFolders", (res as { folder_id?: string }).folder_id],
           });
         }
         queryClient.refetchQueries({

@@ -2,7 +2,7 @@ import type { UseMutationResult } from "@tanstack/react-query";
 import { z } from "zod";
 import { refreshAllModelInputs } from "@/hooks/use-refresh-model-inputs";
 import { validatedQueryFn } from "@/lib/validated-fetch";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -30,7 +30,7 @@ export const useDeleteGlobalVariables: useMutationFunctionType<
 
   const mutation: UseMutationResult<
     DeleteGlobalVariablesParams,
-    any,
+    ApiError,
     DeleteGlobalVariablesParams
   > = mutate(["useDeleteGlobalVariables"], deleteGlobalVariables, {
     onSettled: () => {

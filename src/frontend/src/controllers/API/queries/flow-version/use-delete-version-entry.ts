@@ -1,5 +1,5 @@
 import type { UseMutationResult } from "@tanstack/react-query";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -21,7 +21,7 @@ export const useDeleteVersionEntry: useMutationFunctionType<
     );
   };
 
-  const mutation: UseMutationResult<void, any, IDeleteVersionEntry> = mutate(
+  const mutation: UseMutationResult<void, ApiError, IDeleteVersionEntry> = mutate(
     ["useDeleteVersionEntry"],
     deleteEntryFn,
     {

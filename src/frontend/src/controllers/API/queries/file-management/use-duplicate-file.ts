@@ -3,7 +3,7 @@ import { getFetchCredentials } from "@/customization/utils/get-fetch-credentials
 import { z } from "zod";
 import { validatedQueryFn } from "@/lib/validated-fetch";
 import { langflow__api__schemas__UploadFileResponse } from "@/schemas/api/_generated";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -20,7 +20,7 @@ export const useDuplicateFileV2: useMutationFunctionType<
 > = (params, options?) => {
   const { mutate, queryClient } = UseRequestProcessor();
 
-  const duplicateFileFn = async (): Promise<any> => {
+  const duplicateFileFn = async (): Promise<unknown> => {
     // First download the file
     const response = await fetch(
       `${getURL("FILE_MANAGEMENT", { id: params.id }, true)}`,
@@ -55,7 +55,7 @@ export const useDuplicateFileV2: useMutationFunctionType<
     )();
   };
 
-  const mutation: UseMutationResult<any, any, void> = mutate(
+  const mutation: UseMutationResult<unknown, ApiError, void> = mutate(
     ["useDuplicateFileV2"],
     duplicateFileFn,
     {

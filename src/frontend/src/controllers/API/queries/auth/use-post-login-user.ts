@@ -1,7 +1,11 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import { validatedQueryFn } from "@/lib/validated-fetch";
 import { TokenResponseSchema } from "@/schemas/app/internal/auth";
-import type { LoginType, useMutationFunctionType } from "@/types/api";
+import type {
+  ApiError,
+  LoginType,
+  useMutationFunctionType,
+} from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -11,7 +15,7 @@ export const useLoginUser: useMutationFunctionType<undefined, LoginType> = (
 ) => {
   const { mutate, queryClient } = UseRequestProcessor();
 
-  async function loginUserFn({ password, username }: LoginType): Promise<any> {
+  async function loginUserFn({ password, username }: LoginType): Promise<unknown> {
     const data = await validatedQueryFn(
       "api.auth.login",
       TokenResponseSchema,
@@ -34,7 +38,7 @@ export const useLoginUser: useMutationFunctionType<undefined, LoginType> = (
     return data;
   }
 
-  const mutation: UseMutationResult<LoginType, any, LoginType> = mutate(
+  const mutation: UseMutationResult<LoginType, ApiError, LoginType> = mutate(
     ["useLoginUser"],
     loginUserFn,
     {

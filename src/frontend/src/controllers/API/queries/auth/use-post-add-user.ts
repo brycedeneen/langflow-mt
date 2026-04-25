@@ -1,7 +1,7 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import { validatedQueryFn } from "@/lib/validated-fetch";
 import { UserRead } from "@/schemas/api/_generated";
-import type { Users, useMutationFunctionType } from "@/types/api";
+import type { ApiError, Users, useMutationFunctionType } from "@/types/api";
 import type { UserInputType } from "@/types/components";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -21,7 +21,7 @@ export const useAddUser: useMutationFunctionType<undefined, UserInputType> = (
     return data as unknown as Users;
   };
 
-  const mutation: UseMutationResult<Users, any, UserInputType> = mutate(
+  const mutation: UseMutationResult<Users, ApiError, UserInputType> = mutate(
     ["useAddUser"],
     addUserFunction,
     options,

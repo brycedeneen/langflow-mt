@@ -2,7 +2,7 @@ import type { UseMutationResult } from "@tanstack/react-query";
 import { z } from "zod";
 import { validatedQueryFn } from "@/lib/validated-fetch";
 import { langflow__api__schemas__UploadFileResponse } from "@/schemas/api/_generated";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import type { FileType } from "@/types/file_management";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -19,7 +19,7 @@ export const usePostUploadFileV2: useMutationFunctionType<
 > = (params, options?) => {
   const { mutate, queryClient } = UseRequestProcessor();
 
-  const postUploadFileFn = async (payload: IPostUploadFile): Promise<any> => {
+  const postUploadFileFn = async (payload: IPostUploadFile): Promise<unknown> => {
     const formData = new FormData();
 
     // Build set of existing paths (server-side path is typically full filename)
@@ -117,7 +117,7 @@ export const usePostUploadFileV2: useMutationFunctionType<
     }
   };
 
-  const mutation: UseMutationResult<IPostUploadFile, any, IPostUploadFile> =
+  const mutation: UseMutationResult<IPostUploadFile, ApiError, IPostUploadFile> =
     mutate(
       ["usePostUploadFileV2"],
       async (payload: IPostUploadFile) => {

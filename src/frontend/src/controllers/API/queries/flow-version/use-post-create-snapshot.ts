@@ -1,5 +1,5 @@
 import type { UseMutationResult } from "@tanstack/react-query";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import type { FlowVersionCreate, FlowVersionEntry } from "@/types/flow/version";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -27,7 +27,7 @@ export const usePostCreateSnapshot: useMutationFunctionType<
     return response.data;
   };
 
-  const mutation: UseMutationResult<FlowVersionEntry, any, ICreateSnapshot> =
+  const mutation: UseMutationResult<FlowVersionEntry, ApiError, ICreateSnapshot> =
     mutate(["usePostCreateSnapshot"], createSnapshotFn, {
       ...options,
       onSettled: (_, __, variables) => {

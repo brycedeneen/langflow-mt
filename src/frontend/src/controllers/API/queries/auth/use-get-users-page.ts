@@ -1,7 +1,11 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import { validatedQueryFn } from "@/lib/validated-fetch";
 import { UsersResponse } from "@/schemas/api/_generated";
-import type { Users, useMutationFunctionType } from "../../../../types/api";
+import type {
+  ApiError,
+  Users,
+  useMutationFunctionType,
+} from "../../../../types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -36,7 +40,7 @@ export const useGetUsers: useMutationFunctionType<any, getUsersQueryParams> = (
 
   const mutation: UseMutationResult<
     getUsersQueryParams,
-    any,
+    ApiError,
     getUsersQueryParams
   > = mutate(["useGetUsers"], getUsers, options);
 
