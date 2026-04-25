@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from langflow.services.component_assist.guide_registry import (
     is_assist_enabled,
     resolve,
@@ -14,8 +16,19 @@ def test_data_mapper_opts_out_of_assist():
     assert is_assist_enabled(DataMapperComponent) is False
 
 
-def test_text_operations_has_assist_guide():
-    guide = resolve(TextOperations)
+@pytest.mark.asyncio
+async def test_text_operations_has_assist_guide(monkeypatch: pytest.MonkeyPatch):
+    # `resolve()` is async and consults `component_metadata` first; this test
+    # exercises the class-attribute fallback (TextOperations carries an
+    # `assist_guide` class attr), so stub the DB lookup to None.
+    async def _no_db_row(_name: str) -> str | None:
+        return None
+
+    monkeypatch.setattr(
+        "langflow.services.component_assist.guide_registry.fetch_component_usage_notes",
+        _no_db_row,
+    )
+    guide = await resolve(TextOperations)
     assert isinstance(guide, str)
     assert len(guide) > 200
     assert is_assist_enabled(TextOperations) is True
