@@ -1,10 +1,10 @@
 """Unit tests for ADPTriggerComponent."""
 
-import json  # noqa: F401  # used by later tests
+import json  # used by later tests
 
 import pytest  # noqa: F401  # used by later test fixtures
-from lfx.components.adp.adp_trigger import ADPTriggerComponent, EVENT_TYPE_MAP
-from lfx.schema.data import Data  # noqa: F401  # used by later tests
+from lfx.components.adp.adp_trigger import EVENT_TYPE_MAP, ADPTriggerComponent
+from lfx.schema.data import Data  # used by later tests
 
 
 def test_component_class_metadata():

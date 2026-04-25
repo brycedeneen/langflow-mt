@@ -1,66 +1,26 @@
 def test_bundle_exports_all_components():
     from lfx.components.adp import (
         ADPAPIRequestComponent,
-        ADPApplicantOnboardingToolsComponent,
         ADPAuthComponent,
-        ADPBenefitsToolsComponent,
-        ADPDataCollectionEntriesToolsComponent,
-        ADPDeductionConfigurationsToolsComponent,
-        ADPJobApplicantsToolsComponent,
-        ADPJobRequisitionsToolsComponent,
         ADPMCPComponent,
-        ADPPayDataInputToolsComponent,
-        ADPPayDistributionsToolsComponent,
-        ADPPayStatementsToolsComponent,
-        ADPTalentToolsComponent,
-        ADPTeamTimeCardsToolsComponent,
-        ADPTimeCardsToolsComponent,
-        ADPTimeOffToolsComponent,
+        ADPToolsComponent,
         ADPTriggerComponent,
-        ADPUSTaxProfilesToolsComponent,
-        ADPWorkSchedulesToolsComponent,
-        ADPWorkerBusinessCommunicationToolsComponent,
-        ADPWorkerAssignmentToolsComponent,
-        ADPWorkerAssignmentV3ToolsComponent,
-        ADPWorkerBiologicalToolsComponent,
-        ADPWorkerCompensationToolsComponent,
-        ADPWorkerDeploymentToolsComponent,
-        ADPWorkerHrProfilesToolsComponent,
-        ADPWorkerIdentificationToolsComponent,
-        ADPWorkerLeavesToolsComponent,
-        ADPWorkerLifecycleToolsComponent,
-        ADPWorkerPayrollInstructionsToolsComponent,
-        ADPWorkerPersonalCommunicationToolsComponent,
     )
 
     assert ADPAuthComponent.name == "ADPAuth"
-    assert ADPJobApplicantsToolsComponent.name == "ADPJobApplicantsTools"
-    assert ADPJobRequisitionsToolsComponent.name == "ADPJobRequisitionsTools"
-    assert ADPTeamTimeCardsToolsComponent.name == "ADPTeamTimeCardsTools"
-    assert ADPTalentToolsComponent.name == "ADPTalentTools"
-    assert ADPPayStatementsToolsComponent.name == "ADPPayStatementsTools"
-    assert ADPBenefitsToolsComponent.name == "ADPBenefitsTools"
-    assert ADPDataCollectionEntriesToolsComponent.name == "ADPDataCollectionEntriesTools"
-    assert ADPDeductionConfigurationsToolsComponent.name == "ADPDeductionConfigurationsTools"
-    assert ADPTimeCardsToolsComponent.name == "ADPTimeCardsTools"
-    assert ADPTimeOffToolsComponent.name == "ADPTimeOffTools"
-    assert ADPUSTaxProfilesToolsComponent.name == "ADPUSTaxProfilesTools"
-    assert ADPWorkerBusinessCommunicationToolsComponent.name == "ADPWorkerBusinessCommunicationTools"
-    assert ADPWorkSchedulesToolsComponent.name == "ADPWorkSchedulesTools"
-    assert ADPAPIRequestComponent.name == "ADPAPIRequest"
-    assert ADPApplicantOnboardingToolsComponent.name == "ADPApplicantOnboardingTools"
-    assert ADPMCPComponent.name == "ADPMCP"
-    assert ADPPayDataInputToolsComponent.name == "ADPPayDataInputTools"
-    assert ADPPayDistributionsToolsComponent.name == "ADPPayDistributionsTools"
+    assert ADPToolsComponent.name == "ADPTools"
     assert ADPTriggerComponent.name == "ADPTrigger"
-    assert ADPWorkerCompensationToolsComponent.name == "ADPWorkerCompensationTools"
-    assert ADPWorkerPersonalCommunicationToolsComponent.name == "ADPWorkerPersonalCommunicationTools"
-    assert ADPWorkerDeploymentToolsComponent.name == "ADPWorkerDeploymentTools"
-    assert ADPWorkerIdentificationToolsComponent.name == "ADPWorkerIdentificationTools"
-    assert ADPWorkerAssignmentToolsComponent.name == "ADPWorkerAssignmentTools"
-    assert ADPWorkerBiologicalToolsComponent.name == "ADPWorkerBiologicalTools"
-    assert ADPWorkerHrProfilesToolsComponent.name == "ADPWorkerHrProfilesTools"
-    assert ADPWorkerLeavesToolsComponent.name == "ADPWorkerLeavesTools"
-    assert ADPWorkerLifecycleToolsComponent.name == "ADPWorkerLifecycleTools"
-    assert ADPWorkerPayrollInstructionsToolsComponent.name == "ADPWorkerPayrollInstructionsTools"
-    assert ADPWorkerAssignmentV3ToolsComponent.name == "ADPWorkerAssignmentV3Tools"
+    assert ADPMCPComponent.name == "ADPMCP"
+    assert ADPAPIRequestComponent.name == "ADPAPIRequest"
+
+
+def test_bundle_all_lists_only_kept_components():
+    from lfx.components.adp import __all__ as exports
+
+    assert set(exports) == {
+        "ADPAPIRequestComponent",
+        "ADPAuthComponent",
+        "ADPMCPComponent",
+        "ADPToolsComponent",
+        "ADPTriggerComponent",
+    }

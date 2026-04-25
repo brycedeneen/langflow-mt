@@ -23,12 +23,8 @@ from lfx.components.adp._shared import (
 )
 from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
-
 # ---------------------------------------------------------------------------
 # Backward-compat stub — orchestrator will update __init__.py later.
-# ---------------------------------------------------------------------------
-class ADPWorkerLifecycleToolsComponent:
-    """Deprecated stub — use build_worker_lifecycle_tools instead."""
 
 
 PATH_REHIRE = "/events/hr/v1/worker.rehire"

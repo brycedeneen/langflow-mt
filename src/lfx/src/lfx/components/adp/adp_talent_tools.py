@@ -343,6 +343,3 @@ def build_talent_tools(
 # Back-compat stub — preserved for __init__.py / test_bundle_init.py imports.
 # The Langflow registry uses build_talent_tools(); this class is never
 # instantiated at runtime.
-# ---------------------------------------------------------------------------
-class ADPTalentToolsComponent:
-    name = "ADPTalentTools"

@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from langchain_core.tools import StructuredTool
-
 from lfx.components.adp.adp_mcp import ADPMCPComponent
 
 

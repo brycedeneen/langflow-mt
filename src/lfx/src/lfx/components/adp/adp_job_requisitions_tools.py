@@ -120,6 +120,3 @@ def build_job_requisitions_tools(connection: ADPConnection, request_cache: Reque
 
 # ---------------------------------------------------------------------------
 # Back-compat stub — preserved for __init__.py / test_bundle_init.py imports.
-# ---------------------------------------------------------------------------
-class ADPJobRequisitionsToolsComponent:
-    name = "ADPJobRequisitionsTools"

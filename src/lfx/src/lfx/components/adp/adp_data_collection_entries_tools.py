@@ -136,6 +136,3 @@ def build_data_collection_entries_tools(
 
 # ---------------------------------------------------------------------------
 # Back-compat stub — preserved for __init__.py / test_bundle_init.py imports.
-# ---------------------------------------------------------------------------
-class ADPDataCollectionEntriesToolsComponent:
-    name = "ADPDataCollectionEntriesTools"

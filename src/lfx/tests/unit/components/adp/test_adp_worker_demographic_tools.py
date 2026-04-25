@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-
 from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_worker_demographic_tools import (
     NAME_PATH,

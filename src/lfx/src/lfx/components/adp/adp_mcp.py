@@ -7,12 +7,10 @@ from typing import Any
 import httpx
 from langchain_core.tools import StructuredTool
 
-from lfx.field_typing import Tool
-
-from lfx.custom.custom_component.component import Component
-from lfx.io import HandleInput, MessageTextInput, Output
-
 from lfx.components.adp._shared import ADPConnection, fetch_token, validate_adp_url
+from lfx.custom.custom_component.component import Component
+from lfx.field_typing import Tool
+from lfx.io import HandleInput, MessageTextInput, Output
 
 
 class ADPMCPComponent(Component):

@@ -12,31 +12,26 @@ Catches regressions like:
 
 from __future__ import annotations
 
-import importlib
-
-import pytest
-
 from lfx.components.adp import __all__ as adp_bundle_exports
 from lfx.components.adp._shared import ADPConnection
 from lfx.components.adp.adp_api_request import ENDPOINT_CATALOG, ADPAPIRequestComponent
 from lfx.components.adp.adp_auth import ADPAuthComponent
 from lfx.components.adp.adp_mcp import ADPMCPComponent
 
-
 # ---------------------------------------------------------------------------
 # Bundle registration
 # ---------------------------------------------------------------------------
 
 
-def test_bundle_exports_34_components():
-    """Task 10 Step 2: bundle exposes the expected 34 components.
+def test_bundle_exports_five_components():
+    """The bundle now exposes 5 components after the multi-select tools consolidation.
 
-    Update this number AND `docs/superpowers/plans/2026-04-14-adp-connector.md` Task 10
-    together when adding/removing a component so the manual-smoke instructions stay accurate.
+    Auth, API Request, MCP, Trigger, and the unified ADPToolsComponent (which itself
+    multi-selects from 29 internal tile builders).
     """
-    assert len(adp_bundle_exports) == 34, (
-        f"ADP bundle exports changed: expected 34, got {len(adp_bundle_exports)}. "
-        "Update this test AND the manual-smoke count in the ADP connector plan Task 10."
+    assert len(adp_bundle_exports) == 5, (
+        f"ADP bundle exports changed: expected 5, got {len(adp_bundle_exports)}. "
+        f"Current exports: {sorted(adp_bundle_exports)}"
     )
 
 
@@ -127,28 +122,35 @@ def test_mcp_accepts_adp_connection_wire():
 
 
 # ---------------------------------------------------------------------------
-# Tool components (Task 10 Step 7) — sample from the 29 WFN tile components
+# Unified ADPToolsComponent (replaces the 29 individual tile components)
 # ---------------------------------------------------------------------------
 
 
-TOOL_COMPONENT_SAMPLES = [
-    ("lfx.components.adp.adp_pay_distributions_tools", "ADPPayDistributionsToolsComponent"),
-    ("lfx.components.adp.adp_pay_statements_tools", "ADPPayStatementsToolsComponent"),
-    ("lfx.components.adp.adp_time_cards_tools", "ADPTimeCardsToolsComponent"),
-    ("lfx.components.adp.adp_work_schedules_tools", "ADPWorkSchedulesToolsComponent"),
-]
+def test_adp_tools_component_accepts_adp_connection_wire():
+    """The unified ADPToolsComponent must wire `ADPConnection` like API Request and MCP."""
+    from lfx.components.adp.adp_tools import ADPToolsComponent
+
+    component = ADPToolsComponent()
+    conn_input = next((i for i in component.inputs if getattr(i, "name", None) == "connection"), None)
+    assert conn_input is not None, "ADPToolsComponent must declare a `connection` input"
+    input_types = getattr(conn_input, "input_types", None)
+    assert input_types is not None and "ADPConnection" in input_types, (
+        f"ADPToolsComponent `connection` input_types must include 'ADPConnection', got {input_types!r}"
+    )
 
 
-@pytest.mark.parametrize(("module_path", "class_name"), TOOL_COMPONENT_SAMPLES)
-def test_tool_component_imports_and_instantiates(module_path: str, class_name: str):
-    """Task 10 Step 7: representative tool-components load without import/validation errors."""
-    module = importlib.import_module(module_path)
-    cls = getattr(module, class_name)
-    component = cls()
-    # Each tool-component wires ADPConnection as its first input; if _shared plumbing
-    # drifts, the input will be missing or misnamed and this check catches it.
-    names = _input_names(component)
-    assert "connection" in names, f"{class_name} must declare a `connection` input"
+def test_adp_tools_component_has_tiles_multiselect():
+    """ADPToolsComponent must expose a `tiles` MultiselectInput populated from TILE_BUILDERS."""
+    from lfx.components.adp.adp_tools import TILE_BUILDERS, ADPToolsComponent
+
+    component = ADPToolsComponent()
+    tiles_input = next((i for i in component.inputs if getattr(i, "name", None) == "tiles"), None)
+    assert tiles_input is not None, "ADPToolsComponent must declare a `tiles` input"
+    options = getattr(tiles_input, "options", None)
+    assert options is not None
+    assert set(options) == set(TILE_BUILDERS.keys()), (
+        "tiles MultiselectInput options drifted from TILE_BUILDERS keys"
+    )
 
 
 def test_adp_connection_dataclass_unchanged():

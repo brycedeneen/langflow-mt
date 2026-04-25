@@ -339,6 +339,3 @@ def build_job_applicants_tools(
 
 # ---------------------------------------------------------------------------
 # Back-compat stub — preserved for __init__.py / test_bundle_init.py imports.
-# ---------------------------------------------------------------------------
-class ADPJobApplicantsToolsComponent:
-    name = "ADPJobApplicantsTools"

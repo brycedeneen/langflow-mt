@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 import asyncio
-import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-
 from lfx.components.adp._shared import RequestCache, cached_get_json
 
 

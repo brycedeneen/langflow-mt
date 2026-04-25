@@ -28,12 +28,8 @@ from lfx.components.adp._shared import (
 )
 from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
-
 # ---------------------------------------------------------------------------
 # Backward-compat stub — orchestrator will update __init__.py later.
-# ---------------------------------------------------------------------------
-class ADPWorkerPayrollInstructionsToolsComponent:
-    """Deprecated stub — use build_worker_payroll_instructions_tools instead."""
 
 
 PATH_LIST = "/payroll/v1/workers/{aoid}/payroll-instructions"

@@ -23,12 +23,8 @@ from lfx.components.adp._shared import (
 )
 from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
-
 # ---------------------------------------------------------------------------
 # Backward-compat stub — orchestrator will update __init__.py later.
-# ---------------------------------------------------------------------------
-class ADPWorkerDeploymentToolsComponent:
-    """Deprecated stub — use build_worker_deployment_tools instead."""
 
 
 PATH_CHANGE_STANDARD_HOURS = "/events/hr/v1/worker.work-assignment.standard-hours.change"

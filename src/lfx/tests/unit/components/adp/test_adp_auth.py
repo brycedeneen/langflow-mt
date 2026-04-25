@@ -9,7 +9,7 @@ from lfx.components.adp.adp_auth import ADPAuthComponent
 # ---------------------------------------------------------------------------
 
 VALID_CERT = "-----BEGIN CERTIFICATE-----\nAAA\n-----END CERTIFICATE-----\n"
-VALID_KEY = "-----BEGIN PRIVATE KEY-----\nAAA\n-----END PRIVATE KEY-----\n"  # noqa: S105
+VALID_KEY = "-----BEGIN PRIVATE KEY-----\nAAA\n-----END PRIVATE KEY-----\n"
 VALID_TOKEN_URL = "https://accounts.adp.com/auth/oauth/v2/token"
 
 
@@ -93,7 +93,7 @@ async def test_auth_component_missing_client_id_raises():
 async def test_auth_component_missing_client_secret_raises():
     component = ADPAuthComponent(
         client_id="cid",
-        client_secret="",  # noqa: S106
+        client_secret="",
         cert_pem=VALID_CERT,
         key_pem=VALID_KEY,
         token_url=VALID_TOKEN_URL,

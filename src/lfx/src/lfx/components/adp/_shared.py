@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import re
 import time
 from collections import OrderedDict
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
@@ -203,7 +202,8 @@ class RequestCache:
 
     def put(self, key: str, value: Any) -> None:
         """Store a value under key. Caller is responsible for serialization
-        (typically via ``async with cache.lock_for(key):``)."""
+        (typically via ``async with cache.lock_for(key):``).
+        """
         self._store(key, value)
 
     def _store(self, key: str, value: Any) -> None:

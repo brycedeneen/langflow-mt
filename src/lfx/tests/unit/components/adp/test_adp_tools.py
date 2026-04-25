@@ -83,6 +83,8 @@ def test_tile_labels_in_multiselect_options():
     assert len(options) == len(TILE_BUILDERS)
 
 
-def test_initial_registry_has_two_tiles():
-    """Task 5 registers only the two reviewed canonical tiles. Task 8 expands to 29."""
-    assert set(TILE_BUILDERS.keys()) == {"Worker", "Worker Demographic"}
+def test_registry_covers_all_29_tiles():
+    """Task 8 expansion: full ADP tool surface, one entry per legacy tile component."""
+    assert len(TILE_BUILDERS) == 29
+    options = next(i for i in ADPToolsComponent.inputs if i.name == "tiles").options
+    assert set(options) == set(TILE_BUILDERS.keys())

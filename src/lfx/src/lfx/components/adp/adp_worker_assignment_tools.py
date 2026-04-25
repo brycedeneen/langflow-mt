@@ -23,13 +23,9 @@ from lfx.components.adp._shared import (
 )
 from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
-
 # ---------------------------------------------------------------------------
 # Backward-compat stub — __init__.py still imports this name; orchestrator
 # will update __init__.py in a consolidated commit after all batches land.
-# ---------------------------------------------------------------------------
-class ADPWorkerAssignmentToolsComponent:
-    """Deprecated stub — use build_worker_assignment_tools instead."""
 
 PATH_REPORTS_TO_MODIFY = "/events/hr/v1/worker.reports-to.modify"
 PATH_ORG_UNITS_MODIFY = "/events/hr/v1/worker.work-assignment.assigned-organizational-units.modify"

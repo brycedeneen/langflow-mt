@@ -11,14 +11,13 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-import httpx
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
 from lfx.components.adp._shared import (
-    ADPConnection,
     HTTP_CLIENT_ERROR_MIN,
     HTTP_UNAUTHORIZED,
+    ADPConnection,
     RequestCache,
     build_mtls_httpx_client,
     fetch_token,

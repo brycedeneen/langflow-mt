@@ -185,6 +185,3 @@ def build_benefits_tools(
 
 # ---------------------------------------------------------------------------
 # Back-compat stub — preserved for __init__.py / test_bundle_init.py imports.
-# ---------------------------------------------------------------------------
-class ADPBenefitsToolsComponent:
-    name = "ADPBenefitsTools"

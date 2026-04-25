@@ -5,7 +5,34 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, ClassVar
 
 from lfx.components.adp._shared import ADPConnection, RequestCache
+from lfx.components.adp.adp_applicant_onboarding_tools import build_applicant_onboarding_tools
+from lfx.components.adp.adp_benefits_tools import build_benefits_tools
+from lfx.components.adp.adp_data_collection_entries_tools import build_data_collection_entries_tools
+from lfx.components.adp.adp_deduction_configurations_tools import build_deduction_configurations_tools
+from lfx.components.adp.adp_job_applicants_tools import build_job_applicants_tools
+from lfx.components.adp.adp_job_requisitions_tools import build_job_requisitions_tools
+from lfx.components.adp.adp_pay_data_input_tools import build_pay_data_input_tools
+from lfx.components.adp.adp_pay_distributions_tools import build_pay_distributions_tools
+from lfx.components.adp.adp_pay_statements_tools import build_pay_statements_tools
+from lfx.components.adp.adp_talent_tools import build_talent_tools
+from lfx.components.adp.adp_team_time_cards_tools import build_team_time_cards_tools
+from lfx.components.adp.adp_time_cards_tools import build_time_cards_tools
+from lfx.components.adp.adp_time_off_tools import build_time_off_tools
+from lfx.components.adp.adp_us_tax_profiles_tools import build_us_tax_profiles_tools
+from lfx.components.adp.adp_work_schedules_tools import build_work_schedules_tools
+from lfx.components.adp.adp_worker_assignment_tools import build_worker_assignment_tools
+from lfx.components.adp.adp_worker_assignment_v3_tools import build_worker_assignment_v3_tools
+from lfx.components.adp.adp_worker_biological_tools import build_worker_biological_tools
+from lfx.components.adp.adp_worker_business_communication_tools import build_worker_business_communication_tools
+from lfx.components.adp.adp_worker_compensation_tools import build_worker_compensation_tools
 from lfx.components.adp.adp_worker_demographic_tools import build_worker_demographic_tools
+from lfx.components.adp.adp_worker_deployment_tools import build_worker_deployment_tools
+from lfx.components.adp.adp_worker_hr_profiles_tools import build_worker_hr_profiles_tools
+from lfx.components.adp.adp_worker_identification_tools import build_worker_identification_tools
+from lfx.components.adp.adp_worker_leaves_tools import build_worker_leaves_tools
+from lfx.components.adp.adp_worker_lifecycle_tools import build_worker_lifecycle_tools
+from lfx.components.adp.adp_worker_payroll_instructions_tools import build_worker_payroll_instructions_tools
+from lfx.components.adp.adp_worker_personal_communication_tools import build_worker_personal_communication_tools
 from lfx.components.adp.adp_worker_tools import build_worker_tools
 from lfx.custom.custom_component.component import Component
 from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
@@ -15,10 +42,36 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-# Initially populated with the two canonical-pattern tiles. Task 8 expands to 29.
 TILE_BUILDERS: dict[str, Callable[[ADPConnection, RequestCache], list[Tool]]] = {
     "Worker": build_worker_tools,
+    "Worker Assignment": build_worker_assignment_tools,
+    "Worker Assignment v3": build_worker_assignment_v3_tools,
+    "Worker HR Profiles": build_worker_hr_profiles_tools,
+    "Worker Lifecycle": build_worker_lifecycle_tools,
+    "Worker Identification": build_worker_identification_tools,
+    "Worker Biological": build_worker_biological_tools,
+    "Worker Deployment": build_worker_deployment_tools,
+    "Worker Leaves": build_worker_leaves_tools,
+    "Worker Payroll Instructions": build_worker_payroll_instructions_tools,
+    "Worker Personal Communication": build_worker_personal_communication_tools,
+    "Worker Business Communication": build_worker_business_communication_tools,
+    "Worker Compensation": build_worker_compensation_tools,
     "Worker Demographic": build_worker_demographic_tools,
+    "Pay Data Input": build_pay_data_input_tools,
+    "Pay Distributions": build_pay_distributions_tools,
+    "Pay Statements": build_pay_statements_tools,
+    "US Tax Profiles": build_us_tax_profiles_tools,
+    "Deduction Configurations": build_deduction_configurations_tools,
+    "Time Cards": build_time_cards_tools,
+    "Team Time Cards": build_team_time_cards_tools,
+    "Time Off": build_time_off_tools,
+    "Work Schedules": build_work_schedules_tools,
+    "Talent": build_talent_tools,
+    "Job Applicants": build_job_applicants_tools,
+    "Job Requisitions": build_job_requisitions_tools,
+    "Applicant Onboarding": build_applicant_onboarding_tools,
+    "Benefits": build_benefits_tools,
+    "Data Collection Entries": build_data_collection_entries_tools,
 }
 
 

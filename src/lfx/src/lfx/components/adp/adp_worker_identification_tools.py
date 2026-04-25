@@ -22,12 +22,8 @@ from lfx.components.adp._shared import (
 )
 from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
-
 # ---------------------------------------------------------------------------
 # Backward-compat stub — orchestrator will update __init__.py later.
-# ---------------------------------------------------------------------------
-class ADPWorkerIdentificationToolsComponent:
-    """Deprecated stub — use build_worker_identification_tools instead."""
 
 
 PATH_ADD_GOVERNMENT_ID = "/events/hr/v1/worker.government-id.add"

@@ -422,6 +422,3 @@ def build_applicant_onboarding_tools(
 
 # ---------------------------------------------------------------------------
 # Back-compat stub — preserved for __init__.py / test_bundle_init.py imports.
-# ---------------------------------------------------------------------------
-class ADPApplicantOnboardingToolsComponent:
-    name = "ADPApplicantOnboardingTools"
