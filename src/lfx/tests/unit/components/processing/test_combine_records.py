@@ -277,3 +277,23 @@ async def test_merge_by_key_column_conflict_suffixes():
     row = result[0].data
     assert row["name_left"] == "L"
     assert row["name_right"] == "R"
+
+
+@pytest.mark.asyncio
+async def test_mixed_inputs_coerce_to_dataframe():
+    """Data + DataFrame in → DataFrame out (per spec)."""
+    left = _data_list([{"id": 1, "name": "A"}])
+    right = _df([{"id": 2, "name": "B"}])
+    cmp = _new_combine(left, right, mode="Append")
+    result = await cmp.build_combined()
+    assert isinstance(result, DataFrame)
+    assert sorted(r["id"] for r in result.to_dict(orient="records")) == [1, 2]
+
+
+@pytest.mark.asyncio
+async def test_mixed_inputs_dataframe_left():
+    left = _df([{"id": 1, "name": "A"}])
+    right = _data_list([{"id": 2, "name": "B"}])
+    cmp = _new_combine(left, right, mode="Append")
+    result = await cmp.build_combined()
+    assert isinstance(result, DataFrame)
