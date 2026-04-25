@@ -51,7 +51,7 @@ export default function TabComponent({
         <TabsList className="w-full">
           {validOptions.map((tab, index) => (
             <TabsTrigger
-              key={`${id}_tab_${index}`}
+              key={`${id}_tab_${tab}`}
               value={tab}
               className="block flex-1 truncate px-2"
               disabled={disabled}

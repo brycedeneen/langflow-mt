@@ -25,7 +25,7 @@ export function TemplateCategoryComponent({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {examples.map((example, index) => (
           <TemplateExampleCard
-            key={index}
+            key={example.id}
             example={example}
             onClick={() => onCardClick(example)}
             disabled={loading}

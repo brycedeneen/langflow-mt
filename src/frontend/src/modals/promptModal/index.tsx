@@ -297,12 +297,12 @@ export default function PromptModal({
 
                   {Array.from(wordsHighlight).map((word, index) => (
                     <ShadTooltip
-                      key={index}
+                      key={word}
                       content={word.replace(/[{}]/g, "")}
                       asChild={false}
                     >
                       <Badge
-                        key={index}
+                        key={word}
                         variant="gray"
                         size="md"
                         className="max-w-[40vw] cursor-default truncate p-1 text-sm"

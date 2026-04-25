@@ -66,7 +66,7 @@ export const SidebarOpenView = ({
             <SessionSelector
               setSelectedView={setSelectedViewField}
               selectedView={selectedViewField}
-              key={index}
+              key={session}
               session={session}
               playgroundPage={playgroundPage}
               deleteSession={(session) => {

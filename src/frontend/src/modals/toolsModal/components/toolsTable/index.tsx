@@ -454,7 +454,7 @@ export default function ToolsTable({
                       </div>
                     )}
                     {actionArgs.map((field, index) => (
-                      <div key={index} className="flex flex-col gap-2">
+                      <div key={field.name} className="flex flex-col gap-2">
                         <label className="flex text-sm font-medium">
                           {field.display_name}
                           {field.description && (

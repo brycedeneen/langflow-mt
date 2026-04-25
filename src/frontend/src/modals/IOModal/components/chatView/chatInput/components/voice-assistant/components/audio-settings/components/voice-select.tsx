@@ -46,7 +46,7 @@ const VoiceSelect = ({
         <SelectContent className="max-h-[200px]">
           <SelectGroup>
             {allVoices?.map((voice, index) => (
-              <SelectItem value={voice?.value} key={index}>
+              <SelectItem value={voice?.value} key={voice?.value}>
                 <div className="max-w-[220px] truncate text-left">
                   {toTitleCase(voice?.name)}
                 </div>

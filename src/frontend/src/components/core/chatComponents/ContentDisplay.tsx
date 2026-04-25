@@ -238,7 +238,7 @@ export default function ContentDisplay({
         <div>
           {content.urls.map((url, index) => (
             <img
-              key={index}
+              key={url}
               src={url}
               alt={content.caption || `Media ${index}`}
             />

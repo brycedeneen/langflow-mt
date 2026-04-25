@@ -217,7 +217,7 @@ const ListSelectionComponent = ({
           {filteredList.length > 0 ? (
             filteredList.map((item, index) => (
               <ListItem
-                key={`${item.name}-${index}`}
+                key={item.name}
                 item={item}
                 isSelected={
                   selectedList.some(

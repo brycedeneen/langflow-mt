@@ -44,7 +44,7 @@ export default function NodeOutputs({
       <>
         {outputsToRender?.map((output, idx) => (
           <OutputParameter
-            key={`${keyPrefix}-${output.name}-${idx}`}
+            key={`${keyPrefix}-${output.name}`}
             output={output}
             outputs={outputs}
             idx={

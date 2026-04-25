@@ -184,7 +184,7 @@ export default function ChatView({
                 <MemoizedChatMessage
                   chat={chat}
                   lastMessage={chatHistory.length - 1 === index}
-                  key={`${chat.id}-${index}`}
+                  key={chat.id}
                   updateChat={updateChat}
                   closeChat={closeChat}
                   playgroundPage={playgroundPage}

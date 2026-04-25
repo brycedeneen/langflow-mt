@@ -55,7 +55,7 @@ export const Messages = ({
           {chatHistory.map((chat: ChatMessageType, index) => {
             return (
               <ChatMessage
-                key={`${chat.id}-${index}`}
+                key={chat.id}
                 chat={chat}
                 lastMessage={
                   !showThinkingPlaceholder && chatHistory.length - 1 === index

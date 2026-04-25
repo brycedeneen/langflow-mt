@@ -78,7 +78,7 @@ export function StepReview({
               >
                 {files.map((file, idx) => (
                   <DropdownMenuItem
-                    key={`${file.name}-${idx}`}
+                    key={file.name}
                     onClick={() => {
                       onSelectedPreviewFileIndexChange(idx);
                       onCurrentChunkIndexChange(0);

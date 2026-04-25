@@ -190,7 +190,7 @@ const SortableListComponent = ({
           >
             {listData.map((data, index) => (
               <SortableListItem
-                key={`${data?.name || "item"}-${index}`}
+                key={data?.id ?? data?.name ?? `item-${index}`}
                 data={data}
                 index={index}
                 onRemove={createRemoveHandler(index)}

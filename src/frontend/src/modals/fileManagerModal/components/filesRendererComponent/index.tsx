@@ -19,7 +19,7 @@ export default function FilesRendererComponent({
 }) {
   return files.map((file, index) => (
     <FileRendererComponent
-      key={index}
+      key={file.id ?? file.path}
       file={file}
       handleFileSelect={
         handleFileSelect ? (name) => handleFileSelect(name, index) : undefined

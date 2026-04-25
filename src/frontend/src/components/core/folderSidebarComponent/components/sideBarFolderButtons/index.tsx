@@ -404,7 +404,7 @@ const SideBarFoldersButtonsComponent = ({
                     )[0];
                     return (
                       <SidebarMenuItem
-                        key={index}
+                        key={item.id ?? item.name}
                         className="group/menu-button"
                         onMouseEnter={() => setHoveredFolderId(item.id!)}
                         onMouseLeave={() => setHoveredFolderId(null)}

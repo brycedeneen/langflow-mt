@@ -38,7 +38,7 @@ export default function ProfilePictureChooserComponent({
         <Loading />
       ) : (
         Object.keys(profilePictures!).map((folder, index) => (
-          <div className="flex flex-col gap-2" key={index}>
+          <div className="flex flex-col gap-2" key={folder}>
             <div className="edit-flow-arrangement">
               <span className="font-normal">{folder}</span>
             </div>
