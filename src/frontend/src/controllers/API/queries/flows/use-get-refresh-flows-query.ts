@@ -1,6 +1,9 @@
 import type { UseQueryOptions } from "@tanstack/react-query";
 import { AxiosError } from "axios";
+import { z } from "zod";
 import buildQueryStringUrl from "@/controllers/utils/create-query-param-string";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { FlowRead, Page_FlowRead_ } from "@/schemas/api/_generated";
 import useAlertStore from "@/stores/alertStore";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import { useTypesStore } from "@/stores/typesStore";
@@ -13,6 +16,8 @@ import {
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
+
+const FlowsResponseSchema = z.union([z.array(FlowRead), Page_FlowRead_]);
 
 interface GetFlowsParams {
   components_only?: boolean;
@@ -41,21 +46,35 @@ export const useGetRefreshFlowsQuery: useQueryFunctionType<
   ): Promise<FlowType[] | PaginatedFlowsType> => {
     try {
       const url = addQueryParams(`${getURL("FLOWS")}/`, params);
-      const { data: dbDataFlows } = await api.get<FlowType[]>(url);
+      const dbDataFlows = await validatedQueryFn(
+        "api.flows.read_flows_api_v1_flows__get",
+        FlowsResponseSchema,
+        async () => (await api.get<unknown>(url)).data,
+      )();
 
       if (params.components_only) {
-        return dbDataFlows;
+        return dbDataFlows as FlowType[];
       }
 
-      const { data: dbDataComponents } = await api.get<FlowType[]>(
-        addQueryParams(`${getURL("FLOWS")}/`, {
-          components_only: true,
-          get_all: true,
-        }),
-      );
+      const dbDataComponents = await validatedQueryFn(
+        "api.flows.read_flows_api_v1_flows__get",
+        FlowsResponseSchema,
+        async () =>
+          (
+            await api.get<unknown>(
+              addQueryParams(`${getURL("FLOWS")}/`, {
+                components_only: true,
+                get_all: true,
+              }),
+            )
+          ).data,
+      )();
 
       if (dbDataComponents) {
-        const { data } = processFlows(dbDataComponents);
+        const componentsArray = Array.isArray(dbDataComponents)
+          ? dbDataComponents
+          : (dbDataComponents as { items: FlowType[] }).items;
+        const { data } = processFlows(componentsArray as FlowType[]);
         useTypesStore.setState((state) => ({
           data: { ...state.data, ["saved_components"]: data },
           ComponentFields: extractSecretFieldsFromComponents({
@@ -66,9 +85,11 @@ export const useGetRefreshFlowsQuery: useQueryFunctionType<
       }
 
       if (dbDataFlows) {
-        const flows = Array.isArray(dbDataFlows)
-          ? dbDataFlows
-          : (dbDataFlows as { items: FlowType[] }).items;
+        const flows = (
+          Array.isArray(dbDataFlows)
+            ? dbDataFlows
+            : (dbDataFlows as { items: FlowType[] }).items
+        ) as FlowType[];
         setFlows(flows);
         return flows;
       }

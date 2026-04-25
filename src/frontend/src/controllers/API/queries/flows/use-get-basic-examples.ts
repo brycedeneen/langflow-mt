@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { FlowRead } from "@/schemas/api/_generated";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import type { useQueryFunctionType } from "@/types/api";
 import type { FlowType } from "@/types/flow";
@@ -12,16 +15,17 @@ export const useGetBasicExamplesQuery: useQueryFunctionType<
   const { query } = UseRequestProcessor();
   const setExamples = useFlowsManagerStore((state) => state.setExamples);
 
-  const getBasicExamplesFn = async () => {
-    return await api.get<FlowType[]>(`${getURL("FLOWS")}/basic_examples/`);
-  };
-
   const responseFn = async () => {
-    const { data } = await getBasicExamplesFn();
+    const data = await validatedQueryFn(
+      "api.flows.read_basic_examples_api_v1_flows_basic_examples__get",
+      z.array(FlowRead),
+      async () =>
+        (await api.get<unknown>(`${getURL("FLOWS")}/basic_examples/`)).data,
+    )();
     if (data) {
-      setExamples(data);
+      setExamples(data as FlowType[]);
     }
-    return data;
+    return data as FlowType[];
   };
 
   const queryResult = query(["useGetBasicExamplesQuery"], responseFn, {
