@@ -49,7 +49,6 @@ from langflow.services.database.models.folder.constants import (
 )
 from langflow.services.database.models.folder.model import Folder, FolderCreate, FolderRead
 from langflow.services.database.models.component_metadata.model import ComponentMetadata
-from langflow.services.database.models.template_metadata.model import TemplateMetadata
 from langflow.services.deps import (
     get_auth_service,
     get_settings_service,
@@ -1015,100 +1014,6 @@ async def find_existing_flow(session, flow_id, flow_endpoint_name):
     return None
 
 
-async def create_or_update_template_metadata(
-    starter_projects_dir: anyio.Path | Path | None = None,
-) -> None:
-    """Seed TemplateMetadata rows from sibling metadata JSON files.
-
-    For each ``<TemplateName>.metadata.json`` in ``starter_projects_dir``
-    (defaults to the standard starter-projects directory), upsert a
-    TemplateMetadata row pointing at the matching seeded flow.
-
-    Upsert policy:
-    - No existing row -> INSERT with ``updated_by=None``.
-    - Existing row, ``updated_by IS NULL`` -> UPDATE (re-seed).
-    - Existing row, ``updated_by IS NOT NULL`` -> SKIP (admin took ownership).
-
-    Idempotent. Runs at startup; only operates on flows that already exist
-    in the Starter Projects folder (if any).
-    """
-    if starter_projects_dir is None:
-        starter_projects_dir = anyio.Path(__file__).parent / "starter_projects"
-    else:
-        starter_projects_dir = anyio.Path(starter_projects_dir)
-
-    metadata_files: list[anyio.Path] = []
-    async for f in starter_projects_dir.glob("*.metadata.json"):
-        metadata_files.append(f)
-
-    if not metadata_files:
-        await logger.adebug("No template metadata files found; skipping metadata seeding.")
-        return
-
-    async with session_scope() as session:
-        starter_folder = await get_or_create_starter_folder(session)
-
-        for meta_file in metadata_files:
-            template_name = meta_file.name[: -len(".metadata.json")]
-            try:
-                content = await meta_file.read_text(encoding="utf-8")
-                payload = orjson.loads(content)
-            except orjson.JSONDecodeError as e:
-                await logger.aexception(
-                    f"Skipping malformed metadata file {meta_file.name}: {e}"
-                )
-                continue
-            except Exception as e:  # noqa: BLE001
-                await logger.aexception(
-                    f"Skipping metadata file {meta_file.name}: {e}"
-                )
-                continue
-
-            agent_summary = payload.get("agent_summary")
-            agent_usage_notes = payload.get("agent_usage_notes")
-
-            # Look up the matching flow by name within the Starter Projects folder
-            flow_stmt = select(Flow).where(
-                Flow.name == template_name,
-                Flow.folder_id == starter_folder.id,
-            )
-            flow = (await session.exec(flow_stmt)).first()
-            if flow is None:
-                await logger.awarning(
-                    f"Template metadata file {meta_file.name} has no matching "
-                    f"starter-project flow named '{template_name}' - skipping."
-                )
-                continue
-
-            # Check for existing TemplateMetadata row
-            existing_stmt = select(TemplateMetadata).where(TemplateMetadata.flow_id == flow.id)
-            existing = (await session.exec(existing_stmt)).first()
-
-            if existing is None:
-                row = TemplateMetadata(
-                    flow_id=flow.id,
-                    agent_summary=agent_summary,
-                    agent_usage_notes=agent_usage_notes,
-                    updated_by=None,
-                )
-                session.add(row)
-                await logger.adebug(
-                    f"Seeded TemplateMetadata for '{template_name}' (flow_id={flow.id})."
-                )
-            elif existing.updated_by is None:
-                existing.agent_summary = agent_summary
-                existing.agent_usage_notes = agent_usage_notes
-                session.add(existing)
-                await logger.adebug(
-                    f"Re-seeded TemplateMetadata for '{template_name}' (admin had not edited)."
-                )
-            else:
-                await logger.adebug(
-                    f"Skipping TemplateMetadata seed for '{template_name}': "
-                    f"admin has taken ownership (updated_by={existing.updated_by})."
-                )
-
-
 async def create_or_update_component_agent_metadata(
     yaml_dir: anyio.Path | Path | None = None,
 ) -> None:
@@ -1117,15 +1022,15 @@ async def create_or_update_component_agent_metadata(
     Each YAML file under ``yaml_dir`` is a list of
     ``{component_name, agent_summary, agent_usage_notes}`` entries.
 
-    Upsert policy (matches ``create_or_update_template_metadata``):
+    Upsert policy:
     - No existing row -> INSERT with ``updated_by=None``.
     - Existing row, ``updated_by IS NULL`` -> UPDATE (re-seed).
     - Existing row, ``updated_by IS NOT NULL`` -> SKIP (admin took ownership).
     - IntegrityError on INSERT (concurrent worker won the race) -> swallow + debug log.
     """
     if yaml_dir is None:
-        # `anyio.Path.resolve()` is a coroutine; matching create_or_update_template_metadata,
-        # we rely on `__file__` already being absolute and skip resolve() entirely.
+        # `anyio.Path.resolve()` is a coroutine; we rely on `__file__` already
+        # being absolute and skip resolve() entirely.
         yaml_dir = anyio.Path(__file__).parent.parent / "services" / "component_assist" / "agent_metadata"
     else:
         yaml_dir = anyio.Path(yaml_dir)
