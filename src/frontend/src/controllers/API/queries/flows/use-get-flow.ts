@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { validatedQueryFn } from "@/lib/validated-fetch";
-import { FlowSchema } from "@/schemas/api/flows";
+import { FlowRead } from "@/schemas/api/_generated";
 import type { useMutationFunctionType } from "@/types/api";
 import type { FlowType } from "@/types/flow";
 import { processFlows } from "@/utils/reactflowUtils";
@@ -22,8 +22,8 @@ export const useGetFlow: useMutationFunctionType<undefined, IGetFlow> = (
 
   const getFlowFn = async (payload: IGetFlow): Promise<FlowType> => {
     const parsed = await validatedQueryFn(
-      "api.flows.getFlow",
-      FlowSchema,
+      "api.flows.read_flow_api_v1_flows__flow_id__get",
+      FlowRead,
       async () =>
         (
           await api.get<unknown>(

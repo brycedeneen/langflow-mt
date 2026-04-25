@@ -42,6 +42,13 @@ jobs:
           cache: "npm"
           cache-dependency-path: ./src/frontend/package-lock.json
 
+      - name: Check OpenAPI-hidden routes have boundary-validation schemas
+        # Backend routes marked include_in_schema=False bypass the codegen pipeline.
+        # This lint catches new hidden routes that haven't been hand-schema'd in
+        # src/frontend/src/schemas/app/internal/. See
+        # docs/superpowers/specs/2026-04-24-frontend-dto-boundary-types-design.md.
+        run: python3 scripts/check_hidden_routes_have_schemas.py
+
       - name: Run Frontend Unit Tests
         run: make test_frontend_ci
 
