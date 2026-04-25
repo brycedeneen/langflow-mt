@@ -6,7 +6,12 @@ Private to the processing bundle. Not part of the public lfx API.
 from __future__ import annotations
 
 import re
+from enum import Enum
 from typing import Any, Final
+
+import pandas as pd
+
+from lfx.schema import Data, DataFrame
 
 # Sentinel returned by get_path when a field is absent. Distinct from None
 # (which is a legitimate stored value).
@@ -173,3 +178,45 @@ def evaluate(operator: str, field_value: Any, raw_value: str) -> bool:
     Raises KeyError if `operator` is not a recognized operator name.
     """
     return OPERATORS[operator](field_value, raw_value)
+
+
+class InputShape(Enum):
+    DATA_SINGLE = "data_single"
+    DATA_LIST = "data_list"
+    DATAFRAME = "dataframe"
+
+
+def detect_shape(value: Any) -> InputShape:
+    """Detect the shape of a records-bearing input.
+
+    Raises TypeError on anything that isn't Data, list[Data], or DataFrame.
+    """
+    if isinstance(value, DataFrame):
+        return InputShape.DATAFRAME
+    if isinstance(value, Data):
+        return InputShape.DATA_SINGLE
+    if isinstance(value, list) and all(isinstance(v, Data) for v in value):
+        return InputShape.DATA_LIST
+    msg = f"Unsupported input type: {type(value).__name__}. Expected Data, list[Data], or DataFrame."
+    raise TypeError(msg)
+
+
+def to_record_list(value: Any) -> list[dict]:
+    """Normalize any supported input shape to a list of plain dicts."""
+    shape = detect_shape(value)
+    if shape is InputShape.DATA_SINGLE:
+        return [dict(value.data)]
+    if shape is InputShape.DATA_LIST:
+        return [dict(item.data) for item in value]
+    # DATAFRAME
+    return value.to_dict(orient="records")
+
+
+def from_record_list(records: list[dict], shape: InputShape) -> Any:
+    """Convert a list of dicts back to the requested output shape."""
+    if shape is InputShape.DATAFRAME:
+        return DataFrame(pd.DataFrame(records))
+    if shape is InputShape.DATA_LIST:
+        return [Data(data=r) for r in records]
+    # DATA_SINGLE — return first record (or empty Data if no records)
+    return Data(data=records[0]) if records else Data(data={})

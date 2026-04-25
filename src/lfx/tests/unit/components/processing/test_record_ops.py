@@ -100,3 +100,66 @@ def test_operators_dict_lists_all_14():
         "in", "not in",
         "is empty", "is not empty",
     }
+
+
+import pandas as pd
+
+from lfx.components.processing._record_ops import (
+    InputShape,
+    detect_shape,
+    from_record_list,
+    to_record_list,
+)
+from lfx.schema import Data, DataFrame
+
+
+def test_detect_shape_data_single():
+    assert detect_shape(Data(data={"a": 1})) is InputShape.DATA_SINGLE
+
+
+def test_detect_shape_data_list():
+    assert detect_shape([Data(data={"a": 1}), Data(data={"a": 2})]) is InputShape.DATA_LIST
+
+
+def test_detect_shape_dataframe():
+    df = DataFrame(pd.DataFrame([{"a": 1}, {"a": 2}]))
+    assert detect_shape(df) is InputShape.DATAFRAME
+
+
+def test_to_record_list_data_single():
+    assert to_record_list(Data(data={"a": 1})) == [{"a": 1}]
+
+
+def test_to_record_list_data_list():
+    items = [Data(data={"a": 1}), Data(data={"a": 2})]
+    assert to_record_list(items) == [{"a": 1}, {"a": 2}]
+
+
+def test_to_record_list_dataframe():
+    df = DataFrame(pd.DataFrame([{"a": 1}, {"a": 2}]))
+    assert to_record_list(df) == [{"a": 1}, {"a": 2}]
+
+
+def test_from_record_list_data_single():
+    result = from_record_list([{"a": 1}], InputShape.DATA_SINGLE)
+    assert isinstance(result, Data)
+    assert result.data == {"a": 1}
+
+
+def test_from_record_list_data_single_empty_returns_empty_data():
+    result = from_record_list([], InputShape.DATA_SINGLE)
+    assert isinstance(result, Data)
+    assert result.data == {}
+
+
+def test_from_record_list_data_list():
+    result = from_record_list([{"a": 1}, {"a": 2}], InputShape.DATA_LIST)
+    assert isinstance(result, list)
+    assert all(isinstance(d, Data) for d in result)
+    assert [d.data for d in result] == [{"a": 1}, {"a": 2}]
+
+
+def test_from_record_list_dataframe():
+    result = from_record_list([{"a": 1}, {"a": 2}], InputShape.DATAFRAME)
+    assert isinstance(result, DataFrame)
+    assert result.to_dict(orient="records") == [{"a": 1}, {"a": 2}]
