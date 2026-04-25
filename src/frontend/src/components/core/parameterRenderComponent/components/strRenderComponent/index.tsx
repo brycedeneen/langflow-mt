@@ -71,7 +71,7 @@ export function StrRenderComponent({
         {...baseInputProps}
         dialogInputs={templateData.dialog_inputs}
         externalOptions={templateData.external_options}
-        options={templateData.options ?? []}
+        options={(templateData.options as string[] | undefined) ?? []}
         nodeId={nodeId}
         nodeClass={nodeClass}
         placeholder={placeholder}

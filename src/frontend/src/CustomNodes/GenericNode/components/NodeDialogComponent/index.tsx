@@ -110,7 +110,10 @@ export const NodeDialog: React.FC<NodeDialogProps> = ({
     }
 
     setNode(nodeId, targetNode);
-    setFieldValues((prev) => ({ ...prev, [fieldKey]: newValue }));
+    setFieldValues((prev) => ({
+      ...prev,
+      [fieldKey]: typeof newValue === "string" ? newValue : String(newValue ?? ""),
+    }));
 
     if (dialogTemplate[fieldKey].real_time_refresh) {
       mutateTemplate(

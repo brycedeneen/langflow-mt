@@ -28,8 +28,8 @@ export default function IOFileInput({ field, updateValue }: IOFileInputProps) {
   }, [filePath]);
 
   useEffect(() => {
-    if (field) {
-      const fileName = field.split("/")[1];
+    if (typeof field === "string") {
+      const fileName = (field as string).split("/")[1];
       const flowFileId = currentFlowId.toString();
       setImage(`${getBaseUrl()}files/images/${flowFileId}/${fileName}`);
     }

@@ -261,7 +261,8 @@ export default function IOFieldView({
                   rows={
                     Array.isArray(flowPoolNode?.data?.artifacts)
                       ? (flowPoolNode?.data?.artifacts?.map(
-                          (artifact) => artifact.data,
+                          (artifact) =>
+                            (artifact as { data?: unknown })?.data,
                         ) ?? [])
                       : [flowPoolNode?.data?.artifacts]
                   }

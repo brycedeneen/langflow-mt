@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import type { handleOnNewValueType } from "@/CustomNodes/hooks/use-handle-new-value";
 import CodeAreaComponent from "@/components/core/parameterRenderComponent/components/codeAreaComponent";
 import ModelInputComponent from "@/components/core/parameterRenderComponent/components/modelInputComponent";
@@ -109,9 +110,9 @@ export function ParameterRenderComponent({
               {...baseInputProps}
               combobox={templateData.combobox}
               options={
-                (Array.isArray(templateData.options)
+                ((Array.isArray(templateData.options)
                   ? templateData.options
-                  : [templateData.options]) || []
+                  : [templateData.options]) as string[]) || []
               }
               id={`multiselect_${id}`}
             />
@@ -186,7 +187,7 @@ export function ParameterRenderComponent({
         return (
           <CustomInputFileComponent
             {...baseInputProps}
-            fileTypes={templateData.fileTypes}
+            fileTypes={templateData.fileTypes ?? []}
             file_path={templateData.file_path}
             isList={templateData.list ?? false}
             tempFile={templateData.temp_file ?? true}
@@ -234,7 +235,9 @@ export function ParameterRenderComponent({
             {...baseInputProps}
             description={templateData.info || "Add or edit data"}
             columns={
-              templateData?.table_schema?.columns ?? templateData?.table_schema
+              Array.isArray(templateData?.table_schema)
+                ? templateData.table_schema
+                : templateData?.table_schema?.columns
             }
             tableTitle={templateData?.display_name ?? "Table"}
             table_options={templateData?.table_options}
@@ -283,8 +286,11 @@ export function ParameterRenderComponent({
         );
       case "connect": {
         const link =
-          templateData?.options?.find(
-            (option: any) => option?.name === templateValue,
+          (
+            templateData?.options?.find(
+              (option) =>
+                (option as { name?: unknown })?.name === templateValue,
+            ) as { link?: string } | undefined
           )?.link || "";
 
         return (
@@ -306,7 +312,7 @@ export function ParameterRenderComponent({
         return (
           <TabComponent
             {...baseInputProps}
-            options={templateData?.options || []}
+            options={(templateData?.options as string[] | undefined) || []}
             id={`tab_${id}`}
           />
         );
@@ -343,7 +349,11 @@ export function ParameterRenderComponent({
         return (
           <ModelInputComponent
             {...baseInputProps}
-            options={templateData?.options || []}
+            options={
+              (templateData?.options as ComponentProps<
+                typeof ModelInputComponent
+              >["options"]) || []
+            }
             placeholder={templateData?.placeholder}
             externalOptions={templateData?.external_options}
           />

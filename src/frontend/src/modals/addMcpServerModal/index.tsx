@@ -415,7 +415,9 @@ export default function AddMcpServerModal({
                     <Label className="!text-mmd">Arguments</Label>
                     <InputListComponent
                       value={stdioArgs}
-                      handleOnNewValue={({ value }) => setStdioArgs(value)}
+                      handleOnNewValue={({ value }) =>
+                        setStdioArgs(value as string[])
+                      }
                       disabled={isPending}
                       placeholder="Type argument..."
                       listAddLabel="Add Argument"

@@ -6,6 +6,7 @@ import type {
 } from "@tanstack/react-query";
 import type { ChatInputType, ChatOutputType, UsageType } from "../chat";
 import type { FlowType } from "../flow";
+import type { ColumnField } from "../utils/functions";
 //kind and class are just representative names to represent the actual structure of the object received by the API
 export type APIDataType = { [key: string]: APIKindType };
 export type APIObjectType = { [key: string]: APIKindType };
@@ -98,7 +99,9 @@ export type InputFieldType = {
   readonly: boolean;
   password?: boolean;
   multiline?: boolean;
-  value?: any;
+  // value can be any scalar/array/object the backend serialises for the field;
+  // consumers narrow at the point of use.
+  value?: unknown;
   dynamic?: boolean;
   proxy?: { id: string; field: string };
   input_types?: Array<string>;
@@ -109,15 +112,56 @@ export type InputFieldType = {
   refresh_button_text?: string;
   combobox?: boolean;
   info?: string;
-  options?: any[];
+  // options is rendered by many widgets — strings, objects, arrays of objects.
+  options?: unknown[];
   active_tab?: number;
-  [key: string]: any;
   icon?: string;
   text?: string;
   temp_file?: boolean;
   separator?: string;
   /** TextFileSecretInput: accepted file extensions (e.g. ["pem", "crt"]) */
   file_types?: string[];
+  // Additional optional properties accessed by consumers (snake_case from the
+  // backend schema). Typed loosely because each widget interprets them differently.
+  helper_text?: string;
+  helper_text_metadata?: Record<string, unknown>;
+  range_spec?: { min: number; max: number; step: number; step_type?: string };
+  rangeSpec?: { min: number; max: number; step: number; step_type?: string };
+  fields?: Record<string, unknown>;
+  fileTypes?: Array<string>;
+  file_path?: string | string[];
+  // Backend may serialise as `{ columns: [...] }` or directly as the columns
+  // array — the consumer probes `.columns` first then falls back to the array.
+  table_schema?: { columns?: ColumnField[] } | ColumnField[];
+  table_options?: TableOptionsTypeAPI;
+  trigger_text?: string;
+  trigger_icon?: string;
+  table_icon?: string;
+  min_label?: string;
+  max_label?: string;
+  min_label_icon?: string;
+  max_label_icon?: string;
+  slider_buttons?: boolean;
+  slider_buttons_options?: { label: string; id: number }[];
+  slider_input?: boolean;
+  search_category?: string[];
+  limit?: number;
+  list_add_label?: string;
+  external_options?: unknown;
+  button_metadata?: { variant?: string; icon?: string };
+  options_metadata?: unknown[];
+  load_from_db?: boolean;
+  advanced?: boolean;
+  toggle?: boolean;
+  toggle_value?: boolean;
+  toggle_disable?: boolean;
+  copy_field?: boolean;
+  dialog_inputs?: Record<string, unknown>;
+  archived_at?: string | null;
+  helperText?: string;
+  // Catch-all for any other backend-driven properties not enumerated above.
+  // Use `unknown` so consumers must narrow before using.
+  [key: string]: unknown;
 };
 
 export type OutputFieldProxyType = {
@@ -137,7 +181,7 @@ export type OutputFieldType = {
   proxy?: OutputFieldProxyType;
   allows_loop?: boolean;
   loop_types?: Array<string>;
-  options?: { [key: string]: any };
+  options?: { [key: string]: unknown };
 };
 export type errorsTypeAPI = {
   function: { errors: Array<string> };
@@ -220,7 +264,9 @@ export type Users = {
 export type Component = {
   name: string;
   description: string;
-  data: Object;
+  // The flow/component graph payload — opaque at this boundary; consumers cast
+  // to APIClassType / FlowType where appropriate.
+  data: Record<string, unknown>;
   tags: [string];
 };
 
@@ -239,9 +285,14 @@ export type VertexBuildTypeAPI = {
   valid: boolean;
   data: VertexDataTypeAPI;
   timestamp: string;
-  params: any;
+  // Backend serialises params as a string (PDF path, image URL, error
+  // message, etc.) per VertexBuildTable in src/schemas/api/_generated.ts.
+  // Inactive/synthetic builds may set this to null.
+  params: string | null;
   messages: ChatOutputType[] | ChatInputType[];
-  artifacts: any | ChatOutputType | ChatInputType;
+  // Artifacts is a per-output-type payload — chat IO, repr objects, arrays —
+  // opaque at this boundary; consumers narrow at point of use.
+  artifacts: ChatOutputType | ChatInputType | Record<string, unknown> | unknown[] | null;
 };
 
 export type ErrorLogType = {
@@ -249,13 +300,22 @@ export type ErrorLogType = {
   stackTrace: string;
 };
 
+// Output/log message bodies are union-typed by the backend — string, error
+// payload, array of records, etc. Consumers narrow on `type` at point of use.
+export type LogMessageBody =
+  | string
+  | ErrorLogType
+  | Record<string, unknown>
+  | unknown[]
+  | null;
+
 export type OutputLogType = {
-  message: any | ErrorLogType;
+  message: LogMessageBody;
   type: string;
 };
 export type LogsLogType = {
   name: string;
-  message: any | ErrorLogType;
+  message: LogMessageBody;
   type: string;
 };
 
@@ -269,7 +329,14 @@ export type VertexDataTypeAPI = {
   inactive?: boolean;
   timedelta?: number;
   duration?: string;
-  artifacts?: any | ChatOutputType | ChatInputType;
+  // Same union as VertexBuildTypeAPI.artifacts (see comment above) — but here
+  // it's also conditionally narrowed via Array.isArray() at the consumer.
+  artifacts?:
+    | ChatOutputType
+    | ChatInputType
+    | Record<string, unknown>
+    | unknown[]
+    | null;
   message?: ChatOutputType | ChatInputType;
   token_usage?: UsageType | null;
 };

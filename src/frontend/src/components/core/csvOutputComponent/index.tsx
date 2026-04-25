@@ -21,11 +21,13 @@ function CsvOutputComponent({
   csvNode: AllNodeType;
   flowPool: VertexBuildTypeAPI;
 }) {
-  const csvNodeArtifacts = flowPool?.data?.artifacts?.repr;
+  const csvNodeArtifacts = (
+    flowPool?.data?.artifacts as { repr?: string } | null | undefined
+  )?.repr;
   const jsonString = csvNodeArtifacts?.replace(/'/g, '"');
   let file = null;
   try {
-    file = JSON?.parse(jsonString) || "";
+    file = JSON?.parse(jsonString ?? "") || "";
   } catch (_e) {
     console.error("Error parsing JSON");
   }

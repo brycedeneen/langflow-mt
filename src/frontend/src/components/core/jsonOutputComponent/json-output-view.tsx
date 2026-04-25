@@ -20,7 +20,7 @@ const JsonOutputViewComponent = ({
   const node = useFlowStore((state) => state.getNode(nodeId));
   const outputs = (node?.data.node as APIClassType)?.outputs;
   const output = outputs?.find((o) => o.name === outputName);
-  const initialFilter = output?.options?.filter;
+  const initialFilter = output?.options?.filter as string | undefined;
 
   return (
     <div className="flex h-full flex-1 flex-col">

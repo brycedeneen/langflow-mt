@@ -173,7 +173,10 @@ function GenericNode({
       const thisNodeTemplate = templates[data.type]?.template;
       if (!thisNodeTemplate?.code) return;
 
-      const currentCode = thisNodeTemplate.code.value;
+      const currentCode =
+        typeof thisNodeTemplate.code.value === "string"
+          ? thisNodeTemplate.code.value
+          : "";
       if (data.node) {
         validateComponentCode(
           { code: currentCode, frontend_node: data.node },

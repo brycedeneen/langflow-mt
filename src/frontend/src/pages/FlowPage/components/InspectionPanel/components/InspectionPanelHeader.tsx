@@ -212,7 +212,11 @@ export default function InspectionPanelHeader({
                 handleNodeClass(apiClassType, type);
               }}
               nodeClass={data.node}
-              value={data.node?.template?.code?.value ?? ""}
+              value={
+                typeof data.node?.template?.code?.value === "string"
+                  ? data.node?.template?.code?.value
+                  : ""
+              }
               componentId={data.id}
               readonly={!customAllowed}
             >

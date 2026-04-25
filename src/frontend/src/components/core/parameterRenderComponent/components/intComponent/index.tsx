@@ -53,7 +53,7 @@ export default function IntComponent({
   };
 
   const getStepValue = () => {
-    return (Number.isInteger(rangeSpec?.step) ? rangeSpec.step : 1) ?? 1;
+    return (Number.isInteger(rangeSpec?.step) ? rangeSpec?.step : 1) ?? 1;
   };
 
   const getMinValue = () => {

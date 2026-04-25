@@ -2486,7 +2486,9 @@ export function updateGlobalVariables(
       if (
         globalVariablesEntries &&
         node!.template[field].load_from_db &&
-        !globalVariablesEntries.includes(node!.template[field].value)
+        !globalVariablesEntries.includes(
+          (node!.template[field].value as string | undefined) ?? "",
+        )
       ) {
         node!.template[field].value = "";
         node!.template[field].load_from_db = false;

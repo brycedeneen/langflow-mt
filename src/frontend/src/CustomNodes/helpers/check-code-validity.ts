@@ -56,8 +56,12 @@ export const checkCodeValidity = (
 ) => {
   if (!data?.node || !templates) return;
   const template = templates[data.type]?.template;
-  const currentCode = template?.code?.value;
-  const thisNodesCode = data.node!.template?.code?.value;
+  const currentCode =
+    typeof template?.code?.value === "string" ? template.code.value : "";
+  const thisNodesCode =
+    typeof data.node!.template?.code?.value === "string"
+      ? data.node!.template.code.value
+      : "";
   const originalOutputs = templates[data.type]?.outputs;
   const userOutputs = data.node?.outputs;
   const originalTemplate = template;

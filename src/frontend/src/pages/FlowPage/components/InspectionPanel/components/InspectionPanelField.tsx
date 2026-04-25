@@ -160,7 +160,11 @@ export default function InspectionPanelField({
                 <AssistantButton
                   compData={id}
                   handleOnNewValue={handleOnNewValue}
-                  inputValue={data.node?.template[name]?.value}
+                  inputValue={
+                    typeof data.node?.template[name]?.value === "string"
+                      ? data.node?.template[name]?.value
+                      : undefined
+                  }
                   type="field"
                 />
               )}

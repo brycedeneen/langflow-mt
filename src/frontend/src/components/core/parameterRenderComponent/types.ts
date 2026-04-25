@@ -62,11 +62,11 @@ export type ToolsComponentType = {
 };
 
 export type FloatComponentType = {
-  rangeSpec: RangeSpecType;
+  rangeSpec?: RangeSpecType;
 };
 
 export type IntComponentType = {
-  rangeSpec: RangeSpecType;
+  rangeSpec?: RangeSpecType;
   name?: string;
 };
 export type ToggleComponentType = {

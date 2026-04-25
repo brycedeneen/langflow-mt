@@ -32,7 +32,9 @@ export default function OutputModal({
 
     if (!results) return "";
 
-    let content = results.message ?? results;
+    // results.message is union-typed (string|ErrorLogType|record|...); fall
+    // back to results itself, then probe `.raw` (a streaming-message convention).
+    let content: any = (results as { message?: unknown }).message ?? results;
     content = content?.raw ?? content;
 
     return typeof content === "string"
