@@ -1,0 +1,227 @@
+- component_name: JigsawStackAIScraperComponent
+  agent_summary: |-
+    You help the user extract structured data from a webpage or raw HTML by specifying plain-language prompts describing the elements to retrieve, such as "Plan price" or "Plan title," without writing CSS selectors. It is a good fit when you need repeatable, schema-consistent scraping from live URLs or pre-fetched HTML content. Prefer over AI Web Search when you already know the exact page to extract data from rather than needing to discover relevant pages across the web.
+  agent_usage_notes: |-
+    ## What it does
+    Scrapes a webpage or raw HTML using AI and returns structured data without requiring CSS selectors. The user describes the elements they want extracted in plain language, and the component returns consistent, parsed results.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their JigsawStack API key (handled via the credentials flow, but confirm they have an account at jigsawstack.com).
+    - **url** - Ask the user for the full URL of the page to scrape (e.g. `https://example.com/pricing`). Provide this **or** `html`, not both.
+    - **html** - Ask the user if they have raw HTML to scrape instead of a live URL. Leave blank if `url` is provided.
+    - **element_prompts** - Ask the user what data they want extracted, described in plain English (e.g. `Plan price`, `Plan title`). Remind them the maximum is 5 items; suggest comma-separating them.
+    - **root_element_selector** - Ask the user if they want to narrow scraping to a specific part of the page using a CSS selector (e.g. `#pricing-table`). Optional; leave blank to scrape the full page.
+
+    ## Outputs
+    - **scrape_results** - Returns the structured scraped data matching the requested element prompts. Commonly feeds into a text display component, a JSON parser, or a downstream data-processing chain.
+
+    ## Notes
+    - Exactly one of `url` or `html` must be provided — supplying both or neither will cause an error.
+    - `element_prompts` is capped at **5 items**; exceeding this limit will likely result in an API error.
+    - The `api_key` field is marked as a plain string input here, but treat it as a secret and recommend storing it in a Langflow variable rather than hardcoding it.
+- component_name: JigsawStackAIWebSearchComponent
+  agent_summary: |-
+    You help the user query the web and retrieve AI-processed search results, including an optional AI-generated overview, safe search filtering, and spell correction. It works well when you need live web data to ground an AI pipeline in current information. Prefer over AI Scraper when you want broad search across many pages rather than deep structured extraction from a single known URL.
+  agent_usage_notes: |-
+    ## What it does
+    Sends a search query to JigsawStack's AI Web Search API and returns high-quality web results, optionally enriched with an AI-generated overview of the findings.
+
+    ## Inputs to ask about
+    - **query** - Ask the user what they want to search for; this is the main search term or question (max 400 characters). No default — must be provided.
+    - **ai_overview** - Ask whether the user wants an AI-generated summary included alongside raw results. Suggested default: `true` for most conversational or research flows.
+    - **safe_search** - Ask if adult content should be filtered out. Suggested default: enabled (`strict` or `moderate`) for general-purpose assistants.
+    - **spell_check** - Ask whether the query should be spell-checked before submission. Suggested default: `true` to improve result quality when queries come from user input.
+
+    ## Outputs
+    - **search_results** - Structured search result data (links, snippets, metadata); commonly feeds into a parser, data transformer, or downstream LLM prompt component.
+    - **content_text** - Plain-text representation of the results; commonly feeds directly into a text input of an LLM or prompt template component.
+
+    ## Notes
+    - The `api_key` input requires a valid JigsawStack API key — direct the user to [jigsawstack.com](https://jigsawstack.com) to obtain one; it will be stored as a secret variable.
+    - Query length is capped at **400 characters** — warn the user if their query source could exceed this.
+    - If both outputs are connected downstream, note that `search_results` and `content_text` represent the same data in different formats; avoid redundant processing of both.
+- component_name: JigsawStackFileReadComponent
+  agent_summary: |-
+    You help the user retrieve a previously uploaded file from JigsawStack File Storage by providing its key, and returns a file path for use downstream in an AI workflow. This is a good fit when you need to reuse stored assets such as documents or images without re-uploading them. Prefer over File Upload when the file already exists in storage and you only need to fetch it, not store a new one.
+  agent_usage_notes: |-
+    ## What it does
+    Retrieves a previously uploaded file from JigsawStack File Storage using a unique key, making the file content available for use in downstream AI application components.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their JigsawStack API key used to authenticate requests to the storage service; no default.
+    - **key** - Ask the user for the exact key string that was assigned when the file was originally uploaded to JigsawStack File Storage; no default, as it depends on the user's prior upload.
+
+    ## Outputs
+    - **file_path** - Returns the path or reference to the retrieved file, which can be fed into components that accept file inputs, such as document parsers, AI inference nodes, or data processing steps.
+
+    ## Notes
+    - The `key` value must exactly match the key used during the original file upload — a mismatch will cause retrieval to fail, so ask the user to confirm the key carefully.
+    - This component only reads files already stored in JigsawStack File Storage; it cannot fetch files from external URLs or local disk paths.
+    - If the user is unsure of their file key, point them to the JigsawStack dashboard or the [API reference](https://jigsawstack.com/docs/api-reference/store/file/get) to look it up.
+- component_name: JigsawStackFileUploadComponent
+  agent_summary: |-
+    You help the user upload a file to JigsawStack File Storage and receive either a storage key or a temporary public URL for use in downstream AI workflows. This is a good fit when you need to persist files before passing them to other JigsawStack components that accept a file reference. Prefer over File Read when the goal is storing a new file rather than retrieving one already in storage.
+  agent_usage_notes: |-
+    ## What it does
+    Uploads a file to JigsawStack File Storage and returns either a temporary public URL or a storage key for later use in AI applications. Supports images, documents, and other file types.
+
+    ## Inputs to ask about
+    - **file** - Ask the user to select the file they want to upload to JigsawStack File Storage.
+    - **key** - Ask the user if they want a custom storage key for the file; if not provided, a unique key will be auto-generated. Default: leave blank for auto-generation.
+    - **overwrite** - Ask the user whether to overwrite an existing file if the same key already exists in storage. Default: `false`.
+    - **temp_public_url** - Ask the user whether they need a temporary public URL (time-limited, shareable) or just the storage key (owner-access only). Default: `false`.
+
+    ## Outputs
+    - **file_upload_result** - Returns the upload result from JigsawStack, either a temporary public URL or the file storage key, depending on the `temp_public_url` setting; commonly feeds into downstream components that reference stored files by URL or key.
+
+    ## Notes
+    - The `api_key` field is required — make sure the user has a JigsawStack API key configured as a credential variable before running.
+    - If `overwrite` is `false` and a file with the same `key` already exists, the component will return an error; remind users to either change the key or enable overwrite.
+    - The temporary public URL is time-limited; if the file needs persistent access, the user should rely on the storage key instead.
+    - Refer to the [JigsawStack docs](https://jigsawstack.com/docs/api-reference/store/file/add) for supported file types and size limits.
+- component_name: JigsawStackImageGenerationComponent
+  agent_summary: |-
+    You help the user generate images from a text prompt using AI models such as Flux and Stable Diffusion, returning the result via URL, file storage, or direct output. It is a good fit when you need configurable image output with control over dimensions, aspect ratio, denoising steps, and format within a single component. Prefer over Object Detection when the goal is creating new images rather than analyzing existing ones.
+  agent_usage_notes: |-
+    ## What it does
+    Generates images from a text prompt using AI models such as Flux and Stable Diffusion via the JigsawStack API. You can control image dimensions, aspect ratio, output format, and quality through optional parameters.
+
+    ## Inputs to ask about
+    - **prompt** - Ask the user for the text description of the image to generate (1–5000 characters); no default.
+    - **aspect_ratio** - Ask the user for the desired aspect ratio; suggested default is `1:1`. Options: `1:1`, `16:9`, `21:9`, `3:2`, `2:3`, `4:5`, `5:4`, `3:4`, `4:3`, `9:16`, `9:21`.
+    - **width** - Ask the user for the image width in pixels (256–1920); leave blank to use the API default.
+    - **height** - Ask the user for the image height in pixels (256–1920); leave blank to use the API default.
+    - **steps** - Ask the user how many denoising steps to use (1–90); higher values improve quality but increase generation time.
+    - **output_format** - Ask the user for the desired output format; suggested default is `png`. Options: `png` or `svg`.
+    - **url** - Ask the user if they want the result delivered to an external URL; optional.
+    - **file_store_key** - Ask the user for a JigsawStack File Storage key if they want the image stored there; not needed if `url` is provided.
+
+    ## Outputs
+    - **image_generation_results** - Returns the generated image result from the API; commonly feeds into a file download step, display component, or downstream processing node.
+
+    ## Notes
+    - Either `url` or `file_store_key` should be provided to persist the image; omitting both may limit how the result is consumed.
+    - `width`/`height` and `aspect_ratio` may conflict — confirm with the user which they prefer to control.
+    - The `api_key` field is required; ensure a JigsawStack credential variable is configured before running.
+- component_name: JigsawStackNSFWComponent
+  agent_summary: |-
+    You help the user classify whether an image or video at a given URL contains not-safe-for-work content, returning a detection result via the JigsawStack API. This is a good fit for content moderation pipelines where user-submitted media must be screened before storage or display. Prefer over Object Detection when the sole goal is NSFW classification rather than identifying and locating general objects within an image.
+  agent_usage_notes: |-
+    ## What it does
+    Sends an image or video URL to the JigsawStack API and returns a prediction indicating whether the content contains NSFW material. It is useful for content moderation pipelines that need automated flagging before display or storage.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their JigsawStack API key used to authenticate requests; no default is applicable — treat this as a required credential.
+    - **url** - Ask the user for the publicly accessible URL of the image or video to analyze; the URL must be reachable by JigsawStack's servers, so local or private URLs will not work.
+
+    ## Outputs
+    - **nsfw_result** - Returns the detection result from JigsawStack, typically including a classification and confidence score; commonly feeds into a conditional router, filter, or downstream moderation action component.
+
+    ## Notes
+    - The `url` must be publicly accessible — private, localhost, or signed URLs that expire quickly may cause failures.
+    - Supported media types depend on JigsawStack's API; check the [documentation](https://jigsawstack.com/docs/api-reference/ai/nsfw) to confirm which image and video formats are accepted.
+    - The `api_key` field appears as a plain string input here, but advise the user to store it as a secret/variable rather than hardcoding it in the flow.
+    - Network latency for video URLs may be higher than for images; set appropriate timeouts if integrating into a time-sensitive pipeline.
+- component_name: JigsawStackObjectDetectionComponent
+  agent_summary: |-
+    You help the user detect, locate, and segment objects within images using JigsawStack's detection model, returning bounding boxes, masks, or annotated image overlays based on comma-separated text prompts. It is a good fit when you need grounded visual understanding or computer-use tasks where specific on-screen elements must be identified and localized. Prefer over NSFW Detection when the goal is identifying and locating arbitrary objects rather than classifying whether content is inappropriate, and prefer over VOCR when working with visual scenes rather than structured document data extraction.
+  agent_usage_notes: |-
+    ## What it does
+    Performs object detection on images using JigsawStack's API, supporting grounding, segmentation, and computer-use scenarios. It accepts an image via URL or a stored file key, then returns detection results optionally including annotated image URLs.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their JigsawStack API key (required for all requests); no default.
+    - **prompts** - Ask the user what objects or concepts to detect; accepts comma-separated values (e.g., `"cat, dog, person"`). No default, but required for grounded detection.
+    - **url** - Ask the user for the publicly accessible image URL to analyze. Either this or `file_store_key` must be provided.
+    - **file_store_key** - Ask the user for a JigsawStack File Storage key if the image is already uploaded there; skip if `url` is supplied.
+    - **annotated_image** - Ask whether to return a URL for an annotated image with bounding boxes drawn; default is `false`.
+    - **features** - Ask the user which detection features to enable (e.g., segmentation, grounding); optional, leave blank to use API defaults.
+    - **return_type** - Ask the user whether results should include masks, annotations, or both; optional, leave blank for the API default.
+
+    ## Outputs
+    - **object_detection_results** - Returns the raw detection response from JigsawStack, including bounding boxes, labels, and optionally masks or an annotated image URL; commonly feeds into a text display component or downstream logic for image analysis workflows.
+
+    ## Notes
+    - Either `url` or `file_store_key` must be provided — neither is individually required by the schema, but the API will fail if both are absent.
+    - `prompts` act as grounding anchors; omitting them may return generic detections depending on the selected `features`.
+    - The `api_key` field is marked as a plain string input here, so handle it carefully as a sensitive credential.
+- component_name: JigsawStackSentimentComponent
+  agent_summary: |-
+    You help the user analyze the emotional tone of a given text string, returning structured sentiment data and a text summary via JigsawStack AI. This is a good fit when you need a quick, API-driven sentiment signal to feed into downstream logic like routing, filtering, or response generation. No peers in this category materially overlap with text sentiment classification.
+  agent_usage_notes: |-
+    ## What it does
+    Sends a text string to the JigsawStack AI API and returns a sentiment analysis result, indicating the emotional tone (e.g., positive, negative, neutral) of the input text.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their JigsawStack API key used to authenticate requests. No default; it must be provided before the component can run.
+    - **text** - Ask the user what text they want to analyze for sentiment. This could be a hardcoded string, a variable from upstream, or output from another component such as a chat input or document loader.
+
+    ## Outputs
+    - **sentiment_data** - Returns the full structured sentiment response from JigsawStack (likely includes sentiment label, confidence scores, etc.); feeds well into downstream logic, conditional routing, or data display components.
+    - **sentiment_text** - Returns a plain-text representation of the sentiment result; useful for passing into a chat output, prompt template, or text display component.
+
+    ## Notes
+    - The `api_key` field is marked as a standard string input here, but treat it as sensitive — encourage the user to store it as a Langflow secret variable rather than pasting it in plain text.
+    - Make sure the `text` input is non-empty at runtime; the API will likely error on blank or null input.
+    - Refer users to the [JigsawStack Sentiment API docs](https://jigsawstack.com/docs/api-reference/ai/sentiment) for details on response structure and supported languages.
+    - If the user wants to analyze multiple texts, they will need to loop or chain multiple instances of this component.
+- component_name: JigsawStackTextToSQLComponent
+  agent_summary: |-
+    You help the user convert a plain-language description into a runnable SQL query using JigsawStack's AI. Providing a CREATE TABLE statement or schema description via sql_schema or a stored file_store_key significantly improves output accuracy for database-specific syntax. No peer in this category overlaps with SQL generation.
+  agent_usage_notes: |-
+    ## What it does
+    Converts a natural language description into a SQL query using the JigsawStack AI API. Providing a database schema significantly improves the accuracy and dialect-specific correctness of the generated SQL.
+
+    ## Inputs to ask about
+    - **prompt** - Ask the user for the natural language description of the query they want generated (e.g., "Get all users who signed up in the last 30 days"). No default.
+    - **sql_schema** - Ask the user if they have a database schema to provide (e.g., a `CREATE TABLE` statement or schema description); strongly recommended for accurate output. Default: leave blank if using `file_store_key` instead.
+    - **file_store_key** - Ask the user if their schema is already stored in JigsawStack file storage and if so, for the key referencing it. Skip if `sql_schema` is provided directly.
+
+    ## Outputs
+    - **sql_query** - The generated SQL query string; typically feeds into a database query execution component, a text display component, or is passed downstream for further processing.
+
+    ## Notes
+    - `sql_schema` and `file_store_key` are mutually exclusive — ask the user to provide one or the other, not both.
+    - Omitting both `sql_schema` and `file_store_key` is allowed but will likely reduce output accuracy and may produce generic SQL not tailored to any specific database dialect.
+    - The `api_key` field is marked as a required string input rather than a `SecretStrInput`, so handle it carefully — remind the user to use a stored variable or environment reference rather than pasting it in plain text.
+- component_name: JigsawStackTextTranslateComponent
+  agent_summary: |-
+    You help the user translate one or more strings of text into a target language specified by an ISO 639-1 two-letter code, returning structured translation results via the JigsawStack API. This is a good fit when your pipeline needs to localize user-generated content, multilingual data, or any text payload before passing it downstream. Prefer over JigsawStackVOCRComponent when the source text is already extracted and only language conversion is needed, not document parsing.
+  agent_usage_notes: |-
+    ## What it does
+    Translates text from one language to another using the JigsawStack API. It accepts a single string or a list of strings and returns the translated results, supporting multiple text formats.
+
+    ## Inputs to ask about
+    - **target_language** - Ask the user for the ISO 639-1 two-letter language code of the target language (e.g., `fr` for French, `es` for Spanish, `de` for German). No universal default applies — the user must specify this based on their use case.
+    - **text** - Ask the user for the text to translate. Remind them they can provide either a single string or a list of strings; if a list is given, each string is translated independently.
+
+    ## Outputs
+    - **translation_results** - Returns the translated text corresponding to the input string or list of strings. Commonly feeds into a text display component, a downstream prompt, or a data-processing step.
+
+    ## Notes
+    - The `target_language` value must be a valid ISO 639-1 two-letter code; an invalid code will likely cause an API error.
+    - The `api_key` field is a secret and is handled through the separate variable-creation flow — do not prompt the user for it directly here.
+    - When the input `text` is a list, each item is translated separately, so output order mirrors input order.
+    - No source language field is listed, which suggests the API auto-detects the source language — worth flagging to the user so they don't expect to set it manually.
+- component_name: JigsawStackVOCRComponent
+  agent_summary: |-
+    You help the user extract structured data from images and documents by running them through fine-tuned vision language models with custom prompts. It works well for invoices, forms, or any multi-page document where you need consistent, accurate field extraction, and pairs naturally with the File Upload component to feed stored files via file_store_key. Prefer over AI Scraper when the source is a document or image file rather than a live webpage.
+  agent_usage_notes: |-
+    ## What it does
+    Extracts structured data from images and documents using fine-tuned vision language models (vLLMs) via the JigsawStack API. It accepts one or more natural-language prompts to guide what information is pulled from the file, returning results in a consistent structure.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their JigsawStack API key; required for all requests.
+    - **prompts** - Ask the user what they want to extract from the document (e.g., "Extract all invoice totals, dates, and vendor names"). Default is `Describe the image in detail`; comma-separate multiple prompts for different extraction targets.
+    - **url** - Ask the user for a publicly accessible URL to the image or document. Required unless `file_store_key` is provided.
+    - **file_store_key** - Ask the user for the JigsawStack File Storage key if the file was previously uploaded there. Required unless `url` is provided.
+    - **page_range_start** - Ask the user if they want to process only a subset of pages; leave blank to process all pages.
+    - **page_range_end** - Ask the user for the last page to process; only relevant when `page_range_start` is also set.
+
+    ## Outputs
+    - **vocr_results** - Returns the structured extraction results from the document or image; commonly feeds into a text display component, a data parser, or downstream LLM processing steps.
+
+    ## Notes
+    - Either `url` or `file_store_key` must be provided — the component requires at least one of them to locate the document.
+    - `page_range_start` and `page_range_end` should be used together; setting only one may produce unexpected results.
+    - Multiple prompts are comma-separated in a single string, not passed as a list input.

@@ -1,0 +1,24 @@
+- component_name: QianfanChatEndpointComponent
+  agent_summary: |-
+    You help the user generate text by sending messages to Baidu Qianfan LLMs, including ERNIE-Bot models, and returning both the raw text and model object as outputs. It accepts an API key pair from Baidu Cloud, supports optional system messages, streaming, and fine-grained sampling controls like temperature, top_p, and penalty_score. Use the custom endpoint field when connecting to a self-deployed or non-standard model.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text using Baidu Qianfan large language models (including the ERNIE-Bot family). It accepts a chat input and optional system message, then returns a text or model response via the Qianfan API.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the chat message or prompt text to send to the model.
+    - **system_message** - Ask the user if they want a system-level instruction prepended to the conversation; default is none.
+    - **model** - Ask the user which Qianfan model to use (e.g., `ERNIE-Bot`, `ERNIE-Bot-turbo`); refer them to the [Qianfan docs](https://python.langchain.com/docs/integrations/chat/baidu_qianfan_endpoint) for the full list.
+    - **qianfan_ak** - Ask the user for their Qianfan API Access Key (AK), obtainable from the [Baidu WenxinWorkshop console](https://cloud.baidu.com/product/wenxinworkshop).
+    - **qianfan_sk** - Ask the user for their Qianfan API Secret Key (SK) from the same console.
+    - **temperature** - Ask the user for a sampling temperature value; only applies to ERNIE-Bot and ERNIE-Bot-turbo models. Suggested default: `0.7`.
+    - **endpoint** - Ask the user if they are using a custom or self-deployed model endpoint; only required if not using a standard named model.
+
+    ## Outputs
+    - **text_output** - The raw generated text string; commonly feeds into a text display, prompt template, or downstream processing component.
+    - **model_output** - The full LangChain message object; useful when chaining into other LangChain-compatible components that expect a structured message.
+
+    ## Notes
+    - `qianfan_ak` and `qianfan_sk` are plain string fields here but contain sensitive credentials — advise the user to store them as protected variables.
+    - `temperature`, `top_p`, and `penalty_score` are only supported for ERNIE-Bot and ERNIE-Bot-turbo; warn the user they may be silently ignored for other models.
+    - If a custom model is used, `endpoint` is required in addition to (or instead of) `model`.

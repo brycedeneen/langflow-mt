@@ -1,0 +1,22 @@
+- component_name: OlivyaComponent
+  agent_summary: |-
+    You help the user initiate an outbound phone call through Olivya's platform, taking a caller number, recipient number, and optional agent instructions such as an opening message, system prompt, and prior conversation history to guide the call. This is a good fit when you need to trigger an AI-assisted voice call from an automated workflow, passing in context so the agent can carry on an informed conversation.
+  agent_usage_notes: |-
+    ## What it does
+    Triggers an outbound phone call through Olivya's platform, connecting an AI agent to a recipient using a specified phone number, optional opening message, and system prompt to guide the conversation.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Olivya API key (found in their Olivya dashboard); no default possible.
+    - **from_number** - Ask the user for the agent's outbound phone number as provisioned in Olivya (e.g. `+15551234567`); must be a valid E.164-formatted number registered with the platform.
+    - **to_number** - Ask the user for the recipient's phone number they want to call; must also be E.164 format (e.g. `+15559876543`).
+    - **first_message** - Ask the user what the agent should say as its opening line when the call connects; leave blank to use the platform default greeting.
+    - **system_prompt** - Ask the user for instructions that shape the agent's behavior and tone during the call; leave blank if no custom guidance is needed.
+    - **conversation_history** - Ask the user if there is prior conversation context or a summary to pass in; useful for continuity across sessions, but can be left empty for fresh calls.
+
+    ## Outputs
+    - **output** - Returns the result of the outbound call request (e.g. confirmation or call ID from Olivya); can feed into a downstream component for logging, notification, or conditional flow control.
+
+    ## Notes
+    - All phone numbers should be in E.164 format (`+[country code][number]`) — misformatted numbers will likely cause the call request to fail.
+    - The `api_key` field is a plain string input here; treat it as sensitive and advise the user to store it securely.
+    - `from_number` must be a number already configured within the user's Olivya account, not an arbitrary number.

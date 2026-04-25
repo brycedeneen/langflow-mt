@@ -1,0 +1,22 @@
+- component_name: ChromaVectorStoreComponent
+  agent_summary: |-
+    You help the user store document embeddings in a Chroma collection and run similarity searches against it, returning ranked results or a dataframe. It works well for local or self-hosted setups where documents are ingested alongside an embedding model, with optional persistence to disk or connection to a remote Chroma server.
+  agent_usage_notes: |-
+    ## What it does
+    Chroma DB is a local or server-backed vector store that stores and searches document embeddings using the Chroma engine. It can ingest documents, persist them to disk, and run similarity searches against a named collection.
+
+    ## Inputs to ask about
+    - **collection_name** - Ask the user for the name of the Chroma collection to create or connect to; suggest `"langflow"` as a sensible default.
+    - **persist_directory** - Ask the user for a local folder path where Chroma should save data between runs; suggest `"./chroma_db"` if they want persistence, or leave blank for in-memory use.
+    - **ingest_data** - Ask the user what data source feeds documents into the store; typically connects to a file loader, splitter, or other data component upstream.
+    - **search_query** - Ask the user for the query text to run a similarity search; this is required if the `search_results` output is being used downstream.
+    - **embedding** - Ask the user which embedding model component to connect; this is required for both ingestion and search.
+
+    ## Outputs
+    - **search_results** - Returns the top matching documents from a similarity search; commonly feeds into an LLM prompt or retriever chain.
+    - **dataframe** - Returns search results as a structured dataframe; useful for inspection, filtering, or passing to data-processing components.
+
+    ## Notes
+    - If `persist_directory` is left blank, data is stored in memory only and will be lost when the flow stops.
+    - The `embedding` input must be connected or searches and ingestion will fail silently.
+    - To connect to a remote Chroma server instead of local storage, the advanced server fields (`chroma_server_host`, `chroma_server_http_port`, etc.) must all be configured together.

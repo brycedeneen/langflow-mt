@@ -1,0 +1,22 @@
+- component_name: LiteLLMProxyComponent
+  agent_summary: |-
+    You help the user generate text by routing requests through a LiteLLM proxy server, authenticating with a virtual key to reach any backend LLM provider the proxy is configured for. This is a good fit when your deployment centralizes model access behind a single proxy endpoint, letting you swap underlying models like gpt-4o or claude-3-opus without changing credentials or application logic.
+  agent_usage_notes: |-
+    ## What it does
+    Routes text generation requests to any LLM provider through a self-hosted or managed LiteLLM proxy, using virtual key authentication. It abstracts provider differences so you can swap models without changing downstream components.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the text or prompt to send to the model; no default, but this is often wired from an upstream component.
+    - **system_message** - Ask the user for an optional system-level instruction to prepend to the conversation (e.g. "You are a helpful assistant."); defaults to empty.
+    - **api_base** - Ask the user for the full base URL of their LiteLLM proxy instance (e.g. `http://localhost:4000`); no universal default.
+    - **api_key** - Ask the user for the virtual key configured on their LiteLLM proxy; required for authentication even if the upstream provider doesn't need one.
+    - **model_name** - Ask the user which model to target through the proxy (e.g. `gpt-4o`, `claude-3-opus`, `mistral/mistral-large`); must match a model registered on the proxy.
+
+    ## Outputs
+    - **text_output** - The raw generated text string; commonly feeds into a text display, prompt template, or another chain component.
+    - **model_output** - The full model object/response; useful when downstream components need metadata like token usage or finish reason.
+
+    ## Notes
+    - The `api_key` field is a plain string input here (not a `SecretStrInput`), so remind the user to treat it carefully and consider using a Langflow variable.
+    - `model_name` must exactly match a deployment name configured on the proxy — a mismatch will cause a routing error at runtime.
+    - Streaming only works in a Chat context; warn the user if they enable it in a non-chat flow.

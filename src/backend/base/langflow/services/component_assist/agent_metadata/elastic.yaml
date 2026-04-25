@@ -1,0 +1,83 @@
+- component_name: ElasticsearchVectorStoreComponent
+  agent_summary: |-
+    You help the user store and query document embeddings in an Elasticsearch index, supporting similarity search with configurable score thresholds, result counts, and search types. It works with both self-managed Elasticsearch instances and Elastic Cloud deployments, accepting username/password or API key authentication alongside an embedding model input. Prefer over OpenSearch when your infrastructure runs Elasticsearch or Elastic Cloud rather than OpenSearch.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to an Elasticsearch cluster (self-managed or Elastic Cloud) and stores document vectors in a specified index, enabling similarity search against ingested data using a provided embedding model.
+
+    ## Inputs to ask about
+    - **elasticsearch_url** - Ask the user for their self-managed Elasticsearch URL (e.g., `http://localhost:9200`). Leave blank if using Elastic Cloud. Mutually exclusive with `cloud_id`.
+    - **cloud_id** - Ask the user for their Elastic Cloud ID if using a managed deployment. Leave blank if using a self-hosted instance. Mutually exclusive with `elasticsearch_url`.
+    - **index_name** - Ask the user for the name of the Elasticsearch index where vectors will be stored or queried; suggest `langflow_index` as a default.
+    - **username** - Ask the user for their Elasticsearch username (e.g., `elastic`). Required unless API key authentication is used.
+    - **password** - Ask the user for the password associated with the Elasticsearch user. Required unless API key authentication is used.
+    - **ingest_data** - Ask the user what document source or loader output should be connected here for ingestion.
+    - **embedding** - Ask the user which embedding model component to connect; this is required for vectorising documents and queries.
+    - **search_query** - Ask the user what text query to run for similarity search, if retrieval is the goal.
+
+    ## Outputs
+    - **search_results** - Returns documents most similar to the search query; commonly feeds into a prompt or language model component.
+    - **dataframe** - Returns search results as a structured dataframe; useful for inspection or downstream data processing steps.
+
+    ## Notes
+    - Do not provide both `elasticsearch_url` and `cloud_id` simultaneously — they are mutually exclusive.
+    - Authentication requires either `username`/`password` or an API key (`api_key` advanced field); remind the user to choose one approach consistently.
+    - An embedding component must be connected or searches and ingestion will fail silently.
+- component_name: OpenSearchVectorStoreComponent
+  agent_summary: |-
+    You help the user store and retrieve documents in an OpenSearch index using hybrid search that combines KNN vector similarity with keyword matching, supporting configurable engines (jvector, nmslib, faiss, lucene), metadata tagging on ingestion, and both basic and JWT authentication. This is a good fit when you need a single embedding model per index with standard hybrid search, filtering by metadata fields, and flexible connection options including Amazon OpenSearch Serverless. Prefer over OpenSearch (Multi-Model Multi-Embedding) when you have one embedding model and want simpler setup; choose that peer when you need multiple embedding models or tool-based search interfaces.
+  agent_usage_notes: |-
+    ## What it does
+    Stores and retrieves documents in an OpenSearch cluster using hybrid search that combines KNN vector similarity with keyword matching. It supports document ingestion with optional metadata tagging, flexible authentication, and filter-based result control.
+
+    ## Inputs to ask about
+    - **opensearch_url** - Ask the user for their OpenSearch cluster URL; suggest `http://localhost:9200` for local development.
+    - **index_name** - Ask the user what index name to use for storing and searching documents; it will be created automatically if it doesn't exist.
+    - **ingest_data** - Ask the user what documents or data source to connect for ingestion.
+    - **embedding** - Ask the user which embedding model component to connect for generating vector representations.
+    - **search_query** - Ask the user what query text to use for similarity search at runtime.
+    - **docs_metadata** - Ask the user if they want to tag all ingested documents with additional key-value metadata (e.g., source, category); default is none.
+    - **filter_expression** - Ask the user if they need to filter results by field values, limit count, or score threshold; optional, leave blank if not needed.
+    - **auth_mode** - Ask the user whether to use `basic` (username/password) or `jwt` authentication; default is `basic` if credentials are needed.
+    - **username** - Ask the user for the OpenSearch username if using basic auth.
+    - **password** - Ask the user for the OpenSearch password if using basic auth.
+    - **jwt_token** - Ask the user for their JWT token if using JWT auth mode.
+
+    ## Outputs
+    - **search_results** - Returns matching documents as a list; feeds into chains, agents, or downstream processing components.
+    - **dataframe** - Returns search results as a DataFrame; useful for display or tabular analysis.
+    - **vectorstoreconnection** - Exposes the vector store object for connecting to retriever or RAG pipeline components.
+
+    ## Notes
+    - `auth_mode` controls which credential fields are active — only fill `username`/`password` or `jwt_token` depending on the selected mode.
+    - The `filter_expression` field accepts JSON in two distinct formats; make sure the user picks one consistently and avoids mixing them.
+    - Engine choice matters for compatibility: Amazon OpenSearch Serverless only supports `nmslib` or `faiss`; `jvector` requires OpenSearch 2.9+.
+- component_name: OpenSearchVectorStoreComponentMultimodalMultiEmbedding
+  agent_summary: |-
+    You help the user store and retrieve documents in an OpenSearch index using multiple embedding models simultaneously, combining KNN vector search across all detected models with keyword matching in a single hybrid query. This is a good fit when your index contains embeddings from several models and you want search to exploit all of them in parallel rather than committing to one at ingestion time. Prefer over OpenSearch when you need multi-model vector fields and automatic model detection; use the single-model OpenSearch component when your index has one embedding model and simpler setup is sufficient.
+  agent_usage_notes: |-
+    ## What it does
+    Stores and retrieves documents in an OpenSearch index using a hybrid approach that combines multi-model semantic (KNN vector) search with keyword matching. It supports multiple embedding models simultaneously, auto-detects available models in the index, and exposes tool-callable search methods for downstream agents.
+
+    ## Inputs to ask about
+    - **opensearch_url** - Ask for the OpenSearch cluster URL; suggest `http://localhost:9200` for local setups.
+    - **index_name** - Ask for the index name to store/search documents in; it will be created automatically if missing.
+    - **embedding** - Ask which embedding model(s) to connect; multiple models can be provided for multi-model hybrid search.
+    - **embedding_model_name** - Ask which embedding from the list should be used for ingestion; leave empty to use the first one.
+    - **ingest_data** - Ask what document source feeds into this component for ingestion.
+    - **auth_mode** - Ask whether authentication is needed (`basic` or `jwt`); default is no auth for local clusters.
+    - **username / password** - Ask for credentials if `auth_mode` is `basic`.
+    - **jwt_token** - Ask for the JWT token if `auth_mode` is `jwt`.
+    - **search_query** - Ask for an optional default query to test vector search directly from this component.
+    - **filter_expression** - Ask if results should be filtered by metadata fields, score threshold, or result count.
+    - **docs_metadata** - Ask if all ingested documents should share common metadata tags (e.g., source, category).
+
+    ## Outputs
+    - **search_results** - Returns ranked documents from hybrid search; typically feeds into an agent or response component.
+    - **raw_search** - Exposes a raw search tool for agent use with direct query control.
+    - **vectorstoreconnection** - Passes the configured store to other retrieval components or tools.
+
+    ## Notes
+    - When multiple embeddings are provided, `embedding_model_name` must match a `deployment`, `model`, or `model_name` attribute on the embedding object — mismatches cause errors; the error message lists available identifiers.
+    - The `jvector` engine requires OpenSearch 2.9+; Amazon OpenSearch Serverless only supports `nmslib` or `faiss`.
+    - `filter_expression` accepts two distinct JSON formats (explicit filters vs. context-style mapping) — flag this if the user needs metadata filtering.

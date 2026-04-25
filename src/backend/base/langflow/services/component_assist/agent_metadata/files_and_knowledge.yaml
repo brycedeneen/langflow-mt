@@ -1,0 +1,69 @@
+- component_name: FileComponent
+  agent_summary: |-
+    You help the user load a file's contents into a Message, reading from a local path, AWS S3, or Google Drive, with optional Docling-powered advanced processing for PDFs, images, and office documents including OCR and Markdown export. This is a good fit when you need to feed document content into a pipeline for further processing or analysis. Prefer over Write File when the goal is ingesting existing content rather than persisting output data.
+  agent_usage_notes: |-
+    ## What it does
+    Reads a file from a local upload, S3 bucket, or Google Drive and returns its contents as a message. It optionally uses Docling for advanced document processing (PDFs, images, office documents), including OCR and Markdown export.
+
+    ## Inputs to ask about
+    - **path** - Ask the user to upload or specify the local file path they want to read. Default: none; required when not reading from S3 or Google Drive.
+    - **advanced_mode** - Ask whether the user needs advanced document processing (e.g., PDFs with complex layouts, images with text). Suggested default: `false`.
+    - **markdown** - If `advanced_mode` is enabled, ask whether the output should be exported as Markdown. Suggested default: `false`.
+    - **aws_access_key_id** - Ask for the AWS Access Key ID if reading from S3.
+    - **aws_secret_access_key** - Ask for the AWS Secret Access Key if reading from S3.
+    - **bucket_name** - Ask for the S3 bucket name if reading from S3.
+    - **aws_region** - Ask for the AWS region (e.g., `us-east-1`) if reading from S3.
+    - **s3_file_key** - Ask for the file's key/path within the S3 bucket if reading from S3.
+    - **service_account_key** - Ask for the Google Cloud service account JSON key if reading from Google Drive.
+    - **file_id** - Ask for the Google Drive file ID if reading from Google Drive; remind the user the file must be shared with the service account.
+
+    ## Outputs
+    - **message** - Produces the file content as a message object; commonly feeds into an LLM, text splitter, or prompt component.
+
+    ## Notes
+    - Only one storage source should be configured at a time: local upload, S3, or Google Drive.
+    - `advanced_mode` can consume significant compute resources — advise the user to enable it only when standard parsing is insufficient.
+    - `markdown` export is only available when `advanced_mode` is enabled.
+- component_name: KnowledgeBaseComponent
+  agent_summary: |-
+    You help the user search and retrieve documents or records from a configured knowledge base using an optional query, returning the top-k matching results with optional metadata and embeddings. This is a good fit when you need semantic or filtered lookup over a pre-built knowledge store rather than reading raw files. Prefer over Read File when the data is already indexed in a knowledge base and you need ranked retrieval rather than direct file access.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a configured knowledge base and retrieves data from it, optionally filtering results with a search query. It returns matching records that can be passed downstream for use in RAG pipelines or other data-processing flows.
+
+    ## Inputs to ask about
+    - **knowledge_base** - Ask the user which knowledge base to load data from; this is required and must match an existing, configured knowledge base by name.
+    - **search_query** - Ask the user if they want to filter results with a specific query string; default is empty (returns all data).
+    - **include_metadata** - Ask the user whether the output should include metadata fields alongside content; suggested default is `false` (content only).
+
+    ## Outputs
+    - **retrieve_data** - Returns records retrieved from the knowledge base (content and optionally metadata); commonly feeds into a prompt template, language model, or document-processing component.
+
+    ## Notes
+    - **knowledge_base** is the only required field — the flow will fail if it is left empty or references a knowledge base that does not exist.
+    - If **include_metadata** is `false`, only the raw content of each record is returned; metadata (such as source, timestamps, or custom fields) is stripped.
+    - A **search_query** narrows results but is optional; leaving it blank typically returns all available records up to any internal limit.
+    - The **api_key** (advanced) may be needed if the underlying embedding provider requires authentication for query-time embedding generation — flag this if the user reports retrieval errors.
+- component_name: SaveToFileComponent
+  agent_summary: |-
+    You help the user persist data by writing input content to a file on local disk, AWS S3, or Google Drive in a chosen format such as plain text, CSV, or JSON. This is a good fit as a terminal step in a pipeline where generated or transformed content needs to be saved for later use or export. Prefer over Read File when the goal is writing output rather than loading existing file content into a flow.
+  agent_usage_notes: |-
+    ## What it does
+    Saves data to a file in a chosen storage destination — local disk, AWS S3, or Google Drive — in a specified format. The component accepts any input and writes it as a named file, with optional append support for local plain-text files.
+
+    ## Inputs to ask about
+    - **input** - Ask the user what data they want to save (e.g., the output of a prior chain or text node); no default.
+    - **file_name** - Ask for the desired file name, without path or extension (e.g., `output_results`); no default.
+    - **file_location** - Ask for the directory path where the file should be saved; defaults to Langflow's `outputs/` folder if left blank.
+    - **append_mode** - Ask whether to append to an existing file rather than overwrite it; default is `False`. Remind the user this only works for local plain-text formats.
+    - **local_format** - Ask which file format to use when saving locally (e.g., txt, CSV, JSON); ask only if the storage destination is local.
+    - **aws_format** - Ask which file format to use when saving to S3; ask only if AWS is selected.
+    - **gdrive_format** - Ask which file format to use when saving to Google Drive; ask only if Google Drive is selected.
+
+    ## Outputs
+    - **message** - Returns a confirmation message about the saved file; typically used as a terminal node or feeds into a display/log component.
+
+    ## Notes
+    - Append mode is restricted to local storage with plain-text formats — it will not work with AWS S3 or Google Drive.
+    - For AWS or Google Drive destinations, the relevant advanced credentials inputs (keys, bucket, folder ID) must be configured; guide the user to set those up via the secrets/variable flow.
+    - The `file_name` must not include a path or extension — those are controlled separately by `file_location` and the format selector.

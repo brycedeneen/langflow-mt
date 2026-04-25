@@ -1,0 +1,60 @@
+- component_name: CohereComponent
+  agent_summary: |-
+    You help the user generate text completions using Cohere's language models, producing either a text string or a model object from a prompt and optional system message. It is a good fit when you need direct text generation with adjustable temperature or streaming output tied to a Cohere API key. Prefer over Cohere Embeddings when you need human-readable text generation rather than vector representations, and prefer over Cohere Rerank when you are generating new content rather than reordering existing documents.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text using Cohere's language models via the LangChain integration. It accepts a user input and an optional system message, then returns the model's response as text or a model object.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the prompt or text they want to send to the model. No default; this is the primary input driving generation.
+    - **system_message** - Ask the user if they want to provide a system-level instruction to guide the model's behavior (e.g., "You are a helpful assistant"). Defaults to empty if not needed.
+    - **cohere_api_key** - Ask the user for their Cohere API key. Note: this is a required credential — guide them to enter it as a credential/secret variable rather than plain text.
+
+    ## Outputs
+    - **text_output** - The raw generated text from the model; commonly feeds into a text display, downstream prompt, or processing component.
+    - **model_output** - The LangChain model object itself; useful when chaining into components that accept an LLM or need direct model access (e.g., chains, agents).
+
+    ## Notes
+    - `cohere_api_key` is marked required — the component will not run without a valid key.
+    - Streaming is advanced and only works in a Chat context; avoid enabling it in non-chat flows.
+    - Temperature and streaming are advanced settings — only surface them if the user requests fine-tuned control over output behavior.
+    - If the user needs both a conversational interface and text generation, confirm whether they should use this component or a Cohere Chat model instead.
+- component_name: CohereEmbeddingsComponent
+  agent_summary: |-
+    You help the user convert text into vector embeddings using Cohere's embedding models, producing an embeddings object suitable for semantic search, retrieval, or similarity tasks. It pairs well with vector stores or retrieval pipelines that require a compatible embeddings interface. Prefer over Cohere Rerank when you need to encode text into vectors rather than reorder an existing set of retrieved documents.
+  agent_usage_notes: |-
+    ## What it does
+    Generates vector embeddings from text using Cohere's embedding models. The resulting embeddings can be used for semantic search, similarity comparisons, and retrieval-augmented generation (RAG) pipelines.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Cohere API key; this is required for authentication. *(Handled via the separate secret-variable flow.)*
+    - **model_name** - Ask the user which Cohere embedding model to use (e.g., `embed-english-v3.0`, `embed-multilingual-v3.0`); default to `embed-english-v3.0` for English-only use cases or `embed-multilingual-v3.0` if multilingual support is needed.
+
+    ## Outputs
+    - **embeddings** - Produces a Cohere embeddings object that commonly feeds into a vector store component (e.g., Pinecone, Chroma, Weaviate) or a retriever for similarity search.
+
+    ## Notes
+    - The `api_key` field is listed as `field_type=str` but should be treated as a secret — use the variable-creation flow rather than plain text input.
+    - Model choice has a direct impact on embedding dimensionality and language support; make sure the selected model matches the language of the input data.
+    - The `truncate` advanced option controls how Cohere handles inputs that exceed the model's token limit — worth surfacing if the user is embedding long documents.
+    - All other advanced inputs (`max_retries`, `user_agent`, `request_timeout`) can be left at their defaults for most use cases.
+- component_name: CohereRerankComponent
+  agent_summary: |-
+    You help the user rerank a list of documents returned by a vector store search, using the Cohere reranking API to score and reorder them by relevance to a query. This is a good fit as a post-retrieval step before passing results to an LLM, since it improves precision without requiring a new search. Prefer over Cohere Embeddings when you already have retrieved documents and need relevance-based reordering rather than vector representations.
+  agent_usage_notes: |-
+    ## What it does
+    Reranks a list of retrieved documents using the Cohere API, scoring and reordering them by relevance to a given search query. It is typically placed after a vector store retrieval step to improve result quality before passing documents to a language model.
+
+    ## Inputs to ask about
+    - **search_query** - Ask the user for the query string used to score document relevance; this is usually the same query sent to the vector store upstream.
+    - **search_results** - Ask the user to connect this to the output of a Vector Store retrieval component; it expects a list of documents.
+    - **api_key** - Ask the user for their Cohere API key (note: if a Cohere API key variable already exists in the project, point the user to reference it here).
+    - **model** - Ask the user which Cohere rerank model to use (e.g., `rerank-english-v3.0` or `rerank-multilingual-v3.0`); suggest `rerank-english-v3.0` as a default for English-language use cases.
+
+    ## Outputs
+    - **reranked_documents** - A reordered list of documents ranked by relevance to the query; commonly feeds into a prompt builder, RAG chain, or language model component.
+
+    ## Notes
+    - The `api_key` field is a plain string input here rather than a secret type — remind the user to handle it carefully and prefer referencing a stored variable rather than pasting the key directly.
+    - `top_n` (advanced) controls how many top documents are returned after reranking; if the user notices too many or too few results downstream, suggest surfacing this setting.
+    - This component requires an active Cohere account and a valid API key with rerank permissions enabled.

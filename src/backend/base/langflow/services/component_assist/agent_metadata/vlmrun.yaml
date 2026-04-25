@@ -1,0 +1,20 @@
+- component_name: VLMRunTranscription
+  agent_summary: |-
+    You help the user extract structured data from audio or video files by sending them to the VLM Run API and returning the parsed result. It accepts uploaded files or a remote URL and lets you specify a media type and processing domain to control how the content is interpreted. Good for pipelines that need machine-readable output from spoken or recorded media rather than raw transcript text.
+  agent_usage_notes: |-
+    ## What it does
+    Sends audio or video files to the VLM Run AI service and extracts structured transcription data from them. It supports both direct file uploads and URL-based media sources, returning a structured result from the API.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their VLM Run API key, obtainable from https://app.vlm.run; no default is possible since it is user-specific.
+    - **media_type** - Ask the user whether they are processing audio or video so the correct media type can be selected; default depends on the file being used.
+    - **media_files** - Ask the user to upload one or more audio or video files to be processed; required unless a URL is provided instead.
+
+    ## Outputs
+    - **result** - Returns the structured transcription data extracted by VLM Run; commonly feeds into a text display component, a parser, or a downstream LLM prompt for further analysis.
+
+    ## Notes
+    - Either **media_files** or **media_url** (advanced) must be provided — the component needs at least one media source to function.
+    - The **api_key** field expects a plain string here; remind the user to keep it secure even though it is not a secret input type in this component.
+    - Processing time for large files may be significant; if the user reports timeouts, suggest increasing **timeout_seconds** (advanced).
+    - Check the [VLM Run docs](https://docs.vlm.run) for supported file formats and domain options before configuring, as unsupported formats will cause errors.

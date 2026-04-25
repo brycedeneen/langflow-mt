@@ -1,0 +1,40 @@
+- component_name: HomeAssistantControl
+  agent_summary: |-
+    You help the user send on/off/toggle commands to a specific Home Assistant entity by supplying an action and entity ID, with the domain automatically derived from the entity ID. Use this when an agent needs to change the state of a device like a light or switch. Prefer over List Home Assistant States when the goal is to act on a device rather than read its current state.
+  agent_usage_notes: |-
+    ## What it does
+    Home Assistant Control lets an AI agent send on/off/toggle commands to any Home Assistant device via the REST API. The agent only needs to supply an action and an entity ID; the component automatically derives the service domain from the entity ID.
+
+    ## Inputs to ask about
+    - **ha_token** - Ask the user for their Home Assistant Long-Lived Access Token (generated in the HA profile page under "Long-Lived Access Tokens"). No default — required.
+    - **base_url** - Ask the user for the base URL of their Home Assistant instance, e.g. `http://192.168.0.10:8123`. No default — required.
+    - **default_action** - Ask the user if there is a fallback action the agent should use when none is specified at runtime; valid values are `turn_on`, `turn_off`, or `toggle`. Optional — leave blank to let the agent decide each call.
+    - **default_entity_id** - Ask the user if there is a single device the component should target by default, e.g. `switch.living_room` or `light.bedroom_lamp`. Optional — leave blank for multi-device flexibility.
+
+    ## Outputs
+    - **api_run_model** - Executes the HA service call directly; feed into an agent's tool-execution step or a flow that triggers actions immediately.
+    - **api_build_tool** - Packages the component as a callable tool definition; feed into an agent or tool-belt component so the agent can invoke it on demand.
+
+    ## Notes
+    - Entity IDs must follow the `domain.entity_name` format (e.g., `switch.xxx`, `light.xxx`) — the domain prefix is required for the automatic service-routing logic to work.
+    - The `ha_token` field is a plain string input here; treat it as sensitive and store it as a Langflow secret variable.
+    - Ensure the HA instance is reachable from the environment running Langflow; firewalls or VPNs may block the `base_url`.
+- component_name: ListHomeAssistantStates
+  agent_summary: |-
+    You help the user retrieve entity states from a Home Assistant instance, returning a filtered or complete snapshot of the state registry for a given domain such as lights, switches, or sensors. This pairs well with HomeAssistantControl when you need to inspect available entities before acting on them. Prefer over HomeAssistantControl when the goal is reading or discovering current states rather than sending a control action to a device.
+  agent_usage_notes: |-
+    ## What it does
+    Retrieves entity states from a Home Assistant instance via its REST API. An optional domain filter narrows results to a specific entity type (e.g., lights or sensors); omitting it returns all states.
+
+    ## Inputs to ask about
+    - **filter_domain** - Ask the user which Home Assistant domain to filter by (e.g., `light`, `switch`, `sensor`, `climate`). Suggest leaving it empty to fetch all entity states if no specific domain is needed.
+
+    ## Outputs
+    - **api_run_model** - Executes the API call and returns the retrieved state data; typically feeds into an agent or data-processing component.
+    - **api_build_tool** - Exposes the retrieval as a callable tool, allowing an agent to invoke it on demand within a tool-use workflow.
+
+    ## Notes
+    - `ha_token` and `base_url` are required for the component to function but are not surfaced to the agent at runtime — ask the user to supply these during setup and store them as secure variables or component credentials.
+    - The `base_url` must be reachable from the environment running Langflow (e.g., `http://192.168.0.10:8123`); external/cloud deployments may require a tunnel or exposed endpoint.
+    - Leaving `filter_domain` empty can return a large payload if the Home Assistant instance has many entities — suggest filtering when only a specific domain is relevant.
+    - Refer to the [Home Assistant REST API docs](https://developers.home-assistant.io/docs/api/rest/) for valid domain names and response schema details.

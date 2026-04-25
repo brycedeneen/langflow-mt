@@ -1,0 +1,98 @@
+- component_name: AssemblyAIGetSubtitles
+  agent_summary: |-
+    You help the user convert a completed AssemblyAI transcription result into a subtitle file in either SRT or VTT format, with optional control over characters per caption line. This is a natural follow-up to the Poll Transcript component once a transcription job finishes. Prefer over AssemblyAI Poll Transcript when you need a ready-to-use caption file rather than raw transcript data.
+  agent_usage_notes: |-
+    ## What it does
+    Fetches a completed AssemblyAI transcript and exports it as a subtitle file in either SRT or VTT format, suitable for use as closed captions or subtitles in video players and editing tools.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their AssemblyAI API key, available at https://www.assemblyai.com/. Note: guide the user to store this as a secret variable rather than pasting it directly.
+    - **transcription_result** - Ask the user to connect the output of an AssemblyAI transcription component here; this must be a completed transcription result object, not raw text.
+    - **subtitle_format** - Ask the user which subtitle format they need: `SRT` (widely supported by video players and editors) or `VTT` (preferred for web/HTML5). Default is `SRT` if unsure.
+
+    ## Outputs
+    - **subtitles** - Produces a plain-text subtitle file string in the chosen format (SRT or VTT); commonly fed into a file-writing component, a downstream text display, or passed to a video processing step.
+
+    ## Notes
+    - The `transcription_result` input must come from an AssemblyAI transcription component — it expects a structured result object, not a plain transcript string.
+    - This component is a post-processing step; a completed transcription must exist before subtitles can be exported, so ensure the transcription flow runs first.
+    - The `api_key` field appears as a standard string input in the metadata, but treat it as sensitive — encourage the user to use a secret/variable rather than hardcoding it.
+    - SRT format is the safer default for broad compatibility; suggest VTT only if the user is targeting a web-based player.
+- component_name: AssemblyAILeMUR
+  agent_summary: |-
+    You help the user apply a large language model to spoken audio by sending an AssemblyAI transcription result and a text prompt to the LeMUR framework, producing a natural-language response. It pairs naturally with the AssemblyAI Poll Transcript component, whose output feeds directly into the transcription result input. Prefer over AssemblyAI Poll Transcript when you need to analyze or summarize transcript content rather than simply retrieve it.
+  agent_usage_notes: |-
+    ## What it does
+    AssemblyAI LeMUR applies Large Language Models to spoken data by combining a transcription result with a user-defined prompt. It sends the transcript and prompt to the AssemblyAI LeMUR API and returns a text response.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their AssemblyAI API key; direct them to https://www.assemblyai.com/ to obtain one if needed.
+    - **transcription_result** - Ask the user to connect the output of an AssemblyAI transcription component; this is the spoken data LeMUR will reason over.
+    - **prompt** - Ask the user what question or instruction they want to apply to the transcript (e.g., "Summarize the key points of this conversation").
+
+    ## Outputs
+    - **lemur_response** - Returns the LLM-generated text answer based on the transcript and prompt; commonly feeds into a text display component, a downstream prompt, or a chat output.
+
+    ## Notes
+    - The `api_key` field is required and must be a valid AssemblyAI key — without it the component will fail immediately.
+    - The `transcription_result` input expects output from an AssemblyAI transcription component; it is not a plain text string.
+    - The advanced `endpoint` option supports specialised modes (`summary`, `question-answer`) that do not require a `prompt` — worth flagging if the user's use case fits.
+    - The advanced `questions` input is only relevant when the endpoint is set to `question-answer`; it has no effect otherwise.
+    - The advanced `transcript_ids` input lets LeMUR operate across multiple transcripts and will override the connected `transcription_result` if supplied.
+- component_name: AssemblyAIListTranscripts
+  agent_summary: |-
+    You help the user retrieve a paginated list of past transcripts from their AssemblyAI account, with optional filtering by status, creation date, or throttled state. This is useful for auditing, monitoring, or feeding existing transcript IDs into downstream components like the poller or LeMUR. Prefer over AssemblyAI Poll Transcript when you need to discover or browse previously submitted jobs rather than check the status of a single known job.
+  agent_usage_notes: |-
+    ## What it does
+    Retrieves a paginated list of transcripts from your AssemblyAI account, with optional filtering by count, status, or creation date. Useful for auditing past transcriptions or feeding transcript metadata into downstream processing steps.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their AssemblyAI API key, obtainable from https://www.assemblyai.com/. This is required to authenticate all requests.
+    - **limit** - Ask how many transcripts to retrieve; suggest a default of `20`. Remind the user that setting this to `0` returns all available transcripts, which may be a large payload.
+
+    ## Outputs
+    - **transcript_list** - Produces a list of transcript objects/metadata from the user's AssemblyAI account. Commonly feeds into a loop, filter, or display component for further processing or inspection.
+
+    ## Notes
+    - The `api_key` field expects a plain string input here; remind the user to keep their API key secure and consider using a Langflow secret variable despite this field not being a `SecretStrInput`.
+    - Advanced filters (`status_filter`, `created_on`, `throttled_only`) are hidden by default — flag their existence if the user mentions wanting to narrow results.
+    - Setting `throttled_only` to `True` overrides any `status_filter` value, which may cause unexpected results if both are configured.
+    - Retrieving all transcripts (`limit=0`) on a large account could be slow or return a very large response; warn the user accordingly.
+- component_name: AssemblyAITranscriptionJobCreator
+  agent_summary: |-
+    Submits an audio file (or URL) to AssemblyAI and returns a transcript ID representing the queued transcription job, with optional settings for speaker diarization, language detection, punctuation, and text formatting. Pair it with AssemblyAI Poll Transcript to wait for completion, then feed the transcript ID to AssemblyAI Get Subtitles or AssemblyAI LeMUR for further processing. Prefer over AssemblyAI Poll Transcript when you need to initiate the job rather than check its status.
+  agent_usage_notes: |-
+    ## What it does
+    Submits an audio file to AssemblyAI and creates an asynchronous transcription job, returning a transcript ID that can be used to poll for or retrieve the completed transcript. It supports optional features like speaker diarization and language detection.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their AssemblyAI API key, available at https://www.assemblyai.com/. Note: prefer using a secret variable for this value.
+    - **audio_file** - Ask the user to upload the audio file they want transcribed; this is required to start the job.
+    - **speaker_labels** - Ask whether the user wants speaker diarization (identifying who said what); default is off (`False`).
+
+    ## Outputs
+    - **transcript_id** - The unique ID of the submitted transcription job; feed this into a downstream component (e.g., AssemblyAI poll/fetch node) to retrieve the finished transcript.
+
+    ## Notes
+    - `audio_file` and `audio_file_url` are mutually exclusive — only one is needed; `audio_file_url` is advanced and hidden by default, so clarify with the user if they want to transcribe a remotely hosted file instead of uploading one.
+    - This component only *starts* the job — it does not return the transcript text directly. The user will need a separate "get transcript" or polling component downstream using the returned `transcript_id`.
+    - `api_key` is a plain `str` field in the metadata but should be treated as a secret; prompt the user to store it as a secret variable rather than hardcoding it.
+    - If speaker diarization is enabled (`speaker_labels=True`), the user may also want to set `speakers_expected` (advanced) for better accuracy.
+- component_name: AssemblyAITranscriptionJobPoller
+  agent_summary: |-
+    You help the user check the status of an in-progress AssemblyAI transcription job and retrieve the completed transcription result using a transcript ID. This pairs naturally with the AssemblyAI Start Transcript component, which creates the job and returns the ID needed here. Prefer over AssemblyAI Start Transcript when the job has already been submitted and you only need to wait for and retrieve the result.
+  agent_usage_notes: |-
+    ## What it does
+    Polls AssemblyAI's API to check the status of an existing transcription job and retrieves the result once processing is complete. It is typically used downstream of a component that submits a transcription request and returns a job ID.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their AssemblyAI API key, available from their AssemblyAI dashboard at assemblyai.com.
+    - **transcript_id** - Ask the user for the transcription job ID to poll; this is usually wired in automatically from the output of an AssemblyAI transcription submission component rather than entered manually.
+
+    ## Outputs
+    - **transcription_result** - Returns the completed transcription result (text and metadata) from AssemblyAI; commonly feeds into a text processing, summarization, or display component.
+
+    ## Notes
+    - The `transcript_id` input is typically connected directly from an upstream "Submit Transcript" or equivalent component — ask the user whether they are chaining components or providing a known ID manually.
+    - The `api_key` must match the one used when the transcription job was originally submitted, or the poll request will fail.
+    - If the job is still processing, the component will continue polling until a terminal status (completed or error) is returned — make sure downstream components expect a potentially delayed response.

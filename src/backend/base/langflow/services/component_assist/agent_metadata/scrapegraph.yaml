@@ -1,0 +1,57 @@
+- component_name: ScrapeGraphMarkdownifyApi
+  agent_summary: |-
+    You help the user fetch a webpage by URL and convert its HTML content into clean Markdown text. This is a good fit when you need readable, LLM-friendly web content for summarization, ingestion, or display rather than structured data extraction. Prefer over ScrapeGraph Smart Scraper API when you want raw page content preserved as Markdown rather than parsing it into a specific structured schema.
+  agent_usage_notes: |-
+    ## What it does
+    Calls the ScrapeGraph Markdownify API to fetch a webpage at a given URL and returns its content converted to Markdown. This is useful for turning raw HTML pages into clean, LLM-readable text.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their ScrapeGraph API key, available from their ScrapeGraph account dashboard. Note: guide the user to store this as a secret variable rather than entering it in plain text.
+    - **url** - Ask the user for the full URL of the webpage they want to convert (e.g., `https://example.com`). No default — this is required for the component to function.
+
+    ## Outputs
+    - **data** - Returns the Markdown-formatted content of the target webpage. Commonly feeds into a text input for an LLM component, a document store, or a text display component for inspection.
+
+    ## Notes
+    - The `api_key` field is typed as a plain string in the metadata but functions as a credential — strongly encourage the user to use a secret variable to avoid exposing it in the flow configuration.
+    - The `url` field is marked `required=False` in metadata, but without a valid URL the component has nothing to process; treat it as effectively required in practice.
+    - Ensure the target URL is publicly accessible — pages behind authentication or bot-protection walls may not return usable content.
+    - Refer users to the [ScrapeGraph Markdownify docs](https://docs.scrapegraphai.com/services/markdownify) for rate limits, supported content types, and API plan details.
+- component_name: ScrapeGraphSearchApi
+  agent_summary: |-
+    You help the user run a web search using ScrapeGraph's search API and return results based on a natural-language prompt. This is a good fit when you need to retrieve search results without providing a specific URL. Prefer over ScrapeGraph Smart Scraper API or ScrapeGraph Markdownify API when the user does not have a target URL and instead wants to discover content through a search query.
+  agent_usage_notes: |-
+    ## What it does
+    ScrapeGraph Search API takes a natural-language search prompt and returns search results using ScrapeGraph's search functionality. It acts as a web-search node that can feed retrieved data into downstream processing components.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their ScrapeGraph API key (required to authenticate requests); no default — they must obtain one from the ScrapeGraph dashboard. Note: although this is typed as a plain string in the metadata, treat it as sensitive and encourage storing it as a credential variable.
+    - **user_prompt** - Ask the user what search query or natural-language prompt they want to send to ScrapeGraph (e.g., "latest AI research papers 2024"); no suggested default since this is query-specific.
+
+    ## Outputs
+    - **data** - Returns the search results from ScrapeGraph; commonly feeds into a text parser, LLM prompt builder, or data transformation component for further processing.
+
+    ## Notes
+    - The `api_key` field is marked as a regular string in the metadata, but it is effectively a secret — remind the user to store it securely rather than hardcoding it in the flow.
+    - No `user_prompt` default is defined, so the flow will silently send an empty prompt if the user forgets to fill it in; flag this as a likely misconfiguration risk.
+    - Refer the user to the [ScrapeGraph SearchScraper docs](https://docs.scrapegraphai.com/services/searchscraper) for rate limits, supported query formats, and result structure details.
+- component_name: ScrapeGraphSmartScraperApi
+  agent_summary: |-
+    You help the user extract structured data from a webpage by sending a URL and a natural-language prompt to the ScrapeGraph API, which returns parsed, schema-like output rather than raw text. It is a good fit when you need clean, queryable data from a specific page rather than a full-text representation. Prefer over ScrapeGraph Markdownify API when you want structured extraction guided by a prompt rather than a raw markdown rendering of the page content.
+  agent_usage_notes: |-
+    ## What it does
+    Calls the ScrapeGraph Smart Scraper API to extract structured data from a given webpage. It takes a URL and a natural-language prompt describing what data to extract, then returns the parsed result.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their ScrapeGraph API key (obtained from the ScrapeGraph dashboard). This is required to authenticate requests — note that the assistant handles secrets separately, so guide the user to store this as a credential variable.
+    - **url** - Ask the user for the full URL of the webpage they want to scrape (e.g., `https://example.com/products`). No default — this is target-specific.
+    - **prompt** - Ask the user what data they want extracted from the page. For example: `"Extract all product names and prices"` or `"Get the article title, author, and publication date"`. The quality of the output depends heavily on how specific this prompt is.
+
+    ## Outputs
+    - **data** - Returns the structured data extracted from the scraped page, typically as a JSON-like object. Commonly feeds into a **Parse Data** component, a downstream LLM prompt, or a data storage component.
+
+    ## Notes
+    - The `api_key` field is listed as a plain string input in the metadata, but treat it like a secret — encourage the user to use a Langflow credential/variable rather than pasting the key directly.
+    - The specificity of the `prompt` directly controls what is returned; a vague prompt may produce incomplete or overly broad results.
+    - Scraping results depend on the target website's structure and accessibility — dynamically rendered or paywalled pages may yield partial data.
+    - See the [ScrapeGraph Smart Scraper docs](https://docs.scrapegraphai.com/services/smartscraper) for prompt guidance and response schema details.

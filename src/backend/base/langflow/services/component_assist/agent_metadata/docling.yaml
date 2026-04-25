@@ -1,0 +1,80 @@
+- component_name: ChunkDoclingDocumentComponent
+  agent_summary: |-
+    Splits a DoclingDocument into smaller text chunks using Docling's built-in chunkers, outputting a dataframe of chunk records. It pairs naturally after the Docling or Docling Serve components in a pipeline where you need document chunks for retrieval or embedding. Prefer over Export DoclingDocument when your goal is chunked retrieval rather than a full-document export in a specific format.
+  agent_usage_notes: |-
+    ## What it does
+    Splits a DoclingDocument (produced by a Docling document-loader component) into smaller chunks using Docling's built-in chunkers. The resulting chunks are returned as a dataframe, ready for embedding or downstream processing.
+
+    ## Inputs to ask about
+    - **data_inputs** - Ask the user to connect the output of a Docling document-loading component that produces DoclingDocument data; this is required and has no default.
+    - **chunker** - Ask the user which chunking strategy to use (e.g., `HierarchicalChunker` or `HybridChunker`); default is typically `HierarchicalChunker` if the user has no specific tokenization needs.
+
+    ## Outputs
+    - **dataframe** - Produces a dataframe where each row represents one chunk of the source document; commonly feeds into an embedding component or a vector store ingestion step.
+
+    ## Notes
+    - The `HybridChunker` requires a tokenizer provider and model name (advanced inputs) — if the user selects `HybridChunker`, flag that they will likely need to configure those advanced fields.
+    - `data_inputs` must come from a Docling-aware source; plain text or generic document loaders will not produce the expected DoclingDocument format.
+    - Refer the user to the [Docling chunking documentation](https://docling-project.github.io/docling/concepts/chunking/) if they are unsure which chunker fits their use case.
+- component_name: DoclingInlineComponent
+  agent_summary: |-
+    You help the user convert input documents into structured dataframe output by running Docling's document-processing models locally on the server, with optional OCR and picture classification. This is a good fit when you need local, private document parsing without an external service dependency, and it pairs naturally with chunking or export components for downstream processing. Prefer over Docling Serve when you want fully local inference rather than routing documents to a hosted Docling Serve instance.
+  agent_usage_notes: |-
+    ## What it does
+    Docling processes input documents locally using Docling's ML models, converting files (PDFs, images, Office docs, etc.) into structured output. It supports OCR, picture classification, and LLM-based picture description.
+
+    ## Inputs to ask about
+    - **path** - Ask the user to provide the file(s) to process; supports PDF, images, and common Office formats. No single default — depends on the user's source files.
+    - **pipeline** - Ask which Docling pipeline to use (e.g., standard or OCR-focused); default is typically the standard pipeline.
+    - **ocr_engine** - Ask whether OCR is needed and which engine to use; if documents are text-based PDFs, suggest setting this to `None` to disable OCR and speed up processing.
+    - **do_picture_classification** - Ask if the user wants pictures in documents classified by type; default is `False`, enable only if image analysis is needed.
+    - **pic_desc_llm** - Ask if the user wants an LLM to generate descriptions for pictures found in documents; leave disconnected if not needed.
+
+    ## Outputs
+    - **dataframe** - Produces a structured DataFrame containing the parsed document content, suitable for feeding into data processing components, table viewers, or downstream LLM pipelines.
+
+    ## Notes
+    - Docling runs models **locally**, so processing can be slow and resource-intensive on large documents — warn the user if they expect fast turnaround.
+    - OCR adds significant processing time; advise disabling it (`None`) for text-native PDFs.
+    - `pic_desc_llm` requires a connected language model component; enabling `do_picture_classification` without it still works but won't generate text descriptions.
+    - Only one file source is active at a time: `file_path` (advanced) supersedes `path` when connected.
+- component_name: DoclingRemoteComponent
+  agent_summary: |-
+    You help the user convert documents into structured data by sending files to a remote Docling Serve instance and returning the results as a dataframe. This is a good fit when you want to offload heavy document-processing models to a dedicated server rather than running them on the local machine. Prefer over Docling when you have a separate Docling Serve deployment and want to avoid loading models locally.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a running Docling Serve instance to convert documents (PDFs, DOCX, images, etc.) into structured data. It submits files to the remote API, polls for completion, and returns the extracted content as a dataframe.
+
+    ## Inputs to ask about
+    - **path** - Ask the user for the file(s) to process; supports common document formats like PDF, DOCX, and images. No default — required unless `file_path` is provided via another component.
+    - **api_url** - Ask the user for the full URL of their Docling Serve instance (e.g., `http://localhost:5001`). No default; this is required.
+
+    ## Outputs
+    - **dataframe** - Returns the extracted document content as a structured dataframe; commonly feeds into a **Parse Data** or **Data to Message** component for downstream text processing or display.
+
+    ## Notes
+    - The `api_url` is required — the component will not work without a reachable Docling Serve instance running at that address.
+    - Either **path** or the advanced `file_path` input must supply a document; `file_path` takes precedence if both are provided.
+    - If the user is connecting through an authenticated proxy or gateway, remind them that `api_headers` (advanced) can carry auth tokens or other required headers.
+    - Large or complex documents may hit the default poll timeout; if jobs appear to fail silently, suggest increasing `max_poll_timeout` (advanced).
+    - This component does **not** include a built-in Docling instance — the user must have Docling Serve deployed separately before configuring this component.
+- component_name: ExportDoclingDocumentComponent
+  agent_summary: |-
+    You help the user convert Docling documents into serialized output formats such as markdown or HTML, with control over how images and page breaks are represented. This is a good fit as a final step after parsing documents with a local or remote Docling pipeline. Prefer over Chunk DoclingDocument when you need a rendered, human-readable export rather than splitting the document into discrete text chunks for retrieval or embedding.
+  agent_usage_notes: |-
+    ## What it does
+    Converts DoclingDocument objects into human-readable or web-ready formats such as Markdown or HTML. It takes structured document data and serializes it into the chosen format, with control over how embedded images are handled.
+
+    ## Inputs to ask about
+    - **data_inputs** - Ask the user for the upstream component that produces DoclingDocument data (e.g., a Docling file loader or parser); no default, this is required.
+    - **export_format** - Ask the user which format they want: Markdown, HTML, or another supported option; suggest **Markdown** as the default for most use cases.
+    - **image_mode** - Ask whether images should be replaced with a placeholder string or embedded as base64 in the output; suggest **Placeholder** as the default to keep output lightweight.
+
+    ## Outputs
+    - **data** - The exported document content as structured data; commonly feeds into a text display, file-save, or downstream text-processing component.
+    - **dataframe** - A tabular view of the exported content; useful for inspection or passing to data-frame-aware components.
+
+    ## Notes
+    - The `image_mode` choice significantly affects output size — base64-embedded images can make the output very large for image-heavy documents; warn the user accordingly.
+    - Markdown is the most commonly tested format with Docling; HTML and other formats may vary in fidelity depending on the source document.
+    - If the upstream pipeline uses a non-default column key for DoclingDocument objects, the advanced `doc_key` input will need to match it — flag this if the user reports missing or empty output.

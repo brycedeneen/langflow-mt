@@ -1,0 +1,39 @@
+- component_name: TavilyExtractComponent
+  agent_summary: |-
+    You help the user pull raw page content from one or more URLs using the Tavily Extract API, returning the scraped text and optionally images as a dataframe. This is a good fit when you already have specific URLs and need their full content rather than discovering new pages. Prefer over Tavily Search API when the goal is extracting content from known URLs rather than running a web search to find relevant pages.
+  agent_usage_notes: |-
+    ## What it does
+    Tavily Extract API calls the Tavily Extract service to pull raw content from one or more web URLs, returning the extracted text (and optionally images) as a structured dataframe.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Tavily API key; remind them it must be created at the Tavily dashboard. Handle via the secrets/variable flow separately if the field type were secret, but since it is a plain string here, ask them to provide it directly.
+    - **urls** - Ask the user for the URLs they want to extract content from; these must be entered as a comma-separated list (e.g., `https://example.com, https://another.com`). No obvious default.
+
+    ## Outputs
+    - **dataframe** - Produces a dataframe containing the raw extracted content from each URL; commonly feeds into a data parsing step, a text splitter, or an LLM prompt-building component.
+
+    ## Notes
+    - The `urls` input expects a **comma-separated string**, not a list object — make sure the user formats multiple URLs accordingly.
+    - `extract_depth` and `include_images` are advanced fields; only surface them if the user has specific needs (e.g., they want images included or need deeper extraction).
+    - A valid Tavily API key is required — the component will fail without it, so confirm the user has one before running.
+    - Output is a single dataframe, so downstream components must be able to consume dataframe inputs.
+- component_name: TavilySearchComponent
+  agent_summary: |-
+    You help the user run a web search query through Tavily and return results as a dataframe, with options to control search depth, topic category, time range, domain filtering, and whether to include images, raw HTML, or a direct answer. It is a good fit for grounding LLM responses with fresh web content in RAG pipelines. Prefer over Tavily Extract API when you need to discover and retrieve content from the web via a query rather than extract content from known URLs.
+  agent_usage_notes: |-
+    ## What it does
+    Tavily Search API runs web searches optimized for LLMs and RAG pipelines, returning structured results quickly and efficiently. It is well-suited for grounding AI responses in up-to-date information from the web.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Tavily API key (required to authenticate requests); no default — they must supply one from their Tavily account.
+    - **query** - Ask the user what search query they want to run; this is typically driven by a connected LLM or user input node, but a static string can be entered directly.
+
+    ## Outputs
+    - **dataframe** - Produces a structured table of search results (titles, URLs, content snippets, etc.) that commonly feeds into a parser, prompt template, or RAG retrieval step.
+
+    ## Notes
+    - The `api_key` field is required — the component will fail without a valid Tavily key; direct the user to tavily.com to obtain one.
+    - Although `api_key` is not a `SecretStrInput` type, treat it as sensitive and remind the user to store it as a Langflow variable rather than hardcoding it.
+    - The `query` input is often wired from an upstream node (e.g., a chat input or LLM output) rather than typed statically — clarify this with the user.
+    - Most tuning options (`search_depth`, `max_results`, `include_answer`, domain filters, etc.) are marked advanced and can be left at their defaults for basic use.
+    - The `days` filter only applies when `topic` is set to `news` — flag this dependency if the user wants time-limited news searches.

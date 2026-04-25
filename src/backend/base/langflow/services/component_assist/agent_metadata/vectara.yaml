@@ -1,0 +1,45 @@
+- component_name: VectaraRagComponent
+  agent_summary: |-
+    You help the user send a search query to Vectara and receive a generated answer using Vectara's fully managed retrieval-augmented generation pipeline, handling retrieval, reranking, and summarization in a single call. This is a good fit when you want a complete RAG response without wiring together separate retrieval and generation steps. Prefer over Vectara Vector Store when you need a finished natural-language answer rather than raw retrieved documents to pass into your own generation step.
+  agent_usage_notes: |-
+    ## What it does
+    VectaraRagComponent runs a full end-to-end retrieval-augmented generation (RAG) pipeline using Vectara's hosted service. It takes a search query, retrieves relevant documents from a Vectara corpus, reranks them, and returns a generated answer.
+
+    ## Inputs to ask about
+    - **vectara_customer_id** - Ask the user for their Vectara customer ID, found in the Vectara console; no default.
+    - **vectara_corpus_id** - Ask the user which corpus to query; no default — must match an existing corpus in their account.
+    - **vectara_api_key** - Ask the user for their Vectara API key; handle as a secret (use the variable-creation flow).
+    - **search_query** - Ask the user what question or query should be sent to Vectara; this is the main natural-language input driving retrieval and generation.
+    - **reranker** - Ask the user which reranking strategy to apply to retrieved results (e.g. `mmr`, `rerank_multilingual_v1`, or none); default is typically no reranking.
+
+    ## Outputs
+    - **answer** - The generated text answer produced by Vectara's RAG pipeline; commonly feeds into a Chat Output, Text Output, or downstream processing component.
+
+    ## Notes
+    - `vectara_api_key` is a plain `str` field in metadata but contains a secret — treat it as sensitive and create it via the secrets/variable flow.
+    - The `prompt` field (advanced) is restricted: only `vectara-summary-ext-24-05-sml` is available to Growth plan customers; other prompts require a Scale plan.
+    - `diversity_bias` only takes effect when the `mmr` reranker is selected — flag this pairing to the user if they enable it.
+    - Confirm the `vectara_corpus_id` exists and is populated before testing, as an empty or wrong corpus will return no results.
+- component_name: VectaraVectorStoreComponent
+  agent_summary: |-
+    You help the user store and search documents in a Vectara corpus, returning similarity search results or a dataframe of matched records. Use this when you need direct vector search access to a Vectara corpus with control over ingestion and retrieval steps. Prefer over Vectara RAG when you want raw search results to handle downstream yourself, rather than a complete end-to-end retrieval-augmented generation response.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a Vectara-hosted vector store, optionally ingesting documents and running semantic similarity searches against a specified corpus. It returns ranked search results or a dataframe of matches.
+
+    ## Inputs to ask about
+    - **vectara_customer_id** - Ask the user for their Vectara customer ID, found in the Vectara console. No default.
+    - **vectara_corpus_id** - Ask the user for the corpus ID they want to query or ingest into. No default.
+    - **vectara_api_key** - Ask the user for their Vectara API key; note this is a plain string field here, so they should treat it carefully (no dedicated secret input).
+    - **embedding** - Ask whether they want to attach a custom embedding model, or leave it unconnected to rely on Vectara's built-in embeddings. Default: leave empty.
+    - **ingest_data** - Ask if they have documents to upload into the corpus; connect a data source if so, otherwise leave empty for query-only use.
+    - **search_query** - Ask for the text query to run a similarity search against the corpus. No default; required if they want search results.
+
+    ## Outputs
+    - **search_results** - Returns a list of matching documents ranked by relevance; commonly feeds into an LLM prompt or a Parse Data component.
+    - **dataframe** - Returns the same results as a structured dataframe; useful for display, filtering, or downstream data processing components.
+
+    ## Notes
+    - The `vectara_api_key` field is a plain `str` input rather than a `SecretStrInput`—remind the user to handle it securely and consider using a Langflow variable.
+    - `ingest_data` and `search_query` are independent; the component can ingest, search, or do both in one pass.
+    - Leaving `search_query` empty will skip search and produce no results in the output nodes.

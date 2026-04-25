@@ -1,0 +1,41 @@
+- component_name: LMStudioEmbeddingsComponent
+  agent_summary: |-
+    You help the user produce vector embeddings from text using a locally running LM Studio instance, connecting to it via a base URL and chosen model. This is a good fit when you want to keep embedding generation fully local without relying on external APIs. Prefer over LM Studio when the downstream task requires semantic search, retrieval, or similarity matching rather than text generation.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text embeddings using a locally running LM Studio instance. It connects to LM Studio's OpenAI-compatible API endpoint and returns vector representations of text, suitable for use in retrieval, similarity search, and vector store workflows.
+
+    ## Inputs to ask about
+    - **model** - Ask the user for the name of the embedding model loaded in LM Studio (e.g., `nomic-embed-text` or whatever model is currently active in the LM Studio server).
+    - **base_url** - Ask the user for the local server URL where LM Studio is running; the default is typically `http://localhost:1234/v1`.
+
+    ## Outputs
+    - **embeddings** - Produces an embeddings object that commonly feeds into vector store components (e.g., Chroma, FAISS, Pinecone) for indexing or similarity search.
+
+    ## Notes
+    - LM Studio must be running locally with the local server enabled and an embedding-capable model loaded before this component will work.
+    - The **model** name must exactly match the model identifier shown in LM Studio's server interface — a mismatch will cause a connection or model-not-found error.
+    - The **base_url** must include the `/v1` path suffix to match LM Studio's OpenAI-compatible API format.
+    - This component produces embeddings only — it does not generate text completions; pair it with a separate LM Studio LLM component if both are needed.
+- component_name: LMStudioModelComponent
+  agent_summary: |-
+    You help the user generate text by sending prompts to a locally running LM Studio instance, producing both raw text and a model object as outputs. It is a good fit when you want to run open-source LLMs on local hardware without sending data to external APIs, and supports streaming responses in Chat flows. Prefer over LM Studio Embeddings when you need text generation rather than vector representations of text.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a locally running LM Studio instance and generates text using whichever model is currently loaded there. It exposes both a raw text response and a reusable model object for downstream chaining.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the prompt or message text to send to the model; no default.
+    - **system_message** - Ask the user if they want a system-level instruction (e.g. "You are a helpful assistant"); optional, leave blank to omit.
+    - **model_name** - Ask the user for the exact model name as it appears in LM Studio (e.g. `mistral-7b-instruct`); must match the loaded model identifier.
+    - **base_url** - Ask the user for the LM Studio API endpoint; suggest the default `http://localhost:1234/v1` unless they are running LM Studio on a different host or port.
+
+    ## Outputs
+    - **text_output** - The generated text response; commonly feeds into a Chat Output, Text Output, or downstream processing component.
+    - **model_output** - A reusable LLM model object; commonly feeds into chains, agents, or other components that accept a language model as input.
+
+    ## Notes
+    - LM Studio must be running locally (or on a reachable host) with the server feature enabled **before** this component is called, otherwise the connection will fail.
+    - The `model_name` must exactly match the identifier shown in the LM Studio UI for the currently loaded model.
+    - Streaming (`stream=True`) only works when connected to a Chat interface, not plain text outputs.
+    - No API key is required for a default local LM Studio setup; the `api_key` field can be left empty.

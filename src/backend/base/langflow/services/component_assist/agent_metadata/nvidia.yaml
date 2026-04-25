@@ -1,0 +1,104 @@
+- component_name: NVIDIAEmbeddingsComponent
+  agent_summary: |-
+    You help the user convert text into vector embeddings using NVIDIA's embedding models via the NVIDIA API. This is a good fit when you need to feed embeddings into a retrieval pipeline, vector store, or similarity search that works with NVIDIA-hosted models. Prefer over NVIDIA Rerank when you need to generate embeddings from scratch rather than reorder an already-retrieved set of documents.
+  agent_usage_notes: |-
+    ## What it does
+    Generates vector embeddings from text using NVIDIA-hosted embedding models. The resulting embeddings can be passed to vector stores, similarity search components, or any other component that accepts an embeddings object.
+
+    ## Inputs to ask about
+    - **model** - Ask the user which NVIDIA embedding model to use (e.g., `nvidia/nv-embed-v1` or `nvidia/nv-embedqa-e5-v5`); check NVIDIA's model catalog for available options.
+    - **base_url** - Ask the user for the NVIDIA API base URL; the default for NVIDIA's hosted inference is `https://integrate.api.nvidia.com/v1`.
+
+    ## Outputs
+    - **embeddings** - Produces an embeddings object compatible with vector store components (e.g., Chroma, Pinecone, Qdrant) and retrieval pipelines that require an embedding function.
+
+    ## Notes
+    - The `nvidia_api_key` field is a secret and is handled through the separate variable-creation flow — remind the user to set it up there before running the component.
+    - Make sure the chosen `model` value is actually available under the specified `base_url`; using a mismatched model name and endpoint will cause an authentication or 404 error.
+    - This component outputs an embeddings *interface object*, not raw vectors — it must connect to a component that accepts an embeddings provider, not a raw list input.
+- component_name: NVIDIAModelComponent
+  agent_summary: |-
+    You help the user generate text responses from NVIDIA-hosted language models, producing both raw text and a model object that can connect to downstream components. It is a good fit when you need chat or completion capabilities with NVIDIA's API, optional streaming, tool-calling filtering, or detailed reasoning traces from supported models. Prefer over NVIDIA Embeddings when you need generated text rather than vector representations of input text.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text using NVIDIA-hosted large language models via the NVIDIA API. It accepts a user input and optional system message, then returns the model's response as text or a language model object.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the prompt or message to send to the model; no default.
+    - **system_message** - Ask the user if they want a system-level instruction to guide model behaviour (e.g. "You are a helpful assistant."); optional.
+    - **model_name** - Ask the user which NVIDIA model to use (e.g. `meta/llama3-70b-instruct`); no universal default, so confirm the exact model identifier.
+    - **detailed_thinking** - Ask the user whether they want the model to return a detailed chain-of-thought; only enable this if they are using a reasoning-capable model.
+    - **tool_model_enabled** - Ask the user if they need tool-calling support; enabling this filters the model list to only compatible models.
+    - **base_url** - Ask the user if they are using a custom or self-hosted NVIDIA endpoint; defaults to `https://integrate.api.nvidia.com/v1`.
+
+    ## Outputs
+    - **text_output** - The raw generated text string; commonly feeds into a **Text Output** display component or further processing steps.
+    - **model_output** - The language model object itself; commonly feeds into chains, agents, or other components that accept an LLM instance.
+
+    ## Notes
+    - `detailed_thinking` is only supported by reasoning models — enabling it on a standard model may cause errors or be silently ignored.
+    - `tool_model_enabled` and `model_name` interact: toggling tool support filters available models, so confirm the model name after changing that flag.
+    - The API key field (`api_key`) is visible here but should be stored as a credential variable rather than entered as plain text.
+- component_name: NvidiaIngestComponent
+  agent_summary: |-
+    You help the user extract structured content from documents — text, tables, charts, images, and infographics — by sending files to the NVIDIA NeMo Retriever Extraction API and returning results as a dataframe. This is a good fit for building retrieval pipelines where raw documents need to be parsed and chunked before embedding or reranking. Prefer over NVIDIA Embeddings or NVIDIA Rerank when the bottleneck is document ingestion rather than semantic search, as this component handles extraction and chunking while those handle downstream ranking and representation.
+  agent_usage_notes: |-
+    ## What it does
+    Extracts multi-modal content (text, tables, charts, and images) from documents using NVIDIA's NeMo Retriever Extraction API. It sends documents to the API and returns structured results as a dataframe for downstream processing in RAG or document pipelines.
+
+    ## Inputs to ask about
+    - **path** - Ask the user for the document file(s) to process; supports common document types like PDF.
+    - **base_url** - Ask the user for the URL of their NVIDIA NeMo Retriever Extraction API endpoint; no default since this is deployment-specific.
+    - **api_key** - Ask the user if their API endpoint requires an API key; leave blank if the service is unauthenticated.
+    - **extract_text** - Ask whether plain text should be extracted; suggested default: `true`.
+    - **extract_tables** - Ask whether tables should be extracted; suggested default: `true`.
+    - **extract_charts** - Ask whether charts should be extracted; suggested default: `false`.
+    - **extract_images** - Ask whether images should be extracted; suggested default: `false`.
+
+    ## Outputs
+    - **dataframe** - Produces a structured dataframe containing extracted content (text blocks, tables, charts, images); commonly feeds into a document splitter, vector store ingestion step, or further data processing component.
+
+    ## Notes
+    - The `base_url` is required — the component will not work without a reachable NeMo Retriever Extraction API endpoint.
+    - Enabling `extract_images` meaningfully increases response size and processing time; pair with `caption_images` (advanced) only if image understanding is needed.
+    - `file_path` (advanced) overrides `path` when a server-side file reference or `Message` object is available instead of a local file.
+    - Unsupported file types will cause errors by default; advise the user to enable `ignore_unsupported_extensions` (advanced) if processing mixed-type batches.
+- component_name: NvidiaRerankComponent
+  agent_summary: |-
+    You help the user reorder a list of documents returned from a vector store based on relevance to a search query, using NVIDIA's reranking API to produce a refined top-N set of results. This fits well as a post-retrieval step between a vector store search and an LLM response, improving answer quality without changing the retrieval index. Prefer over NVIDIA Embeddings when you already have retrieved documents and need relevance-based reordering rather than vector representation of new content.
+  agent_usage_notes: |-
+    ## What it does
+    Reranks a list of retrieved documents using the NVIDIA API, scoring and reordering them by relevance to a given search query. It is typically placed after a vector store retrieval step to improve result quality before passing documents to a language model.
+
+    ## Inputs to ask about
+    - **search_query** - Ask the user for the query string used to score document relevance; this should match the query sent to the upstream retriever.
+    - **search_results** - Ask the user to connect the output of a Vector Store or retriever component that supplies the documents to be reranked.
+    - **api_key** - Ask the user for their NVIDIA API key (note: ideally stored as a variable rather than plain text).
+    - **base_url** - Ask the user if they are using a custom or self-hosted NVIDIA endpoint; default is `https://integrate.api.nvidia.com/v1`.
+    - **model** - Ask the user which NVIDIA reranking model to use (e.g., `nvidia/nv-rerankqa-mistral-4b-v3`); confirm availability in their NVIDIA account.
+
+    ## Outputs
+    - **reranked_documents** - Returns the input documents reordered by relevance score; commonly feeds into a prompt builder, RAG chain, or language model component.
+
+    ## Notes
+    - The `search_query` should be identical to the query used for the initial retrieval to ensure consistent relevance scoring.
+    - `top_n` (advanced) controls how many top documents are returned after reranking — worth surfacing if the user wants to limit downstream context size.
+    - Ensure the chosen `model` is accessible under the user's NVIDIA API subscription before running.
+- component_name: NvidiaSystemAssistComponent
+  agent_summary: |-
+    You help the user send natural-language prompts to NVIDIA System-Assist, a Windows-only tool that queries or modifies an NVIDIA GPU driver through NV-API, returning details about GPU specs, current state, or applying driver-level changes. This is a good fit when the user needs direct, conversational control over their local NVIDIA GPU rather than AI text generation or document processing. Prefer over NVIDIA Embeddings or NVIDIA text generation components when the goal is hardware introspection or GPU configuration, not model inference.
+  agent_usage_notes: |-
+    ## What it does
+    NVIDIA System-Assist is a Windows-only component that forwards a natural-language prompt to the NVIDIA GPU Driver via NV-API. It can query GPU specifications and current state, or instruct the driver to perform GPU-editing actions.
+
+    ## Inputs to ask about
+    - **prompt** - Ask the user what they want to ask or do with their NVIDIA GPU. This should be plain human-readable language, such as `"What is my GPU?"` or `"Set my power limit to 80%"`. No default is required, but suggest the example prompt if the user is unsure where to start.
+
+    ## Outputs
+    - **response** - The natural-language reply returned by NVIDIA System-Assist, describing GPU information or confirming an action taken. Typically feeds into a text display component, a message output, or a downstream LLM for further processing.
+
+    ## Notes
+    - This component is **Windows only** — it will not function on Linux or macOS environments.
+    - The prompt must be human-readable natural language; structured or programmatic input is not supported.
+    - Remind the user that GPU-editing actions (e.g., changing power limits or clock speeds) make real changes to driver settings, so prompts should be intentional and specific.
+    - Confirm the user has an NVIDIA GPU and the appropriate NVIDIA driver installed before building a flow around this component.

@@ -1,0 +1,43 @@
+- component_name: RedisIndexChatMemory
+  agent_summary: |-
+    You help the user connect a Redis instance as a persistent chat message store, reading and writing conversation history keyed by session ID to a specified Redis database and host. It is a good fit when you need durable, low-latency chat memory shared across multiple sessions or service instances. Prefer over Redis (vector store) when the goal is storing and retrieving sequential chat messages rather than performing similarity search over vector embeddings.
+  agent_usage_notes: |-
+    ## What it does
+    Redis Chat Memory connects to a Redis instance to store and retrieve chat message history, enabling persistent, session-aware conversation memory for AI assistants.
+
+    ## Inputs to ask about
+    - **host** - Ask the user for the IP address or hostname of their Redis server. Suggested default: `localhost`.
+    - **port** - Ask the user for the Redis port number. Suggested default: `6379`.
+    - **database** - Ask the user which Redis database index to use. Suggested default: `0`.
+
+    ## Outputs
+    - **memory** - Produces a chat memory object backed by Redis; typically feeds into a conversational agent or LLM chain component that accepts a memory input.
+
+    ## Notes
+    - The `session_id` (advanced) is important in multi-user or multi-conversation scenarios — if left unset, all conversations may share the same memory key; flag this to the user if they are building a multi-user application.
+    - The `key_prefix` (advanced) helps namespace keys in a shared Redis instance to avoid collisions with other applications or memory stores.
+    - `password` and `username` are advanced fields but may be required if the Redis instance has authentication enabled — remind the user to check their Redis server configuration.
+    - Redis must be reachable from the runtime environment; confirm the host and port are accessible and not blocked by a firewall.
+- component_name: RedisVectorStoreComponent
+  agent_summary: |-
+    You help the user store and query document embeddings in a Redis-backed vector store, producing similarity search results or a dataframe of matched documents. It is a good fit when you need fast vector similarity search against an existing Redis instance and can pair it with an embedding component and a document ingestion source. Prefer over Redis Chat Memory when the goal is semantic search over document vectors rather than retrieving conversational message history.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a Redis instance to create and query a vector store. It can ingest document data and perform similarity searches against stored embeddings using a specified index.
+
+    ## Inputs to ask about
+    - **redis_server_url** - Ask the user for the full Redis connection URL (e.g. `redis://localhost:6379`); no default, required.
+    - **redis_index_name** - Ask the user for the name of the Redis index to create or connect to; suggest `"langflow"` as a reasonable default.
+    - **schema** - Ask the user if they have a custom Redis index schema (YAML/JSON); leave blank to use the auto-generated schema.
+    - **ingest_data** - Ask the user which data source or component output to connect here for indexing documents; optional if only querying an existing index.
+    - **search_query** - Ask the user for the text query to run a similarity search against the vector store; leave empty if the component is used only for ingestion.
+    - **embedding** - Ask the user which embedding model component to connect; this is required for both ingestion and search to work correctly.
+
+    ## Outputs
+    - **search_results** - Returns the top matching documents from the similarity search; commonly feeds into a **Parser** or **Prompt** component.
+    - **dataframe** - Returns search results as a structured table; useful for inspection or downstream data-processing components.
+
+    ## Notes
+    - `redis_server_url` must be a valid Redis URI; authentication credentials should be embedded in the URL (e.g. `redis://:password@host:6379`) rather than entered separately.
+    - Both ingestion and search require an **embedding** component to be connected — omitting it will cause the component to fail silently or error.
+    - If `ingest_data` is disconnected, the component operates in query-only mode against an existing index.

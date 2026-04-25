@@ -1,0 +1,19 @@
+- component_name: SearchComponent
+  agent_summary: |-
+    You help the user query a web search engine (Google, Bing, or DuckDuckGo) via the SearchApi service and return the results as a dataframe, with controls for the number of results and snippet length. Use this when you need live web search results fed into a downstream data processing or analysis step.
+  agent_usage_notes: |-
+    ## What it does
+    Calls the SearchApi API to run web searches against Google, Bing, or DuckDuckGo and returns the results as a structured dataframe. The number of results returned can be capped to keep downstream processing manageable.
+
+    ## Inputs to ask about
+    - **engine** - Ask the user which search engine to use: `google`, `bing`, or `duckduckgo`. Suggested default: `google`.
+    - **input_value** - Ask the user for the search query string to submit to the API.
+
+    ## Outputs
+    - **dataframe** - Returns search results as a dataframe, typically containing result titles, URLs, and snippets; commonly feeds into a data parsing step, a document loader, or an LLM prompt-building component.
+
+    ## Notes
+    - The `api_key` field is required — make sure the user has created a SearchApi credential and linked it via the secrets/variable flow before running.
+    - The **engine** value must exactly match one of the supported identifiers (`google`, `bing`, `duckduckgo`); incorrect strings will cause API errors.
+    - `max_results` and `max_snippet_length` are advanced but worth mentioning if the user is concerned about token limits or API quota, since uncapped results can be large.
+    - SearchApi requires a paid or trial account; direct the user to the documentation at https://www.searchapi.io/docs/google for engine-specific parameter details.

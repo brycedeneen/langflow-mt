@@ -1,0 +1,21 @@
+- component_name: CombinatorialReasonerComponent
+  agent_summary: |-
+    You help the user transform a plain prompt into an optimized version by applying combinatorial optimization, returning both the rewritten prompt and the reasoning behind the changes. This is a good fit when you need structured, explainable prompt improvement rather than manual trial-and-error tuning, and it requires an OpenAI API key plus Icosa CR credentials obtained through their sign-up form.
+  agent_usage_notes: |-
+    ## What it does
+    The Combinatorial Reasoner uses combinatorial optimization to construct an optimal prompt with embedded reasoning. It takes a base prompt and returns an enhanced version alongside the reasons used to improve it, leveraging the Icosa CR API and an OpenAI model.
+
+    ## Inputs to ask about
+    - **prompt** - Ask the user for the base prompt text they want to optimize. No default — this is the core input.
+    - **username** - Ask the user for their Icosa CR API username (requires sign-up at the linked Google Form). No default.
+    - **password** - Ask the user for their Icosa CR API password. No default. Note: this is a plain string field, not a secret input, so advise the user to handle it carefully.
+    - **model_name** - Ask the user which OpenAI model to use (e.g., `gpt-4`, `gpt-3.5-turbo`). Suggest `gpt-4` as a reasonable default if unsure.
+
+    ## Outputs
+    - **optimized_prompt** - The combinatorially optimized prompt with embedded reasons; typically feeds into an LLM component or a prompt display/text output.
+    - **reasons** - The reasoning elements identified and embedded during optimization; useful for inspection, logging, or feeding into downstream explanation components.
+
+    ## Notes
+    - The `openai_api_key` field is marked required and non-advanced but is a plain `str` type rather than `SecretStrInput` — warn the user to store it securely and consider using an environment variable.
+    - Users must sign up via the Google Form (https://forms.gle/oWNv2NKjBNaqqvCx6) before they can obtain valid `username` and `password` credentials for the Icosa CR API.
+    - No documentation URL is provided, so direct users to the sign-up form for support.

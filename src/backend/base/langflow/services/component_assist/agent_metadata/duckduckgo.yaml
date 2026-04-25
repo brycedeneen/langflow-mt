@@ -1,0 +1,18 @@
+- component_name: DuckDuckGoSearchComponent
+  agent_summary: |-
+    You help the user run a web search query against DuckDuckGo and return the results as a dataframe, with optional controls over how many results and how much text per snippet are returned. This is a good fit when you need live web search results without requiring an API key or account setup.
+  agent_usage_notes: |-
+    ## What it does
+    Performs a web search using DuckDuckGo and returns the results as a structured dataframe. It requires no API key, making it a quick way to give an AI workflow access to live web information.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user what search query should be executed. This is often driven dynamically by an upstream component (e.g., an LLM or user message), so ask whether it will be a static string or a connected variable.
+
+    ## Outputs
+    - **dataframe** - Returns search results as a dataframe containing titles, snippets, and URLs. Commonly feeds into a data transformation component, a prompt template, or an LLM that needs web context to generate a response.
+
+    ## Notes
+    - No API key is required — DuckDuckGo search is free and unauthenticated, so there is no credential setup step.
+    - The `max_results` and `max_snippet_length` inputs are marked advanced and can be left at their defaults for most use cases, but flag them if the user wants to control token usage or result verbosity.
+    - DuckDuckGo may rate-limit or block requests if queries are made very frequently in a short period; advise the user to keep this in mind for high-volume workflows.
+    - The output is a dataframe, so the user will likely need a downstream component to parse or format the results before passing them to an LLM prompt.

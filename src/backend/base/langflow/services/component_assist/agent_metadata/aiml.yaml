@@ -1,0 +1,40 @@
+- component_name: AIMLEmbeddingsComponent
+  agent_summary: |-
+    You help the user convert text into vector embeddings using the AI/ML API, requiring a model name and API key to produce an embeddings output. Prefer over AI/ML API when the goal is semantic search, retrieval, or similarity matching rather than generating text.
+  agent_usage_notes: |-
+    ## What it does
+    Generates vector embeddings for text using the AI/ML API, converting input text into numerical representations suitable for semantic search, similarity comparisons, and retrieval-augmented generation pipelines.
+
+    ## Inputs to ask about
+    - **model_name** - Ask the user which AI/ML API embedding model they want to use (e.g., `text-embedding-ada-002` or the equivalent model available through their AI/ML API account); no universal default can be assumed, so confirm the exact model name from their account.
+
+    ## Outputs
+    - **embeddings** - Produces an embeddings object that commonly feeds into vector stores (e.g., Pinecone, Chroma, Weaviate) or similarity search components downstream in the pipeline.
+
+    ## Notes
+    - The `aiml_api_key` field is a credentials input — the assistant should handle it through the separate variable-creation flow rather than asking for it directly here.
+    - Make sure the user supplies a model name that is actually available under their AI/ML API subscription, as an unsupported model name will cause a runtime error.
+    - This component produces embeddings only — it does not perform any text generation or chat; pair it with a separate LLM component if both capabilities are needed.
+    - If the user is building a RAG pipeline, this embeddings component should use the **same model** as the one used to embed documents at ingestion time, otherwise retrieval quality will degrade.
+- component_name: AIMLModelComponent
+  agent_summary: |-
+    You help the user generate text by sending prompts to LLMs hosted on the AI/ML API platform, producing either a text string or a model object. It supports system messages, temperature control, token limits, and optional streaming for chat use cases. Prefer over AI/ML API Embeddings when the goal is text generation rather than producing vector representations of text.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text by sending prompts to large language models hosted on the AI/ML API platform. It supports a system message for context-setting and exposes both raw text and model object outputs.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the user-facing prompt or message to send to the model; no default.
+    - **system_message** - Ask the user if they want a system-level instruction (e.g. "You are a helpful assistant"); optional, leave blank if not needed.
+    - **model_name** - Ask the user which AI/ML API model to use (e.g. `gpt-4o`, `mistral-7b-instruct`); check the [AI/ML API docs](https://docs.aimlapi.com/api-reference) for available model identifiers.
+    - **temperature** - Ask the user how creative or deterministic responses should be; suggest a default of `0.7` for balanced output, `0` for deterministic.
+
+    ## Outputs
+    - **text_output** - Returns the generated text string; commonly feeds into a Text Output, Prompt, or further processing component.
+    - **model_output** - Returns the underlying language model object; useful when chaining into components that accept a model directly, such as agents or chains.
+
+    ## Notes
+    - The `api_key` field is required — make sure the user has created an AI/ML API key and stored it as a Langflow secret variable before configuring this component.
+    - `model_name` has no dropdown; the user must enter the exact model identifier string as listed in the AI/ML API documentation.
+    - `temperature` is a slider — remind the user that higher values increase randomness while lower values make output more predictable.
+    - The `aiml_api_base` advanced field can be changed to point at compatible APIs (e.g. LocalAI), but should be left at the default for standard AI/ML API usage.

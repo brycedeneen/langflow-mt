@@ -1,0 +1,39 @@
+- component_name: MistralAIEmbeddingsComponent
+  agent_summary: |-
+    You help the user convert text into vector embeddings using MistralAI models, requiring an API key and optionally a custom endpoint, model selection, and concurrency settings. This is a good fit when you need semantic search, retrieval-augmented generation, or similarity comparisons backed by Mistral's embedding models. Prefer over MistralAI when the goal is representing text as vectors rather than generating new text.
+  agent_usage_notes: |-
+    ## What it does
+    Generates vector embeddings from text using MistralAI embedding models. The resulting embeddings can be used for semantic search, similarity comparisons, or as input to vector stores.
+
+    ## Inputs to ask about
+    - **model** - Ask the user which MistralAI embedding model to use; a sensible default is `mistral-embed`, MistralAI's dedicated embedding model.
+
+    ## Outputs
+    - **embeddings** - Produces an embeddings object that commonly feeds into vector store components (e.g., Chroma, Pinecone, FAISS) for indexing or similarity search.
+
+    ## Notes
+    - `mistral_api_key` is required — the assistant should handle this through the separate variable-creation flow since it is a secret credential (it appears as a plain `str` field here, but treat it as sensitive).
+    - Make sure the chosen model name is a valid MistralAI embedding model; using a chat/completion model name here will cause errors.
+    - The embeddings output must be paired with a vector store or retriever component that accepts an embeddings object, not raw text.
+- component_name: MistralAIModelComponent
+  agent_summary: |-
+    You help the user generate text responses from Mistral's language models, producing either raw text or a model object that can feed into downstream components. It accepts an optional system message, supports streaming in chat contexts, and allows pointing the API base at alternative endpoints like LocalAI or Prem. Prefer over MistralAI Embeddings when you need text generation rather than vector representations of input text.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text using MistralAI language models by sending a prompt and optional system message to the Mistral API. It returns both the raw text response and a model object for downstream use.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the prompt or message text to send to the model; no default.
+    - **system_message** - Ask the user if they want to set a system-level instruction (e.g., persona or behavioral constraint); default is empty.
+    - **model_name** - Ask the user which Mistral model to use (e.g., `mistral-small`, `mistral-medium`, `mistral-large-latest`); no universal default.
+    - **api_key** - Ask the user to provide their Mistral API key via a credential/secret variable.
+
+    ## Outputs
+    - **text_output** - The generated text response as a string; commonly feeds into a Text Output, Prompt, or further processing component.
+    - **model_output** - The configured LLM model object; commonly feeds into chains, agents, or other components that accept a language model directly.
+
+    ## Notes
+    - The `api_key` field is required — the component will not function without a valid Mistral API key.
+    - `mistral_api_base` defaults to `https://api.mistral.ai/v1` but can be overridden to point to compatible APIs (e.g., LocalAI); flag this if the user is self-hosting.
+    - `model_name` must match a model the user's API key has access to — using an unavailable model will cause an error.
+    - Streaming only works in a Chat context; if the user is not building a Chat flow, advise leaving `stream` disabled.

@@ -1,0 +1,20 @@
+- component_name: ConfluenceComponent
+  agent_summary: |-
+    You help the user load pages from a Confluence wiki space as documents by connecting to an Atlassian Cloud or Server instance using a URL, user email, and API key. It is a good fit when you need to feed Confluence knowledge base content into a retrieval or question-answering pipeline.
+  agent_usage_notes: |-
+    ## What it does
+    Loads pages from a Confluence wiki space using the Atlassian API and returns them as structured documents. It connects to a specified Confluence space and retrieves page content for downstream processing such as search, summarization, or question answering.
+
+    ## Inputs to ask about
+    - **url** - Ask the user for the base URL of their Confluence instance; format should be `https://<company>.atlassian.net/wiki`.
+    - **username** - Ask the user for the Atlassian account email address used to authenticate (e.g. `email@example.com`).
+    - **api_key** - Ask the user for their Atlassian API token; direct them to generate one at `https://id.atlassian.com/manage-profile/security/api-tokens`.
+    - **space_key** - Ask the user for the Confluence space key (the short identifier shown in the space URL, e.g. `~TEAM` or `DEV`).
+
+    ## Outputs
+    - **data** - Produces a collection of documents representing Confluence pages; commonly feeds into a text splitter, vector store ingestion pipeline, or a retriever component.
+
+    ## Notes
+    - The `api_key` field is not a `SecretStrInput` type in the metadata, so collect it as a regular input — but remind the user to treat it as sensitive and avoid hardcoding it in shared flows.
+    - The `space_key` is required but has no description; make sure the user understands it is the short key (visible in the Confluence space URL), not the full space name.
+    - By default up to 1,000 pages are retrieved; if the user's space is very large, they may want to revisit the `max_pages` advanced setting to avoid long load times.

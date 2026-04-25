@@ -1,0 +1,42 @@
+- component_name: ChatVertexAIComponent
+  agent_summary: |-
+    You help the user generate text responses from Google Cloud Vertex AI language models, accepting a text input and optional system message and producing both a text output and a model object. It is a good fit when your pipeline runs on Google Cloud infrastructure or requires Vertex AI-specific models, authenticated via a JSON credentials file or environment variables. Prefer over Vertex AI Embeddings when you need generative text completion rather than vector representations of text.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text by sending prompts to a Google Vertex AI language model. It supports optional system messages and streaming, and returns both a plain-text response and a model object for downstream use.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the prompt or message text to send to the model; no default.
+    - **system_message** - Ask the user if they want a system-level instruction to guide model behavior (e.g., "You are a helpful assistant"); optional.
+    - **credentials** - Ask the user if they have a Google Cloud service account JSON file to upload; leave empty to rely on environment variables (e.g., `GOOGLE_APPLICATION_CREDENTIALS`).
+    - **model_name** - Ask the user which Vertex AI model to use (e.g., `gemini-1.5-pro`, `gemini-1.0-pro`); no universal default, so confirm with the user.
+    - **temperature** - Ask the user for a value between 0 and 1 controlling response creativity; suggest `0.7` as a balanced default.
+
+    ## Outputs
+    - **text_output** - The raw generated text string; commonly feeds into a text display, prompt template, or downstream processing component.
+    - **model_output** - The fully configured Vertex AI model object; useful for chaining into other LangChain-compatible components that accept a language model directly.
+
+    ## Notes
+    - If no credentials file is provided, the environment must have valid Google Cloud credentials configured (e.g., via Application Default Credentials); warn the user if neither is set.
+    - The `project` and `location` advanced fields may be required depending on the user's Google Cloud setup — flag these if authentication errors occur.
+    - `model_name` has no built-in default, so the flow will likely fail without one explicitly set.
+- component_name: VertexAIEmbeddingsComponent
+  agent_summary: |-
+    You help the user produce vector embeddings from text using Google Cloud Vertex AI models, requiring a GCP project ID and either a credentials JSON file or environment-variable authentication. Use this when you need embeddings for semantic search, retrieval, or similarity tasks within a Vertex AI environment. Prefer over Vertex AI when the goal is vector representation of text rather than generating a natural-language response.
+  agent_usage_notes: |-
+    ## What it does
+    Generates vector embeddings for text using Google Cloud Vertex AI embedding models. The resulting embeddings can be used downstream for semantic search, similarity matching, or storage in a vector database.
+
+    ## Inputs to ask about
+    - **credentials** - Ask the user to upload their Google Cloud service account JSON key file; if left empty, the component falls back to environment-level credentials (e.g., Application Default Credentials).
+    - **model_name** - Ask the user which Vertex AI embedding model to use; a common default is `textembedding-gecko@latest` or `text-embedding-004`.
+    - **temperature** - Ask the user if they want to adjust the sampling temperature; default is typically `0` for deterministic embedding outputs.
+
+    ## Outputs
+    - **embeddings** - Produces an embeddings object compatible with vector store components (e.g., Chroma, Pinecone, Weaviate) or any downstream component that accepts an embeddings interface.
+
+    ## Notes
+    - The `credentials` file must belong to a Google Cloud service account that has the **Vertex AI User** role (or equivalent) on the target project.
+    - If no credentials file is provided, ensure the runtime environment has Application Default Credentials configured, otherwise the component will fail.
+    - The `project` and `location` fields are advanced but may be **required in practice** if the credentials file does not encode a default project — worth flagging to the user if they encounter authentication errors.
+    - `temperature` and other generation parameters are more relevant to generative models; for pure embedding use cases they have limited effect and can be left at defaults.

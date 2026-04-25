@@ -1,0 +1,21 @@
+- component_name: OpenRouterComponent
+  agent_summary: |-
+    You help the user send prompts to any AI model available through OpenRouter's unified API, producing text or model output from a chosen model using a single API key. It is a good fit when you want to switch between or compare models from different providers without managing multiple credentials or integrations.
+  agent_usage_notes: |-
+    ## What it does
+    OpenRouter provides access to multiple AI models from various providers through a single unified API. The component sends a message (with an optional system prompt) to a chosen model and returns the response as text or a model object.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the message or prompt text to send to the model; no default, as this is typically wired from an upstream component.
+    - **system_message** - Ask the user if they want a system-level instruction to guide the model's behavior (e.g., "You are a helpful assistant."); defaults to none.
+    - **api_key** - Ask the user for their OpenRouter API key; required to authenticate all requests.
+    - **model_name** - Ask the user which model to use (e.g., `openai/gpt-4o`, `anthropic/claude-3-5-sonnet`); required — direct them to the OpenRouter model library for available options.
+
+    ## Outputs
+    - **text_output** - Returns the model's response as a plain text string; commonly feeds into a text display, prompt, or downstream processing component.
+    - **model_output** - Returns the configured model object itself; useful for chaining into other LangChain-compatible components that accept a language model directly.
+
+    ## Notes
+    - `model_name` must exactly match an OpenRouter model identifier (e.g., `mistralai/mistral-7b-instruct`); an incorrect name will cause an API error.
+    - The `api_key` field is marked required but is not a `SecretStrInput` — remind the user to store it securely using a Langflow variable rather than pasting it in plain text.
+    - Streaming is only functional inside a Chat interface; advise the user to leave it off for standard flow execution.

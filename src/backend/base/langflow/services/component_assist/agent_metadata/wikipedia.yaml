@@ -1,0 +1,37 @@
+- component_name: WikidataComponent
+  agent_summary: |-
+    You help the user search Wikidata by submitting a text query to its API and returning results as a dataframe. This is a good fit when you need structured, machine-readable entity data rather than encyclopedic prose. Prefer over Wikipedia when the goal is extracting linked data, identifiers, or factual attributes about entities rather than narrative article text.
+  agent_usage_notes: |-
+    ## What it does
+    Searches the Wikidata knowledge base using a text query and returns structured results via the Wikidata API. It is useful for retrieving factual, encyclopedic data about entities, concepts, and relationships.
+
+    ## Inputs to ask about
+    - **query** - Ask the user what they want to search for on Wikidata (e.g., a person, place, concept, or event). No default is appropriate here, as the query is specific to the user's use case.
+
+    ## Outputs
+    - **dataframe** - Returns a DataFrame containing Wikidata search results, which can feed into data processing components, table viewers, or downstream AI pipelines that consume structured tabular data.
+
+    ## Notes
+    - The component returns a DataFrame, so ensure any downstream component accepts tabular input rather than plain text or a message object.
+    - Results depend entirely on the quality and specificity of the query string — vague queries may return broad or unexpected matches.
+    - This component calls the public Wikidata API, so it requires an active internet connection and may be subject to rate limits under heavy use.
+- component_name: WikipediaComponent
+  agent_summary: |-
+    You help the user query Wikipedia and return a set of article results as a dataframe, controlling how many results to fetch and optionally capping content length or loading full metadata. It is a good fit when you need human-readable encyclopedic text passages rather than structured entity data. Prefer over Wikidata when the goal is retrieving article prose and summaries rather than querying structured facts and entity relationships.
+  agent_usage_notes: |-
+    ## What it does
+    Queries the Wikipedia API with a search term and returns article content as a structured dataframe. It retrieves a configurable number of results and optionally limits the amount of text returned per article.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the search query or topic to look up on Wikipedia (e.g. "quantum computing"). No default — this is the core search term driving the lookup.
+    - **lang** - Ask the user which language edition of Wikipedia to query. Suggested default: `en` (English).
+    - **k** - Ask the user how many Wikipedia articles to retrieve. Suggested default: `3`; keep low to avoid large payloads downstream.
+
+    ## Outputs
+    - **dataframe** - Returns a dataframe of Wikipedia article content (titles, text, and metadata). Commonly feeds into a **Data** parsing step, a vector store ingestion pipeline, or a text-splitting component for RAG workflows.
+
+    ## Notes
+    - `k` is marked required — make sure the user provides an explicit integer value before running.
+    - Querying obscure topics or misspelled terms may return irrelevant or empty results; advise the user to use clear, specific search terms.
+    - The `lang` code must be a valid Wikipedia language subdomain prefix (e.g. `fr`, `de`, `es`) — an invalid code will cause the API call to fail.
+    - Advanced inputs (`load_all_available_meta`, `doc_content_chars_max`) are hidden by default; mention `doc_content_chars_max` if the user reports truncated content or unexpectedly large outputs.

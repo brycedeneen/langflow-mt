@@ -1,0 +1,22 @@
+- component_name: DeepSeekModelComponent
+  agent_summary: |-
+    You help the user generate text by sending prompts to DeepSeek language models via the DeepSeek API, producing either a text response or a model object for downstream use. It supports system messages, streaming in chat contexts, JSON mode, temperature control, and a seed for reproducible outputs.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text using DeepSeek large language models by sending a prompt (and optional system message) to the DeepSeek API and returning the model's response. It supports both plain text and structured JSON output.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the prompt or message to send to the model; this is typically wired from an upstream component rather than typed directly.
+    - **system_message** - Ask the user for an optional system-level instruction to shape the model's behaviour (e.g. "You are a helpful assistant."); default is none.
+    - **model_name** - Ask the user which DeepSeek model to use (e.g. `deepseek-chat` or `deepseek-reasoner`); suggest `deepseek-chat` as the default.
+    - **api_key** - Ask the user for their DeepSeek API key; note this should be stored as a Langflow secret variable.
+
+    ## Outputs
+    - **text_output** - Returns the generated text as a string; commonly feeds into a **Chat Output**, **Text Output**, or another processing component.
+    - **model_output** - Returns the raw LangChain chat model object; useful for chaining directly into other LangChain-compatible components such as agents or chains.
+
+    ## Notes
+    - `api_key` is marked required — the component will not run without it; remind the user to create it as a secret variable.
+    - `input_value` is usually connected from an upstream node (e.g. **Chat Input**) rather than set as a static value.
+    - Streaming only works inside a **Chat** interface; advise the user to leave it off for non-chat flows.
+    - Setting `max_tokens` to `0` means unlimited output length, which may increase cost unexpectedly.

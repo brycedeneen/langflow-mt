@@ -1,0 +1,23 @@
+- component_name: SupabaseVectorStoreComponent
+  agent_summary: |-
+    You help the user connect to a Supabase database as a vector store, ingesting embedded documents into a specified table and running similarity searches against stored vectors. It is a good fit when your project already uses Supabase as its backend and you need a managed PostgreSQL-based vector store without standing up a separate service.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a Supabase project and uses its pgvector extension as a vector store. It can ingest documents with embeddings and perform similarity searches against stored vectors, returning matching results.
+
+    ## Inputs to ask about
+    - **supabase_url** - Ask the user for their Supabase project URL (e.g. `https://<project-id>.supabase.co`). No default.
+    - **supabase_service_key** - Ask the user for their Supabase service role key; note this is a sensitive credential. No default.
+    - **query_name** - Ask the user for the name of the Postgres function used for similarity search (typically created when setting up pgvector in Supabase). No default, but commonly `match_documents`.
+    - **ingest_data** - Ask the user if they want to load documents into the vector store; connect a data source or leave empty for search-only usage.
+    - **search_query** - Ask the user what query text to run for similarity search; can be left empty if only ingesting data.
+    - **embedding** - Ask the user to connect an embedding model component; required for both ingestion and search to work correctly.
+
+    ## Outputs
+    - **search_results** - Returns documents most similar to the search query; commonly feeds into a prompt or language model component.
+    - **dataframe** - Returns the same results as a structured dataframe; useful for inspection or downstream data-processing steps.
+
+    ## Notes
+    - The `query_name` must match a Postgres RPC function that already exists in the Supabase database; the vector store will not work without it.
+    - The `supabase_service_key` bypasses row-level security — advise the user to keep it secret and avoid using the anon key.
+    - Both `ingest_data` and `search_query` can be used together in a single flow; neither is strictly required on its own.

@@ -1,0 +1,42 @@
+- component_name: OpenAIEmbeddingsComponent
+  agent_summary: |-
+    You help the user convert text into vector embeddings using OpenAI's embedding models, producing an embeddings object suitable for semantic search, retrieval, or vector store indexing. It pairs well with vector store components that require an embeddings input. Prefer over OpenAI when you need dense vector representations of text rather than generated text output.
+  agent_usage_notes: |-
+    ## What it does
+    Generates vector embeddings from text using OpenAI's embedding models. The resulting embeddings object can be connected to vector stores or retrieval components that require an embeddings interface.
+
+    ## Inputs to ask about
+    - **model** - Ask the user which OpenAI embedding model to use; suggested default is `text-embedding-3-small` (fast and cost-effective) or `text-embedding-ada-002` (widely supported legacy option).
+    - **openai_api_key** - Ask the user for their OpenAI API key; this is required for all requests. (Handled via the variable-creation flow — skip direct entry.)
+
+    ## Outputs
+    - **embeddings** - Produces an OpenAI embeddings object; commonly feeds into vector store components (e.g., Chroma, Pinecone, FAISS) or similarity-search retrievers that accept an embeddings interface.
+
+    ## Notes
+    - `openai_api_key` is marked required — the component will not function without it; make sure a secret variable is wired in before running.
+    - The `model` field has no enforced default in metadata, so confirm the user's intended model explicitly to avoid unexpected behavior.
+    - `dimensions` is only supported by newer models (e.g., `text-embedding-3-small`, `text-embedding-3-large`); warn the user not to set it when using `text-embedding-ada-002`.
+    - If the user is targeting Azure OpenAI instead of the standard API, the advanced fields `openai_api_base`, `openai_api_type`, `openai_api_version`, and `deployment` all become necessary — flag this if the user mentions Azure.
+- component_name: OpenAIModelComponent
+  agent_summary: |-
+    You help the user generate text by sending prompts to an OpenAI language model and returning the response as text or a model object. It supports system messages, temperature control, JSON mode, streaming in chat contexts, and custom API base URLs for compatible third-party endpoints. Prefer over OpenAI Embeddings when the goal is generating or transforming text rather than producing numerical vector representations of text.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text using an OpenAI language model (e.g., GPT-4o, GPT-3.5 Turbo). It accepts an optional input message and system prompt, then returns the model's response as text or a language model object.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the prompt or message to send to the model; this is the main user-facing text input.
+    - **system_message** - Ask the user if they want a system-level instruction (e.g., "You are a helpful assistant."); leave blank if none is needed.
+    - **model_name** - Ask the user which OpenAI model to use; suggested default: `gpt-4o`.
+    - **api_key** - Ask the user for their OpenAI API key (handled via the variable-creation flow).
+    - **temperature** - Ask the user how creative/random the output should be; suggested default: `0.7` (0 = deterministic, 1 = more creative).
+
+    ## Outputs
+    - **text_output** - The generated text response; commonly feeds into a text display, prompt, or downstream processing component.
+    - **model_output** - The raw language model object; commonly feeds into chains, agents, or other components that accept an LLM instance directly.
+
+    ## Notes
+    - The `api_key` field is required — the component will not run without a valid OpenAI API key.
+    - `model_name` must match an exact OpenAI model identifier; an invalid name will cause an API error.
+    - If the user wants reproducible outputs, suggest enabling the `seed` advanced option with a fixed integer.
+    - `text_output` and `model_output` serve different downstream purposes — clarify with the user which one their next component expects.

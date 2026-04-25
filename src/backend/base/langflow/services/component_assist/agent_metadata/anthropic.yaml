@@ -1,0 +1,21 @@
+- component_name: AnthropicModelComponent
+  agent_summary: |-
+    You help the user generate text by sending prompts to Anthropic's Messages API, returning both a text response and a model object for downstream use. It supports system messages, temperature control, token limits, streaming in chat contexts, and optionally filters to tool-compatible models only.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text by calling Anthropic's Messages API. It accepts a user message and an optional system message, then returns the model's response as text or a language model object for downstream chaining.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the human/user message to send to the model; no default needed as this is typically wired from an upstream component.
+    - **system_message** - Ask the user if they want a system-level instruction to guide model behavior (e.g., persona or constraints); defaults to empty (none).
+    - **model_name** - Ask the user which Anthropic model to use (e.g., `claude-3-5-sonnet-20241022`); suggest the latest Claude 3.5 Sonnet as a sensible default.
+    - **tool_model_enabled** - Ask the user whether they plan to connect tools to this model; if yes, only tool-compatible models will appear in the model list. Default: `false`.
+
+    ## Outputs
+    - **text_output** - The raw text response from the model; commonly feeds into a text display, prompt template, or downstream processing component.
+    - **model_output** - The fully configured language model object; commonly feeds into chains, agents, or components that need a reusable LLM handle.
+
+    ## Notes
+    - The `api_key` field is required — the assistant should prompt the user to create a secret variable for it rather than entering it inline.
+    - `tool_model_enabled` gates which models appear in `model_name`; make sure to set this **before** selecting a model to avoid mismatches.
+    - `text_output` and `model_output` serve different purposes — clarify with the user which downstream component they're connecting to, as some expect raw text and others expect an LLM object.

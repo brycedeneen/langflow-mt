@@ -1,0 +1,22 @@
+- component_name: CometAPIComponent
+  agent_summary: |-
+    You help the user send chat prompts to any of 500+ language models through the CometAPI gateway, producing either a text response or a model object. It is a good fit when you want a single API key and component to access a wide range of models without switching providers.
+  agent_usage_notes: |-
+    ## What it does
+    CometAPI provides access to 500+ AI language models through a single unified API. It accepts a chat input and optional system message, sends the request to the chosen model, and returns the generated text response.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the message or prompt to send to the model; no default, typically fed from a chat input component upstream.
+    - **system_message** - Ask the user if they want to set a system-level instruction (e.g. "You are a helpful assistant"); leave blank if not needed.
+    - **api_key** - Ask the user for their CometAPI key; required to authenticate all requests.
+    - **model_name** - Ask the user which model they want to use; required — suggest they check the CometAPI model catalogue for available model identifiers (e.g. `gpt-4o`, `claude-3-5-sonnet`).
+
+    ## Outputs
+    - **text_output** - Returns the model's reply as plain text; commonly feeds into a Chat Output or Text Output component.
+    - **model_output** - Returns the raw language model object; useful when chaining into components that accept a model instance directly (e.g. an agent or memory component).
+
+    ## Notes
+    - `model_name` is required and must exactly match a valid CometAPI model identifier — an incorrect name will cause the request to fail.
+    - `api_key` is a plain `str` field here but treat it as sensitive; encourage the user to store it as a Langflow secret variable.
+    - `text_output` and `model_output` serve different downstream purposes — clarify with the user which output they intend to connect before wiring the component.
+    - Streaming is only functional inside a Chat interface; advise the user not to enable it in non-chat flows.

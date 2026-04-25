@@ -1,0 +1,26 @@
+- component_name: ClickhouseVectorStoreComponent
+  agent_summary: |-
+    You help the user connect to a ClickHouse database and use it as a vector store, ingesting embedded documents into a specified table and running similarity searches against them to return ranked results. It is a good fit when your data already lives in or needs to land in ClickHouse, and you want to configure index type, distance metric, and score thresholds without leaving the pipeline.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a ClickHouse database to store and retrieve vector embeddings, enabling similarity search over ingested documents. It supports both indexing new data and querying existing vectors using an embedding model.
+
+    ## Inputs to ask about
+    - **host** - Ask the user for the ClickHouse server hostname or IP address (e.g., `localhost` or a remote host).
+    - **port** - Ask the user for the ClickHouse HTTP/native port; default is typically `8123` for HTTP or `9000` for native.
+    - **database** - Ask the user which ClickHouse database to use (e.g., `default`).
+    - **table** - Ask the user for the table name where vectors will be stored or queried.
+    - **username** - Ask the user for the ClickHouse username (e.g., `default`).
+    - **password** - Ask the user for the ClickHouse password; note this is a plain string field (not a secret input), so advise caution.
+    - **ingest_data** - Ask the user if they want to index documents; if so, connect this to a document loader or splitter output.
+    - **embedding** - Ask the user to connect an embedding model component (required for both ingestion and search).
+    - **search_query** - Ask the user what query to run for similarity search, if they want to retrieve results.
+
+    ## Outputs
+    - **search_results** - Returns documents matching the similarity search; commonly feeds into a prompt or LLM component.
+    - **dataframe** - Returns search results as a structured DataFrame; useful for inspection or downstream data processing.
+
+    ## Notes
+    - Both `embedding` and either `ingest_data` or `search_query` should be provided — the component won't be useful without an embedding model connected.
+    - `password` is a plain string field, not a secret; remind the user to handle credentials carefully.
+    - If used in a multi-output flow, enabling `should_cache_vector_store` (advanced) avoids redundant connections to ClickHouse.

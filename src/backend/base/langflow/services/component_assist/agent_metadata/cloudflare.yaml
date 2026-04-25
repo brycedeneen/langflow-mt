@@ -1,0 +1,19 @@
+- component_name: CloudflareWorkersAIEmbeddingsComponent
+  agent_summary: |-
+    You help the user generate vector embeddings from text using Cloudflare Workers AI models, requiring a Cloudflare account ID, API token, and a supported text embedding model name. This is a good fit when your infrastructure already runs on Cloudflare or you want to keep embedding calls within the Cloudflare ecosystem without a separate embedding provider.
+  agent_usage_notes: |-
+    ## What it does
+    Generates vector embeddings from text using Cloudflare Workers AI models. The resulting embeddings can be passed to vector stores or similarity search components for retrieval-augmented generation and semantic search workflows.
+
+    ## Inputs to ask about
+    - **account_id** - Ask the user for their Cloudflare account ID; found at the Workers & Pages section of the Cloudflare dashboard (https://developers.cloudflare.com/fundamentals/setup/find-account-and-zone-ids/).
+    - **api_token** - Ask the user for their Cloudflare API token with Workers AI permissions; note this is a plain string input, not a secret field, so advise the user to handle it carefully.
+    - **model_name** - Ask the user which text embedding model to use; suggest `@cf/baai/bge-base-en-v1.5` as a common default (see the full list at https://developers.cloudflare.com/workers-ai/models/#text-embeddings).
+
+    ## Outputs
+    - **embeddings** - Produces an embeddings object compatible with LangChain vector stores (e.g., Chroma, Pinecone, FAISS) and any component that accepts an `Embeddings` input.
+
+    ## Notes
+    - The `api_token` field is typed as a plain string (`str`) rather than a `SecretStrInput`, so it will not be masked automatically — remind the user to avoid hardcoding sensitive tokens in shared flows.
+    - The chosen `model_name` must be a Cloudflare Workers AI text-embedding model specifically; general-purpose or image models will not work here.
+    - Embedding dimensions vary by model, so confirm the target vector store's expected dimension matches the selected model's output before connecting them.

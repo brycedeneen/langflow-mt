@@ -1,0 +1,24 @@
+- component_name: Mem0MemoryComponent
+  agent_summary: |-
+    You help the user persist and retrieve chat messages through Mem0 memory storage, producing a memory instance and search results tied to a specific user ID. It works well in conversational flows where you need to ingest new messages and query related past memories in the same step, supporting both the cloud Mem0 platform via API key and a local instance with a custom configuration dictionary.
+  agent_usage_notes: |-
+    ## What it does
+    Retrieves and stores chat messages using Mem0 memory storage. It can ingest new messages into a user's memory and search existing memories using a query, supporting both a hosted Mem0 platform and a local instance.
+
+    ## Inputs to ask about
+    - **mem0_config** - Ask the user if they want to provide a custom configuration dictionary (e.g., for a graph store like Neo4j). Defaults to empty (uses Mem0's built-in defaults).
+    - **ingest_message** - Ask what message content should be saved into memory; typically wired from the current chat message output.
+    - **existing_memory** - Ask if they have an existing Mem0 memory instance to reuse; if not, a new one is created automatically.
+    - **user_id** - Ask for a unique identifier to scope memories to a specific user; suggest a static string like `"user_1"` as a default.
+    - **search_query** - Ask what text should be used to retrieve related memories; typically wired from the current user input.
+    - **mem0_api_key** - Ask if they are using the Mem0 hosted platform; if so, provide the API key here. Leave empty for local use.
+    - **openai_api_key** - Ask if they are using OpenAI embeddings without a custom config; required in that case.
+
+    ## Outputs
+    - **memory** - The Mem0 memory instance itself; can feed into another Mem0 component as `existing_memory` to reuse state.
+    - **search_results** - Retrieved memories matching the search query; typically feeds into a prompt or LLM component as context.
+
+    ## Notes
+    - `mem0_api_key` and `openai_api_key` are plain `str` fields here, not secret inputs — remind the user to handle them carefully.
+    - If neither a `mem0_api_key` nor a `mem0_config` is supplied, the component runs locally and requires OpenAI credentials for embeddings.
+    - Connecting `memory` output back to `existing_memory` input avoids re-initializing the instance on each run.

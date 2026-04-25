@@ -1,0 +1,45 @@
+- component_name: ChatOllamaComponent
+  agent_summary: |-
+    You help the user generate text responses from a locally hosted Ollama model, producing chat text, structured output, or dataframe results via a configurable API endpoint. It is a good fit when you need a fully local LLM with fine-grained sampling controls (Mirostat, top-k, top-p, GPU allocation) and optional tool calling or structured output. Prefer over Ollama Embeddings when the goal is text generation or conversation rather than producing vector representations of text.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text by sending prompts to a locally running Ollama instance, allowing you to use open-source LLMs (such as Llama, Mistral, or Gemma) without sending data to external APIs. It connects to the Ollama API endpoint on your machine and returns the model's response.
+
+    ## Inputs to ask about
+    - **base_url** - Ask the user for their Ollama API endpoint; suggest the default `http://localhost:11434` unless they are running Ollama on a remote host.
+    - **model_name** - Ask which Ollama model to use (e.g. `llama3`, `mistral`, `gemma2`); direct them to https://ollama.com/library to browse available models — no default, required.
+    - **format** - Ask if the output should follow a specific format (e.g. JSON); leave empty for plain text.
+    - **tool_model_enabled** - Ask if the model should support tool/function calling; default is off.
+    - **enable_structured_output** - Ask if structured (schema-conforming) output is needed; default is off.
+    - **input_value** - Ask for the prompt or message to send to the model if it is not being piped in from another component.
+    - **system_message** - Ask if the user wants a system-level instruction to guide the model's behavior (e.g. "You are a helpful assistant").
+
+    ## Outputs
+    - **text_output** - Returns the raw generated text; commonly feeds into a Text Output or prompt component.
+    - **model_output** - Returns the LLM object itself; useful for chaining into agents or memory components.
+    - **data_output** - Returns the response as a structured Data object; feeds into data-processing components.
+    - **dataframe_output** - Returns the response as a DataFrame; useful for tabular downstream processing.
+
+    ## Notes
+    - The selected model must already be pulled locally via `ollama pull <model_name>` before the component can use it.
+    - Tool calling and structured output may not be supported by all models — confirm compatibility on the Ollama library page.
+    - Streaming (`stream`) only works in a Chat context, not with standard text pipeline connections.
+- component_name: OllamaEmbeddingsComponent
+  agent_summary: |-
+    You help the user produce text embeddings from an Ollama model running at a local or remote API endpoint. It is a good fit when you need vector representations of text for retrieval or similarity tasks using a self-hosted Ollama instance. Prefer over Ollama (chat) when your pipeline needs embeddings rather than generated text responses.
+  agent_usage_notes: |-
+    ## What it does
+    Generates vector embeddings from text using a locally hosted Ollama model. It connects to a running Ollama instance via its HTTP API and returns an embeddings object compatible with downstream vector store and retrieval components.
+
+    ## Inputs to ask about
+    - **model_name** - Ask the user which Ollama model to use for embeddings (e.g., `nomic-embed-text`, `mxbai-embed-large`, or `llama3`). No universal default, but `nomic-embed-text` is a common dedicated embedding model.
+    - **base_url** - Ask the user for the Ollama API endpoint. Default is `http://localhost:11434`; change this if Ollama is running on a remote host or a different port.
+
+    ## Outputs
+    - **embeddings** - Produces a LangChain-compatible embeddings object; commonly fed into vector store components (e.g., Chroma, FAISS, Pinecone) or retriever components that require an embedding model.
+
+    ## Notes
+    - Ollama must already be running and the specified model must be pulled (`ollama pull <model_name>`) before this component can function — remind the user if they are unsure.
+    - Dedicated embedding models (e.g., `nomic-embed-text`) generally outperform general chat models for retrieval tasks; flag this if the user picks a chat model.
+    - If Ollama is running inside Docker or on a remote machine, the `base_url` must reflect that address, not `localhost`.
+    - The `api_key` field is only relevant for secured or proxied Ollama deployments; most local setups do not require it.

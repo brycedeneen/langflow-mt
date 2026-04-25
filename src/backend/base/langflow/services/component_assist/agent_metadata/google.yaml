@@ -1,0 +1,99 @@
+- component_name: BigQueryExecutorComponent
+  agent_summary: |-
+    You help the user run a SQL query against a Google BigQuery dataset and return the results, authenticating via a service account JSON file. This is a good fit when your workflow needs to read or query structured data directly from BigQuery without leaving the pipeline. No peers in this category materially overlap with database query execution.
+  agent_usage_notes: |-
+    ## What it does
+    Executes a SQL query against Google BigQuery using a service account for authentication and returns the query results. It allows workflows to retrieve or manipulate data stored in BigQuery directly from the pipeline.
+
+    ## Inputs to ask about
+    - **service_account_json_file** - Ask the user to upload their Google Cloud service account JSON key file. This file must have the necessary BigQuery permissions (e.g., `bigquery.dataViewer` or `bigquery.user`). No default — the file must be provided.
+    - **query** - Ask the user for the SQL query they want to run against BigQuery. Prompt them to include the fully qualified table reference in the format `project.dataset.table`. No default — a valid SQL string is required.
+
+    ## Outputs
+    - **query_results** - Returns the results of the executed SQL query, typically as structured data. Commonly feeds into a data processing component, a prompt builder, or a display/output node downstream.
+
+    ## Notes
+    - The service account JSON file must belong to a Google Cloud project that has the BigQuery API enabled, and the account must have appropriate IAM roles to run queries.
+    - Make sure the query references tables using fully qualified names (`project_id.dataset.table`) to avoid ambiguous dataset resolution errors.
+    - The component does not expose a project ID input separately, so the target project should be implied by the service account or specified within the query itself.
+- component_name: GoogleGenerativeAIComponent
+  agent_summary: |-
+    You help the user generate text by sending prompts to a Google Generative AI model (such as Gemini), returning both raw text and a model object. It works well for chat or text generation flows where you need control over temperature, token limits, and sampling parameters via a Google API key. Prefer over Google Generative AI Embeddings when you need generated text output rather than vector representations of text.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text using Google's Generative AI models (e.g., Gemini). It accepts a user input and an optional system message, then returns a text response or a model object for downstream use.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the prompt or text input to send to the model. No default; typically connected from an upstream component.
+    - **system_message** - Ask the user if they want a system-level instruction to guide the model's behavior (e.g., "You are a helpful assistant"). Default: empty.
+    - **model_name** - Ask the user which Google Generative AI model to use (e.g., `gemini-1.5-pro`, `gemini-1.5-flash`). Suggest `gemini-1.5-flash` as a fast, capable default.
+    - **api_key** - Ask the user for their Google API key. Note: this should be stored as a secret variable.
+    - **max_output_tokens** - Ask the user if they want to cap response length. Suggested default: leave unset to use the model's built-in limit.
+    - **temperature** - Ask the user how creative or deterministic the output should be (0 = deterministic, 1 = creative). Suggested default: `0.7`.
+    - **tool_model_enabled** - Ask the user whether tool/function calling support should be enabled. Default: `False`.
+
+    ## Outputs
+    - **text_output** - The generated text response; commonly feeds into a text display, prompt, or downstream processing component.
+    - **model_output** - The raw model object; useful when chaining with other LLM-aware components that expect a model instance.
+
+    ## Notes
+    - The `api_key` field is marked required — the component will not run without it; ensure the user has a valid Google AI Studio or GCP API key.
+    - Streaming is only functional in a Chat context; advise users not to enable it in standard pipeline flows.
+- component_name: GoogleGenerativeAIEmbeddingsComponent
+  agent_summary: |-
+    You help the user generate vector embeddings from text using Google's generative AI embedding models, producing an embeddings object that can be passed to vector stores or retrieval pipelines. This is a good fit when building semantic search or RAG workflows that rely on Google's embedding models via a LangChain-compatible interface. Prefer over Google Generative AI when you need vector representations of text rather than generated text output.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Google's Generative AI embeddings service to convert text into vector representations. It wraps the `GoogleGenerativeAIEmbeddings` class from the `langchain-google-genai` package for use in embedding pipelines.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Google Generative AI API key; this is required to authenticate with the service. Note: guide them to store it as a secret variable rather than pasting it directly.
+    - **model_name** - Ask the user which embedding model to use; a sensible default is `models/embedding-001`, which is Google's standard generative embedding model.
+
+    ## Outputs
+    - **embeddings** - Produces a LangChain-compatible embeddings object; commonly fed into vector store components (e.g., Chroma, Pinecone, FAISS) or retrieval pipelines that require an embeddings provider.
+
+    ## Notes
+    - The `api_key` field here accepts a plain string, but advise the user to use a Langflow secret variable to avoid exposing credentials.
+    - The `langchain-google-genai` package must be installed in the environment; if the component fails to load, this is the first thing to check.
+    - Model availability may depend on the user's Google Cloud project and API access tier — if `models/embedding-001` is unavailable, ask them to verify access in the Google AI Studio console.
+    - This component only produces an embeddings interface, not raw vectors; it must be paired with a component that passes text to it (e.g., a vector store or embedding-calling node).
+- component_name: GoogleSearchAPICore
+  agent_summary: |-
+    You help the user query Google's Custom Search Engine API and return the top k search results as a DataFrame. It requires a Google API key and a Custom Search Engine ID, making it a good fit when you need structured, tabular search results for downstream processing. Prefer over Google Serper API when you already have Google CSE credentials or need results directly from Google's own search infrastructure rather than the Serper.dev intermediary.
+  agent_usage_notes: |-
+    ## What it does
+    Calls the Google Search API using a Custom Search Engine (CSE) and returns the search results as a DataFrame. It takes a query string as input and retrieves a configurable number of results.
+
+    ## Inputs to ask about
+    - **google_api_key** - Ask the user for their Google API key; this is a credential so remind them to store it securely as a variable.
+    - **google_cse_id** - Ask the user for their Google Custom Search Engine ID, found in the CSE control panel at cse.google.com.
+    - **input_value** - Ask the user for the search query string they want to run against Google Search; no default applies here.
+    - **k** - Ask the user how many search results to return; a suggested default is `5`.
+
+    ## Outputs
+    - **results** - Produces a DataFrame containing the search results, which can feed into a data parsing component, a prompt builder, or any component that accepts structured tabular data.
+
+    ## Notes
+    - Both `google_api_key` and `google_cse_id` are required; the component will not function without either — remind the user they must create a Custom Search Engine at cse.google.com and enable the Custom Search JSON API in Google Cloud Console.
+    - The Google Custom Search API has a free-tier limit of 100 queries per day; exceeding this requires billing to be enabled.
+    - Keep `k` reasonably small (e.g., 5–10) to stay within API quotas and avoid unnecessary latency.
+- component_name: GoogleSerperAPICore
+  agent_summary: |-
+    You help the user query Google Search via the Serper.dev API, returning a set of web search results for a given input string. It requires a Serper API key and a count of results to return, making it a lightweight option for grounding responses in live web data. Prefer over Google Search API when you want to use Serper.dev credentials instead of a direct Google Custom Search API key.
+  agent_usage_notes: |-
+    ## What it does
+    Calls the Serper.dev Google Search API with a query string and returns a set of search results. It provides programmatic access to Google Search results without scraping, useful for grounding AI responses in current web content.
+
+    ## Inputs to ask about
+    - **serper_api_key** - Ask the user for their Serper.dev API key (obtainable from serper.dev). Note: although this is not marked as a secret field, treat it as sensitive and recommend storing it as a credential variable.
+    - **input_value** - Ask the user what search query should be sent to Google (e.g., a user question, a topic, or a dynamically passed string from upstream components). No obvious default.
+    - **k** - Ask the user how many search results to return. Suggest a default of **5** as a reasonable balance between coverage and token usage.
+
+    ## Outputs
+    - **results** - Returns the raw search results from the Serper.dev API, typically a structured payload containing titles, links, and snippets. Commonly feeds into a text parser, LLM prompt, or document loader for further processing.
+
+    ## Notes
+    - The `serper_api_key` field is typed as a plain string rather than a secret input, so remind the user to avoid hardcoding it in shared flows — use an environment variable or credential store instead.
+    - Increasing `k` significantly will grow the size of the output payload, which may exceed context limits if passed directly to an LLM.
+    - A valid Serper.dev account and API key are required; the free tier has a limited number of monthly queries.

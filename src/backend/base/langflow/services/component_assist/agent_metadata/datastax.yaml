@@ -1,0 +1,116 @@
+- component_name: AstraDBCQLToolComponent
+  agent_summary: |-
+    You help the user build an agent tool that queries transactional data from a DataStax Astra DB table using CQL, returning structured rows based on partition keys, clustering keys, and optional static filters. This is a good fit when an LLM agent needs to look up specific records by known keys rather than perform semantic similarity search. Prefer over Astra DB when your use case is key-based transactional retrieval from a CQL table rather than vector similarity search over document embeddings.
+  agent_usage_notes: |-
+    ## What it does
+    Creates a tool that allows an AI agent to query transactional data from a DataStax Astra DB CQL (Cassandra Query Language) table. The tool exposes table fields as parameters the LLM can use to filter and retrieve rows dynamically.
+
+    ## Inputs to ask about
+    - **token** - Ask the user for their Astra DB authentication token (found in the Astra DB console under "Token Manager").
+    - **database_name** - Ask the user for the name of the Astra DB database they want to connect to.
+    - **collection_name** - Ask the user for the CQL table name within the database to query.
+    - **tool_name** - Ask the user what to name this tool; suggest a short, descriptive identifier like `get_orders` or `fetch_transactions`.
+    - **tool_description** - Ask the user for a plain-language description of what the tool retrieves; this is shown directly to the LLM to guide usage.
+    - **tools_params** - Ask the user to define the query parameters the LLM can supply, including partition keys, clustering keys, and indexed fields, with descriptions the model can understand.
+
+    ## Outputs
+    - **api_run_model** - The executable tool invocation result; typically fed into an agent or chain that processes query responses.
+    - **api_build_tool** - The constructed tool object; connects to an agent component's tool input so the agent can call it during reasoning.
+
+    ## Notes
+    - `tool_description` directly influences LLM behavior — a vague description may cause the agent to misuse or ignore the tool; encourage the user to be specific.
+    - `tools_params` must respect the table's schema (partition keys, clustering keys, indexed fields only) — querying non-indexed fields will fail in CQL.
+    - The `token` field is a plain string input here, but treat it as sensitive; recommend the user store it as a credential variable.
+    - `api_endpoint` (advanced) overrides `database_name` if both are set.
+- component_name: AstraDBChatMemory
+  agent_summary: |-
+    You help the user persist and retrieve chat message history using DataStax Astra DB as the backend store, connecting to a specified database, collection, and session ID. This is a good fit when you need durable, cloud-hosted conversation memory that integrates with Astra DB across sessions. Prefer over Astra DB when the goal is storing chat history for conversational context rather than ingesting and searching document vectors.
+  agent_usage_notes: |-
+    ## What it does
+    Retrieves and stores chat messages in an Astra DB collection, enabling persistent chat memory across sessions. It connects to a specified Astra DB database and collection to read and write conversation history.
+
+    ## Inputs to ask about
+    - **token** - Ask the user for their Astra DB authentication token; this is required to connect to the service. No default — treat as a secret variable even though it appears as a plain string field.
+    - **database_name** - Ask the user for the name of their Astra DB database instance (e.g., `my-chatbot-db`). No universal default.
+    - **collection_name** - Ask the user for the collection name where chat messages will be stored (e.g., `chat_memory`). If the collection doesn't exist yet, Astra DB will create it.
+
+    ## Outputs
+    - **memory** - Produces a chat memory object backed by Astra DB; commonly fed into a conversation chain or agent component that requires persistent memory.
+
+    ## Notes
+    - The **token** field is typed as a plain string but functions as a secret — encourage the user to store it as a Langflow secret variable rather than pasting it directly.
+    - **database_name** is required unless **api_endpoint** is provided (advanced); if the user already knows their API endpoint, they can supply that instead and skip database selection.
+    - If the user wants to scope messages to a specific conversation, they should set **session_id** (advanced); otherwise the current session ID is used automatically.
+    - Ensure the Astra DB database is already provisioned before connecting — this component does not create databases, only collections.
+- component_name: AstraDBVectorStoreComponent
+  agent_summary: |-
+    You help the user store and query document embeddings in an Astra DB vector collection, producing similarity search results, a dataframe, or a reusable vector store connection. It is a good fit when you need a managed cloud vector store with optional hybrid search, reranking, and vectorize (embedding-free ingestion) support. Prefer over Hyper-Converged Database when targeting DataStax Astra DB (cloud-hosted) rather than a self-managed HCD deployment.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to an Astra DB instance to ingest document vectors into a named collection and perform similarity (or hybrid) searches against stored content. It can act as both a write target for ingestion pipelines and a retrieval source for RAG workflows.
+
+    ## Inputs to ask about
+    - **token** - Ask the user for their Astra DB application token (e.g. `AstraCS:...`); no default.
+    - **database_name** - Ask the user for the name of their Astra DB database; no default.
+    - **collection_name** - Ask the user for the collection name where vectors will be stored or searched; no default.
+    - **ingest_data** - Ask whether the user wants to load documents into the collection; connect to a document loader or splitter output, or leave empty for search-only use.
+    - **search_query** - Ask for the natural-language query to run similarity search; leave blank if only ingesting.
+    - **embedding_model** - Ask the user to connect an embedding model component; note this is not required if using an Astra Vectorize collection.
+    - **reranker** - Ask whether the user wants a reranker for post-retrieval scoring; relevant when using hybrid search.
+    - **lexical_terms** - Ask if additional keywords should boost search precision alongside the vector query.
+
+    ## Outputs
+    - **search_results** - Returns matched documents as a list; commonly feeds into an LLM or prompt component.
+    - **dataframe** - Returns results as a structured DataFrame; useful for inspection or downstream data processing.
+    - **vectorstoreconnection** - Exposes the raw vector store object; used to connect to retriever or chain components.
+
+    ## Notes
+    - The `embedding_model` can be omitted only for Astra Vectorize collections; always confirm which collection type the user has.
+    - `api_endpoint` overrides `database_name` selection — warn the user not to set both unless intentional.
+    - For hybrid search, a `reranker` is strongly suggested to get optimal relevance ranking.
+- component_name: GraphRAGComponent
+  agent_summary: |-
+    You help the user retrieve documents from a vector store using graph-based traversal, following edges between related nodes rather than relying on pure similarity search alone. It pairs well with an Astra DB vector store and an embedding model, and accepts an edge definition and traversal strategy to control how the graph is walked. Prefer over Astra DB when your retrieval task benefits from relationship-aware traversal across connected document nodes rather than straightforward semantic similarity lookup.
+  agent_usage_notes: |-
+    ## What it does
+    Graph RAG performs graph-aware retrieval-augmented generation traversal over a vector store, following edges between related documents to return contextually connected results. It combines vector similarity search with graph traversal strategies to surface richer, more interconnected document sets.
+
+    ## Inputs to ask about
+    - **embedding_model** - Ask the user which embedding model to connect; note it is not required if they are using an Astra Vectorize collection.
+    - **vector_store** - Ask the user to connect a configured vector store component; this is the primary data source for traversal.
+    - **edge_definition** - Ask the user how documents are linked (e.g., a metadata field name that connects related records); no universal default applies.
+    - **strategy** - Ask the user which traversal strategy to use (e.g., eager, lazy); check the DataStax graph-rag docs if unsure what options the connected store supports.
+    - **search_query** - Ask the user for the natural-language query string that initiates the graph traversal search.
+
+    ## Outputs
+    - **search_results** - Returns a list of retrieved `Data` objects; commonly feeds into a **Parser** or **Prompt** component for downstream generation.
+    - **dataframe** - Returns results in tabular form; useful for inspection or feeding into data-processing components.
+
+    ## Notes
+    - The `edge_definition` field drives graph traversal; an incorrect or missing value will likely cause traversal to fail or fall back to plain vector search.
+    - The `embedding_model` input can be omitted only when using Astra Vectorize — otherwise it is effectively required.
+    - The `graphrag_strategy_kwargs` advanced input allows fine-tuning traversal behaviour; refer users to the DataStax graph-rag strategy reference for valid parameters.
+- component_name: HCDVectorStoreComponent
+  agent_summary: |-
+    You help the user store document vectors in and run similarity searches against a self-managed Hyper-Converged Database instance, returning ranked search results or a dataframe. It is a good fit when you need a private, on-premises vector store rather than a cloud-managed service, and accepts an embedding model plus optional TLS certificates and metadata indexing controls. Prefer over Astra DB when your deployment targets a self-hosted HCD cluster with username/password and a custom API endpoint rather than DataStax's hosted Astra DB service.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a Hyper-Converged Database (HCD) instance to store and retrieve document vectors. It supports ingesting data into a named collection and running similarity searches against stored vectors.
+
+    ## Inputs to ask about
+    - **collection_name** - Ask the user for the name of the HCD collection to store or query vectors in; no universal default, but suggest a descriptive name like `"my_collection"`.
+    - **username** - Ask the user for their HCD authentication username.
+    - **password** - Ask the user for their HCD authentication password (note: this is a plain string field, not a secret — advise the user to handle it carefully).
+    - **api_endpoint** - Ask the user for the full URL of their HCD service endpoint, e.g. `"https://hcd-host:8181"`.
+    - **ingest_data** - Ask the user whether they want to ingest documents into the store; connect this to a data source component if so.
+    - **search_query** - Ask the user what query to run for similarity search; leave empty if the component is used only for ingestion.
+    - **embedding** - Ask the user to connect an embedding model component; required unless using a server-side vectorize configuration.
+
+    ## Outputs
+    - **search_results** - Returns documents matching the similarity search query; commonly feeds into a prompt or language model component.
+    - **dataframe** - Returns search results as a structured DataFrame; useful for inspection or downstream tabular processing.
+
+    ## Notes
+    - Both `username` and `password` are plain string fields — remind the user to use Langflow variables or environment references rather than hardcoding credentials.
+    - If `search_query` is empty, the component acts purely as an ingestion sink and search outputs will be empty.
+    - `embedding` must be connected (or Vectorize configured) before the component can function; it is not marked required but is effectively mandatory.

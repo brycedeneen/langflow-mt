@@ -1,0 +1,1414 @@
+- component_name: ComposioAPIComponent
+  agent_summary: |-
+    You help the user connect an agent to the full Composio toolset, producing a tools output by selecting any supported app and specifying which actions to expose. Use this when you need to wire up a service that does not have its own dedicated Composio component, or when you want a single component to handle tool selection dynamically at runtime. Prefer over the service-specific Composio components when the target integration is not listed as a named peer, or when you need to switch between multiple apps without swapping components.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Composio toolset and exposes a set of third-party integration actions (e.g. GitHub, Slack, Gmail) that an agent can invoke at runtime. It wraps the selected actions as callable tools ready for use in an agent pipeline.
+
+    ## Inputs to ask about
+    - **tool_name** - Ask the user which Composio integration (app) they want to connect to, e.g. `GITHUB`, `SLACK`, or `GMAIL`. Refer them to the [Composio app list](https://docs.composio.dev) if they are unsure of the exact name.
+    - **actions** - Ask the user which specific actions within that tool they want to enable, e.g. `GITHUB_CREATE_ISSUE` or `SLACK_SEND_MESSAGE`. Multiple actions can be added; leave empty to expose all available actions for the selected tool.
+
+    ## Outputs
+    - **tools** - A list of callable tool objects ready to be passed into an agent component (e.g. a LangChain or OpenAI agent node) as its tools input.
+
+    ## Notes
+    - The `api_key` input is a required credential — make sure the user has created it as a Composio secret variable before wiring up this component; direct them to https://docs.composio.dev/faq/api_key/api_key if needed.
+    - The selected `tool_name` integration must already be **connected and authenticated** in the user's Composio dashboard; otherwise action calls will fail at runtime.
+    - `actions` names are case-sensitive and follow the pattern `APPNAME_ACTION_NAME` — advise the user to look them up in the Composio docs or dashboard.
+    - This component is typically placed upstream of an agent node, with the **tools** output feeding directly into the agent's tools input.
+- component_name: ComposioAgentQLAPIComponent
+  agent_summary: |-
+    You help the user connect to AgentQL via the Composio toolset, authenticating with an API key and running selected AgentQL actions that return results as a dataframe. It is a good fit when you need to integrate AgentQL's web querying or scraping capabilities into an agent workflow through Composio's managed auth layer. Prefer over the generic Composio Tools component when you want AgentQL-specific action filtering and a dedicated credential configuration rather than a broad multi-tool setup.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the AgentQL service via Composio, authenticating with the chosen auth method and exposing selected AgentQL actions that can be invoked by an agent or workflow. Results are returned as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which is required to authenticate with the Composio platform.
+    - **auth_mode** - Ask the user which authentication mode to use for AgentQL (e.g., API key, OAuth2, bearer token); the correct choice determines which other credential fields are relevant.
+    - **generic_api_key** - If the user selects an API-key-based auth mode, ask for their AgentQL API key to be entered on the Composio connection page.
+    - **client_id / client_secret** - If using OAuth2, ask the user for their OAuth app's client ID and secret.
+    - **redirect_uri** - If using OAuth2, ask for the redirect URI registered with the OAuth app.
+    - **bearer_token** - If using bearer-token auth, ask the user to supply the token directly.
+    - **username / password** - If using basic auth, ask for the AgentQL account credentials.
+    - **action_button** - Ask the user which AgentQL actions they want to enable; this list determines what the component can do at runtime.
+
+    ## Outputs
+    - **dataFrame** - Returns the results of the selected AgentQL action(s) as a DataFrame, suitable for feeding into a data-processing component, table display, or further agent steps.
+
+    ## Notes
+    - Only fill in credential fields that match the chosen `auth_mode`; leaving irrelevant credential fields empty avoids confusion.
+    - The `action_button` (sortable list) must have at least one action selected, or the component will have nothing to execute.
+    - Refer users to https://docs.composio.dev for help locating their API key and setting up OAuth app credentials.
+- component_name: ComposioAgiledAPIComponent
+  agent_summary: |-
+    You help the user connect to the Agiled business management platform via Composio, authenticate with various credential types, execute selected actions, and return results as a dataframe. It is a good fit when your agent needs to interact with Agiled for project, client, or task management within a Composio-powered workflow. Prefer over the generic Composio Tools component when you want a pre-scoped integration targeting Agiled specifically rather than selecting from the full Composio toolset.
+  agent_usage_notes: |-
+    ## What it does
+    The Agiled component connects to the Agiled project management and CRM platform via the Composio integration layer, authenticating with the service and exposing its actions to the rest of the flow. It returns results as a DataFrame for downstream processing.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method their Agiled connection uses (e.g., API key, OAuth2, bearer token); the correct choice determines which other credential fields are needed.
+    - **api_key** - Ask the user for their Composio API key used to access the Composio integration layer; required to connect.
+    - **generic_api_key** - Ask the user for their Agiled API key if using API key auth mode; entered on the Composio credentials page.
+    - **client_id / client_secret** - Ask the user for these if they are using OAuth2 auth mode.
+    - **username / password** - Ask the user for these if using Basic authentication mode.
+    - **domain / subdomain / instance_url / base_url** - Ask the user if their Agiled account uses a custom domain or subdomain; leave blank if not applicable.
+    - **action_button** - Ask the user which Agiled actions they want to enable; this controls what operations the component exposes.
+    - **scopes** - Ask the user which permission scopes are needed if using OAuth2; defaults to whatever Composio pre-selects.
+
+    ## Outputs
+    - **dataFrame** - Returns action results from Agiled as a structured DataFrame; commonly feeds into a data processing component, table display, or subsequent agent step.
+
+    ## Notes
+    - Only the credential fields relevant to the chosen `auth_mode` need to be filled in — filling unrelated fields will not cause errors but adds unnecessary clutter.
+    - Refer the user to https://docs.composio.dev for details on setting up the Agiled integration and obtaining credentials.
+- component_name: ComposioAirtableAPIComponent
+  agent_summary: |-
+    You help the user connect to Airtable via the Composio toolset, authenticate with the service, and execute actions against Airtable bases, returning results as a dataframe. It is a good fit when you need to read from or write to Airtable records inside an automated workflow. Prefer over ComposioGoogleSheetsAPIComponent when the user's structured data lives in Airtable rather than Google Sheets.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Airtable via the Composio integration layer, authenticates using the chosen auth method, and executes one or more Airtable actions (such as reading or writing records). Results are returned as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which authorizes this component to use the Composio platform (not the Airtable API key directly).
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., API key, OAuth, bearer token); the correct choice determines which other credential fields are relevant.
+    - **generic_api_key** - If using a generic API key auth mode, ask the user to enter the Airtable API key here (as shown on the Composio connection page).
+    - **access_token / bearer_token / token** - Ask the user to provide whichever token type matches their chosen auth mode; only one set is typically needed.
+    - **action_button** - Ask the user which Airtable action(s) they want to perform (e.g., list records, create record); this drives what the component actually does.
+
+    ## Outputs
+    - **dataFrame** - Returns results of the executed Airtable action as a DataFrame; commonly feeds into a data processing component, table display, or downstream agent tool.
+
+    ## Notes
+    - Only fill credential fields that match the selected `auth_mode`; leaving unrelated fields blank is expected and fine.
+    - The `auth_link` field handles OAuth browser-based flows — if the user picks OAuth, they will need to complete a redirect step before the component can run.
+    - Refer the user to [Composio docs](https://docs.composio.dev) if they are unsure how to obtain credentials or set up the Airtable integration.
+- component_name: ComposioApolloAPIComponent
+  agent_summary: |-
+    You help the user connect to the Apollo sales intelligence platform via Composio, executing actions against Apollo's API and returning results as a DataFrame. This is a good fit for sales and lead-generation workflows that need to search contacts, enrich person or company data, or manage sequences. Prefer over PeopleDataLabs when the workflow requires Apollo-specific CRM actions like sequencing or account management rather than pure data enrichment.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Apollo API via Composio, allowing an AI workflow to execute Apollo actions (such as people and company search or enrichment) and return results as a structured DataFrame.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., API key, OAuth2, bearer token) so the correct credential fields can be filled in.
+    - **generic_api_key** - Ask the user for their Apollo API key to be entered on the Composio authentication page; this is the most common auth path.
+    - **api_key** - Ask the user for their Composio API key, required to connect to the Composio platform itself.
+    - **action_button** - Ask the user which Apollo action(s) they want to execute (e.g., search people, enrich company); this drives what the component actually does.
+    - **scopes** - Ask the user if any specific OAuth scopes are needed; leave blank unless their auth method requires it.
+
+    ## Outputs
+    - **dataFrame** - Returns the Apollo API response as a DataFrame; commonly feeds into a data processing component, table display, or downstream agent tool.
+
+    ## Notes
+    - The correct credential fields to fill depend entirely on the chosen `auth_mode` — only prompt for fields relevant to that mode (e.g., `bearer_token` for Bearer, `access_token`/`refresh_token` for OAuth2).
+    - Without a valid `action_button` selection, the component has no defined operation to perform — always confirm this with the user.
+    - Refer to the Composio documentation at https://docs.composio.dev for supported Apollo actions and required scopes per auth method.
+- component_name: ComposioAsanaAPIComponent
+  agent_summary: |-
+    You help the user connect to the Asana API via Composio, executing selected Asana actions and returning the results as a dataframe. It is a good fit when you need to automate Asana task or project management within a larger workflow. Prefer over Composio Tools (ComposioAPIComponent) when you want a dedicated, pre-scoped Asana connection rather than a general-purpose multi-tool setup; prefer over Jira, Linear, Todoist, or Wrike when the user's project data specifically lives in Asana.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Asana via the Composio integration layer, authenticates with the Asana API, and executes selected Asana actions (such as reading or writing tasks, projects, and workspaces), returning results as a DataFrame.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., API key, OAuth2, bearer token); the available options drive which other fields are relevant.
+    - **generic_api_key** - Ask the user for their Composio API key to authenticate with the Composio platform; required when using API key auth mode.
+    - **access_token** - Ask the user for their Asana OAuth access token if using token-based auth; only needed when `auth_mode` is set to OAuth2/token.
+    - **bearer_token** - Ask the user for a bearer token if their chosen auth mode requires it.
+    - **scopes** - Ask the user which Asana permission scopes are needed (e.g., `default`); leave blank if the auth provider sets scopes automatically.
+    - **action_button** - Ask the user which Asana actions to enable and in what order; this controls what operations the component will perform against the Asana API.
+
+    ## Outputs
+    - **dataFrame** - Returns the results of the selected Asana actions as a DataFrame; commonly feeds into a data processing component, table display, or downstream agent step.
+
+    ## Notes
+    - Many credential fields (e.g., `client_id`, `client_secret`, `token_url`) are only relevant for specific `auth_mode` values — ask the user to set `auth_mode` first and then surface only the matching credential fields.
+    - The `action_button` (sortable list) is essential; without at least one action selected, the component has nothing to execute.
+    - Refer the user to [https://docs.composio.dev](https://docs.composio.dev) for Composio-specific setup steps and supported Asana action names.
+- component_name: ComposioAttioAPIComponent
+  agent_summary: |-
+    You help the user connect to the Attio CRM API via Composio, executing selected actions against Attio and returning results as a DataFrame. It is a good fit when your workflow needs to read or write CRM data such as contacts, companies, or lists held in Attio. Prefer over Composio Tools (the generic component) when you want a pre-scoped integration targeting Attio specifically rather than choosing from the full Composio toolset.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Attio CRM via the Composio integration layer, authenticates using a chosen auth method, and executes selected Attio actions, returning results as a DataFrame.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., API key, OAuth2, bearer token) — this determines which other credential fields are relevant.
+    - **api_key** - Ask the user for their Composio API key, required to authenticate with the Composio platform itself.
+    - **generic_api_key** - If using API key auth mode, ask the user to enter their Attio API key here (entered via the Composio page).
+    - **access_token / bearer_token / token** - Ask the user for the relevant token if they are using an OAuth2 or token-based auth mode.
+    - **client_id / client_secret** - Ask the user for these if they are setting up an OAuth2 flow.
+    - **redirect_uri / authorization_url / token_url** - Ask the user to supply these if they are configuring a custom OAuth2 provider setup.
+    - **action_button** - Ask the user which Attio action(s) they want to execute (e.g., create record, list entries) — this is the primary driver of what the component does.
+
+    ## Outputs
+    - **dataFrame** - Produces a DataFrame containing the results of the executed Attio action; commonly feeds into a data processing component, table display, or downstream agent tool.
+
+    ## Notes
+    - Most credential fields are conditional on the chosen `auth_mode` — only collect the fields relevant to that mode to avoid confusion.
+    - The Composio docs at https://docs.composio.dev are the authoritative reference for supported actions and auth setup.
+    - `api_key` (Composio platform key) and the Attio-specific credential are separate — make sure the user understands the distinction.
+- component_name: ComposioBitbucketAPIComponent
+  agent_summary: |-
+    You help the user execute actions against the Bitbucket API via Composio, returning results as a DataFrame. It is a good fit when you need to automate repository, pull request, or pipeline operations on Bitbucket within a Composio-connected workflow. Prefer over GitHub when the user's codebase is hosted on Bitbucket rather than GitHub.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Bitbucket via the Composio integration layer, allowing an AI workflow to execute Bitbucket API actions (such as managing repositories, pull requests, and pipelines). It authenticates with Bitbucket using a chosen auth mode and returns results as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, used to authenticate with the Composio platform itself; no default.
+    - **auth_mode** - Ask the user how they want to authenticate with Bitbucket (e.g. OAuth2, API key, Bearer token, username/password); choice determines which other fields are required.
+    - **auth_link** - Ask the user to complete the OAuth authorization flow via the provided link if using OAuth2.
+    - **client_id / client_secret** - Ask for these if the user selects OAuth2 as the auth mode; no default.
+    - **username / password** - Ask for these if the user selects basic authentication; no default.
+    - **bearer_token** - Ask for this if the user selects Bearer token auth; no default.
+    - **generic_api_key** - Ask the user to enter their Bitbucket API key directly on the Composio page if using API key auth.
+    - **scopes** - Ask the user which Bitbucket permission scopes are needed (e.g. `repository`, `pullrequest`); leave blank for defaults.
+    - **action_button** - Ask the user which Bitbucket actions to execute and in what order.
+
+    ## Outputs
+    - **dataFrame** - Returns the API response data as a DataFrame; commonly feeds into a data-processing component, table display, or downstream agent step.
+
+    ## Notes
+    - Only fill in the credential fields that match the chosen `auth_mode`; leaving irrelevant fields populated may cause conflicts.
+    - The Composio `api_key` and the Bitbucket credential fields are distinct — make sure the user understands which platform each belongs to.
+    - Refer to https://docs.composio.dev for supported action names to populate `action_button`.
+- component_name: ComposioBolnaAPIComponent
+  agent_summary: |-
+    You help the user connect to the Bolna voice AI platform through Composio, authenticating the integration and executing selected Bolna actions, with results returned as a dataframe. This is a good fit when your workflow needs to trigger or retrieve data from Bolna's voice agent API alongside other tools in a Composio-powered pipeline. Prefer over Composio Tools (the generic toolset component) when you specifically need Bolna and want a dedicated authentication and action configuration interface for that service.
+  agent_usage_notes: |-
+    ## What it does
+    The Bolna component integrates with the Composio platform to connect to the Bolna voice-agent service, authenticating via one of several supported auth modes and exposing Bolna actions that can be triggered within a flow. Results are returned as a DataFrame for downstream processing.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which is required to authenticate with the Composio platform; no default.
+    - **auth_mode** - Ask the user which authentication method they want to use to connect to Bolna (e.g., API key, OAuth2, bearer token); choice determines which of the remaining credential fields are needed.
+    - **generic_api_key** - If the user selects an API-key-based auth mode, ask for the Bolna API key to be entered on the Composio authorization page.
+    - **client_id / client_secret** - Ask for these if the user chooses an OAuth2 auth mode.
+    - **bearer_token** - Ask for this if the user selects bearer-token auth.
+    - **username / password** - Ask for these if the user selects basic/credential-based auth.
+    - **base_url / instance_url / subdomain / domain** - Ask only if the user's Bolna setup uses a custom or self-hosted endpoint; leave blank otherwise.
+    - **action_button** - Ask the user which Bolna actions they want to enable or order; this controls what operations the component exposes.
+
+    ## Outputs
+    - **dataFrame** - Returns the results of the triggered Bolna action(s) as a DataFrame; commonly feeds into a data-processing, display, or downstream agent component.
+
+    ## Notes
+    - Only fill in credential fields that match the chosen `auth_mode`; leaving unrelated fields populated may cause unexpected behaviour.
+    - Refer the user to https://docs.composio.dev for details on obtaining credentials and supported auth modes for Bolna.
+- component_name: ComposioBrightdataAPIComponent
+  agent_summary: |-
+    You help the user connect to the Brightdata service via Composio, authenticating with API keys or OAuth credentials and executing selected actions that return results as a DataFrame. It is a good fit when your workflow needs programmatic access to Brightdata's web data collection or proxy capabilities through a pre-built Composio integration. Prefer over Composio Tools (the generic toolset component) when you want a Brightdata-specific configuration surface rather than a general multi-tool setup.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Brightdata service via the Composio integration layer, authenticates using a chosen auth method, and executes one or more Brightdata actions, returning results as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key (used to authenticate with Composio, not Brightdata directly); no default.
+    - **auth_mode** - Ask the user which authentication mode Brightdata requires (e.g., API key, OAuth2, Bearer token); choices depend on their Brightdata account setup.
+    - **generic_api_key** - Ask the user for the Brightdata API key to be entered on the Composio authentication page; required when auth_mode is API key-based.
+    - **action_button** - Ask the user which Brightdata actions they want to execute; this is the primary selector for what the component actually does.
+    - **username / password** - Ask if the user's chosen auth_mode requires credential-based login; skip if using token or OAuth flows.
+    - **bearer_token** - Ask if the auth_mode is Bearer token; no default.
+    - **access_token / refresh_token** - Ask if the user is using an OAuth2 flow that provides tokens directly.
+
+    ## Outputs
+    - **dataFrame** - Returns the results of the executed Brightdata action(s) as a DataFrame; commonly feeds into a data processing component, table display, or further agent logic.
+
+    ## Notes
+    - Only fill in the auth fields relevant to the chosen `auth_mode` — most fields are mutually exclusive depending on the flow.
+    - The `action_button` (sortableList) is the key driver of behaviour; without selecting at least one action the component will not do useful work.
+    - Refer users to https://docs.composio.dev for supported Brightdata actions and auth setup details.
+- component_name: ComposioCalendlyAPIComponent
+  agent_summary: |-
+    You help the user connect to the Calendly scheduling API via Composio, executing actions against Calendly (such as managing events, invitees, or scheduling links) and returning results as a DataFrame. It is a good fit when automating scheduling workflows or integrating meeting booking data into a pipeline. Prefer over ComposioGoogleCalendarAPIComponent when the user's scheduling infrastructure is built on Calendly rather than Google Calendar.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Calendly via the Composio integration layer, allowing an AI workflow to trigger Calendly actions (such as listing events or managing invitees) and return the results as a DataFrame.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., API Key, OAuth2, Bearer Token); this determines which other credential fields are relevant.
+    - **api_key** - Ask the user for their Composio API key, required to authenticate the Composio connection itself.
+    - **access_token** - If using OAuth2, ask the user for their Calendly OAuth access token.
+    - **bearer_token** - If using Bearer auth mode, ask the user for their Bearer token.
+    - **refresh_token** - If using OAuth2 with token refresh, ask the user for their refresh token.
+    - **client_id / client_secret** - If setting up OAuth2, ask the user for their Calendly OAuth app credentials.
+    - **redirect_uri** - If OAuth2 is selected, ask the user for the redirect URI registered with their Calendly app.
+    - **scopes** - Ask the user which Calendly permission scopes are needed (e.g., `default`).
+    - **action_button** - Ask the user which Calendly action(s) they want to execute; this is the primary selector for what the component does.
+
+    ## Outputs
+    - **dataFrame** - Returns Calendly API results as a structured DataFrame; commonly feeds into a Data component, filter step, or downstream AI agent for processing.
+
+    ## Notes
+    - The `auth_mode` selection controls which credential fields are actually used — avoid asking the user to fill in all credential fields; only prompt for those matching the chosen mode.
+    - Refer the user to [Composio docs](https://docs.composio.dev) if they are unsure how to obtain credentials or set up the Calendly integration.
+- component_name: ComposioCanvaAPIComponent
+  agent_summary: |-
+    You help the user connect to the Canva API via Composio, authenticating with credentials and executing selected Canva actions that return results as a dataframe. Use this when your workflow needs to programmatically interact with Canva designs or account data through an agent. Prefer over Canvas (ComposioCanvasAPIComponent) when targeting Canva the design platform rather than the Canvas LMS.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Canva via the Composio integration layer, authenticating with the Canva API and executing selected actions. It returns results as a DataFrame for use in downstream processing.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key (used to authenticate with the Composio platform, not Canva directly).
+    - **auth_mode** - Ask the user which authentication mode to use (e.g., OAuth2, API key); this determines which other credential fields are relevant.
+    - **client_id / client_secret** - Ask for these if the user selects an OAuth2 auth mode.
+    - **access_token / refresh_token** - Ask for these if the user already has OAuth2 tokens for Canva.
+    - **generic_api_key** - Ask the user to enter their API key on the Composio connection page if using API key auth mode.
+    - **scopes** - Ask the user which Canva permission scopes are needed (e.g., read designs, write designs); leave blank to use defaults.
+    - **action_button** - Ask the user which Canva actions they want to execute; this is the primary way to select operations.
+
+    ## Outputs
+    - **dataFrame** - Produces a DataFrame containing the results of the executed Canva action(s); commonly feeds into a data processing component, table display, or further transformation step.
+
+    ## Notes
+    - Only fill in credential fields that match the chosen `auth_mode` — leaving unrelated fields populated may cause authentication conflicts.
+    - The `auth_link` field triggers an OAuth flow; guide the user through completing authorization in the browser before proceeding.
+    - Refer to [Composio docs](https://docs.composio.dev) for the full list of supported Canva actions and required scopes.
+- component_name: ComposioCanvasAPIComponent
+  agent_summary: |-
+    You help the user connect to the Canvas LMS API through Composio, authenticating with credentials and executing selected actions that return results as a dataframe. It is a good fit when you need to automate Canvas course management, assignment, or enrollment tasks inside a larger workflow. Prefer over Composio Tools (the generic toolset component) when you want a dedicated, pre-scoped connection to Canvas specifically rather than a general multi-tool setup.
+  agent_usage_notes: |-
+    ## What it does
+    The Canvas component integrates with the Composio platform to connect a Canvas account and execute selected actions against its API, returning results as a DataFrame for downstream processing.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which authenticates requests to the Composio platform; no default.
+    - **auth_mode** - Ask the user which authentication mode their Canvas connection uses (e.g., API key, OAuth2, bearer token); the correct choice determines which other fields are required.
+    - **generic_api_key** - Ask the user to enter their Canvas API key on the Composio connection page if using API key auth mode.
+    - **client_id / client_secret** - Ask for these if the user selects an OAuth2 auth mode.
+    - **access_token / bearer_token** - Ask for these if the user is authenticating with a pre-issued token rather than going through OAuth.
+    - **subdomain / domain / base_url / instance_url** - Ask whether the user's Canvas instance requires a custom domain or subdomain; only needed for self-hosted or institutional Canvas deployments.
+    - **action_button** - Ask the user which Canvas actions they want to execute; this drives what operations the component performs.
+
+    ## Outputs
+    - **dataFrame** - Returns the results of the selected Canvas action(s) as a DataFrame; commonly feeds into a data transformation component, a table display, or an agent tool node.
+
+    ## Notes
+    - Only fill in auth-related fields that match the chosen `auth_mode` — leaving unrelated credential fields blank avoids confusion.
+    - The `auth_link` field handles OAuth redirect flows; prompt the user to complete browser-based authorization if OAuth2 is selected.
+    - Refer users to https://docs.composio.dev for help locating their Composio API key and setting up the Canvas integration.
+- component_name: ComposioCodaAPIComponent
+  agent_summary: |-
+    You help the user execute actions against the Coda document platform via the Composio toolset, returning results as a DataFrame. It is a good fit when an agent needs to read or write Coda docs, tables, or rows as part of an automated workflow. Prefer over the generic Composio Tools component when you need Coda-specific authentication and actions pre-configured rather than selecting a tool manually.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Coda API via Composio, authenticating with one of several supported auth modes and executing selected Coda actions. It returns results as a DataFrame for downstream processing.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which is required to authenticate with the Composio platform. No default.
+    - **auth_mode** - Ask the user how they want to authenticate with Coda (e.g., API key, OAuth2). The choice will determine which other credential fields are relevant.
+    - **generic_api_key** - If the user selects an API-key-based auth mode, ask for their Coda API key to be entered on the Composio page. No default.
+    - **access_token / bearer_token** - If using token-based or OAuth2 auth, ask the user to supply the relevant token. No default.
+    - **client_id / client_secret** - If using OAuth2, ask the user for the OAuth app credentials registered with Coda. No default.
+    - **scopes** - If using OAuth2, ask the user which Coda permission scopes are needed (e.g., `read`, `write`). No default.
+    - **action_button** - Ask the user which Coda actions they want to execute; this is the primary driver of what the component actually does.
+
+    ## Outputs
+    - **dataFrame** - Produces a DataFrame containing the results of the executed Coda action(s); commonly feeds into a data-processing, filtering, or display component downstream.
+
+    ## Notes
+    - Only fill in credential fields relevant to the chosen `auth_mode`; leaving unneeded fields blank avoids confusion.
+    - `auth_link` handles the OAuth2 redirect flow — make sure `redirect_uri` is configured if OAuth2 is selected.
+    - Refer to [Composio docs](https://docs.composio.dev) for the full list of supported Coda actions available in `action_button`.
+- component_name: ComposioContentfulAPIComponent
+  agent_summary: |-
+    You help the user connect to the Contentful headless CMS API via Composio, executing actions against Contentful spaces and returning results as a DataFrame. It is a good fit when your agent needs to read or manage structured content, entries, or assets stored in Contentful. Prefer over Composio Tools (the generic toolset component) when you want a pre-scoped connection specifically to Contentful rather than selecting from the full Composio tool catalog.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Contentful via the Composio integration layer, authenticates using one of several supported auth methods, and executes selected Contentful API actions, returning the results as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key (not the Contentful key directly); this is required to authenticate with Composio's service.
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g. API key, OAuth2, bearer token); the correct choice determines which other credential fields are relevant.
+    - **action_button** - Ask the user which Contentful action(s) they want to perform (e.g. fetch entries, publish content, create asset); this drives what the component actually does.
+    - **generic_api_key** - If using API key auth mode, ask the user to enter their Contentful API key here, as entered on the Composio connection page.
+    - **access_token / bearer_token** - If using OAuth2 or bearer auth mode, ask the user to supply the appropriate token.
+    - **scopes** - If using OAuth2, ask the user if specific Contentful permission scopes are required; leave blank if unsure.
+
+    ## Outputs
+    - **dataFrame** - Returns the Contentful API response as a structured DataFrame; commonly feeds into a data processing component, a table display, or a downstream AI agent for content analysis.
+
+    ## Notes
+    - Most credential fields (token, refresh_token, client_id, etc.) are only relevant for specific auth modes — only prompt the user for fields that match their chosen `auth_mode`.
+    - The `action_button` (sortableList) is critical; without selecting at least one action, the component has nothing to execute.
+    - Refer users to [Composio docs](https://docs.composio.dev) for setting up the Contentful connection and locating the correct credentials.
+- component_name: ComposioDigicertAPIComponent
+  agent_summary: |-
+    You help the user connect to the DigiCert certificate management API via Composio, executing actions against DigiCert and returning results as a DataFrame. This is a good fit when automating SSL/TLS certificate lifecycle tasks such as ordering, renewing, or revoking certificates within a larger workflow. No peer in this list materially overlaps with DigiCert's certificate authority functionality.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to DigiCert via the Composio integration layer, authenticates using one of several supported auth methods, and executes DigiCert API actions (such as certificate management operations) returning results as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key used to authenticate with the Composio platform; no default.
+    - **auth_mode** - Ask the user which authentication mode to use (e.g., API key, OAuth2, bearer token); the correct choice depends on their DigiCert account setup.
+    - **generic_api_key** - Ask the user to enter their DigiCert API key on the Composio connection page if using direct API key auth.
+    - **client_id / client_secret** - Ask the user for these OAuth2 credentials if they have chosen an OAuth2 auth mode.
+    - **bearer_token** - Ask the user for a bearer token if their auth mode requires it.
+    - **action_button** - Ask the user which DigiCert actions they want to execute; this drives what operations are performed against the API.
+
+    ## Outputs
+    - **dataFrame** - Returns API response data as a DataFrame; commonly feeds into a data processing component, table display, or downstream logic step.
+
+    ## Notes
+    - Only populate auth fields relevant to the chosen `auth_mode` — filling in conflicting fields (e.g., both OAuth2 and bearer token fields) may cause unexpected behaviour.
+    - The `auth_link` field initiates an OAuth flow; advise the user to complete that flow before running the component if using OAuth2.
+    - `action_button` (sortableList) controls which API actions are triggered — confirm with the user that the desired DigiCert actions are selected and ordered correctly.
+    - Refer to [Composio docs](https://docs.composio.dev) for the full list of supported DigiCert actions and required scopes.
+- component_name: ComposioDiscordAPIComponent
+  agent_summary: |-
+    You help the user connect to the Discord API via Composio, authenticate with credentials or OAuth, select actions to execute, and return results as a dataframe. It is a good fit when your agent needs to interact with Discord servers, channels, or messages as part of an automated workflow. Prefer over Composio Tools (the generic toolset component) when you want a Discord-specific configuration interface with dedicated auth fields rather than a general multi-tool setup.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Discord API via Composio, authenticating with the chosen auth method and executing selected Discord actions. Results are returned as a structured DataFrame for downstream processing.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., OAuth2, API key, Bearer token); the available options depend on what Composio supports for Discord.
+    - **auth_link** - Ask the user to complete the OAuth authorization flow if OAuth2 is selected; this links their Discord account via Composio.
+    - **generic_api_key** - Ask the user to enter their API key directly on the Composio connection page if using API key auth.
+    - **bearer_token** - Ask the user for a Discord Bearer token if using Bearer auth mode.
+    - **access_token** - Ask the user for an access token if their OAuth flow produces one outside the auth_link step.
+    - **scopes** - Ask the user which Discord permission scopes are required (e.g., `bot`, `messages.read`); leave blank to use Composio defaults.
+    - **action_button** - Ask the user which Discord actions they want to execute (e.g., send message, fetch channel info); this is the primary driver of what the component does.
+
+    ## Outputs
+    - **dataFrame** - Returns the result of the executed Discord action(s) as a DataFrame; commonly feeds into a data transformation component, display component, or downstream agent step.
+
+    ## Notes
+    - Only one auth mode should be populated at a time — filling multiple credential fields (e.g., both `bearer_token` and `access_token`) may cause conflicts.
+    - The `api_key` input is the Composio platform key, not a Discord-specific credential; ensure the user doesn't confuse it with Discord's own bot token.
+    - Refer the user to https://docs.composio.dev for setting up the Composio–Discord integration before configuring this component.
+- component_name: ComposioDropboxAPIComponent
+  agent_summary: |-
+    You help the user connect to the Dropbox API via Composio, executing selected actions against a Dropbox account and returning results as a dataframe. It is a good fit when your workflow needs to read, write, or manage files and folders in Dropbox through an authenticated integration. Prefer over ComposioOneDriveAPIComponent when the target storage account is Dropbox rather than Microsoft OneDrive.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Dropbox via the Composio integration layer, allowing an AI workflow to execute Dropbox actions (such as file upload, download, or listing) and return results as a DataFrame.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., OAuth2, API key, bearer token) — this determines which other credential fields are relevant.
+    - **api_key** - Ask the user for their Composio API key, required to authenticate with the Composio platform itself.
+    - **access_token** - Ask the user for their Dropbox OAuth access token if using token-based auth; leave blank if using another auth mode.
+    - **client_id / client_secret** - Ask the user for these if they are setting up OAuth2 with their own Dropbox app credentials.
+    - **redirect_uri** - Ask the user for their OAuth2 callback URL if performing a full OAuth2 flow.
+    - **scopes** - Ask the user which Dropbox permission scopes are needed (e.g., `files.content.read`, `files.content.write`); defaults to whatever the connected Composio app is pre-configured with.
+    - **action_button** - Ask the user which specific Dropbox actions they want to enable or prioritize in this component.
+
+    ## Outputs
+    - **dataFrame** - Returns the result of the executed Dropbox action as a DataFrame; commonly feeds into a data processing, display, or downstream AI agent component.
+
+    ## Notes
+    - Most credential fields (token, bearer_token, refresh_token, etc.) are only relevant for specific auth modes — confirm `auth_mode` first before asking about credentials to avoid overwhelming the user.
+    - Refer the user to https://docs.composio.dev for help obtaining API keys and setting up the Dropbox integration.
+    - Only one auth path should be populated at a time; mixing credentials from different modes may cause unexpected behaviour.
+- component_name: ComposioElevenLabsAPIComponent
+  agent_summary: |-
+    You help the user connect to the ElevenLabs API through Composio, authenticating with credentials and selecting actions to execute, then returning results as a DataFrame. It is a good fit when you need to trigger ElevenLabs voice or audio operations inside a Composio-powered workflow.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the ElevenLabs API via Composio, allowing an AI workflow to authenticate with ElevenLabs and invoke available actions (such as text-to-speech operations) through the Composio integration layer. Results are returned as a DataFrame.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., API key, OAuth2, bearer token); the right choice determines which other fields are required.
+    - **generic_api_key** - Ask the user for their ElevenLabs API key to enter on the Composio connection page; this is the most common auth path.
+    - **action_button** - Ask the user which ElevenLabs actions they want to enable or invoke through Composio (e.g., speech synthesis actions).
+    - **client_id / client_secret** - Ask only if the user selects an OAuth2 auth mode; both are needed together.
+    - **redirect_uri** - Ask if using OAuth2; required for the OAuth callback flow.
+    - **base_url** - Ask if the user needs to point to a custom or self-hosted ElevenLabs endpoint; leave blank otherwise.
+
+    ## Outputs
+    - **dataFrame** - Returns the results of the invoked ElevenLabs action(s) as a DataFrame; commonly feeds into a data-processing component, a display component, or a downstream AI agent.
+
+    ## Notes
+    - The correct set of required inputs depends entirely on the chosen `auth_mode`; only prompt the user for fields relevant to that mode.
+    - `api_key` (the Composio platform key) is marked required and distinct from `generic_api_key` (the ElevenLabs credential) — clarify this distinction with the user to avoid confusion.
+    - Refer the user to https://docs.composio.dev for supported action names and OAuth setup guidance.
+- component_name: ComposioExaAPIComponent
+  agent_summary: |-
+    You help the user connect to the Exa search API through Composio, authenticate with it, and execute actions that return results as a DataFrame. It is a good fit when you need neural or keyword web search capabilities integrated into an agent workflow via Composio's toolset. Prefer over ComposioTavilyAPIComponent or ComposioSerpAPIComponent when the user specifically needs Exa's search index rather than Tavily's or Google-backed search results.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Exa search API via Composio, authenticating the integration and exposing Exa actions that can be triggered within a Langflow pipeline. It handles the auth handshake between Composio and Exa so downstream components can call Exa's search capabilities.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which is required to authenticate with the Composio platform. No default.
+    - **auth_mode** - Ask the user which authentication mode to use for the Exa connection (e.g., API key, OAuth). The correct choice depends on how their Exa account is set up.
+    - **generic_api_key** - Ask the user for their Exa API key to be entered on the Composio connection page. Only needed when auth mode uses a direct API key.
+    - **action_button** - Ask the user which Exa actions they want to enable; this sortable list controls which Exa operations are available downstream.
+
+    ## Outputs
+    - **dataFrame** - Produces a DataFrame containing results returned from the selected Exa actions; commonly feeds into a data processing or display component.
+
+    ## Notes
+    - Most credential fields (`client_id`, `client_secret`, `token`, `access_token`, `bearer_token`, etc.) are only relevant for specific `auth_mode` selections — only surface them once the user has chosen their auth mode.
+    - The `auth_link` field triggers the OAuth flow; remind the user to complete the Composio authorization page before the connection becomes active.
+    - Refer the user to [Composio docs](https://docs.composio.dev) if they are unsure which auth mode or credentials apply to their Exa account.
+- component_name: ComposioFigmaAPIComponent
+  agent_summary: |-
+    You help the user connect to the Figma API via Composio, authenticate with various credential types, and execute selected Figma actions, returning results as a DataFrame. This is a good fit when an agent needs to read or manipulate Figma files, comments, or design data programmatically. Prefer over Composio Tools (the generic toolset component) when you want a Figma-specific credential configuration scoped to a single service rather than a broadly configured multi-tool setup.
+  agent_usage_notes: |-
+    ## What it does
+    The Figma component integrates with the Figma API via Composio, allowing an AI workflow to trigger Figma actions and retrieve results. It authenticates with Figma using a chosen auth method and returns structured data as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which is required to authenticate with the Composio platform.
+    - **auth_mode** - Ask the user which authentication mode they want to use (e.g., API key, OAuth2, bearer token); the correct mode determines which other credential fields are needed.
+    - **generic_api_key** - If using API key auth, ask the user to enter their Figma API key as provided on the Composio connection page.
+    - **access_token / bearer_token** - If using OAuth2 or bearer auth, ask the user for the relevant token from their Figma OAuth app.
+    - **client_id / client_secret** - If using OAuth2, ask the user for their Figma OAuth app's client ID and secret.
+    - **scopes** - Ask the user which Figma permission scopes are required for their use case (e.g., file read access).
+    - **action_button** - Ask the user which Figma actions they want to enable or trigger through the component.
+
+    ## Outputs
+    - **dataFrame** - Returns the result of the Figma API action as a DataFrame; commonly feeds into a data processing or display component downstream.
+
+    ## Notes
+    - Only a subset of credential fields will be relevant depending on the chosen `auth_mode` — avoid asking the user to fill in all credential fields at once.
+    - The `auth_link` field provides an OAuth flow link; guide the user through that flow if OAuth2 is selected.
+    - Refer the user to https://docs.composio.dev for setup details and supported Figma actions.
+- component_name: ComposioFinageAPIComponent
+  agent_summary: |-
+    You help the user connect to the Finage financial market data API through Composio, authenticate with an API key, execute selected actions, and return results as a DataFrame. This is a good fit when building agents or workflows that need stock, forex, or crypto market data from Finage. Prefer over Composio Tools (the generic toolset component) when you need Finage-specific actions pre-scoped rather than a broad multi-tool setup.
+  agent_usage_notes: |-
+    ## What it does
+    The Finage component connects to the Finage financial data API via Composio, allowing an AI workflow to authenticate and retrieve financial market data. It produces a DataFrame output that can be passed to downstream processing or analysis components.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which is required to authenticate the integration; no default is available.
+    - **auth_mode** - Ask the user which authentication mode to use (e.g., API key, OAuth2, Bearer token); the correct choice depends on how their Finage account is configured.
+    - **generic_api_key** - Ask the user for their Finage API key to be entered on the Composio authorization page; required if using API key auth mode.
+    - **action_button** - Ask the user which Finage actions or endpoints they want to invoke; this determines what data is fetched.
+
+    ## Outputs
+    - **dataFrame** - Returns financial data retrieved from Finage as a DataFrame; commonly feeds into data transformation, filtering, or visualization components downstream.
+
+    ## Notes
+    - The correct inputs to fill depend heavily on the selected `auth_mode` — only ask for fields relevant to that mode (e.g., OAuth2 requires `client_id`, `client_secret`, and `redirect_uri`; API key auth primarily needs `generic_api_key`).
+    - Many credential-style fields (`token`, `bearer_token`, `access_token`, etc.) are only relevant for specific auth flows — avoid overwhelming the user by presenting all of them at once.
+    - Refer the user to the [Composio documentation](https://docs.composio.dev) for details on setting up the Finage integration and locating credentials.
+- component_name: ComposioFirecrawlAPIComponent
+  agent_summary: |-
+    You help the user connect to the Firecrawl web scraping and crawling service via Composio, executing actions against it and returning results as a DataFrame. It is a good fit when you need to scrape, crawl, or extract structured content from websites inside a Composio-authenticated workflow.
+  agent_usage_notes: |-
+    ## What it does
+    The Composio Firecrawl component connects to the Firecrawl web-scraping service via the Composio integration layer, authenticates using one of several supported auth modes, and returns scraped or crawled web data as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which is required to authenticate with the Composio platform.
+    - **auth_mode** - Ask the user how they want to authenticate with Firecrawl (e.g., API key, OAuth2, bearer token); the correct choice determines which other credential fields are relevant.
+    - **generic_api_key** - If using API key auth mode, ask the user to provide their Firecrawl API key (entered on the Composio connection page).
+    - **action_button** - Ask the user which Firecrawl action(s) they want to perform (e.g., scrape a URL, crawl a site); this drives what the component actually executes.
+    - **base_url** - Ask the user if they need to override the default Firecrawl base URL; leave blank unless using a self-hosted instance.
+
+    ## Outputs
+    - **dataFrame** - Produces a DataFrame containing the results of the selected Firecrawl action; commonly feeds into a data parsing step, a text splitter, or a document loader for downstream RAG or analysis workflows.
+
+    ## Notes
+    - The required credential fields vary significantly by `auth_mode` — only prompt for the fields that match the chosen mode (e.g., OAuth2 needs `client_id`, `client_secret`, `redirect_uri`; API key mode only needs `generic_api_key`).
+    - `action_button` is the key functional input — without selecting an action, the component has nothing to execute.
+    - Refer the user to https://docs.composio.dev for setup guidance on connecting Firecrawl through Composio.
+- component_name: ComposioFirefliesAPIComponent
+  agent_summary: |-
+    You help the user connect to the Fireflies.ai meeting transcription service via Composio, authenticating with an API key or OAuth credentials and executing selected actions that return results as a DataFrame. This is a good fit when your workflow needs to retrieve or manage meeting transcripts, summaries, or recordings programmatically within a Composio-based agent pipeline.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Fireflies.ai meeting transcription service via the Composio integration layer, allowing flows to trigger Fireflies actions (such as retrieving transcripts or meeting data) and return results as a DataFrame.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., API key, OAuth2, bearer token) — the choice determines which other credential fields are required.
+    - **generic_api_key** - Ask the user for their Fireflies API key to authenticate via Composio; only needed if using API key auth mode.
+    - **access_token** - Ask the user for an OAuth access token if they are authenticating via OAuth2.
+    - **bearer_token** - Ask the user for a bearer token if that auth mode is selected.
+    - **action_button** - Ask the user which Fireflies action(s) they want to execute (e.g., fetch transcripts, list meetings); this drives what the component actually does.
+    - **scopes** - Ask the user if any specific permission scopes are required for their Composio/Fireflies integration; leave blank if unsure.
+
+    ## Outputs
+    - **dataFrame** - Returns results from the executed Fireflies action as a DataFrame; commonly feeds into a data processing component, a table display, or a downstream AI agent.
+
+    ## Notes
+    - Only fill in the credential fields that match the chosen `auth_mode` — providing mismatched credentials may cause auth failures.
+    - The `action_button` (sortableList) is the key field that determines what operation runs; confirm the user has selected at least one action.
+    - Refer to [Composio docs](https://docs.composio.dev) for the full list of supported Fireflies actions and required scopes.
+- component_name: ComposioFixerAPIComponent
+  agent_summary: |-
+    You help the user connect to the Fixer currency exchange rate API via Composio, authenticate with the service, and execute actions that return results as a DataFrame. It is a good fit when you need to retrieve or transform foreign exchange rate data within a Composio-powered workflow.
+  agent_usage_notes: |-
+    ## What it does
+    The Fixer component connects to the Fixer currency exchange rate API via Composio, authenticates using the selected auth method, and returns exchange rate data as a DataFrame for downstream processing.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key used to authenticate with the Composio platform; no default.
+    - **auth_mode** - Ask the user which authentication mode to use (e.g., API key, OAuth2, Bearer token); the correct choice determines which other credential fields are required.
+    - **generic_api_key** - Ask the user for the Fixer API key to be entered on the Composio connection page; required when using API key auth mode.
+    - **client_id / client_secret** - Ask the user for OAuth2 client credentials if they selected an OAuth2 auth mode.
+    - **bearer_token** - Ask the user for a Bearer token if using Bearer auth mode.
+    - **username / password** - Ask the user for credentials if using basic authentication mode.
+    - **base_url** - Ask the user if they need to override the default Fixer API base URL; leave blank otherwise.
+    - **action_button** - Ask the user which Fixer actions to enable or prioritize from the available action list.
+
+    ## Outputs
+    - **dataFrame** - Produces a pandas DataFrame containing the retrieved Fixer data (e.g., exchange rates); commonly feeds into data transformation components, tables, or chart components.
+
+    ## Notes
+    - Only the credential fields relevant to the chosen `auth_mode` need to be filled — ask the user to confirm their auth mode first before collecting other credentials.
+    - `api_key` is the Composio platform key and is separate from `generic_api_key`, which is the actual Fixer service API key; clarify this distinction with the user.
+    - Refer the user to https://docs.composio.dev for help locating their Composio API key and setting up a Fixer connection.
+- component_name: ComposioFlexisignAPIComponent
+  agent_summary: |-
+    You help the user connect to the Flexisign e-signature service via the Composio toolset, authenticating with credentials and executing actions that return results as a DataFrame. It is a good fit when you need to automate document signing workflows through an agent. Prefer over Composio Tools (the generic toolset component) when you want a Flexisign-specific integration with dedicated authentication fields rather than manually configuring a broader toolset connection.
+  agent_usage_notes: |-
+    ## What it does
+    The Flexisign component connects to the Flexisign service via the Composio integration layer, allowing an AI workflow to authenticate with Flexisign and invoke actions against its API. It returns results as a DataFrame for downstream processing.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key (required to authenticate with the Composio platform, not Flexisign itself).
+    - **auth_mode** - Ask the user which authentication mode Flexisign should use (e.g., OAuth2, API key, bearer token); the correct choice depends on the user's Flexisign account setup.
+    - **generic_api_key** - Ask the user for the Flexisign-specific API key to enter on the Composio connection page, if using API key auth mode.
+    - **client_id / client_secret** - Ask if the user is using OAuth2; both are needed to complete the OAuth flow.
+    - **redirect_uri** - Ask the user for their OAuth redirect URI if using OAuth2 auth mode.
+    - **username / password** - Ask if the user is authenticating via basic credentials.
+    - **action_button** - Ask the user which Flexisign actions they want to invoke; this drives what the component actually does.
+
+    ## Outputs
+    - **dataFrame** - Produces a DataFrame containing the results returned by the selected Flexisign action; commonly feeds into a data processing, filtering, or display component downstream.
+
+    ## Notes
+    - Many auth-related fields (token, bearer_token, access_token, etc.) are only relevant for specific `auth_mode` values — only prompt for the fields that match the chosen mode to avoid confusion.
+    - The `action_button` (sortableList) is the primary driver of behavior; without selecting an action, the component will not perform any meaningful work.
+    - Refer to [Composio docs](https://docs.composio.dev) for supported Flexisign actions and auth mode details.
+- component_name: ComposioFreshdeskAPIComponent
+  agent_summary: |-
+    You help the user connect to the Freshdesk customer support platform via Composio, executing actions against its API and returning results as a DataFrame. It is a good fit when you need to automate ticket management, agent workflows, or contact operations within Freshdesk as part of a larger pipeline. Prefer over the generic Composio Tools component when you want a pre-scoped integration targeting Freshdesk specifically rather than selecting from the full Composio toolset.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Freshdesk helpdesk platform via the Composio integration layer, allowing the flow to trigger Freshdesk actions (such as creating or updating tickets) and retrieve results as structured data.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key used to authenticate with the Composio service; no default.
+    - **auth_mode** - Ask the user how they want to authenticate with Freshdesk (e.g., API key, OAuth2); the available options depend on Composio's supported modes for Freshdesk.
+    - **generic_api_key** - Ask the user to enter their Freshdesk API key on the Composio authentication page; this is typically required when using API key auth mode.
+    - **subdomain** - Ask the user for their Freshdesk subdomain (e.g., `yourcompany` from `yourcompany.freshdesk.com`); required to target the correct Freshdesk account.
+    - **action_button** - Ask the user which Freshdesk action(s) they want to execute; this controls what operations are performed against the Freshdesk API.
+
+    ## Outputs
+    - **dataFrame** - Returns the result of the Freshdesk action as a DataFrame; commonly feeds into a data processing component, a display table, or a downstream agent step.
+
+    ## Notes
+    - The correct combination of auth inputs depends on the chosen `auth_mode`; only fill fields relevant to that mode (e.g., skip OAuth fields when using API key auth).
+    - The `subdomain` field is critical — without it the component cannot resolve the correct Freshdesk instance.
+    - Refer to [Composio docs](https://docs.composio.dev) for supported Freshdesk actions and the exact auth flow required.
+- component_name: ComposioGitHubAPIComponent
+  agent_summary: |-
+    You help the user connect to the GitHub API via Composio, authenticate using one of several supported methods (API key, OAuth tokens, bearer token, etc.), and execute selected GitHub actions that return results as a DataFrame. This is a good fit when you need to automate GitHub operations such as managing repositories, issues, or pull requests within a Composio-powered workflow. Prefer over Bitbucket when the target repositories and workflows are hosted on GitHub rather than Bitbucket.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the GitHub API via the Composio integration layer, allowing an AI workflow to execute GitHub actions (such as managing repos, issues, or pull requests) and return results as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which authenticates requests to the Composio platform (not a GitHub token directly).
+    - **auth_mode** - Ask which authentication mode to use for GitHub (e.g., OAuth, API key, bearer token); the right choice determines which other fields are required.
+    - **token / access_token / bearer_token** - Ask the user for their GitHub personal access token or bearer token if using a token-based auth mode; only one is typically needed depending on `auth_mode`.
+    - **generic_api_key** - If using API key auth mode, ask the user to enter their GitHub API key on the Composio connection page.
+    - **scopes** - Ask which GitHub permission scopes are needed (e.g., `repo`, `read:user`); leave blank to use defaults.
+    - **action_button** - Ask the user which GitHub actions they want to enable or invoke; this sortable list determines what operations the component exposes.
+
+    ## Outputs
+    - **dataFrame** - Returns the API response data as a DataFrame; commonly feeds into a data parsing, filtering, or display component downstream.
+
+    ## Notes
+    - The majority of auth-related fields (`client_id`, `client_secret`, `redirect_uri`, `authorization_url`, etc.) are only relevant for OAuth flows — only ask about them if the user selects an OAuth-based `auth_mode`.
+    - `api_key` here refers to the **Composio** API key, not the GitHub token — clarify this distinction with the user to avoid confusion.
+    - Refer the user to [https://docs.composio.dev](https://docs.composio.dev) for setup guidance on connecting GitHub accounts.
+- component_name: ComposioGmailAPIComponent
+  agent_summary: |-
+    You help the user connect to Gmail via the Composio toolset, authenticating with OAuth or API key credentials and executing selected Gmail actions that return results as a DataFrame. It is a good fit when you need to automate Gmail operations such as reading, sending, or managing emails within an agent workflow. Prefer over Outlook when the target mailbox is Google-based rather than Microsoft.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Gmail via the Composio integration layer, allowing an AI workflow to perform Gmail actions (such as reading, sending, or managing emails) and returns the results as a structured DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which is required to authenticate with the Composio platform. No default.
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., OAuth2, API key, bearer token). The choice here determines which other credential fields are relevant.
+    - **auth_link** - Ask the user to complete the OAuth authorization flow via the provided link if using OAuth2-based authentication.
+    - **client_id / client_secret** - Ask for these if the user is setting up OAuth2 with their own credentials. No default.
+    - **access_token / refresh_token** - Ask for these if the user is authenticating with an existing OAuth2 token pair. No default.
+    - **bearer_token** - Ask for this if the user selects bearer token authentication. No default.
+    - **scopes** - Ask the user which Gmail permission scopes are needed (e.g., read, send, modify). No default.
+    - **action_button** - Ask the user which specific Gmail actions they want to enable or prioritize in the workflow.
+
+    ## Outputs
+    - **dataFrame** - Returns Gmail action results as a structured DataFrame; commonly feeds into a data processing component, table display, or an AI agent for further reasoning.
+
+    ## Notes
+    - Most credential fields (OAuth2, token, bearer, API key) are mutually exclusive — only populate the fields that match the chosen `auth_mode` to avoid conflicts.
+    - The Composio documentation at https://docs.composio.dev should be referenced for supported Gmail actions and required scopes.
+    - `generic_api_key` is entered directly on the Composio page, not in this component.
+- component_name: ComposioGoogleBigQueryAPIComponent
+  agent_summary: |-
+    You help the user connect to Google BigQuery via the Composio integration layer, authenticating with credentials and executing selected actions that return results as a DataFrame. It is a good fit when your workflow needs to query or manage BigQuery datasets and feed the output into downstream data-processing components. Prefer over ComposioGoogleSheetsAPIComponent when your data lives in BigQuery warehouses rather than spreadsheets, and prefer over ComposioSnowflakeAPIComponent when the target cloud data warehouse is Google BigQuery rather than Snowflake.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Google BigQuery via the Composio integration layer, allowing an AI workflow to execute BigQuery actions (such as running queries or managing datasets) and return results as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which authorizes access to the Composio platform; no default.
+    - **auth_mode** - Ask the user which authentication mode to use (e.g., OAuth, API key, bearer token); the correct choice determines which other credential fields are required.
+    - **action_button** - Ask the user which BigQuery actions they want to enable or run; this is the primary way to select operations exposed by Composio.
+    - **access_token / bearer_token** - If using OAuth or bearer auth mode, ask the user to provide the relevant token.
+    - **client_id / client_secret** - Required if the user is configuring OAuth; ask only when `auth_mode` is OAuth-based.
+    - **scopes** - Ask the user if they need to restrict or specify BigQuery permission scopes for their OAuth connection.
+
+    ## Outputs
+    - **dataFrame** - Produces a DataFrame containing the results of the executed BigQuery action; commonly feeds into a Data component, a table display, or downstream transformation steps.
+
+    ## Notes
+    - The correct set of credential fields depends entirely on the chosen `auth_mode`; only collect fields relevant to that mode to avoid confusion.
+    - The Composio API key (`api_key`) is separate from any Google/BigQuery credentials — make sure the user understands both may be needed.
+    - Refer the user to https://docs.composio.dev for details on setting up the Google BigQuery integration and obtaining OAuth credentials.
+- component_name: ComposioGoogleCalendarAPIComponent
+  agent_summary: |-
+    You help the user connect to the Google Calendar API via Composio, executing calendar actions such as creating, reading, updating, or deleting events and returning results as a DataFrame. It is a good fit when you need to automate scheduling workflows or integrate calendar data into a larger pipeline. Prefer over ComposioCalendlyAPIComponent when the user's calendar infrastructure is Google Workspace rather than Calendly, and prefer over ComposioGoogleTasksAPIComponent when the goal is managing calendar events rather than task lists.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Google Calendar via the Composio integration layer, allowing the flow to execute calendar actions (such as reading, creating, or updating events) and return results as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which authenticates requests to the Composio platform; no default.
+    - **auth_mode** - Ask the user which authentication mode to use (e.g., OAuth2, API key); the correct choice determines which additional credential fields are required.
+    - **auth_link** - Ask the user to complete OAuth authorization via this link if OAuth2 is the selected auth mode.
+    - **client_id / client_secret** - Ask the user for their Google OAuth2 client credentials if using OAuth2 mode.
+    - **access_token / refresh_token** - Ask the user to supply these if authenticating with an existing OAuth2 token pair.
+    - **bearer_token** - Ask the user for a bearer token if that auth mode is selected.
+    - **generic_api_key** - Ask the user to enter their API key directly on the Composio page if using API-key-based auth.
+    - **action_button** - Ask the user which Google Calendar actions to enable or order; this controls what operations the component will perform.
+
+    ## Outputs
+    - **dataFrame** - Returns action results as a DataFrame; commonly feeds into a data processing component, display table, or downstream agent tool.
+
+    ## Notes
+    - Many credential fields (OAuth2, bearer, API key, etc.) are mutually exclusive — only populate the fields that match the chosen `auth_mode` to avoid conflicts.
+    - The Composio documentation at https://docs.composio.dev should be consulted to understand which `auth_mode` values are supported for Google Calendar.
+    - `action_button` must be configured or no calendar actions will be triggered.
+- component_name: ComposioGoogleDocsAPIComponent
+  agent_summary: |-
+    You help the user connect to the Google Docs API via Composio, executing actions against documents and returning results as a DataFrame. It fits well in document automation workflows where an agent needs to read, create, or modify Google Docs content. Prefer over GoogleSheets when the target is a word-processing document rather than a spreadsheet, and over the generic Composio Tools component when you want a pre-scoped connection limited to Google Docs actions.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Composio Google Docs integration, allowing an AI agent to perform actions on Google Docs (such as reading, creating, or editing documents) via the Composio API. Authentication is handled through Composio's auth flow before actions are executed.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, used to authenticate with the Composio platform. No default; required to proceed.
+    - **auth_mode** - Ask the user how they want to authenticate with Google Docs (e.g., OAuth2, API key). The available modes depend on what Composio supports for this connector.
+    - **auth_link** - Ask the user to complete the OAuth authorization link if using OAuth2; this triggers the account-linking flow.
+    - **client_id / client_secret** - Ask for these if the user is setting up a custom OAuth2 app rather than using Composio's default credentials.
+    - **access_token / refresh_token** - Ask if the user is supplying tokens directly instead of going through the OAuth flow.
+    - **action_button** - Ask the user which Google Docs actions they want to enable (e.g., create document, fetch document content). This is the primary way to select what the component actually does.
+
+    ## Outputs
+    - **dataFrame** - Returns the result of the selected Google Docs action as a DataFrame; commonly feeds into a text processing component, a display component, or downstream AI agent steps.
+
+    ## Notes
+    - The auth-related inputs (`auth_mode`, `client_id`, `client_secret`, `access_token`, etc.) are conditionally relevant depending on the chosen auth strategy — only surface what matches the user's selection.
+    - `action_button` (the action selector) is essential; without at least one action chosen, the component will not do anything meaningful.
+    - Credentials such as tokens and secrets should be stored as Langflow variables rather than entered as plain text where possible.
+- component_name: ComposioGoogleSheetsAPIComponent
+  agent_summary: |-
+    You help the user connect to Google Sheets via the Composio toolset, executing actions against spreadsheets and returning results as a DataFrame. It is a good fit when your flow needs to read from or write to Google Sheets as part of a larger automation, pairing naturally with other Google Workspace components like GoogleDocs, GoogleCalendar, or Gmail. Prefer over the generic Composio Tools component when you specifically need Google Sheets actions and want a pre-scoped integration rather than a general-purpose toolset.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Google Sheets via the Composio integration layer, allowing an AI workflow to read from or write to spreadsheets. It authenticates using a chosen auth mode and exposes sheet data as a structured output.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which is required to authenticate with the Composio platform. No default available.
+    - **auth_mode** - Ask the user how they want to authenticate with Google Sheets (e.g., OAuth2, API key). Suggested default depends on their Google setup; OAuth2 is most common.
+    - **auth_link** - Ask the user if they need to complete an OAuth authorization flow; this field triggers the linked auth process.
+    - **access_token** - Ask the user for their Google OAuth access token if using token-based auth mode.
+    - **refresh_token** - Ask the user for a refresh token if long-lived access is needed without re-authenticating.
+    - **scopes** - Ask the user which Google Sheets API scopes are required (e.g., read-only vs. full access). No default.
+    - **action_button** - Ask the user which Google Sheets actions they want to enable (e.g., read rows, append data); this drives what the component actually does.
+
+    ## Outputs
+    - **dataFrame** - Produces a tabular DataFrame containing the response data from the Google Sheets action; commonly feeds into a data transformation component or a language model for further processing.
+
+    ## Notes
+    - Only fill in auth fields relevant to the chosen `auth_mode` — leaving unrelated credential fields blank avoids confusion.
+    - `action_button` (sortableList) is critical: without selecting at least one action, the component will not perform any operation.
+    - Refer users to https://docs.composio.dev for step-by-step OAuth setup guidance.
+- component_name: ComposioGoogleTasksAPIComponent
+  agent_summary: |-
+    You help the user connect to the Google Tasks API via Composio, executing actions against their task lists and individual tasks and returning results as a DataFrame. It is a good fit when you need to automate task creation, retrieval, or management within Google Tasks as part of a larger workflow. Prefer over ComposioTodoistAPIComponent or ComposioWrikeAPIComponent when the user's task data lives specifically in Google Tasks rather than a third-party task manager.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Google Tasks API via Composio, allowing an AI workflow to read and manage Google Tasks data. It authenticates with Composio and executes selected Google Tasks actions, returning results as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which is required to authenticate with the Composio platform; no default.
+    - **auth_mode** - Ask the user which authentication mode they want to use (e.g., OAuth2, API key, bearer token); choice depends on their Google Tasks setup.
+    - **action_button** - Ask the user which Google Tasks actions they want to enable (e.g., list tasks, create task, delete task); this drives what the component actually does.
+    - **access_token** - Ask the user for a Google OAuth2 access token if using token-based auth; only needed for that auth mode.
+    - **refresh_token** - Ask the user for a refresh token if using OAuth2 so the component can renew access automatically.
+    - **client_id / client_secret** - Ask the user for their Google OAuth2 client credentials if they are setting up their own OAuth app.
+    - **bearer_token** - Ask the user for a bearer token if `auth_mode` is set to bearer-based authentication.
+
+    ## Outputs
+    - **dataFrame** - Returns Google Tasks API response data as a DataFrame; commonly feeds into a data processing component, table display, or downstream agent step.
+
+    ## Notes
+    - Only fill in the auth-related fields that match the chosen `auth_mode` — leaving unused fields blank is expected and correct.
+    - The `action_button` (sortableList) controls which API actions are executed; without configuring it, the component will not perform any meaningful work.
+    - Refer to [Composio docs](https://docs.composio.dev) for supported Google Tasks actions and OAuth setup guidance.
+- component_name: ComposioGoogleclassroomAPIComponent
+  agent_summary: |-
+    You help the user connect to the Google Classroom API via Composio, executing actions against courses, assignments, rosters, or other classroom resources and returning results as a dataframe. It is a good fit when building automations around Google Workspace education workflows, and pairs well with GoogleCalendar or GoogleTasks components for broader school scheduling use cases. Prefer over Canvas when the target platform is Google Classroom specifically, as both are LMS integrations but target different systems.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Google Classroom API via Composio, allowing automation of classroom management tasks such as reading course data, managing assignments, or interacting with student rosters. Results are returned as a structured DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, required to authenticate with the Composio platform.
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., OAuth2, API key, bearer token); the correct choice determines which other fields are needed.
+    - **action_button** - Ask the user which Google Classroom action(s) they want to perform (e.g., list courses, get student submissions); this drives what the component actually does.
+    - **access_token / bearer_token** - If using OAuth2 or bearer auth, ask the user to provide the relevant token.
+    - **client_id / client_secret** - Ask for these if the user is setting up an OAuth2 flow.
+    - **scopes** - Ask the user which Google Classroom permission scopes are needed (e.g., `https://www.googleapis.com/auth/classroom.courses.readonly`).
+
+    ## Outputs
+    - **dataFrame** - Returns API response data as a DataFrame; commonly feeds into a data table display, filter component, or downstream processing step.
+
+    ## Notes
+    - The required credential fields depend entirely on the chosen `auth_mode` — only prompt for the fields relevant to that mode to avoid confusion.
+    - Refer users to https://docs.composio.dev for guidance on obtaining Composio API keys and setting up Google Classroom OAuth credentials.
+    - Google Classroom OAuth scopes must match the permissions granted in the Google Cloud Console for the app, or API calls will fail.
+- component_name: ComposioGooglemeetAPIComponent
+  agent_summary: |-
+    You help the user connect to the Google Meet API via Composio, executing actions against Google Meet and returning results as a DataFrame. It fits well in agent workflows that need to create or manage video meetings, paired with complementary Google workspace components like GoogleCalendar or Gmail. Prefer over GoogleCalendar when the task targets meeting sessions directly rather than scheduling or calendar event management.
+  agent_usage_notes: |-
+    ## What it does
+    This component integrates with Google Meet via the Composio API, enabling automated interactions with Google Meet resources. It executes selected actions against the Google Meet API and returns results as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which authenticates requests to the Composio platform; no default.
+    - **auth_mode** - Ask the user which authentication mode to use (e.g., OAuth2, API key); the correct choice determines which other credential fields are required.
+    - **action_button** - Ask the user which Google Meet action(s) they want to perform (e.g., create meeting, list meetings); this is the primary driver of what the component does.
+    - **client_id / client_secret** - Ask for these if the user selects an OAuth2 auth mode; leave blank otherwise.
+    - **access_token / refresh_token** - Ask for these if OAuth2 is chosen and the user already has tokens; leave blank otherwise.
+    - **generic_api_key** - Ask the user to enter their API key directly on the Composio authentication page if using API key auth mode.
+    - **scopes** - Ask the user which Google Meet OAuth scopes are needed if using OAuth2; defaults to whatever the selected actions require.
+
+    ## Outputs
+    - **dataFrame** - Produces a pandas DataFrame containing the API response data from the executed Google Meet action; commonly feeds into a data processing component, table display, or downstream agent step.
+
+    ## Notes
+    - Most credential fields are conditional on the selected `auth_mode` — only collect the fields relevant to that mode to avoid confusion.
+    - The `action_button` (sortableList) controls which API actions run; confirm the user has selected at least one action or the component will have nothing to execute.
+    - Refer users to https://docs.composio.dev for supported Google Meet actions and required scopes.
+- component_name: ComposioHeygenAPIComponent
+  agent_summary: |-
+    You help the user connect to the HeyGen API via Composio, authenticating and executing actions against HeyGen's AI video generation platform, with results returned as a DataFrame. This is a good fit when your workflow needs to programmatically create or manage AI-generated videos and avatars. Prefer over the generic Composio Tools component when you specifically need HeyGen actions without manually configuring the toolset from scratch.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to HeyGen via the Composio integration layer, authenticates with the HeyGen API, and exposes HeyGen actions (such as video generation) that can be triggered and returned as structured data.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., API key, OAuth2, bearer token); the correct choice determines which other fields are required.
+    - **api_key** - Ask the user for their Composio API key used to authenticate with the Composio platform itself.
+    - **generic_api_key** - Ask the user for their HeyGen API key to be entered on the Composio connection page; required when using API key auth mode.
+    - **action_button** - Ask the user which HeyGen actions they want to enable or trigger; this is the primary way to select what the component does.
+    - **auth_link** - If using OAuth2, prompt the user to complete the OAuth authorization flow via this link.
+    - **scopes** - Ask the user if any specific OAuth scopes are needed; leave blank unless the user has a reason to restrict permissions.
+
+    ## Outputs
+    - **dataFrame** - Returns results from the selected HeyGen action as a DataFrame; commonly feeds into a data display component, table viewer, or downstream processing step.
+
+    ## Notes
+    - The correct subset of auth fields to fill in depends entirely on the chosen `auth_mode`; filling in irrelevant fields will not cause errors but may cause confusion.
+    - Most auth credential fields (e.g., `client_secret`, `password`, `bearer_token`) are plain `str` inputs here rather than secret inputs — advise the user to handle these carefully.
+    - `action_button` (sortableList) is the key field for defining what HeyGen operation runs; confirm this is configured before testing.
+- component_name: ComposioInstagramAPIComponent
+  agent_summary: |-
+    You help the user connect to the Instagram API via Composio, authenticate with various credential types, and execute selected Instagram actions, returning results as a dataframe. It is a good fit when building agents that need to interact with Instagram programmatically, such as managing posts or retrieving account data. Prefer over the generic Composio Tools component when you want a pre-scoped integration pointed specifically at Instagram rather than choosing from the full Composio toolset.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Instagram API via Composio, allowing an AI workflow to perform Instagram actions (such as reading or posting content) by authenticating through Composio's tooling layer. Results are returned as a DataFrame for downstream processing.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, required to authenticate with the Composio platform.
+    - **auth_mode** - Ask the user which authentication mode to use (e.g., OAuth2, API key, Bearer token); the correct choice determines which other credential fields are needed.
+    - **auth_link** - Ask the user to complete OAuth authorization via the provided link if using OAuth2 flow.
+    - **client_id** / **client_secret** - Ask for these if the user is setting up an OAuth2 app integration.
+    - **access_token** / **refresh_token** - Ask for these if the user already has a valid OAuth2 token pair.
+    - **bearer_token** - Ask for this if the user is authenticating via Bearer token mode.
+    - **generic_api_key** - Ask the user to enter their API key directly on the Composio page if using API key auth mode.
+    - **action_button** - Ask the user which Instagram actions they want to enable; this controls what operations the component will perform.
+
+    ## Outputs
+    - **dataFrame** - Returns the API response as a DataFrame; commonly feeds into a data transformation component, a table display, or a downstream agent step.
+
+    ## Notes
+    - Most credential fields (e.g., `access_token`, `client_id`, `bearer_token`) are only relevant depending on the chosen `auth_mode` — avoid asking for all of them; guide the user based on their selected mode.
+    - Refer the user to https://docs.composio.dev for instructions on obtaining a Composio API key and setting up the Instagram integration.
+    - Only one authentication path is typically needed at a time; collecting unused credential fields may cause confusion.
+- component_name: ComposioJiraAPIComponent
+  agent_summary: |-
+    You help the user connect to the Jira API via Composio and execute actions against Jira projects, issues, or workflows, returning results as a DataFrame. It is a good fit when your flow needs to read or write Jira data programmatically using any supported auth method. Prefer over Linear or Asana components when the target project management tool is specifically Jira.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Jira via the Composio integration layer, authenticates using a chosen auth mode, and executes selected Jira actions (e.g., create issues, fetch tickets, update status), returning results as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which authorizes the Composio platform connection (no default).
+    - **auth_mode** - Ask the user how they want to authenticate with Jira (e.g., API key, OAuth2, Bearer token); the choice determines which other credential fields are relevant.
+    - **generic_api_key** - If using API key auth mode, ask the user to enter their Jira API key on the Composio page.
+    - **username / password** - Ask if using basic auth; collect both together.
+    - **access_token / bearer_token** - Ask if using OAuth2 or Bearer token auth mode.
+    - **domain / subdomain / instance_url / base_url** - Ask the user for their Jira instance URL or domain (e.g., `yourcompany.atlassian.net`); required for most auth modes.
+    - **scopes** - Ask what Jira permission scopes are needed (e.g., `read:jira-work write:jira-work`); only relevant for OAuth2.
+    - **action_button** - Ask the user which Jira actions they want to enable and in what order (e.g., create issue, list projects).
+
+    ## Outputs
+    - **dataFrame** - Returns Jira action results as a structured DataFrame; commonly feeds into a Data component, table display, or downstream processing step.
+
+    ## Notes
+    - Many credential fields (OAuth2, token, redirect URI, etc.) are only relevant for specific `auth_mode` values — only surface the fields that match the chosen mode to avoid overwhelming the user.
+    - The `auth_link` field handles OAuth2 consent flows; guide the user through that step before expecting tokens to be available.
+- component_name: ComposioJotformAPIComponent
+  agent_summary: |-
+    You help the user connect to the Jotform API via Composio, executing actions against Jotform forms and submission data and returning results as a DataFrame. Use this when your workflow needs to read or manipulate Jotform resources as part of a larger automation, and it pairs well with other Composio API components in the same pipeline.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Jotform via the Composio integration layer, authenticates with the Jotform API, and executes selected Jotform actions (such as retrieving form submissions or form details), returning results as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key (not the Jotform key directly); this is required to authenticate with the Composio platform.
+    - **auth_mode** - Ask the user how they want to authenticate with Jotform (e.g., API key, OAuth2); the choice here determines which other credential fields are relevant.
+    - **generic_api_key** - If using API key auth mode, ask the user for their Jotform API key to be entered on the Composio authorization page.
+    - **action_button** - Ask the user which Jotform actions they want to enable (e.g., get forms, get submissions); this drives what the component actually does.
+
+    ## Outputs
+    - **dataFrame** - Returns the results of the selected Jotform action(s) as a DataFrame; commonly feeds into a data transformation component, table display, or downstream agent tool.
+
+    ## Notes
+    - The correct set of credential fields depends entirely on the chosen `auth_mode`; only ask for fields relevant to that mode (e.g., OAuth2 needs `client_id`/`client_secret`; API key mode needs `generic_api_key`).
+    - Without at least one action selected in `action_button`, the component will not perform any meaningful work.
+    - Refer users to https://docs.composio.dev for guidance on obtaining a Composio API key and setting up the Jotform connection.
+- component_name: ComposioKlaviyoAPIComponent
+  agent_summary: |-
+    You help the user execute actions against the Klaviyo email and SMS marketing platform via the Composio toolset, returning results as a DataFrame. This is a good fit when automating tasks like managing lists, profiles, campaigns, or events in Klaviyo from within an agent workflow. Prefer over the generic Composio Tools component when you need Klaviyo-specific authentication and action selection without manually specifying the app.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Klaviyo marketing platform via Composio, allowing automation of email/SMS marketing actions such as managing lists, profiles, campaigns, and events. Authentication is handled through Composio's auth flow, and selected actions are executed and returned as structured data.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method to use (e.g., API key, OAuth2); default is typically API key for Klaviyo.
+    - **generic_api_key** - Ask the user to enter their Klaviyo API key on the Composio connection page; required when using API key auth mode.
+    - **action_button** - Ask the user which Klaviyo actions they want to enable (e.g., create profile, add to list, track event); no default — this drives what the component actually does.
+    - **scopes** - Ask the user if specific OAuth scopes are needed; only relevant when using OAuth2 auth mode.
+
+    ## Outputs
+    - **dataFrame** - Returns the results of the executed Klaviyo action(s) as a DataFrame; commonly feeds into a data transformation component, a display component, or downstream logic nodes.
+
+    ## Notes
+    - The `auth_mode` selection controls which other credential fields become relevant — most Klaviyo integrations use API key, so OAuth fields (`client_id`, `client_secret`, `access_token`, etc.) can be ignored in that case.
+    - Without at least one action selected in `action_button`, the component will not perform any meaningful work.
+    - Composio manages the actual API connection; direct Klaviyo API credentials are entered on the Composio dashboard, not inline here.
+    - Refer to [Composio docs](https://docs.composio.dev) for the full list of supported Klaviyo actions and required scopes.
+- component_name: ComposioLinearAPIComponent
+  agent_summary: |-
+    You help the user connect to the Linear project management API via Composio, executing actions against Linear and returning results as a DataFrame. It is a good fit when you need to automate issue tracking, project, or team workflows in Linear from within a flow. Prefer over Composio Tools (ComposioAPIComponent) when you want a pre-scoped connection specifically to Linear rather than a general multi-tool Composio setup; prefer over Jira when the user's team works in Linear rather than Atlassian's issue tracker.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Linear project-management API via Composio, authenticates using a chosen auth method, and returns action results as a DataFrame for downstream processing.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., API Key, OAuth2, Bearer Token). The correct mode determines which other fields are required.
+    - **api_key** - Ask the user for their Composio API key, used to authenticate with the Composio platform itself.
+    - **generic_api_key** - If the user selects API Key auth mode, ask them to enter their Linear API key here (entered on the Composio connection page).
+    - **access_token** - If using OAuth2 or token-based auth, ask the user for their Linear access token.
+    - **bearer_token** - If using Bearer Token auth mode, ask the user to supply their Bearer token.
+    - **scopes** - Ask the user which Linear permission scopes are needed (e.g., `read`, `write`, `issues:create`); leave blank if the default Composio scopes are sufficient.
+    - **action_button** - Ask the user which Linear actions they want to trigger (e.g., create issue, list teams); this is the primary selector for what the component does.
+
+    ## Outputs
+    - **dataFrame** - Returns the result of the selected Linear action(s) as a DataFrame; commonly feeds into a data transformation component, table display, or downstream AI agent.
+
+    ## Notes
+    - Most auth fields (OAuth URLs, tokens, credentials) are conditionally relevant — only fill those matching the selected `auth_mode` to avoid conflicts.
+    - The `action_button` (sortableList) is critical: without selecting at least one action, the component will not perform any meaningful work.
+    - Refer to [Composio docs](https://docs.composio.dev) for supported Linear actions and required scopes.
+- component_name: ComposioListennotesAPIComponent
+  agent_summary: |-
+    You help the user connect to the Listen Notes podcast API through Composio, authenticating the integration and executing selected actions that return results as a DataFrame. This is a good fit when an agent needs to search or retrieve podcast and episode data from the Listen Notes catalog.
+  agent_usage_notes: |-
+    ## What it does
+    This component connects to the Listen Notes podcast API via Composio, enabling podcast search and data retrieval actions. It authenticates with Listen Notes through Composio and exposes available API actions that can be triggered from a flow.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., API key, OAuth). The correct choice determines which other credential fields are relevant.
+    - **api_key** - Ask the user for their Composio API key, required to authenticate with the Composio platform itself.
+    - **generic_api_key** - Ask the user for their Listen Notes API key if using API key auth mode; entered directly on the Composio configuration page.
+    - **action_button** - Ask the user which Listen Notes actions they want to enable (e.g., search podcasts, fetch episode details); this is the primary selector for what the component actually does.
+
+    ## Outputs
+    - **dataFrame** - Returns results from the selected Listen Notes action as a DataFrame; commonly feeds into a data table component, a parsing step, or a downstream AI agent for further processing.
+
+    ## Notes
+    - Most credential fields (OAuth tokens, client ID/secret, redirect URI, etc.) are only needed when using OAuth-based auth — ask the user to confirm their `auth_mode` before prompting for those.
+    - The `action_button` (sortableList) is critical: without selecting at least one action, the component will not perform any meaningful operation.
+    - Refer the user to [Composio docs](https://docs.composio.dev) for setting up the Listen Notes integration and obtaining the correct credentials for their chosen auth mode.
+- component_name: ComposioMem0APIComponent
+  agent_summary: |-
+    You help the user connect to the Mem0 memory API via Composio, authenticating with credentials and executing selected actions that return results as a DataFrame. It is a good fit when your agent needs to read or write persistent memory through Mem0 as part of a larger workflow.
+  agent_usage_notes: |-
+    ## What it does
+    The Mem0 component connects to the Mem0 service via the Composio integration layer, allowing an AI workflow to interact with Mem0's memory API. It authenticates using a chosen auth mode and exposes selected Mem0 actions, returning results as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which is required to authenticate with the Composio platform; no default.
+    - **auth_mode** - Ask the user how they want to authenticate with Mem0 (e.g., API key, OAuth, bearer token); the correct choice determines which of the remaining credential fields are relevant.
+    - **generic_api_key** - If the user selects an API-key-based auth mode, ask for the Mem0 API key to be entered on the Composio connection page.
+    - **action_button** - Ask the user which Mem0 actions they want to enable (e.g., add memory, search memory, delete memory); this controls what operations the component will expose.
+    - **base_url** - Ask the user if they are using a self-hosted or custom Mem0 endpoint; leave blank for the default hosted service.
+
+    ## Outputs
+    - **dataFrame** - Returns the results of the selected Mem0 action(s) as a DataFrame; commonly feeds into a data parsing component, a table display, or further agent processing steps.
+
+    ## Notes
+    - Most credential fields (e.g., `client_id`, `bearer_token`, `access_token`) are only relevant for specific `auth_mode` values — only prompt for the fields that match the chosen mode.
+    - The `api_key` field is the Composio platform key, not the Mem0 service key; make sure the user understands the distinction.
+    - No actions will run unless at least one action is selected via `action_button`.
+- component_name: ComposioMiroAPIComponent
+  agent_summary: |-
+    You help the user connect to the Miro collaborative whiteboard API via Composio, executing actions against Miro boards and returning results as a dataframe. It is a good fit when your workflow needs to read from or write to Miro boards as part of a larger automation, and it pairs well with the generic Composio Tools component for agent-driven tool use. Prefer over Composio Tools when you need a dedicated, pre-configured connection specifically to Miro rather than a general multi-tool setup.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Miro API via Composio, allowing an AI workflow to trigger Miro board actions (such as creating or updating boards and items). It authenticates with Miro using a chosen auth method and executes selected actions, returning results as a DataFrame.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., API key, OAuth2, bearer token); the available options depend on their Composio and Miro setup.
+    - **api_key** - Ask the user for their Composio API key, which is required to connect to the Composio platform.
+    - **generic_api_key** - If using API key auth, ask the user to enter their Miro API key on the Composio connection page.
+    - **access_token / bearer_token** - If using OAuth2 or bearer token auth, ask the user to provide the relevant token.
+    - **client_id / client_secret** - If using OAuth2, ask the user for their Miro OAuth2 app credentials.
+    - **scopes** - Ask the user which Miro permission scopes are needed (e.g., `boards:read`, `boards:write`); leave blank if using a pre-authorized connection.
+    - **action_button** - Ask the user which Miro actions they want to execute; this is the primary way to select and order operations.
+
+    ## Outputs
+    - **dataFrame** - Returns the results of the executed Miro action(s) as a DataFrame; commonly feeds into a data-processing component or a display/output component.
+
+    ## Notes
+    - Only fill in auth fields relevant to the chosen `auth_mode`; leaving unrelated fields blank avoids conflicts.
+    - Refer users to https://docs.composio.dev for details on setting up a Miro connection and obtaining credentials.
+    - The `action_button` (sortable list) controls which actions run — confirm the user has configured at least one action or nothing will execute.
+- component_name: ComposioMissiveAPIComponent
+  agent_summary: |-
+    You help the user connect to the Missive email and team inbox API via Composio, authenticating the integration and executing selected actions that return results as a DataFrame. It is a good fit when your workflow needs to automate Missive conversations, messages, or shared inboxes alongside other Composio-connected tools.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Missive API via Composio, allowing an AI workflow to trigger Missive actions (such as sending messages or managing conversations). Authentication is handled through Composio's auth layer, and results are returned as a DataFrame.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., API key, OAuth, bearer token) — this determines which other credential fields are relevant.
+    - **api_key** - Ask the user for their Composio API key to authenticate the Composio integration layer.
+    - **generic_api_key** - Ask the user for their Missive API key, to be entered on the Composio connection page.
+    - **action_button** - Ask the user which Missive action(s) they want to execute; this sortable list controls what operations the component performs.
+    - **scopes** - Ask the user if specific OAuth scopes are required for their Missive integration; leave blank if not using OAuth.
+
+    ## Outputs
+    - **dataFrame** - Returns the result of the executed Missive action as a DataFrame; commonly feeds into a data processing component, a display component, or a downstream agent tool.
+
+    ## Notes
+    - The correct credential fields depend entirely on the chosen `auth_mode` — only collect the fields relevant to that mode (e.g., `bearer_token` for Bearer, `access_token`/`refresh_token` for OAuth).
+    - `api_key` refers to the **Composio** platform key, while `generic_api_key` refers to the **Missive** service key — make sure the user understands the distinction.
+    - Refer the user to https://docs.composio.dev for setup guidance on connecting Missive through Composio.
+    - The `action_button` (sortable list) is the primary driver of what the component actually does — don't skip asking about it.
+- component_name: ComposioNotionAPIComponent
+  agent_summary: |-
+    You help the user connect to Notion via the Composio toolset, authenticate with various credential methods, execute selected Notion actions, and return the results as a dataframe. It is a good fit when you need to automate Notion workspace operations such as creating or querying pages and databases inside a larger agent workflow.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Notion via the Composio integration layer, allowing an AI workflow to perform actions against a Notion workspace (such as reading or writing pages and databases). Authentication is handled through Composio's managed auth system. Results are returned as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, used to authenticate all requests through Composio. No default; the user must supply this.
+    - **auth_mode** - Ask the user which authentication mode to use for the Notion connection (e.g., OAuth2, API key). Depends on how their Composio account is configured.
+    - **auth_link** - Ask the user to complete the Composio OAuth authorization flow if OAuth is the chosen auth mode.
+    - **generic_api_key** - If using API key auth, ask the user to enter their Notion API key on the Composio connection page.
+    - **action_button** - Ask the user which Notion action(s) to execute (e.g., create page, query database). This is the primary driver of what the component does.
+    - **scopes** - Ask whether any specific Notion permission scopes are required; leave blank to use Composio defaults.
+
+    ## Outputs
+    - **dataFrame** - Returns the result of the Notion action as a DataFrame; commonly feeds into a data transformation step, a table display component, or downstream AI processing nodes.
+
+    ## Notes
+    - Most authentication fields (token, access_token, client_id, client_secret, etc.) are only relevant for specific auth modes — only ask about the fields that match the chosen `auth_mode` to avoid overwhelming the user.
+    - The `action_button` (sortableList) field controls which Notion actions run; confirm this is configured or the component will do nothing.
+    - Refer the user to https://docs.composio.dev for details on setting up the Notion integration and obtaining a Composio API key.
+- component_name: ComposioOneDriveAPIComponent
+  agent_summary: |-
+    You help the user connect to Microsoft OneDrive via the Composio toolset, authenticating and executing file storage actions that return results as a DataFrame. It is a good fit when your workflow needs to read, write, or manage files in OneDrive as part of a larger automation. Prefer over ComposioDropboxAPIComponent when the user's cloud storage is Microsoft OneDrive rather than Dropbox.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Microsoft OneDrive via the Composio integration layer, allowing an AI workflow to execute OneDrive actions (such as file operations) and return results as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which authenticates requests to the Composio platform.
+    - **auth_mode** - Ask the user which authentication mode to use for OneDrive (e.g., OAuth2, Bearer token); choice determines which other credential fields are relevant.
+    - **auth_link** - Ask the user to complete the OAuth authorization flow via the provided link if using OAuth2-based auth.
+    - **tenant_id** - Ask the user for their Microsoft Azure tenant ID if connecting via an organizational (Azure AD) account.
+    - **client_id** - Ask the user for their Azure app client ID if using OAuth2 with a custom app registration.
+    - **access_token** - Ask the user for a valid OneDrive/Microsoft access token if bypassing the full OAuth flow.
+    - **bearer_token** - Ask the user for a bearer token if the selected auth mode is Bearer.
+    - **scopes** - Ask the user which OneDrive permission scopes are needed (e.g., `Files.ReadWrite`); leave blank to use Composio defaults.
+    - **action_button** - Ask the user which OneDrive actions to execute (e.g., list files, upload, download); this drives what the component actually does.
+
+    ## Outputs
+    - **dataFrame** - Returns the results of the selected OneDrive action(s) as a DataFrame; commonly feeds into a data processing, display, or downstream AI component.
+
+    ## Notes
+    - Only fill in credential fields relevant to the chosen `auth_mode` — providing conflicting credentials may cause unexpected behavior.
+    - `tenant_id`, `client_id`, and `client_secret` are typically required together for Azure AD OAuth2 flows.
+    - Refer to [Composio docs](https://docs.composio.dev) for the full list of supported OneDrive actions.
+- component_name: ComposioOutlookAPIComponent
+  agent_summary: |-
+    You help the user connect to Microsoft Outlook via the Composio API, authenticate with credentials, and execute actions against the Outlook service, returning results as a DataFrame. It is a good fit when you need to automate email or calendar tasks in Outlook within a Composio-powered workflow. Prefer over Gmail when the user's organization uses Microsoft 365 rather than Google Workspace for email.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Microsoft Outlook via the Composio integration layer, allowing an AI workflow to perform Outlook actions (such as reading or sending emails, managing calendar events, etc.) and return results as a DataFrame.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., OAuth2, API key, bearer token) — this determines which other credential fields are relevant.
+    - **auth_link** - Ask the user to complete the OAuth authorization flow via the provided Composio link if using OAuth2.
+    - **client_id** - Ask for the Azure/Microsoft app client ID if using OAuth2; required for the OAuth flow.
+    - **tenant_id** - Ask for the Microsoft Azure tenant ID if the app is registered to a specific tenant; leave blank for multi-tenant.
+    - **access_token** / **refresh_token** - Ask the user to supply these if they already have a valid OAuth2 token pair.
+    - **bearer_token** - Ask for a bearer token if that auth mode is selected instead of full OAuth2.
+    - **generic_api_key** - Ask the user to enter their API key on the Composio dashboard page if using API key auth.
+    - **action_button** - Ask the user which Outlook actions they want to enable/run (e.g., send email, list messages); this drives what the component actually does.
+
+    ## Outputs
+    - **dataFrame** - Returns the results of the selected Outlook action(s) as a DataFrame; commonly feeds into a data transformation component, a table display, or a downstream AI agent.
+
+    ## Notes
+    - Most credential fields are conditional on `auth_mode` — only prompt for the fields that match the chosen mode to avoid confusion.
+    - `client_secret` and `password` fields appear as plain strings here; treat them as sensitive and advise the user to use protected variables.
+    - Refer the user to [Composio docs](https://docs.composio.dev) for setting up the Outlook integration and obtaining credentials.
+- component_name: ComposioPandadocAPIComponent
+  agent_summary: |-
+    You help the user connect to the PandaDoc API via Composio, executing actions against PandaDoc (such as managing documents, templates, and signatures) and returning results as a DataFrame. This is a good fit when building automated document workflows, such as generating or sending contracts from an agent. Prefer over Flexisign when working specifically with PandaDoc's document and eSignature platform rather than an alternative signing service.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to PandaDoc via the Composio integration layer, authenticates with the PandaDoc API, and executes selected actions (such as managing documents, templates, or recipients), returning results as a DataFrame.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., API key, OAuth2, bearer token); the choice determines which other credential fields are relevant.
+    - **api_key** - Ask the user for their Composio API key used to authenticate the Composio connection itself.
+    - **generic_api_key** - If the user is authenticating via a direct PandaDoc API key, ask them to enter it here via the Composio page.
+    - **access_token** - If using OAuth2, ask the user for their PandaDoc OAuth access token.
+    - **bearer_token** - If using bearer-token auth, ask the user to provide the bearer token.
+    - **scopes** - Ask the user which PandaDoc permission scopes are required for their use case (e.g., document read/write).
+    - **action_button** - Ask the user which PandaDoc actions they want to perform and in what order; this drives what the component actually executes.
+
+    ## Outputs
+    - **dataFrame** - Returns the results of the executed PandaDoc action(s) as a DataFrame; commonly feeds into a data processing component, table display, or downstream logic step.
+
+    ## Notes
+    - Only fill in credential fields that match the chosen `auth_mode`; leaving unrelated credential fields blank avoids confusion.
+    - The `action_button` (sortable list) is the key driver of behavior — without configuring it, the component will not perform any meaningful PandaDoc operations.
+    - Refer to [Composio docs](https://docs.composio.dev) for supported PandaDoc actions and required scopes per action.
+- component_name: ComposioPeopleDataLabsAPIComponent
+  agent_summary: |-
+    You help the user connect to the PeopleDataLabs API via Composio, executing actions against its people and company data enrichment service and returning results as a DataFrame. This is a good fit when your workflow needs to enrich leads, look up professional profiles, or query firmographic data as part of a larger agent pipeline.
+  agent_usage_notes: |-
+    ## What it does
+    The PeopleDataLabs component connects to the PeopleDataLabs API via Composio, allowing an AI workflow to query people and company data. It executes configured actions against the PeopleDataLabs service and returns results as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key used to authenticate with the Composio platform.
+    - **auth_mode** - Ask the user which authentication mode PeopleDataLabs should use (e.g., API key, OAuth2); the correct value depends on their PeopleDataLabs account type.
+    - **generic_api_key** - Ask the user for their PeopleDataLabs API key to be entered on the Composio connection page.
+    - **action_button** - Ask the user which PeopleDataLabs action(s) they want to perform (e.g., person enrichment, company search); this drives what the component actually does.
+
+    ## Outputs
+    - **dataFrame** - Returns the API response as a DataFrame; commonly feeds into a data processing component, table display, or downstream AI agent for further analysis.
+
+    ## Notes
+    - The large number of auth-related inputs (`client_id`, `client_secret`, `bearer_token`, `access_token`, etc.) only apply depending on the selected `auth_mode` — only prompt the user for fields relevant to their chosen method.
+    - Without a properly configured `action_button` selection, the component will not perform any meaningful operation.
+    - Refer to [Composio docs](https://docs.composio.dev) for supported PeopleDataLabs actions and the correct `auth_mode` value for this integration.
+    - Do not ask the user to fill in both `api_key` and `generic_api_key` without clarifying that these serve different purposes (Composio platform vs. PeopleDataLabs service).
+- component_name: ComposioPerplexityAIAPIComponent
+  agent_summary: |-
+    You help the user authenticate and invoke actions against the PerplexityAI API through Composio, returning results as a DataFrame. This is a good fit when you need to integrate PerplexityAI search or query capabilities into an agent workflow alongside other Composio-connected tools. Prefer over Composio Tools (the generic toolset component) when you want a dedicated, pre-scoped connection specifically to PerplexityAI rather than a multi-tool setup.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Perplexity AI service via Composio, authenticating with the chosen auth method and exposing selected Perplexity AI actions that can be triggered downstream in a flow.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method to use (e.g., API key, OAuth2, bearer token); the correct choice determines which other fields are required.
+    - **generic_api_key** - Ask the user for their Perplexity AI API key to be entered on the Composio authentication page; required when using API key auth mode.
+    - **client_id / client_secret** - Ask the user for their OAuth2 client credentials if they selected an OAuth2 auth mode.
+    - **bearer_token** - Ask the user for a bearer token if bearer-token auth mode is selected.
+    - **action_button** - Ask the user which Perplexity AI actions they want to enable; this sortable list controls what operations the component exposes.
+    - **auth_link** - Guide the user to complete any OAuth authorization flow via the provided link if OAuth is chosen.
+
+    ## Outputs
+    - **dataFrame** - Returns results from the triggered Perplexity AI actions as a DataFrame; commonly feeds into a data-processing component, a table display, or a downstream agent step.
+
+    ## Notes
+    - Only the fields relevant to the chosen `auth_mode` need to be filled in — ask the user to confirm their auth mode first before collecting credentials.
+    - `api_key` (required) is distinct from `generic_api_key`; clarify which refers to the Composio platform key versus the Perplexity AI service key.
+    - Refer the user to https://docs.composio.dev for setup details on connecting a Perplexity AI account through Composio.
+- component_name: ComposioRedditAPIComponent
+  agent_summary: |-
+    You help the user connect to the Reddit API via Composio, executing selected Reddit actions and returning the results as a DataFrame. It is a good fit when you need to automate Reddit interactions such as posting, reading, or searching within a larger Langflow workflow. Prefer over Composio Tools when you want a dedicated Reddit integration with scoped authentication rather than a general-purpose multi-tool agent setup.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Reddit API via Composio, allowing an AI workflow to perform Reddit actions (such as reading posts, submitting content, or searching subreddits). Authentication is handled through Composio's managed auth system. Results are returned as a structured DataFrame.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., OAuth2, API key, username/password); the correct choice depends on their Composio app setup.
+    - **api_key** - Ask the user for their Composio API key, used to connect this component to the Composio platform.
+    - **client_id** / **client_secret** - Ask if they are using OAuth2; both are required for that auth flow.
+    - **username** / **password** - Ask if they are authenticating via Reddit username/password credentials instead of OAuth2.
+    - **access_token** / **refresh_token** - Ask if they already have a Reddit OAuth2 token pair to supply directly.
+    - **scopes** - Ask what Reddit permission scopes are needed (e.g., `read`, `submit`, `history`); defaults depend on the intended actions.
+    - **action_button** - Ask the user which Reddit actions they want to execute; this is the primary selector for what the component actually does.
+
+    ## Outputs
+    - **dataFrame** - Returns the API response as a DataFrame; commonly feeds into a data table display, a parsing/transform component, or an LLM for further processing.
+
+    ## Notes
+    - The many auth-related fields (`client_id`, `bearer_token`, `authorization_code`, etc.) are mutually exclusive depending on `auth_mode` — only prompt for the fields relevant to the chosen mode to avoid confusion.
+    - Refer users to the [Composio docs](https://docs.composio.dev) for Reddit app setup and supported actions.
+    - `action_button` is the key input that determines which Reddit operation runs; without it configured, the component will not perform any useful work.
+- component_name: ComposioSerpAPIComponent
+  agent_summary: |-
+    You help the user connect to SerpAPI through Composio, authenticate with an API key, and execute search-related actions that return results as a DataFrame. This is a good fit when an agent needs live search engine results data as structured output within a Composio-powered workflow. Prefer over ComposioTavilyAPIComponent or ComposioExaAPIComponent when the user specifically needs SerpAPI's search engine results rather than those providers' crawling or AI-search capabilities.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to SerpAPI through the Composio integration layer, authenticates with the service, and returns search result data as a DataFrame for downstream processing.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which is required to authenticate with the Composio platform.
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., API key, OAuth2, bearer token) so the correct credential fields can be filled in.
+    - **generic_api_key** - If using API key auth mode, ask the user to enter their SerpAPI key here (entered via the Composio page).
+    - **client_id / client_secret** - Ask for these if the user selects an OAuth2 auth mode.
+    - **bearer_token** - Ask for this if the user selects bearer token auth mode.
+    - **action_button** - Ask the user which SerpAPI actions they want to enable or invoke through Composio.
+
+    ## Outputs
+    - **dataFrame** - Produces a structured DataFrame containing SerpAPI results; commonly feeds into a data transformation component, table display, or an AI agent for further reasoning.
+
+    ## Notes
+    - Most credential fields (OAuth tokens, client secrets, passwords, etc.) are only relevant for specific `auth_mode` selections — only prompt the user for fields matching their chosen mode to avoid confusion.
+    - The `api_key` field refers to the **Composio** API key, not the SerpAPI key; clarify this distinction with the user to prevent mix-ups.
+    - Composio documentation at https://docs.composio.dev can help the user locate their API key and set up the SerpAPI connection on the Composio side before configuring this component.
+- component_name: ComposioSlackAPIComponent
+  agent_summary: |-
+    You help the user execute actions against the Slack API via Composio, producing a DataFrame with the results. It is a good fit when you need to automate Slack operations such as sending messages, managing channels, or retrieving workspace data within a larger workflow. Prefer over Slackbot when your use case requires broad Slack API actions rather than bot-specific interactions.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Slack via the Composio integration layer, allowing an AI workflow to trigger Slack actions (such as sending messages or retrieving channel data) using a configured authentication method. Results are returned as a DataFrame for downstream processing.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which is required to authenticate with the Composio platform.
+    - **auth_mode** - Ask the user which authentication mode to use (e.g., OAuth2, API key, bearer token); the correct choice determines which other credential fields are relevant.
+    - **action_button** - Ask the user which Slack action(s) they want to execute (e.g., send a message, list channels); this is the primary driver of what the component does.
+    - **access_token** - If using OAuth2, ask the user for their Slack access token.
+    - **bearer_token** - If using bearer-token auth, ask the user to supply it here.
+    - **scopes** - Ask the user which Slack permission scopes are needed, especially if setting up OAuth2 for the first time.
+
+    ## Outputs
+    - **dataFrame** - Returns the result of the selected Slack action as a DataFrame; commonly feeds into a data transformation component, a display component, or a downstream AI agent.
+
+    ## Notes
+    - Only fill in credential fields that match the chosen `auth_mode` — leaving unrelated credential fields blank avoids confusion.
+    - The `auth_link` field triggers an OAuth consent flow; remind the user to complete browser-based authorization before running the flow if using OAuth2.
+    - Refer the user to [Composio's documentation](https://docs.composio.dev) for supported Slack actions and required scopes.
+    - The `api_key` here is the **Composio** platform key, not a Slack-specific key — clarify this distinction with the user.
+- component_name: ComposioSlackbotAPIComponent
+  agent_summary: |-
+    You help the user connect to the Slack bot API via Composio, authenticating with various credential types and executing selected bot actions that return results as a DataFrame. This is a good fit when your workflow needs to automate Slackbot-specific interactions through Composio's toolset. Prefer over Slack when your use case specifically targets Slackbot API actions rather than standard Slack workspace operations.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Composio platform to authenticate and interact with the Slack API via a Slackbot integration. It uses Composio's tooling layer to authorize the connection and execute Slack actions selected by the user.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, required to authenticate with the Composio platform. No default.
+    - **auth_mode** - Ask the user which authentication mode to use (e.g., OAuth2, API key, bearer token). The correct choice determines which other credential fields are relevant.
+    - **client_id / client_secret** - Ask for these if the user is using OAuth2 as their auth mode.
+    - **token / access_token** - Ask for these if the user is authenticating with a pre-existing token rather than OAuth2.
+    - **bearer_token** - Ask for this if the user selects bearer token auth mode.
+    - **generic_api_key** - Ask the user to enter the API key directly on the Composio authorization page if using API key auth mode.
+    - **redirect_uri** - Ask the user for a redirect URI if completing an OAuth2 flow. No default.
+    - **action_button** - Ask the user which Slack actions they want to enable (e.g., send message, list channels). This controls what the component can do.
+
+    ## Outputs
+    - **dataFrame** - Returns results from the executed Slack action(s) as a DataFrame; commonly feeds into a data processing component or a display/table component.
+
+    ## Notes
+    - Most credential fields are mutually exclusive depending on the chosen `auth_mode` — only prompt for the fields relevant to the selected mode to avoid confusion.
+    - The `action_button` (sortableList) is the primary way to specify which Slack actions are executed; skipping it will likely result in no useful output.
+    - Refer users to https://docs.composio.dev for Composio-specific setup and OAuth app registration steps.
+- component_name: ComposioSnowflakeAPIComponent
+  agent_summary: |-
+    You help the user connect to Snowflake through the Composio toolset, authenticating via API key or OAuth and executing selected Snowflake actions that return results as a DataFrame. This is a good fit when you need to run Snowflake operations inside an agent workflow without managing the API integration directly. Prefer over GoogleBigQuery when the user's data warehouse is Snowflake rather than Google's cloud analytics platform.
+  agent_usage_notes: |-
+    ## What it does
+    This component integrates with Snowflake via the Composio platform, allowing an AI workflow to trigger Snowflake actions through Composio's API abstraction layer. It returns results as a DataFrame for downstream processing.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which authenticates requests to the Composio platform (not to Snowflake directly); no default.
+    - **auth_mode** - Ask the user which authentication method they want to use to connect Snowflake through Composio (e.g., OAuth, API key, username/password); no default.
+    - **username / password** - If auth_mode involves basic credentials, ask the user for their Snowflake username and password.
+    - **access_token / refresh_token** - If OAuth is selected, ask the user for their OAuth access and refresh tokens.
+    - **generic_api_key** - Ask the user to enter their Snowflake API key on the Composio connection page if using API key auth.
+    - **subdomain / instance_url** - Ask the user for their Snowflake account identifier or instance URL (e.g., `myorg-myaccount.snowflakecomputing.com`); no default.
+    - **action_button** - Ask the user which Snowflake actions they want to enable or prioritize in this component.
+    - **scopes** - Ask the user if any specific permission scopes are required for the Snowflake connection; optional.
+
+    ## Outputs
+    - **dataFrame** - Produces a pandas DataFrame containing the results of the executed Snowflake action; commonly feeds into data transformation, table display, or further agent processing components.
+
+    ## Notes
+    - The `api_key` field is the Composio platform key, not a Snowflake credential — clarify this distinction to avoid confusion.
+    - Only the auth fields relevant to the chosen `auth_mode` are needed; ask the user to confirm their mode first before collecting credential fields.
+- component_name: ComposioSupabaseAPIComponent
+  agent_summary: |-
+    You help the user authenticate with Supabase through the Composio toolset and execute selected Supabase actions, returning results as a DataFrame. It fits well in agent workflows that need to interact with a Supabase backend, such as querying tables or managing data, using Composio to handle the authentication overhead. Prefer over Composio Tools (the generic component) when you specifically need Supabase-scoped actions rather than a broad multi-tool setup.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to Supabase via the Composio integration layer, authenticates using a chosen auth method, and executes selected Supabase actions, returning results as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key (not the Supabase key) — this is required to authenticate with Composio's platform.
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., OAuth2, API key, bearer token); the correct choice determines which other fields are needed.
+    - **generic_api_key** - If using API key auth mode, ask the user for the Supabase API key to enter on the Composio connection page.
+    - **client_id / client_secret** - Ask for these if the user selects OAuth2 as the auth mode.
+    - **access_token / refresh_token** - Ask for these if the user is providing OAuth2 tokens directly rather than going through the OAuth flow.
+    - **bearer_token** - Ask if the user is authenticating via bearer token mode.
+    - **action_button** - Ask the user which Supabase actions they want to execute (e.g., insert row, select data); this drives what the component actually does.
+
+    ## Outputs
+    - **dataFrame** - Produces a DataFrame containing the results of the executed Supabase action; commonly feeds into a data processing component, table display, or downstream AI agent.
+
+    ## Notes
+    - Only fill auth fields relevant to the chosen `auth_mode` — most auth inputs are mutually exclusive and leaving irrelevant ones blank is expected.
+    - The Composio `api_key` is distinct from the Supabase `generic_api_key`; make sure the user understands they may need both.
+    - Refer users to [Composio docs](https://docs.composio.dev) for setting up the Supabase integration and obtaining credentials.
+- component_name: ComposioTavilyAPIComponent
+  agent_summary: |-
+    You help the user connect to the Tavily search API through Composio, authenticating with an API key and executing selected Tavily actions that return results as a DataFrame. This is a good fit when you need web search capabilities inside an agent workflow and want Composio to handle the authentication and action dispatch. Prefer over Exa or SerpAPI when the user specifically needs Tavily's search and research endpoints rather than those providers' distinct index or SERP data.
+  agent_usage_notes: |-
+    ## What it does
+    This component integrates with the Tavily search API via Composio, allowing an AI workflow to authenticate with Tavily and invoke actions against it. Results are returned as a structured DataFrame for downstream processing.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key, which is required to authenticate with the Composio platform.
+    - **auth_mode** - Ask the user which authentication mode to use for connecting to Tavily (e.g., API key, OAuth). The correct choice determines which of the remaining credential fields are needed.
+    - **generic_api_key** - If the user selects API key auth, ask them to enter their Tavily API key here (entered via the Composio connection page).
+    - **action_button** - Ask the user which Tavily actions they want to enable or invoke; this sortable list controls what operations are executed.
+
+    ## Outputs
+    - **dataFrame** - Produces a DataFrame containing the results of the executed Tavily action(s); commonly feeds into a data transformation component, a table display, or an LLM for further reasoning.
+
+    ## Notes
+    - The auth-related fields (`client_id`, `client_secret`, `bearer_token`, `access_token`, etc.) are only relevant for specific `auth_mode` selections — only prompt the user for fields that match their chosen mode to avoid confusion.
+    - `api_key` refers to the **Composio** API key, not the Tavily API key; clarify this distinction explicitly to avoid user error.
+    - The Composio documentation at https://docs.composio.dev is the best reference for setting up the Tavily integration and understanding available actions.
+- component_name: ComposioTimelinesAIAPIComponent
+  agent_summary: |-
+    You help the user connect to the TimelinesAI service via Composio, authenticating with credentials and executing selected actions against its API, then returning results as a DataFrame. It is a good fit when your workflow involves automating WhatsApp-based CRM or messaging tasks through TimelinesAI. Prefer over the generic Composio Tools component when you need TimelinesAI-specific actions surfaced directly without manually specifying the app.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the TimelinesAI service via the Composio integration layer, authenticates using one of several supported auth methods, and executes selected actions, returning results as a DataFrame.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method TimelinesAI requires (e.g., API key, OAuth2, bearer token). The correct choice determines which other credential fields are needed.
+    - **generic_api_key** - If using API key auth, ask the user for their TimelinesAI API key to enter on the Composio connection page.
+    - **access_token** - If using OAuth2 or token-based auth, ask the user for their access token.
+    - **bearer_token** - If using bearer token auth, ask the user to supply it here.
+    - **username / password** - If using basic auth, ask the user for their TimelinesAI credentials.
+    - **subdomain / domain / instance_url** - Ask the user if their TimelinesAI account uses a custom domain or subdomain; leave blank if not applicable.
+    - **action_button** - Ask the user which TimelinesAI actions they want to execute; this list controls what operations the component performs.
+
+    ## Outputs
+    - **dataFrame** - Returns the action results as a DataFrame, suitable for feeding into data transformation components, table display components, or downstream agents.
+
+    ## Notes
+    - Only fill in the credential fields that match the chosen `auth_mode`; leaving unrelated auth fields empty avoids conflicts.
+    - The `auth_link` field triggers an OAuth flow in Composio — make sure the user completes that step before running the component if OAuth is selected.
+    - Refer the user to https://docs.composio.dev for TimelinesAI-specific scopes or action names if they are unsure what to enter.
+- component_name: ComposioTodoistAPIComponent
+  agent_summary: |-
+    You help the user connect to the Todoist task management API via Composio, executing actions against their Todoist account and returning results as a DataFrame. It is a good fit when you need to automate task creation, retrieval, or project management within Todoist as part of a larger workflow. Prefer over GoogleTasks when the user's task data lives in Todoist rather than Google's ecosystem, and prefer over Asana or Wrike when the target is a personal or lightweight task manager rather than a team project management tool.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Todoist API via the Composio integration layer, allowing an AI workflow to perform actions against a user's Todoist account (such as managing tasks, projects, or labels). It returns results as a DataFrame for downstream processing.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., API key, OAuth token); the correct choice determines which other credential fields are relevant.
+    - **api_key** - Ask the user for their Composio API key used to authenticate with the Composio platform itself (required).
+    - **generic_api_key** - If using API key auth mode, ask the user to enter their Todoist API key here (entered on the Composio page).
+    - **access_token** - If using OAuth, ask the user for their Todoist OAuth access token.
+    - **action_button** - Ask the user which Todoist actions they want to enable or sequence (e.g., create task, list projects); this controls what operations the component performs.
+
+    ## Outputs
+    - **dataFrame** - Produces a DataFrame containing the results of the selected Todoist action(s); commonly feeds into a data parsing, filtering, or display component downstream.
+
+    ## Notes
+    - Many credential fields (e.g., `client_id`, `client_secret`, `token_url`, `redirect_uri`) are only relevant for specific OAuth flows — only surface them if the user selects an OAuth-based `auth_mode`.
+    - The `api_key` field refers to the **Composio** platform key, not the Todoist API key — make this distinction clear to avoid confusion.
+    - Ask the user to confirm their chosen `auth_mode` first before asking about credential fields, since most fields are conditionally irrelevant.
+- component_name: ComposioWrikeAPIComponent
+  agent_summary: |-
+    You help the user connect to the Wrike project management platform via Composio, executing actions against the Wrike API and returning results as a DataFrame. It is a good fit when you need to automate task or project operations in Wrike within a larger workflow. Prefer over Asana, Linear, Todoist, or Jira when the user's team specifically uses Wrike for project and task management.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the Wrike project-management platform via the Composio integration layer, authenticates using a chosen auth method, and executes one or more Wrike API actions, returning the results as a DataFrame.
+
+    ## Inputs to ask about
+    - **auth_mode** - Ask the user which authentication method they want to use (e.g., OAuth2, API key, bearer token); this determines which of the remaining credential fields are relevant.
+    - **api_key** - Ask the user for their Composio API key, required to authenticate with the Composio platform itself.
+    - **generic_api_key** - If the user chose API-key auth mode, ask them to enter their Wrike API key on the Composio connection page.
+    - **access_token / bearer_token** - If the user chose token-based auth, ask them to supply the appropriate token value.
+    - **client_id / client_secret** - If the user chose OAuth2, ask for the OAuth application's client ID and secret from their Wrike app registration.
+    - **scopes** - If using OAuth2, ask which Wrike permission scopes are needed (e.g., `wsreadwrite`).
+    - **action_button** - Ask the user which Wrike actions to execute (e.g., get tasks, create folder); this is the primary selector for what the component actually does.
+
+    ## Outputs
+    - **dataFrame** - Returns API response data as a DataFrame; commonly feeds into a data-processing component, a display table, or a downstream agent tool.
+
+    ## Notes
+    - Only the credential fields relevant to the chosen `auth_mode` need to be filled; prompt the user to ignore the rest to avoid confusion.
+    - `auth_link` triggers the OAuth consent flow — remind the user to complete browser-based authorization before running if OAuth2 is selected.
+    - Refer the user to https://docs.composio.dev for Wrike-specific scope names and action identifiers.
+- component_name: ComposioYoutubeAPIComponent
+  agent_summary: |-
+    You help the user connect to the YouTube API via Composio, execute selected YouTube actions, and return the results as a DataFrame. It is a good fit when you need to automate YouTube operations such as managing videos, channels, or playlists within a larger workflow. Prefer over Composio Tools when you want a pre-scoped integration targeting YouTube specifically rather than selecting from the full Composio toolset.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to the YouTube API via Composio, allowing an AI workflow to perform YouTube actions (such as searching videos, managing playlists, or retrieving channel data). It authenticates with Composio and returns results as a DataFrame.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Composio API key used to authenticate with the Composio platform; no default.
+    - **auth_mode** - Ask the user which authentication mode to use (e.g., OAuth2, API key); choice depends on how their YouTube credentials are configured in Composio.
+    - **action_button** - Ask the user which YouTube actions they want to enable or invoke; this sortable list determines what operations the component performs.
+    - **client_id** - Ask for the OAuth2 client ID if the user is using OAuth2 auth mode; leave blank otherwise.
+    - **client_secret** - Ask for the OAuth2 client secret if using OAuth2 auth mode; leave blank otherwise.
+    - **scopes** - Ask the user which YouTube API scopes are required (e.g., `youtube.readonly`); only needed for OAuth2 flows.
+    - **generic_api_key** - Ask the user to enter their YouTube/Composio API key directly on the Composio page if using API key auth mode.
+    - **redirect_uri** - Ask for the OAuth2 redirect URI if applicable; typically only needed during initial OAuth setup.
+
+    ## Outputs
+    - **dataFrame** - Produces a DataFrame containing the results of the selected YouTube action(s); commonly feeds into a data processing component, table display, or an LLM for summarisation.
+
+    ## Notes
+    - The relevant auth-related inputs vary entirely based on `auth_mode` — only ask for credentials that match the chosen mode to avoid confusion.
+    - Composio handles the actual YouTube API connection, so the user must have a valid Composio account and a connected YouTube integration at https://docs.composio.dev.
+    - Most credential fields are optional and context-dependent; `api_key` and `action_button` are the two most critical inputs to configure first.

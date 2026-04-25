@@ -1,0 +1,22 @@
+- component_name: ApifyActorsComponent
+  agent_summary: |-
+    You help the user run any Apify Actor by ID and retrieve its scraped dataset as structured data, given an API token, actor name, JSON run input, and optional field filtering or flattening. This is a good fit for pulling web-scraped content into a flow or giving an agent on-demand access to hundreds of pre-built scrapers without writing custom extraction code.
+  agent_usage_notes: |-
+    ## What it does
+    Runs an Apify Actor (a cloud scraper/automation task) and returns the resulting dataset as structured data or as a callable tool for an agent. It lets you extract content from websites and other sources supported by the Apify platform.
+
+    ## Inputs to ask about
+    - **apify_token** - Ask the user for their Apify API token (found in Apify console → Settings → Integrations); note this is a plain string field here, so handle it carefully.
+    - **actor_id** - Ask the user which Apify Actor to run; suggest `apify/website-content-crawler` as a common starting point.
+    - **run_input** - Ask the user for the JSON input that configures the Actor run; suggest `{"startUrls":[{"url":"https://example.com"}],"maxCrawlDepth":0}` as a minimal example for the website crawler.
+    - **dataset_fields** - Ask the user which fields to keep from the Actor's output dataset, comma-separated; suggest `markdown` when using `apify/website-content-crawler` to get page content in Markdown format.
+    - **flatten_dataset** - Ask whether nested dataset fields should be flattened to a single level (e.g. `metadata.title` → `metadata_title`); default is off, but recommend enabling it when the output feeds a structured-data step.
+
+    ## Outputs
+    - **output** - Returns the Actor's dataset as a Data object; commonly feeds into a text splitter, parser, or prompt component.
+    - **tool** - Exposes the Actor run as a tool callable by an agent; connect to an agent's tools input for dynamic, on-demand scraping.
+
+    ## Notes
+    - The `run_input` must be valid JSON matching the specific Actor's schema — check the Actor's page on the Apify Store for the correct structure.
+    - Actor runs consume Apify platform credits; warn the user that long crawls or high `maxCrawlDepth` values can be costly.
+    - `dataset_fields` and `flatten_dataset` work together; enable flattening when field names contain dots to avoid key conflicts downstream.

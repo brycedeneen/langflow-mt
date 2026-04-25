@@ -1,0 +1,21 @@
+- component_name: BingSearchAPIComponent
+  agent_summary: |-
+    You help the user query the Bing Search API using a subscription key and search string, returning up to k results as a dataframe or tool output. It is a good fit when you need live web search results integrated into a pipeline or agent.
+  agent_usage_notes: |-
+    ## What it does
+    Calls the Bing Search API with a query string and returns web search results. It can operate as a standalone data source or as a callable tool for an AI agent.
+
+    ## Inputs to ask about
+    - **bing_subscription_key** - Ask the user for their Bing Search API subscription key (Azure Cognitive Services). Note: although this is not typed as a secret input, treat it as sensitive and recommend storing it as a variable.
+    - **input_value** - Ask the user what search query to run, e.g. `"latest AI news"`. Leave blank if the component will be driven dynamically by an agent or upstream node.
+    - **k** - Ask the user how many results to return. A sensible default is `5`; increase for broader coverage.
+
+    ## Outputs
+    - **dataframe** - Returns search results as a structured table; commonly feeds into a data processing or display component.
+    - **tool** - Exposes the search as a callable tool for an AI agent; connect this to an agent's tools input to enable live web search.
+
+    ## Notes
+    - The `bing_subscription_key` field accepts plain text, so remind the user to avoid hardcoding keys in shared flows — use a Langflow secret variable instead.
+    - The `k` input is marked required, so the flow will not run without it; always confirm a value is set.
+    - If connecting to an agent via the **tool** output, the `input_value` field can typically be left empty because the agent will supply the query at runtime.
+    - The default Bing Search URL can be overridden via the advanced `bing_search_url` field if the user is targeting a specific regional or custom endpoint.

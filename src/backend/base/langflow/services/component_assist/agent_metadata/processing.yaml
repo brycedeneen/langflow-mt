@@ -1,0 +1,162 @@
+- component_name: DataFrameOperationsComponent
+  agent_summary: |-
+    You help the user transform a DataFrame (Table) through operations such as filtering rows, sorting, renaming or adding columns, replacing values, selecting columns, slicing head or tail rows, and merging or concatenating multiple DataFrames. This is a good fit when you need quick, configurable tabular manipulations without writing code. Prefer over JSON Operations when your data is already in DataFrame form rather than a raw JSON object.
+  agent_usage_notes: |-
+    ## What it does
+    Performs a selected operation on one or more Table (DataFrame) inputs — such as filtering, sorting, renaming columns, adding columns, replacing values, selecting columns, or merging/concatenating tables. The result is a transformed Table passed downstream.
+
+    ## Inputs to ask about
+    - **df** - Ask the user which Table component(s) to connect; multiple Tables are required for merge or concatenate operations.
+    - **operation** - Ask the user which operation to perform (e.g., filter, sort, rename, add column, select columns, replace value, merge, concatenate, head, tail).
+    - **column_name** - Ask which column the operation should target; required for most operations except concatenate.
+    - **filter_value** - Ask for the value to match when filtering rows; only needed for the filter operation.
+    - **filter_operator** - Ask for the comparison operator (e.g., `==`, `!=`, `>`, `<`); only needed for filter.
+    - **ascending** - Ask whether to sort ascending or descending; only needed for sort. Default: `True`.
+    - **new_column_name** - Ask for the target column name when renaming or adding a column.
+    - **new_column_value** - Ask for the value to populate a new column with; only needed for add column.
+    - **columns_to_select** - Ask which columns to keep (comma-separated); only needed for select columns.
+    - **num_rows** - Ask how many rows to return; only needed for head/tail. Default: `5`.
+    - **replace_value** - Ask for the value to find and replace; only needed for replace.
+    - **replacement_value** - Ask for the replacement value; only needed for replace.
+    - **merge_on_column** - Ask for the shared column name to join on; must exist in both Tables.
+    - **merge_how** - Ask for the join type (`inner`, `outer`, `left`, `right`). Default: `inner`.
+
+    ## Outputs
+    - **output** - Returns the transformed Table; commonly feeds into another Table Operations component, a data export component, or a model prompt.
+
+    ## Notes
+    - Only inputs relevant to the chosen operation are actually used — warn the user not to leave unrelated fields populated, as it may cause confusion.
+    - For merge or concatenate, the user must connect at least two Tables to the **df** input.
+    - **merge_on_column** must exist in all Tables being merged or the operation will fail.
+- component_name: DataOperationsComponent
+  agent_summary: |-
+    You help the user transform a JSON object by applying a sequence of operations such as selecting, filtering, appending, updating, removing, or renaming keys, as well as extracting values by path. It is a good fit when you need lightweight, structured manipulation of an existing JSON object without writing custom code. Prefer over Data Mapper when the transformations are straightforward key-level operations on a single object rather than complex cross-input field mappings with explicit schemas.
+  agent_usage_notes: |-
+    ## What it does
+    Performs a configurable sequence of operations on a JSON/Data object, such as selecting, filtering, renaming, removing, appending, updating, or parsing keys. Operations are applied in the order defined by the sortable list, making it useful for transforming structured data between pipeline steps.
+
+    ## Inputs to ask about
+    - **data** - Ask the user which upstream component supplies the JSON/Data object to transform; this is required.
+    - **operations** - Ask the user which operations they want to apply and in what order (e.g., Select Keys, Filter, Remove Keys, Rename Keys, Append/Update, Parse JSON); no single default applies.
+    - **select_keys_input** - Ask for a comma-separated list of top-level keys to keep; only needed if a Select Keys operation is included.
+    - **filter_key** - Ask for the top-level key whose value (a list) should be filtered; only needed if a Filter operation is included.
+    - **operator** - Ask which comparison operator to use for filtering (e.g., equals, contains); only needed alongside a Filter operation.
+    - **filter_values** - Ask for the values to filter by as a dict; only needed if a Filter operation is included.
+    - **append_update_data** - Ask for the dict of key-value pairs to add or overwrite; only needed if an Append/Update operation is included.
+    - **remove_keys_input** - Ask for the top-level keys to remove; only needed if a Remove Keys operation is included.
+    - **rename_keys_input** - Ask for a mapping of old key names to new key names; only needed if a Rename Keys operation is included.
+    - **query** - Ask for the JSON query expression to use; only needed if a Parse JSON operation is included.
+
+    ## Outputs
+    - **data_output** - Emits the transformed Data object; commonly feeds into downstream components such as a prompt, model, or another data-processing step.
+
+    ## Notes
+    - All key selection and removal is limited to **top-level keys only** — nested key access is not supported for most operations.
+    - The `filter_key` value must be a list; non-list values will cause the filter operation to fail.
+- component_name: DynamicCreateDataComponent
+  agent_summary: |-
+    You help the user assemble a structured Data object by defining an arbitrary number of named fields through a table interface, where each row becomes a connectable input slot. This is a good fit when you need to build a custom data record from scratch by wiring in values from other components, rather than transforming an existing object. Prefer over Data Mapper when you are constructing a new record from discrete inputs rather than remapping or joining fields from upstream sources.
+  agent_usage_notes: |-
+    ## What it does
+    Dynamically creates a `Data` object with a user-defined set of fields, where each field becomes a key-value pair in the output. It lets you build structured data records on the fly without needing a fixed schema.
+
+    ## Inputs to ask about
+    - **form_fields** - Ask the user how many fields they need and what each field should be named; each row in the table becomes an input that can accept connections from other components. There is no single default — prompt the user to define at least one field to make the component useful.
+
+    ## Outputs
+    - **form_data** - Produces a `Data` object containing all the defined fields and their values; commonly feeds into components that consume structured data, such as parsers, templates, or downstream logic nodes.
+    - **message** - Emits a message representation of the assembled data; useful for passing into chat or text-processing components.
+
+    ## Notes
+    - The component is only useful once at least one row is added to **form_fields** — remind the user that an empty table produces an empty record.
+    - Each row in **form_fields** creates a live input connector, so other components can wire values directly into individual fields rather than hardcoding them.
+    - Field names must be unique across rows; duplicate names may cause one value to silently overwrite another.
+    - The `include_metadata` option (advanced) embeds the form configuration itself in the output — only mention it if the user has a downstream need to inspect the schema rather than just the data values.
+- component_name: ParserComponent
+  agent_summary: |-
+    You help the user extract and format text from a Data object or DataFrame by applying a curly-bracket template pattern, producing a single parsed text string. It is a good fit when you need to render structured data into readable text output, such as building labeled summaries like "Name: Alice, Age: 30." Prefer over Data Mapper or Type Convert when the goal is simple string formatting from structured fields rather than field remapping or type conversion.
+  agent_usage_notes: |-
+    ## What it does
+    Parser extracts and formats text from a DataFrame or Data object using a template pattern with placeholder variables. It can also convert input directly to a raw string instead of applying a template.
+
+    ## Inputs to ask about
+    - **input_data** - Ask the user what data source to connect here; it accepts either a DataFrame or a Data object from an upstream component.
+    - **mode** - Ask the user whether they want to use a template pattern or convert the input to a raw string; default is template mode.
+    - **pattern** - Ask the user to provide a template string using curly-bracket placeholders matching column names (DataFrame) or key names (Data), e.g. `Name: {Name}, Age: {Age}, Country: {Country}`; no default since it depends on the shape of their data.
+
+    ## Outputs
+    - **parsed_text** - Produces a formatted text string built from the template and input data; commonly feeds into a text input, prompt, or language model component downstream.
+
+    ## Notes
+    - The placeholder names inside `{}` must exactly match column names in the DataFrame or key names in the Data object — mismatches will cause extraction to fail.
+    - In raw string mode the `pattern` input is ignored, so remind the user there is no need to define a template if they select that mode.
+    - If the input is a DataFrame with multiple rows, each row is rendered using the template and results are joined together; clarify the expected row count with the user if output length matters.
+- component_name: SplitTextComponent
+  agent_summary: |-
+    You help the user break text from an input Data object into smaller chunks, outputting a DataFrame where each row is a chunk defined by a separator character, a maximum chunk size, and an optional character overlap between consecutive chunks. This is a good fit when preparing long documents for embedding pipelines or retrieval-augmented generation, where downstream models require text below a token or character limit. Prefer over Text Operations when the primary goal is chunking with overlap control rather than general string transformations.
+  agent_usage_notes: |-
+    ## What it does
+    Split Text breaks input text data into smaller chunks based on a separator character and a maximum chunk size. It is typically used to prepare documents for embedding or retrieval pipelines by keeping chunk sizes within model context limits.
+
+    ## Inputs to ask about
+    - **data_inputs** - Ask the user which data source or component is providing the text to split (e.g., a File loader or Document loader output); no default — it must be connected.
+    - **chunk_size** - Ask the user how many characters each chunk should be at most; suggest a default of **1000** characters, which suits most embedding models.
+    - **chunk_overlap** - Ask the user how many characters should overlap between consecutive chunks to preserve context across boundaries; suggest a default of **200**.
+    - **separator** - Ask the user which character(s) should be used as split points; suggest `\n\n` (paragraph breaks) as a sensible default, but `\n` (lines) or `.` (sentences) are common alternatives.
+
+    ## Outputs
+    - **dataframe** - Produces a DataFrame where each row is a text chunk; commonly feeds into an embedding component, a vector store ingestion step, or a downstream data transformation node.
+
+    ## Notes
+    - The `chunk_size` is a ceiling, not a guarantee — individual splits that already exceed it will **not** be subdivided further, so very long lines with no separator may produce oversized chunks.
+    - If the upstream data contains multiple text columns, confirm the correct column is being targeted (use the advanced `text_key` if needed).
+    - Overlap helps retrieval quality but increases the total number of chunks and therefore embedding cost — flag this trade-off to the user.
+- component_name: TextOperations
+  agent_summary: |-
+    You help the user process a plain text string through operations such as case conversion, find-and-replace, regex extraction, trimming, joining, text analysis (word/character/line counts), and conversion to a DataFrame. It is a good fit when you need lightweight, single-step string manipulation without writing code. Prefer over Split Text when the goal is transformation or analysis rather than chunking text into segments.
+  agent_usage_notes: |-
+    ## What it does
+    Text Operations performs a variety of text processing tasks on a string input, including case conversion, search-and-replace, pattern extraction, trimming, joining, cleaning, and converting delimited text into a DataFrame.
+
+    ## Inputs to ask about
+    - **text_input** - Ask the user for the primary text string to process; no default, this is required.
+    - **operation** - Ask the user which operation to perform (e.g., case conversion, find/replace, extract, head/tail, strip, join, clean, text-to-DataFrame); the available choices come from the sortable list.
+    - **table_separator** - If the operation is text-to-DataFrame, ask what delimiter separates columns; suggested default is `|`.
+    - **case_type** - If the operation is case conversion, ask which case style to apply (e.g., upper, lower, title).
+    - **use_regex** - If the operation is find/replace or search, ask whether the search pattern should be treated as a regular expression; default is likely `False`.
+    - **search_pattern** - If find/replace or search is selected, ask the user for the pattern to look for.
+    - **replacement_text** - If find/replace is selected, ask what text should replace the matched pattern.
+    - **extract_pattern** - If extraction is selected, ask for the regex pattern to extract; also ask about **max_matches** to limit results.
+    - **head_characters / tail_characters** - If head or tail extraction is selected, ask how many characters to take from the start or end.
+    - **strip_mode** - If stripping is selected, ask which sides to strip (both, left, right); also ask about **strip_characters** if specific characters should be removed instead of whitespace.
+    - **text_input_2** - If join is selected, ask for the second text string to concatenate.
+    - **remove_extra_spaces / remove_special_chars / remove_empty_lines** - If clean is selected, ask which cleaning options to enable.
+
+    ## Outputs
+    _None._
+
+    ## Notes
+    - Only a subset of inputs is relevant depending on the chosen **operation** — clarify the operation first before asking about operation-specific fields.
+    - **extract_pattern** requires valid regex syntax; warn the user if they are unfamiliar with regex.
+    - **head_characters** and **tail_characters** must be non-negative integers.
+- component_name: TypeConverterComponent
+  agent_summary: |-
+    You help the user convert data between the three core Langflow types: Message, JSON (Data), and Table (DataFrame). This is a good fit when a component produces one type but the next step in your flow expects another, and it pairs well with any component whose output type does not match a downstream input. Prefer over Text Operations when your goal is type conversion rather than text processing or text-to-DataFrame parsing.
+  agent_usage_notes: |-
+    ## What it does
+    Converts data between Langflow's core types — Message, JSON (Data), and Table (DataFrame) — so you can pass outputs from one component into another that expects a different format.
+
+    ## Inputs to ask about
+    - **input_data** - Ask the user what data they want to convert; accepts a Message, JSON/Data object, or Table/DataFrame connected from an upstream component.
+    - **output_type** - Ask the user which type they want as the result: Message, JSON (Data), or Table (DataFrame). Default depends on what the downstream component expects.
+
+    ## Outputs
+    - **message_output** - Produces a Message object; commonly feeds into chat outputs, LLM inputs, or other components expecting text/message format.
+    - **data_output** - Produces a JSON/Data object; commonly feeds into data processing components, parsers, or API integrations.
+    - **dataframe_output** - Produces a DataFrame/Table; commonly feeds into table display components, data analysis steps, or export nodes.
+
+    ## Notes
+    - Only one output will carry data at a time — the active output is determined by the **output_type** tab selection, so make sure the correct output port is connected downstream.
+    - If the source data cannot be meaningfully converted to the chosen type (e.g., a complex object to a plain Message), the result may be a string representation rather than a structured value.
+    - The `auto_parse` option (advanced) is useful when upstream components emit JSON or CSV as raw strings rather than structured objects — worth mentioning if the user reports unexpected plain-text output.
+    - Pair this component whenever you see a type-mismatch error between two connected components.

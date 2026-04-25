@@ -1,0 +1,21 @@
+- component_name: LangWatchComponent
+  agent_summary: |-
+    You help the user score LLM outputs by sending input, output, expected output, and retrieved contexts to LangWatch's evaluation API and returning a structured evaluation result. This is a good fit when you need automated quality checks on RAG pipelines or chat responses and already have a LangWatch API key.
+  agent_usage_notes: |-
+    ## What it does
+    Sends text through LangWatch's hosted evaluation endpoints to score various aspects of a language model's output (e.g., relevance, faithfulness, correctness). Returns a structured evaluation result that can be used to monitor or gate LLM responses.
+
+    ## Inputs to ask about
+    - **evaluator_name** - Ask the user which LangWatch evaluator to use (e.g., `ragas/faithfulness`, `openai/moderation`); refer them to the [LangWatch docs](https://docs.langwatch.ai/langevals/documentation/introduction) for the full list — no universal default.
+    - **api_key** - Ask the user for their LangWatch API key; note this is a plain string field in this component, so they should paste the key directly or reference a Langflow variable.
+    - **input** - Ask the user for the input text to evaluate (e.g., the user's question); optional but may be required by certain evaluators.
+    - **output** - Ask the user for the LLM-generated output to evaluate; optional but required by most evaluators.
+    - **expected_output** - Ask the user for the ground-truth reference answer; only needed for evaluators that measure correctness or similarity.
+    - **contexts** - Ask the user for retrieved context chunks as a comma-separated string; only needed for RAG-focused evaluators (e.g., faithfulness, context recall).
+
+    ## Outputs
+    - **evaluation_result** - Returns the evaluator's score and/or verdict; commonly feeds into a conditional router, a logging component, or displayed as final flow output.
+
+    ## Notes
+    - Different evaluators require different subsets of inputs — check the LangWatch documentation to confirm which fields (`input`, `output`, `expected_output`, `contexts`) are mandatory for the chosen evaluator.
+    - Leaving a required field empty for a given evaluator will likely cause a server-side error rather than a graceful default.

@@ -1,0 +1,23 @@
+- component_name: QdrantVectorStoreComponent
+  agent_summary: |-
+    You help the user connect to a Qdrant collection to store and search document embeddings using vector similarity. It accepts ingested data and an embedding model to index content, then returns similarity search results or a dataframe, and supports both local and remote Qdrant instances via host/URL, gRPC, or a local file path.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a Qdrant vector store collection to index documents and perform similarity searches. It accepts embeddings and ingested data for storage, and returns semantically matched results for a given query.
+
+    ## Inputs to ask about
+    - **collection_name** - Ask the user for the name of the Qdrant collection to use or create; no universal default, but suggest `"langflow"` as a placeholder.
+    - **ingest_data** - Ask whether the user wants to ingest documents into the store; connect this to a data/document loader component upstream if so.
+    - **embedding** - Ask which embedding model component to connect; this is required to encode vectors for storage and search.
+    - **search_query** - Ask what query text to run similarity search with; typically fed from a chat input or text component.
+    - **url** - Ask for the Qdrant server URL (e.g., `http://localhost:6333`) if using a remote or cloud instance instead of a local path.
+
+    ## Outputs
+    - **search_results** - Returns the top matching documents from the similarity search; commonly feeds into a language model or prompt component.
+    - **dataframe** - Returns the same results in tabular form; useful for inspection, filtering, or downstream data processing steps.
+
+    ## Notes
+    - Either `url` or `path` (local disk) must be configured for the client to connect — ask the user which deployment mode they are using.
+    - `api_key` is an advanced field but is required when connecting to Qdrant Cloud; remind users to store it as a secret variable.
+    - The `embedding` component must match the vector dimensions of the existing collection, or Qdrant will reject inserts.
+    - Without `ingest_data` connected, the component operates in search-only mode.

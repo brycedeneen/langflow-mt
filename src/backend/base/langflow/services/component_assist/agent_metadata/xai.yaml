@@ -1,0 +1,22 @@
+- component_name: XAIModelComponent
+  agent_summary: |-
+    You help the user generate text by sending prompts to xAI models such as Grok and returning the response as text or a model object. It supports system messages, streaming in chat contexts, JSON mode, token limits, temperature, and a seed for reproducible outputs, making it a good fit when you need direct access to xAI's API within a pipeline.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text using xAI's Grok models by sending a prompt (and optional system message) to the xAI API. It returns both a plain-text response and a language model object for downstream chaining.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the text prompt or message to send to the model; no default, but it is often wired from an upstream component.
+    - **system_message** - Ask the user if they want a system-level instruction to guide the model's behavior (e.g., "You are a helpful assistant"). Default: leave blank.
+    - **model_name** - Ask the user which Grok model to use (e.g., `grok-beta`). Confirm availability against their xAI account if unsure.
+    - **api_key** - Ask the user for their xAI API key. This is required; the flow will not run without it.
+
+    ## Outputs
+    - **text_output** - The raw generated text from the model; commonly feeds into a **Message** display component or downstream text-processing components.
+    - **model_output** - The language model object itself; useful for chaining into components that accept an LLM instance (e.g., chains or agents).
+
+    ## Notes
+    - The **api_key** field is marked required — make sure the user has an active xAI account and a valid key before running.
+    - `stream` only works inside a **Chat** interface; warn the user if they enable it outside that context.
+    - `base_url` defaults to `https://api.x.ai/v1`; users on a custom deployment should update this, but most won't need to.
+    - Both outputs can be used simultaneously — pairing **text_output** for display and **model_output** for chaining is a common pattern.

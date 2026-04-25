@@ -1,0 +1,67 @@
+- component_name: CleanlabEvaluator
+  agent_summary: |-
+    You help the user score the trustworthiness of any LLM response by sending a prompt-response pair to Cleanlab, which returns a float score between 0 and 1 and a plain-text explanation. It pairs naturally with the Cleanlab Remediator to act on low-scoring responses. Prefer over Cleanlab RAG Evaluator when you are evaluating a standalone LLM response rather than a retrieval-augmented pipeline with explicit context documents.
+  agent_usage_notes: |-
+    ## What it does
+    The Cleanlab Evaluator takes a prompt/response pair and uses Cleanlab's TLM algorithms to assess how trustworthy the LLM's response is, returning a numeric trust score (0–1) and a plain-language explanation. It sits downstream of any LLM component and works well paired with the CleanlabRemediator for a full evaluation-and-remediation pipeline.
+
+    ## Inputs to ask about
+    - **system_prompt** - Ask the user if there are system-level instructions that were sent to the original LLM; if so, paste them here so Cleanlab can evaluate in the right context. No default required — leave blank if none were used.
+    - **prompt** - Ask the user for the exact user query or prompt that was sent to the LLM being evaluated. No default.
+    - **response** - Ask the user for the LLM response to evaluate; this should be wired directly from an LLM component (e.g., OpenAI, Gemini) output. No default.
+
+    ## Outputs
+    - **response_passthrough** - The original LLM response forwarded unchanged; commonly wired into a CleanlabRemediator or downstream text display component.
+    - **score** - A float between 0 and 1 representing trustworthiness; can feed conditional logic or a score display component.
+    - **explanation** - A human-readable message explaining the score; useful for logging, display, or feeding into a remediator.
+
+    ## Notes
+    - The `api_key` input requires a valid Cleanlab API key — direct the user to create it via the secrets/variable flow rather than entering it as plain text.
+    - The evaluation model (`model`) does **not** need to match the generation model; both it and `quality_preset` are advanced fields but affect cost, latency, and accuracy meaningfully.
+    - For a complete pipeline, pair this component with the **CleanlabRemediator** using the `response_passthrough`, `score`, and `explanation` outputs.
+- component_name: CleanlabRAGEvaluator
+  agent_summary: |-
+    You help the user score the trustworthiness of a RAG pipeline's output by taking a query, retrieved context, and generated response and producing a 0-1 trust score, an explanation, and optional sub-scores covering context sufficiency, response groundedness, response helpfulness, and query ease. It pairs naturally with the Cleanlab Remediator to act on low-trust results. Prefer over Cleanlab Evaluator when you have a full RAG setup and want context-aware diagnostics rather than a general-purpose LLM response evaluation.
+  agent_usage_notes: |-
+    ## What it does
+    Evaluates the quality of a RAG pipeline's outputs using Cleanlab's trust algorithms. It scores the generated response for overall trustworthiness and can also assess context sufficiency, response groundedness, helpfulness, and query ease.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Cleanlab API key (required to call the Cleanlab service).
+    - **context** - Ask the user to connect the retrieved context string from their RAG retrieval step; no default.
+    - **query** - Ask the user to connect the original user query feeding into the RAG pipeline; no default.
+    - **response** - Ask the user to connect the LLM-generated response they want evaluated; no default.
+
+    ## Outputs
+    - **trust_score** - A 0–1 score indicating response trustworthiness; commonly fed into a conditional router or CleanlabRemediator.
+    - **trust_explanation** - A natural-language explanation of the trust assessment; useful for logging or displaying to end users.
+    - **other_scores** - Additional metric scores (sufficiency, groundedness, helpfulness, query ease) when those evaluations are enabled.
+    - **evaluation_summary** - A full structured summary of all inputs and evaluation results; good for debugging or audit logging.
+    - **response_passthrough** - The original response passed through unchanged; convenient for piping into downstream nodes without rewiring.
+
+    ## Notes
+    - The four optional evaluations (`run_context_sufficiency`, `run_response_groundedness`, `run_response_helpfulness`, `run_query_ease`) are advanced fields — remind the user they can be enabled in the Controls tab if deeper diagnostics are needed.
+    - This component pairs directly with the **CleanlabRemediator**; feed `trust_score` and `response_passthrough` into it to build a complete trust-and-remediation pipeline.
+    - `api_key` is a required plain-string field here — treat it with the same care as a secret.
+- component_name: CleanlabRemediator
+  agent_summary: |-
+    You help the user act on a trust score by deciding whether to pass through an LLM response unchanged, append a warning to it, or replace it entirely with fallback text. It is designed to sit immediately downstream of a Cleanlab Evaluator or Cleanlab RAG Evaluator, consuming their trust score output and applying a configurable threshold to trigger remediation. Prefer over Cleanlab Evaluator or Cleanlab RAG Evaluator when you need to produce an actual user-facing message rather than just a score and explanation.
+  agent_usage_notes: |-
+    ## What it does
+    The Cleanlab Remediator evaluates an LLM response against a trust score from the Cleanlab Evaluator and applies a remediation strategy based on a configurable threshold. Depending on settings, it either passes the response through unchanged, appends a warning, or replaces it with fallback text.
+
+    ## Inputs to ask about
+    - **response** - Ask the user which upstream text output contains the LLM-generated response to evaluate; this is typically wired directly from the Cleanlab Evaluator's pass-through output.
+    - **score** - Ask the user to connect the trust score handle output from a Cleanlab Evaluator or Cleanlab RAG Validator component.
+    - **explanation** - Ask whether the user wants to include the evaluator's explanation in the output; optional, no default required.
+    - **threshold** - Ask the user what minimum trust score should be required to accept a response unmodified; suggest a default of `0.5`.
+    - **show_untrustworthy_response** - Ask whether low-trust responses should still be shown (with a warning) or hidden entirely; suggest `False` (return fallback) as the safer default.
+    - **untrustworthy_warning_text** - Ask what warning message should be appended when showing an untrustworthy response; only relevant if `show_untrustworthy_response` is enabled.
+    - **fallback_text** - Ask what replacement message should be returned when a response is hidden; suggest something like `"I'm not confident in this answer. Please consult another source."`.
+
+    ## Outputs
+    - **remediated_response** - Produces a `Message` containing either the original response, the original response with a warning appended, or the fallback text; typically feeds into a Chat Output or downstream processing component.
+
+    ## Notes
+    - The `score` input expects a handle connection from a Cleanlab Evaluator — it cannot be typed in manually.
+    - `untrustworthy_warning_text` and `fallback_text` are mutually exclusive in practice: only one will be used depending on the `show_untrustworthy_response` toggle.

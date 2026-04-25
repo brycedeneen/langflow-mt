@@ -1,0 +1,101 @@
+- component_name: APIRequestComponent
+  agent_summary: |-
+    You help the user send HTTP requests (GET, POST, PUT, PATCH, DELETE) to an external API endpoint and receive the response as structured data, with support for custom headers, query parameters, request body, bearer token auth, mTLS, and cURL import. This is a good fit when a flow needs to call a REST API, webhook, or any HTTP service directly. Prefer over URL Component when you need to send data or authenticate with an API rather than simply fetching and reading web page content.
+  agent_usage_notes: |-
+    ## What it does
+    Sends HTTP requests to a specified URL or from a pasted cURL command and returns the response as structured data. Supports common methods (GET, POST, PUT, PATCH, DELETE) and handles headers, query parameters, and request bodies.
+
+    ## Inputs to ask about
+    - **url_input** - Ask the user for the full URL of the API endpoint they want to call (e.g., `https://api.example.com/v1/resource`).
+    - **method** - Ask which HTTP method to use; suggest `GET` as the default, or `POST` if the user mentions sending data.
+    - **mode** - Ask whether the user prefers to enter fields manually or paste a cURL command directly; default is manual field entry.
+
+    ## Outputs
+    - **data** - Returns the API response as a Langflow `Data` object; commonly feeds into a **Parse Data** component, a prompt input, or a downstream agent.
+
+    ## Notes
+    - Either `url_input` or a cURL command (via cURL mode) must be provided — the component needs at least one to function.
+    - `body` is only meaningful for POST, PUT, and PATCH requests; remind the user to set the method accordingly.
+    - `follow_redirects` is disabled by default due to SSRF risk — caution the user before enabling it if the target URL is not fully trusted.
+    - Bearer tokens go in `bearer_token` without the `Bearer` prefix; the component adds it automatically.
+    - If the response is a binary file (e.g., PDF, image), suggest enabling `save_to_file` so the response is written to a temp file rather than held in memory.
+- component_name: MockDataGeneratorComponent
+  agent_summary: |-
+    You help the user generate synthetic sample data in three formats — text messages, JSON Data objects, or tabular DataFrames — without connecting to any external source. This is a good fit for prototyping pipelines, debugging components, or building demonstrations when real data is unavailable or impractical. Prefer over API Request, SQL Database, or URL when you need instant, dependency-free placeholder data rather than live data fetched from a network or database.
+  agent_usage_notes: |-
+    ## What it does
+    Generates sample mock data for testing and development purposes without requiring a real data source. It produces output in three formats — Message (text), Data (JSON), and DataFrame (tabular) — making it useful for prototyping pipelines, demonstrating workflows, and debugging components.
+
+    ## Inputs to ask about
+    _None._
+
+    ## Outputs
+    - **message_output** - produces a sample text `Message` object; commonly feeds into components that expect a chat message or string input.
+    - **data_output** - produces a sample `Data` object in JSON format; commonly feeds into components that process structured key-value data.
+    - **dataframe_output** - produces a sample `DataFrame` of tabular data; commonly feeds into components that expect rows and columns, such as data transformation or analysis steps.
+
+    ## Notes
+    - This component has no configurable inputs, so no setup is needed — just connect the desired output to the next component.
+    - Ask the user which output format they need (`Message`, `Data`, or `DataFrame`) so they connect the correct output port downstream.
+    - All three outputs can be connected simultaneously if the workflow requires multiple format consumers.
+    - Because this component generates static sample data, it is intended only for testing and development — remind the user to swap it out for a real data source before moving to production.
+- component_name: SQLComponent
+  agent_summary: |-
+    You help the user run a SQL query against any SQLAlchemy-compatible database and return the results as text. This is a good fit when an agent or chain needs to read from or write to a structured database at runtime, with optional column headers and error propagation in the output.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to any SQLAlchemy-compatible database and executes a SQL query, returning the results as a data object. It supports a wide range of databases including PostgreSQL, MySQL, SQLite, and others reachable via a SQLAlchemy connection string.
+
+    ## Inputs to ask about
+    - **database_url** - Ask the user for the full SQLAlchemy connection string for their database (e.g. `sqlite:///mydb.db`, `postgresql://user:pass@host:5432/dbname`, `mysql+pymysql://user:pass@host/dbname`). No default — this is database-specific.
+    - **query** - Ask the user for the SQL query to execute (e.g. `SELECT * FROM users LIMIT 10`). No default — this depends entirely on their schema and intent.
+
+    ## Outputs
+    - **run_sql_query** - Returns the query results as a data object; commonly feeds into a text formatter, a data parsing step, or an LLM prompt to allow the model to reason over structured database results.
+
+    ## Notes
+    - The `database_url` must follow SQLAlchemy's URL format exactly — a malformed string will cause a connection error with no fallback.
+    - Credentials embedded in the `database_url` are passed as plain text; remind the user to use a secret variable or environment variable reference rather than hardcoding passwords.
+    - The component does not limit query scope — destructive statements (`DROP`, `DELETE`, etc.) will execute if submitted, so advise the user to use a read-only database user where possible.
+    - The `include_columns` and `add_error` advanced options are available if the user needs column headers in output or wants errors surfaced in results rather than thrown as exceptions.
+- component_name: URLComponent
+  agent_summary: |-
+    You help the user fetch and parse content from one or more web pages, optionally crawling linked pages recursively up to a configurable depth, and returning results as plain text, Markdown, or raw HTML. This is a good fit when you need to ingest web content into a pipeline, such as building a RAG system from documentation or articles. Prefer over API Request when the goal is structured web crawling and content extraction rather than issuing arbitrary HTTP requests to an API endpoint.
+  agent_usage_notes: |-
+    ## What it does
+    Fetches and parses content from one or more web pages, optionally following links recursively to a configurable depth. It can return clean text, Markdown, or raw HTML for downstream processing.
+
+    ## Inputs to ask about
+    - **urls** - Ask the user for one or more starting URLs to crawl; no single default, but remind them to add multiple URLs using the '+' button.
+    - **max_depth** - Ask how many link levels deep the crawler should go; suggest a default of **1** (initial page only) to avoid unintentionally large crawls.
+
+    ## Outputs
+    - **page_results** - Produces parsed page content (text/Markdown/HTML) as structured documents; commonly feeds into a text splitter, vector store ingestion, or an LLM prompt.
+    - **raw_results** - Produces the unprocessed response data; useful when downstream components need to handle parsing themselves.
+
+    ## Notes
+    - Depth grows exponentially — a `max_depth` of 3 or more can fetch a very large number of pages; warn the user to start low.
+    - The `prevent_outside` advanced option is worth mentioning if the user's seed URLs link heavily to external sites — enabling it keeps the crawl scoped to the root domain.
+    - `format` (advanced) defaults to text but switching to Markdown or HTML may be important depending on how the output is consumed downstream.
+    - If the user reports slow performance or timeouts on large crawls, suggest enabling `use_async` and adjusting `timeout`.
+    - Only one output needs to be wired downstream — `page_results` is the typical choice for most LLM pipelines.
+- component_name: WebSearchComponent
+  agent_summary: |-
+    You help the user retrieve live search results from DuckDuckGo web search, Google News, or an RSS feed using a keyword query. It is a good fit when a flow needs current, real-world information without a predefined URL or API endpoint. Prefer over URL when you need a keyword-driven search across many sources rather than fetching content from a specific known address.
+  agent_usage_notes: |-
+    ## What it does
+    Searches the web, news headlines, or RSS feeds and returns structured results. Depending on the selected mode it queries DuckDuckGo (Web), Google News (News), or a direct RSS feed.
+
+    ## Inputs to ask about
+    - **search_mode** - Ask the user which source to query: Web (DuckDuckGo), News (Google News), or RSS (Feed Reader). Suggested default: **Web**.
+    - **query** - Ask the user for the search keywords or topic they want to look up. No default; this is required.
+
+    ## Outputs
+    - **results** - Returns the search results (articles, links, or feed entries). Commonly feeds into a text display component, a parser, or an LLM prompt for summarisation or further processing.
+
+    ## Notes
+    - The **search_mode** tab controls which underlying source is used — make sure the user understands each mode fetches from a different provider.
+    - The **query** field label says "Search keywords for news articles" but it applies to all three modes, not just News.
+    - Advanced inputs (`hl`, `gl`, `ceid`, `topic`, `location`) are only relevant in **News** or **RSS** mode; they have no effect in Web mode, so flag this if the user switches modes.
+    - No API key is required for Web (DuckDuckGo) mode, which makes it the easiest starting point.
+    - If the user wants region-specific or topic-filtered news, prompt them to enable advanced inputs and fill in `gl`/`hl`/`ceid` consistently (e.g. `gl=FR`, `hl=fr`, `ceid=FR:fr`).

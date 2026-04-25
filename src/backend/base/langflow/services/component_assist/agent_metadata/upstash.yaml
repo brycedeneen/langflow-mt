@@ -1,0 +1,24 @@
+- component_name: UpstashVectorStoreComponent
+  agent_summary: |-
+    You help the user store and search documents in an Upstash Vector index, taking an index URL and token to connect, optionally ingesting data and running similarity searches against a specified namespace. It works well when you need a serverless vector store and can use either a provided embedding model or Upstash's built-in embeddings by leaving the embedding input empty.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to an Upstash Vector Store index to ingest documents and perform similarity searches. It supports optional external embeddings or Upstash's built-in embedding service.
+
+    ## Inputs to ask about
+    - **index_url** - Ask the user for the URL of their Upstash index (found in the Upstash console). No default.
+    - **index_token** - Ask the user for the access token for their Upstash index. No default.
+    - **namespace** - Ask whether the user wants to target a specific namespace, or leave empty to use the default namespace. Default: empty.
+    - **ingest_data** - Ask the user if they want to load documents into the index; connect a data source component here if so.
+    - **search_query** - Ask the user for the query string to run a similarity search against the index.
+    - **metadata_filter** - Ask whether the user wants to filter search results by metadata; refer them to Upstash documentation for filter syntax. Default: empty.
+    - **embedding** - Ask whether the user has an external embedding model to connect; if not, Upstash's built-in embeddings will be used automatically.
+
+    ## Outputs
+    - **search_results** - Returns documents most similar to the search query; commonly feeds into a language model or retriever component.
+    - **dataframe** - Returns search results as a structured dataframe; useful for inspection or downstream data processing steps.
+
+    ## Notes
+    - If no embedding component is connected, Upstash's native embedding service is used — the index must be configured to support this in the Upstash console.
+    - `index_url` and `index_token` are both required; the component will not function without them.
+    - `metadata_filter` syntax is Upstash-specific — direct the user to Upstash documentation for correct filter formatting.

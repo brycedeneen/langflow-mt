@@ -1,0 +1,20 @@
+- component_name: YfinanceComponent
+  agent_summary: |-
+    You help the user retrieve financial market data for a given stock ticker symbol from Yahoo Finance, returning the result as a dataframe. It supports multiple data retrieval methods including news articles, making it useful for building stock research tools or feeding market data into analysis workflows.
+  agent_usage_notes: |-
+    ## What it does
+    Fetches financial data and market information from Yahoo! Finance using the unofficial `yfinance` Python package. Given a stock ticker symbol and a chosen data method, it returns the requested data as a DataFrame.
+
+    ## Inputs to ask about
+    - **symbol** - Ask the user for the stock ticker symbol they want to look up (e.g., `AAPL` for Apple, `GOOG` for Alphabet). No universal default, but suggest they use the official Yahoo! Finance ticker format.
+    - **method** - Ask the user what type of financial data they want to retrieve (e.g., price history, financials, news). Clarify which methods are available in the underlying `yfinance` library if the user is unsure.
+    - **num_news** - Ask how many news articles to return; only relevant when the method is `get_news`. Suggest a default of `5` as a reasonable starting point.
+
+    ## Outputs
+    - **dataframe** - Returns the retrieved financial data as a DataFrame; commonly feeds into a data transformation component, a chart/visualization tool, or a text-formatting step before display to the user.
+
+    ## Notes
+    - This component relies on the **unofficial** `yfinance` package, so data availability and API behaviour may change without notice if Yahoo! Finance alters its backend.
+    - The `num_news` input is ignored for all methods except `get_news` — remind the user not to expect it to affect other data types.
+    - Ticker symbols must match Yahoo! Finance's format exactly (e.g., `BRK-B` not `BRK.B`) or the request may fail silently or return empty data.
+    - Ensure the `yfinance` package is installed in the environment; it is not part of the standard library.

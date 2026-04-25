@@ -1,0 +1,139 @@
+- component_name: YouTubeChannelComponent
+  agent_summary: |-
+    You help the user fetch metadata and statistics about a YouTube channel — including subscriber counts, view totals, video counts, branding assets, and public playlists — returned as a DataFrame. It is a good fit when you need channel-level data rather than content from individual videos or searches. Prefer over YouTube Video Details when the subject is a channel itself rather than a specific video.
+  agent_usage_notes: |-
+    ## What it does
+    Fetches detailed information about a YouTube channel using the YouTube Data API and returns the results as a DataFrame. It can optionally include statistics such as view counts, subscriber counts, and video counts.
+
+    ## Inputs to ask about
+    - **channel_url** - Ask the user for the full YouTube channel URL (e.g. `https://www.youtube.com/c/ChannelName`) or a bare channel ID. No default.
+    - **api_key** - Ask the user for their YouTube Data API v3 key, obtained from the Google Cloud Console. Note: this is a plain string input, not a secret input, so treat it with care. No default.
+    - **include_statistics** - Ask the user whether to include channel statistics (total views, subscriber count, video count). Suggested default: `True`, as this is typically the most useful data.
+
+    ## Outputs
+    - **channel_df** - Returns a DataFrame containing channel details and any requested optional data. Commonly feeds into a data table display, a further transformation step, or a downstream analytics component.
+
+    ## Notes
+    - The `api_key` field is typed as a plain string rather than a secret — remind the user to avoid hardcoding sensitive keys in public flows.
+    - The YouTube Data API has a daily quota limit; each channel lookup consumes quota units, so repeated calls in a single flow can exhaust the quota quickly.
+    - A valid YouTube Data API v3 key must be enabled in the Google Cloud Console with the YouTube Data API v3 service activated.
+    - Both full channel URLs and raw channel IDs are accepted for `channel_url`, but the format must be consistent with what the YouTube API recognises.
+- component_name: YouTubeCommentsComponent
+  agent_summary: |-
+    You help the user fetch and analyze comments from a specific YouTube video using the YouTube Data API, returning comment text along with optional metrics like like counts and reply counts. It is a good fit when you need audience sentiment, feedback analysis, or community engagement data for a known video URL. Prefer over YouTube Video Details when you need the actual comment content and user responses rather than high-level video statistics.
+  agent_usage_notes: |-
+    ## What it does
+    Retrieves comments from a specified YouTube video using the YouTube Data API, with options to control how many comments are returned and how they are sorted.
+
+    ## Inputs to ask about
+    - **video_url** - Ask the user for the full URL of the YouTube video they want to pull comments from (e.g., `https://www.youtube.com/watch?v=...`). No default — required.
+    - **api_key** - Ask the user for their YouTube Data API v3 key, obtainable from the Google Cloud Console. Required to authenticate requests.
+    - **max_results** - Ask the user how many comments to retrieve. Suggest a default of `20` as a reasonable starting point; higher values count against API quota.
+    - **sort_by** - Ask the user whether to sort comments by `time` (most recent first) or `relevance` (top comments first). Suggest `relevance` as the default for analysis use cases.
+
+    ## Outputs
+    - **comments** - Returns the retrieved comments as structured data; commonly feeds into a text processing component, LLM prompt, or summarization chain for sentiment analysis or content review.
+
+    ## Notes
+    - The YouTube Data API has daily quota limits; fetching large numbers of comments or enabling replies can exhaust quota quickly — warn the user to keep `max_results` conservative during testing.
+    - `api_key` is a plain string field here, but treat it as sensitive — advise the user to store it as a Langflow variable or secret rather than pasting it directly.
+    - The `sort_by` field accepts specific string values (`time` or `relevance`); entering an unsupported value will likely cause an API error.
+    - Reply and metrics inclusion are advanced options and off by default; only surface them if the user has a specific need.
+- component_name: YouTubePlaylistComponent
+  agent_summary: |-
+    You help the user extract all video URLs from a YouTube playlist by taking a single playlist URL as input and returning a list of video URLs. This is a good fit when you need to feed multiple videos from a playlist into downstream components, such as transcript extraction or video detail retrieval. Prefer over YouTube Search when the user already has a curated playlist and wants every video in it, rather than discovering videos by keyword.
+  agent_usage_notes: |-
+    ## What it does
+    Extracts all individual video URLs from a YouTube playlist and returns them as a collection. Given a valid playlist link, it fetches every video URL contained in that playlist for downstream processing.
+
+    ## Inputs to ask about
+    - **playlist_url** - Ask the user for the full URL of the YouTube playlist they want to extract videos from (e.g., `https://www.youtube.com/playlist?list=PL...`). No default is applicable here — a specific playlist URL is always required.
+
+    ## Outputs
+    - **video_urls** - A collection of video URLs extracted from the playlist; commonly feeds into a loop, splitter, or YouTube transcript component to process each video individually.
+
+    ## Notes
+    - Ensure the user provides a proper playlist URL (containing `list=` in the query string), not a single video URL or a channel URL — those will not work.
+    - Private or unlisted playlists may fail to extract depending on access permissions; advise the user to use publicly accessible playlists.
+    - Very large playlists may take longer to process; set expectations accordingly if the playlist contains hundreds of videos.
+- component_name: YouTubeSearchComponent
+  agent_summary: |-
+    You help the user find YouTube videos matching a text query, returning a ranked list of results with optional metadata such as descriptions and statistics. It is a good fit when you need to discover videos programmatically rather than starting from a known URL or channel. Prefer over YouTube Trending when the user has a specific topic in mind rather than wanting to browse what is currently popular.
+  agent_usage_notes: |-
+    ## What it does
+    Searches YouTube for videos matching a given query using the YouTube Data API v3. It returns a list of video results that can be filtered by count and sort order.
+
+    ## Inputs to ask about
+    - **query** - Ask the user what search term or phrase they want to look up on YouTube. No default — this is specific to the use case.
+    - **api_key** - Ask the user for their YouTube Data API v3 key, obtainable from the Google Cloud Console. Required to authenticate requests.
+    - **max_results** - Ask how many video results to return. A suggested default is `5` for quick lookups; YouTube's API supports up to `50`.
+    - **order** - Ask the user how results should be sorted. Common options include `relevance` (default), `date`, `viewCount`, `rating`, and `title`.
+
+    ## Outputs
+    - **results** - Returns a list of YouTube video results matching the query. Commonly feeds into a text display component, a data processing step, or a downstream LLM prompt for summarization or recommendation tasks.
+
+    ## Notes
+    - The **api_key** field is a plain string input here, but it contains sensitive credentials — advise the user to store it as a Langflow secret variable rather than pasting it directly.
+    - The YouTube Data API has a daily quota limit; high `max_results` values or frequent calls can exhaust it quickly.
+    - The `order` field expects specific string values as defined by the YouTube Data API — remind the user to use exact accepted values (e.g., `relevance`, `date`, `viewCount`).
+- component_name: YouTubeTranscriptsComponent
+  agent_summary: |-
+    You help the user extract spoken content from a YouTube video as timestamped transcript chunks, outputting results as a dataframe, message, or data object. It is a good fit when you need the actual words spoken in a video, with optional chunking by seconds and optional translation into another language. Prefer over YouTube Video Details when you need the spoken text of a video rather than its metadata such as title, view count, or description.
+  agent_usage_notes: |-
+    ## What it does
+    Extracts spoken content (transcripts/captions) from a YouTube video and returns the text in multiple formats. It can optionally split the transcript into time-based chunks and translate the output into another language.
+
+    ## Inputs to ask about
+    - **url** - Ask the user for the full YouTube video URL (e.g. `https://www.youtube.com/watch?v=...`); no default — this is required.
+    - **chunk_size_seconds** - Ask the user how many seconds each transcript chunk should span; a suggested default of `60` seconds works well for most use cases.
+
+    ## Outputs
+    - **dataframe** - Returns the transcript as a structured table; useful for feeding into data processing or analysis components.
+    - **message** - Returns the full transcript as a plain text message; commonly feeds into an LLM, prompt template, or text display component.
+    - **data_output** - Returns the transcript as a Langflow Data object; useful for passing to document loaders or retrieval pipelines.
+
+    ## Notes
+    - The video must have captions available (auto-generated or manual); if no captions exist, the component will fail — warn the user to verify captions are enabled on the video.
+    - Ask the user which output they need before wiring connections, since all three outputs carry the same content in different formats.
+    - If the video is very long, smaller `chunk_size_seconds` values will produce more granular chunks, which can improve retrieval accuracy but increase downstream processing load.
+    - Translation is an advanced option; skip asking about it unless the user specifically needs a non-original language output.
+- component_name: YouTubeTrendingComponent
+  agent_summary: |-
+    You help the user fetch a ranked list of currently trending YouTube videos for a given region and category, with optional metadata like view counts, duration, and thumbnail URLs. This is a good fit for trend analysis, content discovery pipelines, or feeding downstream components that summarize or compare popular videos. Prefer over YouTube Search when you want platform-curated trending rankings rather than query-driven results.
+  agent_usage_notes: |-
+    ## What it does
+    Retrieves a list of currently trending YouTube videos for a specified region and category using the YouTube Data API. Results can optionally include engagement statistics such as views, likes, and comment counts.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their YouTube Data API v3 key, obtainable from the Google Cloud Console; no default is possible.
+    - **region** - Ask the user which country's trending videos to fetch (e.g., `US`, `GB`, `IN`); suggest `US` as a sensible default.
+    - **category** - Ask the user if they want to filter by a video category (e.g., Music, Gaming, News); leave blank to retrieve trending videos across all categories.
+    - **max_results** - Ask the user how many trending videos to return (1–50); suggest `10` as a reasonable default.
+    - **include_statistics** - Ask the user whether they want view counts, like counts, and comment counts included; suggest `True` if downstream processing needs engagement data.
+
+    ## Outputs
+    - **trending_videos** - Produces a structured list of trending video records; commonly feeds into a text display component, a data table, or a downstream LLM prompt for summarisation or analysis.
+
+    ## Notes
+    - The `api_key` field requires a valid YouTube Data API v3 key with the YouTube Data API enabled in the associated Google Cloud project — quota limits apply.
+    - The `category` input expects a category ID or name recognised by the YouTube API; invalid values may silently return no results or fall back to all categories.
+    - Leaving `region` blank may default to a global or US feed depending on the API; advise the user to set it explicitly for predictable results.
+- component_name: YouTubeVideoDetailsComponent
+  agent_summary: |-
+    You help the user fetch metadata and statistics for a single YouTube video — including view counts, likes, duration, tags, and thumbnail URLs — using the YouTube Data API. It is a good fit when you need structured details about a known video to display, analyze, or pass downstream. Prefer over YouTube Comments when you need video-level metadata rather than audience responses, and over YouTube Transcripts when you need stats and details rather than spoken content.
+  agent_usage_notes: |-
+    ## What it does
+    Retrieves detailed information and statistics about a YouTube video using the YouTube Data API. Given a video URL and API key, it returns metadata such as title, description, and optionally view counts, likes, and comment totals.
+
+    ## Inputs to ask about
+    - **video_url** - Ask the user for the full URL of the YouTube video they want to retrieve details for (e.g., `https://www.youtube.com/watch?v=...`). No default.
+    - **api_key** - Ask the user for their YouTube Data API key. Note: this is not a secret-typed field, so it will be stored as plain text — advise the user accordingly.
+    - **include_statistics** - Ask whether the user wants to include view count, like count, and comment count. Suggested default: `True`.
+
+    ## Outputs
+    - **video_data** - Returns structured data about the video (title, description, channel info, and any requested optional fields). Commonly feeds into a text processing component, an LLM prompt, or a data display component.
+
+    ## Notes
+    - The `api_key` field is a plain `str` type rather than a `SecretStrInput`, so credentials will not be masked — flag this to the user and recommend using an environment variable reference if supported.
+    - A valid YouTube Data API v3 key with the Data API enabled in Google Cloud Console is required; quota limits apply per project per day.
+    - `include_statistics`, `include_content_details`, `include_tags`, and `include_thumbnails` are all optional toggles — only the fields the user enables will be fetched, helping conserve API quota.

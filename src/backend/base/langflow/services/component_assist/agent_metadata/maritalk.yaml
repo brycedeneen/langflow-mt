@@ -1,0 +1,22 @@
+- component_name: MaritalkModelComponent
+  agent_summary: |-
+    You help the user generate text by sending prompts to MariTalk language models, producing either a text string or a model object as output. It accepts a system message, temperature, token limit, and optional streaming for chat use cases, and requires a MariTalk API key for authentication.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text using MariTalk large language models by sending an input prompt and optional system message to the MariTalk API, then returning the model's response as text or a model object.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the prompt or message to send to the model; no universal default applies.
+    - **system_message** - Ask the user if they want a system-level instruction to guide the model's behavior (e.g., "You are a helpful assistant."); defaults to none.
+    - **model_name** - Ask the user which MariTalk model variant to use; confirm the available model names from the MariTalk platform documentation.
+    - **api_key** - Ask the user for their MariTalk API key used for authentication; required for all requests.
+    - **temperature** - Ask the user how creative or deterministic the responses should be; a common default is `0.7` (higher = more creative, lower = more focused).
+
+    ## Outputs
+    - **text_output** - Returns the generated text response; typically feeds into a text display, downstream prompt, or data processing component.
+    - **model_output** - Returns the underlying model object; useful for chaining into other LangChain-compatible components that expect a language model instance.
+
+    ## Notes
+    - The `api_key` field is not a `SecretStrInput` type in the metadata, so ask the user for it directly and remind them to keep it confidential.
+    - If the user needs unlimited token generation, instruct them to set `max_tokens` to `0`.
+    - Streaming is only functional in a Chat context; advise the user not to enable it in non-chat pipelines.

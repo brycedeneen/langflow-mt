@@ -1,0 +1,42 @@
+- component_name: AzureChatOpenAIComponent
+  agent_summary: |-
+    You help the user generate text by sending prompts to a model hosted on Azure OpenAI, producing either a text string or a chat model object. It requires an Azure endpoint, deployment name, and API key, making it the right choice when your organization routes OpenAI model access through Azure infrastructure. Prefer over Azure OpenAI Embeddings when you need generative text output rather than vector representations of text.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text by sending prompts to an Azure-hosted OpenAI model via the Azure OpenAI service. It supports both plain text and chat-style interactions, including an optional system message to guide model behavior.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the prompt or message to send to the model; no default.
+    - **system_message** - Ask the user if they want a system-level instruction (e.g., "You are a helpful assistant"); leave blank if not needed.
+    - **azure_endpoint** - Ask the user for their Azure OpenAI resource endpoint URL; example: `https://example-resource.azure.openai.com/`.
+    - **azure_deployment** - Ask the user for the deployment name they created in Azure OpenAI Studio (e.g., `gpt-4o`); this is not the model name but the custom deployment identifier.
+    - **api_version** - Ask the user for the API version string; a common default is `2024-02-01` but they should confirm in their Azure portal.
+
+    ## Outputs
+    - **text_output** - Returns the model's response as a plain text string; commonly feeds into a text display, prompt template, or downstream processing component.
+    - **model_output** - Returns the raw LangChain chat model object; useful for chaining into agents, memory components, or other LangChain-compatible components.
+
+    ## Notes
+    - `azure_deployment` is the name the user gave their deployment in Azure OpenAI Studio — it may differ from the underlying model name, so ask explicitly.
+    - The `api_key` field is a credential and is handled separately via the variable-creation flow; remind the user to set it up there.
+    - If the user needs streaming, it only works in a Chat context; the `stream` toggle is advanced and off by default.
+- component_name: AzureOpenAIEmbeddingsComponent
+  agent_summary: |-
+    You help the user produce vector embeddings from text using a model deployed on their Azure OpenAI resource, requiring an Azure endpoint, deployment name, and API key. It is a good fit when your infrastructure requires Azure-hosted models or you need to control embedding dimensions for a specific downstream vector store. Prefer over Azure OpenAI (chat) when the goal is semantic search or similarity tasks rather than text generation.
+  agent_usage_notes: |-
+    ## What it does
+    Generates vector embeddings from text using Azure-hosted OpenAI embedding models. The resulting embeddings object is typically passed to a vector store or retrieval component to enable semantic search.
+
+    ## Inputs to ask about
+    - **model** - Ask the user for the Azure OpenAI embedding model name (e.g., `text-embedding-ada-002` or `text-embedding-3-small`). Default: `text-embedding-ada-002`.
+    - **azure_endpoint** - Ask the user for their full Azure OpenAI resource endpoint URL. Format must include the resource name, e.g., `https://example-resource.azure.openai.com/`. No default.
+    - **azure_deployment** - Ask the user for the specific deployment name they created in Azure OpenAI Studio for the chosen model. This is distinct from the model name. No default.
+    - **api_key** - Ask the user for their Azure OpenAI API key. Note: since this is a plain `str` field rather than a secret input, advise the user to handle it carefully.
+
+    ## Outputs
+    - **embeddings** - Produces a LangChain-compatible embeddings object; commonly fed into vector store components (e.g., Chroma, Pinecone, FAISS) or retrieval chains that require an embeddings provider.
+
+    ## Notes
+    - The **azure_deployment** name and the **model** name are separate concepts in Azure — users frequently confuse them; the deployment name is what was set during deployment in Azure OpenAI Studio.
+    - The `dimensions` advanced field is only supported by newer models (e.g., `text-embedding-3-*`); warn the user not to set it when using `text-embedding-ada-002`.
+    - Ensure the `azure_endpoint` URL ends with a trailing slash to avoid request errors.

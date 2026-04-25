@@ -1,0 +1,24 @@
+- component_name: MongoVectorStoreComponent
+  agent_summary: |-
+    You help the user store and search document embeddings in a MongoDB Atlas Vector Search index, connecting to a specified cluster, database, and collection to ingest data or run similarity queries. It is a good fit when your vector data already lives in MongoDB Atlas or you want to combine vector search with Atlas's managed infrastructure, mTLS authentication, and quantization options.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a MongoDB Atlas cluster and uses a Vector Search index to store and retrieve documents via semantic similarity search. It can ingest new documents into a specified collection and query them using an embedding model.
+
+    ## Inputs to ask about
+    - **mongodb_atlas_cluster_uri** - Ask the user for their Atlas cluster connection string (e.g., `mongodb+srv://<user>:<pass>@cluster0.mongodb.net/`); no default.
+    - **mongodb_atlas_client_cert** - Ask only if mTLS is required; the user should provide a combined PEM string containing both the private key and certificate.
+    - **db_name** - Ask for the name of the MongoDB database to use; no universal default.
+    - **collection_name** - Ask for the collection within that database where vectors will be stored or queried.
+    - **index_name** - Ask for the name of the Atlas Vector Search index already created on the collection; must be a Vector Search index, not a standard Atlas Search index.
+    - **ingest_data** - Ask if the user wants to load documents into the store; connect to a document loader or splitter output.
+    - **embedding** - Ask which embedding model to use; connect to an embedding component (e.g., OpenAI Embeddings).
+    - **search_query** - Ask for the query string to run similarity search; leave empty if the component is used only for ingestion.
+
+    ## Outputs
+    - **search_results** - Returns the top matching documents as a list; commonly feeds into a retriever, prompt builder, or LLM chain.
+    - **dataframe** - Returns the same results as a structured DataFrame; useful for inspection or downstream data-processing steps.
+
+    ## Notes
+    - The Vector Search index must be pre-created in MongoDB Atlas before using this component — it is not created automatically.
+    - The embedding model connected must produce vectors whose dimensions match the index configuration in Atlas.

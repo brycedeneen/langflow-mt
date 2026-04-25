@@ -1,0 +1,43 @@
+- component_name: HuggingFaceEndpointsComponent
+  agent_summary: |-
+    You help the user generate text by calling Hugging Face Inference API endpoints, targeting either a preset model from the Hub or a custom model ID and inference endpoint URL. It is a good fit for text generation or summarization tasks where you want control over sampling parameters like temperature, top-k, top-p, and repetition penalty. Prefer over Hugging Face Embeddings Inference when the goal is generating or transforming text rather than producing vector embeddings for retrieval or similarity tasks.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text by calling Hugging Face Inference APIs, supporting both hosted Hub models and custom private inference endpoints. It accepts a user message and optional system message, returning the generated text for use downstream.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the prompt or user message to send to the model; no default.
+    - **system_message** - Ask the user for an optional system-level instruction to prepend to the conversation; default is none.
+    - **model_id** - Ask the user to select a model from the Hugging Face Hub dropdown; required unless a custom model is provided.
+    - **custom_model** - Ask the user if they want to use a specific Hub model ID not in the dropdown (e.g. `mistralai/Mistral-7B-v0.1`); leave blank if using `model_id`.
+    - **max_new_tokens** - Ask the user for the maximum number of tokens to generate; a common default is `512`.
+    - **inference_endpoint** - Ask the user for a custom inference endpoint URL if they are self-hosting or using a dedicated endpoint; leave blank to use the standard Hub API.
+
+    ## Outputs
+    - **text_output** - The raw generated text string; commonly feeds into a **Chat Output** or **Text Output** component.
+    - **model_output** - The full language model object; useful for chaining into other LangChain-compatible components that accept an LLM.
+
+    ## Notes
+    - Both `model_id` and `custom_model` are marked required — clarify with the user that only one needs to be filled; `custom_model` takes precedence for non-listed models.
+    - `huggingfacehub_api_token` is required but handled via the separate secret/variable flow — remind the user to set it up before running.
+    - `inference_endpoint` is also required in the metadata; if the user is relying on the public Hub API, confirm whether a default endpoint URL is needed.
+- component_name: HuggingFaceInferenceAPIEmbeddingsComponent
+  agent_summary: |-
+    You help the user generate vector embeddings from text using a Hugging Face Text Embeddings Inference endpoint, producing an embeddings object suitable for downstream retrieval or similarity tasks. It is a good fit when you have a self-hosted or custom TEI endpoint and need dense vector representations rather than generated text. Prefer over Hugging Face when the goal is embedding documents or queries for search and retrieval, not generating new text.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text embeddings using Hugging Face's Text Embeddings Inference (TEI) service, either via a local TEI instance or a hosted inference endpoint. The resulting embeddings can be used for semantic search, vector storage, and retrieval workflows.
+
+    ## Inputs to ask about
+    - **inference_endpoint** - Ask the user for the URL of their TEI inference endpoint (e.g., a locally running instance like `http://localhost:8080` or a hosted HuggingFace endpoint URL); no universal default, but `http://localhost:8080` is common for local setups.
+    - **model_name** - Ask the user for the name of the embedding model to use (e.g., `BAAI/bge-base-en-v1.5` or `sentence-transformers/all-MiniLM-L6-v2`); suggest `BAAI/bge-base-en-v1.5` as a popular default.
+    - **api_key** - Ask the user whether they are using a remote/hosted endpoint; if so, they will need to provide an API key. Local endpoints do not require one.
+
+    ## Outputs
+    - **embeddings** - Produces an embeddings object that commonly feeds into vector store components (e.g., Chroma, Pinecone, FAISS) or similarity search and retrieval steps in a pipeline.
+
+    ## Notes
+    - The `api_key` field is a plain string input here (not a secret input), so remind the user to handle it carefully if using a hosted endpoint.
+    - The `inference_endpoint` must point to a running TEI server — confirm the server is live before connecting.
+    - The `model_name` must match the model actually loaded on the TEI server; a mismatch will cause errors at runtime.
+    - For local deployments, no API key is needed, but the endpoint URL must be reachable from the environment running Langflow.

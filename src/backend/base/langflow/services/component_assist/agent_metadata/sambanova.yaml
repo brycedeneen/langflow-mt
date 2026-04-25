@@ -1,0 +1,21 @@
+- component_name: SambaNovaComponent
+  agent_summary: |-
+    You help the user generate text by sending prompts to SambaNova Cloud LLMs, producing both a text response and a model output you can route to downstream components. It accepts an optional system message, supports streaming in Chat contexts, and lets you tune temperature, top-p, and max tokens, or point it at a custom endpoint such as SambaStudio.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text using SambaNova cloud-hosted LLMs by sending a prompt (and optional system message) to the SambaNova API and returning the model's response as text or a message object.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the text prompt or message to send to the model; no default.
+    - **system_message** - Ask the user if they want a system-level instruction to guide the model's behavior (e.g., "You are a helpful assistant"); optional, leave blank if not needed.
+    - **model_name** - Ask the user which SambaNova model to use (e.g., `Meta-Llama-3.1-8B-Instruct`); refer them to the SambaNova Cloud dashboard for available model names.
+
+    ## Outputs
+    - **text_output** - Returns the model's response as a plain text string; commonly feeds into a Text Output or further processing components.
+    - **model_output** - Returns the response as a structured message object; commonly feeds into chat interfaces or downstream LLM chain components.
+
+    ## Notes
+    - The **api_key** input is required — make sure the user has created a SambaNova API key at https://cloud.sambanova.ai/ and stored it as a Langflow secret variable before configuring this component.
+    - `model_name` must exactly match a model identifier available on SambaNova Cloud; a typo will cause an API error.
+    - The `base_url` advanced field can be pointed at SambaStudio if the user is running a self-hosted deployment rather than the public cloud API.
+    - Streaming (`stream`) only functions inside a Chat interface; advise the user to leave it off for non-chat flows.

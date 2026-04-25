@@ -1,0 +1,54 @@
+- component_name: CalculatorComponent
+  agent_summary: |-
+    You help the user evaluate a plain arithmetic expression string and return the numeric result. This is a good fit for simple math operations like addition, subtraction, multiplication, and division without needing to write or execute code. Prefer over Python Interpreter when the task is purely arithmetic and you want a lightweight, no-code option; prefer Python Interpreter when the logic requires variables, conditionals, loops, or imports.
+  agent_usage_notes: |-
+    ## What it does
+    Evaluates a single arithmetic expression and returns the computed result. It supports basic operations such as addition, subtraction, multiplication, and division.
+
+    ## Inputs to ask about
+    - **expression** - Ask the user for the arithmetic expression to evaluate. It should be a plain string using standard operators (`+`, `-`, `*`, `/`) and parentheses for grouping (e.g., `4*4*(33/22)+12-20`). No default is required, but suggest the example from the description as a test value.
+
+    ## Outputs
+    - **result** - The computed numeric value of the expression. Commonly feeds into a text output component, a prompt template, or any downstream component that needs a calculated value.
+
+    ## Notes
+    - The expression must be a valid arithmetic string — non-numeric characters or unsupported functions may cause evaluation errors.
+    - This component is best used when the expression is dynamic (e.g., constructed by an upstream LLM or user input); for static values, a plain variable is simpler.
+    - Avoid passing untrusted or user-supplied strings directly without validation, as expression evaluators can be sensitive to malformed input.
+- component_name: CurrentDateComponent
+  agent_summary: |-
+    You help the user inject the current date and time into a flow as a text string, using a selected timezone. This is a good fit when a prompt or downstream component needs a timestamp without requiring custom code. Prefer over Python Interpreter when you only need the current datetime and want a zero-configuration solution rather than writing and maintaining a Python snippet.
+  agent_usage_notes: |-
+    ## What it does
+    Returns the current date and time formatted as a string, adjusted to the specified timezone. It is useful for giving an AI agent or prompt awareness of the current temporal context.
+
+    ## Inputs to ask about
+    - **timezone** - Ask the user which timezone the date and time should reflect; suggested default is `UTC` if they have no preference or are building a global/multi-region workflow.
+
+    ## Outputs
+    - **current_date** - Produces a formatted date/time string representing the current moment in the chosen timezone; commonly fed into a prompt template, a Text Output component, or an agent tool to give the model real-time date awareness.
+
+    ## Notes
+    - The timezone value must be a valid IANA timezone string (e.g., `America/New_York`, `Europe/London`, `Asia/Tokyo`) — free-form or abbreviated inputs like `EST` may not be accepted.
+    - If the downstream prompt or agent needs only the date (not the time), remind the user they may need to parse or truncate the output string themselves, as this component returns the full datetime.
+    - This component has no authentication requirements and no external API calls, so it works reliably in any environment.
+- component_name: PythonREPLComponent
+  agent_summary: |-
+    You help the user execute arbitrary Python code in a sandboxed REPL, returning whatever is printed via print() statements. It is a good fit when logic goes beyond simple arithmetic, such as string manipulation, data processing with libraries like numpy or pandas, or multi-step computations. Prefer over Calculator when the operation requires conditionals, loops, custom functions, or any logic that cannot be expressed as a single arithmetic expression.
+  agent_usage_notes: |-
+    ## What it does
+    Executes arbitrary Python code in an isolated REPL environment and returns the output. Only modules explicitly listed in the global imports are available, so any library the code depends on must be declared there.
+
+    ## Inputs to ask about
+    - **global_imports** - Ask the user which Python modules the code will need; these must be listed as a comma-separated string (e.g. `math,numpy,pandas`). Suggested default: `math` for simple scripts, or whatever libraries appear in the code.
+    - **python_code** - Ask the user for the Python code to run. Remind them to use `print()` for any values they want to see in the output, since only printed output is captured.
+
+    ## Outputs
+    - **results** - The captured standard output (stdout) from the executed code; commonly feeds into a text display component, a downstream prompt, or another processing step.
+
+    ## Notes
+    - The code can **only** import modules listed in `global_imports`; attempting to use an unlisted module will cause a runtime error, so ask the user to double-check that all dependencies are declared.
+    - Remind the user that output must be explicitly `print()`-ed — returning a value without printing it will produce no visible result.
+    - Modules must be installed in the Langflow environment; listing a module in `global_imports` does not install it automatically.
+    - Avoid storing sensitive data (API keys, credentials) directly in `python_code` since it is stored as plain text; use secret variables instead.
+    - This component is stateless between runs — no state persists across separate executions.

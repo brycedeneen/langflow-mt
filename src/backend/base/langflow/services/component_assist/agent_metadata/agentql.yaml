@@ -1,0 +1,21 @@
+- component_name: AgentQL
+  agent_summary: |-
+    You help the user pull structured data from a public web page by sending it to the AgentQL API, which returns a parsed data object based on either an AgentQL query or a plain-language description of what to extract. This is a good fit when you need to scrape specific fields from a live URL without writing custom parsing logic, and it pairs well with downstream components that consume structured records.
+  agent_usage_notes: |-
+    ## What it does
+    Extracts structured data from a public web page using either an AgentQL query (a GraphQL-like syntax) or a plain Natural Language description. It calls the AgentQL REST API and returns the extracted data as a structured object.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their AgentQL API key, obtainable from dev.agentql.com. No default; required.
+    - **url** - Ask the user for the full URL of the public web page to scrape (e.g., `https://example.com/products`). No default; required.
+    - **query** - Ask the user if they want to use an AgentQL query to specify exactly what fields to extract. Either this or **prompt** must be provided; suggest leaving blank if using a prompt instead.
+    - **prompt** - Ask the user for a Natural Language description of the data to extract (e.g., "Get all product names and prices"). Either this or **query** must be provided; suggest leaving blank if using a query instead.
+
+    ## Outputs
+    - **data** - Returns the structured data extracted from the page, typically as a JSON-like object. Commonly feeds into a data processing component, a message output, or a downstream agent step.
+
+    ## Notes
+    - Either **query** or **prompt** must be supplied — the component needs at least one to know what to extract; make sure the user provides exactly one or understands they can use both together.
+    - AgentQL queries follow a GraphQL-like syntax; point users to https://docs.agentql.com/agentql-query if they are unfamiliar.
+    - The target URL must be publicly accessible — pages behind authentication or paywalls may not work reliably.
+    - Advanced options like stealth mode, scrolling, and screenshot capture are available but not required for most use cases.

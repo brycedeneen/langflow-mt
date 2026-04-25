@@ -1,0 +1,26 @@
+- component_name: SFTPCSVUploadComponent
+  agent_summary: |-
+    You help the user serialize upstream data into a CSV file and deliver it to a remote SFTP server, supporting both password and private key authentication. It is a good fit when a downstream system expects periodic CSV drops on an SFTP endpoint, with filename templating for timestamps to support automated file naming conventions.
+  agent_usage_notes: |-
+    ## What it does
+    Serializes upstream data into a CSV file and uploads it to a remote SFTP server. It supports timestamp-based dynamic filenames, password or private-key authentication, and configurable CSV formatting options.
+
+    ## Inputs to ask about
+    - **host** - Ask the user for the SFTP server hostname or IP address (e.g. `sftp.example.com`).
+    - **port** - Ask the user for the SFTP port; suggest default `22`.
+    - **username** - Ask the user for the SFTP login username.
+    - **auth_method** - Ask whether to authenticate via password or SSH private key; this controls which of the next two fields is needed.
+    - **password** - Ask for the password if password auth is chosen; skip if using private key.
+    - **private_key** - Ask the user to paste the full PEM contents of their SSH private key (multi-line, preserve newlines) if key auth is chosen.
+    - **private_key_passphrase** - Ask if the private key is passphrase-protected; leave blank if not.
+    - **data** - Ask what upstream data source or component output should be serialized to CSV.
+    - **remote_directory** - Ask for the target directory path on the SFTP server (e.g. `/uploads/data`).
+    - **filename** - Ask for the desired filename; remind the user that `{timestamp}`, `{datestamp}`, and `{date}` placeholders are supported for dynamic naming.
+
+    ## Outputs
+    - **result** - Returns a status or confirmation object indicating whether the upload succeeded; typically used as a terminal step or fed into a logging/notification component.
+
+    ## Notes
+    - If `auth_method` is set to private key, `password` is not required and vice versa — clarify this to avoid confusion.
+    - Leaving `host_key_fingerprint` empty auto-accepts any host key, which is a security risk in production; flag this to the user if they mention a production environment.
+    - Dynamic filename placeholders are UTC-based — flag this if the user expects local-time filenames.

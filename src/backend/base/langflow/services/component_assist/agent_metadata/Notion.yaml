@@ -1,0 +1,158 @@
+- component_name: AddContentToPage
+  agent_summary: |-
+    You help the user convert markdown text into Notion blocks and append them to an existing Notion page or block. This is a good fit when you need to programmatically add formatted content to a page rather than creating a new one or editing properties. Prefer over Create Page when the target page already exists and you only need to append body content to it.
+  agent_usage_notes: |-
+    ## What it does
+    Converts markdown text into Notion blocks and appends them to an existing Notion page or block. It uses the Notion API's patch-block-children endpoint to add the formatted content.
+
+    ## Inputs to ask about
+    - **markdown_text** - Ask the user for the markdown content they want to append to the page; this can be static text or the output of an upstream component such as an LLM.
+    - **block_id** - Ask the user for the ID of the target Notion page or block; this is the alphanumeric ID found in the page URL (e.g., `https://notion.so/Page-Title-<block_id>`).
+
+    ## Outputs
+    - **api_run_model** - Returns the raw API response from Notion after appending the blocks; useful for logging or passing to downstream validation steps.
+    - **api_build_tool** - Exposes the component as a callable tool so an AI agent can invoke it dynamically to write content to Notion pages.
+
+    ## Notes
+    - The **block_id** must belong to a page or block that the Notion integration has been granted access to — if the integration is not connected to the page, the API call will fail with a permissions error.
+    - Remind the user to share the target Notion page with their integration inside Notion (Connections menu) before running.
+    - Markdown support is handled by the component's conversion logic, but complex or non-standard markdown may not map perfectly to Notion block types.
+    - The `notion_secret` (integration token) is handled via the separate secret/variable creation flow — do not prompt the user for it directly.
+- component_name: NotionDatabaseProperties
+  agent_summary: |-
+    You help the user fetch the schema of a Notion database, returning its property definitions such as names, types, and configuration. This is useful when you need to understand the structure of a database before querying, creating, or updating pages within it. Prefer over List Pages when the goal is to inspect what fields exist rather than retrieve actual page records.
+  agent_usage_notes: |-
+    ## What it does
+    Retrieves the property schema of a specified Notion database, returning details about all columns and field types defined in that database. Useful for understanding database structure before querying or writing records.
+
+    ## Inputs to ask about
+    - **database_id** - Ask the user for the ID of the Notion database whose properties they want to inspect; this is the 32-character string found in the database's URL (e.g., `https://notion.so/<workspace>/<database_id>`). No universal default — the user must supply their own.
+
+    ## Outputs
+    - **api_run_model** - Returns the database property schema as a structured model; commonly feeds into downstream components that need to know field names and types before reading or writing data.
+    - **api_build_tool** - Exposes the component as a callable tool, allowing an AI agent to dynamically retrieve database properties during a workflow.
+
+    ## Notes
+    - The `notion_secret` field requires a valid Notion integration token — make sure the integration has been added to the target database in Notion's sharing settings, otherwise the API call will return a permissions error.
+    - The `database_id` can be found in the Notion page URL; remind the user to strip any hyphens if copying from a formatted UUID.
+    - This component only retrieves the property *schema* (field names and types), not the actual row data — pair it with a separate query component if the user needs records.
+    - If the user intends to use this inside an agent, direct the `api_build_tool` output to the agent's tools input.
+- component_name: NotionListPages
+  agent_summary: |-
+    You help the user query a Notion database and retrieve matching pages by applying filter conditions and sort orders supplied as a JSON string. This is a good fit when you need to fetch a filtered, sorted list of database entries, such as all tasks with a specific status. Prefer over Search when you already know the target database ID and need structured filtering rather than a broad keyword search across all shared content.
+  agent_usage_notes: |-
+    ## What it does
+    Queries a Notion database and returns matching pages, optionally filtered and sorted using Notion's API query syntax. It accepts a JSON string to define filter conditions and sort order, making it useful for retrieving structured subsets of database records.
+
+    ## Inputs to ask about
+    - **notion_secret** - Ask the user for their Notion integration token (internal secret); note this is required to authenticate with the Notion API. *(Handled via the secrets flow, but confirm the user has created a Notion integration.)*
+    - **database_id** - Ask the user for the ID of the Notion database to query; this can be found in the database's URL (the 32-character string before the `?`). No default — it is specific to the user's workspace.
+    - **query_json** - Ask the user whether they want to filter or sort results; if so, provide a JSON string with `filter` and/or `sorts` keys. Default: leave empty to return all pages with no filtering or sorting. Example: `{"filter": {"property": "Status", "select": {"equals": "Done"}}, "sorts": [{"timestamp": "created_time", "direction": "descending"}]}`.
+
+    ## Outputs
+    - **api_run_model** - Returns the raw query result from Notion's API, typically feeding into a parser, data transformer, or downstream LLM component.
+    - **api_build_tool** - Exposes the component as a callable tool, useful when wiring it into an agent that can invoke Notion queries dynamically.
+
+    ## Notes
+    - The `query_json` field must be valid JSON; malformed input will cause the query to fail — recommend validating the string before passing it in.
+    - The Notion integration must be explicitly shared with the target database inside Notion, or the query will return an authorization error even with a valid token.
+    - Filter syntax follows Notion's API spec exactly; refer to [Notion API filter docs](https://developers.notion.com/reference/post-database-query-filter) for supported property types.
+- component_name: NotionPageContent
+  agent_summary: |-
+    You help the user fetch the plain-text body of a specific Notion page using its page ID and an integration token. This is a good fit when you need to read and process existing page content, such as feeding it into a summarization or question-answering pipeline. Prefer over Search when you already know the exact page ID and want its full text content rather than searching across pages and databases.
+  agent_usage_notes: |-
+    ## What it does
+    Retrieves the full text content of a specified Notion page and returns it as plain text. It connects to the Notion API using an integration token and fetches the page identified by its page ID.
+
+    ## Inputs to ask about
+    - **page_id** - Ask the user for the Notion page ID they want to retrieve content from; this can be found in the page URL (the 32-character string after the workspace name). No universal default — it must be specific to the user's Notion workspace.
+
+    ## Outputs
+    - **api_run_model** - Returns the page content as plain text; commonly feeds into a text processing component, LLM prompt, or document loader.
+    - **api_build_tool** - Exposes the retrieval action as a callable tool, suitable for connecting to an agent that can look up Notion page content on demand.
+
+    ## Notes
+    - The `notion_secret` field requires a Notion internal integration token — remind the user to create an integration at [notion.so/my-integrations](https://www.notion.so/my-integrations) and share the target page with that integration, otherwise the API call will return an authorization error.
+    - The `page_id` can be extracted from a Notion page URL: it is the segment after the last `/` and before any `?` query parameters (hyphens are optional).
+    - If the page has not been shared with the integration, retrieval will silently fail or return an access error — sharing the page is a commonly missed setup step.
+    - Use `api_run_model` for direct pipeline flows and `api_build_tool` when wiring into an agent framework.
+- component_name: NotionPageCreator
+  agent_summary: |-
+    You help the user create a new page inside a specified Notion database by accepting a database ID, an integration token, and a JSON string defining the page's properties. It works well alongside List Database Properties to discover valid property names before constructing the properties payload. Prefer over Update Page Property when you need to add a new record rather than modify an existing one.
+  agent_usage_notes: |-
+    ## What it does
+    Creates a new page inside a specified Notion database using the Notion API. It accepts database and page-property details, then returns the created page object or a callable tool for use in agent workflows.
+
+    ## Inputs to ask about
+    - **database_id** - Ask the user for the ID of the Notion database where the new page should be created. This can be found in the database URL (the 32-character alphanumeric string). No universal default — it is specific to the user's Notion workspace.
+    - **properties_json** - Ask the user to provide a JSON string defining the page's properties (e.g., title, tags, status) matching the database schema. Suggest they copy their database's property structure from Notion and format it as a valid JSON object. No safe default — structure varies per database.
+
+    > **Note:** `notion_secret` is a secret credential and is handled via the separate variable-creation flow — do not ask the user to enter it here.
+
+    ## Outputs
+    - **api_run_model** - Returns the Notion API response for the created page; useful for logging, downstream data processing, or displaying confirmation to the user.
+    - **api_build_tool** - Exposes the creator as a callable tool, making it suitable for connecting to an AI agent that can trigger page creation dynamically.
+
+    ## Notes
+    - The `properties_json` must exactly match the property names and types defined in the target Notion database schema, or the API call will fail.
+    - The Notion integration must be explicitly shared with the target database inside Notion's UI, otherwise the API will return a permissions error even with a valid token.
+    - If connecting to an agent, prefer the **api_build_tool** output; for direct pipeline use, prefer **api_run_model**.
+- component_name: NotionPageUpdate
+  agent_summary: |-
+    You help the user modify the metadata properties of an existing Notion page by submitting a JSON object of property updates to a specified page ID. This is a good fit when you need to change fields like status, title, date, or select values on a page that already exists, and it pairs well with List Pages to first identify target pages. Prefer over Create Page when the page already exists and only its properties need updating, not its content.
+  agent_usage_notes: |-
+    ## What it does
+    Updates the properties of an existing Notion page using the Notion API. It accepts a page ID and a set of properties to modify, then applies those changes to the specified page.
+
+    ## Inputs to ask about
+    - **page_id** - Ask the user for the ID of the Notion page they want to update; this can be found in the page URL after the workspace name (e.g., `https://notion.so/workspace/<page_id>`). No sensible default.
+    - **properties** - Ask the user which page properties to update and their new values, provided as a JSON string or dictionary matching the Notion property schema (e.g., `{"Name": {"title": [{"text": {"content": "New Title"}}]}}`). No sensible default; must match the target page's property types.
+
+    ## Outputs
+    - **api_run_model** - Returns the API response from Notion after the update; commonly feeds into a downstream data-processing or display component.
+    - **api_build_tool** - Exposes the component as a callable tool, suitable for use inside an agent flow that needs to update Notion pages dynamically.
+
+    ## Notes
+    - The `properties` JSON must conform exactly to the Notion API property schema for the target page; mismatched types (e.g., sending a `select` value to a `multi_select` field) will cause the API call to fail.
+    - The page ID must come from a page the integration has been granted access to — make sure the Notion integration is connected to the relevant page or parent database.
+    - `notion_secret` is managed via a separate secret/variable flow; remind the user to set it up before running.
+- component_name: NotionSearch
+  agent_summary: |-
+    You help the user find Notion pages and databases by searching titles across everything shared with a given integration token. This is a good starting point when you don't know the exact page or database ID and need to discover resources before reading or modifying them. Prefer over List Pages when you need a broad title-based search across all content types rather than a filtered query against a specific known database.
+  agent_usage_notes: |-
+    ## What it does
+    Searches all Notion pages and databases that have been shared with the configured integration, filtering and sorting results by title match, object type, and sort direction. It returns results either as a data model or as a callable tool for use in an agent.
+
+    ## Inputs to ask about
+    - **query** - Ask the user for the search text to match against page and database titles. If left blank, the API returns all shared content. Default: *(empty, returns everything)*.
+    - **filter_value** - Ask whether to limit results to `page`, `database`, or both. Default: *(empty, returns both)*.
+    - **sort_direction** - Ask for the sort order of results: `ascending` or `descending`. Default: `descending`.
+
+    ## Outputs
+    - **api_run_model** - Returns the raw search results as a structured data model; commonly feeds into a text display, parser, or downstream processing component.
+    - **api_build_tool** - Exposes the search as a callable tool for use inside an AI agent, allowing the agent to query Notion dynamically at runtime.
+
+    ## Notes
+    - The integration token (`notion_secret`) must belong to a Notion internal integration that has explicitly been granted access to the pages or databases the user wants to search — content not shared with the integration will never appear in results.
+    - Leaving `query` empty is valid and returns all accessible content, which may be large; encourage users to provide a query to keep results manageable.
+    - `filter_value` only accepts `page` or `database` (case-sensitive); any other value may cause an API error.
+    - Use `api_build_tool` when wiring this component into an agent; use `api_run_model` for static, single-run pipeline flows.
+- component_name: NotionUserList
+  agent_summary: |-
+    You help the user retrieve a list of all users in a Notion workspace using an integration token. This is useful when you need to look up user IDs for assigning tasks, filtering pages by author, or auditing workspace members.
+  agent_usage_notes: |-
+    ## What it does
+    Retrieves a list of users from a connected Notion workspace using the Notion API. It can return the results as a data model or expose the functionality as a callable tool for use in agent workflows.
+
+    ## Inputs to ask about
+    _None._ (The only input is a secret token, which is handled through the separate variable-creation flow.)
+
+    ## Outputs
+    - **api_run_model** - Returns the list of Notion users as a structured data model; commonly feeds into data-processing components or display nodes.
+    - **api_build_tool** - Exposes the user-listing action as a tool that an AI agent can invoke dynamically during a workflow.
+
+    ## Notes
+    - The `notion_secret` field requires a valid Notion internal integration token — remind the user to create one at [notion.so/my-integrations](https://www.notion.so/my-integrations) if they haven't already.
+    - The integration must be added to at least one Notion workspace page for the token to have access; otherwise the API will return an empty or error response.
+    - Only users who are members of the workspace the integration is connected to will be returned — guest users may not appear.
+    - Use **api_run_model** when the output feeds a static pipeline; use **api_build_tool** when plugging into an agent that needs to call this action on demand.

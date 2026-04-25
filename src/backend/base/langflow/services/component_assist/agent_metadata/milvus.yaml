@@ -1,0 +1,27 @@
+- component_name: MilvusVectorStoreComponent
+  agent_summary: |-
+    You help the user connect to a Milvus vector store to index and search document embeddings, producing similarity search results or a dataframe of matches against a query. It is a good fit when you need a scalable, self-hosted or cloud vector database with configurable index and search parameters, collection management, and optional token-based authentication.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a Milvus vector store collection to ingest documents and perform similarity searches. It supports both storing new embeddings and querying existing collections using a provided embedding model.
+
+    ## Inputs to ask about
+    - **collection_name** - Ask the user for the target Milvus collection name; suggested default: `"langflow"`.
+    - **collection_description** - Ask the user for an optional description of the collection; default is typically empty.
+    - **uri** - Ask the user for the Milvus server URI (e.g., `"http://localhost:19530"` for a local instance or a cloud endpoint).
+    - **password** - Ask the user if a token or password is required for the connection; leave blank if none is needed.
+    - **primary_field** - Ask the user for the name of the primary key field; suggested default: `"pk"`.
+    - **text_field** - Ask the user for the field name used to store raw text; suggested default: `"text"`.
+    - **vector_field** - Ask the user for the field name used to store vectors; suggested default: `"vector"`.
+    - **ingest_data** - Ask the user what document source or data component should feed into the store.
+    - **search_query** - Ask the user what query string to use for similarity search, if retrieval is needed.
+    - **embedding** - Ask the user which embedding model component to connect; this is required for both ingestion and search.
+
+    ## Outputs
+    - **search_results** - Returns ranked documents matching the search query; commonly feeds into a language model or prompt component.
+    - **dataframe** - Returns search results as a structured dataframe; useful for inspection or downstream data-processing steps.
+
+    ## Notes
+    - The `password` field accepts a token string for cloud-hosted Milvus (e.g., Zilliz); leave blank for unauthenticated local instances.
+    - Both `embedding` and a valid `uri` must be provided or the component will fail silently — confirm both are set before running.
+    - If ingesting data and querying in the same flow, ensure `drop_old` (advanced) is not accidentally enabled, as it will delete the existing collection on each build.

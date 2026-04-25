@@ -1,0 +1,21 @@
+- component_name: UnstructuredComponent
+  agent_summary: |-
+    You help the user extract clean, structured text from raw documents by sending them to the Unstructured.io API, which supports a wide range of file types and returns parsed content as a dataframe. It is a good fit when you need reliable document parsing across mixed or complex file formats, with optional chunking strategies and fine-grained control over error handling and file cleanup.
+  agent_usage_notes: |-
+    ## What it does
+    Calls the Unstructured.io API to extract and clean text from raw documents (PDFs, Word files, HTML, images, and more), returning structured data suitable for downstream processing or RAG pipelines.
+
+    ## Inputs to ask about
+    - **path** - Ask the user to upload or specify the source document file to process; no universal default applies.
+    - **api_key** - Ask the user for their Unstructured.io API key, obtainable at https://app.unstructured.io/; required before the component will run.
+    - **api_url** - Ask the user for the Unstructured API endpoint URL; defaults to the hosted Unstructured service if left blank.
+    - **chunking_strategy** - Ask the user which chunking strategy to apply (e.g., `basic`, `by_title`, `by_page`); suggest leaving blank if no chunking is needed.
+    - **unstructured_args** - Ask the user if they need any additional API parameters (e.g., `languages`, `strategy`); suggest leaving empty unless specific extraction behavior is required.
+
+    ## Outputs
+    - **dataframe** - Produces a structured DataFrame of extracted text elements; commonly feeds into a text splitter, vector store ingestion step, or data transformation component.
+
+    ## Notes
+    - The `api_key` field is a plain string input here, not a secret input — remind the user to handle it securely (e.g., use an environment variable reference).
+    - `chunking_strategy` must match a value supported by the Unstructured API; invalid values will cause API errors — link the user to https://docs.unstructured.io/api-reference/api-services/chunking for valid options.
+    - If `path` is left empty and no upstream `file_path` data object is connected, the component will produce no output.

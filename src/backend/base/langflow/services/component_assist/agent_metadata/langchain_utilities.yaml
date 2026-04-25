@@ -1,0 +1,347 @@
+- component_name: CSVAgentComponent
+  agent_summary: |-
+    You help the user build an agent that reads a CSV file and answers natural-language questions about its contents using a language model. It is a good fit when the user wants to query or extract information from tabular data without writing pandas code manually. Prefer over SQLAgent when the data source is a flat CSV file rather than a relational database.
+  agent_usage_notes: |-
+    ## What it does
+    CSV Agent constructs a LangChain agent that can read and reason over a CSV file using a language model. It allows users to ask natural-language questions about tabular data and receive answers derived from that file.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the natural-language question or instruction they want the agent to answer using the CSV data (e.g., "What is the average value in column X?"). No default.
+    - **model** - Ask the user to select a language model provider or connect an existing Language Model component. Required.
+    - **path** - Ask the user to upload a CSV file or provide a file path to one. Required.
+    - **allow_dangerous_code** - Ask the user whether to allow the agent to execute arbitrary Python code on the server; default is `False`. Warn them of the security risk before enabling.
+
+    ## Outputs
+    - **response** - The agent's natural-language answer to the user's question; typically feeds into a Chat Output or Message Display component.
+    - **agent** - The constructed LangChain agent object; can be passed to other agent-compatible components for chaining or tool use.
+
+    ## Notes
+    - `allow_dangerous_code` is a hard requirement to unlock full agent functionality — make sure the user understands the remote code execution risk before enabling it.
+    - The `path` input accepts either an uploaded file or a string file path, so clarify both options to the user.
+    - The `model` input requires a connected LLM component or a provider selection — confirm the user has API credentials available for their chosen model.
+    - There are two `input_value` fields in the metadata; the required one (Text to be passed as input) is the one to surface to the user.
+- component_name: CharacterTextSplitterComponent
+  agent_summary: |-
+    You help the user split text into fixed-size chunks based on a character count, using a configurable separator, chunk size, and overlap. It is a good fit for simple, language-agnostic splitting where predictable chunk boundaries matter more than semantic coherence. Prefer over Recursive Character Text Splitter when you want a single, strict separator rather than a fallback sequence of separators; prefer over Language Recursive Text Splitter or Semantic Text Splitter when you do not need language-aware or meaning-aware boundaries.
+  agent_usage_notes: |-
+    ## What it does
+    Splits input text into smaller chunks based on a specified character count, with optional overlap between consecutive chunks. This is commonly used to prepare documents for embedding or retrieval pipelines.
+
+    ## Inputs to ask about
+    - **data_input** - Ask the user what text or document data they want to split; this is required and typically comes from a file loader, URL scraper, or other document source upstream.
+    - **chunk_size** - Ask the user how many characters each chunk should contain; a common default is `1000` characters, suitable for most embedding models.
+    - **chunk_overlap** - Ask the user how many characters should overlap between adjacent chunks to preserve context across boundaries; a suggested default is `200`.
+    - **separator** - Ask the user which character(s) to split on; defaults to `\n\n` (double newline) if left empty, which works well for paragraph-separated text.
+
+    ## Outputs
+    - **data** - Produces a list of `Data` objects, one per chunk; commonly feeds into an embedding component, a vector store ingestion step, or a prompt-building component.
+
+    ## Notes
+    - Chunk size and overlap are measured in characters, not tokens — remind the user that token limits (e.g. for OpenAI models) differ from character counts, so they may need to adjust accordingly.
+    - Setting `chunk_overlap` too high relative to `chunk_size` can cause redundant data and inflate vector store size.
+    - If `separator` characters are not found in the text, the splitter will fall back to splitting purely by `chunk_size`, which may cut words mid-sentence.
+- component_name: FakeEmbeddingsComponent
+  agent_summary: |-
+    You help the user produce a dummy embeddings object that returns random vectors of a configurable number of dimensions, without calling any real embedding model. This is a good fit for wiring up and testing pipelines early, before committing to a real embeddings provider. No peers in this list materially overlap with this specific utility.
+  agent_usage_notes: |-
+    ## What it does
+    Generates synthetic (random) embedding vectors of a configurable size, without calling any real embedding model. It is useful for wiring up and testing pipelines before connecting a production embedding service.
+
+    ## Inputs to ask about
+    - **dimensions** - Ask the user how many dimensions the fake embedding vectors should have. A common default is `768` (matching many real transformer models), though `1536` (OpenAI ada-002) or `384` (smaller models) are also typical choices.
+
+    ## Outputs
+    - **embeddings** - Produces a fake embeddings object that satisfies the same interface as a real embeddings component; commonly feeds into vector stores, retrievers, or any component that accepts an embeddings input during development and testing.
+
+    ## Notes
+    - These embeddings are random and carry no semantic meaning — similarity searches will return meaningless results, so this component should never be used in production.
+    - The `dimensions` value must match whatever dimensionality the connected vector store expects; mismatches will cause errors at indexing or query time.
+    - When the user is ready to move to production, they only need to swap this component for a real embeddings component (e.g., OpenAI Embeddings) with the same `dimensions` setting — no other pipeline changes are required.
+- component_name: HtmlLinkExtractorComponent
+  agent_summary: |-
+    You help the user parse HTML content and extract all hyperlinks from it, producing structured link data suitable for graph vector store ingestion. This is a good fit when building knowledge graphs or document pipelines where relationships between pages need to be captured alongside content.
+  agent_usage_notes: |-
+    ## What it does
+    Parses HTML content and extracts all hyperlinks (`<a href="...">` tags) found within it. It is typically used in graph vector store pipelines to build link relationships between documents.
+
+    ## Inputs to ask about
+    - **data_input** - Ask the user for the HTML text or document(s) from which links should be extracted; this is required and is usually the output of a document loader or text source component.
+    - **kind** - Ask the user what kind label to assign to the extracted links (used to categorize link types in a graph vector store); a sensible default is `"hyperlink"`.
+    - **drop_fragments** - Ask the user whether URL fragments (the `#anchor` portion of a URL) should be stripped before storing links; suggest defaulting to `True` to avoid treating the same page as multiple nodes.
+
+    ## Outputs
+    - **data** - Produces the input documents annotated with extracted link metadata, ready to feed into a graph vector store ingestion component or a downstream link-aware retriever.
+
+    ## Notes
+    - The `kind` value must be consistent across all extractors feeding the same graph vector store — mismatched kind labels will prevent link traversal from working correctly.
+    - `drop_fragments` is worth confirming explicitly: leaving it `False` can cause duplicate nodes in a graph store if the same page is referenced with and without a fragment.
+    - This component is designed for graph vector store workflows; if the user is building a standard vector store pipeline, they likely don't need a link extractor at all.
+- component_name: LangChainHubPromptComponent
+  agent_summary: |-
+    You help the user load a prompt stored in LangChain Hub into a workflow by supplying an API key and a hub prompt identifier such as "efriis/my-first-prompt". This is a good fit when you want to reuse or share versioned prompts hosted remotely rather than defining prompt text inline.
+  agent_usage_notes: |-
+    ## What it does
+    Fetches a pre-built prompt template directly from LangChain Hub using a handle reference, making it easy to reuse shared or published prompts without defining them manually in the flow.
+
+    ## Inputs to ask about
+    - **langchain_api_key** - Ask the user for their LangChain API key, available at smith.langchain.com; note this is a sensitive credential (handle securely even though it is not a SecretStrInput field).
+    - **langchain_hub_prompt** - Ask the user for the Hub prompt handle in `owner/prompt-name` format, e.g., `efriis/my-first-prompt`; no default since this is specific to the user's Hub account or a chosen public prompt.
+
+    ## Outputs
+    - **prompt** - Produces a LangChain prompt template object fetched from the Hub; typically feeds into a model component, chain, or agent that accepts a prompt template as input.
+
+    ## Notes
+    - The API key must belong to an account that has access to the specified prompt — private prompts from another user's account will fail to load.
+    - Prompt handles are case-sensitive and must exactly match the owner/name slug shown on LangChain Hub.
+    - If the prompt template contains input variables, downstream components must supply values for all of them or the flow will error at runtime.
+    - This component requires an active internet connection to reach the LangChain Hub API; it cannot work in fully air-gapped environments.
+- component_name: LanguageRecursiveTextSplitterComponent
+  agent_summary: |-
+    You help the user split text into chunks using language-aware recursive splitting rules, where the separators are chosen based on the syntax of a specified programming or markup language. This is a good fit when the input contains source code and you want chunks that respect language structure rather than arbitrary character boundaries. Prefer over Recursive Character Text Splitter when splitting code by language syntax matters; prefer over Natural Language Text Splitter when the content is code rather than prose.
+  agent_usage_notes: |-
+    ## What it does
+    Splits input text into smaller chunks using language-aware recursive splitting, respecting the syntax boundaries of a specified programming or markup language. It controls chunk size and overlap to balance context preservation with downstream processing limits.
+
+    ## Inputs to ask about
+    - **data_input** - Ask the user what text or data they want to split; this is required and typically comes from a file loader, document retriever, or earlier pipeline step.
+    - **code_language** - Ask the user which language the text is written in (e.g., Python, Markdown, HTML, JavaScript); this guides how the splitter identifies natural break points.
+    - **chunk_size** - Ask the user how large each chunk should be in characters; a common default is **1000**.
+    - **chunk_overlap** - Ask the user how many characters should overlap between consecutive chunks to preserve context across boundaries; a common default is **200**.
+
+    ## Outputs
+    - **data** - Produces a list of split text chunks (Data objects) that commonly feed into embedding components, vector store ingestors, or further text-processing steps.
+
+    ## Notes
+    - The `code_language` setting is important: using the wrong language (or leaving it unset) may cause splits to occur at syntactically awkward points, breaking code logic or markup structure.
+    - Overlap should always be less than chunk size; ask the user to verify this constraint is met.
+    - `data_input` accepts multiple data types ("other"), so confirm the upstream component's output is compatible — typical sources include file loaders or document splitters.
+    - Larger overlap values improve context continuity but increase the total number of chunks and downstream processing cost.
+- component_name: NaturalLanguageTextSplitterComponent
+  agent_summary: |-
+    You help the user divide text into chunks that respect natural language sentence and phrase boundaries, using NLTK tokenization tuned to a specific language. This is a good fit when grammatical coherence within chunks matters more than strict character-count uniformity, such as before feeding text into an NLP pipeline or retrieval system. Prefer over Character Text Splitter or Recursive Character Text Splitter when the source language is non-English or when splitting on sentence boundaries is more important than splitting on character count or code-aware delimiters.
+  agent_usage_notes: |-
+    ## What it does
+    Splits text into smaller chunks using natural language boundaries (via NLTK) rather than arbitrary character counts, making splits more semantically coherent. It is optimized per language to better respect sentence and paragraph boundaries.
+
+    ## Inputs to ask about
+    - **data_input** - Ask the user what text or document data to split; this is required and typically comes from a file loader, scraper, or other text-producing component.
+    - **chunk_size** - Ask the user how large each chunk should be in characters; a common default is `1000`.
+    - **chunk_overlap** - Ask the user how many characters should overlap between consecutive chunks to preserve context; a common default is `200`.
+    - **separator** - Ask the user if they want a custom delimiter between chunks; defaults to `"\n\n"` if left empty, which is suitable for most paragraph-structured text.
+    - **language** - Ask the user what language the text is in; defaults to `English`. Mention that setting this correctly improves boundary detection for non-English content.
+
+    ## Outputs
+    - **data** - Produces a list of split document chunks; commonly feeds into an embedding component, a vector store ingestion step, or a retriever.
+
+    ## Notes
+    - NLTK requires language-specific data packages to be installed; if the user selects a non-English language and encounters errors, they may need to ensure the appropriate NLTK tokenizer data is available in their environment.
+    - Chunk overlap should always be smaller than chunk size, or the splitter will behave unexpectedly.
+    - This splitter is preferable over simple character splitters when text coherence and sentence integrity matter, such as for RAG pipelines.
+- component_name: OpenAIToolsAgentComponent
+  agent_summary: |-
+    You help the user run an OpenAI-native tool-calling agent that accepts a list of tools, a system prompt, and user input, then produces a response by letting an OpenAI model decide which tools to invoke across multiple reasoning steps. It works best when you are already using an OpenAI model and want tight integration with the OpenAI function-calling API. Prefer over Tool Calling Agent when your workflow is exclusively OpenAI-based and you want OpenAI's native tools interface; prefer Tool Calling Agent when you need model-agnostic tool calling across different LLM providers.
+  agent_usage_notes: |-
+    ## What it does
+    The OpenAI Tools Agent runs an LLM-powered agent that can invoke connected tools to complete tasks. It processes a user-provided input, reasons over it using an OpenAI-compatible model, and returns a response after one or more tool-use iterations.
+
+    ## Inputs to ask about
+    - **tools** - Ask the user which tools the agent should have access to (e.g., search, calculator, custom API tools); no default — at least one tool is typically needed for the agent to be useful.
+    - **input_value** - Ask the user for the message or query the agent should process; this is usually the user's runtime question or task.
+    - **model** - Ask the user to select a model provider or connect a Language Model component; an OpenAI GPT-4o or GPT-4-turbo model is the common choice.
+    - **system_prompt** - Ask the user for a system-level instruction that shapes the agent's persona or behavior; suggested default: `"You are a helpful assistant."`.
+    - **user_prompt** - Ask the user if they need a custom prompt template; remind them it **must** contain the `{input}` key, otherwise leave blank to use the default.
+
+    ## Outputs
+    - **response** - The agent's final text reply; commonly feeds into a Chat Output or downstream text-processing component.
+    - **agent** - The constructed agent object itself; useful when embedding this agent as a tool inside another agent or pipeline.
+
+    ## Notes
+    - The `user_prompt` field is required to include the literal key `input` — omitting it will cause a runtime error.
+    - `agent_description` is deprecated; advise the user to avoid configuring it for new flows.
+    - At least one tool should be connected; without tools the agent offers no advantage over a plain LLM call.
+- component_name: OpenAPIAgentComponent
+  agent_summary: |-
+    You help the user build an agent that reads an OpenAPI specification file and uses it to interact with the described REST API endpoints. It is a good fit when you need to let a language model autonomously call external APIs defined by an OpenAPI/Swagger spec. Prefer over CSV Agent or SQL Agent when your data source is a live REST API rather than a file or database.
+  agent_usage_notes: |-
+    ## What it does
+    The OpenAPI Agent connects a language model to an external API defined by an OpenAPI specification file. It interprets user input and autonomously calls the appropriate API endpoints to fulfill requests.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the initial message or query they want the agent to process. No default; this is typically the user's natural-language request.
+    - **model** - Ask the user to select a language model provider or connect an existing Language Model component. Required; no default.
+    - **path** - Ask the user to upload or provide the path to their OpenAPI specification file (e.g., a `.yaml` or `.json` file). Required; no default.
+    - **allow_dangerous_requests** - Ask the user whether the agent should be permitted to make potentially destructive API calls (e.g., DELETE, POST). Suggest defaulting to `False` unless the user explicitly needs write/delete access.
+
+    ## Outputs
+    - **response** - The agent's final text response after interacting with the API; commonly feeds into a Chat Output or Message component.
+    - **agent** - The constructed agent object itself; useful when chaining into other agent orchestration components or tool pipelines.
+
+    ## Notes
+    - `allow_dangerous_requests` must be explicitly set to `True` to enable non-read-only HTTP methods — warn the user about unintended data modification if enabled carelessly.
+    - The `path` input expects a valid OpenAPI spec file; an malformed or incomplete spec will cause the agent to fail at runtime.
+    - The `model` input is required — the agent cannot function without a connected language model.
+    - `api_key` is an advanced field but may be needed if the model provider requires one outside of a stored secret variable.
+- component_name: RecursiveCharacterTextSplitterComponent
+  agent_summary: |-
+    You help the user break text into smaller chunks while keeping related content together by recursively trying a hierarchy of separators until chunks fit within the specified size limit. It is a good general-purpose splitter for unstructured prose or documents where semantic continuity matters, pairing well with embedding and retrieval components. Prefer over Character Text Splitter when your text has natural paragraph and line boundaries you want to respect, or over Language Recursive Text Splitter when you do not need language-specific splitting logic.
+  agent_usage_notes: |-
+    ## What it does
+    Splits text into smaller chunks while trying to keep related content together, using a hierarchy of separators to find natural break points. It is commonly used to prepare documents for embedding or retrieval pipelines.
+
+    ## Inputs to ask about
+    - **data_input** - Ask the user which text or document data to split; this is required and typically comes from a file loader, URL scraper, or another text-producing component.
+    - **chunk_size** - Ask the user how large each chunk should be (in characters); a common default is `1000`.
+    - **chunk_overlap** - Ask the user how many characters should overlap between consecutive chunks to preserve context; a common default is `200`.
+    - **separators** - Ask the user which characters to split on, in priority order; if left empty, defaults to `["\n\n", "\n", " ", ""]`, which works well for most prose.
+
+    ## Outputs
+    - **data** - Produces a list of `Data` objects, one per chunk; commonly feeds into an embedding component, a vector store ingestion step, or a text display component.
+
+    ## Notes
+    - Chunk overlap should always be smaller than chunk size — flag this if the user sets overlap ≥ size.
+    - The splitter tries each separator in order, falling back to the next if the chunk is still too large, so separator order matters when customizing.
+    - Very small chunk sizes can fragment sentences and hurt retrieval quality; very large sizes may exceed model context limits downstream.
+    - Pairing this with an embeddings component and a vector store is the most common pattern.
+- component_name: RunnableExecComponent
+  agent_summary: |-
+    You help the user run any LangChain Runnable object against a string input, producing text output, with automatic detection of input and output keys so manual wiring is rarely needed. This is a good fit when you have a prebuilt chain or runnable and want a quick execution step without writing custom code; the optional streaming mode and explicit key overrides handle edge cases. No peer in this category materially overlaps with generic runnable execution.
+  agent_usage_notes: |-
+    ## What it does
+    Executes a LangChain runnable (such as a chain or pipeline) by passing an input value to it and returning the result as text. It automatically attempts to detect the correct input and output keys so minimal configuration is usually needed.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the text or value to pass into the runnable; no default, as it depends entirely on the runnable being executed.
+    - **runnable** - Ask the user to connect a runnable component (e.g., a chain, prompt+LLM pipeline, or retrieval chain) to this input; it must be wired from another component's output.
+    - **use_stream** - Ask the user whether the runnable's output should be streamed token-by-token or returned all at once; suggest `False` as the default for most use cases.
+
+    ## Outputs
+    - **text** - Produces the runnable's response as a text string; commonly feeds into a Chat Output, Text Output, or another processing component downstream.
+
+    ## Notes
+    - The component guesses input and output keys automatically, but if the runnable has ambiguous or multiple keys, results may be unexpected — advise the user to expose `input_key` and `output_key` (advanced fields) if they encounter errors.
+    - The `runnable` input must be connected to a compatible LangChain runnable; passing an incompatible object type will cause execution to fail.
+    - Enabling `use_stream` requires that the connected runnable and any downstream components support streaming; not all runnables do.
+- component_name: SQLAgentComponent
+  agent_summary: |-
+    You help the user build an agent that accepts natural language questions and queries a SQL database, returning answers grounded in the database content. It is a good fit when users need conversational access to a relational database without writing SQL manually. Prefer over CSV Agent when your data lives in a SQL database rather than a flat CSV file, and prefer over SQL Database when you need an LLM-driven reasoning loop rather than a direct database connection component.
+  agent_usage_notes: |-
+    ## What it does
+    SQLAgent constructs an AI agent that can query and interact with a SQL database using a language model. It takes a natural-language input, reasons over the database schema, and returns a response based on the query results.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the natural-language question or instruction they want the agent to process against the database (e.g., "How many orders were placed last month?"). No default needed.
+    - **model** - Ask the user to select a language model provider or connect an existing Language Model component. This is required.
+    - **database_uri** - Ask the user for the full connection string to their SQL database (e.g., `sqlite:///mydb.db` or `postgresql://user:pass@host/dbname`). This is required.
+
+    ## Outputs
+    - **response** - The agent's natural-language answer to the input query; commonly feeds into a Chat Output or downstream text processing component.
+    - **agent** - The constructed agent object itself; can be passed to other components that accept an agent as input (e.g., tool-mode orchestrators).
+
+    ## Notes
+    - The `database_uri` must be a valid SQLAlchemy connection string — the format differs by database engine, so remind the user to include credentials and the correct driver prefix.
+    - The language model connected via `model` must be capable enough to reason about schemas; weaker models may produce unreliable SQL.
+    - Sensitive credentials in the `database_uri` (username, password) are passed as plain text here — advise the user to use environment variables or secrets where possible.
+    - `extra_tools` and `agent_description` are advanced and deprecated respectively; avoid surfacing them unless the user has a specific need.
+- component_name: SQLDatabaseComponent
+  agent_summary: |-
+    You help the user connect to a SQL database by accepting a connection URI and producing a SQLDatabase object for use in downstream components. It pairs naturally with the SQL Agent, which requires a SQLDatabase instance to query relational data using natural language. Prefer over SQLAgent when you need the database connection as a standalone object to wire into custom chains rather than immediately running an agent on it.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a SQL database using a connection URI and exposes a SQLDatabase object that other components can use to run queries or interact with the database schema.
+
+    ## Inputs to ask about
+    - **uri** - Ask the user for the full database connection URI (e.g., `sqlite:///mydb.db`, `postgresql://user:password@host:5432/dbname`, `mysql+pymysql://user:password@host/dbname`). No default can be assumed — the user must supply this based on their database type and credentials.
+
+    ## Outputs
+    - **SQLDatabase** - Produces a SQLDatabase connection object; typically feeds into SQL agent or query components that need an active database connection to execute queries or inspect table schemas.
+
+    ## Notes
+    - The URI must follow SQLAlchemy connection string format, since most SQL database integrations are SQLAlchemy-backed — flag this to the user if they are unfamiliar.
+    - Credentials embedded in the URI (username, password) are treated as plain text in this field; remind the user to handle secrets carefully and avoid hardcoding sensitive URIs in shared flows.
+    - The component does not validate the URI format or test connectivity at configuration time, so a misconfigured URI will only fail when the downstream component attempts to use the connection.
+    - Different database backends require different drivers to be installed (e.g., `psycopg2` for PostgreSQL, `pymysql` for MySQL) — if the user reports connection errors, check that the appropriate driver is available in the environment.
+- component_name: SemanticTextSplitterComponent
+  agent_summary: |-
+    You help the user split text Data objects into semantically coherent chunks by measuring embedding similarity between sentences to detect natural topic boundaries. It pairs well with an embeddings model and a vector store ingestion pipeline where chunk quality matters more than uniform size. Prefer over Character Text Splitter or Recursive Character Text Splitter when you want boundaries driven by meaning rather than character count, and over Natural Language Text Splitter or Language Recursive Text Splitter when language-agnostic semantic similarity is a better guide than syntactic or language-specific rules.
+  agent_usage_notes: |-
+    ## What it does
+    Splits input text into semantically meaningful chunks by using an embeddings model to detect natural topic boundaries rather than splitting by fixed character or token counts. The breakpoint detection method and threshold control where splits occur.
+
+    ## Inputs to ask about
+    - **data_inputs** - Ask the user for the list of Data objects (documents) to split; these typically come from a file loader or document source upstream.
+    - **embeddings** - Ask the user which embeddings model to use for measuring semantic similarity; this is required and must match a connected embeddings component (e.g., OpenAI Embeddings, HuggingFace).
+    - **breakpoint_threshold_type** - Ask the user which method to use for detecting breakpoints; suggest the default `percentile`, but note `standard_deviation` and `interquartile` are also available.
+    - **breakpoint_threshold_amount** - Ask the user for the threshold value that controls split sensitivity; a higher value means fewer, larger chunks. Leave empty to use the library default.
+    - **number_of_chunks** - Ask the user if they want to specify an exact number of chunks instead of using the threshold approach; leave empty if relying on threshold-based splitting.
+
+    ## Outputs
+    - **chunks** - Produces a list of semantically grouped text chunks, commonly fed into a vector store ingestion step, a retriever, or further processing components.
+
+    ## Notes
+    - `breakpoint_threshold_amount` and `number_of_chunks` are effectively alternative controls — using both simultaneously may produce unexpected results; flag this to the user.
+    - The **embeddings** input is required; without it the component will fail to run.
+    - Semantic splitting can be slower than character-based splitting because it runs embeddings over every sentence boundary.
+- component_name: SpiderTool
+  agent_summary: |-
+    You help the user fetch web content by calling the Spider API to either scrape a single URL or crawl an entire site up to configurable page limits and depths, returning the extracted content. It is a good fit when an agent needs live web data, and supports regex-based path filtering and readability preprocessing to clean output before passing it downstream. Prefer over HTML Link Extractor when you need full page content retrieved and optionally crawled across multiple pages, not just hyperlinks extracted from already-fetched HTML.
+  agent_usage_notes: |-
+    ## What it does
+    SpiderTool connects to the Spider API to scrape or crawl websites, returning page content for use in downstream processing. It supports both single-page scraping and multi-page crawling from a starting URL.
+
+    ## Inputs to ask about
+    - **spider_api_key** - Ask the user for their Spider API key, obtainable from https://spider.cloud; no default possible.
+    - **url** - Ask the user for the target URL to scrape or crawl (e.g., `https://example.com`); no default.
+    - **mode** - Ask the user whether they want to scrape a single page or crawl an entire site; suggested default is `scrape` for quick single-page use, `crawl` for multi-page collection.
+    - **params** - Ask the user if they need to pass any additional API parameters as a dictionary; warn them that if this field is populated, all other inputs (url, mode, etc.) will be ignored.
+
+    ## Outputs
+    - **content** - Returns the scraped or crawled page content as text; commonly feeds into a text splitter, document loader, or language model component for further processing.
+
+    ## Notes
+    - The `params` input overrides all other inputs when provided — warn the user not to fill it unless they intend to bypass the other fields entirely.
+    - `spider_api_key` is a plain string field here, but treat it as a secret; encourage the user to store it as a Langflow variable rather than pasting it inline.
+    - In `crawl` mode, with no `limit` or `depth` set, the crawler may fetch a very large number of pages and exhaust API credits quickly — advise setting reasonable bounds.
+- component_name: ToolCallingAgentComponent
+  agent_summary: |-
+    You help the user run an LLM-backed agent that dynamically calls a set of connected tools to process a user input and return a response. It works with any model provider and supports chat history, a system prompt, and configurable iteration limits. Prefer over OpenAI Tools Agent when you want model-agnostic tool calling, or over XML Agent when your model supports native function-calling rather than XML-formatted instructions.
+  agent_usage_notes: |-
+    ## What it does
+    The Tool Calling Agent is an LLM-powered agent that dynamically selects and invokes connected tools to complete user tasks. It accepts a user message and optional chat history, then reasons across one or more tool calls to produce a final response.
+
+    ## Inputs to ask about
+    - **model** - Ask the user which language model to connect; this is required and must come from a Language Model component wired into this field.
+    - **tools** - Ask the user which tools the agent should have access to (e.g., search, calculator, custom API tools); no default, but at least one tool is needed for the agent to be useful.
+    - **input_value** - Ask the user what message or task the agent should process; this is the primary user-facing prompt at runtime.
+    - **system_prompt** - Ask the user if they want to provide a system prompt to shape the agent's persona or restrict its behavior; leave blank to use the model's default behavior.
+
+    ## Outputs
+    - **response** - The agent's final text reply; commonly feeds into a Chat Output or downstream text processing component.
+    - **agent** - Exposes the agent object itself; useful when the agent needs to be used as a tool within another agent or orchestration flow.
+
+    ## Notes
+    - The **model** input is required — the component will not run without a connected Language Model.
+    - At least one tool should be connected to **tools**; without tools, the agent behaves like a plain LLM call.
+    - `agent_description` is deprecated — avoid configuring it for new workflows.
+    - `chat_history` is advanced but commonly needed for multi-turn conversations; flag it if the user wants the agent to remember prior messages.
+- component_name: XMLAgentComponent
+  agent_summary: |-
+    You help the user run a language model agent that communicates with tools by formatting instructions as XML, taking user input and a set of tools to produce a response. This is a good fit when your target model or workflow expects XML-structured tool-calling rather than JSON or function-calling formats. Prefer over OpenAI Tools Agent when your model does not support OpenAI's native function-calling API, and prefer over Tool Calling Agent when XML formatting is specifically required by your model or downstream system.
+  agent_usage_notes: |-
+    ## What it does
+    XML Agent is a conversational agent that communicates tool-use instructions to a Language Model using XML-formatted prompts. It selects and invokes connected tools based on user input, then returns a final response.
+
+    ## Inputs to ask about
+    - **tools** - Ask the user which tools (e.g. search, calculator, custom components) the agent should have access to; no default, but at least one tool is strongly recommended for meaningful agent behavior.
+    - **input_value** - Ask the user for the query or task text the agent will process; this is typically the user-facing message or a chained input from another component.
+    - **model** - Ask the user to select a language model provider or connect an existing Language Model component; required before the agent can run.
+    - **system_prompt** - Ask the user for any system-level instructions to guide agent behavior; can be left blank to rely on the agent's built-in defaults.
+    - **user_prompt** - Ask the user for a custom prompt template; remind them it **must** contain the `input` key (e.g. `{input}`) or the agent will error.
+
+    ## Outputs
+    - **response** - The agent's final text answer; commonly feeds into a Chat Output or downstream text-processing component.
+    - **agent** - The configured agent object itself; useful when chaining agents or using this component in Tool Mode as a sub-agent.
+
+    ## Notes
+    - The `user_prompt` field is required to include the literal key `input`; omitting it causes a runtime error.
+    - `agent_description` is deprecated and should be avoided in new flows.
+    - At least one tool should be connected; without tools the XML formatting provides little benefit over a plain LLM call.

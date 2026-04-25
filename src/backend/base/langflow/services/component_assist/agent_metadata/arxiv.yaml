@@ -1,0 +1,20 @@
+- component_name: ArXivComponent
+  agent_summary: |-
+    You help the user search arXiv.org for academic papers and retrieve results as a dataframe, using a keyword query, a target field such as title or abstract, and a cap on the number of results returned. This is a good fit when you need to pull structured paper metadata for downstream filtering, analysis, or display.
+  agent_usage_notes: |-
+    ## What it does
+    Searches arXiv.org for academic papers matching a query and returns structured metadata about the results. It allows filtering by search field and limiting the number of papers retrieved.
+
+    ## Inputs to ask about
+    - **search_query** - Ask the user what topic or keywords they want to search for on arXiv (e.g., `quantum computing`, `large language models`). No default — this is the core driver of the search.
+    - **search_type** - Ask the user which field to search in. Common options are typically `all`, `title`, `abstract`, `author`, or `category`; suggest `all` as a sensible default if the user is unsure.
+    - **max_results** - Ask the user how many papers they want returned. Suggest a default of `10` to keep results manageable, especially for downstream processing.
+
+    ## Outputs
+    - **dataframe** - Produces a structured table of paper metadata (titles, authors, abstracts, links, etc.) that commonly feeds into a data table display, a document parser, or further filtering/analysis components.
+
+    ## Notes
+    - ArXiv searches can return a large volume of results — remind the user to keep `max_results` reasonable to avoid overwhelming downstream components.
+    - The `search_type` field constrains where the query is matched; a broad query with `all` may return noisy results, while `title` or `abstract` gives more focused output.
+    - This component requires an internet connection to reach arXiv.org at runtime.
+    - If the user wants author-specific searches, clarify that the author name format may need to match arXiv conventions (e.g., last name first).

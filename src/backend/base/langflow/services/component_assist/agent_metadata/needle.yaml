@@ -1,0 +1,21 @@
+- component_name: NeedleComponent
+  agent_summary: |-
+    You help the user retrieve search results from a Needle collection by querying it with a natural language question and returning a specified number of matching results. It requires a Needle API key and a collection ID, making it a direct interface to an existing Needle knowledge base. A minimum of 20 results must be requested via the top_k parameter.
+  agent_usage_notes: |-
+    ## What it does
+    Needle Retriever searches a specified Needle collection using the Needle API and returns relevant results for a given query. It acts as a retrieval component, fetching semantically matched content to feed into downstream processing steps.
+
+    ## Inputs to ask about
+    - **needle_api_key** - Ask the user for their Needle API key (handled via secret/credential flow; see Notes).
+    - **collection_id** - Ask the user for the ID of the Needle collection they want to search; this can be found in the Needle dashboard.
+    - **query** - Ask the user what question or search string should be sent to the collection; in tool mode, the `top_k` parameter can also be embedded here.
+    - **top_k** - Ask the user how many results to return; the minimum enforced value is **20**, so suggest `20` as a starting default.
+
+    ## Outputs
+    - **result** - Returns the search results retrieved from the Needle collection; commonly feeds into a text aggregator, prompt template, or language model component for further processing.
+
+    ## Notes
+    - `needle_api_key` is listed as a plain string input here, but treat it as a secret — encourage the user to store it as a Langflow secret variable rather than pasting it in plain text.
+    - `top_k` has a hard minimum of **20**; warn the user that values below 20 will likely be rejected or clamped by the API.
+    - The `collection_id` must already exist in the user's Needle account before this component can run — collections cannot be created here.
+    - Refer users to [https://docs.needle-ai.com](https://docs.needle-ai.com) for help locating collection IDs or understanding API limits.

@@ -1,0 +1,22 @@
+- component_name: GleanSearchAPIComponent
+  agent_summary: |-
+    You help the user query their organization's internal knowledge base via Glean's search API, returning results as a dataframe. It requires a Glean API URL, access token, and a search query, with optional controls for page size and additional request options. This is a good fit when you need to retrieve enterprise search results from Glean to feed into downstream processing or analysis steps in a flow.
+  agent_usage_notes: |-
+    ## What it does
+    Sends a search query to Glean's enterprise search API and returns the results as a structured dataframe. It allows downstream components to work with Glean search results programmatically.
+
+    ## Inputs to ask about
+    - **glean_api_url** - Ask the user for their Glean API base URL (e.g., `https://<your-domain>-be.glean.com/api/index/v1`).
+    - **glean_access_token** - Ask the user for their Glean API access token; note this is a plain string input here, so handle it carefully as a sensitive value.
+    - **query** - Ask the user what search query to run against Glean (e.g., a keyword phrase or question).
+    - **page_size** - Ask the user how many results to return per page; suggested default is `10`.
+    - **request_options** - Ask the user if they need any advanced request options (e.g., filters, datasource restrictions); leave empty if not required.
+
+    ## Outputs
+    - **dataframe** - Produces a dataframe of search results from Glean; commonly feeds into a **Parse Data** component, a data transformation step, or an LLM prompt builder.
+
+    ## Notes
+    - The `glean_access_token` field is typed as a plain string (`str`) rather than a `SecretStrInput`, so remind the user to treat it carefully and avoid hardcoding it in shared flows.
+    - The `glean_api_url` format is tenant-specific — confirm the user has the correct subdomain for their Glean instance.
+    - `request_options` accepts a nested dictionary, so ensure the user provides valid JSON-compatible key-value pairs if used.
+    - Results are returned as a dataframe, so pairing this with a **DataFrame to Data** or **Parse Data** component is recommended before passing results to an LLM.

@@ -1,0 +1,118 @@
+- component_name: AgentComponent
+  agent_summary: |-
+    You help the user run an LLM-powered agent that accepts a system prompt, a user task, and a set of tools, then iteratively uses those tools to produce a response. This is the right choice when you need autonomous, multi-step reasoning rather than a single model call. Prefer over Language Model when the task requires tool use or iterative decision-making rather than a straightforward prompt-in, text-out completion.
+  agent_usage_notes: |-
+    ## What it does
+    The Agent component creates an AI agent that follows a system prompt and uses connected tools to complete user-supplied tasks. It wraps a chosen language model with an agentic loop, enabling multi-step reasoning and tool invocation until the task is resolved.
+
+    ## Inputs to ask about
+    - **model** - Ask the user which model provider and model they want to use (e.g., OpenAI GPT-4o, Anthropic Claude 3.5); no default since it depends on available credentials.
+    - **system_prompt** - Ask the user for the standing instructions that shape the agent's persona and behavior (e.g., "You are a helpful research assistant."); leave blank for a general-purpose agent.
+    - **tools** - Ask the user which tools the agent should have access to (e.g., Search, Calculator, custom components); no default, but at least one tool is typically needed for meaningful agentic behavior.
+    - **input_value** - Ask the user for the task or message the agent should process; this is often wired from a Chat Input component rather than typed directly.
+
+    ## Outputs
+    - **response** - Produces the agent's final text response; commonly feeds into a Chat Output component or a downstream processing step.
+
+    ## Notes
+    - The `tools` input is optional but the agent's value diminishes significantly without at least one tool connected.
+    - `input_value` can be supplied statically or wired dynamically from a Chat Input — wiring is the typical pattern in chat flows.
+    - Structured output (via `output_schema`) is an advanced feature and is only meaningful when `format_instructions` is also configured.
+    - The model must be fully connected (including any required API keys set as variables) before the agent will run.
+- component_name: EmbeddingModelComponent
+  agent_summary: |-
+    You help the user convert text into dense vector embeddings using a chosen model provider and API key. It is a good fit when you need to feed embeddings into a vector store, similarity search, or retrieval pipeline. No peer in this category materially overlaps with embedding generation, so no tradeoff applies.
+  agent_usage_notes: |-
+    ## What it does
+    Generates vector embeddings for text using a chosen model provider. The resulting embeddings can be passed to vector stores, similarity search components, or other downstream tasks that require dense vector representations.
+
+    ## Inputs to ask about
+    - **model** - Ask the user which embedding model provider they want to use (e.g., OpenAI, Cohere, HuggingFace). No universal default — the right choice depends on the rest of the pipeline.
+
+    ## Outputs
+    - **embeddings** - Produces an embeddings object ready to be consumed by vector store components (e.g., Chroma, Pinecone, FAISS) or any component that accepts an embeddings interface for indexing or retrieval.
+
+    ## Notes
+    - The `model` input is required — the component will not function without a provider selection, so confirm this with the user first.
+    - API credentials are handled via the advanced `api_key` field; remind the user that secrets should be created through the variable-creation flow rather than typed directly.
+    - The `dimensions` parameter is only supported by certain models (e.g., newer OpenAI embedding models); warn the user not to set it unless their chosen model explicitly supports it.
+    - If the user is pointing to a self-hosted or proxy endpoint, they will need to set `api_base` even though it is marked advanced.
+- component_name: LanguageModelComponent
+  agent_summary: |-
+    You help the user send text to a language model from a chosen provider and receive a generated text or model object response. It pairs well with Prompt Template to structure inputs and Message History to supply conversation context. Prefer over Agent when you need direct model inference without autonomous tool use or multi-step reasoning loops.
+  agent_usage_notes: |-
+    ## What it does
+    Runs a language model from a configurable provider, sending an input message and optional system prompt to the model and returning the generated text. It acts as a central inference node that can connect to many upstream and downstream components.
+
+    ## Inputs to ask about
+    - **model** - Ask the user which model provider and model they want to use (e.g., OpenAI GPT-4o, Anthropic Claude, Ollama, etc.); no single default applies since provider choice drives everything else.
+    - **ollama_base_url** - Only relevant if the user selects Ollama; ask for the local or remote Ollama endpoint. Default: `http://localhost:11434`.
+    - **input_value** - Ask the user what text or variable should be sent to the model as the user message; often wired from another component rather than typed directly.
+    - **system_message** - Ask the user if they want to set a system prompt to guide the model's behavior (e.g., "You are a helpful assistant"). No default required.
+
+    ## Outputs
+    - **text_output** - The raw generated text string; commonly feeds into a text display, a parser, or another processing component.
+    - **model_output** - The full model response object; useful when downstream components need metadata beyond the text (e.g., token counts, message structure).
+
+    ## Notes
+    - The **model** selector controls which provider-specific options appear; make sure the user has a matching API key configured as a variable before connecting to a hosted provider.
+    - Ollama users must have the Ollama service running and reachable at the specified base URL; the default assumes a local install.
+    - `text_output` and `model_output` serve different use cases — flag this if the user is unsure which to connect.
+- component_name: MCPToolsComponent
+  agent_summary: |-
+    You help the user connect to an external MCP server and execute a selected tool from it, returning the tool's response. This is a good fit when you need to integrate third-party MCP-compatible services or APIs as discrete callable tools within a flow. No peers in this category materially overlap with MCP server connectivity.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a configured MCP (Model Context Protocol) server and exposes its tools for use in a flow. It lets you select a specific tool from the server and execute it, returning the tool's response.
+
+    ## Inputs to ask about
+    - **mcp_server** - Ask the user which MCP server to connect to; this must be a pre-configured MCP server available in their environment. No universal default — depends on what servers the user has set up.
+    - **tool** - Ask the user which tool from the selected MCP server they want to execute; options are populated dynamically once a server is selected. No default — required field.
+
+    ## Outputs
+    - **response** - Returns the result of the executed MCP tool; commonly feeds into a text output, an agent, or a downstream processing component that acts on the tool's result.
+
+    ## Notes
+    - The **tool** input is required and only populates after **mcp_server** is selected — remind the user to pick the server first before choosing a tool.
+    - `tool_placeholder` is an internal placeholder used during dynamic tool loading; users generally do not need to set this manually.
+    - Advanced inputs (`headers`, `verify_ssl`, `use_cache`) are hidden by default but worth flagging if the user reports connection issues or needs authentication beyond what the server settings provide.
+    - SSL verification is enabled by default; caution the user not to disable it in production environments.
+    - The MCP server must be configured separately before this component can function — direct the user to the MCP server setup if they haven't done that yet.
+- component_name: MemoryComponent
+  agent_summary: |-
+    You help the user store or retrieve chat messages from Langflow's built-in tables or an external memory source, outputting either formatted text or a dataframe of past messages. This is a good fit for injecting conversation history into a prompt or persisting messages across turns in a session, and pairs naturally with the Prompt Template component to slot retrieved history into a template variable.
+  agent_usage_notes: |-
+    ## What it does
+    Message History stores or retrieves chat messages from Langflow's built-in tables or an external memory source. Use it to persist conversation turns or replay past messages into a prompt pipeline.
+
+    ## Inputs to ask about
+    - **mode** - Ask the user whether they want to store messages or retrieve them; this tab selection drives which other inputs matter. Default: Retrieve messages.
+    - **message** - Ask the user what message or variable should be stored (only relevant in Store mode); typically wired from a Chat Input component.
+
+    ## Outputs
+    - **messages_text** - Produces the conversation history as formatted text; commonly feeds into a Prompt or LLM component.
+    - **dataframe** - Produces messages as a structured DataFrame; useful for inspection, filtering, or passing to a data-processing component.
+
+    ## Notes
+    - The **mode** tab is the critical first decision — Store mode needs a **message** input wired in, while Retrieve mode does not.
+    - By default, Langflow's internal tables are used for storage; an external memory source can be connected via the advanced **memory** input if needed.
+    - **session_id** defaults to the current session automatically, so users typically don't need to set it unless isolating multiple conversations in the same flow.
+    - If the user wants to filter retrieved history (by sender, count, or order), point them to the advanced inputs `sender_type`, `sender_name`, `n_messages`, and `order`.
+    - The **template** advanced input lets users control message formatting — worth flagging if they need custom output structure.
+- component_name: PromptComponent
+  agent_summary: |-
+    You help the user build a reusable prompt string with named dynamic variables that get filled in at runtime, outputting a prompt object ready to pass to a language model or agent. It is a good fit when you need to separate prompt structure from variable values, and pairs naturally with a language model or agent component downstream. Prefer over Agent when you only need to construct the prompt itself without executing a model or tools.
+  agent_usage_notes: |-
+    ## What it does
+    Builds a reusable prompt template with dynamic, named variables that are filled in at runtime. Variables are defined inline using curly-brace syntax directly inside the template text, and the component outputs a fully rendered prompt ready to pass to a language model.
+
+    ## Inputs to ask about
+    - **template** - Ask the user to provide the prompt text, including any dynamic placeholders written as `{variable_name}`. Each unique placeholder automatically becomes its own input field on the component. No single default applies — the template content depends entirely on the use case.
+
+    ## Outputs
+    - **prompt** - Produces a rendered prompt message object. Commonly connects to the prompt input of an LLM component (e.g., OpenAI, Anthropic) or a chain/agent that accepts a formatted prompt.
+
+    ## Notes
+    - Each `{variable_name}` found in the template is exposed as a new input field on the component — remind the user to wire those up or provide static values, or the prompt will render with missing content.
+    - By default the component uses single-brace syntax `{variable}`; if the user's template text already contains literal curly braces (e.g., JSON snippets), they may need to escape them or enable the double-bracket option (`{{variable}}`), which is an advanced setting.
+    - The template input is marked `required=False`, so the component won't error immediately if left blank, but an empty template produces an empty prompt — flag this as a common misconfiguration.

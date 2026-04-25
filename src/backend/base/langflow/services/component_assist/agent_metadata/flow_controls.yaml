@@ -1,0 +1,96 @@
+- component_name: ConditionalRouterComponent
+  agent_summary: |-
+    You help the user branch a pipeline by comparing an input string against a match text using a chosen operator (equals, contains, etc.) and routing the message to either a true or false output accordingly. It is a good fit for gating flow logic on dynamic text conditions, such as checking user intent or validating a field before deciding which downstream path to follow.
+  agent_usage_notes: |-
+    ## What it does
+    Routes an incoming text message down one of two paths based on a text comparison. If the condition evaluates to true, the message flows to `true_result`; otherwise it flows to `false_result`.
+
+    ## Inputs to ask about
+    - **input_text** - Ask the user what text or variable to evaluate (e.g., a prior component's output or a static string); no universal default.
+    - **operator** - Ask which comparison to use: common options are `equals`, `not equals`, `contains`, `starts with`, `ends with`; default is typically `equals`.
+    - **match_text** - Ask the user what text `input_text` should be compared against; no universal default.
+
+    ## Outputs
+    - **true_result** - Emits the message when the condition is met; commonly feeds into the next step of a "success" or "yes" branch.
+    - **false_result** - Emits the message when the condition is not met; commonly feeds into a fallback handler, retry loop, or alternative branch.
+
+    ## Notes
+    - Both `true_result` and `false_result` must be connected to downstream components, or the unmatched branch will silently drop the message.
+    - The component routes the original `input_text` by default; the advanced `true_case_message` and `false_case_message` fields let you substitute a different message on each branch.
+    - If the flow can loop back into this component, remind the user to configure `max_iterations` (advanced) to prevent infinite loops.
+    - Comparisons are case-insensitive by default; flag this if the user's logic depends on exact casing.
+- component_name: ListenComponent
+  agent_summary: |-
+    You help the user receive data broadcast by a Notify component elsewhere in the flow, identifying the payload by a shared context key. It is the receiving counterpart to Notify and is useful for passing data across disconnected parts of a flow without direct wiring. Prefer over Loop or Run Flow when you simply need to bridge two flow segments through a named notification channel rather than iterate over items or invoke a separate flow.
+  agent_usage_notes: |-
+    ## What it does
+    Listens for an incoming notification associated with a specific context key and surfaces the resulting data when that notification is received. It acts as a trigger or synchronization point within a flow, waiting until the expected signal arrives.
+
+    ## Inputs to ask about
+    - **context_key** - Ask the user for the unique key that identifies the notification or context event this component should listen for. No universal default is obvious; the value must match the key used by the component or process that sends the notification.
+
+    ## Outputs
+    - **data** - Produces the data payload delivered with the notification; typically feeds into downstream processing components such as parsers, transformers, or message handlers.
+
+    ## Notes
+    - The `context_key` value must exactly match the key used by the corresponding sender or notifier component — a mismatch will cause the listener to never trigger.
+    - Confirm with the user that another part of their flow (or an external process) is responsible for actually emitting the notification with the matching key; this component only listens and will stall if nothing sends to it.
+    - If the user has multiple Listen components in the same flow, each should use a distinct `context_key` to avoid ambiguity.
+- component_name: LoopComponent
+  agent_summary: |-
+    You help the user iterate over a collection of Data or Message objects one item at a time, emitting each item individually through the item output and signaling completion through the done output when all items have been processed. This is a good fit when you need to apply the same processing steps to each element in a list before aggregating the results. Prefer over If-Else when the goal is repetition across multiple items rather than a single conditional branch on one message.
+  agent_usage_notes: |-
+    ## What it does
+    Iterates through a list of Data or Message objects one item at a time, passing each item individually into a connected flow and aggregating the processed results until all items have been handled.
+
+    ## Inputs to ask about
+    - **data** - Ask the user for the initial collection of Data or Message objects to iterate over; no single default applies, as this is typically wired from an upstream component's output.
+
+    ## Outputs
+    - **item** - Emits one item per iteration cycle; typically feeds into a processing component (e.g., an LLM, prompt, or transformation node) that handles each element individually.
+    - **done** - Emits the aggregated collection of all processed items once the loop has finished iterating; typically feeds into a downstream component that consumes the final results.
+
+    ## Notes
+    - The **item** output and **done** output serve distinct purposes — make sure the user connects **item** to their per-iteration logic and **done** to whatever consumes the final aggregated output, not the other way around.
+    - The loop requires a feedback connection: the result of processing **item** must be routed back into the loop's input so the component can advance to the next iteration.
+    - If the input data is empty or not connected, the loop will immediately emit through **done** with no iterations performed.
+    - Refer users to the [Loop documentation](https://docs.langflow.org/loop) for guidance on wiring the feedback edge, which is the most common configuration mistake.
+- component_name: NotifyComponent
+  agent_summary: |-
+    You help the user send a named notification payload to a paired Get Notified (Listen) component by storing a value under a specified context key. This is a good fit for passing data between disconnected parts of a flow without a direct connection, especially in multi-step or looping workflows. Prefer over Listen when you are the sender of the notification rather than the receiver.
+  agent_usage_notes: |-
+    ## What it does
+    Stores a value under a named context key and sends it as a notification to a paired **Get Notified** component. It can either overwrite the stored value or append to an existing record, making it useful for passing data between disconnected parts of a flow.
+
+    ## Inputs to ask about
+    - **context_key** - Ask the user for a unique string key that identifies this notification; the paired Get Notified component must use the same key to retrieve it. No default — the user must choose a meaningful name.
+    - **input_value** - Ask the user what data should be sent in the notification (e.g. a message, variable, or component output). Can be left empty if the intent is just to signal an event.
+    - **append** - Ask the user whether new data should be appended to any existing value stored under the same key, or overwrite it. Suggested default: `False` (overwrite).
+
+    ## Outputs
+    - **result** - Returns the stored notification data after it has been saved; typically feeds into downstream components that need confirmation the notification was sent, or into a Get Notified component.
+
+    ## Notes
+    - The **context_key** value must exactly match the key configured in the corresponding Get Notified component — a mismatch will silently prevent retrieval.
+    - When **append** is `True`, repeated triggers will accumulate records under the same key; remind the user to manage or clear state if the flow runs multiple times.
+    - This component is designed to work as a pair with Get Notified; using it in isolation will not produce useful downstream behavior.
+- component_name: RunFlowComponent
+  agent_summary: |-
+    You help the user execute a separate flow from within the current project, treating it as a callable sub-flow by name or ID. This is a good fit for modularizing complex pipelines or reusing shared logic, and it can be exposed as a tool for agents to invoke dynamically. Prefer over Loop when you need to delegate to a distinct, independently defined flow rather than iterate over a collection of items within the same flow.
+  agent_usage_notes: |-
+    ## What it does
+    Executes another flow from within the same project, allowing flows to be composed or chained together. It can also be used as a callable tool by an agent when a flow is selected.
+
+    ## Inputs to ask about
+    - **flow_name_selected** - Ask the user which flow (by name) they want to run; this is the most human-friendly way to select the target flow. No default — the user must choose from flows available in the project.
+    - **flow_id_selected** - Ask the user for the target flow's ID if they prefer to reference it programmatically rather than by name. Usually leave blank when `flow_name_selected` is provided; the two are alternatives.
+
+    ## Outputs
+    _None._
+
+    ## Notes
+    - Either `flow_name_selected` or `flow_id_selected` should be provided, but not both — clarify with the user which they prefer to use.
+    - The component description notes that **selecting a flow enables tool mode**, meaning an agent can invoke the chosen flow as a tool; remind the user of this if they are building an agent workflow.
+    - Both inputs are non-required, so the component won't raise an error at configuration time if neither is filled in, but the flow won't run correctly without at least one being set.
+    - `session_id` and `cache_flow` are advanced inputs; only surface them if the user has a specific need (e.g., maintaining conversation context across flows or optimizing repeated runs of the same flow).
+    - The target flow must exist **within the same project** — it cannot reference flows from other projects.

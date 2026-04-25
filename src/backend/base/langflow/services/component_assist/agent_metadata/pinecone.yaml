@@ -1,0 +1,22 @@
+- component_name: PineconeVectorStoreComponent
+  agent_summary: |-
+    You help the user connect to a Pinecone index to store and search document embeddings using vector similarity. It accepts ingested data and an embedding model to populate the index, then runs similarity searches against a query and returns matching results as a list or dataframe. Provide an index name, API key, and optional namespace to target a specific partition within the index.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a Pinecone vector store index to ingest documents and/or run similarity searches. It accepts an embedding model and optional document data, then returns matching records based on a natural-language query.
+
+    ## Inputs to ask about
+    - **index_name** - Ask the user for the exact name of their Pinecone index (must already exist in their Pinecone project). No default.
+    - **namespace** - Ask the user if they use namespaces to partition data within the index; leave blank to use the default namespace.
+    - **pinecone_api_key** - Ask the user for their Pinecone API key. Note: this is a plain string field here, so treat it carefully; prefer storing it as a secret variable.
+    - **ingest_data** - Ask the user if they want to write documents into the index; connect an upstream data source (e.g., a file loader or splitter) if so. Leave unconnected for search-only use.
+    - **search_query** - Ask the user what query to run for similarity search; this is typically wired from a Chat Input component.
+    - **embedding** - Ask the user to connect an embedding model component (e.g., OpenAI Embeddings); required for both ingestion and search.
+
+    ## Outputs
+    - **search_results** - Returns the top matching documents as a list of Data objects; commonly feeds into a **Parse Data** or **Chat Output** component.
+    - **dataframe** - Returns the same results as a DataFrame; useful for inspection or downstream tabular processing.
+
+    ## Notes
+    - The Pinecone index must already exist and be configured with a dimension that matches the chosen embedding model's output size.
+    - If both `ingest_data` and `search_query` are used together, the component will write documents first, then search — confirm this is the intended flow with the user.

@@ -1,0 +1,18 @@
+- component_name: CustomComponent
+  agent_summary: |-
+    You help the user build a fully custom pipeline node from scratch, using a provided input field as a starting point and wiring its output into any downstream component. This is a good fit when no existing component covers the logic you need and you want to write your own Python class following Langflow's component interface.
+  agent_usage_notes: |-
+    ## What it does
+    This is a blank template component intended as a starting point for building custom Langflow components. It provides a minimal scaffold with one example input and one output that the user replaces with their own logic.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user what value or data this component should receive as its primary input; no default is implied since the component is fully custom. Clarify what type of data is expected (text, number, structured data, etc.) so the field can be configured or replaced appropriately.
+
+    ## Outputs
+    - **output** - Produces whatever the user's custom code returns; can feed into any downstream component depending on the implemented logic.
+
+    ## Notes
+    - This component does nothing on its own — the user must write Python code inside it to define real behavior; prompt them to open the code editor and implement their logic before connecting it to a flow.
+    - Direct the user to the [custom components documentation](https://docs.langflow.org/components-custom-components) if they are unfamiliar with the development pattern.
+    - The `input_value` field and `output` are placeholders; the user will likely need to add, rename, or remove inputs and outputs to match their use case.
+    - Remind the user that the output type should match what downstream components expect, and that type mismatches can cause runtime errors.

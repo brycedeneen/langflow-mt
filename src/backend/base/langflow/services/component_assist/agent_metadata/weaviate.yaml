@@ -1,0 +1,23 @@
+- component_name: WeaviateVectorStoreComponent
+  agent_summary: |-
+    You help the user connect to a Weaviate instance and use it as a vector store, ingesting documents with embeddings and running similarity searches against a named collection. It is a good fit when your project already uses Weaviate as its vector database and you need to both populate and query it within the same pipeline.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a Weaviate vector store instance to ingest documents and perform similarity searches. It accepts an embedding model and optional data to store, then exposes search results based on a query.
+
+    ## Inputs to ask about
+    - **url** - Ask the user for their Weaviate instance URL (e.g., a local instance at `http://localhost:8080` or a Weaviate Cloud endpoint).
+    - **api_key** - Ask whether their Weaviate instance requires an API key; if using Weaviate Cloud, one is typically required. *(Note: collect via a secret/credential variable, not plain text.)*
+    - **index_name** - Ask for the name of the Weaviate class/index to use; remind the user it **must start with a capital letter** (e.g., `Documents`).
+    - **ingest_data** - Ask if the user wants to load documents into the store; this accepts a list of Data objects from an upstream loader or splitter component.
+    - **embedding** - Ask which embedding model to use; connect an embedding component (e.g., OpenAI Embeddings) here.
+    - **search_query** - Ask for the query string to use when running a similarity search against the stored vectors.
+
+    ## Outputs
+    - **search_results** - Returns the top matching documents as a list of Data objects; commonly feeds into a prompt or language model component.
+    - **dataframe** - Returns the same results as a structured DataFrame; useful for inspection or downstream data-processing steps.
+
+    ## Notes
+    - The `index_name` **must be capitalized**; Weaviate will reject lowercase class names, so flag this clearly to the user.
+    - If no `ingest_data` is provided, the component operates in search-only mode against an existing index.
+    - Both `embedding` and a valid `url` are effectively required for meaningful use.

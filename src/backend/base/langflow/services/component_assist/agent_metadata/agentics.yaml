@@ -1,0 +1,86 @@
+- component_name: BaseAgenticComponent
+  agent_summary: |-
+    You help the user configure shared model provider settings and field visibility for agentic LLM components. This is a base class meant to be extended, not used directly in a pipeline. Prefer over the map, reduce, or data generation peers only when building a custom agentic component that needs unified provider and model management baked in.
+  agent_usage_notes: |-
+    ## What it does
+
+    This is a base/abstract component that provides shared configuration and model management for Agentics-family components. It handles dynamic model option updates, provider-specific field visibility, and unified build configuration — but is not meant to be used directly in a flow.
+
+    ## Inputs to ask about
+
+    _None._
+
+    ## Outputs
+
+    _None._
+
+    ## Notes
+
+    - This component is a **base class**, not a standalone node — it will not appear as a usable component in the canvas under normal circumstances.
+    - If the user is asking how to configure it directly, clarify that they should look for a concrete Agentics component that extends this base (e.g., an agent or model-selection node built on top of it).
+    - No inputs or outputs are declared at this level; all functional inputs and outputs are defined in subclasses.
+- component_name: SemanticAggregator
+  agent_summary: |-
+    You help the user collapse an entire input DataFrame into a new DataFrame by running an LLM over all rows collectively, following natural language instructions and a user-defined output schema. This is a good fit for summarization, cross-row statistics, or consolidating many records into a structured result. Prefer over aMap when the task requires reasoning across all rows together rather than processing each row independently.
+  agent_usage_notes: |-
+    ## What it does
+    aReduce analyzes an entire input DataFrame collectively and uses an LLM to produce a new DataFrame according to a user-defined schema. It is suited for aggregation tasks like summarization, statistics, or consolidation across all rows at once.
+
+    ## Inputs to ask about
+    - **model** - Ask the user which model provider they want to use (e.g., OpenAI, Anthropic, Ollama); no single default applies since this depends on their setup.
+    - **ollama_base_url** - If the user selects Ollama, ask for the API endpoint. Suggested default: `http://localhost:11434`.
+    - **source** - Ask the user which DataFrame they want to aggregate; this must be connected from an upstream component that produces a DataFrame.
+    - **schema** - Ask the user to define the output columns: name, description, and type for each field. This controls the structure of the result DataFrame.
+    - **return_multiple_instances** - Ask whether the output should contain multiple rows (one per aggregated instance) or a single summarized row. Default: `False`.
+    - **instructions** - Ask the user to describe in plain language how to aggregate the data (e.g., "Summarize each topic into a single sentence"). Optional but strongly recommended for accurate results.
+
+    ## Outputs
+    - **states** - Produces an aggregated DataFrame shaped by the defined schema; typically feeds into downstream components that consume DataFrames, such as file exports, display components, or further processing steps.
+
+    ## Notes
+    - The schema must be defined carefully — column names and descriptions directly guide what the LLM extracts or computes.
+    - If `return_multiple_instances` is `False`, expect a single-row result; set it to `True` for multi-row aggregated outputs.
+    - The `api_key` field is advanced and handled via the separate secrets flow — do not ask the user for it here.
+- component_name: SemanticMap
+  agent_summary: |-
+    You help the user augment an input DataFrame by generating new columns for each row independently, using an LLM guided by natural language instructions and a user-defined output schema. It is a good fit when you need per-row enrichment, classification, extraction, or transformation at scale with parallel LLM calls. Prefer over aReduce when the transformation should operate on each row in isolation rather than analyzing the entire dataset as a whole.
+  agent_usage_notes: |-
+    ## What it does
+    aMap augments an input DataFrame by adding new columns to each row using LLM-based transformations. Rows are processed independently and in parallel, with the output structure defined by a user-supplied schema.
+
+    ## Inputs to ask about
+    - **model** - Ask the user which LLM provider they want to use (e.g., OpenAI, Anthropic, Ollama); no single default applies since it depends on their setup.
+    - **ollama_base_url** - Only relevant if the user selects Ollama; ask for the API endpoint. Suggested default: `http://localhost:11434`.
+    - **source** - Ask the user for the DataFrame they want to transform; this is the table whose rows will be processed.
+    - **schema** - Ask the user to define the output columns they want generated: column names, descriptions, and data types. This drives what the LLM produces per row.
+    - **instructions** - Ask the user for natural language instructions explaining how each row should be transformed into the output schema. Encourage specificity for reliable results.
+    - **return_multiple_instances** - Ask whether each input row should produce multiple output rows. Default: `False`.
+
+    ## Outputs
+    - **states** - Produces the transformed DataFrame with new columns appended (or only new columns, depending on settings); commonly feeds into downstream data processing, display, or export components.
+
+    ## Notes
+    - The `schema` input is required and directly controls LLM output structure — missing or vague column descriptions will reduce output quality.
+    - If `return_multiple_instances` is `True`, the `append_to_input_columns` setting is ignored; flag this to the user to avoid confusion.
+    - Ask the user whether they want to keep original columns alongside generated ones (`append_to_input_columns`), though this is an advanced setting.
+- component_name: SyntheticDataGenerator
+  agent_summary: |-
+    You help the user create synthetic tabular data either by imitating an existing DataFrame or by generating rows from scratch using a user-defined schema and an LLM backend. This is a good fit when you need realistic mock data for testing, prototyping, or augmenting datasets without a real data source. Prefer over aMap when the goal is producing entirely new rows rather than adding columns to existing ones, and prefer over aReduce when you are not analyzing or summarizing an existing dataset but generating fresh data.
+  agent_usage_notes: |-
+    ## What it does
+    aGenerate creates synthetic (mock) data either by learning the structure of an input DataFrame and producing similar rows, or by following a user-defined schema to generate data from scratch. It uses an LLM backend to produce realistic, structured output.
+
+    ## Inputs to ask about
+    - **model** - Ask the user which model provider they want to use (e.g., OpenAI, Ollama); this is required before anything else can be configured.
+    - **ollama_base_url** - If the user selects Ollama, ask for the API endpoint; suggest the default `http://localhost:11434`.
+    - **schema** - If no source DataFrame is provided, ask the user to define column names, descriptions, and data types for the data they want generated.
+    - **source** - Ask whether the user has an existing DataFrame to learn from; note that only the first 50 rows will be used as examples.
+    - **batch_size** - Ask how many synthetic rows the user wants to generate per batch; no default is specified, so confirm with the user.
+
+    ## Outputs
+    - **states** - Produces the generated synthetic data; commonly feeds into a DataFrame viewer, a file export component, or downstream data-processing steps.
+
+    ## Notes
+    - The **schema** and **source** inputs are mutually exclusive in practice — if a source DataFrame is connected, the schema is ignored; clarify this with the user to avoid confusion.
+    - Only the first 50 rows of a source DataFrame are used as examples, so very large or highly varied datasets may not be fully represented.
+    - The `api_key` field is advanced and handled separately via the variable-creation flow; do not prompt the user for it directly here.

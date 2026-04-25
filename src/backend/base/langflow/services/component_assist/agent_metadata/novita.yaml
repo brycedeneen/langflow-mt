@@ -1,0 +1,23 @@
+- component_name: NovitaModelComponent
+  agent_summary: |-
+    You help the user generate text by sending prompts to Novita AI language models via an OpenAI-compatible interface, producing either a text response or a model output object. It supports system messages, temperature control, streaming in chat contexts, JSON mode, and a seed for reproducible outputs.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text by sending prompts to Novita AI's LLM API, which is compatible with the OpenAI interface. It accepts a user message and optional system message, then returns the model's response as text or a language model object.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the user-turn message or prompt text to send to the model; no default.
+    - **system_message** - Ask the user if they want a system-level instruction (e.g. "You are a helpful assistant"); optional, can be left blank.
+    - **model_name** - Ask the user which Novita AI model to use (e.g. a specific model slug from their catalogue); no universal default.
+    - **api_key** - Ask the user for their Novita API key (obtain from the Novita AI dashboard); required for all requests.
+    - **temperature** - Ask the user how creative/random the output should be; suggest a default of `0.7` for balanced responses.
+
+    ## Outputs
+    - **text_output** - The raw generated text string; commonly feeds into a text display, prompt template, or downstream processing component.
+    - **model_output** - The language model object itself; useful for chaining directly into other LangChain-compatible components that expect an LLM instance.
+
+    ## Notes
+    - The `api_key` field is shown as a plain string input here but should be stored as a secure credential/variable rather than hardcoded.
+    - `model_name` must match a valid slug from Novita AI's model catalogue exactly — confirm the correct identifier with the user.
+    - Setting `temperature` to `0` produces deterministic outputs; pair with `seed` (advanced) for full reproducibility.
+    - `text_output` and `model_output` serve different downstream purposes — clarify with the user which chaining pattern they need.

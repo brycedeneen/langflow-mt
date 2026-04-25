@@ -1,0 +1,26 @@
+- component_name: CouchbaseVectorStoreComponent
+  agent_summary: |-
+    You help the user connect to a Couchbase database and use it as a vector store, storing embedded documents into a specified bucket, scope, and collection, then running similarity searches against a named index. It is a good fit when your data already lives in Couchbase and you want to avoid moving it to a separate vector database.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a Couchbase cluster and creates a vector store backed by a specified bucket, scope, collection, and search index. It can ingest documents with embeddings and run similarity searches against the stored vectors.
+
+    ## Inputs to ask about
+    - **couchbase_connection_string** - Ask the user for the Couchbase connection string (e.g., `couchbases://your-cluster.cloud.couchbase.com`); no default.
+    - **couchbase_username** - Ask the user for the Couchbase username used to authenticate against the cluster; no default.
+    - **couchbase_password** - Ask the user for the Couchbase password; no default.
+    - **bucket_name** - Ask the user for the name of the target bucket where vectors are stored; no default.
+    - **scope_name** - Ask the user for the scope name within the bucket; suggest `_default` as a common default.
+    - **collection_name** - Ask the user for the collection name within the scope; suggest `_default` as a common default.
+    - **index_name** - Ask the user for the name of the Couchbase Search index configured for vector search; no default.
+    - **ingest_data** - Ask the user if they want to load documents into the vector store; connect from a document loader or splitter, or leave empty for search-only use.
+    - **embedding** - Ask the user to connect an embedding model component; required for both ingestion and search.
+    - **search_query** - Ask the user for a natural-language query to run similarity search; leave empty if only ingesting.
+
+    ## Outputs
+    - **search_results** - Returns matched documents as a list; commonly feeds into a prompt or LLM component.
+    - **dataframe** - Returns the same results as a DataFrame; useful for inspection or data-processing steps.
+
+    ## Notes
+    - The Couchbase Search index must already exist and be configured for vector search before this component is used — it will not create the index automatically.
+    - All six cluster/bucket/scope/collection/index fields are required; the component will fail if any are missing.

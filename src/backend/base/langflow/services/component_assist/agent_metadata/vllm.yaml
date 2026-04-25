@@ -1,0 +1,43 @@
+- component_name: VllmComponent
+  agent_summary: |-
+    You help the user generate text completions by sending prompts to a self-hosted or remote vLLM inference server through its OpenAI-compatible API, producing either a text response or a chat model object. This is a good fit when you need low-latency, locally hosted LLM inference with control over model selection, temperature, token limits, and optional JSON output mode. Prefer over vLLM Embeddings when you need generative text output rather than vector representations of text.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text from a vLLM-hosted model using an OpenAI-compatible API endpoint. It accepts a user message and optional system message, then returns the model's response as text or a model object for downstream use.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the prompt or user message to send to the model; no default.
+    - **system_message** - Ask the user if they want a system-level instruction to set model behavior (e.g., "You are a helpful assistant"); optional.
+    - **model_name** - Ask the user for the exact model identifier served by their vLLM instance (e.g., `ibm-granite/granite-3.3-8b-instruct`); no universal default.
+    - **api_base** - Ask the user for the vLLM server URL; suggest `http://localhost:8000/v1` for local deployments.
+    - **api_key** - Ask the user if their vLLM server requires an API key; leave blank for local servers with no auth.
+    - **temperature** - Ask the user for the sampling temperature controlling creativity vs. determinism; suggest `0.7` as a balanced default.
+
+    ## Outputs
+    - **text_output** - The raw generated text string; commonly feeds into a text display, prompt template, or further processing component.
+    - **model_output** - The LangChain model object; useful when chaining with other LangChain-compatible components that expect a model instance.
+
+    ## Notes
+    - The `api_key` field is visible here (not a SecretStrInput), so remind the user to handle it carefully or use an environment variable instead.
+    - `model_name` must exactly match the model ID loaded on the running vLLM server — mismatches will cause API errors.
+    - Streaming only works in a Chat context; warn the user not to enable it in non-chat flows.
+- component_name: VllmEmbeddingsComponent
+  agent_summary: |-
+    You help the user generate vector embeddings from text by calling a self-hosted or remote vLLM server through its OpenAI-compatible API, producing an embeddings object ready for use in vector stores or retrieval pipelines. It is a good fit when you want to run open-weight embedding models like BAAI/bge locally with full control over the inference server. Prefer over vLLM when the goal is embedding and semantic search rather than text generation.
+  agent_usage_notes: |-
+    ## What it does
+    Generates vector embeddings using a vLLM model served through an OpenAI-compatible API. It connects to a local or remote vLLM server and returns an embeddings object that can be passed to vector stores or retrieval components.
+
+    ## Inputs to ask about
+    - **model_name** - Ask the user for the HuggingFace-style model identifier their vLLM server is serving (e.g., `BAAI/bge-large-en-v1.5`). No universal default — it must match what the server has loaded.
+    - **api_base** - Ask the user for the base URL of their vLLM server. Suggested default: `http://localhost:8000/v1` for a local deployment.
+    - **api_key** - Ask the user if their vLLM server requires an API key; for most local servers this can be left blank or set to any placeholder string.
+
+    ## Outputs
+    - **embeddings** - Produces a LangChain-compatible embeddings object; commonly feeds into vector store components (e.g., Chroma, Pinecone, FAISS) or similarity search nodes.
+
+    ## Notes
+    - The vLLM server must already be running and serving the specified model before this component can be used — it does not start or manage the server itself.
+    - `model_name` must exactly match the model identifier the vLLM server was launched with, or requests will fail.
+    - Even though `api_key` is not a `SecretStrInput`, remind the user to avoid hardcoding sensitive keys; prefer using a Langflow variable if the server requires real authentication.
+    - This component produces an embeddings handler, not raw vectors — it must be wired into a downstream component that accepts an embeddings object.

@@ -1,0 +1,21 @@
+- component_name: ExaSearchToolkit
+  agent_summary: |-
+    You help the user perform web searches and retrieve page content using the Exa API, producing a set of tools an agent can call for neural search and similarity-based lookup. It is a good fit when you need an agent to find relevant web content or discover pages similar to a given URL, with control over how many results each search type returns.
+  agent_usage_notes: |-
+    ## What it does
+    Provides a toolkit of Exa-powered search and content retrieval tools that an AI agent can call at runtime. It wraps the Exa API to enable semantic web search and similarity-based content discovery.
+
+    ## Inputs to ask about
+    - **exa_api_key** - Ask the user for their Exa API key (available at dashboard.exa.ai); note this is a plain string input here, so ask them to paste it directly or reference a saved credential.
+    - **use_autoprompt** - Ask whether Exa should automatically rewrite queries for better results; suggested default is `true`, which works well for most use cases.
+    - **search_num_results** - Ask how many results to return per search query; a suggested default of `10` is reasonable for most agents.
+    - **similar_num_results** - Ask how many results to return when finding content similar to a given URL; suggested default of `10`.
+
+    ## Outputs
+    - **tools** - Produces a list of callable tools ready to be passed into an agent's tool input (e.g., a LangChain or Langflow agent component).
+
+    ## Notes
+    - The `exa_api_key` field is typed as a plain string rather than a secret input, so remind the user to handle it carefully and consider using an environment variable or Langflow global variable instead of pasting it inline.
+    - This component is designed to connect directly to an **Agent** component's `tools` input — it does not produce text output on its own.
+    - If the user does not have an Exa account, point them to [https://exa.ai](https://exa.ai) to sign up and retrieve an API key.
+    - Autoprompt can improve result quality for natural-language queries but may behave unexpectedly for highly structured or URL-based inputs.

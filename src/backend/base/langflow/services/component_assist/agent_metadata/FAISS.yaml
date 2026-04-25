@@ -1,0 +1,22 @@
+- component_name: FaissVectorStoreComponent
+  agent_summary: |-
+    You help the user build and query a local FAISS vector store by ingesting data with an embedding model and running similarity searches against it. It is a good fit when you need a lightweight, file-based vector store that persists to disk without requiring an external database service.
+  agent_usage_notes: |-
+    ## What it does
+    Stores and searches document embeddings using a FAISS (Facebook AI Similarity Search) index. It accepts ingested data and an embedding model to build a local vector store, then supports similarity search queries against that index.
+
+    ## Inputs to ask about
+    - **index_name** - Ask the user for a name to identify the FAISS index (e.g. `"my_index"`); used to load or save the correct index file. Suggested default: `langflow_index`.
+    - **persist_directory** - Ask the user where the FAISS index should be saved on disk; the path is relative to where Langflow is running. Leave blank to skip persistence.
+    - **ingest_data** - Ask the user which data source or document loader output should feed into the vector store for indexing.
+    - **embedding** - Ask the user which embedding model component to connect; this is required to encode documents and queries into vectors.
+    - **search_query** - Ask the user for the text query to run a similarity search against the stored vectors.
+
+    ## Outputs
+    - **search_results** - Returns documents most similar to the search query; typically feeds into a retriever, prompt builder, or LLM chain.
+    - **dataframe** - Returns the search results as a structured dataframe; useful for inspection, filtering, or downstream data processing steps.
+
+    ## Notes
+    - The `persist_directory` path is relative to the Langflow runtime directory — warn the user to use an absolute path if portability matters.
+    - `allow_dangerous_deserialization` must be enabled to load a previously saved FAISS index from disk (pickle format); remind the user to only enable it for trusted data sources.
+    - Both an `embedding` model and `ingest_data` are effectively required to build a usable index, even though neither is marked required in the metadata.

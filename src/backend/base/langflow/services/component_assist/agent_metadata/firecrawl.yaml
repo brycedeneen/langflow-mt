@@ -1,0 +1,86 @@
+- component_name: FirecrawlCrawlApi
+  agent_summary: |-
+    You help the user recursively crawl an entire website starting from a given URL, returning scraped content from multiple pages as structured data. This is a good fit when you need to collect content across a full site rather than a single page, and supports crawler and scrape options for fine-grained control. Prefer over Firecrawl Scrape API when the target is a whole site rather than one URL, and over Firecrawl Map API when you need page content rather than just a list of discovered URLs.
+  agent_usage_notes: |-
+    ## What it does
+    Submits a crawl job to the Firecrawl API for a given URL and returns the crawled content. It recursively crawls pages starting from the provided URL and surfaces the results as structured data.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Firecrawl API key; this is required to authenticate requests. (Note: treat it as a secret — guide the user to store it as a credential variable.)
+    - **url** - Ask the user for the starting URL to crawl (e.g., `https://example.com`); no default — required.
+    - **timeout** - Ask the user if they want to set a request timeout in milliseconds; suggested default is to leave it unset and rely on Firecrawl's server-side timeout.
+    - **idempotency_key** - Ask the user if they need to deduplicate or safely retry crawl requests; leave blank if not required.
+    - **crawlerOptions** - Ask the user if they want to customise crawl behaviour (e.g., max depth, allowed domains, exclude patterns); leave blank to use Firecrawl defaults.
+    - **scrapeOptions** - Ask the user if they want to control how individual pages are scraped (e.g., output formats, only main content); leave blank to use Firecrawl defaults.
+
+    ## Outputs
+    - **data** - Returns the crawled page content and metadata from Firecrawl; commonly feeds into a text splitter, document store, or an LLM prompt component for further processing.
+
+    ## Notes
+    - The `api_key` field is typed as a plain string in metadata but contains a secret — advise the user to use a Langflow secret/credential variable rather than pasting the key directly.
+    - `crawlerOptions` and `scrapeOptions` accept structured objects; refer the user to the [Firecrawl API docs](https://docs.firecrawl.dev/v1/api-reference/endpoint/crawl-post) for valid fields.
+    - Large sites may hit rate limits or long crawl times; suggest setting a reasonable `timeout` or scoping the crawl with `crawlerOptions`.
+- component_name: FirecrawlExtractApi
+  agent_summary: |-
+    You help the user pull structured data from one or more URLs using the Firecrawl service, guided by a natural-language prompt and an optional schema that shapes the output format. This is a good fit when you need specific fields extracted from web pages rather than raw page content, and it optionally supplements extraction with web search. Prefer over Firecrawl Scrape API when you want structured, schema-defined output rather than a full scrape of raw page content.
+  agent_usage_notes: |-
+    ## What it does
+    Calls the Firecrawl Extract API to pull structured data from one or more web pages. A prompt guides what to extract, and an optional schema enforces the shape of the returned data.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Firecrawl API key (note: this is a plain string field, so store it securely). No default.
+    - **urls** - Ask the user which URL(s) to extract data from; multiple URLs can be separated by commas or new lines. No default.
+    - **prompt** - Ask the user to describe what information should be extracted (e.g., "Extract the product name, price, and description"). No default.
+    - **schema** - Ask the user if they want to enforce a specific output structure; if so, provide a JSON schema object. Defaults to unstructured if left empty.
+    - **enable_web_search** - Ask the user whether the extraction should supplement page content with live web search results. Suggested default: `false`.
+
+    ## Outputs
+    - **data** - Returns the extracted data (structured according to the schema if provided); commonly feeds into a text display component, a data transformation step, or downstream LLM processing.
+
+    ## Notes
+    - The `urls` field accepts multiple URLs at once — remind the user to separate them with commas or line breaks, not spaces alone.
+    - If `schema` is omitted, the output structure is determined by the prompt alone, which may be less predictable for downstream parsing.
+    - Enabling `enable_web_search` may increase latency and API cost since Firecrawl will perform additional lookups beyond the provided URLs.
+    - Refer users to the [Firecrawl Extract API docs](https://docs.firecrawl.dev/api-reference/endpoint/extract) for schema formatting details.
+- component_name: FirecrawlMapApi
+  agent_summary: |-
+    You help the user discover all URLs associated with one or more websites by submitting them to the Firecrawl Map endpoint, which returns a structured list of links found across those domains. This is a good fit when you need a site inventory or link graph rather than page content, and it pairs well with crawl or scrape components that consume the resulting URLs. Prefer over Firecrawl Crawl API when you only need the list of URLs a site contains, not the actual page content from each one.
+  agent_usage_notes: |-
+    ## What it does
+    Calls the Firecrawl Map API to discover and return all URLs found at one or more starting URLs. It can optionally incorporate or ignore sitemaps and extend scanning to subdomains.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Firecrawl API key (available at firecrawl.dev). Note: this is a plain string field, so store it securely as a variable.
+    - **urls** - Ask the user for the URL(s) they want to map; multiple URLs can be separated by commas or new lines. Default: a single root URL such as `https://example.com`.
+    - **ignore_sitemap** - Ask whether the crawler should skip the site's `sitemap.xml` and discover links through crawling alone. Default: `false` (sitemap is used when available).
+    - **sitemap_only** - Ask whether only URLs listed in the sitemap should be returned, skipping any additional crawl discovery. Default: `false`.
+    - **include_subdomains** - Ask whether the scan should also cover subdomains of the provided URL (e.g., `blog.example.com`). Default: `false`.
+
+    ## Outputs
+    - **data** - Returns the list of discovered URLs from the map operation; commonly feeds into a downstream crawler, scraper, or data-processing component that iterates over those URLs.
+
+    ## Notes
+    - `sitemap_only` and `ignore_sitemap` are effectively opposites — enabling both at the same time is contradictory and will likely produce unexpected results; flag this to the user.
+    - The `api_key` field is a plain string input rather than a `SecretStrInput`, so remind the user to treat it carefully and prefer storing it as a protected variable.
+    - Results are scoped to the provided root URLs, so broad domains may return very large link lists.
+- component_name: FirecrawlScrapeApi
+  agent_summary: |-
+    You help the user fetch and return the content of a single URL using the Firecrawl service, with optional scrape and extractor options to control how the page is processed. Good for pulling structured or raw data from one specific page when you know the exact URL. Prefer over Firecrawl Crawl API when you need only a single page rather than following links across an entire site.
+  agent_usage_notes: |-
+    ## What it does
+    Calls the Firecrawl Scrape API to fetch and parse the content of a given URL, returning the scraped data in a structured format. It supports optional timeout, page scraping options, and extractor options for fine-tuned control over what is retrieved.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their Firecrawl API key; note this should be stored as a credential/secret variable rather than plain text.
+    - **url** - Ask the user for the full URL they want to scrape (e.g., `https://example.com`); no default.
+    - **timeout** - Ask the user if they need a custom request timeout in milliseconds; a reasonable default is `30000` (30 seconds) if latency or large pages are a concern.
+    - **scrapeOptions** - Ask the user if they need to customize page-level scraping behavior (e.g., wait for JavaScript rendering, include/exclude selectors); leave empty if basic scraping is sufficient.
+    - **extractorOptions** - Ask the user if they want to extract structured data from the page (e.g., using an LLM-based schema); leave empty for raw content extraction.
+
+    ## Outputs
+    - **data** - Returns the scraped page content and metadata from Firecrawl; commonly feeds into a text processing component, an LLM prompt, or a data storage step.
+
+    ## Notes
+    - The `api_key` field is marked as a plain string input but contains a secret — remind the user to use a Langflow secret/variable rather than hardcoding the key.
+    - `scrapeOptions` and `extractorOptions` accept structured objects; refer to the [Firecrawl Scrape API docs](https://docs.firecrawl.dev/api-reference/endpoint/scrape) for valid fields and formats.
+    - If the target page relies on JavaScript rendering, `scrapeOptions` must be configured accordingly or content may be incomplete.

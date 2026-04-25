@@ -1,0 +1,71 @@
+- component_name: CassandraChatMemory
+  agent_summary: |-
+    You help the user persist and retrieve chat message history using Apache Cassandra or Astra DB as the backing store, writing session data to a specified keyspace and table. It is a good fit when you need durable, scalable chat memory across sessions in an existing Cassandra or Astra DB environment. Prefer over the Cassandra Vector Store when you need structured conversational memory rather than vector similarity search.
+  agent_usage_notes: |-
+    ## What it does
+    Cassandra Chat Memory connects to an Apache Cassandra cluster (or Astra DB) to persist and retrieve chat message history. It stores conversation turns in a specified table so that chat sessions can be resumed across runs.
+
+    ## Inputs to ask about
+    - **database_ref** - Ask the user for the Cassandra contact point(s) (e.g., `localhost`) or, if using Astra DB, the database ID (a UUID from the Astra DB console). No universal default.
+    - **username** - Ask for the Cassandra username; remind the user to leave this blank if connecting to Astra DB. Default: _(empty)_.
+    - **token** - Ask for the Cassandra user password or the Astra DB application token (format: `AstraCS:…`). No default.
+    - **keyspace** - Ask for the keyspace (Cassandra) or namespace (Astra DB) where the chat table lives. Suggest `langflow` as a simple default if the user has no preference.
+    - **table_name** - Ask for the table or collection name that will hold the chat messages. Suggest `chat_memory` as a sensible default.
+
+    ## Outputs
+    - **memory** - Produces a memory object containing the stored chat history; typically fed into a conversational chain or agent component that accepts a memory input.
+
+    ## Notes
+    - The `token` field carries a password or Astra DB token — treat it as sensitive even though it is not a `SecretStrInput`; advise the user to use a variable or environment reference.
+    - For Astra DB connections, `username` must be left empty and `database_ref` must be the database ID, not a hostname — mixing these up is a common misconfiguration.
+    - The table is created automatically if it does not exist, so the user only needs to ensure the keyspace already exists.
+- component_name: CassandraGraphVectorStoreComponent
+  agent_summary: |-
+    You help the user store and query vector embeddings in an Apache Cassandra table (or Astra DB collection) using a graph-based structure that supports edge traversal alongside standard similarity search. This is a good fit when your retrieval strategy benefits from graph relationships between vectors, such as multi-hop or MMR traversal queries. Prefer over Cassandra when you need depth-based graph traversal in addition to vector similarity search; use the standard Cassandra Vector Store when flat similarity search is sufficient.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to a Cassandra (or Astra DB) cluster and stores document embeddings in a graph vector store, enabling similarity-based retrieval with graph traversal capabilities. It can ingest documents and run vector searches against the stored data.
+
+    ## Inputs to ask about
+    - **database_ref** - Ask the user for the Cassandra contact points (host/IP) or, if using Astra DB, the database ID. No universal default.
+    - **username** - Ask for the Cassandra username; tell the user to leave this empty if connecting to Astra DB.
+    - **token** - Ask for the Cassandra user password or Astra DB token; note this is a credential and should be stored securely.
+    - **keyspace** - Ask for the keyspace (Cassandra) or namespace (Astra DB) where the table will live.
+    - **table_name** - Ask for the table or collection name where vectors will be stored; suggest a descriptive default like `graph_vector_store`.
+    - **ingest_data** - Ask whether the user wants to load documents into the store; if so, connect a document loader or splitter output here.
+    - **search_query** - Ask for the query string to use when performing similarity searches; leave blank if the component is used only for ingestion.
+    - **embedding** - Ask the user to connect an embedding model component; this is required for both ingestion and search.
+
+    ## Outputs
+    - **search_results** - Returns documents matching the similarity search; commonly feeds into an LLM or prompt component.
+    - **dataframe** - Returns search results as a structured DataFrame; useful for inspection or downstream data processing.
+
+    ## Notes
+    - The `token` field is required for Astra DB connections; for self-hosted Cassandra, use `username` and a password instead.
+    - `embedding` must be connected or searches and ingestion will fail silently.
+    - Graph traversal search types require the `depth` advanced parameter to be meaningful.
+- component_name: CassandraVectorStoreComponent
+  agent_summary: |-
+    You help the user store and query vector embeddings in an Apache Cassandra table or Astra DB collection, returning similarity search results or a dataframe of matches. It is a good fit when you need a scalable, persistent vector store backed by Cassandra with support for TTL, batch ingestion, and optional full-text body search alongside semantic search. Prefer over Cassandra Graph when your use case requires straightforward vector similarity search without graph-based traversal of document relationships.
+  agent_usage_notes: |-
+    ## What it does
+    Connects to an Apache Cassandra cluster or Astra DB instance and provides a vector store with similarity search capabilities. It can ingest documents with embeddings and retrieve semantically similar results against a query.
+
+    ## Inputs to ask about
+    - **database_ref** - Ask the user for the Cassandra contact point(s) (e.g., `localhost`) or the Astra DB database ID (UUID string).
+    - **username** - Ask for the database username; leave empty when connecting to Astra DB.
+    - **token** - Ask for the database password or Astra DB token (e.g., `AstraCS:...`); treat this as sensitive.
+    - **keyspace** - Ask for the Cassandra keyspace or Astra DB namespace where the table lives.
+    - **table_name** - Ask for the table or collection name where vectors will be stored; suggest a descriptive default like `langchain_vectors`.
+    - **ingest_data** - Ask whether the user wants to load documents into the store; connect from a document loader or text splitter.
+    - **embedding** - Ask which embedding model to use; this must be connected to a compatible embeddings component.
+    - **search_query** - Ask for the text query to run similarity search against the vector store.
+
+    ## Outputs
+    - **search_results** - Returns documents most similar to the search query; commonly feeds into an LLM or prompt component.
+    - **dataframe** - Returns search results as a structured dataframe; useful for inspection or downstream data processing steps.
+
+    ## Notes
+    - The `token` field is required for Astra DB and acts as the password for self-hosted Cassandra — treat it carefully even though it is not a `SecretStrInput`.
+    - The `embedding` component must match the dimensionality used when the table was originally created; mismatches will cause errors.
+    - `enable_body_search` must be set before the table is first created — it cannot be changed retroactively.

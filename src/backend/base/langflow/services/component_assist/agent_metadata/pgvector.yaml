@@ -1,0 +1,22 @@
+- component_name: PGVectorStoreComponent
+  agent_summary: |-
+    You help the user store and search document embeddings in a PostgreSQL database using the pgvector extension, producing similarity search results or a dataframe of matches. It is a good fit when you already have a Postgres instance and want vector search without a dedicated vector database, pairing well with an embedding model input and a downstream retrieval or QA component.
+  agent_usage_notes: |-
+    ## What it does
+    PGVector stores and retrieves document embeddings in a PostgreSQL database using the pgvector extension. It supports ingesting documents into a named collection and running similarity searches against stored vectors.
+
+    ## Inputs to ask about
+    - **pg_server_url** - Ask the user for the PostgreSQL connection string (e.g., `postgresql://user:password@host:5432/dbname`). No default — this is required and environment-specific.
+    - **collection_name** - Ask the user for the name of the vector collection/table to use or create. Suggested default: `"langflow"`.
+    - **ingest_data** - Ask the user if they want to ingest documents into the store; connect this to a document loader or splitter output. Leave unconnected if only searching.
+    - **search_query** - Ask the user what query text to use for similarity search. Leave blank if the component is being used purely for ingestion.
+    - **embedding** - Ask the user to connect an embedding model component (e.g., OpenAI Embeddings). This is required and must match the model used during ingestion.
+
+    ## Outputs
+    - **search_results** - Returns documents most similar to the search query; commonly feeds into a prompt or language model component.
+    - **dataframe** - Returns search results as a structured dataframe; useful for inspection or downstream data processing steps.
+
+    ## Notes
+    - The PostgreSQL server must have the `pgvector` extension installed and enabled before use.
+    - The embedding model connected at query time must match the one used during ingestion — mismatched dimensions will cause errors.
+    - If both `ingest_data` and `search_query` are connected, the component will ingest first and then search in the same run.

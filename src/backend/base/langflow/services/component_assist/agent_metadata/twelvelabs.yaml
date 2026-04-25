@@ -1,0 +1,140 @@
+- component_name: ConvertAstraToTwelveLabs
+  agent_summary: |-
+    You help the user reformat Astra DB search results into the index_id and video_id outputs required by TwelveLabs Pegasus. Use this as a bridge step between an Astra DB retrieval component and a Pegasus video chat or analysis component. Prefer over TwelveLabs Pegasus directly when your video references are stored in Astra DB and need structural conversion before being passed downstream.
+  agent_usage_notes: |-
+    ## What it does
+    Converts search results returned by an Astra DB component into a format compatible with the TwelveLabs Pegasus model. It bridges the Astra DB retrieval step and TwelveLabs video-understanding workflows by extracting the relevant identifiers Pegasus needs.
+
+    ## Inputs to ask about
+    - **astra_results** - Ask the user to connect the output of an upstream Astra DB search component directly to this input; there is no default, as it must be a live result object from that component.
+
+    ## Outputs
+    - **index_id** - The TwelveLabs index identifier extracted from the Astra DB results; typically fed into a TwelveLabs Pegasus query or retrieval component.
+    - **video_id** - The individual video identifier extracted from the Astra DB results; also feeds into Pegasus components that require a specific video reference.
+
+    ## Notes
+    - This component acts purely as a converter/adapter — it does not perform any search or retrieval itself, so an Astra DB search step must come before it in the flow.
+    - Both outputs (`index_id` and `video_id`) are likely required together by downstream Pegasus components; make sure both are connected.
+    - If the Astra DB results do not contain the expected TwelveLabs metadata fields, the conversion will fail — confirm that the Astra DB collection was originally populated with TwelveLabs video data.
+    - Refer to the [TwelveLabs Langflow integration README](https://github.com/twelvelabs-io/twelvelabs-developer-experience/blob/main/integrations/Langflow/TWELVE_LABS_COMPONENTS_README.md) for setup details and expected data schema.
+- component_name: PegasusIndexVideo
+  agent_summary: |-
+    You help the user submit video files to TwelveLabs for indexing via the Pegasus API, storing the resulting video ID in the output metadata for downstream use. It accepts Video Data objects and works naturally after VideoFile or SplitVideo components, and you can target an existing index by ID or let it create a new one by name. Prefer over TwelveLabs Pegasus when you need to register videos into an index first before querying them, rather than conversing with already-indexed content.
+  agent_usage_notes: |-
+    ## What it does
+    Indexes one or more videos with the TwelveLabs Pegasus API and attaches the resulting `video_id` to each video's metadata. It can create a new index automatically or use an existing one, making the indexed video available for downstream search and analysis.
+
+    ## Inputs to ask about
+    - **videodata** - Ask the user to connect a `VideoFile` or `SplitVideo` component output here; this is the source of the video objects to be indexed.
+    - **api_key** - Ask the user for their TwelveLabs API key (note: this is a plain string field in this component, not a secret variable).
+    - **model_name** - Ask which Pegasus model to use for indexing; suggest checking the TwelveLabs documentation for the latest available model names if the user is unsure.
+    - **index_name** - Ask for the name of the index to create or reuse; if the named index does not exist, it will be created automatically. Suggest a descriptive project-specific name as a default.
+    - **index_id** - Ask if the user already has an existing index ID they want to target; if provided, `index_name` is ignored entirely.
+
+    ## Outputs
+    - **indexed_data** - Returns the video data objects enriched with the TwelveLabs `video_id` in their metadata; commonly feeds into search or query components that need a video reference.
+
+    ## Notes
+    - `index_id` takes precedence over `index_name` — remind the user that if both are filled in, `index_name` will be silently ignored.
+    - The `api_key` field is a plain string input, not a secret variable, so it will be visible in the canvas; advise the user to use a global variable or environment variable if security is a concern.
+    - Indexing can take time for long videos; downstream components should only run after this step completes.
+- component_name: SplitVideoComponent
+  agent_summary: |-
+    You help the user divide a single video file into sequential clips of a fixed length using FFmpeg, producing a set of clip outputs. It pairs naturally with VideoFileComponent as the upstream source and indexing or embedding components downstream that require shorter segments. Prefer over VideoFileComponent when you need chunked clips rather than a single loaded video.
+  agent_usage_notes: |-
+    ## What it does
+    Splits an input video into multiple sequential clips of a fixed duration using FFmpeg. It handles edge cases where the final segment may be shorter than the target duration, and can optionally include the original video alongside the clips.
+
+    ## Inputs to ask about
+    - **videodata** - Ask the user to connect the output of a VideoFile component that provides the source video to be split.
+    - **clip_duration** - Ask the user for the desired length of each clip in seconds; a common default is `60` seconds.
+    - **last_clip_handling** - Ask the user how to handle the final clip if it is shorter than the specified duration; options are `Truncate` (skip it), `Overlap Previous` (extend it back to full length), or `Keep Short` (keep it as-is). Suggest `Keep Short` as a sensible default.
+    - **include_original** - Ask the user whether the original full video should be included alongside the generated clips in the output; default is `False`.
+
+    ## Outputs
+    - **clips** - Produces a collection of video clip segments; commonly fed into a Twelve Labs indexing or upload component for further processing.
+
+    ## Notes
+    - FFmpeg must be installed and accessible in the environment where this component runs — confirm this with the user if they are self-hosting.
+    - The `Overlap Previous` option for `last_clip_handling` means content near the end of the video will appear in two clips; flag this if duplicate content is a concern.
+    - The `videodata` input expects output specifically from a VideoFile component, not a raw file path or URL — ensure the upstream component is connected correctly.
+- component_name: TwelveLabsPegasus
+  agent_summary: |-
+    You help the user send a text message to a video indexed in TwelveLabs and receive a natural-language response generated by the Pegasus model. It accepts either a newly uploaded video or an existing indexed video ID, and pairs naturally with PegasusIndexVideo to handle the full upload-then-query pipeline. Prefer over TwelveLabs Pegasus Index Video when the video is already indexed and you only need to query it, not index it.
+  agent_usage_notes: |-
+    ## What it does
+    TwelveLabs Pegasus lets you have a conversational chat with video content using the TwelveLabs API. It can accept a new video input or reference a previously indexed video, then respond to natural-language messages about that video's content.
+
+    ## Inputs to ask about
+    - **videodata** - Ask the user if they want to upload or pass in a new video file/data object; leave empty if using an existing indexed video.
+    - **api_key** - Ask the user for their TwelveLabs API key; note this is required to authenticate all requests.
+    - **video_id** - Ask the user if they have a previously indexed video ID they want to reuse; leave blank if supplying new video data.
+    - **index_name** - Ask the user for a name for the index; if the index doesn't exist it will be auto-created. Suggest a descriptive project name as default.
+    - **index_id** - Ask the user if they have an existing index ID; if provided, `index_name` is ignored.
+    - **model_name** - Ask the user which Pegasus model variant to use for indexing; leave blank to use the API default.
+    - **message** - Ask the user what question or prompt they want to send to the video; required.
+    - **temperature** - Ask the user how creative or deterministic they want responses to be; suggest `0.5` as a balanced default.
+
+    ## Outputs
+    - **response** - The Pegasus model's text answer to the chat message; commonly feeds into a text display or downstream LLM chain.
+    - **processed_video_id** - The video ID after indexing; useful to store and reuse in future requests via the `video_id` input.
+
+    ## Notes
+    - Either `videodata` or `video_id` must be provided — the component needs some way to identify the target video.
+    - If both `index_id` and `index_name` are supplied, `index_name` is silently ignored; clarify with the user which they intend to use.
+    - Store `processed_video_id` from the first run to avoid re-indexing the same video in subsequent calls.
+- component_name: TwelveLabsTextEmbeddingsComponent
+  agent_summary: |-
+    You help the user generate text embeddings using TwelveLabs text embedding models, producing vector representations of text via the TwelveLabs API. This fits well in pipelines that need semantic search or similarity tasks grounded in TwelveLabs infrastructure. Prefer over TwelveLabs Video Embeddings when your input is text rather than video content.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text embeddings using TwelveLabs embedding models, converting input text into vector representations suitable for semantic search, similarity comparison, and retrieval pipelines.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their TwelveLabs API key; this is required to authenticate with the TwelveLabs API. Note: handle securely — consider using a Langflow secret/credential variable.
+    - **model** - Ask the user which TwelveLabs text embedding model to use; check the [TwelveLabs documentation](https://github.com/twelvelabs-io/twelvelabs-developer-experience/blob/main/integrations/Langflow/TWELVE_LABS_COMPONENTS_README.md) for currently available model names, as no default is specified in the metadata.
+
+    ## Outputs
+    - **embeddings** - Produces a TwelveLabs-backed embeddings object that commonly feeds into vector stores, similarity search components, or retrieval-augmented generation (RAG) pipelines expecting an embeddings interface.
+
+    ## Notes
+    - The `api_key` field is typed as a plain string rather than a `SecretStrInput` in the metadata — remind the user to treat this value as sensitive and avoid hardcoding it in shared flows.
+    - No default model name is embedded in the metadata; ask the user to confirm the exact model string from TwelveLabs documentation to avoid silent failures.
+    - Advanced inputs (`max_retries`, `request_timeout`) are hidden by default but may be worth surfacing if the user reports timeouts or flaky connections.
+    - TwelveLabs embeddings are multimodal in origin; confirm with the user that the text embedding model they select is appropriate for their use case, as some TwelveLabs models are video-first.
+- component_name: TwelveLabsVideoEmbeddingsComponent
+  agent_summary: |-
+    You help the user generate vector embeddings from video content using TwelveLabs video embedding models, producing an embeddings output suitable for downstream similarity search or retrieval tasks. This is a good fit when you need to represent video data as dense vectors for multimodal search pipelines. Prefer over TwelveLabs Text Embeddings when the source content is video rather than text, and both modalities need to share an embedding space for cross-modal retrieval.
+  agent_usage_notes: |-
+    ## What it does
+    Generates vector embeddings from video content using TwelveLabs video embedding models. These embeddings can be used for semantic search, similarity comparisons, or downstream retrieval tasks involving video data.
+
+    ## Inputs to ask about
+    - **api_key** - Ask the user for their TwelveLabs API key; this is required to authenticate with the TwelveLabs API.
+    - **model_name** - Ask the user which TwelveLabs video embedding model to use; check the TwelveLabs documentation for available model names, as no default is specified in the metadata.
+
+    ## Outputs
+    - **embeddings** - Produces vector embeddings from the provided video content; commonly feeds into a vector store, similarity search component, or retrieval chain.
+
+    ## Notes
+    - The `api_key` field is listed as `field_type=str` rather than `SecretStrInput`, so it will appear as a standard text input — remind the user to handle it carefully and avoid hardcoding it in shared flows.
+    - No video source input is visible in the metadata; verify with the user how video content is supplied to this component, as it may be wired in via a connection not surfaced here.
+    - Refer to the [TwelveLabs Langflow integration README](https://github.com/twelvelabs-io/twelvelabs-developer-experience/blob/main/integrations/Langflow/TWELVE_LABS_COMPONENTS_README.md) for supported model names and any API-tier restrictions on embedding models.
+- component_name: VideoFileComponent
+  agent_summary: |-
+    You help the user load a local video file and produce a dataframe representing it for downstream processing. This is a good starting point in pipelines that index, split, or generate embeddings from video content, pairing naturally with components like Split Video or TwelveLabs Pegasus Index Video.
+  agent_usage_notes: |-
+    ## What it does
+    Loads a local video file in a common video format and makes it available for downstream processing. It wraps the uploaded file and exposes it as a structured dataframe output for use with other components, such as Twelve Labs video analysis tools.
+
+    ## Inputs to ask about
+    - **file_path** - Ask the user to upload the video file they want to process; accepts any common video format supported by ffmpeg (e.g., `.mp4`, `.mov`, `.avi`, `.mkv`). No default — a file must be provided.
+
+    ## Outputs
+    - **dataframe** - Produces a dataframe containing information about the loaded video file; commonly feeds into video indexing or analysis components such as Twelve Labs upload or search nodes.
+
+    ## Notes
+    - The component relies on ffmpeg-compatible formats — confirm the user's file is in a supported container format before troubleshooting unexpected errors.
+    - No URL or streaming input is supported; the video must be a locally uploaded file.
+    - This component is designed to pair with Twelve Labs components — refer users to the [Twelve Labs Langflow README](https://github.com/twelvelabs-io/twelvelabs-developer-experience/blob/main/integrations/Langflow/TWELVE_LABS_COMPONENTS_README.md) for the intended pipeline structure.
+    - Large video files may affect performance depending on the Langflow environment's upload limits; flag this if the user mentions long or high-resolution videos.

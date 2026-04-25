@@ -1,0 +1,23 @@
+- component_name: CugaComponent
+  agent_summary: |-
+    You help the user configure and run an AI agent that executes complex tasks by combining custom instructions, assigned tools, browser automation, and API interactions to produce a text response. It is a good fit when you need an agent that can handle multi-step tasks across web applications or external APIs, with control over the underlying LLM provider, tool routing, and decomposition strategy.
+  agent_usage_notes: |-
+    ## What it does
+    The Cuga component defines and runs an advanced AI agent capable of executing complex tasks using custom instructions, tools, and optional browser automation. You configure the agent's language model, behavior instructions, and task input, then it returns a response.
+
+    ## Inputs to ask about
+    - **agent_llm** - Ask the user which LLM provider the agent should use (e.g., OpenAI). No universal default; depends on available API keys.
+    - **model_name** - Ask the user which specific model to use; remind them to enter their API key first, then refresh the model list.
+    - **api_key** - Ask the user for their OpenAI API key to authenticate with the chosen provider.
+    - **instructions** - Ask the user for custom instructions that govern how the agent plans and responds; suggest structuring with `## Plan` and `## Answer` sections.
+    - **tools** - Ask the user which tools (if any) the agent should have access to; these can be connected from other components.
+    - **input_value** - Ask the user for the task or question the agent should process; this is the primary user-facing prompt.
+
+    ## Outputs
+    - **response** - Produces the agent's final text response; commonly feeds into a Chat Output component or a downstream processing step.
+
+    ## Notes
+    - The **api_key** field is a secret input — it should be configured via the separate variable-creation flow, not entered as plain text.
+    - **model_name** depends on **agent_llm** being set first; the refresh button must be clicked after entering the API key.
+    - Tools are optional but significantly expand the agent's capabilities; ensure connected tool components are compatible.
+    - Browser automation (`browser_enabled`) and `web_apps` are advanced features — only flag them if the user's task involves web interaction.

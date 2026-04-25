@@ -1,0 +1,19 @@
+- component_name: WolframAlphaAPIComponent
+  agent_summary: |-
+    You help the user query the WolframAlpha API with a natural language or mathematical question and receive a structured dataframe of computed results, facts, or calculations. It is a good fit when you need reliable numerical answers, unit conversions, scientific data, or factual lookups that benefit from WolframAlpha's computational engine rather than a language model's reasoning.
+  agent_usage_notes: |-
+    ## What it does
+    Sends a natural-language or mathematical query to the WolframAlpha API and returns a structured response containing computational data, facts, or calculations. It is useful for answering questions that require real-time computation, unit conversion, scientific data, or factual lookups.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user what query they want to send to WolframAlpha (e.g. "What is the population of France?" or "Integrate x^2"). No strong default, but suggest a simple test query so they can verify connectivity.
+    - **app_id** - Ask the user for their WolframAlpha App ID, obtained from the Wolfram Developer Portal. This is required for all API calls.
+
+    ## Outputs
+    - **dataframe** - Returns a structured DataFrame containing the parsed WolframAlpha response; commonly feeds into a table display component, a data transformation step, or a downstream LLM prompt that needs factual grounding.
+
+    ## Notes
+    - The `app_id` field is typed as a plain string rather than a secret input, so remind the user to treat it carefully and avoid hardcoding it in shared flows — consider storing it as an environment variable or Langflow global variable.
+    - WolframAlpha free-tier App IDs have query limits; advise the user to check their plan if they expect high-volume usage.
+    - The quality of results depends heavily on query phrasing — natural-language questions and well-formed mathematical expressions work best; vague or ambiguous queries may return empty or unexpected results.
+    - Confirm the user has registered at the Wolfram Developer Portal and enabled the "Full Results" API for their App ID, as limited API types may return reduced data.

@@ -1,0 +1,22 @@
+- component_name: GroqModel
+  agent_summary: |-
+    You help the user generate text by sending prompts to Groq-hosted language models and returning either a text response or a model object for downstream use. It accepts a system message, optional streaming for chat flows, and controls like temperature and max tokens, and requires a Groq API key to authenticate.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text using the Groq inference API by sending a user message (and optional system message) to a selected Groq language model. It returns both a plain-text response and a model object for downstream chaining.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the text or chat message to send to the model; no default.
+    - **system_message** - Ask the user if they want a system-level instruction (e.g. persona or constraints); default is none/blank.
+    - **api_key** - Ask the user for their Groq API key; required to access any model.
+    - **model_name** - Ask the user which Groq model to use (e.g. `llama3-8b-8192`, `mixtral-8x7b-32768`); remind them that adding an API key unlocks additional models.
+    - **tool_model_enabled** - Ask the user whether they need tool-calling support; if yes, the model list filters to tool-compatible models only. Default is `false`.
+
+    ## Outputs
+    - **text_output** - The raw generated text string; commonly feeds into a text display, prompt template, or further processing component.
+    - **model_output** - The instantiated Groq model object; commonly feeds into chains, agents, or other LangChain-compatible components that accept a language model.
+
+    ## Notes
+    - The `api_key` field is shown in the UI as a plain string input here, but treat it as sensitive — encourage the user to use a secret/variable rather than hard-coding it.
+    - `tool_model_enabled` must be enabled before selecting a model if the user intends to connect this component to a tool-calling agent; changing it after model selection resets the model list.
+    - Streaming only works inside a Chat interface; warn the user not to enable it in non-chat flows.

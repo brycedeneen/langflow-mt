@@ -1,0 +1,66 @@
+- component_name: AmazonBedrockConverseComponent
+  agent_summary: |-
+    You help the user generate text responses from Amazon Bedrock language models using the Converse API, which provides a unified interface for multi-turn conversation handling across supported model IDs. It requires AWS credentials and a region, supports optional streaming in chat contexts, and exposes sampling controls like temperature, top-p, and max tokens. Prefer over Amazon Bedrock Embeddings when you need generated text output rather than vector representations of input text.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text using Amazon Bedrock LLMs via the modern Converse API, which provides improved multi-turn conversation handling. It accepts a user message and optional system prompt, then returns the model's response as text or a message object.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the human message or prompt to send to the model; no default.
+    - **system_message** - Ask the user if they want a system-level instruction to guide model behavior (e.g., "You are a helpful assistant."); optional.
+    - **model_id** - Ask the user which Bedrock model to use (e.g., `anthropic.claude-3-5-sonnet-20240620-v1:0`); prompt them to check their AWS Bedrock console for available models in their region.
+    - **aws_access_key_id** - Ask the user for their AWS access key ID; recommend using an environment variable `AWS_ACCESS_KEY_ID` instead of hardcoding.
+    - **aws_secret_access_key** - Ask the user for their AWS secret access key; recommend using an environment variable `AWS_SECRET_ACCESS_KEY`.
+    - **region_name** - Ask the user for the AWS region where Bedrock is enabled (e.g., `us-east-1`); no universal default applies.
+
+    ## Outputs
+    - **text_output** - Returns the model's response as a plain text string; commonly feeds into a text display, prompt template, or downstream processing component.
+    - **model_output** - Returns the full message object; useful when chaining into memory components or other LLM-aware components that expect a structured message.
+
+    ## Notes
+    - Not all Bedrock models are available in every AWS region — ensure the chosen `model_id` is enabled in the specified `region_name`.
+    - AWS credentials must have `bedrock:InvokeModel` permissions; missing permissions will cause silent or cryptic failures.
+    - `top_k` is not universally supported; use `additional_model_fields` for models that require it as a non-standard parameter.
+- component_name: AmazonBedrockEmbeddingsComponent
+  agent_summary: |-
+    You help the user produce vector embeddings from text using Amazon Bedrock models, authenticating via AWS credentials or a named profile and targeting a specified region. This is a good fit when your infrastructure is AWS-native and you want embeddings from Bedrock-hosted models like Titan for use in retrieval or semantic search pipelines. Prefer over Amazon Bedrock Converse when you need vector representations of text rather than generated text responses.
+  agent_usage_notes: |-
+    ## What it does
+    Generates vector embeddings from text using Amazon Bedrock foundation models. The resulting embeddings can be passed to vector stores or similarity-search components for retrieval-augmented generation workflows.
+
+    ## Inputs to ask about
+    - **model_id** - Ask the user which Amazon Bedrock embedding model to use (e.g., `amazon.titan-embed-text-v1` or `cohere.embed-english-v3`). Default to `amazon.titan-embed-text-v1` if none is specified.
+    - **aws_access_key_id** - Ask the user for their AWS access key ID; remind them it can also be set via the `AWS_ACCESS_KEY_ID` environment variable.
+    - **aws_secret_access_key** - Ask the user for their AWS secret access key; remind them it can also be set via the `AWS_SECRET_ACCESS_KEY` environment variable.
+    - **aws_session_token** - Ask only if the user is using temporary/assumed-role credentials; otherwise leave blank.
+    - **region_name** - Ask the user for the AWS region where their Bedrock resources are hosted (e.g., `us-east-1`). Required in practice even though marked optional.
+
+    ## Outputs
+    - **embeddings** - Produces an embeddings object that typically feeds into a vector store component (e.g., Pinecone, Chroma, FAISS) or a retriever.
+
+    ## Notes
+    - `aws_access_key_id` and `aws_secret_access_key` contain sensitive values — encourage the user to store them as environment variables or Langflow secrets rather than entering them as plain text.
+    - Not all Bedrock models are available in every region; confirm the chosen model is enabled in the selected region via the AWS console.
+    - `aws_session_token` is only needed for temporary credentials (e.g., STS-assumed roles); skip it for long-term IAM user credentials.
+- component_name: S3BucketUploaderComponent
+  agent_summary: |-
+    You help the user upload files to an AWS S3 bucket using boto3, accepting AWS credentials and a target bucket name as inputs. It supports two strategies: uploading raw files by their original path or uploading parsed file content as Langflow data objects, making it a good fit after File or Directory loader components in ingestion pipelines. No peers materially overlap.
+  agent_usage_notes: |-
+    ## What it does
+    Uploads files to an AWS S3 bucket using one of two strategies: "By Data" (file is parsed into LangFlow data first, then uploaded as text content) or "By File Name" (file is uploaded as-is using its original path). Requires AWS credentials and a target bucket name.
+
+    ## Inputs to ask about
+    - **aws_access_key_id** - Ask the user for their AWS Access Key ID; no default — must be provided. Note: this is a credential, so consider using a Langflow secret variable.
+    - **aws_secret_access_key** - Ask the user for their AWS Secret Access Key; no default — must be provided. Note: same credential handling applies.
+    - **bucket_name** - Ask the user for the exact S3 bucket name to upload files into; no default.
+    - **strategy** - Ask the user which upload strategy to use: "By Data" (parses file content into LangFlow Data) or "By File Name" (uploads the raw file). Default to "By File Name" if the user wants to preserve the original file format.
+    - **data_inputs** - Ask the user to connect a File or Directory component that provides the source files to upload.
+
+    ## Outputs
+    - **data** - Returns the processed data after upload; typically feeds into downstream components that need confirmation or further processing of the uploaded content.
+
+    ## Notes
+    - The `boto3` library must be installed in the environment for this component to function.
+    - "By Data" strategy requires both a file path and text content to be present on each data item; missing either will skip that file.
+    - "By File Name" only requires a valid file path on each data item.
+    - The component is designed to pair with **File** or **Directory** components as the source for `data_inputs`.

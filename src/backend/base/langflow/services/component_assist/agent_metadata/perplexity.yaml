@@ -1,0 +1,22 @@
+- component_name: PerplexityComponent
+  agent_summary: |-
+    You help the user generate text by sending prompts to Perplexity's LLMs and returning the model's response as text or a model object. It accepts a system message, temperature, top-p sampling controls, and token limits, and requires a Perplexity API key. Streaming output is supported when used in a chat context.
+  agent_usage_notes: |-
+    ## What it does
+    Generates text by sending prompts to Perplexity's hosted LLMs via the Perplexity API. It accepts a user message and an optional system message, then returns the model's response as text or a model object.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user for the prompt or message to send to the model; this is the primary user input.
+    - **system_message** - Ask the user if they want a system-level instruction to guide the model's behavior (e.g., "You are a helpful assistant."); default is none.
+    - **model_name** - Ask the user which Perplexity model to use (e.g., `sonar`, `sonar-pro`, `sonar-reasoning`); suggest checking the Perplexity docs for the latest available models.
+    - **max_tokens** - Ask the user for the maximum number of tokens to generate in the response; a common default is `1024`.
+    - **temperature** - Ask the user how creative or deterministic the output should be (0 = focused/deterministic, 1 = more creative); default is typically `0.7`.
+
+    ## Outputs
+    - **text_output** - The raw text response from the model; commonly feeds into a text display, prompt template, or downstream processing component.
+    - **model_output** - The full chat model object; useful when chaining into other LangChain-compatible components that expect a model instance.
+
+    ## Notes
+    - The `api_key` field is required — remind the user to create a Perplexity API key variable through the secrets/variable flow before configuring this component.
+    - Model names must match Perplexity's current API offerings exactly; an invalid model name will cause a runtime error.
+    - Streaming is only functional inside a Chat interface; avoid enabling it in batch or non-chat flows.

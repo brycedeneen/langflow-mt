@@ -1,0 +1,42 @@
+- component_name: GitExtractorComponent
+  agent_summary: |-
+    You help the user clone a remote Git repository and extract its contents, producing file contents, directory structure, repository metadata, statistics, and raw file data as separate outputs. This is a good fit when you need structured access to multiple aspects of a repo at once, such as feeding source code and metadata into a pipeline. Prefer over GitLoaderComponent when you need granular, split outputs like statistics or directory structure rather than a flat list of filtered documents.
+  agent_usage_notes: |-
+    ## What it does
+    GitExtractor clones or accesses a Git repository from a given URL and extracts its contents, returning file contents, directory structure, repository metadata, and statistics. It is useful for feeding source code or documentation into downstream analysis or retrieval pipelines.
+
+    ## Inputs to ask about
+    - **repository_url** - Ask the user for the full URL of the Git repository they want to analyze (e.g., `https://github.com/username/repo`). No default; this is required to do anything useful.
+
+    ## Outputs
+    - **text_based_file_contents** - The raw text content of readable files in the repository; commonly feeds into a text splitter or LLM component.
+    - **directory_structure** - A representation of the repo's folder and file layout; useful for display or structural analysis.
+    - **repository_info** - General metadata about the repository (e.g., name, branch, remote); can feed into a prompt or metadata store.
+    - **statistics** - Numeric summaries (e.g., file counts, size); useful for reporting or conditional routing.
+    - **files_content** - Structured content of individual files; can feed into document loaders or vector store ingestion pipelines.
+
+    ## Notes
+    - Only publicly accessible repositories (or those accessible without authentication) are supported — there is no credential input, so private repos requiring a token or SSH key will likely fail.
+    - Large repositories may result in slow processing or memory pressure; warn the user if they plan to use very large repos.
+    - Ask the user which output(s) they actually need, since connecting all five to downstream components may be unnecessary and can add complexity to the flow.
+- component_name: GitLoaderComponent
+  agent_summary: |-
+    You help the user load files from a Git repository — either a local path or a remote URL to clone — and produce document data filtered by filename patterns or content regex. It pairs well with text processing or RAG pipelines that need source code or repository content as input. Prefer over GitExtractor when you want lightweight document loading with filtering rather than full repository metadata and structural analysis.
+  agent_usage_notes: |-
+    ## What it does
+    Loads documents from a Git repository — either a local checkout or a remote URL to clone — and returns the file contents as structured data for downstream processing.
+
+    ## Inputs to ask about
+    - **repo_source** - Ask the user whether they want to load from a local repository path or clone from a remote URL; accepted values are typically `Local` or `Clone`.
+    - **repo_path** - Ask for the local filesystem path to the existing Git repository; only required when `repo_source` is set to `Local`.
+    - **clone_url** - Ask for the remote Git repository URL to clone (e.g. `https://github.com/org/repo.git`); only required when `repo_source` is set to `Clone`.
+    - **branch** - Ask which branch to load files from; suggest `main` as the default.
+
+    ## Outputs
+    - **data** - Produces a collection of documents (one per file) containing file content and metadata; commonly feeds into a text splitter, embedding component, or vector store ingestion pipeline.
+
+    ## Notes
+    - `repo_path` and `clone_url` are mutually exclusive — only one is used depending on `repo_source`, so clarify which mode the user intends before asking for both.
+    - If the target branch is not `main` (e.g. `master` or a feature branch), the user must set it explicitly or files may not load correctly.
+    - For large repositories, cloning can be slow; advise users to use a local path when the repo is already available on disk.
+    - `file_filter` and `content_filter` are advanced inputs and can narrow results significantly — worth mentioning if the user reports unexpected empty output.

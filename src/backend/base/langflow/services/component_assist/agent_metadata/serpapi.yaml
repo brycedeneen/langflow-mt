@@ -1,0 +1,20 @@
+- component_name: SerpComponent
+  agent_summary: |-
+    You help the user query the SerpApi search service and return web search results as structured data or plain text, with controls to cap the number of results and truncate snippet length. It is a good fit when you need live web search results piped into a retrieval or question-answering pipeline.
+  agent_usage_notes: |-
+    ## What it does
+    Calls the SerpAPI search service with a query and returns web search results, limiting the number of results and snippet length to keep responses manageable. It is typically used to give an AI agent or chain access to live web search.
+
+    ## Inputs to ask about
+    - **serpapi_api_key** - Ask the user for their SerpAPI API key; this is required to authenticate requests. *(Handled via the secrets/variable flow.)*
+    - **input_value** - Ask the user what search query should be sent to SerpAPI (e.g., `"latest AI news"`); no default, as this is usually dynamic.
+
+    ## Outputs
+    - **data** - Returns structured result objects (list of `Data`); commonly feeds into a parser, agent tool, or data-processing component.
+    - **text** - Returns a plain-text representation of the search results; commonly feeds into a prompt or language model input.
+
+    ## Notes
+    - `serpapi_api_key` is marked as a plain `str` input here, but treat it as a secret — guide the user to store it as a credential/variable rather than pasting it in plain text.
+    - `search_params`, `max_results`, and `max_snippet_length` are advanced inputs; only surface them if the user wants finer control over result count or truncation behavior.
+    - If `input_value` is left empty at configuration time, ensure the upstream component (e.g., a chat input or agent) is wired to supply the query dynamically at runtime.
+    - SerpAPI supports multiple search engines via `search_params`; the default is typically Google, but flag this if the user needs a different engine.

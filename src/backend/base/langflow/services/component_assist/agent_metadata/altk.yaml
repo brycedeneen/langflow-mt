@@ -1,0 +1,23 @@
+- component_name: ALTKAgentComponent
+  agent_summary: |-
+    You help the user run an LLM-powered agent that accepts tools, a system prompt, and a user message, then returns a response after optionally validating tool calls before execution and analyzing tool outputs afterward through JSON reflection. This is a good fit when you need both pre-execution guardrails on tool calls and structured post-processing of tool results in a single component, particularly with large or complex tool outputs that benefit from a character-threshold-based reflection step.
+  agent_usage_notes: |-
+    ## What it does
+    ALTK Agent is an advanced AI agent that combines pre-tool validation (via SPARC) and post-tool reflection (via JSON analysis) into a single modular pipeline. It accepts user input, invokes configured tools, and returns a processed response guided by a language model of your choice.
+
+    ## Inputs to ask about
+    - **agent_llm** - Ask the user which LLM provider they want to use (e.g., OpenAI, Anthropic, Ollama).
+    - **model** - Ask the user to select the specific model from their chosen provider.
+    - **system_prompt** - Ask the user for any system-level instructions that should guide the agent's behavior; default to a general assistant prompt if none provided.
+    - **tools** - Ask the user which tools the agent should have access to; this is required for the agent to do anything beyond plain conversation.
+    - **input_value** - Ask the user what the initial user message or query is that the agent should process.
+    - **enable_tool_validation** - Ask the user whether tool calls should be validated with SPARC before execution; default `False` unless strict reliability is needed.
+    - **enable_post_tool_reflection** - Ask the user whether tool outputs should be analyzed via JSON reflection after execution; default `False` for lighter workloads.
+
+    ## Outputs
+    - **response** - The agent's final text response after tool execution and any configured validation/reflection steps; typically feeds into a **Chat Output** or downstream processing component.
+
+    ## Notes
+    - `enable_tool_validation` and `enable_post_tool_reflection` are the key differentiators of this component — flag them to the user as optional but impactful on accuracy and latency.
+    - `response_processing_size_threshold` (advanced) controls when post-tool reflection activates; only relevant if `enable_post_tool_reflection` is `True`.
+    - At least one tool should be connected, otherwise the agent behaves as a plain LLM chat node.

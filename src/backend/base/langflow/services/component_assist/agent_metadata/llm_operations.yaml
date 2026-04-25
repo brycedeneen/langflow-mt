@@ -1,0 +1,126 @@
+- component_name: BatchRunComponent
+  agent_summary: |-
+    Runs an LLM against every row of a DataFrame, sending either a specified column or all columns as the prompt and appending the model's responses as a new column. This is a good fit when you need to apply a single LLM call at scale across a dataset, such as bulk classification, summarization, or extraction over tabular records. Prefer over Smart Transform when you want direct LLM responses per row rather than a generated transformation function applied to the data.
+  agent_usage_notes: |-
+    ## What it does
+    Batch Run sends each row of a DataFrame column to an LLM as a separate message and collects all responses back into a DataFrame. If no column is specified, all columns are serialized as TOML and used as the message content.
+
+    ## Inputs to ask about
+    - **model** - Ask the user which LLM provider and model they want to use; this is a required connection from a model component.
+    - **system_message** - Ask the user if they want a system-level instruction applied to every row (e.g., "You are a helpful assistant."); defaults to empty (no system prompt).
+    - **df** - Ask the user which DataFrame component to connect; this is the data source and is required.
+    - **column_name** - Ask the user which column contains the text to send to the model; if left empty, all columns are combined and formatted as TOML before being sent.
+
+    ## Outputs
+    - **batch_results** - Returns a DataFrame with the original data plus a new column containing the model's response for each row; commonly feeds into a Data output component or further DataFrame processing steps.
+
+    ## Notes
+    - If `column_name` is left blank, all columns are concatenated in TOML format — remind the user this may produce verbose or unexpected prompts.
+    - The model input expects a connected model component (e.g., OpenAI, Anthropic), not a raw string — make sure the user wires a model node rather than typing a model name.
+    - Large DataFrames will trigger one LLM call per row, which can be slow and costly; advise the user to test on a small sample first.
+- component_name: GuardrailsComponent
+  agent_summary: |-
+    Checks an input text against one or more LLM-based security and safety rules, such as prompt injection, jailbreak attempts, or custom-defined criteria, and routes the result to either a pass or fail output. Use this when you need to screen user input before it reaches downstream components in your pipeline.
+  agent_usage_notes: |-
+    ## What it does
+    Validates a piece of input text against one or more configurable security and safety guardrails using LLM-based detection. It routes the text to either a **pass** or **fail** output depending on whether the guardrails are triggered.
+
+    ## Inputs to ask about
+    - **model** - Ask the user which LLM provider they want to use for detection; this is required before anything else works.
+    - **enabled_guardrails** - Ask the user which guardrails to activate (e.g., prompt injection, jailbreak, toxic content); they can select multiple. No single default — depends on their use case.
+    - **input_text** - Ask the user what text should be validated; this is typically wired from an earlier component (e.g., a chat input or user message node) rather than typed manually.
+
+    ## Outputs
+    - **pass_result** - Produced when the input clears all enabled guardrails; typically feeds into the next processing step (e.g., an LLM or agent component).
+    - **failed_result** - Produced when one or more guardrails are triggered; typically feeds into an error-handling or response component that informs the user their input was rejected.
+
+    ## Notes
+    - Both outputs are mutually exclusive for a given run — only one will fire per evaluation.
+    - The component requires an LLM to function, so the user must have valid API credentials configured as a separate secret variable before selecting a model.
+    - If the user needs domain-specific detection (e.g., medical, legal, financial content), flag that the advanced **enable_custom_guardrail** option exists so they can describe their own criteria.
+    - Remind the user that connecting `pass_result` and `failed_result` to separate downstream nodes is the intended pattern — leaving one unconnected means that branch is silently dropped.
+- component_name: LLMSelectorComponent
+  agent_summary: |-
+    Routes an input message to the most appropriate LLM chosen from a list of candidate models, using a designated judge LLM and optionally fetching OpenRouter model specifications to inform the decision. It is a good fit when you have multiple specialized models available and want to dynamically match each request to the best one based on task type or an optimization preference. Prefer over Smart Router when your goal is selecting which LLM to invoke rather than categorizing a message into a predefined routing path.
+  agent_usage_notes: |-
+    ## What it does
+    LLM Selector intelligently routes an input message to the most appropriate LLM from a provided list, using a designated "judge" LLM to evaluate and choose the best model. It leverages OpenRouter model specifications to inform routing decisions based on user-defined optimization preferences.
+
+    ## Inputs to ask about
+    - **models** - Ask the user to provide the list of LLM components to route between; at least two models are needed for routing to be meaningful.
+    - **input_value** - Ask the user for the message or prompt text that should be routed to the selected model.
+    - **judge_llm** - Ask the user which LLM should act as the evaluator/selector; this is typically a capable, low-cost model like GPT-4o-mini or Claude Haiku.
+    - **optimization** - Ask the user what they want to optimize for (e.g., speed, cost, quality, or a specific capability); no universal default, so prompt the user to think about their priority.
+
+    ## Outputs
+    - **output** - The response generated by the selected LLM; feeds into downstream message handlers, display components, or further processing steps.
+    - **selected_model_info** - Metadata about which model was chosen; useful for logging, debugging, or conditional branching.
+    - **routing_decision** - The judge's reasoning behind the model choice; helpful for transparency and audit trails.
+
+    ## Notes
+    - The **judge_llm** and **models** are both required — the flow will fail if either is missing or unconnected.
+    - The judge LLM counts as an additional API call, so users should factor in extra latency and cost.
+    - OpenRouter spec fetching is advanced but significantly improves routing quality; worth mentioning if the user reports poor routing decisions.
+- component_name: LambdaFilterComponent
+  agent_summary: |-
+    Uses an LLM to generate a Python lambda function that filters or transforms structured data, DataFrames, or messages based on a plain-language instruction. It is a good fit when you need flexible, ad-hoc data shaping without writing code yourself. Prefer over Data Mapper when the transformation logic is hard to express as an explicit schema and you want the LLM to infer the rules from a natural language description rather than a hand-authored mapping.
+  agent_usage_notes: |-
+    ## What it does
+    Smart Transform uses an LLM to automatically generate a Python lambda function that filters or transforms structured data and messages. You describe the transformation in plain language, and the LLM writes the logic for you.
+
+    ## Inputs to ask about
+    - **data** - Ask the user what data source to connect here; this accepts structured data objects, DataFrames, or text messages from upstream components.
+    - **model** - Ask the user which LLM provider and model to use for generating the transformation logic; defaults will depend on what's connected in the flow.
+    - **filter_instruction** - Ask the user to describe in plain language what filtering or transformation to apply (e.g., "Keep only rows where status is active", "Convert all text to lowercase", "Remove duplicates by ID field"). No default — this is the core prompt driving the logic.
+
+    ## Outputs
+    - **data_output** - Produces the transformed result as a Data object; feeds into components expecting structured data.
+    - **dataframe_output** - Produces the result as a DataFrame; feeds into table viewers, exporters, or further data-processing components.
+    - **message_output** - Produces the result as a message; feeds into chat outputs or downstream LLM steps.
+
+    ## Notes
+    - The component generates code at runtime via an LLM, so the quality of the transformation depends heavily on how clearly the `filter_instruction` is written — encourage specific, concrete descriptions.
+    - Only one output type will be relevant depending on what the upstream data looks like; ask the user which downstream component they're connecting to so they pick the right output.
+    - The API key input is handled separately via the variable-creation flow, not directly here.
+- component_name: SmartRouterComponent
+  agent_summary: |-
+    Routes an input message to one of several named categories by asking an LLM to classify it, then sends the message down the matching output path. It is a good fit when branching logic depends on natural-language intent rather than exact string matching, and it pairs well with downstream components that handle each route differently. Prefer over LLM Selector when you want to direct a message through different workflow branches based on its content, not to choose which LLM model should process it.
+  agent_usage_notes: |-
+    ## What it does
+    Smart Router uses an LLM to categorize an input message and route it to the appropriate output path based on user-defined categories. It evaluates the input text against a table of named routes and directs the message accordingly.
+
+    ## Inputs to ask about
+    - **model** - Ask the user which LLM provider and model they want to use for categorization; this is required before the component can function.
+    - **input_text** - Ask the user what text or variable should be routed; this is typically the output of an earlier component such as a chat input or text field.
+    - **routes** - Ask the user to define their routing categories as a table; each row needs at minimum a route/category name, and optionally a custom output value to pass downstream. For example: `support`, `sales`, `billing`.
+
+    ## Outputs
+    _None._
+
+    ## Notes
+    - The **routes** table drives how many output branches are created — make sure the user defines at least two routes, otherwise routing is meaningless.
+    - The `enable_else_output` advanced option is worth mentioning if the user's input text may not always match a defined route; enabling it adds a fallback "Else" branch.
+    - No outputs are declared in the metadata, so the actual output ports are generated dynamically from the **routes** table at runtime — remind the user that they must save/build the component after editing routes to see the output ports appear.
+    - The `custom_prompt` advanced field lets users refine categorization logic; flag it if the user reports routing accuracy issues.
+    - The API key field is advanced and handled separately via the variable-creation flow; do not prompt the user for it here.
+- component_name: StructuredOutputComponent
+  agent_summary: |-
+    Uses an LLM to parse an input message and produce structured, typed output defined by a user-specified schema, delivering results as both a structured object and a DataFrame. This is a good fit when you need to reliably extract or normalize data from unstructured text into consistent fields without writing explicit mapping logic. Prefer over Data Mapper when the input is unstructured or unpredictable and you need the LLM to interpret and extract fields rather than apply deterministic transforms to already-structured data.
+  agent_usage_notes: |-
+    ## What it does
+    Structured Output prompts an LLM to return data in a defined schema rather than free text. It is ideal for extraction tasks, classification, and any workflow that needs consistent, machine-readable output.
+
+    ## Inputs to ask about
+    - **model** - Ask the user which LLM provider and model they want to use; this must be connected from an existing model component in the flow.
+    - **input_value** - Ask the user for the text or variable that the model should process (e.g. a user message, retrieved document, or upstream output).
+    - **output_schema** - Ask the user to define each field they want in the output, including the field name and data type (e.g. `name: string`, `score: integer`); this is required and drives the entire extraction.
+
+    ## Outputs
+    - **structured_output** - Produces a structured data object matching the defined schema; commonly feeds into a data processing component, conditional router, or output display.
+    - **dataframe_output** - Produces the same result as a DataFrame; useful when downstream components expect tabular data or when the schema represents multiple rows.
+
+    ## Notes
+    - The `model` input expects a connected model component (e.g. OpenAI, Anthropic), not a raw string — make sure a model component is present in the flow before wiring this up.
+    - `output_schema` is required; the component cannot function without at least one field defined.
+    - Both outputs reflect the same extraction — ask the user which format their downstream component expects so they connect the right one.
+    - If extraction results are inconsistent, suggest refining the `system_prompt` (advanced) to give the model clearer formatting instructions.
