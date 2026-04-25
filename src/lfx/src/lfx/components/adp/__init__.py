@@ -24,7 +24,7 @@ from .adp_worker_assignment_tools import ADPWorkerAssignmentToolsComponent
 from .adp_worker_assignment_v3_tools import ADPWorkerAssignmentV3ToolsComponent
 from .adp_worker_biological_tools import ADPWorkerBiologicalToolsComponent
 from .adp_worker_compensation_tools import ADPWorkerCompensationToolsComponent
-from .adp_worker_demographic_tools import ADPWorkerDemographicToolsComponent
+from .adp_worker_demographic_tools import build_worker_demographic_tools
 from .adp_worker_deployment_tools import ADPWorkerDeploymentToolsComponent
 from .adp_worker_hr_profiles_tools import ADPWorkerHrProfilesToolsComponent
 from .adp_worker_identification_tools import ADPWorkerIdentificationToolsComponent
@@ -59,7 +59,7 @@ __all__ = [
     "ADPWorkerAssignmentV3ToolsComponent",
     "ADPWorkerBiologicalToolsComponent",
     "ADPWorkerCompensationToolsComponent",
-    "ADPWorkerDemographicToolsComponent",
+    "build_worker_demographic_tools",
     "ADPWorkerDeploymentToolsComponent",
     "ADPWorkerHrProfilesToolsComponent",
     "ADPWorkerIdentificationToolsComponent",

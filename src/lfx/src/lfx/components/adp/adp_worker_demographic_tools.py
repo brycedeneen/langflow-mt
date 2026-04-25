@@ -1,27 +1,30 @@
-"""ADPWorkerDemographicToolsComponent — name + demographic-status mutations.
+"""ADP worker demographic tools — name + demographic-status mutations.
 
 Backs the ADP WFN `workers-demographic-data-management v2` tile (6 mutations).
-Consolidated into 2 agent tools:
-  * `change_employee_name` — birth | legal | preferred
-  * `change_employee_demographic_status` — marital | military_classification | military_status
+Provides 3 agent tools:
+  * ``change_employee_name`` — birth | legal | preferred
+  * ``change_employee_demographic_status`` — marital | military_classification | military_status
+  * ``change_employee_preferred_gender_pronoun``
 """
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, Literal
+from typing import Any, Literal
 
 import httpx
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
-from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
-from lfx.custom.custom_component.changelog import ChangelogEntry
-from lfx.custom.custom_component.component import Component
+from lfx.components.adp._shared import (
+    ADPConnection,
+    HTTP_CLIENT_ERROR_MIN,
+    HTTP_UNAUTHORIZED,
+    RequestCache,
+    build_mtls_httpx_client,
+    fetch_token,
+    validate_adp_url,
+)
 from lfx.field_typing import Tool
-from lfx.io import BoolInput, HandleInput, Output
-
-HTTP_UNAUTHORIZED = 401
-HTTP_CLIENT_ERROR_MIN = 400
 
 NameType = Literal["birth", "legal", "preferred"]
 StatusType = Literal["marital", "military_classification", "military_status"]
@@ -170,129 +173,78 @@ class ChangePreferredGenderPronounInput(BaseModel):
     reason_code: str | None = Field(default=None, description="ADP event reason code.")
 
 
-class ADPWorkerDemographicToolsComponent(Component):
-    display_name = "ADP Worker Demographic Tools"
-    description = (
-        "Name and demographic-status mutation tools for Langflow Agents, backing ADP WFN "
-        "`workers-demographic-data-management v2`. Two consolidated tools cover 6 endpoints. "
-        "Gated behind `enable_mutations`."
-    )
-    icon = "UserPen"
-    name = "ADPWorkerDemographicTools"
-    version: int = 2
-    changelog: ClassVar[list[ChangelogEntry]] = [
-        ChangelogEntry(
-            version=1,
-            changes=(
-                "Initial release — 2 consolidated agent tools for ADP WFN "
-                "workers-demographic-data-management v2: `change_employee_name` (birth/legal/preferred), "
-                "`change_employee_demographic_status` (marital/military-classification/military-status). "
-                "Gated behind `enable_mutations` (default off)."
-            ),
-        ),
-        ChangelogEntry(
-            version=2,
-            changes=(
-                "Added `change_employee_preferred_gender_pronoun` — wraps ADP WFN "
-                "`worker-associate-profiles v2` pronoun-change event so a single component "
-                "covers all personal-identity mutations."
-            ),
-        ),
-    ]
-
-    inputs = [
-        HandleInput(
-            name="connection",
-            display_name="ADP Connection",
-            input_types=["ADPConnection"],
-            info="Connection produced by an ADP Auth component.",
-            required=True,
-        ),
-        BoolInput(
-            name="enable_mutations",
-            display_name="Enable Mutations",
-            info="Expose demographic mutation tools. Off by default.",
-            value=False,
-        ),
-    ]
-
-    outputs = [
-        Output(display_name="Tools", name="tools", method="build_tools"),
-    ]
-
-    async def _execute_request(
-        self, client: httpx.AsyncClient, *, url: str, headers: dict[str, str],
-        json_body: dict[str, Any], timeout: float,
-    ) -> httpx.Response:
-        return await client.request("POST", url, headers=headers, json=json_body, timeout=timeout)
-
-    async def _post_event(self, conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
-        url = f"{conn.api_base_url}{path}"
-        validate_adp_url(url, field_name="api_base_url")
-        headers = {"Authorization": f"Bearer {conn.access_token}"}
-        async with build_mtls_httpx_client(conn, timeout=30.0) as client:
-            response = await self._execute_request(client, url=url, headers=headers, json_body=body, timeout=30.0)
-            if response.status_code == HTTP_UNAUTHORIZED:
-                await fetch_token(conn, force=True)
-                headers["Authorization"] = f"Bearer {conn.access_token}"
-                response = await self._execute_request(
-                    client, url=url, headers=headers, json_body=body, timeout=30.0,
-                )
-        if response.status_code >= HTTP_CLIENT_ERROR_MIN:
-            try:
-                detail = response.json()
-            except ValueError:
-                detail = response.text
-            return {"error": detail, "status_code": response.status_code}
+async def _post_event(conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
+    """POST a single ADP event, with one 401-refresh retry."""
+    url = f"{conn.api_base_url}{path}"
+    validate_adp_url(url, field_name="api_base_url")
+    headers = {"Authorization": f"Bearer {conn.access_token}"}
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
+        response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+        if response.status_code == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+    if response.status_code >= HTTP_CLIENT_ERROR_MIN:
         try:
-            return response.json()
+            detail = response.json()
         except ValueError:
-            return {"ok": True, "status_code": response.status_code}
+            detail = response.text
+        return {"error": detail, "status_code": response.status_code}
+    try:
+        return response.json()
+    except ValueError:
+        return {"ok": True, "status_code": response.status_code}
 
-    async def build_tools(self) -> list[Tool]:
-        if not self.enable_mutations:
-            return []
-        conn: ADPConnection = self.connection
-        component = self
 
-        async def _change_name(**kw: Any) -> dict[str, Any]:
-            path, body = build_change_name_event(**kw)
-            return await component._post_event(conn, path=path, body=body)
+def build_worker_demographic_tools(
+    connection: ADPConnection,
+    request_cache: RequestCache,  # accepted for registry uniformity; unused for writes
+) -> list[Tool]:
+    """Build ADP worker demographic mutation tools.
 
-        async def _change_status(**kw: Any) -> dict[str, Any]:
-            path, body = build_change_demographic_status_event(**kw)
-            return await component._post_event(conn, path=path, body=body)
+    Returns 3 StructuredTools for name changes, demographic status changes,
+    and preferred gender pronoun changes. Writes never consult the request_cache.
+    """
+    conn = connection
 
-        async def _change_preferred_gender_pronoun(**kw: Any) -> dict[str, Any]:
-            body = build_change_preferred_gender_pronoun_event(**kw)
-            return await component._post_event(conn, path=PATH_PREFERRED_GENDER_PRONOUN, body=body)
+    async def _change_name(**kw: Any) -> dict[str, Any]:
+        path, body = build_change_name_event(**kw)
+        return await _post_event(conn, path=path, body=body)
 
-        return [
-            StructuredTool.from_function(
-                name="change_employee_name",
-                description=(
-                    "Change an employee's birth name, legal name, or preferred name. Pass `name_type` "
-                    "plus the name fields to update."
-                ),
-                coroutine=_change_name,
-                args_schema=ChangeEmployeeNameInput,
+    async def _change_status(**kw: Any) -> dict[str, Any]:
+        path, body = build_change_demographic_status_event(**kw)
+        return await _post_event(conn, path=path, body=body)
+
+    async def _change_preferred_gender_pronoun(**kw: Any) -> dict[str, Any]:
+        body = build_change_preferred_gender_pronoun_event(**kw)
+        return await _post_event(conn, path=PATH_PREFERRED_GENDER_PRONOUN, body=body)
+
+    return [
+        StructuredTool.from_function(
+            name="change_employee_name",
+            description=(
+                "Change an employee's birth name, legal name, or preferred name. Pass `name_type` "
+                "plus the name fields to update."
             ),
-            StructuredTool.from_function(
-                name="change_employee_demographic_status",
-                description=(
-                    "Change an employee's marital status, military classification, or military "
-                    "status by code value. Pass `status_type` to pick which one."
-                ),
-                coroutine=_change_status,
-                args_schema=ChangeEmployeeDemographicStatusInput,
+            coroutine=_change_name,
+            args_schema=ChangeEmployeeNameInput,
+        ),
+        StructuredTool.from_function(
+            name="change_employee_demographic_status",
+            description=(
+                "Change an employee's marital status, military classification, or military "
+                "status by code value. Pass `status_type` to pick which one."
             ),
-            StructuredTool.from_function(
-                name="change_employee_preferred_gender_pronoun",
-                description=(
-                    "Change an employee's preferred gender pronoun (e.g. 'She/Her', 'He/Him', "
-                    "'They/Them') by code value."
-                ),
-                coroutine=_change_preferred_gender_pronoun,
-                args_schema=ChangePreferredGenderPronounInput,
+            coroutine=_change_status,
+            args_schema=ChangeEmployeeDemographicStatusInput,
+        ),
+        StructuredTool.from_function(
+            name="change_employee_preferred_gender_pronoun",
+            description=(
+                "Change an employee's preferred gender pronoun (e.g. 'She/Her', 'He/Him', "
+                "'They/Them') by code value."
             ),
-        ]
+            coroutine=_change_preferred_gender_pronoun,
+            args_schema=ChangePreferredGenderPronounInput,
+        ),
+    ]
