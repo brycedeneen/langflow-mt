@@ -22,8 +22,21 @@ from lfx.schema.data import Data
 from lfx.schema.message import Message
 from lfx.schema.properties import Usage
 from lfx.schema.schema import INPUT_FIELD_NAME, OutputValue, build_output_logs
+from lfx.services.deps import get_settings_service
 from lfx.utils.schemas import ChatOutputResponse
 from lfx.utils.util import sync_to_async
+
+
+def _get_pricing_service():
+    """Lazy resolver for langflow's PricingService.
+
+    Imported lazily to avoid module-level cross-package coupling between lfx and langflow.
+    Exposed as a module-level symbol so tests can patch it cleanly.
+    """
+    from langflow.services.deps import get_pricing_service
+
+    return get_pricing_service()
+
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -522,6 +535,32 @@ class Vertex:
             return self.custom_component._token_usage  # noqa: SLF001
         return None
 
+    def _stamp_model_and_cost(self, usage: Usage | None) -> Usage | None:
+        """Stamp model_name and cost_micros onto the vertex's Usage in place.
+
+        - model_name is copied from custom_component._model_name when available.
+        - cost_micros is computed via PricingService when cost tracking is enabled
+          and a model name is set; otherwise left as None.
+        Returns the same Usage instance (or None if input was None) for caller convenience.
+        """
+        if usage is None:
+            return None
+        model_name = getattr(self.custom_component, "_model_name", None)
+        usage.model_name = model_name
+        try:
+            settings = get_settings_service().settings
+            if settings.cost_tracking_enabled and model_name:
+                pricing = _get_pricing_service()
+                usage.cost_micros = pricing.compute_cost_micros(
+                    model_name,
+                    input_tokens=usage.input_tokens or 0,
+                    output_tokens=usage.output_tokens or 0,
+                )
+        except Exception:  # noqa: BLE001
+            # Pricing is a non-essential cosmetic; never let it break a build.
+            usage.cost_micros = None
+        return usage
+
     def finalize_build(self) -> None:
         result_dict = self.get_built_result()
         # We need to set the artifacts to pass information
@@ -530,6 +569,7 @@ class Vertex:
         artifacts = self.artifacts_raw
         messages = self.extract_messages_from_artifacts(artifacts) if isinstance(artifacts, dict) else []
         token_usage = self._extract_token_usage()
+        token_usage = self._stamp_model_and_cost(token_usage)
         result_dict = ResultData(
             results=result_dict,
             artifacts=artifacts,
