@@ -96,7 +96,7 @@ export default function SettingsPage(): JSX.Element {
 
   if (isAdmin || userData?.is_superuser) {
     sidebarNavItems.push({
-      title: "Flow and Component Management",
+      title: "Component Management",
       href: "/settings/metadata",
       icon: (
         <ForwardedIconComponent

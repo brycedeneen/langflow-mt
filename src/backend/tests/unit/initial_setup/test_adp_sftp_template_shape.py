@@ -111,8 +111,8 @@ def test_sftp_node_per_flow_fields_empty(template):
 
 
 def test_metadata_sibling_file_present_and_well_formed():
-    # The metadata.json remains in the original starter_projects directory
-    # (not in the alembic fixtures), as it's consumed by create_or_update_template_metadata.
+    # The metadata.json remains in the original starter_projects directory,
+    # not in the alembic fixtures.
     sibling = (
         Path(__file__).resolve().parents[3]
         / "base"

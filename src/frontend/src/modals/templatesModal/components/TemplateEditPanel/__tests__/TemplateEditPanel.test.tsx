@@ -72,7 +72,9 @@ function renderWithClient(ui: React.ReactNode) {
 // ---- Tests ----------------------------------------------------------
 
 describe("TemplateEditPanel agent fields", () => {
-  beforeEach(() => mockMutate.mockReset());
+  beforeEach(() => {
+    mockMutate.mockReset();
+  });
 
   it("renders agent_summary + agent_usage_notes inputs", () => {
     renderWithClient(

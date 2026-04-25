@@ -1072,8 +1072,7 @@ async def create_or_update_component_agent_metadata(
             agent_usage_notes = entry.get("agent_usage_notes")
 
             # Per-entry session: lets us isolate IntegrityError on a single insert race
-            # without rolling back unrelated entries. Diverges from create_or_update_template_metadata
-            # which uses a single session because there's no per-row race risk there.
+            # without rolling back unrelated entries.
             async with session_scope() as session:
                 existing_stmt = select(ComponentMetadata).where(
                     ComponentMetadata.component_name == component_name
