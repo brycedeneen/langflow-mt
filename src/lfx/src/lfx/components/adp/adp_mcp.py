@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 import httpx
 from langchain_core.tools import StructuredTool
 
 from lfx.components.adp._shared import ADPConnection, fetch_token, validate_adp_url
+from lfx.custom.custom_component.changelog import ChangelogEntry
 from lfx.custom.custom_component.component import Component
 from lfx.field_typing import Tool
 from lfx.io import HandleInput, MessageTextInput, Output
@@ -18,6 +19,24 @@ class ADPMCPComponent(Component):
     description = "Connect to ADP's MCP server and expose its tools to an Agent component."
     icon = "Plug"
     name = "ADPMCP"
+    version: int = 1
+    changelog: ClassVar[list[ChangelogEntry]] = [
+        ChangelogEntry(
+            version=1,
+            changes=(
+                "Initial release. Connects to an ADP MCP server using an "
+                "ADPConnection and exposes its tools to a Langflow Agent:\n"
+                "- Bearer-token auth with automatic 401 token refresh.\n"
+                "- Optional `mcp_url` override and comma-separated `tool_filter`.\n"
+                "- Tools converted to `StructuredTool` instances with schemas derived "
+                "from each MCP tool's `inputSchema`.\n"
+                "- SSRF allowlist via shared `validate_adp_url`.\n"
+                "**Placeholder**: ADP's public MCP server is not yet generally "
+                "available, so this component currently has no live endpoint to "
+                "exercise. Wiring is in place for when ADP ships its MCP URL."
+            ),
+        ),
+    ]
 
     inputs = [
         HandleInput(

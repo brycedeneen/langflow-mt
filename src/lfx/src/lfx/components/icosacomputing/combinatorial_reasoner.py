@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import requests
 from requests.auth import HTTPBasicAuth
 
@@ -11,16 +13,26 @@ from lfx.schema.message import Message
 
 class CombinatorialReasonerComponent(Component):
     display_name = "Combinatorial Reasoner"
-    description = "Uses Combinatorial Optimization to construct an optimal prompt with embedded reasons. Sign up here:\nhttps://forms.gle/oWNv2NKjBNaqqvCx6"
+    description = (
+        "WARNING: This component forwards your OpenAI API key to Icosa Computing's servers "
+        "(cr-api.icosacomputing.com). Your key is used by Icosa to call OpenAI on your behalf. "
+        "Only use this component if you trust Icosa with your OpenAI credentials. "
+        "Uses Combinatorial Optimization to construct an optimal prompt with embedded reasons. "
+        "Sign up here:\nhttps://forms.gle/oWNv2NKjBNaqqvCx6"
+    )
     icon = "Icosa"
     name = "Combinatorial Reasoner"
+    legacy: ClassVar[bool] = True
 
     inputs = [
         MessageTextInput(name="prompt", display_name="Prompt", required=True),
         SecretStrInput(
             name="openai_api_key",
             display_name="OpenAI API Key",
-            info="The OpenAI API Key to use for the OpenAI model.",
+            info=(
+                "WARNING: This key is sent to Icosa Computing's servers (cr-api.icosacomputing.com), "
+                "which then call OpenAI on your behalf. Only provide a key you are willing to share with Icosa."
+            ),
             advanced=False,
             value="OPENAI_API_KEY",
             required=True,

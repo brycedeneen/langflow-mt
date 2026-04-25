@@ -105,11 +105,15 @@ class AIMLModelComponent(LCModelComponent):
             str: The message from the exception.
         """
         try:
-            from openai.error import BadRequestError
+            from openai import BadRequestError
         except ImportError:
             return None
         if isinstance(e, BadRequestError):
-            message = e.json_body.get("error", {}).get("message", "")
-            if message:
-                return message
+            # OpenAI SDK v1+ exposes structured error info via ``body`` (or ``response.json()``).
+            body = getattr(e, "body", None) or {}
+            if isinstance(body, dict):
+                message = body.get("error", {}).get("message", "") if isinstance(body.get("error"), dict) else ""
+                if message:
+                    return message
+            return getattr(e, "message", None) or str(e)
         return None

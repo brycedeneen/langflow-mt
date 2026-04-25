@@ -398,6 +398,16 @@ class Settings(BaseSettings):
     run_payload_inline_max_bytes: int = 1 * 1024 * 1024
     """Inputs/result larger than this are offloaded to object storage."""
 
+    webhook_allow_http: bool = False
+    """Allow plain http:// (in addition to https://) for outgoing flow webhook delivery.
+    Default False — webhooks are blocked unless https. Only enable for local development."""
+
+    webhook_skip_url_validation: bool = False
+    """Skip the SSRF guard on outgoing webhook delivery (host resolution + private-IP block).
+    Default False. Intended ONLY for tests that mock the HTTP layer (e.g. respx) and use
+    non-resolvable hosts like *.test. Never enable in production — this disables the
+    cloud-metadata / private-IP block."""
+
     run_logs_max_bytes: int = 10 * 1024 * 1024
     """Per-run cap on captured execution logs (bytes)."""
 

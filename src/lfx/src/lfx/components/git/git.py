@@ -1,4 +1,5 @@
 import re
+import shutil
 import tempfile
 from contextlib import asynccontextmanager
 from fnmatch import fnmatch
@@ -201,14 +202,19 @@ class GitLoaderComponent(Component):
 
     @asynccontextmanager
     async def temp_clone_dir(self):
-        """Context manager for handling temporary clone directory."""
+        """Context manager for handling temporary clone directory.
+
+        Uses ``shutil.rmtree`` (off-thread) so cleanup works for non-empty
+        directories — i.e. once GitLoader has cloned into them. The previous
+        ``rmdir`` only worked on empty dirs and silently leaked clones.
+        """
         temp_dir = None
         try:
             temp_dir = tempfile.mkdtemp(prefix="langflow_clone_")
             yield temp_dir
         finally:
             if temp_dir:
-                await anyio.Path(temp_dir).rmdir()
+                await anyio.to_thread.run_sync(lambda: shutil.rmtree(temp_dir, ignore_errors=True))
 
     def update_build_config(self, build_config: dict, field_value: str, field_name: str | None = None) -> dict:
         # Hide fields by default
@@ -227,36 +233,52 @@ class GitLoaderComponent(Component):
 
         return build_config
 
-    async def build_gitloader(self) -> GitLoader:
+    def _build_gitloader(self, repo_path: str, *, clone_url: str | None) -> GitLoader:
+        """Construct a GitLoader for ``repo_path``. Caller manages the temp dir lifetime."""
         file_filter_patterns = getattr(self, "file_filter", None)
         content_filter_pattern = getattr(self, "content_filter", None)
-
         combined_filter = self.build_combined_filter(file_filter_patterns, content_filter_pattern)
 
-        repo_source = getattr(self, "repo_source", None)
-        if repo_source == "Local":
-            repo_path = self.repo_path
-            clone_url = None
-        else:
-            # Clone source
-            clone_url = self.clone_url
-            async with self.temp_clone_dir() as temp_dir:
-                repo_path = temp_dir
-
         # Only pass branch if it's explicitly set
-        branch = getattr(self, "branch", None)
-        if not branch:
-            branch = None
+        branch = getattr(self, "branch", None) or None
 
         return GitLoader(
             repo_path=repo_path,
-            clone_url=clone_url if repo_source == "Remote" else None,
+            clone_url=clone_url,
             branch=branch,
             file_filter=combined_filter,
         )
 
+    async def build_gitloader(self) -> GitLoader:
+        """Public helper retained for backwards compatibility.
+
+        For "Remote", this constructs a clone but cannot manage the temp-dir
+        lifetime — prefer ``load_documents`` which loads while the clone dir
+        is still on disk.
+        """
+        repo_source = getattr(self, "repo_source", None)
+        if repo_source == "Local":
+            return self._build_gitloader(self.repo_path, clone_url=None)
+        # Remote: callers using this method must accept that the clone dir
+        # is temporary and consume the loader synchronously inside their own
+        # temp_clone_dir context. This branch exists for legacy callers; the
+        # in-process path goes through load_documents below.
+        async with self.temp_clone_dir() as temp_dir:
+            return self._build_gitloader(temp_dir, clone_url=self.clone_url)
+
     async def load_documents(self) -> list[Data]:
-        gitloader = await self.build_gitloader()
-        data = [Data.from_document(doc) async for doc in gitloader.alazy_load()]
+        repo_source = getattr(self, "repo_source", None)
+        if repo_source == "Local":
+            gitloader = self._build_gitloader(self.repo_path, clone_url=None)
+            data = [Data.from_document(doc) async for doc in gitloader.alazy_load()]
+        else:
+            # Keep the temp clone dir alive for the entire duration of the
+            # GitLoader run — the previous code captured ``temp_dir`` inside
+            # the context and used it after exit, leaving GitLoader to run
+            # against a deleted path while the rmdir silently failed on the
+            # non-empty clone.
+            async with self.temp_clone_dir() as temp_dir:
+                gitloader = self._build_gitloader(temp_dir, clone_url=self.clone_url)
+                data = [Data.from_document(doc) async for doc in gitloader.alazy_load()]
         self.status = data
         return data

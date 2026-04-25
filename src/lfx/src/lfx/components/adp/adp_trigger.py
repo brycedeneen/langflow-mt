@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+from typing import ClassVar
 
+from lfx.custom.custom_component.changelog import ChangelogEntry
 from lfx.custom.custom_component.component import Component
 from lfx.io import MultilineInput, MultiselectInput, Output
 from lfx.schema.data import Data
@@ -122,6 +124,26 @@ class ADPTriggerComponent(Component):
     name = "ADPTrigger"
     icon = "webhook"
     documentation: str = "https://docs.langflow.org/component-adp-trigger"
+    version: int = 1
+    changelog: ClassVar[list[ChangelogEntry]] = [
+        ChangelogEntry(
+            version=1,
+            changes=(
+                "Initial release. Inbound webhook trigger that accepts ADP event "
+                "notifications and gates them by event type:\n"
+                "- Friendly Event Types multiselect (New Hire, Rehire, Retirement, "
+                "Leave, Hire Date Change, Deceased) mapped to all known ADP event "
+                "identifier variants.\n"
+                "- Tolerates real ADP envelope shapes (`data.output.worker`) and "
+                "older sample shapes (`data.eventContext.worker`).\n"
+                "- Extracts `effectiveDateTime` from event-level or "
+                "`data.transform.effectiveDateTime` fallbacks.\n"
+                "- Emits a normalized `{event_type, event_id, worker, "
+                "effective_date, raw_payload}` Data object; non-matching events "
+                "return an empty payload."
+            ),
+        ),
+    ]
 
     inputs = [
         MultilineInput(

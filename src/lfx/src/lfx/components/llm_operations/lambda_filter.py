@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import ast
 import json
 import re
-from collections.abc import Callable  # noqa: TC003 - required at runtime for dynamic exec()
 from typing import Any
+
+from asteval import Interpreter
 
 from lfx.base.models.unified_models import (
     apply_provider_variable_config_to_build_config,
@@ -154,10 +156,83 @@ class LambdaFilterComponent(Component):
         # For primitive types, return the type name
         return type(data).__name__
 
+    # Tokens that must never appear in an LLM-generated lambda — defense in depth
+    # before AST parsing and asteval evaluation. Untrusted prompt content can coerce
+    # the model into emitting code that bypasses parsing tricks; reject aggressively.
+    _FORBIDDEN_LAMBDA_TOKENS = (
+        "__",
+        "import",
+        "eval",
+        "exec",
+        "open",
+        "compile",
+        "globals",
+        "locals",
+        "vars",
+        "breakpoint",
+    )
+
     def _validate_lambda(self, lambda_text: str) -> bool:
         """Validate the provided lambda function text."""
         # Return False if the lambda function does not start with 'lambda' or does not contain a colon
         return lambda_text.strip().startswith("lambda") and ":" in lambda_text
+
+    def _split_lambda(self, lambda_text: str) -> tuple[str, str]:
+        """Parse a single-arg lambda into (param_name, body_source).
+
+        Uses ast.parse so we don't rely on string heuristics. Raises ValueError
+        with a non-leaking message on any malformed or unsafe construct.
+        """
+        for token in self._FORBIDDEN_LAMBDA_TOKENS:
+            if token in lambda_text:
+                msg = "Generated lambda contains a forbidden identifier."
+                raise ValueError(msg)
+
+        try:
+            tree = ast.parse(lambda_text, mode="eval")
+        except SyntaxError as e:
+            msg = "Generated lambda is not valid Python."
+            raise ValueError(msg) from e
+
+        if not isinstance(tree.body, ast.Lambda):
+            msg = "Generated expression is not a lambda."
+            raise ValueError(msg)  # noqa: TRY004 - this is invalid format, not invalid type
+
+        lam = tree.body
+        args = lam.args
+        # Reject anything fancier than a single positional param: no *args/**kwargs,
+        # no keyword-only args, no defaults.
+        if (
+            len(args.args) != 1
+            or args.vararg is not None
+            or args.kwarg is not None
+            or args.kwonlyargs
+            or args.posonlyargs
+            or args.defaults
+            or args.kw_defaults
+        ):
+            msg = "Generated lambda must take exactly one positional parameter."
+            raise ValueError(msg)
+
+        param_name = args.args[0].arg
+        body_src = ast.unparse(lam.body)
+        return param_name, body_src
+
+    def _safe_eval_lambda(self, lambda_text: str, value: Any) -> Any:
+        """Evaluate the lambda body in an asteval sandbox with `value` bound to the param."""
+        param_name, body_src = self._split_lambda(lambda_text)
+
+        interp = Interpreter(use_numpy=False, minimal=False)
+        interp.symtable[param_name] = value
+        try:
+            result = interp.eval(body_src, show_errors=False, raise_errors=False)
+        except Exception as e:
+            msg = "Failed to evaluate generated lambda in sandbox."
+            raise ValueError(msg) from e
+        if interp.error:
+            msg = "Failed to evaluate generated lambda in sandbox."
+            raise ValueError(msg)
+        return result
 
     def _get_input_type_name(self) -> str:
         """Detect and return the input type name for error messages."""
@@ -249,21 +324,28 @@ class LambdaFilterComponent(Component):
             dump_structure=dump_structure, data_sample=data_sample, instruction=self.filter_instruction
         )
 
-    def _parse_lambda_from_response(self, response_text: str) -> Callable[[Any], Any]:
-        """Extract and validate lambda function from LLM response."""
+    def _parse_lambda_from_response(self, response_text: str) -> str:
+        """Extract and validate lambda function text from LLM response.
+
+        Returns the raw lambda source. Evaluation is deferred to
+        ``_safe_eval_lambda`` which runs the body in an asteval sandbox.
+        """
         lambda_match = re.search(r"lambda\s+\w+\s*:.*?(?=\n|$)", response_text)
         if not lambda_match:
-            msg = f"Could not find lambda in response: {response_text}"
+            msg = "Could not find a lambda in the model response."
             raise ValueError(msg)
 
         lambda_text = lambda_match.group().strip()
         self.log(f"Generated lambda: {lambda_text}")
 
         if not self._validate_lambda(lambda_text):
-            msg = f"Invalid lambda format: {lambda_text}"
+            msg = "Generated lambda has an invalid format."
             raise ValueError(msg)
 
-        return eval(lambda_text)  # noqa: S307
+        # Validate AST + forbidden tokens up front so callers fail fast on
+        # unsafe text before we hand it any data.
+        self._split_lambda(lambda_text)
+        return lambda_text
 
     async def _execute_lambda(self) -> Any:
         """Generate and execute a lambda function based on input type."""
@@ -282,8 +364,8 @@ class LambdaFilterComponent(Component):
         )
         response_text = response.content if hasattr(response, "content") else str(response)
 
-        fn = self._parse_lambda_from_response(response_text)
-        return fn(data)
+        lambda_text = self._parse_lambda_from_response(response_text)
+        return self._safe_eval_lambda(lambda_text, data)
 
     def _handle_process_error(self, error: Exception, output_type: str) -> None:
         """Handle errors from process methods with context-aware messages."""

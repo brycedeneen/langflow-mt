@@ -1,5 +1,9 @@
+import contextlib
+import os
 import tempfile
 import time
+import weakref
+from pathlib import Path
 
 import certifi
 from langchain_community.vectorstores import MongoDBAtlasVectorSearch
@@ -93,6 +97,52 @@ class MongoVectorStoreComponent(LCVectorStoreComponent):
         ),
     ]
 
+    @staticmethod
+    def _validate_combined_client_cert(pem: str) -> None:
+        """Reject obviously malformed combined PEMs.
+
+        We deliberately do NOT mangle the PEM (the previous behavior silently
+        rewrote whitespace, which corrupts encrypted private keys). If the
+        user's input is not a normal cert+key PEM, raise so they can fix it.
+        """
+        if not pem or not pem.strip():
+            msg = "Client certificate is empty."
+            raise ValueError(msg)
+        # Must contain both a private key block and a certificate block.
+        has_key = "-----BEGIN" in pem and "PRIVATE KEY-----" in pem and "-----END" in pem
+        has_cert = "-----BEGIN CERTIFICATE-----" in pem and "-----END CERTIFICATE-----" in pem
+        if not (has_key and has_cert):
+            msg = (
+                "Invalid PEM format: combined client certificate must contain "
+                "both a PRIVATE KEY block and a CERTIFICATE block."
+            )
+            raise ValueError(msg)
+
+    @staticmethod
+    def _write_secure_combined_pem(pem: str) -> str:
+        """Write `pem` to a fresh 0600 temp file and return its absolute path.
+
+        Caller is responsible for unlinking the file in a finally block.
+        """
+        fd, name = tempfile.mkstemp(suffix=".pem", prefix="langflow-mongodb-mtls-")
+        try:
+            os.write(fd, pem.encode("utf-8"))
+        except BaseException:
+            os.close(fd)
+            Path(name).unlink(missing_ok=True)
+            raise
+        else:
+            os.close(fd)
+        # mkstemp creates at 0600 by default; chmod is belt-and-suspenders.
+        Path(name).chmod(0o600)
+        return name
+
+    @staticmethod
+    def _delete_pem_path(path: str) -> None:
+        """Best-effort unlink — used both at construction failure and at GC time."""
+        with contextlib.suppress(OSError):
+            Path(path).unlink(missing_ok=True)
+
     @check_cached_vector_store
     def build_vector_store(self) -> MongoDBAtlasVectorSearch:
         try:
@@ -101,27 +151,18 @@ class MongoVectorStoreComponent(LCVectorStoreComponent):
             msg = "Please install pymongo to use MongoDB Atlas Vector Store"
             raise ImportError(msg) from e
 
-        # Create temporary files for the client certificate
+        client_cert_path: str | None = None
         if self.enable_mtls:
-            client_cert_path = None
+            self._validate_combined_client_cert(self.mongodb_atlas_client_cert)
             try:
-                client_cert = self.mongodb_atlas_client_cert.replace(" ", "\n")
-                client_cert = client_cert.replace("-----BEGIN\nPRIVATE\nKEY-----", "-----BEGIN PRIVATE KEY-----")
-                client_cert = client_cert.replace(
-                    "-----END\nPRIVATE\nKEY-----\n-----BEGIN\nCERTIFICATE-----",
-                    "-----END PRIVATE KEY-----\n-----BEGIN CERTIFICATE-----",
-                )
-                client_cert = client_cert.replace("-----END\nCERTIFICATE-----", "-----END CERTIFICATE-----")
-                with tempfile.NamedTemporaryFile(delete=False) as client_cert_file:
-                    client_cert_file.write(client_cert.encode("utf-8"))
-                    client_cert_path = client_cert_file.name
-
-            except Exception as e:
-                msg = f"Failed to write certificate to temporary file: {e}"
+                client_cert_path = self._write_secure_combined_pem(self.mongodb_atlas_client_cert)
+            except OSError as e:
+                msg = "Failed to write client certificate to a secure temporary file."
                 raise ValueError(msg) from e
 
+        mongo_client: MongoClient | None = None
         try:
-            mongo_client: MongoClient = (
+            mongo_client = (
                 MongoClient(
                     self.mongodb_atlas_cluster_uri,
                     tls=True,
@@ -131,9 +172,24 @@ class MongoVectorStoreComponent(LCVectorStoreComponent):
                 if self.enable_mtls
                 else MongoClient(self.mongodb_atlas_cluster_uri)
             )
+        except Exception as e:
+            # Failed to construct the client — unlink the cert immediately,
+            # nothing is holding a reference to it.
+            if client_cert_path is not None:
+                self._delete_pem_path(client_cert_path)
+            msg = f"Failed to connect to MongoDB Atlas: {e}"
+            raise ValueError(msg) from e
 
+        # PyMongo connects lazily and may need the on-disk cert at any point
+        # during the client's lifetime. Bind the temp file's lifetime to the
+        # MongoClient via weakref.finalize — it's unlinked when the client is
+        # garbage-collected, success or failure, with secure 0600 perms in the
+        # meantime.
+        if client_cert_path is not None:
+            weakref.finalize(mongo_client, self._delete_pem_path, client_cert_path)
+
+        try:
             collection = mongo_client[self.db_name][self.collection_name]
-
         except Exception as e:
             msg = f"Failed to connect to MongoDB Atlas: {e}"
             raise ValueError(msg) from e
