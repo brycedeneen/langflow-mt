@@ -1,5 +1,4 @@
 import { useUpdateNodeInternals } from "@xyflow/react";
-import { cloneDeep } from "lodash";
 import { useCallback } from "react";
 import useFlowStore from "@/stores/flowStore";
 import type { AllNodeType } from "@/types/flow";
@@ -17,19 +16,17 @@ const useHandleNodeClass = (
   const handleNodeClass = useCallback(
     (newNodeClass, type?: string) => {
       setNode(nodeId, (oldNode) => {
-        const newNode = cloneDeep(oldNode);
-
-        newNode.data = {
-          ...newNode.data,
-          node: cloneDeep(newNodeClass),
+        const newData: typeof oldNode.data = {
+          ...oldNode.data,
+          node: newNodeClass,
         };
         if (type) {
-          newNode.data.type = type;
+          newData.type = type;
         }
 
         updateNodeInternals(nodeId);
 
-        return newNode;
+        return { ...oldNode, data: newData };
       });
     },
     [nodeId, setNode, updateNodeInternals],
