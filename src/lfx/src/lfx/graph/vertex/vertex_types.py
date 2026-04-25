@@ -188,6 +188,7 @@ class ComponentVertex(Vertex):
         # to the frontend
         messages = self.extract_messages_from_artifacts(result_dict)
         token_usage = self._extract_token_usage()
+        token_usage = self._stamp_model_and_cost(token_usage)
         result_dict = ResultData(
             results=result_dict,
             artifacts=self.artifacts,

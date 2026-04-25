@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from lfx.graph.vertex.base import Vertex
+from lfx.graph.vertex.vertex_types import ComponentVertex
 from lfx.schema.properties import Usage
 
 
@@ -102,6 +103,54 @@ def test_finalize_build_handles_unpriced_model():
     result_data = vertex.set_result.call_args.args[0]
     assert result_data.token_usage.model_name == "unpriced-model"
     assert result_data.token_usage.cost_micros is None
+
+
+def _make_component_vertex_stub(*, model_name: str | None, usage: Usage | None) -> ComponentVertex:
+    """Construct just enough of a ComponentVertex to invoke its finalize_build override.
+
+    ComponentVertex overrides Vertex.finalize_build, so the base-class tests above do not
+    exercise the path that real components (Agent, LLM, etc.) actually take. This stub mirrors
+    the base stub but constructs a ComponentVertex.
+    """
+    stub = ComponentVertex.__new__(ComponentVertex)
+    stub.is_output = False
+    stub.custom_component = SimpleNamespace(_token_usage=usage, _model_name=model_name)
+    stub.id = "vertex-1"
+    stub.display_name = "Test"
+    stub.outputs_logs = {}
+    stub.logs = {}
+    stub.artifacts = {}
+    stub.get_built_result = lambda: {}
+    stub.extract_messages_from_artifacts = lambda *_a, **_kw: []
+    stub.set_result = MagicMock()
+    return stub
+
+
+def test_component_vertex_finalize_build_stamps_cost():
+    """Regression: ComponentVertex.finalize_build overrides the base method and must
+    also call _stamp_model_and_cost. Without this, every Component (Agent, LLM, etc.)
+    silently drops cost_micros and the node-status tooltip cost row never renders.
+    """
+    usage = Usage(input_tokens=1000, output_tokens=500, total_tokens=1500)
+    vertex = _make_component_vertex_stub(model_name="claude-sonnet-4-6", usage=usage)
+
+    pricing = MagicMock()
+    pricing.compute_cost_micros.return_value = 234_567
+
+    settings = SimpleNamespace(cost_tracking_enabled=True)
+
+    with (
+        patch("lfx.graph.vertex.base._get_pricing_service", return_value=pricing),
+        patch("lfx.graph.vertex.base.get_settings_service", return_value=SimpleNamespace(settings=settings)),
+    ):
+        vertex.finalize_build()
+
+    pricing.compute_cost_micros.assert_called_once_with(
+        "claude-sonnet-4-6", input_tokens=1000, output_tokens=500
+    )
+    result_data = vertex.set_result.call_args.args[0]
+    assert result_data.token_usage.model_name == "claude-sonnet-4-6"
+    assert result_data.token_usage.cost_micros == 234_567
 
 
 def test_finalize_build_resolves_model_name_from_list_of_dicts():
