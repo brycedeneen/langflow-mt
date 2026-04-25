@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from sqlmodel import Session, select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from langflow.services.database.models.organization.model import Organization
 from langflow.services.database.models.professional_services_settings.model import (
@@ -32,3 +33,22 @@ def read_settings_singleton(session: Session) -> ProfessionalServicesSettings:
         select(ProfessionalServicesSettings).where(ProfessionalServicesSettings.id == 1)
     ).one()
     return settings
+
+
+async def read_settings_singleton_async(
+    session: AsyncSession,
+) -> ProfessionalServicesSettings:
+    """Async equivalent of ``read_settings_singleton``.
+
+    The migration seeds id=1 so this never raises in normal operation. Tests
+    that bootstrap via ``SQLModel.metadata.create_all`` must seed the row in
+    a session-scoped fixture (see ``tests/unit/api/v1/conftest.py``).
+    """
+    row = (
+        await session.exec(
+            select(ProfessionalServicesSettings).where(
+                ProfessionalServicesSettings.id == 1
+            )
+        )
+    ).one()
+    return row

@@ -79,7 +79,16 @@ class QuoteRead(BaseModel):
 
 def quote_to_read(quote, org, flow, requester) -> "QuoteRead":
     """Build a QuoteRead with denormalized org_name/flow_name/requester_email.
-    Each related entity may be None (e.g., flow deleted)."""
+
+    Each related entity may be None (e.g., flow deleted). The User model
+    currently has no ``email`` column, so we surface ``username`` under the
+    ``requester_email`` key to keep the wire schema stable for the frontend.
+    """
+    requester_label: str | None = None
+    if requester is not None:
+        requester_label = getattr(requester, "email", None) or getattr(
+            requester, "username", None
+        )
     return QuoteRead(
         id=quote.id,
         org_id=quote.org_id,
@@ -87,7 +96,7 @@ def quote_to_read(quote, org, flow, requester) -> "QuoteRead":
         flow_id=quote.flow_id,
         flow_name=flow.name if flow else None,
         requester_user_id=quote.requester_user_id,
-        requester_email=requester.email if requester else None,
+        requester_email=requester_label,
         status=quote.status,
         assigned_admin_user_id=quote.assigned_admin_user_id,
         estimated_minutes_low=quote.estimated_minutes_low,

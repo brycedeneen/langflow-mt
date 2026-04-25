@@ -16,7 +16,6 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import select
-from sqlmodel.ext.asyncio.session import AsyncSession
 
 from langflow.api.utils.core import CurrentActiveUser, DbSession
 from langflow.api.utils.org_helpers import (
@@ -26,14 +25,15 @@ from langflow.api.utils.org_helpers import (
 from langflow.api.v1.schemas.pro_service_quote import (
     ComponentBreakdownItem,
     PreviewResponse,
+    QuoteRead,
+    QuoteSubmitRequest,
+    quote_to_read,
 )
 from langflow.services.database.models.component_metadata.model import ComponentMetadata
 from langflow.services.database.models.flow.model import Flow
-from langflow.services.database.models.membership.model import Membership
+from langflow.services.database.models.membership.model import Membership, MembershipRole
 from langflow.services.database.models.organization.model import Organization
-from langflow.services.database.models.professional_services_settings.model import (
-    ProfessionalServicesSettings,
-)
+from langflow.services.database.models.user.model import User
 from langflow.services.professional_services.estimate_service import (
     compute_cost_range,
     sum_component_minutes,
@@ -42,7 +42,19 @@ from langflow.services.professional_services.llm_service import (
     LLMProvider,
     generate_quote_text,
 )
-from langflow.services.professional_services.settings_service import resolve_rate_band
+from langflow.services.professional_services.permissions import (
+    PrincipalContext,
+    can_submit,
+)
+from langflow.services.professional_services.settings_service import (
+    read_settings_singleton_async,
+    resolve_rate_band,
+)
+from langflow.services.professional_services.submit_service import (
+    ActiveRequestError,
+    submit_quote,
+)
+from langflow.services.professional_services.webhook_service import fire_quote_webhook
 
 router = APIRouter(tags=["Pro-Service Quotes"])
 
@@ -96,22 +108,20 @@ def get_llm_provider() -> LLMProvider:
 # ---------------------------------------------------------------------------
 
 
-async def _read_settings_singleton_async(
-    session: AsyncSession,
-) -> ProfessionalServicesSettings:
-    """Async equivalent of ``settings_service.read_settings_singleton``.
-
-    The migration seeds id=1 so this never raises in normal operation.
-    Inlined here to avoid retrofitting the sync helper for AsyncSession.
-    """
-    row = (
-        await session.exec(
-            select(ProfessionalServicesSettings).where(
-                ProfessionalServicesSettings.id == 1
-            )
-        )
-    ).one()
-    return row
+def _build_principal(
+    user: User,
+    org: Organization,
+    membership: Membership,
+) -> PrincipalContext:
+    """Project request identity into the dataclass the permissions module expects."""
+    is_org_admin = membership.role in (MembershipRole.OWNER, MembershipRole.ADMIN)
+    return PrincipalContext(
+        user_id=user.id,
+        org_id=org.id,
+        is_superuser=user.is_superuser,
+        is_platform_admin=user.is_platform_admin,
+        is_org_admin=is_org_admin,
+    )
 
 
 def _component_types_from_nodes(nodes: list[dict[str, Any]]) -> list[str]:
@@ -193,7 +203,7 @@ async def preview_quote(
 
     # 2. Sum minutes; 3. resolve rate band; 4. compute cost range.
     estimate = sum_component_minutes(nodes, metadata_by_type)
-    settings_row = await _read_settings_singleton_async(session)
+    settings_row = await read_settings_singleton_async(session)
     rate_band = resolve_rate_band(org, settings_row)
     cost_low, cost_high = compute_cost_range(
         estimate.low, estimate.high, rate_band.low, rate_band.high
@@ -222,3 +232,58 @@ async def preview_quote(
             ComponentBreakdownItem(**b) for b in estimate.breakdown
         ],
     )
+
+
+@router.post(
+    "/flows/{flow_id}/pro-service-quotes",
+    response_model=QuoteRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def submit_quote_endpoint(
+    flow_id: UUID,
+    payload: QuoteSubmitRequest,
+    user: CurrentActiveUser,
+    session: DbSession,
+    org: Organization = Depends(get_current_organization),
+    membership: Membership = Depends(get_current_membership),
+) -> QuoteRead:
+    """Persist a pro-service quote submission and broadcast bell rows to admins.
+
+    After commit, fires an HMAC-signed webhook (best-effort) per ``settings``.
+    Returns 404 if the flow is missing, 403 if the principal can't submit,
+    409 with ``{"code": "ps_request_active"}`` if a request is already
+    pending for this flow.
+    """
+    flow = await session.get(Flow, flow_id)
+    if flow is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="flow_not_found")
+
+    principal = _build_principal(user, org, membership)
+    if not can_submit(flow_owner_id=flow.user_id, principal=principal):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="forbidden")
+
+    try:
+        quote = await submit_quote(
+            session=session,
+            flow=flow,
+            org=org,
+            requester_user_id=user.id,
+            payload=payload,
+        )
+    except ActiveRequestError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"code": "ps_request_active"},
+        ) from exc
+
+    await session.commit()
+    await session.refresh(quote)
+    await session.refresh(flow)
+    requester = await session.get(User, quote.requester_user_id)
+    result = quote_to_read(quote, org, flow, requester)
+
+    # Best-effort async webhook delivery. Failure is silent (logged at WARNING).
+    # The webhook fires after the DB commit so the in-product quote remains
+    # the source of truth even if the receiver is down.
+    fire_quote_webhook(quote_id=quote.id, base_url="")
+    return result
