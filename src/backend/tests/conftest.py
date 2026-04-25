@@ -969,11 +969,20 @@ async def shared_app(shared_app_env):  # noqa: ARG001
 async def shared_client(shared_app) -> AsyncGenerator:
     """Per-test AsyncClient against the shared app.
 
-    NOTE: this fixture does NOT yet provide per-test DB rollback — a
-    follow-up task wraps each test in a SAVEPOINT once we've confirmed
-    the no-rollback variant works end-to-end. In the meantime, tests
-    using shared_client must clean up their own DB writes (or only
-    test read-only paths).
+    NOTE: Per-test DB rollback via SAVEPOINT is not implemented here.
+    The reason: the DB engine is bound to the session event loop (used by
+    shared_app), but function-scoped tests may run on a different event loop.
+    SQLAlchemy async connections cannot safely cross event-loop boundaries,
+    so the standard outer-transaction + SAVEPOINT pattern is impractical
+    in this pytest-asyncio 1.x / asyncio_default_fixture_loop_scope=function
+    configuration.
+
+    Tests using shared_client must either:
+    - Only test read-only paths (safest), OR
+    - Clean up their own DB writes in teardown.
+
+    See docs/superpowers/specs/2026-04-25-shared-client-migration-followups.md
+    for the follow-up plan.
     """
     async with AsyncClient(
         transport=ASGITransport(app=shared_app),
