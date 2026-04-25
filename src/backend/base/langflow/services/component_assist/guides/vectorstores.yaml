@@ -1,0 +1,14 @@
+- type: LocalDBComponent
+  guide: This component manages a local Chroma-backed vector store, letting you either ingest documents
+    for semantic search or query an existing collection for similar content. The `mode` input controls
+    which path you're on — ingestion or search — so make sure it matches your intent before configuring
+    anything else. When ingesting, connect your source documents to `ingest_data` (these get embedded
+    and indexed), provide a `collection_name` to identify the store, and optionally set a `persist_directory`
+    if you want the data saved somewhere specific rather than your system's default cache; collections
+    end up under `{directory}/vector_stores/{collection_name}`. Toggle `allow_duplicates` off to avoid
+    re-indexing content that already exists, and use `limit` to cap how many existing records are checked
+    during that deduplication step. When searching, pick an `existing_collections` entry instead of typing
+    a name, enter your `search_query`, choose a `search_type`, and set `number_of_results` to control
+    how many matches come back. An `embedding` model must be connected in both modes — without it the
+    component cannot vectorize text. The output is a dataframe of results, so downstream components should
+    expect tabular data rather than a document list.

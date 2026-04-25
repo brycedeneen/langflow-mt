@@ -1,0 +1,243 @@
+- type: AssistantsCreateAssistant
+  guide: This component provisions a new AI assistant and returns its identifier for use downstream in
+    your flow. You should set assistant_name to a recognizable label for the assistant you are creating,
+    and instructions to the full system-level guidance that will govern its behavior — think of this field
+    as the equivalent of a system prompt. The model field accepts LiteLLM-compatible model names (for
+    example, "gpt-4o" or "gemini/gemini-1.5-pro"), so consult the LiteLLM providers list at https://docs.litellm.ai/docs/providers
+    to confirm the exact string your chosen provider expects. Credentials for that provider must be available
+    as environment variables before this component runs; chain a Dotenv Component into the env_set input
+    to ensure those variables are loaded in the correct order — env_set has no functional effect beyond
+    enforcing that execution sequence. The single output, assistant_id, should be passed to any downstream
+    components that need to reference or interact with the assistant you just created. Note that each
+    run of this component creates a new assistant instance, so avoid triggering it repeatedly if you only
+    need one.
+- type: AssistantsCreateThread
+  guide: 'This component creates a new OpenAI Assistants thread and returns its unique thread ID, which
+    you can wire into downstream components that need a thread context for conversation or task execution.
+
+
+    There is only one input, `env_set`, which is a dummy connection point — it carries no real data but
+    lets you chain this component after a Dotenv component to ensure your environment variables (such
+    as your OpenAI API key) are loaded before the thread is created. If you are not using a Dotenv component,
+    you can leave this input unconnected; the component will still run. The critical thing to get right
+    is that your OpenAI credentials must be available in the environment at runtime, since there is no
+    explicit API key field on this component itself. Once executed, the resulting `thread_id` output should
+    be passed to any subsequent assistant interaction components that require it, as that ID is the handle
+    for the entire conversation thread.'
+- type: AssistantsGetAssistantName
+  guide: 'This component retrieves the name of an OpenAI Assistant by looking it up with its unique identifier,
+    outputting the resolved name for use downstream in your flow.
+
+
+    You should provide the `assistant_id` input whenever you know the specific ID of the assistant whose
+    name you want to fetch — this is the primary required value and typically looks like a string beginning
+    with `asst_`. The `env_set` input is a dummy connection point that carries no real data; its sole
+    purpose is to let you chain a Dotenv component upstream so that any API keys or environment variables
+    are loaded before this component runs. If your flow relies on environment variables for authentication,
+    wire your Dotenv component''s output into `env_set` to enforce correct execution order. Be aware that
+    this component only retrieves the assistant''s name — not its instructions, model, or other metadata
+    — so if you need additional details about the assistant, you will need separate components. Ensure
+    the assistant ID you provide corresponds to an assistant accessible under the API credentials active
+    in your environment.'
+- type: AssistantsListAssistants
+  guide: 'This component queries the OpenAI Assistants API and returns a list of assistant IDs available
+    in the connected account, feeding them downstream for use in other components that require an assistant
+    reference.
+
+
+    Since this component has no configurable inputs, there is nothing for you to adjust directly on it
+    — it simply executes and emits its output when the flow runs. If the user is getting unexpected results
+    or an empty list, the issue likely lies upstream in how their API credentials or environment are configured,
+    not within this component itself. The single output, assistants, carries the retrieved IDs and should
+    be connected to any downstream component that expects an assistant identifier. Keep in mind that the
+    list reflects only the assistants accessible to the API key in use, so if an expected assistant is
+    missing, the user should verify their credentials and that the assistant was created under the same
+    OpenAI account.'
+- type: AssistantsRun
+  guide: 'This component sends a message to an OpenAI Assistant and returns its response, connecting a
+    specific assistant, an optional thread, and a user message into a single execution. You help the user
+    configure four inputs: `assistant_id` is required and identifies which assistant to invoke — wire
+    this from a List Assistants or Create Assistant component upstream rather than typing it manually.
+    `user_message` is the text prompt sent to the assistant on this run, so it should reflect whatever
+    dynamic or static input drives the conversation. `thread_id` is optional — if you leave it empty,
+    a new thread is created automatically each time, meaning conversation history will not persist across
+    runs; to maintain context across multiple turns, pass a consistent thread ID from a previous run or
+    a stored value. The `env_set` input has no functional effect on the run itself — it exists solely
+    to let you chain a Dotenv component so that API credentials are loaded before this component executes.
+    The single output, `assistant_response`, carries the assistant''s reply and can be passed downstream
+    to other components. Make sure your OpenAI API key is accessible in the environment before running,
+    as missing credentials will cause the execution to fail silently or with an authentication error.'
+- type: AstraAssistantManager
+  guide: 'This component orchestrates a stateful AI assistant session, routing messages and tool calls
+    through a managed thread and returning the assistant''s response along with updated session identifiers.
+    You help the user configure the right inputs depending on whether they are starting a new session
+    or continuing an existing one.
+
+
+    If the user is creating a fresh assistant, they should provide a model name, write clear instructions
+    (these act as the system prompt shaping the assistant''s behavior), and attach any tools the assistant
+    should be able to invoke. For ongoing conversations, they should supply both input_thread_id and input_assistant_id
+    from a previous run — these are surfaced as outputs so they can be wired forward across turns. The
+    user_message carries the human''s latest input, and file allows attachments to accompany that message.
+    The env_set input has no functional effect on the assistant itself; it exists purely to enforce execution
+    order when a Dotenv component is used to load environment variables upstream. Notably, omitting the
+    thread or assistant IDs will likely cause the component to create new ones, so always wire those outputs
+    back in if you need conversation continuity. The component also emits output_vs_id, likely a vector
+    store identifier, which may be relevant if file retrieval is involved.'
+- type: AstraDBCQLToolComponent
+  guide: 'This component creates a tool that lets an agent query transactional data from a DataStax Astra
+    DB CQL table. You help the user connect to their database and shape how an LLM will interact with
+    it at query time.
+
+
+    Start with authentication and connection: provide the token and either the api_endpoint (which takes
+    precedence over database selection) or the database_name and environment pair. Set keyspace and collection_name
+    to target the right table; enable autodetect_collection if you want the component to discover collection
+    metadata automatically rather than specifying it manually. For the tool itself, tool_name and tool_description
+    tell the LLM what this tool does and when to invoke it, so these should be clear and specific. The
+    tools_params field is critical — it defines the full parameter schema the LLM will use, and must reflect
+    your table''s actual partition keys, clustering keys, and indexed fields; mismatches here will cause
+    query failures. Use partition_keys and clustering_keys to give the model field-level descriptions
+    for those specific schema elements. Any field added to static_filters will be hardcoded into every
+    query and hidden from the LLM, which is useful for tenant isolation or fixed data scopes. Use projection_fields
+    to limit which attributes are returned, and number_of_results to cap result set size.'
+- type: AstraDBChatMemory
+  guide: This component connects to an Astra DB instance to persist and retrieve chat message history,
+    allowing conversations to be stored and resumed across sessions. You help the user supply the credentials
+    and targeting information needed to reach the right data location. The `token` is required for authentication,
+    and you must provide either `database_name` or `api_endpoint` to identify the instance — note that
+    `api_endpoint` takes precedence over the database selection if both are given. The `collection_name`
+    specifies exactly where messages are stored within the database, and if you're unsure whether the
+    collection already exists, enabling `autodetect_collection` lets the component discover it automatically.
+    The `keyspace` is optional and only needed if your Astra DB setup uses a non-default keyspace. For
+    the `environment` field, make sure it matches the region or environment tier your API endpoint belongs
+    to, as a mismatch can cause connection failures. Finally, `session_id` scopes the memory to a particular
+    conversation — if left empty, the component falls back to the current session's ID, which is usually
+    the right behavior unless you need to explicitly load a different session's history.
+- type: AstraDBGraphVectorStoreComponent
+  guide: 'You help the user configure a graph-aware vector store backed by Astra DB, which stores and
+    retrieves vectorized data while preserving relationship links between documents. Start by providing
+    the `token` and either the `database_name` or the `api_endpoint` — note that `api_endpoint` takes
+    precedence over `database_name` if both are supplied. Set `collection_name` to target the specific
+    collection where vectors are stored; if you''re unsure of the exact name, enable `autodetect_collection`
+    to let the component discover it automatically. Optionally specify a `keyspace` if your Astra DB instance
+    organizes collections into named keyspaces. Use `environment` when working with a non-default Astra
+    DB API environment. To index new data, connect documents to `ingest_data`; enable `should_cache_vector_store`
+    if multiple outputs share this component to avoid redundant initialization.
+
+
+    For retrieval, enter a `search_query` and tune `number_of_results` to control how many matches are
+    returned. Choose a `search_type` appropriate to your use case — if you select similarity with score
+    threshold, you must also set `search_score_threshold` or results may be empty. Use `search_filter`
+    to narrow results by metadata fields, and configure `metadata_incoming_links_key` if your graph documents
+    use a custom key to track link relationships. Both `search_results` and `dataframe` outputs reflect
+    the same retrieval, formatted differently.'
+- type: AstraDBToolComponent
+  guide: 'This component wraps an Astra DB collection as a callable tool that an LLM agent can invoke
+    to perform hybrid vector and metadata searches against your data. Start by providing your `token`
+    and either a `database_name` or an `api_endpoint` (the endpoint takes precedence if both are set).
+    Specify the `collection_name` where your vectors live, and optionally a `keyspace` if your database
+    uses one. The `tool_name` and `tool_description` are what the LLM sees when deciding whether to call
+    the tool, so make them descriptive and specific to your use case. Use `tools_params_v2` to define
+    the parameters the LLM can pass at runtime — avoid the deprecated `tool_params` field. Set `static_filters`
+    for any fixed metadata constraints that should always apply, and use `projection_attributes` to limit
+    which fields are returned, which keeps responses focused and token-efficient.
+
+
+    A few things to watch: enabling `use_search_query` lets the LLM drive semantic search with a freetext
+    query, while `use_vectorize` delegates embedding generation to Astra DB''s built-in Vectorize service
+    — enable only one approach unless your collection is configured to support both. The `semantic_search_instruction`
+    refines how embeddings are generated when Vectorize is active. Tune `number_of_results` to balance
+    retrieval breadth against downstream context window size. If collection structure is uncertain, toggle
+    `autodetect_collection` so the component infers schema details automatically.'
+- type: AstraDBVectorStoreComponent
+  guide: 'This component connects to an Astra DB instance to store document embeddings and run similarity
+    searches against them. You help the user supply the required credentials and collection details first:
+    `token` is mandatory for authentication, and you need either `api_endpoint` (which takes precedence
+    over any database selection) or a `database_name` with optional `environment` to locate the instance.
+    Set `collection_name` to target where vectors are stored, and optionally provide `keyspace` to scope
+    within the database. If the collection already exists and its schema should be detected automatically,
+    enable `autodetect_collection`. Connect an embedding model via `embedding_model` unless the collection
+    uses Astra Vectorize, which handles embeddings server-side. To load data, wire documents into `ingest_data`;
+    use `deletion_field` if existing documents matching certain metadata should be replaced before ingestion,
+    and enable `ignore_invalid_documents` to skip malformed records rather than fail. For retrieval, enter
+    a `search_query` and choose a `search_method` — Vector for pure semantic matching or Hybrid Search
+    when a `reranker` is also provided. Tune results with `number_of_results`, `search_score_threshold`
+    (only meaningful with the score-threshold search type), `lexical_terms`, and `advanced_search_filter`.
+    Enable `should_cache_vector_store` when multiple outputs share the same store to avoid redundant initialization.'
+- type: AstraVectorizeComponent
+  guide: 'This component produces a server-side embedding configuration object that tells Astra DB which
+    provider and model to use when vectorizing data without leaving the database layer. You help the user
+    select the right combination of inputs so the resulting config can be passed downstream to an Astra-backed
+    vector store.
+
+
+    Start by setting the provider, then choose a model_name that belongs to that provider — each provider
+    supports a distinct set of models, so mismatching them will cause errors. For authentication, the
+    user has two paths: they can supply an api_key_name that references a key already stored in Astra''s
+    key management system (which overrides any provider key baked into the authentication parameters),
+    or they can paste a raw key into provider_api_key, which sends the credential directly with each request
+    instead of relying on Astra-stored secrets — useful when no secret is registered in Astra but Vectorize
+    is already configured on the collection. The authentication inputs carry additional parameters that
+    may be required by certain providers, so consult the provider''s documentation if those fields appear.
+    Use model_parameters for any provider-specific tuning options beyond the model name itself. Avoid
+    mixing both authentication strategies simultaneously, as api_key_name takes precedence and may produce
+    unexpected behavior if provider_api_key is also set.'
+- type: Dotenv
+  guide: 'This component reads the raw text of a .env file and loads its key-value pairs into environment
+    variables that downstream components can access. You only need to fill in one input: dotenv_file_content,
+    where you paste the full text of your .env file (e.g., lines like API_KEY=abc123). Because this content
+    typically contains secrets, you should avoid pasting credentials as plain text directly into the field
+    — instead, create a Global variable typed as "password" and reference it here, which keeps sensitive
+    values encrypted and out of plain sight in the flow canvas. Once the content is processed, the component
+    emits an env_set output you can connect to other components that depend on those environment variables
+    being present. Keep in mind that the component does not read from a file path on disk; it expects
+    the literal file contents, so you must supply the text yourself rather than pointing to a file location.'
+- type: GetEnvVar
+  guide: 'You help the user retrieve a system-level environment variable so its value can be passed downstream
+    in the flow. The single input, `env_var_name`, should be set to the exact name of the environment
+    variable as it is defined on the host system — for example, `OPENAI_API_KEY` or `DATABASE_URL`. Casing
+    matters on most operating systems (particularly Linux/macOS), so the name must match precisely. The
+    component outputs `env_var_value`, which will be the string value of that variable at runtime.
+
+
+    Keep in mind that if the variable is not set in the environment where the flow runs, the output will
+    likely be empty or cause downstream errors, so make sure the variable exists before relying on it.
+    Avoid hardcoding sensitive values directly into the flow; this component is the right way to inject
+    secrets or configuration that differs between environments. If the flow is being tested locally but
+    deployed elsewhere, confirm the variable is defined in both contexts to prevent silent failures.'
+- type: GraphRAGComponent
+  guide: 'This component performs graph-based retrieval-augmented generation by traversing relationships
+    in a vector store to surface contextually connected documents. You help the user wire up the required
+    inputs and tune the traversal behavior to match their data structure and query needs.
+
+
+    Start by connecting a vector store to the `vector_store` input and providing a `search_query` — these
+    two are the core of every retrieval operation. Supply an `embedding_model` unless your vector store
+    uses Astra Vectorize, which handles embeddings internally. The `edge_definition` input is critical:
+    it tells the component how nodes in your graph are connected, so make sure it matches the relationship
+    structure in your underlying data — an incorrect or missing edge definition will break traversal.
+    The `strategy` input controls which graph traversal algorithm is applied, so adjust it based on how
+    broadly or deeply you want the graph walked. For fine-grained control, pass a dictionary to `graphrag_strategy_kwargs`
+    with any additional parameters the chosen strategy supports; refer to the DataStax Graph RAG strategy
+    reference linked in that field for valid options. The component outputs both a list of matched documents
+    via `search_results` and a `dataframe` representation, so downstream connections can use whichever
+    format suits the next step in your flow.'
+- type: HCDVectorStoreComponent
+  guide: 'This component connects to a Hyper-Converged Database (HCD) instance to store and search vectors,
+    enabling similarity-based retrieval within your flow. You help the user configure both the connection
+    and the search behavior. Start with the required fields: collection_name identifies where vectors
+    live, username, password, and api_endpoint authenticate and locate the HCD service. If the deployment
+    uses TLS, supply ca_certificate; if it uses namespacing, fill in namespace. The embedding input must
+    be connected to either an embedding model or an Astra Vectorize configuration — without it the component
+    cannot function. To load data into HCD, connect ingest_data; to query it, provide a search_query.
+    Tune number_of_results, search_type, and search_score_threshold (only relevant when using the score-threshold
+    search type) to control retrieval behavior, and use search_filter to narrow results by metadata.
+
+
+    For advanced tuning, batch_size and the three concurrency inputs govern ingestion throughput, while
+    metadata_indexing_include and metadata_indexing_exclude are mutually exclusive — use one or the other,
+    not both. Enable pre_delete_collection with caution, as it destroys existing data before rebuilding.
+    setup_mode controls whether initialization runs synchronously, asynchronously, or is skipped entirely.
+    Enable should_cache_vector_store when multiple outputs in the same build share this component to avoid
+    redundant initialization overhead.'

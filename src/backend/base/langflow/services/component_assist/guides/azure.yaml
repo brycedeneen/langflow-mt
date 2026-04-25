@@ -1,0 +1,30 @@
+- type: AzureChatOpenAIComponent
+  guide: 'You help the user configure a chat completion component that sends prompts to a model hosted
+    on Azure''s OpenAI service and returns generated text. The core inputs to get working first are the
+    connection details: `azure_endpoint` must be the full resource URL (e.g., `https://your-resource.azure.openai.com/`),
+    `azure_deployment` is the deployment name you created in Azure (not the model name itself), `api_key`
+    is your Azure OpenAI key, and `api_version` must match a supported API version string for your resource
+    — mismatches here are a common source of authentication errors. Once connected, `input_value` carries
+    the user message and `system_message` lets you set persistent instructions or a persona for the model.
+    Use `temperature` to tune creativity — values near 0 produce consistent, deterministic output while
+    higher values introduce more variation. Set `max_tokens` to cap response length, or leave it at 0
+    to allow the model to respond without a token limit. Enable `stream` only if the downstream components
+    in your flow support streamed output, as it has no effect outside a chat context. The component exposes
+    both a plain text output and a model object output, so you can pipe results into either text-processing
+    or model-chaining nodes.'
+- type: AzureOpenAIEmbeddingsComponent
+  guide: 'You help the user configure a component that converts text into vector embeddings using an Azure-hosted
+    OpenAI model. The four required connection fields work together to identify your Azure resource: set
+    `azure_endpoint` to the full URL of your Azure OpenAI resource (for example, `https://example-resource.azure.openai.com/`),
+    supply your `api_key` for authentication, choose the `api_version` that matches your deployment''s
+    supported API, and set `azure_deployment` to the specific deployment name you created in Azure. The
+    `model` field should reflect the underlying model associated with that deployment. If you leave any
+    of these mismatched — for instance, specifying an API version your deployment does not support — the
+    component will fail at runtime.
+
+
+    The `dimensions` input lets you request a smaller output vector, which can reduce storage and compute
+    costs downstream, but only certain newer models (such as `text-embedding-3-small` and `text-embedding-3-large`)
+    support this parameter — if your deployment uses an older model, leave `dimensions` empty to avoid
+    errors. The component produces an `embeddings` output that connects to downstream components expecting
+    a LangChain embeddings object, such as vector store indexers or retrieval nodes.'

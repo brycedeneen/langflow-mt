@@ -1,0 +1,134 @@
+- type: ConditionalRouterComponent
+  guide: 'This component evaluates a text comparison and routes a message down one of two branches — true_result
+    or false_result — depending on whether the condition is met. You help the user wire up the comparison
+    correctly: input_text is the value being evaluated, operator defines how it''s compared (such as equals,
+    contains, or starts with), and match_text is the fixed string it''s compared against. The true_case_message
+    and false_case_message fields let you send different payloads down each branch, so make sure both
+    are filled in if the downstream nodes expect specific content. Toggle case_sensitive when the comparison
+    must respect capitalization — by default it may not, so flag this for users matching things like usernames
+    or codes where case matters.
+
+
+    Be aware of the loop-control inputs: max_iterations caps how many times this router can be revisited
+    in a cyclical flow, and default_route determines which branch is taken automatically once that limit
+    is hit. If the user''s flow doesn''t involve a loop, these can usually be left at their defaults,
+    but if the component is part of a feedback or retry loop you should guide them to set max_iterations
+    deliberately and choose a safe default_route to prevent infinite cycling or unexpected behavior.'
+- type: DataConditionalRouterComponent
+  guide: 'This component routes one or more Data objects down different paths depending on whether a condition
+    evaluates to true or false. You connect your Data object or list of objects to data_input, then tell
+    the component which field to inspect using key_name — this should match an existing key inside those
+    objects. The operator determines how that field''s value is evaluated: most operators perform a standard
+    comparison (equals, greater than, contains, etc.) against the value you supply in compare_value, but
+    if you choose "boolean validator," the field''s value is treated as a truthy or falsy value directly
+    and compare_value is ignored. Matched objects are sent to true_output and non-matching objects to
+    false_output, so both branches can be wired independently in your flow.
+
+
+    A few things to keep in mind: key_name must exactly match the key as it appears in the Data object
+    — casing and spelling matter. When passing a list, every item is evaluated individually, so a mix
+    of matching and non-matching objects can split across both outputs simultaneously. If you select any
+    operator other than "boolean validator," make sure compare_value is filled in, as leaving it empty
+    may produce unexpected results. Double-check that the key you reference actually exists in the incoming
+    Data objects before running the flow.'
+- type: FlowToolComponent
+  guide: 'This component wraps an existing flow as a callable tool that an agent can invoke during its
+    reasoning process. You will help the user configure four inputs: "flow_name" selects which saved flow
+    gets executed when the tool is called, so the user must ensure that name matches exactly a flow available
+    in their environment. "tool_name" sets the identifier the agent uses to refer to and select this tool,
+    so it should be concise and descriptive of what the flow does. "tool_description" tells the agent
+    what the tool is for and when to use it — if left empty it falls back to the flow''s own description,
+    but the user should consider overriding it with a more task-specific explanation to improve agent
+    decision-making. "return_direct" controls whether the tool''s output is handed straight back to the
+    end user rather than re-entering the agent''s reasoning loop; enabling this makes sense when the flow''s
+    output is already a final, human-readable answer. A key gotcha: if the referenced flow is renamed
+    or deleted, this component will silently break at runtime, so always verify the flow_name value stays
+    in sync with the actual flow.'
+- type: ListenComponent
+  guide: 'You help the user configure a component that waits for a specific notification to arrive before
+    passing data downstream. The single input, `context_key`, is the identifier the component watches
+    for — it should exactly match the key used when the corresponding notification is broadcast elsewhere
+    in the flow. Think of it as a named channel: only notifications carrying this exact key will trigger
+    the component and release data through its output.
+
+
+    Make sure the `context_key` value is consistent in spelling and casing with whatever component or
+    process is sending the notification, since mismatches will cause the component to wait indefinitely
+    without producing output. This component is most useful when you need to synchronize or sequence parts
+    of a flow — for example, waiting for a background process to signal completion before proceeding.
+    There are no additional configuration options, so if the user''s use case requires filtering or transforming
+    the received data, that logic will need to be handled by components placed after this one in the flow.'
+- type: LoopComponent
+  guide: 'This component takes a collection of Data or Message objects and processes them one at a time,
+    feeding each individual item into the rest of your flow and collecting the results as the loop progresses.
+    You help the user understand that the single input, `data`, should receive the initial dataset or
+    list they want to iterate over — this is the starting collection, not a single record. As the loop
+    runs, the `item` output carries the current element being processed downstream, while the `done` output
+    fires once all items have been handled, typically carrying the aggregated results.
+
+
+    One important gotcha: the component expects Data or Message objects specifically, so if the user is
+    piping in raw text or an unstructured list, they may need a conversion step upstream before connecting
+    to `data`. The loop is designed for sequential, item-by-item processing rather than parallel execution,
+    so the order in which items are handled reflects the order they appear in the input collection. If
+    the user''s downstream nodes produce side effects or stateful changes, they should account for that
+    sequential behavior when designing the rest of the flow.'
+- type: NotifyComponent
+  guide: 'This component sends a notification payload to a paired "Get Notified" component elsewhere in
+    the flow, acting as a lightweight pub/sub bridge between branches.
+
+
+    You help the user configure three inputs that control what gets sent and how it is stored. The `context_key`
+    is a string identifier that must match the key the receiving "Get Notified" component is listening
+    on — if these don''t align, the notification won''t be picked up, so make sure both components share
+    the exact same key. The `input_value` holds the actual data being passed through the notification,
+    which can be any value produced earlier in the flow. The `append` toggle determines whether new data
+    overwrites the existing notification record or is added to it; set it to `True` when you want to accumulate
+    multiple notifications under the same key over time, and leave it `False` when only the latest value
+    matters. Keep in mind that because routing depends entirely on matching `context_key` values, a typo
+    or case mismatch between this component and its receiver will silently drop the notification with
+    no error.'
+- type: PassMessageComponent
+  guide: 'This component takes an incoming message and forwards it to the next step in the flow without
+    any modification. You help the user understand when and why to wire up each of its two inputs correctly.
+
+
+    The primary input, `input_message`, is the message that will actually travel through to the output
+    — whatever is connected here is what gets passed on, so make sure the correct upstream source is wired
+    to this input. The second input, `ignored_message`, accepts a message that is intentionally discarded;
+    nothing connected here will appear in the output. Its purpose is purely structural: it lets you establish
+    a dependency or continuity link between nodes that would otherwise be disconnected in the flow graph,
+    without affecting the data being passed. A key gotcha is that users sometimes mistakenly connect their
+    intended message to `ignored_message` and wonder why the output appears empty or wrong — always confirm
+    that the meaningful message is on `input_message`. There are no transformation options here, so if
+    the user wants to modify the message in any way, they need a different component upstream.'
+- type: RunFlowComponent
+  guide: 'This component lets you invoke a separate flow from within the same project, enabling modular
+    design and reuse of logic across flows, or exposing a flow as a callable tool for an agent.
+
+
+    To configure it, start by setting either flow_name_selected or flow_id_selected — these identify which
+    flow to execute. Using the name is more human-readable, but if multiple flows share similar names,
+    prefer the ID to avoid ambiguity. You should not need to set both; pick whichever is more reliable
+    in your context. The session_id input lets you tie the sub-flow''s execution to a specific session,
+    which is useful when you need conversation history or state to carry over from the parent flow — leave
+    it empty if session continuity is not required. The cache_flow toggle controls whether the resolved
+    flow definition is cached; enabling it can improve performance when the same sub-flow is called repeatedly,
+    but disable it if the target flow changes frequently and you need the latest version picked up at
+    runtime. Note that the target flow must exist within the same project — cross-project references are
+    not supported — and selecting a flow is also what activates tool mode for agent use.'
+- type: SubFlowComponent
+  guide: 'You help the user configure a component that wraps an existing flow and exposes it as a reusable
+    building block within the current flow, inheriting all of the wrapped flow''s inputs and passing through
+    its outputs. The only input you need to configure is `flow_name`, which should match exactly the name
+    of the flow you want to embed — if the name doesn''t correspond to a saved flow the component will
+    fail to resolve its inputs and outputs at runtime.
+
+
+    Keep in mind that the component''s interface is dynamically generated from whichever flow you reference:
+    once a valid `flow_name` is set, the wrapped flow''s inputs will surface as configurable fields on
+    this component, and its outputs will become available for downstream connections. This means if the
+    referenced flow changes structure, this component may need to be refreshed or reconfigured. There
+    are no additional static inputs to configure beyond `flow_name`, so if the user wants to pass data
+    into the sub-flow, they should ensure the underlying flow defines those inputs explicitly before referencing
+    it here.'

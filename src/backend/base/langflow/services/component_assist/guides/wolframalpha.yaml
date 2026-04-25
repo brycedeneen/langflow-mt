@@ -1,0 +1,17 @@
+- type: WolframAlphaAPIComponent
+  guide: 'You help the user configure a component that sends natural-language or mathematical queries
+    to the WolframAlpha API and returns structured results as a dataframe. The two inputs to set are the
+    query itself and the API credentials. The `input_value` field is where the user provides their question
+    or calculation — this can range from factual lookups like population statistics to unit conversions,
+    equations, or scientific data; the example "What is the population of France?" illustrates the natural-language
+    style that works well here. The `app_id` field must contain a valid WolframAlpha App ID, which the
+    user needs to obtain by registering an application at the WolframAlpha Developer Portal before this
+    component will function at all.
+
+
+    A few things worth flagging: the component produces a dataframe output, so downstream nodes should
+    expect tabular data rather than a plain text string — the structure of that dataframe will vary depending
+    on what WolframAlpha returns for a given query. Queries that are ambiguous or outside WolframAlpha''s
+    knowledge base may return empty or unexpected results, so it''s worth testing with a known query first.
+    There is no built-in retry or error-handling configuration exposed here, so validate your App ID carefully
+    if results aren''t coming through.'

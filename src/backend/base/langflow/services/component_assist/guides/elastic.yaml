@@ -1,0 +1,55 @@
+- type: ElasticsearchVectorStoreComponent
+  guide: 'You help the user connect to an Elasticsearch cluster and use it as a vector store for similarity
+    search. The component requires either `elasticsearch_url` (for self-managed, local deployments) or
+    `cloud_id` (for Elastic Cloud) — never both at the same time. Authentication works two ways: provide
+    `username` and `password` together, or use an `api_key` alone; mixing both approaches is unnecessary
+    and may cause conflicts. Set `index_name` to the target index where vectors will be stored or queried.
+    Connect an embedding model to `embedding` and pass documents through `ingest_data` to populate the
+    index. If your self-managed instance uses a self-signed certificate, be aware that `verify_certs`
+    defaults to checking certificates, so you may need to disable it to avoid connection errors.
+
+
+    For querying, enter a natural language string in `search_query` and tune `number_of_results` to control
+    how many matches are returned. Use `search_score_threshold` to filter out low-confidence results —
+    only matches meeting the minimum similarity score will appear. `search_type` lets you switch between
+    retrieval strategies if more than one is available. Enable `should_cache_vector_store` when this component
+    feeds multiple downstream outputs in the same build, which avoids redundant reconnections. The component
+    surfaces results as both `search_results` and a `dataframe` output for flexible downstream use.'
+- type: OpenSearchVectorStoreComponent
+  guide: 'This component stores documents in an OpenSearch index and retrieves them using a combination
+    of vector similarity and keyword search. You help the user connect it to their cluster, configure
+    indexing behavior, and tune search quality.
+
+
+    Start with the connection basics: set `opensearch_url` to your cluster endpoint and `index_name` to
+    the target index (it will be created automatically if absent). Choose `auth_mode` — use `basic` and
+    supply `username`/`password`, or use `jwt` and provide `jwt_token` along with any custom `jwt_header`
+    or `bearer_prefix`. Enable `use_ssl` for production clusters, and consider disabling `verify_certs`
+    only during local development with self-signed certificates. For the vector engine, pick `engine`
+    based on your deployment: `nmslib` is the safest default, while `jvector` requires OpenSearch 2.9+
+    and Amazon Serverless restricts you to `nmslib` or `faiss`. Adjust `space_type` to match how your
+    embeddings were trained — `cosinesimil` is common for sentence transformers. Increase `ef_construction`
+    and `m` to improve recall at the cost of indexing speed and memory. For search, `search_query` drives
+    similarity lookup, `number_of_results` caps returned items, and `filter_expression` lets you apply
+    metadata filters or score thresholds. Use `docs_metadata` to tag ingested documents, and enable `should_cache_vector_store`
+    when multiple outputs share the same index to avoid redundant connections.'
+- type: OpenSearchVectorStoreComponentMultimodalMultiEmbedding
+  guide: 'You help the user configure an OpenSearch vector store that combines multi-model semantic (KNN)
+    vector search with keyword matching to store and retrieve documents. For connection setup, provide
+    the `opensearch_url`, `index_name`, and choose your `auth_mode` — either `basic` (supply `username`
+    and `password`) or `jwt` (supply `jwt_token`). Toggle `use_ssl` and `verify_certs` as appropriate
+    for your environment, and adjust `request_timeout` and `max_retries` if you''re working with large
+    ingestion batches or slow clusters. For vector index tuning, `engine` must match your OpenSearch deployment
+    (e.g., `nmslib` for standard or serverless, `jvector` for OpenSearch 2.9+), while `space_type`, `ef_construction`,
+    and `m` control the quality-versus-speed tradeoff during indexing. Set `num_candidates` to 0 if your
+    deployment doesn''t support it.
+
+
+    When working with multiple embedding models, the component stores each model''s vectors in a dynamically
+    named field (`chunk_embedding_{model_name}`), and during search it auto-detects all models present
+    in the index and queries them in parallel. Use `embedding_model_name` to specify which embedding object
+    handles ingestion — if two embeddings share a deployment name, use the `deployment:model` format.
+    The `filter_expression` input lets you narrow search results by metadata fields, apply score thresholds,
+    or cap result counts beyond the default `number_of_results`. Add shared metadata to every ingested
+    document via `docs_metadata`, and enable `should_cache_vector_store` when multiple output methods
+    need to reuse the same store instance.'

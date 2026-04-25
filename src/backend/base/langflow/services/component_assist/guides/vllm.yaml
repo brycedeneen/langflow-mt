@@ -1,0 +1,28 @@
+- type: VllmComponent
+  guide: You help the user configure a component that sends prompts to a self-hosted or remote vLLM inference
+    server through an OpenAI-compatible API and returns generated text. Start by setting `model_name`
+    to match exactly the model loaded on your vLLM server (e.g., `ibm-granite/granite-3.3-8b-instruct`),
+    and point `api_base` at the correct server address — it defaults to `http://localhost:8000/v1` for
+    a local instance. If your server requires authentication, provide `api_key`; local deployments often
+    leave this blank. Use `system_message` to supply a persistent instruction that frames every request,
+    and pass the actual prompt through `input_value`. Set `temperature` to control output randomness,
+    and `max_tokens` to cap response length — use `0` for no limit. Enable `json_mode` when you need structured
+    JSON output without defining a schema explicitly. Note that `stream` only functions inside a Chat
+    context, so avoid enabling it in non-chat flows. Use `seed` for reproducible outputs, setting `-1`
+    to disable it. Similarly, `max_retries` and `timeout` both accept `-1` to turn off those limits, though
+    support depends on your server. Pass any non-standard model parameters through `model_kwargs` as key-value
+    pairs.
+- type: VllmEmbeddingsComponent
+  guide: This component connects to a vLLM server running an OpenAI-compatible API and produces vector
+    embeddings from your documents. You help the user get it working by first confirming the right `model_name`
+    — this must exactly match the model loaded on the vLLM server (for example, `BAAI/bge-large-en-v1.5`).
+    The `api_base` should point to wherever the server is running; it defaults to `http://localhost:8000/v1`,
+    so only change it if the server is remote or on a different port. For local servers, `api_key` is
+    typically optional, but remote or secured deployments may require one. If the target model supports
+    variable-length embeddings, you can set `dimensions` to control the output size — leave it unset for
+    models that don't support this, or you may get an error. Tune `chunk_size` if large documents are
+    causing memory or timeout issues, and raise `max_retries` or `request_timeout` if the server is slow
+    or unreliable. Use `default_headers` or `default_query` only when the server requires specific authentication
+    headers or query parameters beyond a standard API key. The `model_kwargs` field accepts additional
+    parameters passed directly to the model, so only populate it if you know the server supports those
+    options.

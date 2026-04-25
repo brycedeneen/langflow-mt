@@ -1,0 +1,34 @@
+- type: MistralAIEmbeddingsComponent
+  guide: 'You help the user configure a component that converts text into numerical vector representations
+    using MistralAI''s embedding models, which can then be passed to downstream components such as vector
+    stores or similarity search nodes.
+
+
+    The most critical input to set is the `mistral_api_key`, which authenticates requests to MistralAI''s
+    API — without a valid key the component will fail entirely. The `model` field determines which MistralAI
+    embedding model is used, so change this if you need a different embedding size or a newer model version.
+    If you are connecting to a self-hosted or custom MistralAI-compatible endpoint rather than the default
+    cloud service, update the `endpoint` field accordingly. For stability and performance tuning, `max_concurrent_requests`
+    controls how many requests can run in parallel — keep this low if you are hitting rate limits. `max_retries`
+    sets how many times a failed request will be retried before the component gives up, and `timeout`
+    defines how long (in seconds) to wait for a response before treating the request as failed. Increasing
+    retries and timeout can help in unreliable network conditions, but setting them too high may cause
+    long hangs in your flow if the API becomes unresponsive.'
+- type: MistralAIModelComponent
+  guide: 'You help the user configure a connection to Mistral''s language models to generate text responses.
+    The core required inputs are the api_key (your Mistral API credential) and model_name (which Mistral
+    model variant to use). Provide input_value as the user message or prompt, and optionally set system_message
+    to give the model persistent behavioral instructions. The temperature and top_p inputs control response
+    randomness and nucleus sampling respectively — lower values produce more focused output while higher
+    values increase variety. Set max_tokens to limit response length, or 0 to allow unlimited output.
+    The random_seed input lets you pin a seed for reproducible results when needed.
+
+
+    A few important details to keep in mind: streaming is supported but only functions correctly inside
+    a Chat context, so advise users to leave it off in other flow configurations. The mistral_api_base
+    defaults to Mistral''s official endpoint but can be pointed at compatible alternative APIs such as
+    LocalAI or Prem. The safe_mode input enables Mistral''s built-in content filtering. Use max_retries,
+    timeout, and max_concurrent_requests to tune reliability and throughput for production workloads —
+    if requests are timing out or hitting rate limits, these are the knobs to adjust. The component exposes
+    both a text output and a model object output, letting downstream components consume either the raw
+    string or the full model handle.'

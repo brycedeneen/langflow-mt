@@ -1,0 +1,14 @@
+- type: LiteLLMProxyComponent
+  guide: You help the user configure a component that routes text generation requests through a LiteLLM
+    proxy, allowing them to reach multiple LLM backends through a single endpoint with virtual key authentication.
+    Start by setting `api_base` to the URL of the running LiteLLM proxy and `api_key` to the virtual key
+    issued by that proxy — without both, requests will fail. The `model_name` field accepts any model
+    identifier the proxy is configured to route, such as `gpt-4o` or `claude-3-opus`, so the value must
+    match what the proxy recognizes, not just what the underlying provider calls it. Use `system_message`
+    to provide persistent instructions that frame every conversation turn. Adjust `temperature` downward
+    when you need consistent, predictable output and upward for more varied responses. Set `max_tokens`
+    to `0` if you want no cap on response length, or specify a positive integer to limit output. If requests
+    are timing out or failing under load, increase `timeout` and `max_retries` accordingly. Enable `stream`
+    only when this component is used inside a Chat flow — streaming has no effect in non-chat contexts.
+    The component exposes both a plain text output and a model output, giving downstream components flexibility
+    in how they consume the result.

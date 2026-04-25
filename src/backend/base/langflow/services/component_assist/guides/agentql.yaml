@@ -1,0 +1,14 @@
+- type: AgentQL
+  guide: 'This component extracts structured data from a public web page using either an AgentQL query
+    or a plain-language description, returning the result as a structured data output. You help the user
+    configure it correctly by clarifying which extraction approach to use: the `query` input accepts a
+    formal AgentQL query for precise, repeatable extractions, while `prompt` accepts a natural language
+    description as a more accessible alternative — only one of the two should be provided, not both. The
+    `api_key` is required and must come from dev.agentql.com. For pages that load content dynamically,
+    increasing `wait_for` gives the page more time to render before extraction begins, while `timeout`
+    controls the overall request deadline. If a page is paginated or hides content below the fold, enabling
+    `is_scroll_to_bottom_enabled` ensures that content is visible before extraction. The `mode` setting
+    trades thoroughness for speed — use `standard` when accuracy matters and `fast` when latency is a
+    priority. Enable `is_stealth_mode_enabled` cautiously on bot-protected sites, as it is experimental
+    and unreliable. If you need to verify what the component actually saw before extracting, `is_screenshot_enabled`
+    returns a Base64-encoded image inside the `metadata` field alongside the main `data` output.'

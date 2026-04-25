@@ -1,0 +1,375 @@
+- type: AlterMetadataComponent
+  guide: 'You help the user attach or strip metadata key-value pairs from data objects passing through
+    their flow. The core input is `input_value`, which accepts one or more existing objects that will
+    be modified; if the user wants to introduce plain text into the flow instead, they can use `text_in`,
+    which wraps the text in a Data object under its `text` attribute — note that empty text entries are
+    silently ignored, so blank values there will have no effect. Use `metadata` to define the dictionary
+    of fields you want to add or overwrite on every object passing through; all objects receive the same
+    metadata, so this is best suited for tagging a batch with shared properties like source labels or
+    processing flags. If you instead need to strip fields, populate `remove_fields` with the keys you
+    want deleted from each object''s metadata dictionary.
+
+
+    Bear in mind that `metadata` additions and `remove_fields` deletions can be applied in the same pass,
+    so you should be intentional about overlap — removing a field that you are also adding may produce
+    unexpected results depending on operation order. The component outputs both a `data` stream and a
+    `dataframe`, so downstream components expecting either format can connect directly without an extra
+    conversion step.'
+- type: CombineTextComponent
+  guide: 'You help the user configure a component that joins two separate text values into one continuous
+    string. The core inputs are `text1` and `text2`, which accept any text the user wants to merge — these
+    can come from upstream nodes or be typed in directly. The `delimiter` input controls exactly what
+    appears between the two pieces of text; by default it is a single space, but the user can change it
+    to anything: a comma, a newline character, a pipe symbol, or even an empty string if they want the
+    two texts fused together with nothing in between.
+
+
+    When helping the user, point out that the order matters — `text1` always appears first in the output,
+    followed by the delimiter, then `text2`. If the user wants a different order, they should swap which
+    value goes into which input. Also note that the delimiter is a plain string, so it does not support
+    special escape sequences unless the upstream system interprets them; if the user needs a newline,
+    they may need to confirm how their environment handles that. The single output, `combined_text`, carries
+    the final merged string forward to the next component in the flow.'
+- type: CreateDataComponent
+  guide: 'You help the user build a structured Data object by defining how many fields it contains and
+    which field represents its primary text content. Start by setting `number_of_fields` to however many
+    key-value pairs the record needs — this controls how many field inputs appear for the user to fill
+    in. The `text_key` input designates which of those fields should be treated as the main text content
+    downstream, so it must exactly match one of the field keys the user defines. If the user enables `text_key_validator`,
+    the component will verify that the value entered in `text_key` actually exists among the defined fields
+    before passing data forward — this is a useful safeguard to catch typos or mismatches early.
+
+
+    Keep in mind that `text_key_validator` only checks for the key''s presence, not whether the field
+    has a meaningful value, so enabling it catches structural mistakes but not empty content. If the user
+    changes `number_of_fields` after already configuring fields, previously entered field data may be
+    lost, so it is best to settle on the field count before filling in values. The component outputs a
+    single `data` object, making it most useful when you need to hand off a well-shaped record to downstream
+    components that expect structured Data input.'
+- type: CreateListComponent
+  guide: 'You help the user assemble one or more text values into a structured collection that downstream
+    components can consume. The single input, texts, accepts multiple text entries — the user should add
+    as many individual text items as they need, since each entry becomes an element in the resulting collection.
+
+
+    When configuring this component, remind the user that the order they enter text items is preserved
+    in the output. The component exposes two output types — a list and a dataframe — so the user should
+    connect the appropriate output to whatever the next component expects; if a downstream component works
+    with tabular data, wire the dataframe output, and if it expects a simple sequence, use the list output.
+    Note that this component only handles plain text values, so the user should not attempt to pass structured
+    or binary data through the texts input. If the user needs only a single item, that is still valid
+    — the output will simply be a one-element collection.'
+- type: DataFilterComponent
+  guide: 'You help the user configure a component that narrows down a list of data items by evaluating
+    each item against a condition, producing only the records that match.
+
+
+    Start with `input_data`, which should be connected to whatever upstream list the user wants to winnow
+    — this is the only required source of records. Set `filter_key` to the exact field name within each
+    item that should be examined (for example, a field like `route` or `category`); if the key doesn''t
+    match what''s in the data, nothing will pass through. Set `filter_value` to the specific value you
+    want to match against that field. The `operator` controls how the comparison is made — for example,
+    equality, inequality, or containment checks — and you can access the full set of comparison options
+    by enabling the advanced options panel. One important gotcha: the filter is case-sensitive and key-name-sensitive,
+    so mismatches in spelling or casing between `filter_key` and the actual data structure will silently
+    return an empty result rather than raising an error. The output `filtered_data` carries only the items
+    that satisfy the condition, so verify your key and value carefully before connecting downstream components.'
+- type: DataFrameOperationsComponent
+  guide: 'This component applies a single transformation to one or more Table (DataFrame) inputs and passes
+    the result downstream. The operation you select drives which other inputs become relevant: for filtering,
+    set column_name, filter_value, and filter_operator together; for sorting, use column_name and ascending;
+    for renaming a column, fill in column_name (the existing name) and new_column_name (the target name);
+    for adding a column, provide new_column_name and new_column_value; for selecting a subset of columns,
+    populate columns_to_select; for replacing values, supply column_name, replace_value, and the replacement_value;
+    and for head or tail previews, only num_rows matters. When you choose merge or concatenate, connect
+    a second Table to the df input — merge additionally requires merge_on_column (which must exist in
+    both Tables) and merge_how to control whether the join keeps only matching rows (inner), all rows
+    (outer), or prioritizes one side (left/right). Be careful not to leave operation-specific fields blank
+    for your chosen operation, as missing values like column_name or merge_on_column will likely cause
+    errors. Inputs irrelevant to the selected operation are safely ignored.'
+- type: DataOperationsComponent
+  guide: 'You help the user transform a JSON object by chaining one or more operations — such as selecting,
+    filtering, appending, removing, renaming, or querying fields — and routing the result downstream.
+    The `operations` input is the starting point: it defines which transformations will run, and only
+    the inputs relevant to those chosen operations need to be filled in. Use `select_keys_input` or `remove_keys_input`
+    to keep or drop specific top-level fields, and `rename_keys_input` to relabel them. If you need to
+    filter a list nested at the top level, set `filter_key` to the name of that list field, then use `operator`
+    and `filter_values` to define the matching condition. To merge new data into the object, provide `append_update_data`
+    — only top-level keys are compared during that merge. For the Parse JSON operation, the `query` field
+    accepts a JSON query expression to extract values; use `mapped_json_display` to paste sample JSON
+    and explore its structure before committing to a path, then capture the result with `selected_key`.
+    A key constraint throughout: every input that references keys — selecting, filtering, renaming, removing
+    — only reaches top-level keys, so nested paths are not supported without first restructuring your
+    data upstream.'
+- type: DataToDataFrameComponent
+  guide: You help the user convert one or more Data objects into a structured DataFrame, where each incoming
+    Data object becomes a single row in the result. The only input to configure is `data_list`, which
+    accepts either a single Data object or a collection of them — wire any upstream component that produces
+    Data here. Fields stored in each object's `.data` dictionary automatically become named columns, and
+    if an object carries a `.text` value, that content lands in a dedicated `text` column alongside the
+    rest. When connecting multiple upstream sources, make sure all objects share reasonably consistent
+    field names; mismatched keys across objects will still produce a valid DataFrame, but missing fields
+    for a given row will be filled with null values, which can cause surprises in downstream steps. If
+    you expect a `text` column, confirm that the upstream components actually populate `.text`, since
+    objects without it will simply leave that column empty for their corresponding row. There are no additional
+    parameters to tune — configuration is entirely determined by the shape of the incoming Data objects
+    themselves.
+- type: DynamicCreateDataComponent
+  guide: 'This component lets you build a custom Data object on the fly by defining as many named fields
+    as you need, rather than working with a fixed schema. You help the user configure `form_fields` by
+    adding rows — each row becomes a distinct input field on the component that can receive a connection
+    from another component''s output or accept a typed-in value directly. Encourage the user to think
+    carefully about field names upfront, since changing them later may break existing connections in the
+    flow.
+
+
+    The `include_metadata` toggle controls whether the output carries extra information about how the
+    form itself was configured, not just the field values. Turn it on if a downstream component needs
+    to inspect field structure or types; leave it off to keep the output clean and minimal. The component
+    exposes two outputs — `form_data`, which delivers the assembled Data object, and `message`, which
+    provides a text-friendly representation — so downstream routing depends on which format the next component
+    expects. Note that every row in `form_fields` adds a live input port, so removing a row will drop
+    that connection without warning.'
+- type: ExtractDataKeyComponent
+  guide: 'You help the user pull a single named field out of one or more Data objects and surface the
+    result as a new Data object (or list of Data objects) that downstream components can work with. The
+    two inputs are straightforward: `data_input` accepts either a single Data object or a list of them,
+    and `key` is the exact string name of the field you want to extract from each object. Point `data_input`
+    at whatever upstream node is producing your data, then set `key` to match the field name precisely
+    — casing and spelling must be exact, since there is no fuzzy matching or fallback behavior implied
+    by the metadata.
+
+
+    One important gotcha: if the specified key does not exist in a given Data object, the component''s
+    behavior is not documented, so you should make sure the key is reliably present in every object passed
+    through `data_input` before relying on the output. When a list is provided, the component processes
+    each item and returns a corresponding list of extracted values, which is useful for batch workflows.
+    Keep `key` as a simple field name; there is no indication that dot-notation or nested path syntax
+    is supported.'
+- type: FilterDataComponent
+  guide: 'You help the user configure a component that trims a Data object down to only the fields they
+    care about, passing a leaner result downstream. The two inputs work together: **data** is the Data
+    object coming from an upstream component, and **filter_criteria** is the list of key names that should
+    be retained in the output — any key not included in that list will be dropped from the result.
+
+
+    When setting up this component, make sure the key names in **filter_criteria** exactly match the field
+    names present in the incoming Data object, as the filtering is almost certainly case-sensitive and
+    will silently omit keys that don''t match. If the user is unsure what keys are available, they should
+    inspect the output of whichever component feeds into **data** first. Keep in mind that the component
+    only retains keys — it does not transform values or reorder fields — so if the goal is reshaping or
+    renaming data rather than simply narrowing it, a different component would be more appropriate. The
+    resulting **filtered_data** output will contain only the matched keys and their corresponding values.'
+- type: JSONCleaner
+  guide: 'This component takes a raw JSON string — typically produced by an LLM — and repairs common formatting
+    issues so the result is fully spec-compliant and parseable downstream. You help the user decide which
+    cleaning operations to apply based on what they know about their data and where it comes from.
+
+
+    The `json_str` input is where the potentially malformed JSON arrives, usually piped in from a model
+    output node. The three toggle inputs let the user control exactly what gets cleaned: enable `remove_control_chars`
+    if the string may contain invisible or non-printable characters (common in streamed or concatenated
+    LLM output), enable `normalize_unicode` if the text might include inconsistent Unicode representations
+    that could cause parsing failures, and enable `validate_json` if the user wants the component to confirm
+    the result is well-formed before passing it on — useful for catching errors early rather than letting
+    them surface further in the flow. Note that these options are independent, so the user can mix and
+    match them; however, leaving all three off means the component may pass through a string that is still
+    malformed. If a downstream component is strict about JSON format, recommend enabling at least `validate_json`
+    to surface problems immediately.'
+- type: MergeDataComponent
+  guide: 'This component takes multiple data objects and merges them into a single unified output. You
+    help the user connect the data sources they want to join through the `data_inputs` field — this accepts
+    multiple incoming connections, so make sure all the relevant upstream components are wired into it
+    before the flow runs. The `operation` field controls how those inputs are combined; while no descriptions
+    are provided for the available options, common merge strategies include things like concatenation,
+    overwrite, or deep merge, so guide the user to test their chosen operation against their actual data
+    shape to confirm the result behaves as expected.
+
+
+    One key gotcha: because there is no documented schema validation on the inputs, conflicting keys or
+    mismatched data types between sources may produce unexpected results depending on the selected operation.
+    Encourage the user to inspect the `combined_data` output downstream — for example by temporarily connecting
+    it to a display or debug component — before building further logic on top of it. If the user is unsure
+    which operation to pick, start with the simplest available option and verify the merged structure
+    looks correct before switching to more complex merge behaviors.'
+- type: MessageStoreComponent
+  guide: 'This component takes a single chat message or text value and persists it to storage, either
+    Langflow''s built-in tables or an external memory backend, and then passes the resulting stored messages
+    downstream.
+
+
+    You help the user configure five inputs. The most important is **message**, which is the actual content
+    to be saved — this should be wired from an upstream component producing a chat message or text. If
+    the user wants to use an external memory system (such as a vector store or custom memory component)
+    instead of Langflow''s default tables, they should connect it to **memory**; leaving it empty defaults
+    to internal storage. The **sender** field accepts either "Machine" or "User" to categorize who produced
+    the message; if left empty, the component inherits the current sender context from the flow. Similarly,
+    **sender_name** sets a human-readable label like "AI" or "User" and falls back to the flow''s active
+    sender name when blank. Finally, **session_id** scopes the message to a specific conversation session
+    — omitting it causes the component to inherit the active session, which is usually correct for single-session
+    flows but should be set explicitly when managing multiple parallel conversations. The single output,
+    stored_messages, contains the full list of messages saved under that session.'
+- type: MessageToDataComponent
+  guide: 'You help the user convert a Message object into a Data object so it can be passed to downstream
+    components that expect the Data type rather than a Message type. This component has a single input
+    — message — which should be connected to any upstream node that produces a Message output; simply
+    wire that connection in and the component handles the conversion automatically.
+
+
+    There are no additional settings to configure here, so if the user is struggling, the issue is almost
+    certainly about what is feeding into message: make sure the upstream component is genuinely emitting
+    a Message object and not already a Data object or some other type, since connecting the wrong output
+    type may cause errors or unexpected behavior. Because there is only one output — data — everything
+    flows out as a single Data object, meaning if the original Message carried multiple pieces of content,
+    check how the upstream component packages that content before assuming all of it will be preserved
+    through the conversion.'
+- type: OutputParserComponent
+  guide: 'You help the user configure a component that converts raw LLM text responses into structured,
+    predictable formats. The single input, `parser_type`, determines the parsing strategy applied to the
+    model''s output — different parser types enforce different schemas or extraction rules, so the user
+    should set this to match whatever structured format their downstream components expect to receive.
+
+
+    The component exposes two outputs: `output_parser`, which is the parser object itself and should be
+    connected to the LLM or chain that will use it, and `format_instructions`, which generates the instruction
+    text that tells the LLM how to format its response — this output is typically injected into the prompt
+    template so the model knows what structure to produce. A common gotcha is forgetting to wire `format_instructions`
+    into the prompt; without it, the LLM won''t know the expected format and parsing will likely fail.
+    Make sure both outputs are connected appropriately: `format_instructions` to the prompt and `output_parser`
+    to the component that processes the LLM''s reply.'
+- type: ParseDataComponent
+  guide: You help the user turn structured Data objects into human-readable Messages by applying a text
+    template. The **data** input accepts the Data object (or objects) coming from an upstream component,
+    while **template** controls how each object's fields are rendered — you can reference any field stored
+    in the Data using curly-brace placeholders like `{text}`, `{data}`, or any custom key present in the
+    incoming Data (for example, `{title}` or `{url}`). If you are unsure which field names are available,
+    check what the upstream component produces and match the placeholder names exactly, since unrecognized
+    keys will not resolve correctly. The **sep** input defines the separator inserted between multiple
+    rendered items when the component processes more than one Data object, so adjust it whenever you need
+    a specific delimiter such as a newline or comma. The component exposes two outputs — a combined text
+    string and a list representation — letting you route the result to either a text-consuming node or
+    one that expects a list. Keep templates simple and verify field names match the source data to avoid
+    empty or malformed output.
+- type: ParseDataFrameComponent
+  guide: 'This component converts every row of a DataFrame into a formatted text string and joins those
+    strings into a single output you can pass downstream.
+
+
+    You will need to configure three inputs. The `df` input accepts the DataFrame you want to serialize
+    — connect it to whatever upstream component produces tabular data. The `template` input is where you
+    define how each row should read: write a string using curly-brace placeholders that match your DataFrame''s
+    column names exactly, for example `{first_name} works at {company}`. If a placeholder does not match
+    a column name the substitution will silently fail or raise an error, so double-check spelling and
+    case. The `sep` input controls what character or string is inserted between each formatted row in
+    the final output — use `\n` for line breaks, `, ` for comma separation, or any delimiter your downstream
+    component expects. The output is a single `Text` value, so all rows are collapsed into one string;
+    if you need rows kept separate, reconsider whether this component fits your use case or adjust `sep`
+    to a delimiter you can split on later.'
+- type: ParseJSONDataComponent
+  guide: 'This component takes a data object and extracts or transforms its contents using a JQ query,
+    producing a filtered result you can pass downstream. You help the user configure two inputs: `input_value`,
+    which accepts the data object they want to work with, and `query`, which is the JQ expression that
+    defines exactly what to extract or reshape from that data.
+
+
+    When adjusting `query`, remind the user that the component always wraps the incoming data as a JSON
+    list before applying the expression, so their JQ query should account for that — for example, starting
+    with `.[0]` to access the first item, or `.[]` to iterate over all items. If the user is unfamiliar
+    with JQ syntax, common patterns include `.fieldName` to pull a top-level key, `.[0].fieldName` to
+    reach into the first list element, or `.[].fieldName` to collect a field across all elements. If the
+    query is malformed or targets a path that does not exist in the data, the output may be empty or raise
+    an error, so encourage the user to validate their JQ expression against the actual structure of their
+    input before connecting `filtered_data` to downstream components.'
+- type: ParserComponent
+  guide: 'You help the user configure a component that converts structured data — either a DataFrame or
+    a Data object — into formatted text using a template or raw string output. The key decision point
+    is the `mode` setting: if the user wants full control over layout, they should leave mode in template
+    mode and define a `pattern` using curly-bracket placeholders like `{ColumnName}` that map to column
+    names (for DataFrames) or key names (for Data objects). If they just need a quick, unformatted dump
+    of the content as a plain string, switching to raw mode bypasses the pattern entirely. The `input_data`
+    field accepts either data type, so the user doesn''t need to convert upstream output before connecting
+    it here.
+
+
+    A few things to watch for: the placeholder names in `pattern` must exactly match the column or key
+    names in the incoming data — typos or case mismatches will cause extraction to fail silently or error
+    out. The `sep` input controls what string is inserted between rows or items in the output, so if the
+    user''s downstream component expects newline-separated entries versus comma-separated ones, this is
+    where they set that. The final result flows out through `parsed_text` as a single string ready to
+    pass to a model, prompt, or text output component.'
+- type: RegexExtractorComponent
+  guide: 'You help the user configure a component that scans a piece of text and pulls out substrings
+    matching a regular expression. The `input_text` field accepts the raw text you want to search through
+    — this is typically piped in from an upstream component such as a text loader or API response. The
+    `pattern` field takes a standard regular expression; if you want to capture a specific portion of
+    a match, use a capturing group (parentheses) in your pattern, otherwise the full match is returned.
+
+
+    Keep in mind that the component produces two outputs — `data` and `text` — so you can route results
+    to components that expect structured data or plain text respectively. If the pattern finds no matches,
+    downstream components should be able to handle an empty result gracefully. Make sure your regex is
+    valid before connecting this component in a live flow, as a malformed pattern will cause a runtime
+    error rather than a silent failure. If you need case-insensitive or multiline matching, embed the
+    appropriate inline flags directly in the pattern string, such as `(?i)` or `(?m)`, since there are
+    no separate flag inputs available.'
+- type: SelectDataComponent
+  guide: 'This component extracts a single item from a list by its position, outputting just that one
+    element for use downstream. You help the user configure two inputs: `data_list`, which should be connected
+    to whatever upstream component produces the list of data they want to pick from, and `data_index`,
+    which is the zero-based integer position of the item they want to select. Remind the user that indexing
+    starts at zero, so the first item is index 0, the second is index 1, and so on. If the user provides
+    an index that falls outside the valid range of the list, the component will likely raise an error
+    at runtime, so they should verify the expected length of their list before hardcoding an index. Both
+    inputs must be provided — the component cannot infer a default selection without an explicit index,
+    and it cannot operate without a list to draw from. This component is most useful when a preceding
+    step produces multiple results but only one specific entry is needed further along in the flow.'
+- type: SplitTextComponent
+  guide: 'You help the user break text-bearing data into smaller, manageable chunks for downstream processing
+    such as embedding or retrieval. The component takes its input through data_inputs, which should contain
+    the text you want to split. The separator field controls where the text is first divided — use \n\n
+    for paragraph breaks, \n for line breaks, or . for sentence-like splits. After that initial split,
+    chunks are merged up to the character count set in chunk_size; note that any individual split already
+    exceeding chunk_size will not be subdivided further, so choosing an appropriate separator matters.
+    chunk_overlap sets how many characters carry over between adjacent chunks, which helps preserve context
+    at boundaries. If your input data has multiple columns, use text_key to tell the component which column
+    holds the text to process.
+
+
+    Two behavioral options are worth flagging: keep_separator controls whether the separator character
+    is retained in the output and where it is placed within each chunk, so adjust this if downstream tools
+    are sensitive to leading or trailing delimiters. Enabling clean_output strips all metadata columns
+    and returns only the text, which simplifies output but discards any additional fields carried in the
+    input data. The component produces a dataframe, so whatever follows it in your flow should expect
+    tabular output rather than a plain list of strings.'
+- type: TypeConverterComponent
+  guide: 'This component converts data between three core types — Message, JSON (Data), and Table (DataFrame)
+    — so downstream components always receive the format they expect. Connect your source data to `input_data`,
+    which accepts any of the three types. Then set `output_type` to whichever format the next component
+    requires: Message for text-based outputs, JSON/Data for structured key-value content, or Table/DataFrame
+    for row-and-column data. If your input might contain raw JSON or CSV strings embedded inside a Message,
+    enable `auto_parse` so the component detects and deserializes that content automatically rather than
+    passing it through as plain text.
+
+
+    Keep in mind that the component exposes three separate output ports — `message_output`, `data_output`,
+    and `dataframe_output` — so connect the one that matches your chosen `output_type`; the others will
+    be empty. Conversion quality depends on the structure of the incoming data: converting a loosely formatted
+    Message to a Table works best when `auto_parse` is on and the text contains valid CSV or JSON. If
+    the data lacks the expected structure, the conversion may produce an empty or malformed result, so
+    verify your source format before relying on the output downstream.'
+- type: UpdateDataComponent
+  guide: 'You help the user modify an existing data record by adding or overwriting fields on it. The
+    core workflow is: connect the record you want to change to `old_data`, then set `number_of_fields`
+    to however many new or replacement fields you need — this controls how many field-definition inputs
+    appear for you to fill in. The `text_key` input lets you designate which field in the resulting record
+    should be treated as the primary text content downstream, so set it to the exact key name of whichever
+    field holds the main textual value. Enable `text_key_validator` whenever you want the component to
+    confirm that the key you specified in `text_key` actually exists in the data before passing it on
+    — this is a useful safeguard when the upstream record''s shape is uncertain or variable.
+
+
+    A notable gotcha: if `text_key_validator` is enabled and the key you named is absent from the record,
+    the component will raise an error rather than silently pass through, so only enable it when you are
+    confident the field will be present or you want strict validation. Make sure `number_of_fields` reflects
+    the exact count of fields you intend to define; setting it too low means some fields won''t appear
+    for configuration.'

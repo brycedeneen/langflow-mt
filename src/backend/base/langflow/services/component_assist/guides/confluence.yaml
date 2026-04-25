@@ -1,0 +1,12 @@
+- type: ConfluenceComponent
+  guide: 'This component loads pages from a Confluence wiki into your flow as retrievable documents. You
+    must always provide the base URL of your Confluence instance (e.g., `https://yourcompany.atlassian.net/wiki`),
+    your Atlassian account email as the username, and an API key generated from your Atlassian security
+    settings — without all three, authentication will fail. Set the space key to target a specific Confluence
+    space; if left blank, behavior may vary depending on the underlying loader. Toggle the cloud input
+    to indicate whether you are connecting to Atlassian Cloud versus a self-hosted (Data Center/Server)
+    instance, as this affects how the loader authenticates and constructs requests. The content format
+    input controls how page content is returned — the default storage format is XML-based, so if you need
+    cleaner text you may want to explore other available format options supported by the LangChain integration.
+    Keep max pages in mind: it defaults to 1000, and large spaces can produce significant data volumes,
+    so lower this value during testing to avoid slow load times or hitting API rate limits.'

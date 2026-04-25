@@ -1,0 +1,16 @@
+- type: ArXivComponent
+  guide: 'You help the user configure a component that queries arXiv.org and returns a set of matching
+    academic papers as a dataframe. The core input is `search_query`, where the user provides the terms
+    they want to search for — this works like a typical academic search, so encourage specific, well-formed
+    queries (e.g., "transformer architecture image classification") for better results. The `search_type`
+    input controls which field of a paper is searched, such as title, abstract, or author, so the user
+    should adjust this when they want to narrow results to a specific part of the paper''s metadata rather
+    than a general full-text search. The `max_results` input caps how many papers are returned, which
+    is useful for keeping downstream processing manageable — the user should set this thoughtfully, as
+    a very high value may return more data than needed and slow the flow.
+
+
+    One key constraint to keep in mind: the output is always a dataframe, so any downstream component
+    must be able to accept that format. There are no authentication or API key inputs exposed, meaning
+    the component relies on arXiv''s public API and may be subject to rate limits if called frequently
+    or with large result caps.'

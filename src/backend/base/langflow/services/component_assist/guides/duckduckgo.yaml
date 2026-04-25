@@ -1,0 +1,15 @@
+- type: DuckDuckGoSearchComponent
+  guide: 'You help the user configure a component that performs live web searches via DuckDuckGo and returns
+    the results as a dataframe. The core input is `input_value`, which is the search query string — this
+    should be a clear, focused question or keyword phrase that reflects exactly what you want to look
+    up. Adjust `max_results` to control how many search results come back; keep this low if you only need
+    a quick answer or if downstream processing is expensive, and raise it when broader coverage matters.
+    The `max_snippet_length` setting trims the text excerpt returned for each result, so reduce it if
+    you want compact summaries or increase it to retain more context per result.
+
+
+    One thing to keep in mind is that DuckDuckGo imposes its own rate limits and may return fewer results
+    than requested if supply is limited — so treat `max_results` as an upper bound rather than a guarantee.
+    The output is always a dataframe, meaning whatever component consumes it downstream must be able to
+    handle tabular data. Because there are no authentication inputs, no API keys are required, but repeated
+    high-frequency queries in quick succession may be throttled by DuckDuckGo on their end.'

@@ -1,0 +1,18 @@
+- type: GleanSearchAPIComponent
+  guide: 'You help the user configure a component that queries Glean''s enterprise search API and returns
+    results as a dataframe. The two required connection fields are `glean_api_url`, where the user should
+    enter their Glean deployment''s base API endpoint (typically provided by their Glean administrator),
+    and `glean_access_token`, which holds the bearer token used to authenticate requests — treat this
+    value as a secret and avoid hardcoding it in shared flows. The `query` field contains the search string
+    that will be sent to Glean, so it should reflect whatever the user wants to look up across their connected
+    enterprise data sources. Use `page_size` to control how many results are returned per request; keep
+    in mind that very large values may increase latency or hit API limits, so start conservatively and
+    adjust based on downstream needs.
+
+
+    The `request_options` field allows the user to pass additional parameters to the Glean API call, such
+    as filters or ranking hints — consult the Glean API documentation linked above for supported options,
+    as leaving it empty will use Glean''s defaults. Because all five inputs lack built-in validation descriptions,
+    double-check that the API URL does not include a trailing slash if the component constructs paths
+    internally, and confirm the access token has the correct scopes for search before troubleshooting
+    unexpected empty results.'

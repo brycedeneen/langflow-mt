@@ -1,0 +1,158 @@
+- type: JigsawStackAIScraperComponent
+  guide: 'This component uses JigsawStack''s AI to extract structured data from a web page or raw HTML
+    without requiring you to write CSS selectors. You help the user supply exactly one of either `url`
+    (a live page address) or `html` (raw HTML markup) — providing both at once is not allowed and will
+    cause an error. The `element_prompts` field is where the real extraction logic lives: enter plain-language
+    descriptions of the data points you want, such as "Plan price" or "Plan title," keeping in mind the
+    hard limit of five prompts per request. If the page is complex or contains repeated regions, use `root_element_selector`
+    to pass a CSS selector that narrows the scraper''s focus to a specific section of the DOM, which can
+    improve accuracy and reduce noise in the results. Make sure `api_key` is filled with a valid JigsawStack
+    credential before running. The component outputs `scrape_results` as structured data corresponding
+    to the prompts you defined; if results look incomplete, try refining your prompt wording or tightening
+    the `root_element_selector` to a more specific container element.'
+- type: JigsawStackAIWebSearchComponent
+  guide: 'This component sends a search query to JigsawStack''s AI-powered web search API and returns
+    both structured search results and extracted text content you can pass downstream in your flow. You
+    help the user configure it by first ensuring their `api_key` is set correctly, since every request
+    requires valid authentication. The `query` field is the core input — it accepts the search string
+    the user wants to look up, but keep in mind it has a hard limit of 400 characters, so longer queries
+    must be trimmed before reaching this component. The three toggle inputs refine result quality and
+    safety: enable `ai_overview` when the user wants a synthesized AI-generated summary alongside the
+    raw results, turn on `safe_search` to automatically filter adult content from results (recommended
+    for general-audience applications), and use `spell_check` to let the API correct minor typos in the
+    query before searching. The component exposes two outputs — `search_results` for structured data you
+    can route into other components, and `content_text` for plain extracted text that works well as input
+    to language model components. None of the toggles are required, so you can leave them off if the defaults
+    suit the use case.'
+- type: JigsawStackFileReadComponent
+  guide: 'This component retrieves a previously uploaded file from JigsawStack File Storage and makes
+    it available as a file path for use in downstream nodes. You need to provide two inputs: your JigsawStack
+    API key for authentication, and the storage key that identifies which file to retrieve. The key is
+    the unique identifier assigned when the file was originally uploaded — if you are unsure what key
+    was used, check the upload step earlier in your flow or your JigsawStack storage dashboard. The API
+    key should be kept secure and is typically stored as a credential or environment variable rather than
+    entered as plain text.
+
+
+    One important constraint to keep in mind is that the file must have been uploaded to JigsawStack File
+    Storage beforehand; this component only reads existing files and cannot create or upload new ones.
+    The output is a file path, so downstream components should expect a path reference rather than raw
+    file content. If retrieval fails, double-check that the key exactly matches what was used during upload,
+    as keys are case-sensitive and any mismatch will result in an error.'
+- type: JigsawStackFileUploadComponent
+  guide: 'This component uploads a file to JigsawStack File Storage and returns either a retrievable key
+    or a temporary public URL you can pass to downstream AI components. You must always provide your JigsawStack
+    API key for authentication and supply the file you want to store. The key input is optional — if you
+    leave it blank, a unique key is generated automatically, but if you want a predictable, human-readable
+    identifier you can reference later, set it explicitly. When reusing the same key across runs, pay
+    close attention to the overwrite toggle: leaving it off will cause the component to error if a file
+    with that key already exists, so enable overwrite only when intentional replacement is acceptable.
+    The temp_public_url toggle controls what comes back in the file_upload_result output — enable it when
+    a downstream component or external service needs a direct, time-limited URL to access the file, and
+    leave it off when you only need the storage key for owner-controlled access within your JigsawStack
+    workflow. Keep in mind that temporary public URLs expire after a limited period, so avoid relying
+    on them for long-lived references.'
+- type: JigsawStackImageGenerationComponent
+  guide: 'You help the user configure a component that sends a text prompt to AI image models (such as
+    Flux and Stable Diffusion) and returns a generated image. The only required inputs are your JigsawStack
+    API key and a prompt (1–5,000 characters). For output delivery, provide either a url to receive the
+    image via HTTP or a file_store_key to save it in JigsawStack''s file storage — you don''t need both,
+    but at least one should be set if you want to persist the result. Use aspect_ratio to control the
+    image''s proportions from a fixed list of valid ratios (defaulting to 1:1), or override with explicit
+    width and height values (each between 256–1,920 pixels), though mixing both may produce unexpected
+    results.
+
+
+    For quality tuning, steps controls the denoising iterations (1–90), where higher values improve quality
+    at the cost of generation time. The guidance parameter (1–28) tightens how strictly the model follows
+    your prompt — very high values can reduce visual quality. Use negative_prompt to explicitly exclude
+    unwanted elements. Set seed to a fixed number when you need reproducible outputs; identical seed and
+    parameters will always yield the same image. output_format is limited to png or svg, so confirm your
+    downstream components can handle whichever format you choose.'
+- type: JigsawStackNSFWComponent
+  guide: 'You help the user configure a content moderation check that analyzes an image or video at a
+    given URL and returns whether it contains NSFW material. There are only two inputs to set up: the
+    API key, which authenticates your requests to JigsawStack and should be kept secret, and the URL pointing
+    directly to the image or video file you want to analyze.
+
+
+    When connecting this component in a flow, make sure the URL input resolves to a publicly accessible,
+    direct link to the media file — not a webpage that contains the media. If the URL requires authentication
+    or is behind a firewall, the request will likely fail. The component produces a single output, nsfw_result,
+    which you can route into a conditional branch or logging step depending on how your flow should handle
+    flagged content. Keep in mind that this component does not store or modify the media itself; it only
+    reads from the URL you provide. Double-check that your API key has the necessary permissions enabled
+    in your JigsawStack account before running the flow.'
+- type: JigsawStackObjectDetectionComponent
+  guide: 'You help the user configure a component that runs object detection on an image, returning structured
+    results about detected objects along with optional segmentation masks or annotated visuals.
+
+
+    Start by providing authentication through the api_key field. For the image source, supply either a
+    publicly accessible url or a file_store_key referencing an image already uploaded to JigsawStack File
+    Storage — only one is required, but not both. The prompts field drives what the model looks for: enter
+    one or more comma-separated phrases describing the objects or regions you want to ground, such as
+    "person, car, traffic light." The features field lets you enable specific detection capabilities like
+    segmentation or computer-use grounding, so select only what your downstream flow actually needs. Use
+    return_type to control the output format — for example, choosing masks returns pixel-level segmentation
+    data, while annotations returns bounding-box overlays. If you want the component to also produce a
+    viewable image with detections drawn on it, toggle annotated_image to true; this adds an image URL
+    to the results. Keep in mind that url and file_store_key are mutually exclusive as image sources,
+    and omitting prompts may produce less targeted or less useful detections.'
+- type: JigsawStackSentimentComponent
+  guide: 'You help the user configure a component that calls the JigsawStack AI API to evaluate the emotional
+    tone of a piece of text, returning both structured data and a plain-text summary of the result. The
+    two required inputs are straightforward: `api_key` should be set to the user''s JigsawStack API key,
+    which is used solely for authentication and should be treated as a secret credential — avoid hardcoding
+    it in plain sight and prefer using an environment variable or secret store if the platform supports
+    it. The `text` input is the content to be analyzed, and it should contain meaningful natural-language
+    input; very short or ambiguous strings may produce less reliable sentiment signals. The component
+    exposes two outputs — `sentiment_data` for downstream components that need structured results (such
+    as scores or labels) and `sentiment_text` for a human-readable representation — so connect whichever
+    output fits the next step in your flow. Make sure the API key is valid and active before running,
+    as authentication failures will prevent any output from being produced.'
+- type: JigsawStackTextToSQLComponent
+  guide: 'This component converts a plain-language description into a ready-to-use SQL query by calling
+    the JigsawStack AI API. You help the user get the most accurate output by guiding them through the
+    four inputs: the api_key is required for authentication and must be a valid JigsawStack credential;
+    the prompt is where the user writes what they want the query to do, in plain English — the more specific
+    and descriptive, the better the result. The sql_schema and file_store_key inputs both serve the same
+    purpose of providing database structure context, but you should only use one at a time. If the user
+    has a CREATE TABLE statement or a text description of their schema available directly, they should
+    paste it into sql_schema. If their schema is already stored in JigsawStack file storage, they can
+    instead supply the file_store_key. Providing either of these is strongly recommended, since schema
+    context allows the AI to apply correct syntax and database-specific optimizations — omitting both
+    may produce generic or inaccurate SQL. The component outputs a single sql_query value that can be
+    passed downstream to a database execution step.'
+- type: JigsawStackTextTranslateComponent
+  guide: 'This component sends text to the JigsawStack API and returns translated content in a target
+    language. You help the user supply three inputs to make it work: the `api_key` authenticates the request
+    and must be a valid JigsawStack credential; `target_language` specifies where to translate to using
+    an ISO 639-1 two-letter code (for example, "fr" for French or "de" for German — using an invalid or
+    unsupported code will likely cause the request to fail); and `text` is the content to translate, which
+    can be either a single string or a list of strings, with each list item translated independently and
+    results returned together in `translation_results`.
+
+
+    When configuring this component, make sure the language code is exactly two lowercase letters per
+    the ISO 639-1 standard, as longer locale tags or full language names are not supported. If the user
+    wants to translate multiple pieces of text in one pass, a list input is the right choice rather than
+    chaining multiple components. Note that the source language is not a configurable input here — the
+    API infers it automatically, so the user does not need to specify it. Direct the user to the JigsawStack
+    documentation for details on supported language pairs and rate limits.'
+- type: JigsawStackVOCRComponent
+  guide: 'This component extracts structured data from images and documents using fine-tuned vision language
+    models, returning consistent results via the vocr_results output. You help the user supply the right
+    inputs to target the correct file and control what information gets pulled out.
+
+
+    Start by ensuring the api_key is set with a valid JigsawStack credential. To point the component at
+    a file, provide either url (a publicly accessible link to an image or document) or file_store_key
+    (a key referencing a file already uploaded to JigsawStack File Storage) — exactly one of these must
+    be present, not both. The prompts field controls what the model looks for; the default is a general
+    image description, but you can pass multiple comma-separated prompts to extract several distinct pieces
+    of information in a single call. For multi-page documents, page_range_start and page_range_end let
+    you limit processing to a specific page span, which is useful for large files where only a section
+    is relevant — if you leave both blank, every page is processed. Note that page range inputs have no
+    effect on single-page images, and the component does not support local file uploads directly; the
+    file must be reachable via a URL or already stored in JigsawStack File Storage.'

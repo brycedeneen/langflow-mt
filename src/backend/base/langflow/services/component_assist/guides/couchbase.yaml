@@ -1,0 +1,16 @@
+- type: CouchbaseVectorStoreComponent
+  guide: 'This component connects to a Couchbase cluster and uses it as a vector store, allowing you to
+    ingest documents and run semantic similarity searches against stored embeddings. You help the user
+    configure the connection and search behavior across its inputs.
+
+
+    Start with the four connection inputs: provide the cluster''s connection string (typically a couchbase://
+    or couchbases:// URL), along with the username and password for authentication. Then specify the bucket,
+    scope, and collection that identify exactly where documents are stored in Couchbase''s hierarchical
+    data model — all three must already exist in your cluster. The index_name must match a Search index
+    configured on that collection with vector search enabled; mismatches here will cause queries to fail
+    silently or error. Provide an embedding model via the embedding input so the component can vectorize
+    both ingested content and search queries consistently. Use ingest_data to pass in documents you want
+    to store. For querying, set search_query to your similarity search text and number_of_results to control
+    how many matches are returned. Enable should_cache_vector_store when multiple downstream outputs share
+    this component to avoid redundant connections and reindexing within the same build.'

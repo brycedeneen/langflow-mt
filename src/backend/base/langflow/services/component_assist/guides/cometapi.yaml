@@ -1,0 +1,16 @@
+- type: CometAPIComponent
+  guide: 'This component connects to the CometAPI service, routing your messages through a large catalog
+    of available language models and returning either a text response or a model object for downstream
+    use. You must provide your API key to authenticate, and you should select a specific model via the
+    model name field — given the breadth of available models, double-check that your chosen model identifier
+    matches exactly what CometAPI expects. The app name field feeds into CometAPI''s internal rankings,
+    so fill it in if you want your usage tracked under a meaningful label.
+
+
+    For tuning behavior, adjust temperature to shift outputs between deterministic and creative, and set
+    max tokens to cap response length. Use the seed input when you need reproducible results across runs.
+    If your downstream component expects structured data, enabling JSON mode instructs the model to return
+    a valid JSON object — be aware that not all models may honor this reliably. The system message shapes
+    the model''s persona or instructions before your input arrives. Enable streaming only when this component
+    feeds directly into a Chat interface, as streaming is not supported in other output contexts. Use
+    model kwargs sparingly for any provider-specific parameters not covered by the standard inputs.'

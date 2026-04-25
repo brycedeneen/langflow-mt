@@ -1,0 +1,16 @@
+- type: CombinatorialReasonerComponent
+  guide: 'You help the user configure a component that applies combinatorial optimization to rewrite a
+    given prompt, returning both an improved version of that prompt and the reasoning behind the changes.
+    The core input is the prompt field, which should contain the raw prompt text the user wants optimized
+    — this is the primary content being transformed. The model_name field controls which OpenAI model
+    is used during optimization, so the user should set it to a model they have access to under their
+    OpenAI account. The openai_api_key must be a valid OpenAI API key tied to that account.
+
+
+    Beyond OpenAI credentials, this component also requires a separate set of credentials — username and
+    password — to authenticate with the Icosa CR API, which powers the combinatorial optimization backend.
+    Users must register for access before these credentials will work; without a valid Icosa account,
+    the component will fail regardless of whether the OpenAI key is correct. The two outputs, optimized_prompt
+    and reasons, can be wired into downstream components: optimized_prompt carries the rewritten prompt
+    ready for use, while reasons provides an explanation of what was changed and why, useful for debugging
+    or transparency purposes.'

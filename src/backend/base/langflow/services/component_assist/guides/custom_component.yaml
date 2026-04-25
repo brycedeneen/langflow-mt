@@ -1,0 +1,15 @@
+- type: CustomComponent
+  guide: 'This component serves as a blank starting point for building your own custom logic within the
+    flow. It accepts a single input, `input_value`, which acts as a general-purpose entry point — you
+    should wire whatever data or text needs to be processed by your custom code into this field. Because
+    the component is a template, its behavior is entirely determined by the Python code you write inside
+    it; out of the box it does nothing meaningful on its own. The single output will carry whatever your
+    custom code returns, making it flexible enough to slot into most positions in a flow.
+
+
+    The key thing to keep in mind is that this component requires you to edit its underlying code to be
+    useful — simply dropping it into a flow and passing data through `input_value` without modifying the
+    logic will not produce a meaningful result. If you need guidance on how to define inputs, outputs,
+    and the processing method, refer to the official documentation at docs.langflow.org/components-custom-components.
+    Make sure the data type you expect in `input_value` matches what your code actually handles, since
+    there is no built-in type enforcement on this template.'

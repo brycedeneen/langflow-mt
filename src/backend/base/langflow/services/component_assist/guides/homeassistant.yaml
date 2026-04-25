@@ -1,0 +1,25 @@
+- type: HomeAssistantControl
+  guide: 'This component sends commands to a Home Assistant instance via its REST API, allowing you to
+    turn devices on or off or toggle their current state. You help the user configure four inputs: `ha_token`
+    must be a valid Long-Lived Access Token generated from their Home Assistant user profile — without
+    it, all API calls will fail. `base_url` should be the local or remote address of their Home Assistant
+    instance, including the port (typically 8123), with no trailing slash. `default_action` sets the fallback
+    command sent to the device and must be exactly one of `turn_on`, `turn_off`, or `toggle` — no other
+    values are accepted. `default_entity_id` specifies which device to control by default, using Home
+    Assistant''s `domain.name` format (for example, `light.living_room` or `switch.garage`); the domain
+    prefix is parsed automatically to route the call correctly, so it must be present and accurate. Keep
+    in mind these are defaults — a connected agent or flow can override the action and entity ID at runtime.
+    If a user is unsure of an entity ID, direct them to check their Home Assistant developer tools under
+    States.'
+- type: ListHomeAssistantStates
+  guide: This component fetches entity states from a Home Assistant instance via its REST API, optionally
+    scoped to a specific domain. You help the user configure three inputs, though two of them — `ha_token`
+    and `base_url` — are infrastructure-level credentials that should be set once and are not exposed
+    to the AI agent at runtime. The `ha_token` must be a valid Long-Lived Access Token generated from
+    the Home Assistant user profile page, and `base_url` should point to the local or remote address where
+    Home Assistant is accessible (for example, `http://192.168.0.10:8123`). The only input the agent can
+    influence is `filter_domain`, which narrows results to a single entity domain such as `light`, `switch`,
+    or `sensor`; leaving it empty will return states for every entity in the system, which can be a large
+    payload. If the user is seeing unexpected empty results or errors, the most common culprits are an
+    incorrect `base_url` (wrong IP, port, or missing `http://`) or an expired/invalid token. Remind the
+    user that the `base_url` should not have a trailing slash.

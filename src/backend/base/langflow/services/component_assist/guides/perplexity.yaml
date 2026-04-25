@@ -1,0 +1,17 @@
+- type: PerplexityComponent
+  guide: 'This component sends a prompt to a Perplexity language model and returns generated text, giving
+    you access to Perplexity''s hosted LLMs within your flow. You must provide a valid Perplexity API
+    key before anything else will work. Set `input_value` to the message or prompt you want the model
+    to respond to, and use `system_message` to establish a persona or standing instruction that shapes
+    all responses. Choose your `model_name` from the models available in your Perplexity account, and
+    adjust `temperature` to control randomness — lower values produce more focused output, higher values
+    more varied. Use `top_p` to further constrain sampling to the most probable token pool, and set `max_tokens`
+    to cap response length.
+
+
+    A few things to keep in mind: `stream` enables token-by-token output, but this only functions correctly
+    when the component is wired into a Chat interface — it has no effect in other contexts. The `n` parameter
+    requests multiple completions per prompt, but Perplexity may silently return fewer than requested
+    if duplicates are detected, so do not rely on an exact count. The component exposes both a plain `text_output`
+    and a `model_output` for the full model response object, so downstream components can consume whichever
+    form they need.'

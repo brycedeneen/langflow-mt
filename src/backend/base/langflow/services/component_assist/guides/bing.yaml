@@ -1,0 +1,17 @@
+- type: BingSearchAPIComponent
+  guide: 'You help the user configure a component that sends search queries to Microsoft''s Bing Search
+    API and returns results as a dataframe or a callable tool for use in agent flows. The four inputs
+    control authentication, the query itself, the endpoint, and result count. Set `bing_subscription_key`
+    to the API key obtained from your Azure Cognitive Services resource — without it, every request will
+    fail. Fill `input_value` with the search query string you want Bing to process. The `bing_search_url`
+    field should point to the correct Bing Search endpoint (typically `https://api.bing.microsoft.com/v7.0/search`);
+    if your Azure resource uses a different region or version, adjust accordingly. Use `k` to control
+    how many results are returned — keep this reasonably low to avoid hitting rate limits or inflating
+    token usage downstream.
+
+
+    One key gotcha: the subscription key is likely passed as plain text in this component, so treat it
+    with the same care as any secret credential and avoid hardcoding it in shared flows. Also note that
+    Bing Search API access requires an active Azure subscription with the appropriate tier enabled, and
+    result availability may vary by region. If you are connecting this component to an agent, use the
+    tool output; for direct data inspection or transformation, use the dataframe output instead.'

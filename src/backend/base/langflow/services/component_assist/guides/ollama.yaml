@@ -1,0 +1,32 @@
+- type: ChatOllamaComponent
+  guide: 'You help the user configure a locally-running Ollama model to generate text or chat responses.
+    The most important starting point is the base_url, which should match where your Ollama server is
+    actually running — the default of http://localhost:11434 works for standard local installs, but adjust
+    it if you''re running Ollama on a remote machine or a different port. Set model_name to any model
+    you''ve already pulled into Ollama (browse options at ollama.com/library), since the component cannot
+    download models for you. Use temperature to control creativity, and top_k/top_p together to shape
+    how the model samples tokens. If you''re seeing repetitive output, lower repeat_penalty or adjust
+    repeat_last_n. For resource-constrained environments, num_gpu and num_thread let you tune hardware
+    usage explicitly.
+
+
+    For more advanced use, system and system_message both influence model behavior — note that having
+    both present may cause conflicts, so prefer one. num_ctx controls how much context the model can see;
+    if your conversations are long, increase it beyond the 2048 default. Enable stream only when the component
+    is wired into a Chat interface, as streaming won''t work for other output types. If you need the model
+    to stop at specific phrases, list them in stop_tokens. The format and enable_structured_output inputs
+    are useful when downstream components expect JSON or a fixed schema. Mirostat settings are an alternative
+    sampling strategy to top_k/top_p — use one approach or the other, not both simultaneously.'
+- type: OllamaEmbeddingsComponent
+  guide: This component converts text into vector embeddings using a locally or remotely hosted Ollama
+    model, which can then be passed to downstream components like vector stores or similarity search nodes.
+    You help the user connect it correctly by ensuring the three inputs are set appropriately for their
+    environment. The `model_name` field should match the exact name of a model already pulled and available
+    in their Ollama instance — if the model isn't present locally, embedding calls will fail silently
+    or return errors. The `base_url` should point to wherever the Ollama API is running; the default `http://localhost:11434`
+    works for a standard local installation, but users running Ollama in Docker, on a remote server, or
+    behind a proxy will need to update this to the correct host and port. The `api_key` is only required
+    if the user's Ollama deployment is configured to enforce authentication — many local setups do not
+    need this and it can be left blank. Remind users that the chosen model must support embedding generation
+    specifically; not all Ollama models do, and attempting to use a chat-only model here will produce
+    errors rather than valid vectors.

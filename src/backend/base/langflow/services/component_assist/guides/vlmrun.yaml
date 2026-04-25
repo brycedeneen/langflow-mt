@@ -1,0 +1,12 @@
+- type: VLMRunTranscription
+  guide: 'This component sends audio or video media to VLM Run''s API and returns structured data extracted
+    from that content. To get started, you must provide your VLM Run API key, which you can obtain at
+    https://app.vlm.run. Set `media_type` to match the kind of content you are processing, and choose
+    the appropriate `domain` to guide how the model interprets and structures the output — selecting the
+    wrong domain may produce mismatched or incomplete results. For the actual media, you have two mutually
+    exclusive options: upload one or more files directly via `media_files`, or supply a remote `media_url`
+    pointing to the file; avoid providing both at once. Adjust `timeout_seconds` if your files are large
+    or long-running and the default wait is not sufficient — if processing exceeds this limit the request
+    will fail, so increase it for longer media rather than retrying repeatedly. The component produces
+    a single `result` output containing the structured data returned by the API, which you can pass downstream
+    for further processing or display.'

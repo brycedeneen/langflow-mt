@@ -1,0 +1,17 @@
+- type: SerpComponent
+  guide: 'You help the user configure a component that queries a search engine via the SerpAPI service
+    and returns structured results. The serpapi_api_key field must contain a valid API key from the user''s
+    SerpAPI account — without it the component will fail entirely. The input_value is the search query
+    string, typically connected from an earlier node in the flow. The search_params field accepts additional
+    parameters (such as engine, location, or language) that SerpAPI supports, allowing the user to customize
+    the search beyond a plain query. The max_results field controls how many results are returned, so
+    the user should lower this when they only need a few top hits to reduce token usage downstream. The
+    max_snippet_length field trims the text preview for each result, which is useful when passing output
+    into a prompt with limited context space.
+
+
+    The component produces two outputs: data, which carries structured result objects suitable for further
+    processing, and text, which is a flattened string representation more convenient for direct use in
+    prompts. Keep in mind that SerpAPI is a paid third-party service with usage limits tied to the API
+    key, so misconfigured or overly broad searches may consume quota quickly. If search_params is left
+    empty, the component will apply only default behavior, which may not target the intended search engine.'

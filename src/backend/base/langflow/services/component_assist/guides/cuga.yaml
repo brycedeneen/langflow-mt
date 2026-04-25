@@ -1,0 +1,18 @@
+- type: CugaComponent
+  guide: 'This component runs an advanced AI agent capable of executing complex tasks through tool use,
+    browser automation, and API interactions, then returns a single response. Start by setting `instructions`
+    to define how the agent should plan its work and format its final answer — this is your primary lever
+    for controlling behavior. Provide the user''s request in `input_value` and connect any external tools
+    via `tools`; enabling `add_current_date_tool` gives the agent awareness of today''s date at no extra
+    cost. If the task involves web interaction, toggle `browser_enabled` and supply a starting URL in
+    `web_apps`. For simpler, faster tasks you can turn on `lite_mode`, and tune `lite_mode_tool_threshold`
+    to control when that lighter reasoning path kicks in. The `decomposition_strategy` determines whether
+    the agent can assign multiple subtasks to one app (`flexible`) or must use a strict one-to-one mapping
+    (`exact`).
+
+
+    On the model side, choose a provider with `agent_llm`, then select `model_name` and supply the appropriate
+    `api_key`. Keep `max_iterations` reasonably bounded — if the agent cannot finish within that many
+    attempts it will stop, so raise it only for genuinely complex workflows. Setting `max_tokens` to 0
+    allows unlimited output, which can increase latency and cost. Note that `agent_description` is deprecated
+    and has no effect outside Tool Mode, so you can safely ignore it.'

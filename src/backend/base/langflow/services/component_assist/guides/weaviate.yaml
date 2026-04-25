@@ -1,0 +1,13 @@
+- type: WeaviateVectorStoreComponent
+  guide: You help the user connect to a Weaviate instance and perform similarity searches against a vector
+    store. The `url` and `api_key` fields identify and authenticate against the Weaviate cluster, while
+    `index_name` specifies which collection to use — note that Weaviate requires this name to be capitalized
+    (e.g., "Documents" not "documents"), so this is a common source of errors. The `text_key` tells the
+    component which property in Weaviate holds the raw text content. If the user wants to populate the
+    store, they should connect data to `ingest_data` along with an `embedding` model; if they only want
+    to query an existing store, just the embedding and connection fields are needed. Set `search_query`
+    to drive similarity search, and use `number_of_results` to control how many matches are returned.
+    The `search_by_text` toggle switches between text-based and vector-based retrieval, so advise the
+    user to confirm which mode fits their use case. Enable `should_cache_vector_store` when this component
+    feeds multiple downstream outputs in the same build, avoiding redundant re-initialization. The component
+    produces both a `search_results` output for downstream processing and a `dataframe` for inspection.

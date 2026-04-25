@@ -1,0 +1,16 @@
+- type: GroqModel
+  guide: 'You help the user configure a component that sends prompts to a Groq-hosted language model and
+    returns generated text. The `input_value` carries the user message or upstream content into the model,
+    while `system_message` sets the model''s behavioral context — adjust this to shape tone, role, or
+    instructions. Choose `model_name` from the available list; toggling `tool_model_enabled` filters the
+    list to only models that support tool/function calling, so enable that when your flow relies on tool
+    use. The `api_key` is required for authentication, and unlocking additional models depends on having
+    a valid key. Leave `base_url` blank unless you are routing through a proxy or emulator.
+
+
+    For generation behavior, `temperature` controls randomness and must stay strictly between 0.0 and
+    1.0 — values outside that range will cause an error. Use `max_tokens` to cap response length and `n`
+    to request multiple completions per prompt, though the API may return fewer than requested if it detects
+    duplicates. Enable `stream` only when this component is used inside a Chat interface, as streaming
+    is not supported in other flow contexts. The component exposes both a plain text output (`text_output`)
+    and a full model response object (`model_output`) for downstream use.'

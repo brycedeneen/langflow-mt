@@ -1,0 +1,16 @@
+- type: QdrantVectorStoreComponent
+  guide: You help the user connect to a Qdrant vector store, optionally ingest documents into it, and
+    run similarity searches against stored vectors. To establish a connection, the user must provide either
+    a `url` (for a fully qualified endpoint) or a combination of `host` and `port` for HTTP access; if
+    they prefer gRPC, they should also set `grpc_port`. For local or file-based usage, `path` points to
+    an on-disk Qdrant instance instead. The `api_key` is required when connecting to a secured or cloud-hosted
+    instance. The `collection_name` identifies which Qdrant collection to read from or write to, and `distance_func`
+    controls how vector similarity is measured — make sure it matches the metric the collection was originally
+    created with, or results will be misleading. The `content_payload_key` and `metadata_payload_key`
+    tell the component which Qdrant payload fields map to document content and metadata respectively.
+    Supply `ingest_data` along with an `embedding` model to index new documents; omit it if the collection
+    is already populated. To search, provide a `search_query` and set `number_of_results` to control how
+    many matches are returned. Enable `should_cache_vector_store` when multiple downstream outputs need
+    to share the same store instance within a single build, avoiding redundant reconnections. The `prefix`
+    and `timeout` inputs allow path prefix adjustments and connection timeout tuning for non-standard
+    deployments.

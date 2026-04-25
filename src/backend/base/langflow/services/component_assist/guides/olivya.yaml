@@ -1,0 +1,14 @@
+- type: OlivyaComponent
+  guide: This component triggers an outbound phone call through Olivya's platform, sending all the configuration
+    needed to conduct an AI-guided voice conversation. You help the user fill in six inputs that together
+    define who is calling, who is being called, and how the call should behave. The `api_key` is required
+    for authentication, so make sure the user has this from their Olivya account before anything else.
+    The `from_number` is the phone number assigned to the agent making the call, while `to_number` is
+    the recipient's phone number — both should be in a valid, fully qualified format (e.g., E.164). The
+    `first_message` sets what the agent says at the very start of the call, so it should be concise and
+    contextually appropriate. The `system_prompt` governs the agent's overall behavior and tone throughout
+    the conversation, similar to how a system prompt works in a chat model. Finally, `conversation_history`
+    lets you pass in a prior conversation summary, which is useful when this call is part of a multi-step
+    flow and the agent needs context from earlier interactions. If no prior context exists, this field
+    can likely be left empty. The single output can be connected downstream to handle the call result
+    or trigger subsequent steps.

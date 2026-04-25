@@ -1,0 +1,136 @@
+- type: BigQueryExecutorComponent
+  guide: 'You help the user connect to Google BigQuery and run a SQL query, returning the results downstream.
+    The first thing the user needs to provide is a service account JSON file — this is the credentials
+    file downloaded from Google Cloud IAM, and without it the component cannot authenticate or execute
+    anything. Next, the user writes the SQL query they want to run against their BigQuery dataset in the
+    query field; this should be valid BigQuery-dialect SQL targeting the correct project and dataset their
+    service account has access to.
+
+
+    The clean_query toggle is worth flagging: when enabled, the component will automatically reformat
+    or sanitize the SQL before execution, which can help if the query is copy-pasted from a tool that
+    introduces extra whitespace, comments, or formatting artifacts. However, if the user has intentional
+    formatting or edge-case syntax they rely on, they should test with this option off first to confirm
+    it does not alter query behavior. The single output, query_results, carries whatever rows BigQuery
+    returns, so downstream components should expect tabular data. Make sure the service account has the
+    necessary BigQuery roles (at minimum BigQuery Data Viewer and BigQuery Job User) or queries will fail
+    at runtime.'
+- type: GmailLoaderComponent
+  guide: This component connects to a Gmail account using OAuth 2.0 credentials and retrieves emails as
+    structured data for use downstream in your flow. You help the user supply three inputs to control
+    what gets fetched. The `json_string` field is required and must contain a valid JSON-formatted OAuth
+    2.0 access token payload for a service account — this is typically a credentials file or token object
+    obtained through Google's authorization flow, so make sure it is well-formed JSON and has not expired.
+    The `label_ids` field accepts a comma-separated list of Gmail label IDs (not label names) to narrow
+    which emails are returned; if left empty, the component will likely fall back to a default scope such
+    as the inbox. Use `max_results` to cap how many emails are loaded, which is important for performance
+    when dealing with large mailboxes — setting this too high may cause slowdowns or timeouts. Note that
+    label IDs differ from human-readable label names (for example, the inbox label ID is `INBOX`), so
+    users should verify the exact IDs from their Gmail account if filtering is needed.
+- type: GoogleDriveComponent
+  guide: 'This component retrieves a document from Google Drive and outputs it as a loadable document
+    for downstream processing. You help the user supply two required pieces of information: valid credentials
+    and a target document identifier.
+
+
+    The `json_string` input expects a properly formatted JSON string containing OAuth 2.0 access token
+    details for a service account — this is not a raw API key or a personal Google account token, so make
+    sure the user has set up a Google Cloud service account and has the correct JSON structure ready.
+    The `document_id` is the unique identifier for a single Google Drive file, which can be found in the
+    file''s URL (the long alphanumeric string between `/d/` and `/view`). Note that this component loads
+    one document at a time, so if the user wants to load multiple files they will need multiple instances
+    of this component. Also ensure the service account referenced in the credentials has been explicitly
+    granted access to the target document in Google Drive, otherwise authentication will succeed but the
+    file retrieval will fail.'
+- type: GoogleDriveSearchComponent
+  guide: 'This component searches your Google Drive and returns matching files as document URLs, IDs,
+    titles, and structured data records. To use it, you must supply a valid OAuth 2.0 service account
+    token as a JSON string in the token_string field — without this, no requests can be authenticated.
+    The three query-building inputs work together: query_item selects which file attribute to filter on
+    (such as name or mimeType), valid_operator defines the comparison to apply (such as contains or =),
+    and search_term provides the value to match against. These three inputs are combined to construct
+    the query automatically, but if you need more precise or complex filtering, you can override the result
+    directly in query_string — note that any manual edits there may be overwritten if the other query
+    inputs are also changed, so treat it as a final override rather than a parallel option. The component
+    outputs four things: doc_urls, doc_ids, doc_titles, and a general Data output, giving downstream components
+    flexible access to the search results. Make sure the service account associated with your token has
+    been granted access to the files or shared drives you intend to search, or results may be empty even
+    when matching files exist.'
+- type: GoogleGenerativeAIComponent
+  guide: 'You help the user configure a component that sends prompts to Google''s Generative AI models
+    and returns generated text. The main input to wire up is `input_value`, which carries the prompt or
+    message into the model. Use `system_message` to set persistent instructions that shape the model''s
+    behavior across the conversation. Set `model_name` to choose which Google model to use, and provide
+    a valid Google API key in `api_key` — without it the component will not function. The `temperature`
+    controls how creative or deterministic the output is (lower is more predictable), while `top_p` and
+    `top_k` offer additional sampling controls; adjust these together carefully since they interact. Use
+    `max_output_tokens` to cap response length and `n` to request multiple completions, though the API
+    may return fewer than requested if duplicates arise.
+
+
+    A few things to keep in mind: `stream` enables token-by-token streaming, but this only works in a
+    Chat context — enabling it outside of that will have no effect. If you need the component to interact
+    with tools or function-calling features, toggle `tool_model_enabled` on. The component exposes both
+    a plain text output (`text_output`) and a model object output (`model_output`), so downstream components
+    can consume either the raw string or the richer model response depending on what the rest of your
+    flow requires.'
+- type: GoogleGenerativeAIEmbeddingsComponent
+  guide: 'You help the user configure a component that converts text into vector embeddings using Google''s
+    generative AI service, making those embeddings available to downstream components like vector stores
+    or similarity search nodes.
+
+
+    There are two inputs to configure. The `api_key` field requires a valid Google API key with access
+    to the Generative AI service — without it the component cannot authenticate and will fail at runtime,
+    so ensure this is set before connecting the output to anything. The `model_name` field controls which
+    embedding model is used; if you are unsure which model to specify, refer to the official LangChain
+    Google Generative AI documentation for currently supported model identifiers, as passing an unrecognized
+    name will cause an error. Note that this component relies on the `langchain-google-genai` package
+    being installed in the environment — if the flow errors unexpectedly, confirm that dependency is present.
+    The single output is an `embeddings` object, which should be wired into any component that expects
+    an embeddings provider rather than raw text or vectors.'
+- type: GoogleOAuthToken
+  guide: 'This component retrieves a Google OAuth access token and produces it as a JSON string, which
+    you can pass downstream to components that need authenticated access to Google APIs. You help the
+    user configure two inputs: scopes and oauth_credentials. The scopes field defines which Google API
+    permissions your application requests — these must match what was configured in your Google Cloud
+    project''s OAuth consent screen (for example, "https://www.googleapis.com/auth/drive.readonly"). The
+    oauth_credentials field expects the credentials file downloaded from the Google Cloud Console, typically
+    named credentials.json, which contains your client ID and client secret.
+
+
+    A few important constraints to keep in mind: the credentials file must correspond to a Web Server
+    or Desktop OAuth 2.0 client — service account keys are a different format and will not work here.
+    Scopes must be provided as valid Google API scope URLs; using incorrect or unregistered scopes will
+    cause authorization to fail. The first time the token is generated, Google''s OAuth flow may require
+    an interactive browser-based consent step, so this component may not work seamlessly in fully automated
+    or headless environments without prior token caching. Refer to the linked Google documentation for
+    details on the authorization code flow and how tokens are refreshed.'
+- type: GoogleSearchAPICore
+  guide: 'You help the user configure a component that queries Google''s Custom Search service and returns
+    the results as a structured DataFrame. There are four inputs to set up: `google_api_key` is the API
+    key from your Google Cloud project with the Custom Search API enabled, and `google_cse_id` is the
+    Programmable Search Engine ID you create through Google''s CSE control panel — both are required credentials
+    without which the component cannot authenticate. `input_value` is the search query string that will
+    be submitted to Google, so it should contain the actual keywords or question you want to search for.
+    `k` controls how many results are returned; keep in mind that Google''s Custom Search API returns
+    a maximum of 10 results per request, so setting `k` above 10 will not yield additional results and
+    may cause errors depending on implementation. Make sure the API key has Custom Search API access enabled
+    in the Google Cloud Console, and that billing is active, as the free tier has a daily query limit.
+    Both the API key and CSE ID are sensitive credentials and should be handled securely rather than hardcoded
+    where possible.'
+- type: GoogleSerperAPICore
+  guide: 'You help the user configure a component that sends a search query to the Serper.dev Google Search
+    API and returns the results. The three inputs work together: `serper_api_key` is the authentication
+    credential from your Serper.dev account — without a valid key the component will fail, so make sure
+    it is filled in before testing. `input_value` is the search query string, which will typically be
+    wired in from an upstream node such as a text input or a language model''s output. `k` controls how
+    many results are returned, so guide the user to increase it when downstream steps need more context
+    or decrease it to reduce token usage and latency.
+
+
+    A key gotcha is that `serper_api_key` should be treated as a secret — avoid hardcoding it in plain
+    text if your flow builder supports a credential or secret store. Also note that the component''s single
+    output is `results`, so any downstream node must connect to that output; there is no raw-text or structured
+    variant to choose from. If the user needs to transform or filter the returned results, they will need
+    to add a separate processing component after this one.'

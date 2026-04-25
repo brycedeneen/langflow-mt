@@ -1,0 +1,104 @@
+- type: AddContentToPage
+  guide: 'You help the user configure a component that converts markdown-formatted text into Notion blocks
+    and appends them to an existing Notion page or block. To use it, the user needs to provide three inputs:
+    the markdown content they want to add, the target location, and their Notion credentials.
+
+
+    The `markdown_text` input accepts standard markdown and will be translated automatically into Notion''s
+    block format before being written — so the user should write or pass content using markdown syntax
+    rather than trying to pre-format it as Notion blocks. The `block_id` should be the ID of the Notion
+    page or block where content will be appended; this is typically the long alphanumeric string found
+    in a Notion page URL. The `notion_secret` is the integration token from the Notion developer portal
+    — the integration must have been explicitly granted access to the target page, otherwise the API call
+    will fail silently or return a permissions error. Note that content is always appended, meaning it
+    is added after any existing content on the page rather than replacing it, so repeated runs will keep
+    adding new blocks rather than overwriting previous ones.'
+- type: NotionDatabaseProperties
+  guide: 'This component fetches the schema of a Notion database — specifically its property names and
+    types — so downstream components can understand what fields are available to read or write.
+
+
+    You help the user supply two required values: `database_id` and `notion_secret`. The database ID is
+    the unique identifier for the target Notion database, which you can extract from the database''s URL
+    (the 32-character string after the workspace name and before any query parameters). The Notion secret
+    is the integration token generated inside Notion''s developer settings; the integration must already
+    be connected to the database in question, otherwise the API call will fail with a permissions error.
+    Neither input has a default, so both must be provided before the component can run. The component
+    exposes two outputs — a direct model result and a tool-compatible build — meaning it can be used either
+    as a data source in a pipeline or invoked as a callable tool by an agent. If the user is unsure why
+    properties aren''t appearing, remind them to verify that the integration has been granted access to
+    the specific database inside Notion''s sharing settings.'
+- type: NotionListPages
+  guide: 'This component queries a Notion database and returns pages that match your specified filtering
+    and sorting criteria. You help the user configure three inputs: the Notion integration token (`notion_secret`),
+    which must belong to an integration that has been granted access to the target database; the `database_id`,
+    which is the unique identifier of the database to query (found in the database URL); and `query_json`,
+    a JSON string that controls how results are filtered and sorted. If the user wants all pages returned
+    without any conditions, `query_json` can be left empty. When they do provide a query, remind them
+    it must be valid JSON containing a `filter` object, a `sorts` array, or both — for example, filtering
+    by a select property value while sorting by creation time descending. A common gotcha is that the
+    integration must be explicitly connected to the Notion database, otherwise the API will return an
+    authorization error even with a valid token. The component exposes two outputs, a run model and a
+    build tool, allowing the result to be used either as a direct data source or as a callable tool within
+    an agent flow.'
+- type: NotionPageContent
+  guide: 'You help the user pull the full text of a single Notion page into their flow. The two inputs
+    are both required: `notion_secret` is the Notion integration token (the internal integration secret
+    you generate in Notion''s developer settings), and `page_id` is the unique identifier of the target
+    page, which you can find in the page''s URL as the long alphanumeric string after the workspace name
+    and before any query parameters. Make sure the integration has been explicitly shared with the target
+    page inside Notion, otherwise the API call will return an access error even if the token itself is
+    valid. The component exposes two outputs — a direct model result and a tool-compatible build — so
+    you can wire it either into a processing node that consumes structured output or into an agent that
+    calls it as a tool. There are no formatting or filtering options on this component; it returns the
+    page content as plain text only, so if the user needs specific blocks or rich formatting preserved,
+    they should handle that transformation in a downstream component.'
+- type: NotionPageCreator
+  guide: 'You help the user configure a component that creates new pages inside a Notion database by calling
+    the Notion API. Three inputs are required for this to work. The `notion_secret` field must contain
+    a valid Notion integration token — make sure the integration has been granted access to the target
+    database in Notion''s settings, otherwise the request will fail silently or return a permissions error.
+    The `database_id` should be the ID of the specific Notion database where the page will be created;
+    this can be found in the database''s URL. The `properties_json` field accepts a JSON string that defines
+    the new page''s properties — the keys and value types here must exactly match the schema of the target
+    database (for example, a "Name" title field requires a specific nested structure). If the JSON is
+    malformed or the property names don''t align with the database schema, the API call will fail. The
+    component exposes two outputs: a raw API response model and a tool-compatible output for use inside
+    an agent flow, so it can serve both direct pipeline and agentic use cases.'
+- type: NotionPageUpdate
+  guide: 'You help the user configure a component that writes updated property values back to an existing
+    Notion page. The `notion_secret` field must contain a valid Notion integration token — make sure the
+    integration has been granted access to the target page or database in Notion''s sharing settings,
+    otherwise the request will fail silently or return a permission error. The `page_id` should be the
+    unique identifier of the page you want to modify, which you can copy from the page URL (the 32-character
+    string after the last dash). The `properties` field accepts either a raw JSON string or a dictionary
+    structured according to Notion''s property schema — for example, a title property requires a specific
+    nested format (`{"Title": {"title": [{"text": {"content": "New value"}}]}}`), so mismatched property
+    types or names will cause the update to fail. Only properties that already exist on the page''s parent
+    database can be updated; you cannot create new property columns through this component. When the component
+    runs successfully it exposes both a result model and a callable tool output, making it usable either
+    as a direct action step or as a tool within an agent flow.'
+- type: NotionSearch
+  guide: This component queries all Notion pages and databases that your integration has been granted
+    access to, returning matched results based on title similarity. To use it, provide your Notion integration
+    token in the secret field — this must correspond to an integration that has already been shared with
+    the relevant pages or databases in your Notion workspace. The query field accepts the search text
+    that Notion compares against page and database titles; leaving it empty may return all accessible
+    content. Use the filter input to narrow results to only pages or only databases when you know which
+    content type you need, rather than receiving a mixed set. The sort direction controls whether results
+    come back in ascending or descending order, which is useful when you want the most recently edited
+    content first. Keep in mind that this component can only surface content explicitly shared with your
+    integration — pages or databases your integration cannot access will never appear in results regardless
+    of your query, so if results seem incomplete, check the sharing settings on the Notion side rather
+    than adjusting the query.
+- type: NotionUserList
+  guide: 'You help the user configure a component that fetches the list of all users from a connected
+    Notion workspace. The only input required is `notion_secret`, which is your Notion integration token
+    — the credential that authenticates requests to the Notion API on behalf of your integration. You
+    can find or generate this token in your Notion integration settings at notion.so/my-integrations.
+    Without a valid token, the component cannot retrieve any data, so make sure the integration has been
+    granted access to the relevant workspace. Note that the Notion API returns workspace members visible
+    to the integration, so if expected users are missing, the integration may lack sufficient permissions
+    or those users may not be workspace members. The component exposes two outputs: a direct model result
+    for use in data-processing steps, and a tool-wrapped version suitable for use inside an AI agent.
+    Choose the output that matches how downstream components expect to receive the user data.'

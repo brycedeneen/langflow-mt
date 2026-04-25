@@ -1,0 +1,133 @@
+- type: APIRequestComponent
+  guide: 'This component sends HTTP requests to external APIs and returns the response as structured data.
+    You help the user configure the request correctly depending on how they want to define it: if they
+    already have a cURL command, they can enable cURL mode and paste it into the curl input, which will
+    automatically populate headers and body fields — otherwise, they set the URL, method, headers, query
+    parameters, and body manually. The body field accepts a dictionary and is relevant only for POST,
+    PATCH, or PUT requests; if the target API expects form-encoded data instead of JSON, the user should
+    enable the form URL-encoded option. Bearer tokens can be added directly without the "Bearer" prefix,
+    as the component prepends it automatically.
+
+
+    A few important constraints to flag: enabling follow redirects carries a security risk — it can allow
+    SSRF attacks if the target URL redirects to internal resources, so the user should only turn it on
+    when they fully trust the destination server. If the response includes files or large payloads, saving
+    to a file is an option. Enabling metadata inclusion adds status codes, response headers, and redirect
+    history to the output, which is useful for debugging. For high-security integrations requiring mutual
+    TLS, the user can supply PEM certificate and key contents directly; both are stored encrypted at rest,
+    and a password field is available if the private key is encrypted.'
+- type: CSVToDataComponent
+  guide: 'This component reads CSV content from one of three sources and converts each row into a structured
+    Data object, outputting a list you can pass to downstream components. You should use exactly one of
+    the three input methods: upload a file directly via `csv_file` if you have a local file to attach,
+    provide an absolute or relative file path as plain text via `csv_path` if the CSV lives on the server
+    or filesystem, or paste raw CSV-formatted text directly into `csv_string` if you already have the
+    content as a string. Avoid populating more than one of these at a time, as the component is designed
+    around a single source of truth for the CSV data.
+
+
+    The `text_key` input controls which column is treated as the primary text field in each resulting
+    Data object — it defaults to `text`, so if your CSV has a column named `text`, no changes are needed.
+    If your CSV uses a different column name as the main content field (such as `body`, `content`, or
+    `message`), update `text_key` to match that column name exactly. Keep in mind that the column name
+    must exist in the CSV header row; a mismatch will likely cause errors or empty text fields in the
+    output Data objects.'
+- type: JSONToDataComponent
+  guide: 'This component parses JSON content into a Data object or list of Data objects that downstream
+    components can work with. You have three mutually exclusive ways to supply the JSON: upload a file
+    directly using the file input, provide a filesystem path as plain text if the file is already accessible
+    on the server, or paste a raw JSON string inline. Use the file upload when you have a local file to
+    attach to the flow; use the path input when the file lives at a known server-side location and you
+    want to reference it without re-uploading; use the string input for quick inline data or dynamically
+    generated JSON passed from an earlier component.
+
+
+    A few things to keep in mind: the JSON string input must be valid JSON — either an object `{}` or
+    an array `[]` — so malformed or single-quoted strings will cause errors. You should only populate
+    one of the three inputs at a time; if multiple inputs are provided, behavior may be unpredictable
+    since they serve the same purpose. When the root JSON value is an array, the component produces a
+    list of Data objects (one per element), so ensure downstream components are set up to handle list
+    inputs if you''re working with array-structured data.'
+- type: MockDataGeneratorComponent
+  guide: 'You help the user configure a component that produces synthetic sample data for testing and
+    prototyping flows without requiring a live data source. Because the component has no declared inputs,
+    there is nothing to configure directly — it generates output automatically based on which downstream
+    connection the user makes. The three available outputs serve different purposes: use `message_output`
+    when the next component expects plain text or a chat-style message, use `data_output` when it expects
+    structured JSON (the Langflow Data type), and use `dataframe_output` when it expects tabular data
+    in a DataFrame format. Connect only the output that matches what your downstream component consumes,
+    as mixing incompatible types will likely cause errors further in the flow. Keep in mind that the generated
+    values are fixed sample data meant purely for development — they are not configurable and should be
+    replaced with real data sources before moving to production.'
+- type: NewsSearchComponent
+  guide: 'This component fetches articles from Google News via RSS and returns structured article data
+    based on your search criteria. You help the user understand how to combine its inputs effectively
+    to target the right news content.
+
+
+    The most important input is the query, which accepts keywords when you want to search for specific
+    topics or terms. If you prefer to browse a broad category instead, set the topic field to one of the
+    predefined values (such as TECHNOLOGY or HEALTH) and leave query empty — mixing both may produce unexpected
+    results. For location-specific coverage, fill in the location field with a city, state, or country,
+    and leave query blank. The three locale inputs work together: hl sets the language of results, gl
+    sets the country context, and ceid combines both (for example, US:en) — keep all three consistent
+    to avoid mismatched results. The timeout input controls how long the component waits for Google News
+    to respond before failing, so increase it if you experience intermittent timeouts on slow connections.
+    Note that this component relies on Google''s public RSS feed, so availability and result freshness
+    depend on Google''s infrastructure rather than any configurable option here.'
+- type: RSSReaderComponent
+  guide: 'This component retrieves articles from a remote RSS feed and makes them available as structured
+    output for downstream processing. You help the user configure two inputs: `rss_url`, which must be
+    a valid, publicly accessible URL pointing to an RSS or Atom feed (for example, a news site''s feed
+    endpoint), and `timeout`, which controls how many seconds the component will wait for the remote server
+    to respond before giving up. If the feed is hosted on a slow or unreliable server, increasing the
+    timeout reduces the chance of failed fetches; for fast, reliable feeds the default is usually fine.
+    Keep in mind that the component has no built-in authentication support, so password-protected or paywalled
+    feeds will not work. If the user is unsure whether their URL is a valid feed, remind them to verify
+    it resolves to XML content in a browser or feed reader before connecting it here. The output, `articles`,
+    passes the parsed feed entries to whatever component follows in the flow.'
+- type: SQLComponent
+  guide: 'You help the user configure a component that connects to a SQL database and runs a query, returning
+    the results downstream. The `database_url` input should be a valid SQLAlchemy connection string (for
+    example, `sqlite:///mydb.db` or `postgresql://user:pass@host/dbname`) — make sure it matches the exact
+    dialect and driver the environment supports. The `query` input is the raw SQL statement to execute;
+    only one query should be provided at a time. Toggle `include_columns` on if you want column names
+    included in the output alongside the row data, which is useful when downstream components need to
+    interpret fields by name. Set `add_error` to true during development or debugging so that any database
+    or query errors surface in the output instead of silently failing, making it easier to trace problems.
+
+
+    A few things to watch out for: the component relies on SQLAlchemy, so the connection string must use
+    a supported dialect, and the appropriate database driver must be installed in the environment. There
+    is no built-in query sanitization, so avoid constructing queries from untrusted user input to prevent
+    SQL injection. The component produces a single `run_sql_query` output, so plan your downstream connections
+    accordingly.'
+- type: URLComponent
+  guide: 'You help the user configure a component that fetches and parses web content by recursively following
+    links starting from one or more seed URLs. Begin by entering at least one URL using the ''+'' button
+    in the urls field. The max_depth input is the most consequential setting to understand: a depth of
+    1 retrieves only the pages you list, while higher values follow outbound links further — depth 3 can
+    pull in a surprisingly large number of pages, so increase it cautiously. Enable prevent_outside to
+    keep the crawler from wandering to third-party domains, which is almost always a good idea when depth
+    is above 1. Choose a format based on your downstream needs: "Text" gives clean, readable content,
+    "Markdown" preserves some structure, and "HTML" returns the raw source. If crawling many pages, use_async
+    can speed things up at the cost of higher resource usage. Use timeout and headers to handle authenticated
+    endpoints or slow servers. The continue_on_failure flag lets the crawler skip broken pages rather
+    than stopping entirely, and check_response_status enforces stricter error handling if you need reliable
+    results. The component exposes two outputs — page_results for structured document objects and raw_results
+    for unprocessed responses — so connect whichever suits your pipeline.'
+- type: WebSearchComponent
+  guide: 'This component fetches live content from the web, Google News, or RSS feeds depending on the
+    mode you select, and passes the results downstream for further processing.
+
+
+    Start by choosing a search_mode, as this determines which other inputs are relevant. In Web mode (DuckDuckGo),
+    only the query and timeout fields apply — the language, country, and topic inputs are ignored. In
+    News mode (Google News), you configure query or topic to target a subject area, hl and gl to localize
+    results by language and country, and ceid to tie both together in a single locale string (keep all
+    three consistent, e.g. hl: en-US, gl: US, ceid: US:en). You can also supply a location — a city, state,
+    or country — but note that location-based lookups replace keyword searches, so leave it blank if you
+    want query-driven results. The topic field restricts results to a fixed category such as TECHNOLOGY
+    or HEALTH and should be left empty when using a free-text query. In RSS mode, the query field acts
+    as the feed source or keyword; confirm the documentation for exact behavior. Increase timeout if you
+    experience dropped requests on slow connections.'

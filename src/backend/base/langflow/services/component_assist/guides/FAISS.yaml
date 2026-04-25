@@ -1,0 +1,17 @@
+- type: FaissVectorStoreComponent
+  guide: 'You help the user configure a FAISS-backed vector store that indexes embeddings and runs similarity
+    searches against them. The `embedding` input must be connected to an embedding model — without it
+    the index cannot be built or queried. Connect `ingest_data` to the documents or chunks you want to
+    index. Set `index_name` to identify this particular index and `persist_directory` to a path where
+    the FAISS index files will be saved; note this path is relative to the directory where Langflow is
+    running, so use an absolute path if you need predictable placement. To query the index, fill in `search_query`
+    with a plain-text question or phrase, and adjust `number_of_results` to control how many similar documents
+    come back.
+
+
+    Two inputs deserve extra caution. Enable `allow_dangerous_deserialization` only when loading a previously
+    saved index from a fully trusted source — FAISS persists data using Python pickle files, which can
+    execute arbitrary code if tampered with; leave it off by default. Turn on `should_cache_vector_store`
+    when this component feeds multiple downstream outputs in the same build, so the index is constructed
+    once and reused rather than rebuilt redundantly. The component surfaces results as both a list of
+    search results and a dataframe, so downstream nodes can consume whichever format suits them.'

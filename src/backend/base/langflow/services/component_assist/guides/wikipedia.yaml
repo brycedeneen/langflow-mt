@@ -1,0 +1,25 @@
+- type: WikidataComponent
+  guide: This component queries the Wikidata API using a text string and returns matching results as a
+    dataframe for use downstream in your flow. The single input, **query**, is the search phrase you want
+    to look up — it should be a concise, meaningful term or sentence that describes the entity or concept
+    you're targeting, since the API performs a similarity search rather than an exact match. Good queries
+    tend to be specific enough to surface relevant Wikidata items (for example, a person's name, a place,
+    or a well-defined concept) rather than vague or overly broad phrases. Keep in mind that the output
+    is a dataframe, so any downstream component consuming it should expect tabular data; you may need
+    a parsing or extraction step if you want to isolate specific fields like entity IDs or labels. Because
+    there is only one input and no authentication or pagination controls exposed here, you have no built-in
+    way to limit result count or filter by entity type — plan accordingly if your query is likely to return
+    a large or ambiguous set of matches.
+- type: WikipediaComponent
+  guide: This component queries the Wikipedia API and returns results as a dataframe, making it useful
+    for pulling encyclopedic content into a flow. The `input_value` field is the search term or topic
+    you want to look up — this is the primary driver of what gets retrieved. Use `lang` to specify the
+    language edition of Wikipedia (for example, `en` for English, `fr` for French, `de` for German); if
+    left at its default, results will come from English Wikipedia. The `k` parameter controls how many
+    results are returned, so lower it if you only need the top match or raise it to surface more articles.
+    Set `load_all_available_meta` to true if you need additional metadata fields beyond the core content;
+    leaving it off keeps the output leaner. Use `doc_content_chars_max` to cap the character length of
+    the article content returned per document — this is important for managing token limits downstream,
+    so trim it if the text is feeding into a language model with a tight context window. Keep in mind
+    that very broad or ambiguous search terms may return loosely related articles, so more specific input
+    values tend to yield more useful results.

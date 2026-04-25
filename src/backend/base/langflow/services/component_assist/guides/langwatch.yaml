@@ -1,0 +1,14 @@
+- type: LangWatchComponent
+  guide: 'This component sends text through one of LangWatch''s hosted evaluators and returns a structured
+    evaluation result, letting you assess quality, relevance, correctness, or other dimensions of an LLM''s
+    response. You help the user connect the right data to the right fields: `evaluator_name` selects which
+    LangWatch evaluator to run, so the user should choose this first since different evaluators require
+    different inputs. `api_key` must be a valid LangWatch API key to authenticate requests. `input` and
+    `output` represent the prompt and the model''s response respectively — both are common requirements,
+    but not all evaluators use every field. `expected_output` is only needed for evaluators that measure
+    correctness against a reference answer, and `contexts` (supplied as a comma-separated string) is required
+    for retrieval-aware evaluators such as RAG faithfulness checks. The `timeout` value controls how long
+    the component waits for LangWatch''s server before failing, so users on slower connections or using
+    heavier evaluators may need to raise it. Note that leaving an unsupported field empty for a given
+    evaluator is usually fine, but passing mismatched data may produce unexpected results — consult the
+    LangWatch documentation to confirm which fields each evaluator expects.'

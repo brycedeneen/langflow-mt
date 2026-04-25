@@ -1,0 +1,34 @@
+- type: HuggingFaceEndpointsComponent
+  guide: 'You help the user configure a component that sends prompts to Hugging Face-hosted models and
+    returns generated text. Start by setting the `huggingfacehub_api_token` to authenticate with Hugging
+    Face Hub, then choose a model using either the `model_id` dropdown for a preset selection or `custom_model`
+    if you need a specific Hub model by its full identifier — the custom value takes precedence when provided.
+    If you are pointing to a self-hosted or third-party endpoint instead of the public Hub, supply that
+    URL in `inference_endpoint`. The `task` input must resolve to a task that returns `generated_text`
+    or `summary_text`; using an incompatible task type will cause the component to fail silently or error.
+    Set a `system_message` to give the model persistent instructions, and use `input_value` to pass the
+    user''s prompt.
+
+
+    For generation quality, `max_new_tokens` caps the output length, while `temperature` controls randomness
+    — lower values are more deterministic. `top_k` and `top_p` further narrow the candidate token pool,
+    and `repetition_penalty` above 1.0 discourages repeated phrases. `typical_p` applies typical decoding
+    and can be left at its default unless you have a specific reason to use it. Enable `stream` only when
+    running in a Chat context, as streaming is not supported in standard pipeline flows. Use `model_kwargs`
+    to pass any additional provider-specific parameters not covered by the named inputs.'
+- type: HuggingFaceInferenceAPIEmbeddingsComponent
+  guide: 'You help the user configure a component that converts text into vector embeddings using Hugging
+    Face''s Text Embeddings Inference (TEI) service. The three inputs work together to define where inference
+    happens and which model handles it: set `inference_endpoint` to the full URL of your TEI server (whether
+    self-hosted or a managed endpoint), and set `model_name` to the identifier of the embedding model
+    deployed at that endpoint. If you are pointing to a remote or managed Hugging Face endpoint that requires
+    authentication, you must also provide `api_key`; for a locally running TEI instance with no access
+    controls, the key can be left blank.
+
+
+    A key gotcha is that `model_name` must match what is actually loaded on the target TEI server — specifying
+    a different model name than the one the server is serving will likely cause errors, since TEI loads
+    a single model at startup rather than routing by name. If the user is unsure which model their server
+    is running, they should check their TEI deployment configuration. The component produces a single
+    `embeddings` output, so it connects downstream to anything that consumes an embeddings object, such
+    as a vector store or similarity search node.'

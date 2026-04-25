@@ -1,0 +1,34 @@
+- type: LMStudioEmbeddingsComponent
+  guide: 'You help the user configure a component that converts text into vector embeddings using a locally
+    running LM Studio instance. The four inputs work together to establish a connection and control output
+    behavior: `base_url` should point to the LM Studio local server address (typically something like
+    `http://localhost:1234/v1`), and `model` should match the exact name of the embedding model you have
+    loaded in LM Studio — if these don''t align, the request will fail. The `api_key` field is required
+    by the API client but LM Studio does not enforce authentication locally, so any non-empty placeholder
+    string will work. The `temperature` input may influence sampling behavior for certain model types,
+    though its effect on embeddings specifically can vary — if you''re unsure, leaving it at the default
+    is safe.
+
+
+    A key gotcha: LM Studio must already be running and serving the correct model before this component
+    executes, as there is no built-in retry or model-loading logic here. Also confirm the model loaded
+    in LM Studio is an embedding model, not a text-generation model, since using the wrong model type
+    will produce errors or meaningless output.'
+- type: LMStudioModelComponent
+  guide: 'You help the user configure a component that routes text through a locally running LM Studio
+    instance to generate completions. The core connection details live in `base_url` and `api_key`: if
+    LM Studio is running on the default port you can leave `base_url` as-is, but if you''ve changed the
+    server port or are hitting a remote machine, update it accordingly. `api_key` is only required if
+    your LM Studio setup enforces authentication. Set `model_name` to match exactly the model you have
+    loaded in LM Studio, since the component cannot discover available models on its own. Use `system_message`
+    to establish persistent instructions or a persona for the model, and pass the user-facing prompt through
+    `input_value`.
+
+
+    For generation behavior, `temperature` controls randomness and `seed` pins the output for reproducible
+    results — set both when you need consistent responses across runs. `max_tokens` caps response length;
+    leaving it at 0 removes that cap, which can be costly on slower hardware. Enable `stream` only when
+    this component feeds directly into a Chat output, as streaming is not supported in other contexts.
+    Use `model_kwargs` to pass any additional parameters your loaded model accepts that aren''t covered
+    by the named inputs. The component exposes both a raw text output and a model output, letting downstream
+    components consume whichever form they need.'

@@ -1,0 +1,32 @@
+- type: OpenAIEmbeddingsComponent
+  guide: This component converts text into numerical vector embeddings using OpenAI's embedding models,
+    which you can then pass to vector stores or similarity search steps downstream. At minimum, you must
+    supply your `openai_api_key` and choose a `model` — newer models like `text-embedding-3-small` or
+    `text-embedding-3-large` support the `dimensions` input, which lets you shrink the output vector size
+    for storage or performance trade-offs; older models ignore it. If you are targeting an Azure OpenAI
+    deployment, set `openai_api_type`, `openai_api_base`, `openai_api_version`, and `deployment` together
+    — leaving any of these mismatched will cause request failures. Use `openai_api_base` and `openai_proxy`
+    when routing through a custom endpoint or corporate proxy. For throughput tuning, `chunk_size` controls
+    how many texts are sent per API call, `max_retries` governs retry behavior on transient errors, and
+    `request_timeout` prevents hung requests. If `tiktoken_enable` is set to false, the component falls
+    back to the `transformers` library for tokenization, so make sure that package is installed in your
+    environment before disabling it. Supply `default_headers` or `default_query` only when your API gateway
+    requires extra metadata on every request.
+- type: OpenAIModelComponent
+  guide: 'You help the user configure a component that sends prompts to an OpenAI language model and returns
+    generated text. The core inputs to set up first are the api_key and model_name, which authenticate
+    and select which model to use, and input_value, which carries the prompt or message into the component.
+    Use system_message to provide persistent instructions that frame how the model should behave across
+    the conversation. Adjust temperature to control randomness in responses, and set max_tokens to cap
+    output length — a value of 0 means no limit. If you need reproducible outputs, set a fixed seed value.
+    Enable json_mode when you want the model to always return valid JSON without needing to specify a
+    full schema.
+
+
+    A few important constraints to keep in mind: streaming only functions inside a Chat interface, so
+    enabling stream in other contexts will have no effect. The openai_api_base field defaults to OpenAI''s
+    standard endpoint but can be pointed at compatible third-party APIs such as LocalAI or JinaChat. Use
+    model_kwargs to pass any additional parameters the model supports that aren''t covered by the named
+    inputs. If you''re experiencing timeouts or flaky requests, tune timeout and max_retries accordingly.
+    The component exposes two outputs — text_output for plain text and model_output for the raw model
+    object — so downstream components can consume whichever form they need.'

@@ -1,0 +1,994 @@
+- type: ComposioAPIComponent
+  guide: 'This component connects your agent to Composio''s toolset, allowing it to execute actions through
+    external integrations by exposing a set of callable tools as output.
+
+
+    You should always provide your Composio API key — refer to https://docs.composio.dev/faq/api_key/api_key
+    if you need help locating it. The `tool_name` field identifies which specific Composio tool or integration
+    you want to work with, while `actions` lets you scope down exactly which operations within that tool
+    the agent is permitted to run; leaving actions too broad may expose unintended capabilities, so be
+    intentional about what you include. The `entity_id` field represents the user or entity context under
+    which the tool executes — this is important when your Composio setup manages multiple connected accounts
+    or users, as it determines whose credentials and permissions are applied during execution. If you
+    are working with a single account setup you may be able to leave this as the default, but confirm
+    this against your Composio configuration. Because the component''s single output is a `tools` object
+    consumed downstream by an agent node, ensure the receiving component expects a tool-compatible input
+    format.'
+- type: ComposioAgentQLAPIComponent
+  guide: 'This component connects to the AgentQL API through Composio, enabling you to authenticate and
+    execute AgentQL actions whose results are returned as a DataFrame for downstream processing. The `entity_id`
+    identifies which Composio entity is making the request, and `auth_mode` controls which set of credentials
+    you need to fill in — for example, OAuth2 flows require `client_id`, `client_secret`, `authorization_url`,
+    `token_url`, and often a `redirect_uri` or `authorization_code`, while simpler setups may only need
+    `generic_api_key` or `bearer_token`. The `auth_link` field is typically populated automatically when
+    you initiate an OAuth handshake through Composio rather than entered manually.
+
+
+    Be careful not to confuse the several key-like fields: `api_key` and `generic_api_key` serve different
+    purposes depending on how Composio routes authentication, and `token`, `access_token`, and `bearer_token`
+    are similarly distinct slots tied to specific auth modes. Fields like `subdomain`, `domain`, `base_url`,
+    `instance_url`, and `tenant_id` are only relevant when the AgentQL integration targets a specific
+    hosted environment. Leave fields blank that do not apply to your chosen auth mode — populating unrelated
+    fields will not cause errors but may create confusion. Once credentials are configured, trigger execution
+    using the `action_button`. Consult https://docs.composio.dev for the exact auth mode your AgentQL
+    connection requires.'
+- type: ComposioAgiledAPIComponent
+  guide: 'This component connects to the Agiled project management platform via Composio, authenticates
+    using your chosen method, and executes an action that returns results as a DataFrame. The most important
+    starting point is selecting the right authentication mode using the `auth_mode` input, since everything
+    else flows from that choice. For API key authentication, fill in `generic_api_key` (entering it on
+    the Composio page as prompted) and optionally `api_key_field`. For OAuth2 flows, you will need `client_id`,
+    `client_secret`, `redirect_uri`, `authorization_url`, `token_url`, and potentially `authorization_code`,
+    `access_token`, or `refresh_token`. If your Agiled account is hosted on a custom domain or subdomain,
+    set `domain`, `subdomain`, or `instance_url` accordingly. The `entity_id` ties the connection to a
+    specific Composio entity, and `tenant_id` is relevant if you work in a multi-tenant environment. Once
+    authentication inputs are correctly filled, trigger execution with `action_button`. A key gotcha:
+    because none of the inputs carry inline descriptions, refer to the Composio documentation at https://docs.composio.dev
+    to confirm which fields your specific auth mode actually requires — supplying unnecessary credentials
+    for the wrong mode can cause silent failures or conflicts.'
+- type: ComposioAirtableAPIComponent
+  guide: 'This component connects to Airtable through the Composio integration layer, executing actions
+    against your Airtable account and returning results as a structured data frame. The most important
+    starting point is authentication: use `generic_api_key` to provide your API key directly on the Composio
+    page, which is the recommended path for most users. If your setup requires OAuth, you will need to
+    supply `client_id`, `client_secret`, `redirect_uri`, `authorization_url`, `token_url`, and ultimately
+    an `authorization_code` or `access_token`/`refresh_token` pair. The `auth_mode` field governs which
+    of these credential sets is actually used, so make sure it matches the fields you have populated.
+    The `entity_id` ties the connection to a specific Composio entity, and leaving it blank will typically
+    fall back to a default.
+
+
+    Be aware that many of the 26 inputs correspond to different authentication schemes — OAuth2, bearer
+    tokens, basic username/password, API key headers — and you only need the subset relevant to your chosen
+    `auth_mode`; leaving the others empty is expected and harmless. Fields like `subdomain`, `domain`,
+    `instance_url`, and `base_url` are only relevant if your Composio setup or Airtable workspace requires
+    a non-standard endpoint. Once authentication is established, trigger execution with `action_button`
+    and the component will output its results as a data frame for downstream processing.'
+- type: ComposioApolloAPIComponent
+  guide: 'You help the user configure a connection to the Apollo sales intelligence API via Composio,
+    which proxies authenticated requests to Apollo and returns results as a dataFrame for downstream processing.
+    The most important input to set first is the authentication approach: `auth_mode` determines which
+    credential fields are actually required, so fill only the fields relevant to your chosen method. For
+    a straightforward API key setup, enter your key in `generic_api_key` (which Composio uses on its own
+    configuration page) or in `api_key` directly. If you are using OAuth2, you will need `client_id`,
+    `client_secret`, `authorization_url`, `token_url`, and likely `redirect_uri` and `scopes`; once the
+    OAuth flow completes, `access_token` and optionally `refresh_token` will hold the session credentials.
+    Fields like `subdomain`, `domain`, `instance_url`, `base_url`, and `tenant_id` are only relevant if
+    your Apollo setup or Composio integration targets a non-default endpoint. The `entity_id` ties this
+    connection to a specific Composio entity, so set it if you are managing multiple users or accounts.
+    Once credentials are in place, trigger execution with `action_button`. Avoid filling unrelated auth
+    fields simultaneously, as conflicting values may cause authentication failures.'
+- type: ComposioAsanaAPIComponent
+  guide: 'This component connects to the Asana API via Composio, allowing you to trigger Asana actions
+    and retrieve results as a structured data frame you can pass downstream in your flow.
+
+
+    The inputs you need depend entirely on the authentication method you choose via `auth_mode`. For most
+    setups, start by entering your `entity_id` to identify the Composio entity and selecting the appropriate
+    auth mode. If you are using a simple API key, fill in `generic_api_key` (you will be directed to enter
+    this on the Composio page) or `api_key` directly. For OAuth2 flows, you will need `client_id`, `client_secret`,
+    `authorization_url`, `token_url`, `redirect_uri`, and potentially `scopes`; once the user authorizes,
+    supply the `authorization_code` or resulting `access_token` and `refresh_token`. Bearer token auth
+    requires only `bearer_token`, while basic auth needs `username` and `password`. Fields like `subdomain`,
+    `domain`, `base_url`, `instance_url`, and `tenant_id` are situational — fill them only if your Asana
+    setup or Composio configuration requires a non-default endpoint. Leave any inputs unrelated to your
+    chosen auth strategy blank. Once credentials are configured, trigger execution with `action_button`.
+    Note that all result data comes back as a single data frame, so downstream components should expect
+    tabular output.'
+- type: ComposioAttioAPIComponent
+  guide: 'This component connects to the Attio CRM API through Composio, allowing you to trigger actions
+    against your Attio workspace and receive the results as a structured data frame. You help the user
+    supply the correct authentication details and then execute the desired action via the action button.
+
+
+    The most important field to configure first is the auth mode, which determines which other credentials
+    are required. If using a simple API key approach, focus on the generic API key field (entered through
+    the Composio page) or the api_key and api_key_field inputs. For OAuth2 flows, you will need combinations
+    of client_id, client_secret, redirect_uri, authorization_url, token_url, and potentially authorization_code,
+    access_token, or refresh_token. Bearer token authentication requires only the bearer_token field.
+    Fields like domain, subdomain, base_url, instance_url, and tenant_id are relevant only when your Attio
+    setup uses a custom or non-standard endpoint — most users can leave these blank. The entity_id and
+    auth_link fields tie the connection to a specific Composio-managed entity. Once credentials are in
+    place, trigger execution using the action button, which produces the output data frame. Avoid populating
+    credential fields that do not match your chosen auth mode, as supplying conflicting values may cause
+    unexpected behavior.'
+- type: ComposioBitbucketAPIComponent
+  guide: 'This component connects to the Bitbucket API via Composio, executes an action against Bitbucket''s
+    platform, and returns the result as a DataFrame. The inputs you need to fill depend entirely on which
+    authentication mode you choose: for basic authentication, provide `username` and `password`; for API
+    key authentication, use `generic_api_key` (entered through the Composio page) along with `api_key_field`
+    to specify where the key is sent; for OAuth 2.0 flows, you''ll need `client_id`, `client_secret`,
+    `authorization_url`, `token_url`, and potentially `redirect_uri`, `authorization_code`, `access_token`,
+    and `refresh_token`. The `entity_id` ties the connection to a specific user or account within Composio,
+    and `auth_mode` determines which credential fields are active. Fields like `bearer_token`, `token`,
+    `domain`, `base_url`, `subdomain`, `instance_url`, and `tenant_id` apply only to specific auth modes
+    or deployment configurations, so leave unused fields blank. Once credentials are configured, trigger
+    the desired Bitbucket operation using `action_button`. Be aware that credential fields are sensitive
+    — avoid hardcoding secrets directly if your flow is shared. Refer to Composio''s documentation at
+    docs.composio.dev for supported actions and the exact auth mode your Bitbucket setup requires.'
+- type: ComposioBolnaAPIComponent
+  guide: 'This component connects to the Bolna service via Composio, authenticating your account and exposing
+    Bolna actions as structured data you can pass downstream in your flow. The output is a dataFrame containing
+    the results of whichever action you trigger.
+
+
+    Because Bolna supports multiple authentication strategies, you only need to fill in the fields relevant
+    to your chosen method — ignore the rest. If you are using a simple API key, enter it in the `generic_api_key`
+    field on the Composio page and leave OAuth fields (such as `client_id`, `client_secret`, `authorization_url`,
+    `token_url`, `authorization_code`, `access_token`, and `refresh_token`) blank. For OAuth 2.0 flows,
+    populate those OAuth fields along with `redirect_uri` and `scopes` as required by your Bolna app registration.
+    Fields like `subdomain`, `domain`, `base_url`, `instance_url`, and `tenant_id` are only relevant if
+    your Bolna setup targets a specific hosted environment. The `entity_id` ties the connection to a particular
+    Composio entity, so make sure it matches the entity you configured in Composio. Once credentials are
+    in place, use the `action_button` to trigger the configured action. Avoid filling in conflicting credential
+    sets simultaneously, as mixing auth fields from different schemes may cause authentication failures.'
+- type: ComposioBrightdataAPIComponent
+  guide: 'This component connects to the Brightdata service via the Composio integration layer and executes
+    an action, returning results as a DataFrame. You help the user supply the right authentication credentials
+    and trigger the action correctly.
+
+
+    The inputs you''ll need depend entirely on which authentication mode Brightdata requires. For simple
+    API key auth, focus on `generic_api_key` — this is the credential entered through the Composio authentication
+    page. If OAuth2 is involved, the relevant fields are `client_id`, `client_secret`, `authorization_url`,
+    `token_url`, `redirect_uri`, `authorization_code`, and potentially `scopes`. Token-based flows use
+    `token`, `access_token`, `bearer_token`, or `refresh_token`. Credential-based auth uses `username`
+    and `password`. Fields like `domain`, `subdomain`, `base_url`, `instance_url`, and `tenant_id` may
+    be required depending on how Brightdata routes requests. The `entity_id` identifies which Composio
+    entity is acting, and `auth_mode` controls which credential set is active. Once credentials are in
+    place, the user clicks `action_button` to execute. A key gotcha: only fill fields relevant to your
+    chosen auth mode — leaving unneeded credential fields blank avoids conflicts. Consult https://docs.composio.dev
+    for Brightdata-specific auth requirements.'
+- type: ComposioCalendlyAPIComponent
+  guide: 'This component connects to the Calendly API via Composio, allowing you to trigger Calendly actions
+    from within your flow and receive the results as a structured dataframe. To get started, you must
+    supply authentication credentials — the most straightforward path is entering your API key through
+    the Composio page using the `generic_api_key` field. Depending on which authentication mode you select
+    via `auth_mode`, different credential fields become relevant: OAuth2 flows will require `client_id`,
+    `client_secret`, `redirect_uri`, `authorization_url`, `token_url`, and potentially `authorization_code`
+    or `refresh_token`; bearer-based auth uses `bearer_token`; basic auth relies on `username` and `password`.
+    The `entity_id` field scopes the request to a specific Composio entity, while `auth_link` can be used
+    if you are directing a user through an external authorization step.
+
+
+    Be aware that only the credentials appropriate for your chosen `auth_mode` need to be filled — supplying
+    mismatched fields will not cause errors but will have no effect. The `action_button` triggers the
+    actual API call, so ensure all required credentials are configured before activating it. Fields like
+    `subdomain`, `domain`, `instance_url`, `base_url`, and `tenant_id` are unlikely to be needed for standard
+    Calendly usage but are available if your Composio setup routes through a custom endpoint. Output is
+    always returned as a dataframe, so downstream components should expect tabular data.'
+- type: ComposioCanvaAPIComponent
+  guide: 'This component connects to the Canva API through Composio, allowing you to trigger Canva-related
+    actions from within your flow and receive the results as a DataFrame. To get started, the most important
+    field is `generic_api_key`, where you enter the API key from your Composio account page — this is
+    the primary credential that authenticates the integration. The `entity_id` identifies which user or
+    entity the action runs on behalf of, and `auth_mode` determines which authentication strategy is used;
+    depending on that choice, you may need to fill in fields like `client_id` and `client_secret` for
+    OAuth flows, `bearer_token` or `access_token` for token-based auth, or `username` and `password` for
+    basic auth — only populate the fields relevant to your chosen mode.
+
+
+    Be aware that most credential fields (such as `refresh_token`, `authorization_code`, `redirect_uri`,
+    and `scopes`) are only meaningful in specific OAuth configurations, so leave unused fields blank to
+    avoid conflicts. The `action_button` triggers execution once everything is configured. All results
+    are returned as a single DataFrame output, so downstream components should expect tabular data. If
+    you encounter authentication issues, consult the Composio documentation at docs.composio.dev to confirm
+    which auth fields your specific Canva integration requires.'
+- type: ComposioCanvasAPIComponent
+  guide: 'This component connects to the Canvas API via Composio, authenticates using your chosen method,
+    and returns results as a DataFrame. The `entity_id` identifies which Composio entity is making the
+    request, and `api_key` is your Composio platform key — distinct from the `generic_api_key`, which
+    is the actual Canvas API credential you enter on the Composio authorization page. The `auth_mode`
+    field drives which other credential inputs are relevant: OAuth2 flows require `client_id`, `client_secret`,
+    `redirect_uri`, `authorization_url`, `token_url`, and potentially `scopes` or `authorization_code`,
+    while token-based modes use `token`, `access_token`, `bearer_token`, or `refresh_token`. Basic auth
+    relies on `username` and `password`. Fields like `subdomain`, `domain`, `instance_url`, `base_url`,
+    and `tenant_id` let you point the component at the correct Canvas instance — fill in whichever your
+    Canvas deployment requires.
+
+
+    Be careful not to confuse Composio''s own `api_key` with the Canvas-specific `generic_api_key`; mixing
+    these up is a common source of authentication failures. Only populate credential fields that match
+    your selected `auth_mode`, as unused fields are typically ignored but can cause confusion. Once credentials
+    are configured, trigger execution with the `action_button`. Refer to https://docs.composio.dev for
+    supported auth modes and required field combinations specific to Canvas.'
+- type: ComposioCodaAPIComponent
+  guide: This component connects to the Coda API through Composio, allowing you to trigger actions against
+    your Coda documents and tables and receive the results as a DataFrame. You help the user supply the
+    right credentials for whichever authentication method their Coda connection requires. For most straightforward
+    setups, the `generic_api_key` field is where the user enters their API key directly on the Composio
+    page — this is the most common path. If the connection is configured for OAuth, the user will need
+    to provide values such as `client_id`, `client_secret`, `authorization_url`, `token_url`, and potentially
+    `redirect_uri`, `scopes`, and `authorization_code`; bearer or access token flows use `bearer_token`
+    or `access_token` instead. Fields like `subdomain`, `domain`, `base_url`, and `instance_url` only
+    apply if the integration requires a custom endpoint. The `entity_id` identifies which Composio-managed
+    identity to act as, and `auth_mode` controls which credential set is active. Once credentials are
+    in place, the user clicks `action_button` to execute the configured action. A key constraint is that
+    only one authentication strategy should be populated at a time — mixing fields from different auth
+    flows may cause unexpected behavior. Refer to the Composio documentation at https://docs.composio.dev
+    for supported Coda actions and precise OAuth setup steps.
+- type: ComposioContentfulAPIComponent
+  guide: 'This component connects to the Contentful API via Composio, allowing you to trigger Contentful
+    actions and retrieve results as a structured data frame within your flow. You help the user establish
+    the correct authentication and then execute the desired action using the action button.
+
+
+    The most important field to configure first is the authentication setup. The `generic_api_key` field
+    (labeled "Enter API key on Composio page") is typically your entry point — use it to provide the Composio
+    API key that links this component to your connected Contentful account. The `entity_id` identifies
+    which Composio entity to act on behalf of, and `auth_mode` determines which credential fields are
+    relevant: for API key auth you''ll use `api_key`, for OAuth2 flows you''ll need `client_id`, `client_secret`,
+    `redirect_uri`, `authorization_url`, `token_url`, and possibly `authorization_code` or `refresh_token`,
+    while bearer-token auth relies on `bearer_token` or `access_token`. Fields like `domain`, `base_url`,
+    `subdomain`, `instance_url`, and `tenant_id` are only relevant if your Contentful setup uses a custom
+    or organization-specific endpoint. Once credentials are in place, trigger the operation with the `action_button`.
+    Note that only fields matching your chosen auth mode need to be filled — leaving irrelevant credential
+    fields empty is expected and safe.'
+- type: ComposioDigicertAPIComponent
+  guide: 'This component connects to the DigiCert API through Composio, allowing you to authenticate and
+    trigger DigiCert actions that return results as a dataFrame for downstream processing. The most important
+    input to configure first is `generic_api_key`, where you enter your Composio API key on the Composio
+    page — this is what authorizes the connection through Composio''s middleware layer. Beyond that, the
+    authentication inputs you''ll actually need depend on DigiCert''s required auth method: use `api_key`
+    or `bearer_token` for key-based flows, `username` and `password` for basic auth, or the OAuth-related
+    fields (`client_id`, `client_secret`, `authorization_url`, `token_url`, `access_token`, `refresh_token`,
+    `authorization_code`, `scopes`, and `redirect_uri`) for OAuth flows. Fields like `domain`, `subdomain`,
+    `base_url`, `instance_url`, and `tenant_id` let you point the integration at a specific DigiCert environment
+    or account scope when needed. Only fill in the fields relevant to your chosen `auth_mode` — leaving
+    unneeded credential fields blank is expected. Once credentials are configured, use `action_button`
+    to trigger the configured action, and the component will return results as a dataFrame. Refer to https://docs.composio.dev
+    for supported actions and required scopes.'
+- type: ComposioDiscordAPIComponent
+  guide: 'This component connects to Discord via the Composio integration layer, allowing you to trigger
+    Discord actions and receive results as a structured data frame. To get started, you must supply an
+    authenticated identity: the `entity_id` identifies which Composio-managed user or account the action
+    runs on behalf of, while `generic_api_key` is where you enter the API key from the Composio dashboard.
+    Depending on which auth strategy Discord requires for your use case, you may also need to fill in
+    fields like `auth_mode` alongside the corresponding credentials — for example, `client_id` and `client_secret`
+    for OAuth2 flows, `bearer_token` or `access_token` for token-based auth, or `username` and `password`
+    for basic auth. Supporting OAuth fields such as `redirect_uri`, `authorization_url`, `token_url`,
+    `scopes`, and `authorization_code` are only relevant when orchestrating a full OAuth handshake. Fields
+    like `subdomain`, `domain`, `base_url`, and `instance_url` let you override endpoint targeting if
+    needed, but most users will leave these blank. Once authentication is configured, use `action_button`
+    to execute the chosen Discord action. Be aware that providing conflicting or incomplete auth fields
+    may silently fail; consult the Composio documentation at https://docs.composio.dev to confirm which
+    fields your specific auth mode requires.'
+- type: ComposioDropboxAPIComponent
+  guide: This component connects to Dropbox via the Composio integration layer, allowing your flow to
+    trigger Dropbox actions and receive the results as a DataFrame output. The most important field to
+    configure first is `generic_api_key`, where you enter your Composio API key — this authenticates your
+    connection to the Composio platform itself, not directly to Dropbox. Use `entity_id` to specify which
+    Composio-managed user or account the action should run on behalf of. The `auth_mode` field controls
+    how Dropbox authorization is handled; depending on the mode you choose, you may need to supply supporting
+    fields such as `client_id` and `client_secret` for OAuth flows, `access_token` or `bearer_token` for
+    token-based access, `username` and `password` for basic auth, or `api_key` for key-based access. Fields
+    like `redirect_uri`, `authorization_url`, `token_url`, `authorization_code`, `refresh_token`, and
+    `scopes` are relevant only when setting up an OAuth 2.0 flow. Once authentication is configured, use
+    `action_button` to trigger the configured Dropbox action. Note that all credential fields are sensitive
+    — avoid hardcoding secrets directly if your flow will be shared. Refer to the Composio documentation
+    at docs.composio.dev for the full list of supported Dropbox actions and the specific auth modes available.
+- type: ComposioElevenLabsAPIComponent
+  guide: This component connects to the ElevenLabs API through Composio, allowing you to trigger ElevenLabs
+    actions from within your flow and receive the results as a DataFrame. To get started, you must provide
+    the `entity_id` to identify which Composio entity is making the request, and supply authentication
+    credentials appropriate to the auth method you choose via `auth_mode`. The most straightforward path
+    is entering your ElevenLabs API key directly in the Composio dashboard and referencing it through
+    `generic_api_key`. If you are using OAuth2, you will need to populate relevant fields such as `client_id`,
+    `client_secret`, `authorization_url`, `token_url`, `redirect_uri`, and potentially `scopes` and `authorization_code`.
+    Token-based flows may require `access_token`, `refresh_token`, or `bearer_token` depending on the
+    configuration. Fields like `subdomain`, `domain`, `base_url`, `instance_url`, and `tenant_id` are
+    only relevant if your Composio setup or ElevenLabs account requires a non-default endpoint. Avoid
+    filling in credential fields that do not match your chosen auth method, as supplying conflicting values
+    may cause authentication to fail. Once credentials are configured, use the `action_button` to trigger
+    the selected action and surface results downstream as a DataFrame.
+- type: ComposioExaAPIComponent
+  guide: 'This component connects to the Exa search API through Composio, authenticating your account
+    and executing actions that return results as a dataFrame output. You help the user establish a working
+    connection by filling in the appropriate credentials based on their chosen authentication method.
+
+
+    The most common starting point is entering an API key via the `generic_api_key` field, which corresponds
+    to the key generated on the Composio platform — not directly from Exa. The `entity_id` identifies
+    which Composio entity the connection belongs to, and `auth_mode` determines which credential fields
+    are relevant: OAuth flows will require fields like `client_id`, `client_secret`, `authorization_url`,
+    `token_url`, `redirect_uri`, and potentially `scopes` or `authorization_code`, while simpler setups
+    may only need a `token`, `bearer_token`, or `access_token`. Fields like `subdomain`, `tenant_id`,
+    `instance_url`, `base_url`, and `domain` apply only when connecting to specific hosted environments.
+    Avoid filling in unrelated credential fields for your chosen auth mode, as unnecessary values may
+    cause conflicts. Once credentials are configured, use the `action_button` to trigger the connection
+    or action. All results are returned as a dataFrame, so downstream components should expect tabular
+    data.'
+- type: ComposioFigmaAPIComponent
+  guide: 'You help the user connect to the Figma API via Composio, enabling them to trigger Figma-related
+    actions and retrieve results as a DataFrame within the flow. The core decision is which authentication
+    method applies to their Composio setup: if they are using a simple API key, they should fill in `generic_api_key`
+    (entering it on the Composio page as prompted) and set `auth_mode` accordingly. For OAuth2 flows,
+    the relevant fields are `client_id`, `client_secret`, `redirect_uri`, `authorization_url`, `token_url`,
+    `authorization_code`, `access_token`, and `refresh_token`. Bearer token auth uses the `bearer_token`
+    field, while basic auth relies on `username` and `password`. The `entity_id` ties the connection to
+    a specific Composio entity, so make sure it matches the entity configured in your Composio account.
+
+
+    Be aware that many of these fields are mutually exclusive depending on the auth mode chosen — filling
+    in fields that don''t match your selected `auth_mode` will likely cause errors or be ignored. Fields
+    like `subdomain`, `domain`, `base_url`, `instance_url`, and `tenant_id` may only be relevant for specific
+    Composio connection configurations, so leave them blank unless your setup requires them. Once authentication
+    is configured correctly, use `action_button` to trigger the desired Figma action, and the component
+    will return its results as a DataFrame. Refer to the Composio documentation at docs.composio.dev for
+    details on supported actions.'
+- type: ComposioFinageAPIComponent
+  guide: This component connects to the Finage financial data API through Composio, allowing you to authenticate
+    and retrieve data that flows out as a DataFrame for use in downstream components. Because Finage supports
+    multiple authentication strategies, you only need to fill in the fields relevant to your chosen method
+    — for most users, that means entering your Finage API key into the `generic_api_key` field (labeled
+    "Enter API key on Composio page") and leaving OAuth-related fields like `client_id`, `client_secret`,
+    `authorization_code`, `access_token`, and `refresh_token` blank. If your setup uses OAuth2, you will
+    need to provide the appropriate `auth_link`, `redirect_uri`, `token_url`, and related token fields
+    instead. The `entity_id` field lets you scope the connection to a specific Composio entity if you
+    manage multiple users or accounts. Fields like `subdomain`, `instance_url`, `domain`, and `tenant_id`
+    are only relevant if your Finage configuration targets a non-default endpoint. Once credentials are
+    configured, trigger the `action_button` to initiate the connection. Be aware that only the credential
+    fields matching your selected `auth_mode` are required — populating unrelated fields will not cause
+    errors but adds unnecessary noise. Refer to https://docs.composio.dev for guidance on which auth mode
+    Finage supports.
+- type: ComposioFirecrawlAPIComponent
+  guide: You help the user connect and authenticate a Firecrawl integration through the Composio platform,
+    which orchestrates web-crawling actions and returns the results as a DataFrame. The most important
+    starting point is `entity_id`, which identifies which Composio entity (user or account) this connection
+    belongs to, and `generic_api_key`, where you enter the API key on the Composio page to authorize Firecrawl
+    access. The `auth_mode` input determines which authentication fields are actually relevant — for example,
+    OAuth2 flows require `client_id`, `client_secret`, `authorization_url`, `token_url`, and potentially
+    `redirect_uri` or `scopes`, while simpler API-key-based auth only needs the key fields. Bearer-token
+    auth uses `bearer_token`, and credential-based auth uses `username` and `password`. Service-specific
+    fields like `domain`, `subdomain`, `base_url`, `instance_url`, and `tenant_id` are only needed when
+    the Firecrawl endpoint requires a custom host. Once credentials are configured, trigger the integration
+    using `action_button` to execute the action and populate the output DataFrame. Avoid filling in credential
+    fields that don't match your chosen `auth_mode`, as supplying conflicting values may cause authentication
+    errors. Refer to the Composio docs at https://docs.composio.dev for auth-mode specifics.
+- type: ComposioFirefliesAPIComponent
+  guide: 'This component connects to the Fireflies meeting transcription service through Composio, allowing
+    you to trigger Fireflies actions and retrieve results as a DataFrame output. To get started, the most
+    important field is `generic_api_key`, where you enter your API key directly on the Composio page —
+    this is the primary way to authenticate if you are not using a more complex OAuth or credential flow.
+
+
+    If your use case requires OAuth-based authentication, you will need to populate fields like `client_id`,
+    `client_secret`, `redirect_uri`, `authorization_url`, `token_url`, and potentially `access_token`
+    or `refresh_token`. For simpler token-based setups, `bearer_token` or `token` alone may suffice. Fields
+    such as `domain`, `subdomain`, `base_url`, and `instance_url` are relevant only if your Fireflies
+    or Composio setup targets a non-default endpoint. The `entity_id` field scopes the action to a specific
+    user or entity within Composio. Once your credentials are configured, use the `action_button` to execute
+    the selected action. Be aware that most fields have no built-in descriptions, so if you are unsure
+    which auth fields apply to your setup, consult the Composio documentation at https://docs.composio.dev
+    to confirm which authentication mode Fireflies requires.'
+- type: ComposioFixerAPIComponent
+  guide: This component connects to the Fixer currency exchange rate API through Composio, authenticating
+    your credentials and returning data as a DataFrame for use downstream in your flow. Because Composio
+    supports multiple authentication strategies, the inputs you need to fill in depend entirely on which
+    auth mode you select. For most straightforward API key setups, you only need to provide your `generic_api_key`
+    (entered on the Composio page) and an `entity_id` to identify the user or account context. If your
+    setup uses OAuth 2.0, you will need to supply `client_id`, `client_secret`, and potentially `redirect_uri`,
+    `authorization_url`, `token_url`, and `scopes`; after the OAuth handshake completes, `access_token`
+    and optionally `refresh_token` become relevant. Fields like `subdomain`, `domain`, `instance_url`,
+    `base_url`, and `tenant_id` are only applicable if your Composio connection requires a custom endpoint.
+    Avoid filling in fields that don't correspond to your chosen auth mode, as supplying conflicting credentials
+    can cause authentication failures. Once credentials are configured, trigger the `action_button` to
+    execute the request. Consult the Composio documentation at https://docs.composio.dev for specifics
+    on which auth mode Fixer requires.
+- type: ComposioFlexisignAPIComponent
+  guide: 'This component connects to the Flexisign e-signature service via Composio, authenticates using
+    your chosen method, and executes an action that returns results as a DataFrame. The auth_mode input
+    determines which credential fields are relevant: if you''re using API key authentication, fill in
+    api_key or generic_api_key (entered through the Composio page); for OAuth2 flows, you''ll need client_id,
+    client_secret, authorization_url, token_url, and potentially redirect_uri, scopes, and authorization_code;
+    for bearer or token-based auth, provide bearer_token, token, or access_token and refresh_token as
+    appropriate; for basic auth, supply username and password. Fields like domain, subdomain, base_url,
+    instance_url, and tenant_id help target the correct Flexisign environment when your setup requires
+    a non-default endpoint. The entity_id ties the connection to a specific Composio entity, and auth_link
+    or verification_token may be needed depending on how your Composio integration is configured. Only
+    fill in the fields that match your selected auth_mode — leaving irrelevant credential fields empty
+    is expected. Once credentials are in place, use the action_button to trigger the configured action.
+    If you run into authentication issues, consult the Composio documentation at docs.composio.dev for
+    guidance on your specific auth flow.'
+- type: ComposioFreshdeskAPIComponent
+  guide: 'This component connects your flow to the Freshdesk helpdesk platform via Composio, authenticating
+    your account and executing a selected action that returns results as a DataFrame. The most important
+    input to configure is your authentication method: use `generic_api_key` to enter your Composio API
+    key (which links your Freshdesk credentials), or supply OAuth-related fields like `client_id`, `client_secret`,
+    `authorization_url`, `token_url`, and `redirect_uri` if you are connecting via OAuth. For Freshdesk
+    specifically, you will almost certainly need to provide `subdomain` (your Freshdesk account''s subdomain,
+    e.g. "yourcompany" from yourcompany.freshdesk.com) and possibly `domain` or `base_url` depending on
+    how the integration is configured. Fields like `username` and `password` support basic auth flows,
+    while `bearer_token`, `access_token`, and `refresh_token` cover token-based scenarios. Set `entity_id`
+    if you need to scope the connection to a specific user or entity within Composio. Once authentication
+    is established, use `action_button` to trigger the configured action. Be aware that the component
+    outputs a single DataFrame, so the downstream node must be prepared to consume tabular data; check
+    the Composio docs at https://docs.composio.dev to confirm which action you''re invoking and what columns
+    to expect.'
+- type: ComposioGitHubAPIComponent
+  guide: 'This component connects to GitHub via the Composio integration layer, executing GitHub API actions
+    and returning results as a DataFrame. The core setup depends on which authentication method you choose
+    via `auth_mode` — this selection determines which other credential fields become relevant. For OAuth
+    2.0 flows, you will typically need `client_id`, `client_secret`, `authorization_url`, `token_url`,
+    and `redirect_uri`, and may use `authorization_code` or `access_token`/`refresh_token` once the flow
+    completes. For simpler API key authentication, focus on `generic_api_key` (entered through the Composio
+    page) or `bearer_token`. The `entity_id` field identifies which Composio-managed user or entity the
+    action runs on behalf of, so set this if your flow handles multiple users. Fields like `scopes` let
+    you narrow the OAuth permissions requested.
+
+
+    Be aware that not all credential fields apply simultaneously — filling irrelevant fields for your
+    chosen `auth_mode` will not cause errors but adds unnecessary confusion. The `auth_link` field is
+    typically output or read-only during an OAuth handshake rather than something you set manually. Once
+    credentials are configured, trigger the desired GitHub action using `action_button`; results will
+    flow out as a DataFrame. For deeper guidance on supported actions and auth modes, consult the Composio
+    documentation at https://docs.composio.dev.'
+- type: ComposioGmailAPIComponent
+  guide: This component connects to Gmail via the Composio integration layer, allowing you to trigger
+    Gmail actions and receive the results as a DataFrame output. To get started, the most important field
+    is `generic_api_key`, where you enter the API key you obtain from the Composio dashboard. The `entity_id`
+    identifies which user or account the action runs on behalf of, and `auth_mode` determines which authentication
+    strategy is used — this controls which other credential fields become relevant. For OAuth2 flows,
+    you'll need to supply `client_id`, `client_secret`, `authorization_url`, `token_url`, and possibly
+    `redirect_uri` or `authorization_code`. If you're working with token-based auth, provide `access_token`,
+    `refresh_token`, or `bearer_token` as appropriate. Fields like `scopes`, `tenant_id`, `subdomain`,
+    and `instance_url` are situational and only matter for specific auth configurations. Once credentials
+    are in place, use the `action_button` to trigger the configured Gmail action. Be aware that the component
+    outputs a single DataFrame, so any Gmail data returned — such as message lists or metadata — will
+    be structured as tabular rows; verify the action you configure on the Composio side actually returns
+    data compatible with that format. Refer to the Composio docs at docs.composio.dev for supported Gmail
+    actions and required scopes.
+- type: ComposioGoogleBigQueryAPIComponent
+  guide: You help the user configure a component that connects to Google BigQuery through the Composio
+    integration layer and returns query results as a dataFrame. The core decision the user needs to make
+    is which authentication method to use, since many of the 26 inputs exist to support different auth
+    flows. For most setups, `generic_api_key` is the starting point — the user enters their API key on
+    the Composio page and pastes it here. If OAuth is required instead, the relevant inputs are `client_id`,
+    `client_secret`, `authorization_url`, `token_url`, `redirect_uri`, `scopes`, and `authorization_code`,
+    along with `access_token` and `refresh_token` for token-based flows. `bearer_token` covers simpler
+    token authentication, while `username` and `password` support basic auth. Fields like `tenant_id`,
+    `subdomain`, `domain`, `instance_url`, and `base_url` are connection-scoping overrides that most users
+    can leave blank unless targeting a specific environment. `entity_id` ties the connection to a particular
+    Composio entity, which matters in multi-user setups. Once credentials are in place, the user triggers
+    execution via `action_button`, and results flow out as a dataFrame. Avoid filling in credentials across
+    multiple auth methods simultaneously, as conflicting inputs may cause unexpected behavior — populate
+    only the fields relevant to your chosen auth strategy.
+- type: ComposioGoogleCalendarAPIComponent
+  guide: You help the user connect to Google Calendar through the Composio integration layer and trigger
+    a calendar action that returns results as a dataFrame. The core setup requires an `entity_id` to identify
+    which Composio entity is making the request, and a `generic_api_key` (your Composio API key, entered
+    on the Composio dashboard). Beyond that, the remaining inputs correspond to different authentication
+    strategies — you only need to fill in the fields relevant to the auth method chosen via `auth_mode`.
+    For OAuth 2.0 flows, the relevant fields are `client_id`, `client_secret`, `authorization_url`, `token_url`,
+    `redirect_uri`, `access_token`, `refresh_token`, and optionally `scopes`. For simpler API key–based
+    auth, use `api_key` and `api_key_field`. For bearer token auth, fill in `bearer_token`. Credential
+    fields like `username`, `password`, `domain`, `subdomain`, `base_url`, `instance_url`, and `tenant_id`
+    apply only to specific non-standard auth configurations and can be left blank otherwise. Once credentials
+    are configured, use `action_button` to trigger the action. Note that you should not populate fields
+    across multiple conflicting auth strategies simultaneously, as doing so may cause unexpected behavior.
+    Refer to Composio's documentation at https://docs.composio.dev for details on supported actions and
+    scopes.
+- type: ComposioGoogleDocsAPIComponent
+  guide: 'This component connects to Google Docs via the Composio integration layer, allowing you to trigger
+    Google Docs API actions and receive the results as a DataFrame output. You help the user supply the
+    correct authentication details and identify which action to execute.
+
+
+    The authentication inputs you''ll need depend on the auth method in use. For most setups, start with
+    `entity_id` to identify the Composio user entity, and provide `generic_api_key` with the API key entered
+    on the Composio dashboard. If OAuth is required, fill in `client_id`, `client_secret`, `authorization_url`,
+    `token_url`, and either `access_token` or `refresh_token` as appropriate; `authorization_code` and
+    `redirect_uri` are needed during the initial OAuth handshake. For bearer-token flows, supply `bearer_token`
+    alone. Fields like `subdomain`, `domain`, `instance_url`, `tenant_id`, and `base_url` are only relevant
+    when the Google Docs connection is routed through a specific environment or proxy. Once authentication
+    is configured, use `action_button` to trigger the selected action. Be aware that leaving required
+    auth fields empty will prevent the component from authenticating — only populate the fields relevant
+    to your chosen `auth_mode` to avoid conflicts, and consult https://docs.composio.dev for details on
+    which fields each mode requires.'
+- type: ComposioGoogleSheetsAPIComponent
+  guide: 'You help the user connect a Google Sheets integration powered by Composio, which authenticates
+    with Google Sheets and executes an action, returning the result as a DataFrame. The most important
+    field to configure first is `generic_api_key`, where the user enters their Composio API key — this
+    is the credential that authorizes the component to interact with Composio''s platform. The `entity_id`
+    identifies which Composio entity (user or account) the action runs on behalf of, and `auth_mode` controls
+    which authentication strategy is used to connect to Google Sheets itself. Depending on the chosen
+    auth mode, only a subset of the remaining credential fields will apply: OAuth2 flows rely on `client_id`,
+    `client_secret`, `authorization_url`, `token_url`, `redirect_uri`, `access_token`, `refresh_token`,
+    and `authorization_code`; API key flows use `api_key` or `api_key_field`; bearer token flows use `bearer_token`;
+    and basic auth flows use `username` and `password`. Fields like `subdomain`, `domain`, `base_url`,
+    `instance_url`, and `tenant_id` are only relevant if a specific Google Sheets configuration requires
+    them. Once credentials are in place, trigger the operation using `action_button`. Note that the component
+    outputs a single DataFrame, so any action you configure must return tabular data to be usable downstream.'
+- type: ComposioGoogleTasksAPIComponent
+  guide: 'This component connects to Google Tasks via the Composio integration layer, allowing you to
+    trigger actions against the Google Tasks API and receive results as a dataFrame for downstream processing.
+    You help the user get it authenticated and running correctly.
+
+
+    The most common starting point is `generic_api_key`, where the user enters the API key they''ve set
+    up on the Composio platform — this is the primary credential for most setups. The `entity_id` scopes
+    the action to a specific user or entity within Composio. Depending on the authentication strategy
+    chosen via `auth_mode`, different credential fields become relevant: OAuth2 flows will require `client_id`,
+    `client_secret`, `authorization_url`, `token_url`, and potentially `redirect_uri` or `authorization_code`;
+    token-based auth uses `access_token`, `refresh_token`, or `bearer_token`; basic auth relies on `username`
+    and `password`. Fields like `subdomain`, `domain`, `instance_url`, `base_url`, and `tenant_id` are
+    only needed if the integration requires environment-specific routing. Once credentials are in place,
+    the user triggers execution via `action_button`. A key gotcha: only one authentication approach should
+    be populated at a time — filling conflicting credential sets may cause unexpected behavior. Consult
+    the Composio docs at https://docs.composio.dev for which fields apply to your chosen auth strategy.'
+- type: ComposioGoogleclassroomAPIComponent
+  guide: This component connects to the Google Classroom API via Composio, allowing you to trigger actions
+    against Google Classroom and receive the results as a DataFrame. The core of configuration is establishing
+    the right authentication method — the inputs are organized around multiple auth strategies, so you
+    only need to fill in the fields relevant to the approach you're using. For OAuth 2.0 flows, focus
+    on `client_id`, `client_secret`, `redirect_uri`, `authorization_url`, `token_url`, and either `authorization_code`
+    or the `access_token`/`refresh_token` pair. If you're using a simpler bearer token, populate `bearer_token`
+    alone. For API key authentication, use `generic_api_key` (which prompts you to enter the key through
+    the Composio page) along with `api_key_field` if required. The `entity_id` identifies which Composio
+    entity is acting, and `scopes` narrows the OAuth permissions requested. Fields like `domain`, `subdomain`,
+    `base_url`, `instance_url`, and `tenant_id` are only relevant if your setup targets a specific environment
+    or tenant. Avoid filling in credentials across multiple auth strategies simultaneously, as conflicting
+    inputs may cause unexpected behavior. Once credentials are configured, use `action_button` to trigger
+    the selected action, and the result will be surfaced as a DataFrame output.
+- type: ComposioGooglemeetAPIComponent
+  guide: 'This component connects to Google Meet via the Composio integration layer, allowing you to trigger
+    actions against the Google Meet API and receive results as a DataFrame. To get started, the most important
+    input is `generic_api_key`, where you paste the API key from your Composio account page — this is
+    typically the first thing to configure. The `entity_id` lets you scope the request to a specific user
+    or account within Composio, which matters when your workspace manages multiple identities.
+
+
+    The remaining inputs handle different authentication strategies depending on how your Google Meet
+    connection is configured in Composio. OAuth-based setups will use fields like `client_id`, `client_secret`,
+    `authorization_url`, `token_url`, `access_token`, `refresh_token`, and `authorization_code`, while
+    simpler setups may only need `bearer_token` or `token`. Fields like `redirect_uri`, `scopes`, `verification_token`,
+    and `auth_link` support OAuth flow setup. Only fill in the fields that match your chosen `auth_mode`
+    — leaving irrelevant credential fields blank is expected. Once credentials are in place, use `action_button`
+    to trigger the configured action. Results are returned as a DataFrame, so downstream components should
+    expect tabular output.'
+- type: ComposioHeygenAPIComponent
+  guide: 'This component connects to the HeyGen API through Composio, allowing you to trigger HeyGen actions
+    (such as video generation tasks) from within your flow and receive the results as a DataFrame. To
+    get started, the most important field is the generic_api_key, where you enter your API key on the
+    Composio platform to authorize the connection. The entity_id field identifies which Composio entity
+    (user or account) the action runs under, so set this if your Composio workspace manages multiple users.
+
+
+    The remaining inputs cover a range of authentication strategies — you only need to populate the ones
+    relevant to how HeyGen is configured in your Composio integration. For standard API key auth, generic_api_key
+    is typically sufficient. Fields like client_id, client_secret, redirect_uri, authorization_url, and
+    token_url are relevant if you are using an OAuth2 flow, while bearer_token, access_token, and refresh_token
+    apply to token-based setups. Inputs such as domain, subdomain, base_url, and instance_url let you
+    override the default endpoint if your setup requires it. Avoid filling in unrelated auth fields, as
+    supplying conflicting credentials can cause authentication errors. Once credentials are configured,
+    use the action_button to trigger the selected HeyGen action and inspect the output DataFrame for results.'
+- type: ComposioInstagramAPIComponent
+  guide: 'You help the user connect to the Instagram API through the Composio platform and execute actions
+    that return results as a DataFrame. The core requirement is identifying the right authentication path:
+    most users will supply a `generic_api_key` (entered via the Composio dashboard) combined with an `entity_id`
+    to scope the connection to a specific user or account. For OAuth-based flows, the user will instead
+    need to provide credentials like `client_id`, `client_secret`, `redirect_uri`, `authorization_url`,
+    `token_url`, and the resulting `authorization_code`, `access_token`, or `refresh_token`. If the connection
+    uses a simpler scheme, `bearer_token`, `api_key`, or `username`/`password` pairs may apply depending
+    on what Composio''s integration expects. Fields like `subdomain`, `domain`, `base_url`, `instance_url`,
+    and `tenant_id` are only relevant when the integration targets a non-standard endpoint. Once credentials
+    are configured, the user triggers the desired Instagram action using `action_button`, and results
+    are emitted as a DataFrame downstream. Avoid filling in credential fields that don''t match the selected
+    `auth_mode`, as supplying conflicting values across multiple auth schemes may cause unexpected behavior.
+    When in doubt, refer the user to https://docs.composio.dev for the specific auth flow Instagram requires.'
+- type: ComposioJiraAPIComponent
+  guide: This component connects to Jira via the Composio integration layer and executes an action, returning
+    results as a dataFrame for use downstream in your flow. To get started, you must supply your `entity_id`
+    to identify which Composio entity is making the request, and choose an `auth_mode` that matches how
+    your Jira account is authenticated — this selection determines which other credential fields become
+    relevant. For API key authentication, use `generic_api_key` to provide the key you've registered on
+    the Composio page. For OAuth 2.0 flows, you'll need `client_id`, `client_secret`, `authorization_url`,
+    `token_url`, and potentially `redirect_uri`, `scopes`, and `authorization_code`. Basic authentication
+    requires `username` and `password`, while token-based setups use `token`, `access_token`, `bearer_token`,
+    or `refresh_token` depending on the scheme. If your Jira instance is hosted on a custom domain, fill
+    in `domain`, `subdomain`, `base_url`, or `instance_url` as appropriate. Be aware that entering mismatched
+    credentials for your chosen `auth_mode` will likely cause authentication failures — only populate
+    the fields that correspond to your selected method. Trigger the configured action using `action_button`
+    once all required fields are set.
+- type: ComposioJotformAPIComponent
+  guide: 'You help the user connect and interact with Jotform through the Composio integration layer,
+    executing actions against the Jotform API and returning results as a DataFrame. The core task is establishing
+    authentication before triggering any action via the action button.
+
+
+    The most common starting point is `generic_api_key`, which routes your Jotform API key through Composio''s
+    authentication page — this is the simplest path if you have a Jotform API key ready. If your setup
+    requires OAuth instead, you''ll need to supply `client_id`, `client_secret`, `authorization_url`,
+    `token_url`, and `redirect_uri` as a group; the `authorization_code`, `access_token`, and `refresh_token`
+    fields then carry the resulting token data. For username/password-based schemes, fill `username` and
+    `password`. The `entity_id` field lets you scope the connection to a specific user or account within
+    Composio. Fields like `domain`, `subdomain`, `base_url`, and `instance_url` are only relevant if your
+    Jotform account uses a custom or regional endpoint. Avoid filling multiple competing auth method groups
+    simultaneously, as only one authentication strategy should be active at a time. Once credentials are
+    in place, trigger the desired Jotform operation using `action_button`; results surface as a DataFrame
+    downstream. Consult https://docs.composio.dev for supported actions and required scopes.'
+- type: ComposioKlaviyoAPIComponent
+  guide: 'This component connects to the Klaviyo API via Composio, allowing you to trigger Klaviyo actions
+    and retrieve results as a structured data frame within your flow. You help the user supply the correct
+    authentication details so the component can authorize and execute the chosen action.
+
+
+    The most important field to configure is `generic_api_key`, where the user enters their API key on
+    the Composio page to authenticate with Klaviyo. The `auth_mode` field controls which authentication
+    strategy is used — different modes will make different credential fields relevant: for API key auth,
+    focus on `api_key` or `generic_api_key`; for OAuth2 flows, the user will need to provide `client_id`,
+    `client_secret`, `redirect_uri`, `token_url`, and `authorization_url`, along with `access_token` and
+    `refresh_token` once obtained. Fields like `subdomain`, `domain`, `base_url`, and `instance_url` may
+    be needed depending on the specific Klaviyo environment being targeted. The `entity_id` identifies
+    which Composio entity the action runs under, and `action_button` triggers execution. Be aware that
+    only the fields relevant to the selected auth mode matter — filling in unneeded credential fields
+    will not cause errors but adds unnecessary complexity. The output is always a data frame, so downstream
+    components should expect tabular data.'
+- type: ComposioLinearAPIComponent
+  guide: 'This component connects to the Linear project management API via Composio, allowing you to trigger
+    actions and retrieve results as a structured data frame within your flow. You help the user authenticate
+    their Linear account and execute the desired action by guiding them through the credential inputs
+    relevant to their chosen authentication method.
+
+
+    Start with `entity_id` to identify the Composio entity, then choose an `auth_mode` — this determines
+    which other fields are required. For API key-based auth, provide the `api_key` or `generic_api_key`
+    (entered through the Composio page). For OAuth2 flows, you''ll need `client_id`, `client_secret`,
+    `authorization_url`, `token_url`, and optionally `redirect_uri`, `scopes`, or `authorization_code`.
+    Token-based setups use `token`, `access_token`, `bearer_token`, or `refresh_token` depending on the
+    service handshake. Fields like `subdomain`, `domain`, `instance_url`, `tenant_id`, and `base_url`
+    apply only if your Linear setup uses a non-standard endpoint. Ignore credential fields that don''t
+    match your chosen auth method — leaving irrelevant ones blank is fine. Once authentication is configured,
+    use the `action_button` to trigger the API call; results are returned as a data frame downstream.
+    If you''re unsure which fields to populate, consult https://docs.composio.dev for Linear-specific
+    auth requirements.'
+- type: ComposioListennotesAPIComponent
+  guide: 'This component connects to the Listen Notes podcast API through Composio, allowing you to trigger
+    actions against podcast data and receive results as a DataFrame output. You help the user authenticate
+    and execute the integration by configuring the appropriate credentials for their chosen auth method.
+
+
+    The most important starting point is `generic_api_key`, where the user enters their API key as registered
+    on the Composio platform — this is the most straightforward path to getting connected. The `entity_id`
+    scopes the action to a specific user or entity within Composio. If the user is working with OAuth2
+    instead, guide them to fill in `client_id`, `client_secret`, `authorization_url`, `token_url`, and
+    `redirect_uri`, then use `authorization_code` or `access_token` accordingly. Fields like `bearer_token`,
+    `token`, and `refresh_token` apply to token-based flows, while `username` and `password` cover basic
+    auth. Service-specific fields such as `domain`, `subdomain`, `base_url`, `instance_url`, and `tenant_id`
+    should only be set when the target environment requires a custom endpoint. Avoid filling in credentials
+    that don''t apply to the chosen `auth_mode`, as supplying conflicting values across multiple auth
+    schemes may cause unexpected behavior. Once authenticated, trigger execution using `action_button`
+    and the results will flow out as a DataFrame.'
+- type: ComposioMem0APIComponent
+  guide: 'You help the user configure a connection to the Mem0 service through Composio, which authenticates
+    against Mem0''s API and retrieves data as a structured table. The most important starting point is
+    the `generic_api_key` field — enter your Composio API key there to authorize the integration. The
+    `entity_id` identifies which user or entity within Composio this connection belongs to, and `auth_mode`
+    determines what kind of credential flow is used (such as API key, OAuth2, or basic auth). Depending
+    on which auth mode applies, only a subset of the remaining fields will be relevant: OAuth2 flows require
+    fields like `client_id`, `client_secret`, `authorization_url`, `token_url`, `redirect_uri`, and potentially
+    `scopes`, while simpler setups may only need `api_key` or `bearer_token`. Fields like `subdomain`,
+    `domain`, `base_url`, `tenant_id`, and `instance_url` are for services that require a custom endpoint,
+    so only fill those in if Mem0 or your Composio configuration demands them. Once credentials are configured,
+    use the `action_button` to trigger the connection. The component outputs a single DataFrame, so expect
+    all returned data to flow into downstream table-aware components. Avoid filling in credential fields
+    that do not match your chosen auth mode, as extraneous values may cause authentication conflicts.'
+- type: ComposioMiroAPIComponent
+  guide: 'This component connects to the Miro API through Composio, allowing you to trigger Miro actions
+    and retrieve results as a structured data frame within your flow. You help the user authenticate and
+    execute operations against their Miro workspace by filling in the appropriate credential fields.
+
+
+    The most important starting point is `generic_api_key`, which should be set to the API key registered
+    on the Composio platform — this is the primary credential for most setups. The `entity_id` identifies
+    which Composio entity the action runs under. Depending on the authentication method selected via `auth_mode`,
+    different credential fields become relevant: OAuth2 flows will require `client_id`, `client_secret`,
+    `redirect_uri`, `authorization_url`, `token_url`, and possibly `authorization_code` or `refresh_token`;
+    bearer-based auth uses `bearer_token` or `access_token`; and basic auth relies on `username` and `password`.
+    Fields like `subdomain`, `domain`, `instance_url`, and `base_url` may be needed if the Miro connection
+    is scoped to a specific workspace endpoint. Once credentials are configured, use `action_button` to
+    trigger the selected action. Note that only fields relevant to your chosen auth method need to be
+    populated — leaving unrelated fields empty is expected and will not cause issues.'
+- type: ComposioMissiveAPIComponent
+  guide: This component connects to the Missive email and team inbox service via the Composio integration
+    layer, allowing you to trigger Missive actions from within your flow and receive results as a DataFrame.
+    The most important input to start with is `generic_api_key`, where you enter your API key directly
+    on the Composio page to authenticate the connection. The `entity_id` identifies which Composio entity
+    is making the request, while `auth_mode` determines the authentication strategy used — depending on
+    that choice, you may need to fill in OAuth-related fields such as `client_id`, `client_secret`, `authorization_url`,
+    `token_url`, `access_token`, `refresh_token`, or `authorization_code`, or alternatively credential-based
+    fields like `username`, `password`, or `bearer_token`. Fields like `redirect_uri`, `scopes`, `subdomain`,
+    `domain`, `base_url`, `instance_url`, and `tenant_id` apply only when your auth flow or Missive account
+    configuration requires them. Once authentication is configured, use the `action_button` to execute
+    the selected action. Be aware that the correct subset of credential fields depends entirely on which
+    `auth_mode` you select — filling in irrelevant fields is harmless but filling in incomplete ones for
+    your chosen mode will cause failures. Refer to the Composio documentation at docs.composio.dev for
+    guidance on which auth mode fits your setup.
+- type: ComposioNotionAPIComponent
+  guide: 'This component connects to Notion through the Composio integration layer, executing actions
+    against the Notion API and returning results as a DataFrame. The most important input to configure
+    first is `generic_api_key`, where you enter your Composio API key on the Composio authorization page
+    — this authenticates the overall Composio connection. The `entity_id` identifies which Composio entity
+    (user or account) is performing the action, so set this if you are managing multiple accounts. Authentication
+    toward Notion itself is controlled by `auth_mode`, which determines which credential fields are relevant:
+    OAuth flows will require `client_id`, `client_secret`, `redirect_uri`, `authorization_url`, `token_url`,
+    and ultimately an `authorization_code` or `access_token`/`refresh_token` pair, while simpler setups
+    may only need `api_key` or `bearer_token`. Fields like `subdomain`, `domain`, `base_url`, `tenant_id`,
+    and `instance_url` are unlikely to be needed for standard Notion usage — leave them blank unless a
+    specific action requires them. Once credentials are in place, trigger execution using `action_button`.
+    Be aware that the component exposes many credential fields to support various auth strategies; only
+    populate the subset that matches your chosen `auth_mode` to avoid conflicts.'
+- type: ComposioOneDriveAPIComponent
+  guide: This component connects to Microsoft OneDrive via the Composio integration layer, allowing your
+    flow to execute OneDrive actions and return results as a DataFrame. To get started, you'll need to
+    supply authentication credentials — the most straightforward path is entering your API key directly
+    in the Composio dashboard and referencing it via the `generic_api_key` field. If your setup uses OAuth,
+    you'll instead work with the `client_id`, `client_secret`, `authorization_url`, `token_url`, and `redirect_uri`
+    fields to complete the OAuth handshake, along with `access_token` and `refresh_token` once obtained.
+    For Microsoft-specific tenancy, `tenant_id` is likely required when authenticating against a specific
+    Azure Active Directory tenant. The `entity_id` field identifies which Composio entity (user or account)
+    the action runs on behalf of, so set this if you're managing multiple users. Fields like `subdomain`,
+    `instance_url`, `base_url`, and `domain` are unlikely to apply to standard OneDrive use but may be
+    relevant in enterprise configurations. Avoid mixing credential types — populate only the fields relevant
+    to your chosen `auth_mode` to prevent conflicts. Once credentials are configured, trigger execution
+    with the `action_button`, and results will flow downstream as a DataFrame.
+- type: ComposioOutlookAPIComponent
+  guide: 'This component connects to Microsoft Outlook via the Composio integration layer, allowing your
+    flow to trigger Outlook actions and return results as a DataFrame. To get started, you must supply
+    at least a `generic_api_key` — this is your Composio API key, entered on the Composio dashboard —
+    along with an `entity_id` to identify which user or account the action runs on behalf of. The `auth_mode`
+    field determines which credential fields are relevant: for OAuth 2.0 flows you''ll need `client_id`,
+    `client_secret`, `redirect_uri`, `authorization_url`, `token_url`, and possibly `authorization_code`
+    or `scopes`; for token-based auth, supply `access_token`, `refresh_token`, or `bearer_token`; for
+    basic auth, use `username`, `password`, and optionally `domain`. Microsoft-specific fields like `tenant_id`
+    are important when targeting a specific Azure AD tenant. Fields such as `subdomain`, `instance_url`,
+    and `base_url` apply only if your setup uses a non-standard endpoint. Once credentials are configured,
+    use `action_button` to trigger the selected Outlook action. Avoid supplying conflicting credential
+    sets across multiple auth modes simultaneously, as this may cause authentication failures. Refer to
+    the Composio docs at https://docs.composio.dev for supported actions and OAuth setup details.'
+- type: ComposioPandadocAPIComponent
+  guide: This component connects your flow to the PandaDoc API via Composio, enabling you to trigger PandaDoc
+    actions and receive the results as a DataFrame output. You help the user supply the right authentication
+    credentials depending on which auth method PandaDoc requires in their setup. The most straightforward
+    path is entering an API key directly on the Composio page using the `generic_api_key` field. For OAuth-based
+    connections, the user will need to provide values like `client_id`, `client_secret`, `authorization_url`,
+    `token_url`, `redirect_uri`, and potentially `authorization_code`, `access_token`, or `refresh_token`.
+    Fields like `bearer_token`, `token`, `username`, and `password` cover alternative auth schemes. The
+    `auth_mode` field controls which authentication strategy is active, so make sure it aligns with whichever
+    credential fields are populated. Supporting fields such as `subdomain`, `domain`, `base_url`, `instance_url`,
+    and `tenant_id` may be required depending on the user's PandaDoc account configuration. Once credentials
+    are in place, the user triggers the configured action via `action_button`, and results are returned
+    as a DataFrame. Avoid filling in credential fields that don't correspond to the selected auth mode,
+    as conflicting values may cause authentication failures. Refer to Composio's documentation at https://docs.composio.dev
+    for auth mode specifics.
+- type: ComposioPeopleDataLabsAPIComponent
+  guide: 'This component connects to the PeopleDataLabs API through Composio, allowing you to retrieve
+    enriched people and company data that flows out as a DataFrame for downstream processing.
+
+
+    To get started, the most important input is `generic_api_key`, where you enter your API key on the
+    Composio page to authenticate the integration. The `entity_id` field identifies which Composio entity
+    or user context the connection belongs to, and `auth_mode` determines the authentication strategy
+    used — depending on the mode you select, only a subset of the remaining credential fields will apply.
+    For example, OAuth2 flows require fields like `client_id`, `client_secret`, `authorization_url`, `token_url`,
+    `redirect_uri`, and potentially `authorization_code` or `refresh_token`, while simpler API key flows
+    may only need `api_key` or `bearer_token`. Fields like `subdomain`, `domain`, `instance_url`, `tenant_id`,
+    and `base_url` are only relevant if your Composio setup targets a specific environment or tenant.
+    Once credentials are configured, use the `action_button` to trigger the connection or action. Be aware
+    that providing conflicting credential types simultaneously may cause unexpected behavior — populate
+    only the fields relevant to your chosen auth mode and leave others empty.'
+- type: ComposioPerplexityAIAPIComponent
+  guide: This component connects to Perplexity AI through the Composio integration layer, allowing you
+    to trigger Perplexity AI actions and receive results as a DataFrame output. To get started, the most
+    important input is `generic_api_key`, where you enter your API key on the Composio page to authenticate
+    access. The `entity_id` identifies which Composio entity is making the request, and `auth_mode` determines
+    which set of credential fields are relevant — for example, API key authentication only requires the
+    key-related fields, while OAuth flows will require inputs like `client_id`, `client_secret`, `authorization_url`,
+    `token_url`, and potentially `redirect_uri` or `authorization_code`. Bearer token auth uses the `bearer_token`
+    field, and username/password auth uses the `username` and `password` fields. Only fill in the fields
+    that match your chosen auth mode; leaving irrelevant fields blank is expected. Once credentials are
+    configured, use the `action_button` to trigger the action. Be aware that this component outputs a
+    DataFrame, so downstream components should expect tabular data. For full details on supported actions
+    and auth configuration, refer to the Composio documentation at https://docs.composio.dev.
+- type: ComposioRedditAPIComponent
+  guide: 'You help the user configure a Reddit integration powered by Composio, which connects to Reddit''s
+    API and returns results as a DataFrame. The core setup requires deciding how authentication should
+    work: for most cases, you''ll use `generic_api_key` — the user should enter their API key directly
+    on the Composio dashboard page, then reference it here. If OAuth-based authentication is needed instead,
+    the user will need to supply a `client_id` and `client_secret` at minimum, and depending on the OAuth
+    flow may also need to provide an `authorization_code`, `redirect_uri`, `token_url`, and `authorization_url`.
+    Credentials like `access_token`, `refresh_token`, `bearer_token`, `username`, and `password` apply
+    to alternative auth modes and should only be filled in when the chosen `auth_mode` explicitly requires
+    them.
+
+
+    The `entity_id` identifies which Composio-managed entity this action runs on behalf of, so it should
+    be set if the user is working in a multi-user context. Fields like `domain`, `base_url`, `subdomain`,
+    `instance_url`, and `tenant_id` are likely irrelevant for Reddit specifically and can safely be left
+    blank. Once credentials are in place, the user triggers the integration using `action_button`. If
+    something isn''t working, refer to the Composio documentation at https://docs.composio.dev for supported
+    Reddit actions and auth flow details.'
+- type: ComposioSerpAPIComponent
+  guide: 'This component connects to SerpAPI through the Composio integration layer, allowing you to trigger
+    SerpAPI actions and receive results as a structured DataFrame output. You help the user authenticate
+    and execute against the SerpAPI service by configuring the appropriate credentials.
+
+
+    The most important field to start with is `generic_api_key`, which is where the user enters their
+    API key directly on the Composio page — this is the primary credential for most setups. The `entity_id`
+    identifies which Composio entity is making the request. For more advanced authentication flows, the
+    component supports a wide range of auth modes: OAuth2 fields like `client_id`, `client_secret`, `authorization_url`,
+    `token_url`, `access_token`, `refresh_token`, and `authorization_code` are relevant if the user is
+    configuring an OAuth connection, while `bearer_token`, `username`/`password`, and `token` cover other
+    schemes. Fields like `redirect_uri`, `scopes`, `auth_link`, and `verification_token` are part of the
+    OAuth handshake flow and typically only matter during initial setup. Service-specific fields — `domain`,
+    `subdomain`, `base_url`, `instance_url`, and `tenant_id` — should only be adjusted if the integration
+    requires a non-default endpoint. Once credentials are configured, the user triggers execution via
+    `action_button`, and results are returned as a DataFrame.'
+- type: ComposioSlackAPIComponent
+  guide: 'You help the user configure a Slack integration powered by Composio, which connects to Slack''s
+    API and returns results as a DataFrame. The core step is authenticating the connection: start with
+    `entity_id` to identify which Composio entity is making the request, then supply credentials matching
+    your chosen `auth_mode`. For most setups, entering your API key on the Composio dashboard and providing
+    the resulting `generic_api_key` is the simplest path. If you''re using OAuth 2.0, you''ll need `client_id`,
+    `client_secret`, `redirect_uri`, and potentially `authorization_url`, `token_url`, and `scopes`. For
+    token-based flows, provide `access_token`, `bearer_token`, or `refresh_token` as appropriate. Fields
+    like `subdomain`, `domain`, and `base_url` let you target a specific Slack workspace endpoint if your
+    setup requires it.
+
+
+    Be aware that only the fields relevant to your selected `auth_mode` need to be filled — leaving unneeded
+    credential fields blank is expected, not an error. The `action_button` triggers the actual API call,
+    so make sure all required auth fields are populated before activating it. If something isn''t working,
+    consult the Composio documentation at https://docs.composio.dev to confirm which fields your specific
+    authentication flow requires. The component always outputs a DataFrame, so downstream nodes should
+    expect tabular data.'
+- type: ComposioSlackbotAPIComponent
+  guide: This component connects to Slack via the Composio integration layer, authenticating your Slackbot
+    and triggering actions that return results as a data frame. The two most essential inputs to configure
+    first are `entity_id`, which identifies the Composio entity associated with this connection, and `auth_mode`,
+    which determines which set of credentials you need to fill in. If you are using OAuth2, provide `client_id`,
+    `client_secret`, `redirect_uri`, `authorization_url`, `token_url`, and optionally `scopes`; if you
+    already have tokens, supply `access_token` and optionally `refresh_token`. For API key authentication,
+    use `generic_api_key` (entered on the Composio page) and specify the target field via `api_key_field`.
+    Legacy or simpler setups may only need `api_key`, `token`, or `bearer_token`. Fields like `subdomain`,
+    `domain`, `base_url`, `instance_url`, and `tenant_id` are only relevant if your Slack environment
+    or Composio configuration requires a custom endpoint. Once credentials are in place, use `action_button`
+    to trigger the configured action. Be aware that filling in conflicting credential sets (e.g., both
+    OAuth tokens and a bearer token) may cause unexpected behavior, so populate only the fields that match
+    your chosen `auth_mode`.
+- type: ComposioSnowflakeAPIComponent
+  guide: This component connects to Snowflake through the Composio integration layer and executes an action,
+    returning results as a DataFrame you can use downstream in your flow. The large number of inputs reflects
+    the variety of authentication modes Composio supports — you only need to fill in the fields relevant
+    to your chosen auth strategy, not all of them. For API key-based access, focus on `api_key` or `generic_api_key`
+    (entered via the Composio portal page). For OAuth 2.0 flows, you will need to provide some combination
+    of `client_id`, `client_secret`, `authorization_url`, `token_url`, `redirect_uri`, and potentially
+    `scopes`, `authorization_code`, or `access_token`/`refresh_token`. If your setup uses a bearer token
+    or basic credentials, fill in `bearer_token` or the `username`/`password` pair respectively. The `entity_id`
+    field identifies which Composio entity this connection belongs to, and `auth_mode` controls which
+    credential pathway is active. Connection-specific fields like `domain`, `subdomain`, `instance_url`,
+    `base_url`, and `tenant_id` may be required depending on your Snowflake account configuration. Avoid
+    filling in fields outside your chosen auth mode, as conflicts between credential types can cause unexpected
+    behavior. Refer to the Composio docs at https://docs.composio.dev for details on which fields apply
+    to your setup.
+- type: ComposioSupabaseAPIComponent
+  guide: 'This component connects to Supabase through Composio''s integration layer, authenticating your
+    Supabase account so downstream nodes can interact with it and returning connection data as a DataFrame.
+
+
+    You help the user work through the authentication setup, which varies depending on the auth method
+    chosen via `auth_mode`. For API key-based access, focus on `api_key` or `generic_api_key` — the latter
+    links out to Composio''s dashboard where the key is entered directly. For OAuth2 flows, the relevant
+    fields are `client_id`, `client_secret`, `authorization_url`, `token_url`, `redirect_uri`, `scopes`,
+    and the resulting `access_token` and `refresh_token`. If the integration uses bearer tokens, fill
+    `bearer_token` instead. Some setups may require `domain`, `subdomain`, `base_url`, or `instance_url`
+    to point the component at the correct Supabase project endpoint; `tenant_id` covers multi-tenant scenarios.
+    The `entity_id` field identifies which Composio entity this connection is tied to, and `auth_link`
+    or `verification_token` may appear during an OAuth handshake. Once credentials are configured, `action_button`
+    triggers the authentication process. Be aware that Composio acts as a middleware layer here — credentials
+    are managed on Composio''s side, so users should consult https://docs.composio.dev if a field''s purpose
+    is unclear or a connection fails.'
+- type: ComposioTavilyAPIComponent
+  guide: 'This component connects to the Tavily search API through the Composio integration platform,
+    allowing you to trigger Tavily actions and receive results as a structured data frame output. You
+    help the user establish the correct authentication so the component can communicate with Tavily on
+    their behalf.
+
+
+    The most important starting point is `generic_api_key`, which is where the user enters their API key
+    via the Composio authentication page — this is the field with an explicit prompt and should be the
+    first thing you direct them to. The remaining inputs (`auth_mode`, `auth_link`, `client_id`, `client_secret`,
+    `bearer_token`, `access_token`, `refresh_token`, `token_url`, `authorization_url`, `authorization_code`,
+    `scopes`, `redirect_uri`) support different OAuth and token-based authentication flows depending on
+    how Composio is configured; only the fields relevant to the chosen auth mode need to be filled. Fields
+    like `entity_id`, `domain`, `base_url`, `subdomain`, `instance_url`, and `tenant_id` may be required
+    to scope the connection to a specific account or environment. Once authentication is configured, the
+    user triggers the integration using `action_button`. Be aware that this component produces a data
+    frame output, so downstream components should expect tabular data rather than a single value.'
+- type: ComposioTimelinesAIAPIComponent
+  guide: You help the user connect to the TimelinesAI service via the Composio integration layer, authenticating
+    and triggering an action that returns results as a dataFrame. The core decision the user must make
+    is which authentication method applies to their TimelinesAI account. For most setups, entering the
+    API key through the Composio page using the `generic_api_key` field is the primary path. If the service
+    requires OAuth, the user should supply the relevant OAuth credentials — `client_id`, `client_secret`,
+    `redirect_uri`, `authorization_url`, `token_url`, and either `authorization_code` or `access_token`/`refresh_token`
+    as appropriate. For basic auth, `username` and `password` are used instead. Fields like `subdomain`,
+    `domain`, `base_url`, `instance_url`, and `tenant_id` narrow down the specific account endpoint when
+    the service hosts multiple tenants or custom domains. The `entity_id` field identifies which Composio-managed
+    entity the connection belongs to. Once credentials are in place, clicking `action_button` triggers
+    the configured action and populates the output dataFrame. Avoid filling in every credential field
+    — only the fields relevant to your chosen auth method are needed, and providing conflicting credentials
+    may cause unexpected behavior. Refer to the Composio docs at https://docs.composio.dev for method-specific
+    guidance.
+- type: ComposioTodoistAPIComponent
+  guide: 'This component connects to Todoist through the Composio integration layer, allowing you to trigger
+    Todoist actions and retrieve results as a DataFrame within your flow. You help the user supply the
+    correct authentication details and initiate the action once everything is configured.
+
+
+    The most important input to start with is `generic_api_key`, where the user enters their API key as
+    registered on the Composio platform — this is the primary credential that authorizes requests. The
+    `entity_id` identifies which Composio entity is acting, while `auth_mode` determines which set of
+    credential fields are actually relevant: for example, OAuth2 flows require `client_id`, `client_secret`,
+    `authorization_url`, `token_url`, and potentially `redirect_uri` or `scopes`, whereas simpler API-key
+    flows only need `api_key` or `bearer_token`. Fields like `refresh_token`, `access_token`, and `authorization_code`
+    apply only to OAuth-based setups. Inputs such as `domain`, `subdomain`, `instance_url`, `base_url`,
+    and `tenant_id` are only needed for service configurations that require a custom endpoint. Once credentials
+    are in place, the user triggers execution via `action_button`. The component outputs a single DataFrame,
+    so downstream components should expect tabular data. Avoid filling in credential fields that don''t
+    match the chosen auth mode, as irrelevant values may cause unexpected behavior.'
+- type: ComposioWrikeAPIComponent
+  guide: 'This component connects to Wrike via Composio, allowing you to trigger Wrike actions and retrieve
+    results as a DataFrame output. You help the user authenticate and execute the integration by configuring
+    the appropriate credential fields based on their chosen auth method.
+
+
+    The auth_mode input determines which credentials are relevant. For API key authentication, focus on
+    generic_api_key — this is the key the user enters through the Composio page — along with api_key and
+    api_key_field if needed. For OAuth2 flows, the relevant fields are client_id, client_secret, authorization_url,
+    token_url, redirect_uri, access_token, refresh_token, and authorization_code. Bearer token auth requires
+    only bearer_token, while basic auth uses username and password. The entity_id ties the connection
+    to a specific Composio entity, and auth_link can be used to initiate an OAuth handshake. Fields like
+    domain, base_url, subdomain, instance_url, and tenant_id apply only when your Wrike setup uses a non-standard
+    endpoint. Once credentials are configured, the user triggers execution via action_button, and results
+    are returned as a DataFrame. Be aware that no single auth flow uses all inputs simultaneously — guide
+    the user to fill only the fields that match their selected auth_mode to avoid conflicts.'
+- type: ComposioYoutubeAPIComponent
+  guide: 'This component connects to the YouTube API via Composio, allowing you to trigger YouTube actions
+    and retrieve results as a DataFrame output. To get started, you must provide your entity_id to identify
+    the user or account context within Composio, and supply authentication credentials appropriate to
+    your chosen auth_mode — for example, OAuth2 flows require client_id, client_secret, redirect_uri,
+    token_url, and authorization_url, while simpler setups may only need a generic_api_key or bearer_token
+    entered through the Composio page. If you''re using token-based auth, fill in the access_token and
+    optionally a refresh_token to maintain persistent access. Fields like scopes, tenant_id, subdomain,
+    instance_url, and base_url are only relevant when your specific integration or auth strategy requires
+    them, so leave unused fields blank to avoid conflicts.
+
+
+    Be aware that not all authentication fields apply simultaneously — populating fields for the wrong
+    auth strategy may cause connection failures, so align your inputs with the auth_mode you''ve selected.
+    Once credentials are configured, use the action_button to execute the chosen YouTube action, and the
+    result will surface as a DataFrame. If you''re unsure which auth fields to use, consult the Composio
+    documentation at https://docs.composio.dev for guidance on how YouTube''s integration is configured
+    within your Composio account.'

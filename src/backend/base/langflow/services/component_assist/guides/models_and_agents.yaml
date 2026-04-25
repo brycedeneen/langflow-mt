@@ -1,0 +1,91 @@
+- type: AgentComponent
+  guide: 'You help the user configure an AI agent that accepts a task, reasons through it using available
+    tools, and produces a response. The core setup requires choosing a model provider from the **model**
+    dropdown and supplying the corresponding **api_key**. The **system_prompt** is where you define the
+    agent''s persona, constraints, and standing instructions — this shapes all behavior before any user
+    input arrives. Connect one or more tools to **tools** to give the agent capabilities beyond pure language
+    generation; enabling **add_current_date_tool** is a quick way to ground the agent in time without
+    a custom tool. The **input_value** field carries the actual task the agent should complete each run.
+
+
+    For memory and context, **context_id** scopes the chat history to a specific conversation thread,
+    and **n_messages** controls how many past messages are retrieved — keep this reasonable to avoid inflating
+    token usage. Use **max_tokens** and **max_iterations** as safety rails: the former caps output length,
+    the latter prevents runaway reasoning loops. If you need structured output, define a schema in **output_schema**
+    and provide matching **format_instructions**; without a schema, no output validation occurs. Turn
+    on **handle_parsing_errors** when inputs may be malformed. Note that **agent_description** is deprecated
+    and only relevant in Tool Mode — avoid relying on it for new configurations.'
+- type: EmbeddingModelComponent
+  guide: You help the user configure a component that converts text into numerical embedding vectors using
+    a chosen model provider. Start by selecting a provider from the `model` dropdown and supplying the
+    corresponding `api_key` — without a valid key the component cannot authenticate. If your provider
+    exposes a non-standard endpoint (for example, a self-hosted or proxy service), set `api_base` to that
+    URL; otherwise leave it empty to use the provider's default. The `dimensions` field lets you control
+    the size of the output vectors, but only certain models support this — check your provider's documentation
+    before setting it, as unsupported models will likely error. Use `chunk_size` to tune how many texts
+    are batched per request, `request_timeout` to avoid hanging on slow responses, and `max_retries` to
+    handle transient failures gracefully. Enable `show_progress_bar` if you want visual feedback when
+    embedding large batches. Any provider-specific parameters not covered by the standard fields can be
+    passed as key-value pairs through `model_kwargs`. The component produces a single `embeddings` output
+    that downstream components such as vector stores or similarity search nodes can consume directly.
+- type: LanguageModelComponent
+  guide: 'This component sends text to a language model and returns the generated response, letting you
+    choose from multiple hosted providers or a local Ollama instance.
+
+
+    Start by selecting your provider under "model" and supplying the corresponding "api_key" — if you
+    choose Ollama, you can leave "ollama_base_url" at its default unless your instance runs on a different
+    host or port. Feed the text you want the model to process into "input_value", and use "system_message"
+    to steer the model''s persona or behavior without that instruction appearing in the user-facing input.
+    Adjust "temperature" upward for more creative, varied output or downward for deterministic, factual
+    responses. Set "max_tokens" to cap response length, but be aware the exact behavior of this limit
+    differs across providers, so test carefully when switching between them. Enable "stream" if downstream
+    components or your interface support incremental output; otherwise leave it off to receive the full
+    response at once. The component exposes both a plain text output and a model output, so connect whichever
+    matches what the next component in your flow expects.'
+- type: MCPToolsComponent
+  guide: 'This component connects to a Model Context Protocol (MCP) server and executes one of its exposed
+    tools, returning the result as a response. Start by selecting your target server using the **mcp_server**
+    input — this determines which tools become available to pick from in the **tool** input. Once a server
+    is selected, choose the specific tool you want to execute. If your server requires authentication,
+    supply the appropriate HTTP headers (such as an `Authorization` header) in the **headers** input;
+    note that these values will override any headers already configured on the server itself, so use this
+    intentionally.
+
+
+    By default, caching is enabled via **use_cache**, which reuses the server connection and tool list
+    for better performance — disable it only if you need to pick up live changes to the server or its
+    available tools. If you''re connecting over HTTPS and encounter SSL errors during development with
+    a self-signed certificate, you can disable **verify_ssl**, but leave it enabled in any production
+    environment. The **tool_placeholder** input is used internally and does not require manual configuration
+    in typical use.'
+- type: MemoryComponent
+  guide: This component either saves a chat message into storage or fetches a list of past messages, depending
+    on how you configure it. You help the user choose between these two modes using the `mode` input first,
+    since it determines which other inputs matter. In **Store** mode, connect a chat message to `message`
+    and optionally set `sender` and `session_id` — if left empty, those values are inherited from the
+    current session context. In **Retrieve** mode, the `message` input is irrelevant; instead, focus on
+    `n_messages` to control how many past messages are returned, `order` to set chronological or reverse
+    order, and `sender_type` or `sender_name` to narrow results to a specific participant. The `session_id`
+    and `context_id` inputs scope which messages are visible — `context_id` adds an extra isolation layer
+    within local storage, so mismatched values between Store and Retrieve instances will cause messages
+    to appear missing. Connect an external memory object to `memory` if you want to use a custom backend;
+    leave it empty to fall back to Langflow's built-in tables. The `template` input lets you reshape retrieved
+    message text using placeholders like `{text}` or `{sender}`, which affects the `messages_text` output
+    but not the `dataframe` output.
+- type: PromptComponent
+  guide: 'You help the user build a reusable prompt by combining static text with named placeholders that
+    get filled in at runtime. The core of the component is the `template` input, where the user writes
+    their prompt text and marks dynamic values using curly-brace syntax — by default, single braces like
+    `{variable_name}`. Each placeholder name the user adds to the template automatically becomes its own
+    input on the component, letting upstream nodes supply the actual values at runtime.
+
+
+    If the user''s template text already contains single braces for other purposes (such as JSON examples
+    or code snippets), they should enable `use_double_brackets`, which switches the placeholder syntax
+    to `{{variable_name}}` to avoid conflicts. The `tool_placeholder` input is relevant only when the
+    component is operating in tool mode and can generally be left alone in standard prompt-building scenarios.
+    One key constraint: every placeholder defined in the template must be connected to a value — leaving
+    one unresolved will prevent the prompt from rendering correctly. Encourage the user to keep placeholder
+    names descriptive and consistent, since renaming them in the template will drop the old input and
+    create a new one, breaking any existing connections.'

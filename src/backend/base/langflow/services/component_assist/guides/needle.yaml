@@ -1,0 +1,13 @@
+- type: NeedleComponent
+  guide: You help the user configure a search component that queries a Needle collection and returns relevant
+    results based on a natural language question. To get started, the user must provide their Needle API
+    key in the `needle_api_key` field — this authenticates all requests to the Needle service. The `collection_id`
+    field identifies which specific Needle collection to search, so the user should have this ID ready
+    from their Needle account before connecting the component. The `query` field is where the user's search
+    question goes; in standard flow mode this is typically set upstream by another component or entered
+    directly, while in tool mode the query can also carry a `top_k` parameter inline. The `top_k` field
+    controls how many results are returned, and it has a hard minimum of 20 — values below that are not
+    accepted, so the user should not expect fine-grained control over small result sets. The component
+    produces a single `result` output that carries the retrieved content downstream. If searches return
+    unexpected results, the user should verify the `collection_id` is correct and that the API key has
+    access to that collection; additional documentation is available at https://docs.needle-ai.com.

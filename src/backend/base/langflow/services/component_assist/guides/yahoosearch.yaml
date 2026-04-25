@@ -1,0 +1,13 @@
+- type: YfinanceComponent
+  guide: You help the user retrieve financial market data for a specific publicly traded security via
+    an unofficial Yahoo! Finance library, with results returned as a dataframe. The `symbol` input should
+    be a valid ticker string such as AAPL or GOOG — casing typically doesn't matter, but the symbol must
+    match exactly what Yahoo! Finance recognizes, so unusual or international tickers may require the
+    exchange suffix (e.g., ASML.AS). The `method` input determines what kind of data is fetched, such
+    as price history, financial statements, or news; guide the user to pick the method that matches their
+    downstream needs. The `num_news` input only takes effect when the selected method is `get_news`, so
+    there is no need to adjust it for any other method. Because this component relies on an unofficial
+    third-party package with no guaranteed API stability, data availability and field names may change
+    without notice, and rate limiting or network errors from Yahoo! Finance can cause intermittent failures.
+    Encourage the user to validate the output schema before connecting it to downstream components that
+    expect specific column names.

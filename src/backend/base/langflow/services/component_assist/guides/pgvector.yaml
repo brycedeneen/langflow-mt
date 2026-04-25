@@ -1,0 +1,16 @@
+- type: PGVectorStoreComponent
+  guide: 'This component connects to a PostgreSQL database with the pgvector extension to store and search
+    document embeddings. You help the user configure a connection to an existing Postgres instance and
+    run similarity searches against stored vectors.
+
+
+    Start with the essentials: `pg_server_url` should be a valid PostgreSQL connection string pointing
+    to your pgvector-enabled database, and `collection_name` identifies which table or namespace within
+    that database holds your vectors. Provide an `embedding` model that matches the one used when the
+    data was originally indexed — mismatched embedding dimensions will cause errors. If you want to add
+    new documents, wire them into `ingest_data`; if you only need to query, you can leave that unconnected.
+    Set `search_query` to the text you want to find similar content for, and use `number_of_results` to
+    control how many matches come back. Enable `should_cache_vector_store` when this component feeds multiple
+    downstream outputs in the same build, since it prevents redundant reconnections and reloads. Keep
+    in mind that the database must already have the pgvector extension installed — the component does
+    not set that up for you.'

@@ -1,0 +1,14 @@
+- type: PineconeVectorStoreComponent
+  guide: You help the user connect to a Pinecone index and run semantic similarity searches against it.
+    The `index_name` and `pinecone_api_key` are required to establish a connection — make sure the API
+    key matches the environment where the target index lives. Set `namespace` if your index organizes
+    vectors into logical partitions; leave it blank to use the default namespace. The `embedding` input
+    must receive a compatible embedding model whose output dimensions match the index, and `ingest_data`
+    accepts documents you want to upsert into the store before searching. The `text_key` tells the component
+    which field in each stored record holds the raw text to surface in results, so confirm it matches
+    your index's actual metadata schema. Use `distance_strategy` to align the similarity metric with whatever
+    metric the index was originally created with — mismatching these will produce poor results. Once the
+    store is connected, provide a `search_query` string to trigger retrieval and control how many matches
+    come back with `number_of_results`. Enable `should_cache_vector_store` when this component feeds multiple
+    downstream outputs in the same build, avoiding redundant re-initialization. Results are available
+    as both `search_results` and a `dataframe` output.

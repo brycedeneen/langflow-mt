@@ -1,0 +1,31 @@
+- type: GitExtractorComponent
+  guide: 'You help the user configure a component that clones a remote Git repository and extracts its
+    contents into structured outputs for downstream processing. The only input to configure is `repository_url`,
+    which should be a full, publicly accessible URL pointing to the repository root — for example, `https://github.com/username/repo`.
+    Make sure the URL does not include trailing slashes, branch specifiers, or subdirectory paths, as
+    the component expects a standard repository root address.
+
+
+    The component produces five outputs, each serving a different purpose: `text_based_file_contents`
+    returns the readable content of text files, `directory_structure` provides a map of the repo''s folder
+    layout, `repository_info` surfaces metadata such as remote origin and commit history, `statistics`
+    gives aggregate counts like file types and sizes, and `files_content` contains the raw content across
+    all files. Depending on what the user wants to do next — summarizing code, auditing structure, or
+    feeding files into a retrieval pipeline — they should connect the appropriate output to the next component.
+    Note that the repository must be publicly accessible, as there are no credential or authentication
+    inputs available.'
+- type: GitLoaderComponent
+  guide: 'This component reads files from a Git repository and outputs them as documents you can pass
+    downstream. Start by setting `repo_source` to either "Local" or "Clone" — this controls which connection
+    field is active. If you choose "Local," fill in `repo_path` with the absolute or relative path to
+    an already-checked-out repository on disk; if you choose "Clone," provide the remote repository URL
+    in `clone_url` instead. Use `branch` to specify which branch to read from; it defaults to `main`,
+    so update this if your repository uses a different default branch like `master` or a feature branch.
+
+
+    To narrow down which files are loaded, use `file_filter` with glob patterns such as `*.py` to include
+    only Python files, or `!*.md` to exclude Markdown files — separate multiple patterns with commas.
+    If you also need to filter by what''s inside the files, supply a regex pattern in `content_filter`
+    to discard files whose content doesn''t match. Note that `repo_path` and `clone_url` are mutually
+    exclusive depending on your source selection, so only the field matching your chosen source will have
+    any effect; filling in both will not cause an error, but only the relevant one is used.'

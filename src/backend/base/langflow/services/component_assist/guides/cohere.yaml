@@ -1,0 +1,42 @@
+- type: CohereComponent
+  guide: 'You help the user configure a text generation component that sends prompts to Cohere''s language
+    models and returns the generated response. The component has two outputs — a plain text result and
+    a model object — so downstream connections will determine which is more appropriate for the user''s
+    flow.
+
+
+    The `input_value` is the main prompt or text passed into the model, and `system_message` lets the
+    user establish behavioral context or a persona before the model processes that input. The `cohere_api_key`
+    is required and must be a valid key from the user''s Cohere account; without it, requests will fail.
+    `temperature` controls how predictable or creative the output is — guide the user toward lower values
+    (closer to 0) when they need consistent, factual responses, and higher values when variety or creativity
+    is preferred. The `stream` option enables token-by-token streaming, but note that streaming is only
+    supported in a Chat context; if the user is not connecting this component within a chat flow, they
+    should leave streaming disabled to avoid unexpected behavior. If the user is unsure about any setting,
+    temperature and system message are the most common levers to tune for output quality.'
+- type: CohereEmbeddingsComponent
+  guide: You help the user configure a component that converts text into vector embeddings using Cohere's
+    embedding models. The required starting point is the api_key field, which must contain a valid Cohere
+    API key for any requests to succeed. The model_name field lets you choose which Cohere embedding model
+    to use — different models vary in dimensionality and performance, so select one appropriate for the
+    downstream task (such as semantic search or classification). The truncate field controls how the component
+    handles input text that exceeds the model's token limit; setting it to a truncation strategy like
+    START or END tells Cohere where to cut the text, while leaving it unset may cause errors on long inputs.
+    Use max_retries to control how many times the component retries a failed request before giving up,
+    and request_timeout to cap how long it waits for a response — both are useful for managing reliability
+    in production flows. The user_agent field allows you to tag requests with a custom identifier, which
+    is generally optional and safe to leave as-is unless your integration has specific tracking requirements.
+    The component produces a single embeddings output, which you can wire into any downstream component
+    that accepts vector representations.
+- type: CohereRerankComponent
+  guide: You help the user configure a component that takes an initial set of retrieved documents and
+    re-scores them using Cohere's reranking API, returning a reordered list better matched to the user's
+    query. The `search_results` input expects the raw output from a vector store retrieval step — wire
+    it directly from that upstream component. The `search_query` input should carry the same query string
+    used to retrieve those documents, since Cohere scores each document's relevance against it. Set `top_n`
+    to control how many of the highest-scoring documents are returned; if left unset or set too high,
+    you may get back more results than downstream components expect, so keep it aligned with what the
+    next step needs. Provide a valid Cohere `api_key` and choose a supported `model` — the model name
+    must exactly match what Cohere's rerank endpoint accepts, so verify spelling against Cohere's documentation.
+    Note that this component does not perform the initial retrieval itself, so you must always pair it
+    with an upstream vector store or search component to populate `search_results`.

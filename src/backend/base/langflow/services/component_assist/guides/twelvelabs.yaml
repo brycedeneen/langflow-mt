@@ -1,0 +1,98 @@
+- type: ConvertAstraToTwelveLabs
+  guide: 'This component transforms raw Astra DB search results into a format that TwelveLabs Pegasus
+    can consume, bridging the two systems in your flow. You should connect the output of an upstream Astra
+    DB search component directly to the `astra_results` input — this is the only input you need to configure,
+    and it expects the native result structure that Astra DB produces, so avoid manually constructing
+    or transforming that data before passing it in. The component then extracts and exposes two outputs:
+    `index_id` and `video_id`, which represent the TwelveLabs index and specific video identifiers parsed
+    from those search results. Wire these outputs to any downstream Pegasus component that requires them.
+    Keep in mind that if the Astra DB results do not contain the expected fields mapping to a TwelveLabs
+    index or video, the outputs may be empty or cause errors further in the flow, so ensure your Astra
+    DB collection was originally populated with TwelveLabs metadata intact.'
+- type: PegasusIndexVideo
+  guide: 'This component submits video files to the TwelveLabs Pegasus API for indexing and attaches the
+    resulting video ID to the metadata of each processed item, making that ID available to downstream
+    components.
+
+
+    You help the user connect Video Data objects — produced by a VideoFile or SplitVideo component — to
+    the `videodata` input. They must supply a valid TwelveLabs API key in `api_key` before anything will
+    work. For the model, `model_name` lets them choose which Pegasus variant handles the indexing. To
+    control where videos are stored, they have two options: provide an `index_name` to target a named
+    index (which will be created automatically if it does not yet exist), or supply an `index_id` to point
+    directly at an existing index — note that if `index_id` is given, `index_name` is ignored entirely.
+    Encourage the user to prefer `index_id` when working with a pre-existing index to avoid accidentally
+    creating duplicate indexes with similar names. The output `indexed_data` carries the original data
+    enriched with the assigned video ID, ready for retrieval or querying steps further along the flow.'
+- type: SplitVideoComponent
+  guide: 'You help the user configure a component that uses FFmpeg to divide a single video into a sequence
+    of equal-length clips. The `videodata` input expects output piped in directly from a VideoFile component,
+    so make sure that connection is in place before configuring anything else. The `clip_duration` input
+    sets the length of each clip in seconds — choose a value that divides sensibly into your video''s
+    total length, since the final clip will almost always be shorter than the rest. That remainder is
+    controlled by `last_clip_handling`: use "Truncate" to discard the short tail entirely, "Overlap Previous"
+    to slide the last clip backward so it reaches full duration (at the cost of repeating some footage),
+    or "Keep Short" to preserve whatever remains as-is. Finally, toggle `include_original` on if you want
+    the source video passed through alongside the generated clips in the output — useful when downstream
+    components need both the full video and its segments. Note that FFmpeg must be available in the environment
+    where this component runs; if it is missing, the component will fail regardless of how the inputs
+    are configured.'
+- type: TwelveLabsPegasus
+  guide: 'This component lets you send chat messages to a video using the TwelveLabs Pegasus model and
+    receive natural language responses grounded in the video''s content. To use it, you must provide your
+    TwelveLabs API key and a message — the question or prompt you want answered about the video. For the
+    video itself, you have two paths: supply a raw video via the videodata input (which will be indexed
+    before querying) or reference an already-indexed video by passing a video_id directly, skipping re-indexing.
+    When indexing a new video, use index_name to create or reuse a named index; if you already know the
+    index''s ID, set index_id instead — note that providing index_id causes index_name to be ignored entirely.
+    Choose the model_name appropriate for your use case and adjust temperature to tune response style:
+    values closer to zero produce consistent, factual answers, while higher values introduce more varied
+    or creative output. The component outputs both the Pegasus response text and the processed_video_id,
+    which you can store and feed back in as video_id on subsequent calls to avoid redundant re-indexing
+    of the same video.'
+- type: TwelveLabsTextEmbeddingsComponent
+  guide: 'You help the user configure a component that converts text into vector embeddings using TwelveLabs''
+    text embedding models, producing output that can feed into downstream similarity search or retrieval
+    steps.
+
+
+    Start by supplying your TwelveLabs API key in the `api_key` field — this is required for any request
+    to succeed, so the component will fail silently or error without it. Choose the appropriate `model`
+    to match the embedding space you intend to use; make sure it is consistent with any video or multimodal
+    embeddings you plan to compare against, since mixing models from different embedding spaces will produce
+    meaningless similarity scores. If you are working in an unstable network environment or hitting rate
+    limits, increase `max_retries` to allow the component to automatically retry failed requests before
+    giving up. Adjust `request_timeout` if you find requests are timing out — longer documents or slower
+    connections may need a higher value, while a lower value can help fail fast during testing. Keep in
+    mind that no default values are described in the metadata, so confirm each field is explicitly set
+    before running your flow.'
+- type: TwelveLabsVideoEmbeddingsComponent
+  guide: 'You help the user configure a component that calls the TwelveLabs API to produce vector embeddings
+    from video content using TwelveLabs'' video embedding models. The output is an embeddings object that
+    can be passed downstream to retrieval, search, or storage components.
+
+
+    There are three inputs to configure. Set `api_key` to your TwelveLabs API key — this is required for
+    any request to succeed, so make sure it is populated, ideally via a secure credential or environment
+    variable rather than plain text. Set `model_name` to the specific TwelveLabs embedding model you want
+    to use; if you are unsure which model to choose, consult the TwelveLabs documentation linked in the
+    component metadata, as available models and their capabilities may change over time. Adjust `request_timeout`
+    if you are processing longer or larger videos and find that requests are failing before a response
+    is returned — video embedding calls can take significantly more time than text-based API calls, so
+    a generous timeout is often necessary. Keep in mind that no fallback or retry logic is described in
+    the metadata, so transient failures will require handling elsewhere in your flow.'
+- type: VideoFileComponent
+  guide: 'This component loads a video file from your local system and makes it available as a dataframe
+    for downstream processing. You help the user provide a valid file path to their video by configuring
+    the file_path input — this should point to a video in any common format supported by ffmpeg, such
+    as MP4, MOV, AVI, MKV, or similar. If the user is unsure whether their format is supported, a good
+    rule of thumb is that if ffmpeg can read it, this component can handle it.
+
+
+    Keep in mind that the component outputs a dataframe, so whatever component receives this output should
+    expect tabular data representing the video content rather than a raw binary stream. If the user''s
+    downstream component expects a different data type, they may need an intermediate conversion step.
+    Also ensure the file path is accessible from the environment where the flow is running — paths that
+    work on a local machine may not resolve correctly in a hosted or containerized deployment. Encourage
+    the user to double-check that the file exists at the specified path before running the flow to avoid
+    silent failures.'

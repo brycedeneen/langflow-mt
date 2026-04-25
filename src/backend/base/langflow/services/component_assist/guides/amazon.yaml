@@ -1,0 +1,64 @@
+- type: AmazonBedrockComponent
+  guide: You help the user configure a legacy Amazon Bedrock component that sends a prompt to an AWS-hosted
+    large language model and returns generated text. Start by selecting a model from the `model_id` dropdown
+    — this determines which Bedrock-hosted model processes the request. Provide the user's prompt through
+    `input_value` and, optionally, a `system_message` to set the model's behavior or persona. For authentication,
+    the user should supply `aws_access_key_id` and `aws_secret_access_key` directly or rely on environment
+    variables already set in their environment; `aws_session_token` is only required when using temporary
+    credentials. If the user manages multiple AWS profiles locally, `credentials_profile_name` lets them
+    pick one from `~/.aws/credentials` instead of entering keys manually. Always set `region_name` to
+    match where their Bedrock resources are provisioned, as mismatches will cause request failures. Use
+    `endpoint_url` only when targeting a custom or private Bedrock endpoint. Enable `stream` only when
+    the component is used inside a Chat interface, since streaming is not supported in other contexts.
+    Pass any model-specific parameters such as temperature or max tokens through `model_kwargs`. Note
+    that this component is deprecated — encourage the user to migrate to the Amazon Bedrock Converse component
+    for better long-term support.
+- type: AmazonBedrockConverseComponent
+  guide: 'This component sends messages to Amazon Bedrock language models using the Converse API and returns
+    generated text. You help the user configure both the connection to AWS and the generation behavior
+    of their chosen model.
+
+
+    Start with authentication: the user must provide either AWS credentials directly (access key ID and
+    secret access key, plus an optional session token for temporary credentials) or a credentials profile
+    name pointing to their ~/.aws/credentials file — but not necessarily both approaches at once. They
+    should also set region_name to match where their Bedrock resources are provisioned, and select a model_id
+    from the available list. For generation quality, temperature raises or lowers output randomness, max_tokens
+    caps response length, and top_p adjusts vocabulary diversity through nucleus sampling. Use top_k with
+    caution — not every Bedrock model supports it, so if the chosen model rejects it, move that setting
+    into additional_model_fields instead, which also accepts any other model-specific parameters the standard
+    inputs don''t cover. Streaming is available but only functions inside a Chat context; if the user
+    is running batch or non-chat workflows, enabling disable_streaming avoids unexpected behavior. A system_message
+    can be provided to give the model persistent instructions, and endpoint_url only needs to be set when
+    targeting a non-standard Bedrock endpoint.'
+- type: AmazonBedrockEmbeddingsComponent
+  guide: 'You help the user configure a connection to Amazon Bedrock that produces text embeddings from
+    a chosen model. The `model_id` field identifies which Bedrock-hosted embedding model to use — make
+    sure the model is available and enabled in your AWS account before referencing it here.
+
+
+    For authentication, you have two paths: supply `aws_access_key_id` and `aws_secret_access_key` directly
+    (and optionally `aws_session_token` if you''re using temporary credentials such as those from AWS
+    STS or an assumed role), or provide a `credentials_profile_name` to pull credentials from your local
+    `~/.aws/credentials` file. Avoid mixing both approaches, as this can cause unexpected behavior. The
+    `region_name` field is important — it must match the region where your Bedrock model access is activated,
+    since Bedrock availability varies by region. Only set `endpoint_url` if you need to target a custom
+    or private endpoint; for standard usage, leave it blank and the SDK will resolve the correct endpoint
+    automatically. Hardcoding credentials directly in these fields is discouraged; prefer environment
+    variables or a named profile for security.'
+- type: S3BucketUploaderComponent
+  guide: 'This component takes files and sends them to an AWS S3 bucket using one of two upload strategies.
+    You help the user supply the required AWS credentials — `aws_access_key_id` and `aws_secret_access_key`
+    — along with the target `bucket_name`. The `strategy` input is the key decision point: choose "By
+    Data" when the upstream component (such as a File or Director component) has already parsed file contents
+    into LangFlow data objects, which are then uploaded as text; choose "By File Name" when you want the
+    original file uploaded as-is, with only the file path referenced. Connect parsed or raw file outputs
+    to `data_inputs` accordingly.
+
+
+    For organizing files inside the bucket, set `s3_prefix` to add a folder-like prefix to every uploaded
+    object''s key. If your file paths include local directory structure you don''t want reflected in S3,
+    enable `strip_path` to remove it and store only the bare filename. Keep in mind that the `boto3` library
+    must be installed in the environment for this component to function, and it is specifically designed
+    to receive input from File or Director components — connecting incompatible upstream outputs may cause
+    silent failures if expected path or text fields are missing from the data objects.'

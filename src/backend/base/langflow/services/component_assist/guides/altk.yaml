@@ -1,0 +1,18 @@
+- type: ALTKAgentComponent
+  guide: 'You help the user configure an advanced agent that runs a modular pipeline capable of validating
+    tool calls before they execute and reflecting on tool outputs afterward. Start by selecting the language
+    model provider under agent_llm and the specific model, then supply the corresponding api_key. The
+    system_prompt shapes the agent''s overall behavior, while input_value carries the user''s actual request.
+    If the agent has access to external tools, connect them via tools; you can also toggle add_current_date_tool
+    to automatically include a date-awareness utility without wiring anything manually.
+
+
+    The two distinguishing inputs here are enable_tool_validation, which runs SPARC-based checks on tool
+    calls before execution, and enable_post_tool_reflection, which analyzes tool outputs as JSON after
+    the fact — note that post-tool processing only triggers when the output exceeds the character count
+    set in response_processing_size_threshold, so adjust that threshold to control how aggressively reflection
+    runs. Use output_schema to enforce a structured response shape; format_instructions only apply when
+    a schema is active. Tune max_iterations to prevent runaway loops and n_messages to control how much
+    chat history the agent sees via context_id. The agent_description field is deprecated and should be
+    left alone for new configurations. Enable handle_parsing_errors if users are likely to submit malformed
+    input.'

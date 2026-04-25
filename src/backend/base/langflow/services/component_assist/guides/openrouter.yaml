@@ -1,0 +1,14 @@
+- type: OpenRouterComponent
+  guide: 'This component routes text through a chosen AI model via the OpenRouter service, letting you
+    swap between models from different providers without changing your API setup. You help the user supply
+    their OpenRouter `api_key` first, since nothing will work without it. The `model_name` field selects
+    which underlying model to use — OpenRouter supports a wide range of providers, so the user should
+    enter the exact model identifier as OpenRouter expects it. `input_value` carries the user''s message
+    into the model, while `system_message` lets the user shape the model''s behavior or persona globally.
+    Use `temperature` to control response creativity and `max_tokens` to cap output length; leaving these
+    unset will rely on OpenRouter''s defaults. Enable `stream` only when the component is connected to
+    a Chat output, as streaming is not supported in other contexts. The `site_url` and `app_name` fields
+    are optional identifiers sent along with requests — useful for tracking usage in the OpenRouter dashboard
+    or complying with their attribution guidelines, but not required for the component to function. Both
+    outputs are available: `text_output` for plain text results and `model_output` for the full model
+    response object.'

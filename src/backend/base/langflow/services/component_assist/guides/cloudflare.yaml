@@ -1,0 +1,17 @@
+- type: CloudflareWorkersAIEmbeddingsComponent
+  guide: 'This component converts text into vector embeddings using Cloudflare''s Workers AI platform,
+    which you can then connect to downstream components like vector stores or similarity search nodes.
+    To get started, you must supply your Cloudflare account ID (found in the Workers & Pages section of
+    your Cloudflare dashboard) and a valid API token with the appropriate permissions. Choose a model
+    name from Cloudflare''s supported text embeddings list — the model you pick will directly affect embedding
+    dimensions and quality, so confirm compatibility with whatever vector store you''re targeting.
+
+
+    Beyond those required credentials, several optional inputs let you fine-tune behavior. Toggle strip_new_lines
+    if your input text contains line breaks that might interfere with embedding quality. Adjust batch_size
+    to control how many texts are sent to the API in a single request — useful if you''re hitting rate
+    limits or working with large document sets. Override api_base_url only if you''re routing through
+    a proxy or a non-standard Cloudflare endpoint. Use headers to pass any additional HTTP headers the
+    API requires, such as custom authorization schemes. Be aware that supplying an incompatible model
+    name will cause silent failures or API errors, so always validate against the official supported models
+    list before deploying.'

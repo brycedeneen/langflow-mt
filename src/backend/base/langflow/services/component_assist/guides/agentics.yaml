@@ -1,0 +1,54 @@
+- type: BaseAgenticComponent
+  guide: 'This component serves as a foundational building block for agentic workflows, handling model
+    selection and provider configuration under the hood. Because no inputs are currently declared, there
+    is nothing for you to configure directly on this instance — it likely exists as a base that other,
+    more specific components extend rather than as a standalone node you would use on its own.
+
+
+    If you find yourself looking at this component in a flow, double-check that you have placed the correct
+    specialized agentic component instead. The underlying class manages dynamic model option updates and
+    controls which fields are visible depending on the chosen provider, so those behaviors will surface
+    in child components that build on this one. If a derived component is behaving unexpectedly — for
+    example, showing irrelevant provider fields or failing to populate model choices — the issue may trace
+    back to how this base configuration is being inherited. Consult the documentation for the specific
+    agentic component you intended to use for guidance on provider and model settings.'
+- type: SemanticAggregator
+  guide: 'This component takes an entire input DataFrame and uses an LLM to transform or summarize it
+    into a new DataFrame shaped by your instructions and a defined schema. Connect your source data to
+    the `source` input — the component will automatically read its column names and types to inform the
+    model. Use the `schema` input to define what the output should look like: specify column names, their
+    descriptions, and data types so the model knows exactly what to produce. Write your `instructions`
+    in plain language describing how the aggregation should work — for example, "summarize each topic
+    into a single sentence" or "compute the dominant sentiment per category." Toggle `return_multiple_instances`
+    on if you expect the output to contain more than one row; leave it off if the result should be a single
+    consolidated record. For the model connection, select your provider via `model` and supply the corresponding
+    `api_key`; if you choose Ollama, make sure `ollama_base_url` points to your running instance (defaulting
+    to `http://localhost:11434`). Keep in mind the entire DataFrame is passed to the LLM at once, so very
+    large inputs may hit token limits — consider filtering or sampling upstream if needed.'
+- type: SemanticMap
+  guide: This component transforms each row of an input DataFrame by using an LLM to generate new columns
+    defined by a schema you provide, processing all rows independently and in parallel. You should start
+    by selecting your model provider and supplying the corresponding API key; if you choose Ollama, also
+    confirm the base URL matches your local instance (defaulting to http://localhost:11434). Connect your
+    source DataFrame to the source input — the component will automatically infer its column structure.
+    Next, define your schema to specify what new columns should be produced, including their names, types,
+    and descriptions. Write clear natural language instructions explaining how each row's existing data
+    should be used to populate those new columns. Enable return_multiple_instances if you want the component
+    to produce several schema instances per input row, which will expand your output by concatenation.
+    Use append_to_input_columns to control whether the original columns are carried through alongside
+    the generated ones — note this setting is ignored when multiple instances mode is active, so plan
+    your downstream handling accordingly. Keep instructions precise and schema descriptions unambiguous
+    to get consistent LLM output across rows.
+- type: SyntheticDataGenerator
+  guide: 'This component generates synthetic data either by mimicking the structure and content of an
+    example dataset or by following a schema you define from scratch. You help the user decide which path
+    fits their situation: if they connect a DataFrame to the source input, the component learns from up
+    to the first 50 rows and produces similar data — in this case the schema input is ignored entirely,
+    so there''s no need to fill it in. If no DataFrame is provided, the schema input becomes essential
+    and the user should define column names, descriptions, and data types there to guide generation. The
+    batch_size input controls how many rows are produced, and the optional instructions field accepts
+    natural language to steer tone, patterns, or constraints that can''t be expressed in the schema alone.
+    On the model side, the user must select a provider and supply a valid API key; if they choose Ollama,
+    they''ll also need to confirm the ollama_base_url points to their running instance, which defaults
+    to localhost. Remind users that when using a source DataFrame, only the first 50 rows are sampled,
+    so unusually large or varied datasets may not be fully represented in the output.'

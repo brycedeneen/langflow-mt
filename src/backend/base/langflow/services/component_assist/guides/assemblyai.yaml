@@ -1,0 +1,66 @@
+- type: AssemblyAIGetSubtitles
+  guide: 'You help the user export a completed transcript as a subtitle file in either SRT or VTT format,
+    ready for use in video players or captioning workflows. This component takes the transcription result
+    produced by an upstream AssemblyAI transcription step — make sure that result is connected before
+    running, as this component cannot function without it. The api_key must match the key used to generate
+    the original transcript. Choose subtitle_format based on your target platform: SRT is broadly supported
+    by most video editors and players, while VTT is the standard for web-based HTML5 video. The chars_per_caption
+    input controls how much text appears in each caption block; setting it to 0 removes the limit entirely,
+    which can produce long, hard-to-read captions, so a value between 32 and 60 characters is typical
+    for comfortable reading. Keep in mind that subtitle generation depends on a successfully completed
+    transcription — if the upstream result contains an error or is incomplete, this component will not
+    produce valid output.'
+- type: AssemblyAILeMUR
+  guide: 'You help the user configure a component that sends AssemblyAI transcription data through the
+    LeMUR framework to apply large language models to spoken content. Start by ensuring the user has connected
+    a valid AssemblyAI API key and either a transcription result from an upstream node or a comma-separated
+    list of transcript IDs — if both are provided, the transcript IDs take priority and the connected
+    transcription result is ignored. The endpoint choice is central to configuration: "task" requires
+    a prompt, while "summary" and "question-answer" do not need one; if the user selects "question-answer,"
+    they must also supply their questions as a comma-separated list in the questions field. Guide the
+    user to pick a final model appropriate to their cost and quality needs, and remind them that max output
+    size is capped at 4000 tokens. Temperature controls response creativity, so lower values suit factual
+    or structured outputs and higher values suit more generative tasks. When multiple transcripts should
+    be analyzed together, the user can pass several transcript IDs rather than wiring in a single transcription
+    result node.'
+- type: AssemblyAIListTranscripts
+  guide: This component retrieves a list of transcripts from your AssemblyAI account, with optional filters
+    to narrow down the results. You help the user connect their account and refine which transcripts are
+    returned. The api_key field is required — without a valid AssemblyAI API key the component cannot
+    make any requests. The limit field controls how many transcripts come back; the default is 20, but
+    setting it to 0 fetches all available transcripts, which may be slow or large if the account has many
+    records. Use status_filter to restrict results to transcripts in a particular state (such as completed
+    or error), and use created_on to target transcripts from a specific date in YYYY-MM-DD format — note
+    that both filters can be applied together. If the user wants to see only throttled transcripts, enabling
+    throttled_only will override whatever status_filter is set, so remind them that the two are mutually
+    exclusive in practice. The component produces a single transcript_list output that downstream components
+    can consume for further processing or inspection.
+- type: AssemblyAITranscriptionJobCreator
+  guide: This component submits an audio file to AssemblyAI for transcription and returns a transcript
+    ID you can pass to downstream components to retrieve results. You must provide your AssemblyAI API
+    key and either upload an audio file directly via `audio_file` or supply a publicly accessible URL
+    through `audio_file_url` — use one or the other, not both. The `speech_model` input lets you choose
+    between AssemblyAI's available models, which trade off speed against accuracy. If you know the spoken
+    language ahead of time, disable `language_detection` and set `language_code` manually using a supported
+    code from AssemblyAI's documentation; leaving both unset may cause unexpected behavior. Enable `speaker_labels`
+    to get speaker diarization in the transcript, and if you know roughly how many speakers are present,
+    provide that number in `speakers_expected` to improve accuracy — it is optional but helpful. The `punctuate`
+    and `format_text` toggles control whether the returned transcript includes automatic punctuation and
+    formatted output like numbers or dates. Because this component only starts the job and returns a `transcript_id`,
+    you will need a separate component to poll or retrieve the completed transcript using that ID.
+- type: AssemblyAITranscriptionJobPoller
+  guide: 'You help the user configure a component that repeatedly checks AssemblyAI''s API until a transcription
+    job reaches a completed or failed state, then returns the result. The three inputs work together:
+    `api_key` must be a valid AssemblyAI credential — if the user doesn''t have one yet, they can obtain
+    it from assemblyai.com. The `transcript_id` should come from an upstream component that submitted
+    the transcription job, typically passed in as a dynamic value rather than typed manually. The `polling_interval`
+    controls how many seconds the component waits between status checks — setting it too low may cause
+    unnecessary API calls, while setting it too high could delay downstream processing; a value between
+    3 and 10 seconds is a reasonable starting point for most use cases.
+
+
+    Keep in mind that this component is designed to sit downstream of a job submission step, so `transcript_id`
+    is almost always a connected variable rather than a hardcoded string. The single output, `transcription_result`,
+    carries the completed transcript data and should be wired into any component that needs the transcribed
+    text or metadata. If the job fails on AssemblyAI''s side, the result will reflect that failure state,
+    so you may want to add error-handling logic further down the flow.'

@@ -1,0 +1,53 @@
+- type: CleanlabEvaluator
+  guide: 'You help the user configure a component that scores the trustworthiness of an LLM-generated
+    response using Cleanlab''s evaluation algorithms, producing a numeric trust score, a plain-language
+    explanation, and a passthrough of the original response for downstream nodes.
+
+
+    Connect the prompt and response inputs to the corresponding outputs from your LLM component — prompt
+    carries the user''s query, and response carries what the LLM returned. If your flow uses a system
+    prompt, wire it in here too so Cleanlab has the full context for its assessment. Supply your Cleanlab
+    API key in the designated secret field. The model dropdown controls which model Cleanlab itself uses
+    internally for evaluation; this is independent of whatever model generated the response, so you can
+    mix and match without issue. The quality_preset dropdown is the main lever for balancing accuracy
+    against latency and cost — lower presets evaluate faster and cheaper, while higher presets are slower
+    but produce more reliable scores. The score output is a float between 0 and 1, where higher values
+    indicate greater trustworthiness; you can route this value into conditional logic or a CleanlabRemediator
+    component to act on low-confidence responses. Note that all three of prompt, response, and api_key
+    are required for the component to function — omitting any of them will prevent evaluation from running.'
+- type: CleanlabRAGEvaluator
+  guide: 'You help the user configure a component that scores the quality of a RAG pipeline''s outputs
+    across several trust dimensions using Cleanlab''s evaluation algorithms. The three core inputs — `query`,
+    `context`, and `response` — should be wired directly from your RAG pipeline: the original user question,
+    the retrieved passages fed to the LLM, and the LLM''s generated answer. The `api_key` is required
+    for Cleanlab authentication. The `model` input controls which model Cleanlab uses internally to perform
+    the evaluation — this is independent of whatever model produced the response, so you can choose a
+    different or stronger model here without affecting your pipeline''s output. The `quality_preset` trades
+    off speed and cost against evaluation accuracy; start with a lower preset for development and raise
+    it for production if precision matters.
+
+
+    The four toggle inputs — `run_context_sufficiency`, `run_response_groundedness`, `run_response_helpfulness`,
+    and `run_query_ease` — let you enable only the extra evaluations you need, since each adds latency
+    and cost. The component always produces a trust score (0–1) and an explanation; the optional metrics
+    appear in `other_scores` when their corresponding toggle is enabled, and everything is consolidated
+    in `evaluation_summary`. Note that `response_passthrough` simply forwards the original response unchanged,
+    which is useful when chaining this component into a remediator downstream.'
+- type: CleanlabRemediator
+  guide: 'You help the user configure a component that intercepts LLM responses and applies remediation
+    logic when a trust score falls below an acceptable level. The component expects three upstream connections:
+    the original `response` text (passed through from the Cleanlab Evaluator), the numeric `score` (a
+    float between 0 and 1 from the same evaluator), and an optional `explanation` that gets included in
+    the output for transparency. The `threshold` input is the key decision boundary — any response whose
+    score falls below this value is considered untrustworthy and will be modified, while responses at
+    or above it pass through unchanged.
+
+
+    For untrustworthy responses, the user must decide between two remediation modes using the `show_untrustworthy_response`
+    toggle. When enabled, the original response is still shown but the text defined in `untrustworthy_warning_text`
+    is appended as a caution to the user. When disabled, the response is suppressed entirely and replaced
+    with the content of `fallback_text`. Make sure both `untrustworthy_warning_text` and `fallback_text`
+    are filled in before going to production, since each controls a distinct code path — leaving either
+    blank could result in empty or confusing output depending on which mode is active. This component
+    should always be placed downstream of a Cleanlab Evaluator or Cleanlab RAG Validator, as it relies
+    entirely on the score those components produce.'

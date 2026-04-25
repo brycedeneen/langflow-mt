@@ -1,0 +1,49 @@
+- type: ScrapeGraphMarkdownifyApi
+  guide: 'You help the user configure a component that fetches a webpage and converts its content into
+    clean Markdown format, returning the result as structured data. There are only two inputs to set up:
+    the API key and the target URL. The api_key field requires a valid ScrapeGraph API credential — without
+    it the component cannot authenticate and will fail, so make sure the user has obtained one from ScrapeGraph
+    before proceeding. The url field should be a fully qualified web address (including the scheme, e.g.,
+    https://) pointing to the page whose content should be converted.
+
+
+    Keep in mind that the component''s output depends entirely on what is publicly accessible at the given
+    URL; pages behind logins, paywalls, or bot-detection systems may return incomplete or empty content.
+    The converted Markdown is emitted through the single data output, which can be wired into downstream
+    components for further processing such as parsing, summarization, or storage. If the user needs more
+    detail on API limits, supported URL types, or response structure, direct them to the official documentation
+    at https://docs.scrapegraphai.com/services/markdownify.'
+- type: ScrapeGraphSearchApi
+  guide: 'You help the user configure a component that sends a natural-language search prompt to the ScrapeGraph
+    API and returns structured search results as data. The two inputs are straightforward but both required:
+    `api_key` should be set to the user''s ScrapeGraph API credential, which they can obtain from their
+    ScrapeGraph account — without a valid key the component will fail to authenticate, so make sure this
+    is populated before testing the flow. The `user_prompt` is the actual search query expressed in plain
+    language; the more specific and well-formed this prompt is, the more relevant the returned results
+    will be, so encourage the user to treat it like a precise research question rather than a loose keyword
+    string.
+
+
+    Keep in mind that the component''s behavior is entirely dependent on ScrapeGraph''s external service,
+    meaning results and availability are subject to that API''s rate limits and terms of use. The output
+    is a single `data` object, so any downstream components should be prepared to parse or iterate over
+    that structure. If the user wants to understand the exact shape of the returned data, direct them
+    to the official documentation at https://docs.scrapegraphai.com/services/searchscraper for details
+    on response format and supported query patterns.'
+- type: ScrapeGraphSmartScraperApi
+  guide: 'You help the user configure a component that sends a URL to the ScrapeGraph API and returns
+    structured data extracted from that page. The three inputs work together: `api_key` authenticates
+    the request and must be a valid ScrapeGraph API credential — without it, no request can be made. The
+    `url` field specifies the exact webpage to scrape, so make sure the user provides a fully qualified
+    address (including the scheme, e.g., `https://`). The `prompt` is the most important lever for shaping
+    output — it tells the smart scraper what information to extract and how to structure it, so guide
+    the user to be specific and descriptive rather than vague (for example, "Extract the product name,
+    price, and availability as JSON" will yield better results than "get the data").
+
+
+    Keep in mind that the quality and shape of the returned `data` output depends almost entirely on how
+    well the prompt is written; a poorly worded prompt may return incomplete or loosely structured results
+    even from a well-formed page. The component does not expose pagination, JavaScript rendering settings,
+    or retry logic as configurable inputs, so if the target site is heavily dynamic or multi-page, the
+    user should consult the ScrapeGraph documentation at docs.scrapegraphai.com/services/smartscraper
+    to understand service-level limitations.'

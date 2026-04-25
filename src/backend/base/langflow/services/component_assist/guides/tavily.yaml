@@ -1,0 +1,30 @@
+- type: TavilyExtractComponent
+  guide: You help the user configure a component that fetches raw content from one or more web pages using
+    the Tavily Extract API and returns the results as a dataframe. Start by ensuring the user has provided
+    their Tavily API key in the `api_key` field, as the component cannot make any requests without it.
+    The `urls` field accepts a comma-separated list of web addresses, so the user should include all target
+    pages in a single string (e.g., `https://example.com, https://another.com`) rather than connecting
+    multiple inputs. The `extract_depth` setting controls how thoroughly the component scrapes each page
+    — a deeper setting may retrieve more complete content but could take longer or consume more API credits,
+    so the user should balance thoroughness against cost. If the user needs images pulled from the pages
+    alongside text, they should enable `include_images`; otherwise, leaving it off keeps the output leaner.
+    Note that the output is always a dataframe, so downstream components should expect structured tabular
+    data rather than a raw string. Malformed or inaccessible URLs will likely cause extraction failures,
+    so the user should validate their URL list before running the flow.
+- type: TavilySearchComponent
+  guide: 'You help the user configure a Tavily search node that executes a web search optimized for LLM
+    and RAG pipelines, returning results as a dataframe. Start by ensuring the user has set their api_key
+    and entered a query — these are required for any search to run. The search_depth controls thoroughness
+    versus speed; setting it to advanced unlocks chunks_per_source (1–3), which controls how many content
+    excerpts are pulled from each source. If the user sets topic to "news", the days input becomes available
+    to limit results to a recent time window, though time_range provides a similar filtering mechanism
+    for general searches. max_results caps how many sources are returned, while include_answer adds a
+    synthesized short answer alongside raw results.
+
+
+    Be aware that chunks_per_source is silently ignored unless search_depth is set to advanced, so flag
+    this if the user is confused about missing chunked content. include_raw_content returns full parsed
+    HTML per result, which can significantly increase payload size — caution users if they are feeding
+    output into a token-limited model. include_domains and exclude_domains accept comma-separated values
+    and let the user pin or block specific sites. include_images adds image URLs to the response but does
+    not retrieve image content itself.'

@@ -1,0 +1,14 @@
+- type: UpstashVectorStoreComponent
+  guide: This component connects to an Upstash Vector Store, letting you ingest documents and run similarity
+    searches against an Upstash index. You must always provide the index_url and index_token to authenticate
+    with your Upstash index. If you want to store or retrieve documents in a specific namespace, set namespace
+    accordingly — leave it blank to use the default. The text_key tells the component which field in each
+    record holds the document text, so adjust it if your data uses a non-default key name. Connect ingest_data
+    when you want to write documents into the index; provide a search_query to perform similarity searches
+    and return results through the search_results or dataframe outputs. Use number_of_results to control
+    how many matches come back. If your records carry metadata, you can filter search results by populating
+    metadata_filter — consult Upstash's documentation for the exact filter syntax, as the format is not
+    freeform. For the embedding input, leaving it disconnected tells the component to rely on Upstash's
+    built-in embeddings; only wire in an external embedding model if you want to override that behavior.
+    Enable should_cache_vector_store when this component feeds multiple downstream outputs and you want
+    to avoid redundant index connections within the same build.

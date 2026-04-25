@@ -1,0 +1,65 @@
+- type: FirecrawlCrawlApi
+  guide: 'You help the user configure a component that recursively crawls a starting URL and returns the
+    collected page data from Firecrawl''s crawl endpoint. The two required fields to set up first are
+    api_key, which authenticates the request against the Firecrawl service, and url, which is the entry
+    point the crawler will begin traversing from. The timeout field controls how long (in milliseconds)
+    the component will wait before abandoning the request, so raise this value if you are crawling large
+    or slow sites. The idempotency_key is optional but useful when the user wants to safely retry a request
+    without risk of triggering duplicate crawl jobs on Firecrawl''s side.
+
+
+    The crawlerOptions and scrapeOptions inputs accept structured configuration objects that shape how
+    the crawl behaves — crawlerOptions governs traversal behavior such as depth limits or URL patterns
+    to include or exclude, while scrapeOptions controls how individual pages are processed and what content
+    is extracted. Both are passed directly to the Firecrawl API, so the user should consult the Firecrawl
+    documentation for the exact accepted fields and formats. The component produces a single data output
+    containing the crawl results, which can be wired into downstream components for further processing.'
+- type: FirecrawlExtractApi
+  guide: 'You help the user configure a component that uses Firecrawl to pull structured data from one
+    or more web pages. Start by ensuring the user has entered a valid `api_key`, as no extraction can
+    run without it. The `urls` field accepts multiple targets at once — they can be separated by commas
+    or newlines, so the user can batch several pages into a single request. The `prompt` field lets the
+    user describe in plain language what kind of information they want to extract, which guides the underlying
+    model''s focus; leaving it vague will produce less precise results. If the user needs the output in
+    a predictable shape — for example, to feed downstream components — they should supply a `schema` that
+    defines the expected fields and types.
+
+
+    One important option to flag is `enable_web_search`: turning this on allows the component to go beyond
+    the provided URLs and pull in supplementary data from the web, which can enrich results but may introduce
+    information the user did not explicitly request. If the user wants strict extraction limited to the
+    given URLs, keep this off. The component emits a single `data` output, so make sure whatever follows
+    in the flow is expecting that format. Refer the user to the Firecrawl API docs for schema formatting
+    details.'
+- type: FirecrawlMapApi
+  guide: 'This component takes one or more URLs and uses the Firecrawl API to discover and return all
+    the links found at those locations, giving you a structured map of a site''s content. You help the
+    user connect the right inputs so the mapping run produces accurate, useful results.
+
+
+    Start by ensuring the user provides a valid `api_key`, since without it no requests will succeed.
+    The `urls` field accepts multiple entries separated by commas or newlines, so the user can map several
+    sites in one pass. The three boolean flags control how the crawler finds links: if the site''s `sitemap.xml`
+    is outdated or misleading, setting `ignore_sitemap` to true will skip it and rely solely on live crawling
+    instead. Conversely, if the user only wants the links declared in the sitemap and nothing more, they
+    should enable `sitemap_only` — note that enabling both `ignore_sitemap` and `sitemap_only` at the
+    same time would be contradictory, so guide the user to pick one or neither. Finally, `include_subdomains`
+    broadens the scan beyond the root domain to cover subdomains, which is useful for large sites but
+    may significantly increase the volume of returned data.'
+- type: FirecrawlScrapeApi
+  guide: 'You help the user configure a component that fetches and extracts content from a single web
+    page using the Firecrawl API. The two required inputs to get started are `api_key`, which authenticates
+    the request against Firecrawl''s service, and `url`, the full address of the page to scrape. The `timeout`
+    input controls how long (in milliseconds) the component will wait before abandoning the request —
+    raise this value for slow-loading or JavaScript-heavy pages. Use `scrapeOptions` to pass page-level
+    settings such as controlling which formats are returned or whether to wait for dynamic content to
+    render; use `extractorOptions` when you need structured data extraction, such as targeting specific
+    fields with a schema or prompt. The component produces a single `data` output containing the scrape
+    results.
+
+
+    Keep in mind that malformed or missing options objects may cause silent failures, so validate your
+    JSON before connecting those inputs. The `api_key` should be treated as a secret and not hardcoded
+    in shared flows — prefer a credential input or environment variable if your builder supports it. For
+    a full list of accepted fields for `scrapeOptions` and `extractorOptions`, consult the Firecrawl scrape
+    endpoint documentation at https://docs.firecrawl.dev/api-reference/endpoint/scrape.'

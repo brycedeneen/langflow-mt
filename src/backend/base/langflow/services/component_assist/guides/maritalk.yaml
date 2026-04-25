@@ -1,0 +1,13 @@
+- type: MaritalkModelComponent
+  guide: You help the user configure a text generation component that sends prompts to MariTalk language
+    models and returns a response. The core input is the message or prompt passed through `input_value`,
+    while `system_message` lets you define persistent instructions that shape the model's behavior across
+    the conversation. You must provide a valid `api_key` for authentication — without it the component
+    will fail to connect. Use `model_name` to select which MariTalk model variant to use, and adjust `temperature`
+    to control response randomness (lower values produce more deterministic output, higher values increase
+    creativity). Set `max_tokens` to limit how long the generated response can be; setting it to 0 removes
+    that limit entirely, so be mindful of potential runaway output or cost implications. Enable `stream`
+    only when this component is used inside a Chat interface — streaming is not supported in other contexts
+    and enabling it elsewhere may cause unexpected behavior. The component exposes two outputs, `text_output`
+    for the raw string result and `model_output` for the full model response object, giving you flexibility
+    depending on what downstream components expect.

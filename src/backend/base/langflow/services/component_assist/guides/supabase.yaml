@@ -1,0 +1,17 @@
+- type: SupabaseVectorStoreComponent
+  guide: 'You help the user connect to a Supabase-backed vector store and run semantic similarity searches
+    against it. To establish the connection, the user must provide their Supabase project URL via `supabase_url`
+    and a service-role key via `supabase_service_key` — keep the key confidential, as it grants elevated
+    database access. The `table_name` field identifies which Supabase table holds the vector data, and
+    `query_name` should match the name of the Postgres function used to perform the similarity search
+    on that table; both must align with what is actually defined in the database. Supply an `embedding`
+    model so the component can vectorize inputs consistently, and connect `ingest_data` if you want to
+    populate the store with new documents during the flow.
+
+
+    For querying, set `search_query` to the text you want to match against stored vectors, and use `number_of_results`
+    to control how many similar records are returned. If your flow calls this component multiple times
+    or branches across outputs, enable `should_cache_vector_store` to avoid redundant re-initialization
+    on each invocation — leave it off when you need a fresh store state on every run. Results are available
+    as either structured `search_results` or a `dataframe` output depending on how downstream components
+    expect to receive them.'

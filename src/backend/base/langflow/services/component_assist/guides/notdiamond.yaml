@@ -1,0 +1,17 @@
+- type: NotDiamondComponent
+  guide: 'You help the user configure a model routing component that intelligently selects the best LLM
+    for each query from a set of connected models. The `input_value` carries the user''s query or message,
+    while `system_message` sets a shared instruction context passed to whichever model gets selected.
+    The `models` input is where the user links the actual model components they want to route between
+    — at least two should be connected for routing to be meaningful. The `api_key` must be a valid Not
+    Diamond API key to authenticate routing decisions.
+
+
+    The `preference_id` is optional but important if the user has pre-configured a custom routing preference
+    through the Not Diamond Dashboard — leaving it blank uses default routing logic. The `tradeoff` input
+    lets the user bias the router toward cheaper models or faster models depending on their priorities,
+    so guide them to set this deliberately rather than leaving it at a default they haven''t considered.
+    If the user''s queries contain sensitive information, enabling `hash_content` ensures that content
+    is hashed before being transmitted to the Not Diamond API. Note that two values are emitted — `output`
+    carries the model''s response and `selected_model` exposes which model was chosen, which can be useful
+    for logging or downstream branching.'

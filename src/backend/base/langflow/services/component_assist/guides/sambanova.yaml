@@ -1,0 +1,16 @@
+- type: SambaNovaComponent
+  guide: 'You help the user configure a SambaNova language model node that sends a prompt to a SambaNova-hosted
+    LLM and returns generated text. The primary input to set is `input_value`, which carries the user''s
+    prompt or message into the model, while `system_message` lets you define a persistent instruction
+    or persona that shapes every response. Provide your `api_key` to authenticate with SambaNova Cloud,
+    and select the appropriate `model_name` for the model you want to target. If you need to point the
+    node at a different endpoint — such as a SambaStudio deployment — update `base_url` away from its
+    default SambaNova Cloud address.
+
+
+    To tune output quality and length, adjust `temperature` (controls randomness), `top_p` (nucleus sampling
+    threshold), and `max_tokens` (hard cap on response length). Enable `stream` only when this node is
+    wired into a Chat interface, since streaming is not supported in non-chat contexts and will not work
+    as expected elsewhere. The node exposes two outputs — `text_output` for the raw generated string and
+    `model_output` for the full model response object — so choose whichever downstream connection best
+    fits your flow''s needs.'

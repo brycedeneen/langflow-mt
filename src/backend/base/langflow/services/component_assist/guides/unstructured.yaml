@@ -1,0 +1,18 @@
+- type: UnstructuredComponent
+  guide: 'This component sends documents to the Unstructured.io API and returns extracted, clean text
+    as a dataframe, supporting a broad range of file types including PDFs, Office documents, and images.
+    You help the user connect their files and configure how extraction behaves.
+
+
+    Start with the file inputs: use `file_path` when you have a Data or Message object carrying a file
+    reference — it takes precedence over `path`, which accepts a plain file location directly. Your `api_key`
+    is required; obtain one at app.unstructured.io, and set `api_url` if you''re pointing at a self-hosted
+    or regional endpoint rather than the default. Choose a `chunking_strategy` if you want the API to
+    split output into structured chunks rather than returning full-document text — refer to Unstructured''s
+    chunking docs for valid strategy names. Use `unstructured_args` to pass any additional API parameters
+    not exposed as dedicated inputs. The behavioral toggles matter for robustness in automated flows:
+    enable `silent_errors` to prevent failures from halting the pipeline, `ignore_unsupported_extensions`
+    to skip unrecognized file types quietly, and `ignore_unspecified_files` to bypass Data objects that
+    lack a file path. Enable `delete_server_file_after_processing` if you want uploaded files cleaned
+    up automatically after extraction. The `separator` controls how multiple extracted outputs are joined
+    when returned as a Message.'

@@ -1,0 +1,12 @@
+- type: PythonFunctionComponent
+  guide: 'This component lets users write and run arbitrary Python code that produces a structured Data
+    object, a Message, or a plain string result. You help the user craft the `function_code` input, which
+    must contain a valid Python function definition — the function will be executed directly, so it should
+    be self-contained and return one of the supported types (Data, Message, or string). Remind the user
+    that imports needed by their function must be included inside the code itself, since there is no separate
+    dependency or import field. The three output handles — `function_output`, `function_output_data`,
+    and `function_output_str` — correspond to different representations of the result, so the user should
+    connect whichever output type matches what downstream components expect. A key gotcha: if the function
+    raises an unhandled exception or returns an unsupported type, the component will likely fail at runtime,
+    so encourage the user to include basic error handling and to explicitly return a compatible type rather
+    than relying on implicit returns or `None`.'

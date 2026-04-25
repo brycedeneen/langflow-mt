@@ -1,0 +1,31 @@
+- type: RedisIndexChatMemory
+  guide: This component connects to a Redis instance to persist and retrieve chat message history, enabling
+    conversations to maintain context across sessions. You help the user configure the connection and
+    identify the correct message thread. The host and port fields point to the Redis server — host accepts
+    either an IP address or a hostname, and port defaults to Redis's standard 6379 unless the server runs
+    elsewhere. The database field selects which logical Redis database to use (Redis supports multiple
+    numbered databases, typically 0–15), so make sure it matches where chat data is being stored. If the
+    Redis instance requires authentication, the user should supply both username and password; leaving
+    these blank is fine for unsecured local instances. The key_prefix field namespaces all keys written
+    by this component, which is useful when multiple applications or flows share the same Redis server
+    — changing it avoids key collisions. The session_id distinguishes individual conversations, so each
+    unique user or chat thread should have its own value; reusing a session_id will merge message histories,
+    which is usually unintended. Ensure the combination of key_prefix and session_id is unique enough
+    for your deployment to prevent one session's history from bleeding into another.
+- type: RedisVectorStoreComponent
+  guide: 'You help the user configure a Redis-backed vector store that can both index documents and run
+    similarity searches against stored embeddings. The core connection is defined by `redis_server_url`
+    (the full connection string to your Redis instance, e.g. `redis://localhost:6379`) and `redis_index_name`
+    (the name of the index to create or query). You must also supply an `embedding` model, which is used
+    to convert text into vectors. To populate the store, connect document data to `ingest_data`; if you''re
+    working with an existing index that has a non-default field schema, provide it via `schema`. The `code`
+    input allows custom logic if needed. For querying, enter a natural language or keyword string in `search_query`
+    and control how many matches come back with `number_of_results`.
+
+
+    Enable `should_cache_vector_store` when this component feeds multiple downstream outputs and you want
+    to avoid redundant re-indexing on each call — this is especially valuable in flows where both `search_results`
+    and `dataframe` outputs are consumed simultaneously. Be aware that caching ties the vector store state
+    to the current build, so if your ingested data changes frequently, leaving caching off ensures fresh
+    indexing. Make sure your Redis instance is reachable at the provided URL before running the flow,
+    as connection errors will surface immediately at build time.'

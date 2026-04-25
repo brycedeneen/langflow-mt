@@ -1,0 +1,91 @@
+- type: CrewAIAgentComponent
+  guide: 'This component creates a single CrewAI agent by defining its identity, capabilities, and behavior
+    within a multi-agent workflow. The three core inputs — role, goal, and backstory — shape how the agent
+    reasons and responds: role sets its functional title (e.g., "Researcher"), goal defines the specific
+    objective it works toward, and backstory provides context that influences its perspective and decision-making
+    style. Connect an LLM to the llm input to choose which language model powers the agent, and attach
+    any external tools (such as search or code utilities) via the tools input to expand what the agent
+    can act on.
+
+
+    Several behavioral toggles are worth configuring deliberately. Enabling memory lets the agent retain
+    context across interactions within a crew run, while verbose surfaces its reasoning steps for debugging.
+    Set allow_delegation to true only if you want this agent to hand off subtasks to other agents in the
+    crew; leave it off for agents meant to work independently. allow_code_execution should only be enabled
+    if the agent genuinely needs to run code, as it introduces execution risk. Use kwargs to pass any
+    additional CrewAI agent parameters not exposed as dedicated inputs, but check the CrewAI documentation
+    first to avoid conflicts with the named inputs already provided.'
+- type: HierarchicalCrewComponent
+  guide: This component orchestrates a group of agents working under a hierarchical structure, where a
+    manager directs agents to complete tasks rather than agents collaborating as peers. The two most important
+    inputs to configure are `manager_llm` and `manager_agent` — you must provide exactly one of these
+    to define who oversees the crew; `manager_llm` lets an LLM automatically act as manager, while `manager_agent`
+    lets you assign a custom agent to that role. The `agents` and `tasks` inputs are required to populate
+    the crew with workers and the work they should perform. Toggle `verbose` to surface step-by-step execution
+    logs, `memory` to enable cross-task context retention, and `use_cache` to reuse prior tool results
+    and reduce redundant calls. Set `max_rpm` if you need to cap API request rates and avoid rate-limit
+    errors. The `share_crew` flag controls whether crew telemetry is shared externally, so review your
+    data policy before enabling it. Use `function_calling_llm` only if you want to convert the underlying
+    ReAct agents into function-calling agents, which changes how tool use is handled and may not be compatible
+    with all LLM providers.
+- type: HierarchicalTaskComponent
+  guide: 'You help the user configure a single unit of work that will be executed by an agent within a
+    hierarchical crew. The component takes three inputs: task_description, expected_output, and tools.
+    The task_description should be a clear, detailed explanation of what needs to be done and how — think
+    of it as the instruction set the assigned agent will follow, so the more precise and contextual it
+    is, the better the agent will perform. The expected_output defines what a successful result looks
+    like; this should be specific and unambiguous, since it guides both execution and evaluation of the
+    task''s result.
+
+
+    The tools input is optional — if you leave it empty, the component will fall back to whatever tools
+    are already attached to the responsible agent. Only override this if you want to restrict or change
+    the toolset available for this particular task without modifying the agent itself. Keep in mind that
+    this component does not assign an agent directly; agent assignment is handled at the crew or flow
+    level, so make sure the broader pipeline wires the correct agent to this task. Avoid vague descriptions
+    or outputs, as ambiguity here tends to cascade into poor results downstream.'
+- type: SequentialCrewComponent
+  guide: You help the user configure a crew of agents whose tasks run one after another in a fixed order,
+    where each task completes before the next begins. The most important input to wire up is tasks — this
+    accepts the ordered list of task components that define what the crew will do, and the sequence they
+    are connected in determines execution order. Toggle verbose to surface detailed runtime logs, which
+    is useful during development and debugging. memory enables the crew to retain context across tasks,
+    while use_cache controls whether repeated tool calls reuse stored results rather than re-executing.
+    max_rpm sets a rate limit on requests to the underlying model, helping you avoid API throttling. share_crew
+    controls whether crew telemetry is shared externally, so advise the user to check their data-sharing
+    preferences before enabling it. The function_calling_llm input swaps the default ReAct-style reasoning
+    loop for a function-calling approach — only set this if the user's chosen model natively supports
+    function calling, as mixing incompatible models here will cause errors. All configuration flows into
+    a single output representing the crew's completed result.
+- type: SequentialTaskAgentComponent
+  guide: 'This component creates a paired CrewAI agent and task that slot into a sequential workflow,
+    outputting a single task object you can chain with other steps. The agent''s identity is defined by
+    three fields you should always fill in: role (a short label like "Researcher"), goal (what the agent
+    is trying to accomplish), and backstory (context that shapes its reasoning style). The llm input wires
+    in the language model powering the agent, and tools accepts any callable tools you want available.
+    Toggle memory to let the agent retain context across steps, verbose to surface detailed logs, allow_delegation
+    if this agent should be able to hand work off to peers, and allow_code_execution if it needs to run
+    code. Use agent_kwargs only for advanced overrides not covered by the other inputs.
+
+
+    For the task side, task_description should explain what work needs to be done and how, while expected_output
+    defines exactly what a successful result looks like — both are important for reliable behavior. Set
+    async_execution to true if this task can run concurrently with others rather than blocking the sequence.
+    When chaining multiple steps, connect the preceding component''s output to previous_task so CrewAI
+    knows the execution order. Note that this component is designed for sequential crews specifically;
+    using it outside that context or leaving previous_task disconnected on non-first steps will break
+    the intended chain.'
+- type: SequentialTaskComponent
+  guide: 'You help the user configure a single step in an ordered CrewAI workflow, where one agent carries
+    out one well-defined task before the next step begins. The three inputs you should always fill in
+    are `task_description`, `expected_output`, and `agent`: the description explains what the agent needs
+    to do and how, the expected output pins down exactly what a successful result looks like (be specific
+    — vague definitions lead to unpredictable outputs), and the agent field wires in the CrewAI Agent
+    responsible for execution. If you want to restrict which tools are available for this particular task
+    rather than inheriting everything the agent already has, provide a narrower list via `tools`; leave
+    it empty to default to the agent''s own tool set. The `task` input lets you pass in a pre-built CrewAI
+    Task object if you prefer to construct it externally instead of defining it inline here — in that
+    case the description and expected output fields become less relevant. Toggle `async_execution` to
+    true only if this step can run concurrently with others in the pipeline; because this is a sequential
+    component, enabling async on interdependent steps may cause downstream tasks to start before their
+    inputs are ready.'

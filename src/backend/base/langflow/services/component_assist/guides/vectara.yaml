@@ -1,0 +1,31 @@
+- type: VectaraRagComponent
+  guide: 'You help the user configure a retrieval-augmented generation pipeline that queries a Vectara
+    corpus and returns a grounded answer. Start by ensuring the three authentication fields — customer
+    ID, corpus ID, and API key — are correctly set, as the component cannot connect to Vectara without
+    them. The `search_query` is the question or input text the pipeline will answer. Use `lexical_interpolation`
+    to balance keyword-based and semantic search: values closer to 0 favor dense embeddings, while values
+    closer to 1 favor exact-term matching. The `filter` field accepts metadata-based filter expressions
+    to narrow which documents are searched. Choose a `reranker` strategy to re-order retrieved results;
+    if you select the MMR reranker, `diversity_bias` (0–1) controls how aggressively it promotes varied
+    results, and `reranker_k` sets the candidate pool size for that reranking step. `max_results` caps
+    how many retrieved passages are passed to the summarization prompt. Set `response_lang` to an ISO
+    639-1 or 639-3 code, or use `auto` for automatic detection. Be aware that most available prompts are
+    restricted to Scale-tier customers — only `vectara-summary-ext-24-05-sml` is available to Growth customers
+    — so confirm your account tier before changing the `prompt` field.'
+- type: VectaraVectorStoreComponent
+  guide: 'You help the user connect to and query a Vectara-hosted vector store, which indexes and retrieves
+    semantically similar documents using Vectara''s managed infrastructure. To establish the connection,
+    the user must provide their Vectara customer ID, corpus ID, and API key — all three are required and
+    must match the target corpus in their Vectara account. If the user wants to add new data to the corpus,
+    they should supply content through the ingest_data input. The embedding input may be used if a custom
+    embedding model needs to be passed in, though Vectara handles embeddings server-side, so this may
+    not always be necessary.
+
+
+    For querying, the user enters a natural-language or keyword prompt in search_query to perform a similarity
+    search, and controls how many results come back using number_of_results. The component surfaces results
+    through both a search_results output and a dataframe output, making it flexible for downstream processing.
+    If this component feeds into multiple branches of a flow, enabling should_cache_vector_store avoids
+    redundant re-initialization of the store on each output call, which can save time and API overhead.
+    Make sure the customer ID and corpus ID are treated as strings, and remind the user to keep their
+    API key secure and out of shared flows.'

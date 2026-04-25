@@ -1,0 +1,47 @@
+- type: CassandraChatMemory
+  guide: 'You help the user configure a component that connects to an Apache Cassandra database (or Astra
+    DB) to persist and retrieve chat message history across sessions. The `database_ref` field should
+    contain either the contact points (host addresses) for a self-hosted Cassandra cluster or the Astra
+    DB database ID if using the cloud service. For self-hosted Cassandra, provide `username` and set `token`
+    to the corresponding password; for Astra DB, leave `username` empty and supply the Astra DB token
+    in `token`. The `keyspace` and `table_name` fields identify where messages will be stored — make sure
+    these already exist in Cassandra or that the connected user has permission to create them. The `session_id`
+    is critical: it scopes the stored messages to a specific conversation, so each distinct chat session
+    should use a unique value to avoid mixing message histories. If the user needs advanced connection
+    settings such as SSL options, timeouts, or load-balancing policies, those can be passed as a dictionary
+    through `cluster_kwargs`. Note that `cluster_kwargs` applies only to self-hosted Cassandra clusters
+    and has no effect when connecting to Astra DB, so advise the user to leave it empty in that case.'
+- type: CassandraGraphVectorStoreComponent
+  guide: 'You help the user connect to a Cassandra (or Astra DB) instance and use it as a graph-enhanced
+    vector store for similarity search. To establish the connection, the user must provide either Cassandra
+    contact points or an Astra DB database ID in `database_ref`, along with a `token` (password or Astra
+    DB token), and a `keyspace` and `table_name` to identify where vectors are stored. For standard Cassandra,
+    `username` is also required; leave it empty for Astra DB. The `setup_mode` controls whether the table
+    schema is created automatically on connection — use ''Sync'' to let the component handle setup, or
+    ''Off'' if the table already exists. Any advanced Cassandra cluster options can be passed via `cluster_kwargs`.
+
+
+    For search behavior, attach an `embedding` model and optionally provide `ingest_data` to populate
+    the store. The `search_query` drives similarity search, and `number_of_results` caps how many matches
+    are returned. Choose `search_type` carefully: ''Traversal'' and ''MMR traversal'' modes use the `depth`
+    parameter to control how far the graph edges are explored, while ''Similarity with score threshold''
+    relies on `search_score_threshold` to filter low-confidence results. Use `search_filter` to narrow
+    results by metadata. Enable `should_cache_vector_store` when multiple outputs need to share the same
+    store instance within a single build, avoiding redundant reconnections.'
+- type: CassandraVectorStoreComponent
+  guide: 'You help the user configure a Cassandra-backed vector store that indexes and searches embedded
+    documents using Apache Cassandra or Astra DB. For connection setup, the user provides a host address
+    or Astra DB database ID in `database_ref`, along with `token` for the password or Astra DB token —
+    `username` should be left empty when using Astra DB. The `keyspace` and `table_name` identify where
+    vectors are stored, and `setup_mode` controls whether the table is initialized synchronously, asynchronously,
+    or not at all (use "Off" if the table already exists). Supply `embedding` to define how documents
+    are vectorized, and connect `ingest_data` to load documents into the store. Optional tuning includes
+    `ttl_seconds` to auto-expire records, `batch_size` for ingestion throughput, and `cluster_kwargs`
+    for advanced Cassandra connection options.
+
+
+    For querying, enter a `search_query` and choose a `search_type` — if using score-threshold filtering,
+    set `search_score_threshold` accordingly. Use `search_filter` to narrow results by metadata and `number_of_results`
+    to control how many are returned. If you want full-text body search alongside vector search, set `enable_body_search`
+    to true before the table is first created — enabling it afterward has no effect. Enable `should_cache_vector_store`
+    when multiple outputs share this component to avoid redundant initialization.'

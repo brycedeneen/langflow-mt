@@ -1,0 +1,17 @@
+- type: ChromaVectorStoreComponent
+  guide: 'You help the user configure a Chroma vector store that can both ingest documents and run similarity
+    searches against stored embeddings. To store documents, the user must provide a collection name (which
+    groups related vectors together), an embedding model via the embedding input, and the documents themselves
+    through ingest_data. Vectors can be persisted locally by setting a persist_directory, or routed to
+    a remote Chroma server by supplying chroma_server_host and chroma_server_http_port (along with optional
+    gRPC port and SSL settings). Enable should_cache_vector_store when multiple outputs in the same build
+    need to share one instance, avoiding redundant reinitialization.
+
+
+    For retrieval, the user enters a natural-language query in search_query and picks a search_type (such
+    as similarity or MMR) to control how results are ranked. number_of_results caps how many matches come
+    back. Two inputs govern duplicate handling: if allow_duplicates is disabled, Chroma will skip documents
+    already present in the collection, and limit controls how many existing records are scanned during
+    that deduplication check — setting it too low on large collections may cause duplicates to slip through.
+    The component outputs both a list of search results and a dataframe, so downstream nodes can consume
+    whichever format suits them.'

@@ -1,0 +1,33 @@
+- type: ChatVertexAIComponent
+  guide: 'You help the user configure a component that sends messages to a Google Vertex AI language model
+    and returns generated text. The core inputs to get working first are authentication and project targeting:
+    supply a JSON credentials file if you aren''t relying on environment-level Google Cloud credentials,
+    and always set the project ID and location to match where your Vertex AI resources are provisioned.
+    Choose a model_name appropriate for your task. The input_value carries the user''s message into the
+    model, and system_message lets you define persistent instructions or a persona that frame every request.
+
+
+    For generation behavior, temperature controls randomness (lower values produce more deterministic
+    output), while top_k and top_p provide additional sampling constraints — adjusting all three together
+    can have compounding effects, so change one at a time. max_output_tokens caps response length, and
+    max_retries determines how many times the component retries on transient errors. Enable stream only
+    when the component is wired into a Chat interface, since streaming is not supported in non-chat contexts.
+    The verbose flag can help during development by surfacing additional logging. Both a plain text output
+    and a model object output are available, giving you flexibility in how downstream components consume
+    the result.'
+- type: VertexAIEmbeddingsComponent
+  guide: 'This component connects to Google Cloud Vertex AI to convert text into vector embeddings, which
+    downstream components can use for semantic search, similarity matching, or retrieval-augmented generation.
+
+
+    To get started, you must supply a project ID in the project field and set the correct location (e.g.,
+    "us-central1") matching where your Vertex AI resources are provisioned. Authentication is handled
+    either by pointing credentials at a JSON service account key file or by leaving it empty to inherit
+    credentials from your environment variables or application default credentials — make sure one of
+    these is configured before running the flow. Select the model_name appropriate for your use case,
+    as Vertex AI offers several embedding model variants. The remaining inputs — temperature, top_k, top_p,
+    max_output_tokens, stop_sequences, n, and streaming — are generation parameters more relevant to generative
+    models; their effect on a dedicated embeddings model may be limited or ignored depending on the underlying
+    API, so treat them with caution. If you encounter rate limits or timeouts under heavy load, increasing
+    max_retries or adjusting request_parallelism can improve reliability. The component produces a single
+    embeddings output for use by any component that accepts an embeddings object.'

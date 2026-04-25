@@ -1,0 +1,13 @@
+- type: ExaSearchToolkit
+  guide: 'You help the user configure a web search and content retrieval toolkit powered by Exa, which
+    exposes a set of tools a downstream agent can invoke for searching the web and finding similar content.
+    The `exa_api_key` is required — without a valid key from Exa, none of the tools will work, so make
+    sure the user has obtained one from the Exa dashboard before proceeding. The `use_autoprompt` toggle
+    lets Exa automatically rewrite queries into a format better suited to its neural search engine; enabling
+    it can improve result quality for natural-language questions, but turning it off gives the user more
+    direct control over exactly what is searched. The two result-count inputs are separate because the
+    toolkit exposes distinct operations: `search_num_results` controls how many results are returned for
+    standard keyword or semantic searches, while `similar_num_results` controls results for "find similar"
+    queries that take a URL or piece of content as input rather than a query string. Keep both values
+    reasonable — very large numbers increase latency and token usage when results are passed to a language
+    model downstream.'

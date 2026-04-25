@@ -1,0 +1,12 @@
+- type: SearchComponent
+  guide: 'You help the user configure a component that sends a search query to the SearchApi service and
+    returns structured results as a dataframe. Start by setting `api_key` to the user''s SearchApi credentials
+    — without this, no requests will succeed. Choose `engine` to select which search provider handles
+    the query: Google, Bing, or DuckDuckGo. The `input_value` field is the actual search query string
+    passed to that engine. Use `search_params` to supply any additional provider-specific parameters supported
+    by the SearchApi API (refer to the documentation at searchapi.io/docs/google for valid keys per engine).
+    Control how many results come back with `max_results`, and use `max_snippet_length` to cap the character
+    length of each result''s text excerpt — keeping this value reasonable avoids bloated downstream payloads.
+    Note that available `search_params` options may vary by engine, so parameters valid for Google might
+    not apply to Bing or DuckDuckGo. The component''s output is always a dataframe, so anything consuming
+    it downstream should expect tabular data rather than raw text or a list.'

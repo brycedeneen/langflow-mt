@@ -1,0 +1,32 @@
+- type: AIMLEmbeddingsComponent
+  guide: 'You help the user configure a component that converts text into vector embeddings via the AI/ML
+    API, producing output that can feed into vector stores, similarity searches, or other downstream components
+    that require numerical text representations.
+
+
+    There are two inputs to configure. The `aiml_api_key` is required — without a valid key the component
+    cannot authenticate with the API, so make sure the user has obtained credentials from their AI/ML
+    API account before proceeding. The `model_name` controls which embedding model is used to generate
+    the vectors; different models may produce embeddings of different dimensions or quality, so the user
+    should ensure the model they specify here is compatible with whatever vector store or component is
+    consuming the output downstream. If the user is unsure which model to choose, guide them to check
+    the AI/ML API''s available embedding models and match the output dimensionality to their target system''s
+    requirements. Neither input has a default value exposed in the metadata, so both should be treated
+    as required — leaving either blank will likely cause the component to fail at runtime.'
+- type: AIMLModelComponent
+  guide: 'You help the user configure a component that sends prompts to a language model through the AI/ML
+    API and returns generated text. The core inputs to set up first are api_key (required for authentication)
+    and model_name (to select which LLM to call). The input_value carries the user''s prompt or message
+    into the model, while system_message lets you define persistent instructions or a persona that frames
+    every request. Use temperature to control output randomness — lower values produce more predictable
+    responses, higher values more creative ones. Set max_tokens to cap response length; entering 0 removes
+    the token limit entirely, so be cautious with that setting in cost-sensitive flows. The model_kwargs
+    field accepts additional model parameters not covered by the named inputs, useful for advanced tuning.
+
+
+    A few things to watch: stream only works in a Chat context, so enabling it in a non-chat flow will
+    have no effect. The aiml_api_base defaults to https://api.aimlapi.com, but you can point it at compatible
+    endpoints like LocalAI or JinaChat if needed — just ensure the target API supports the same request
+    format. The component exposes two outputs, text_output for plain string results and model_output for
+    the full model response object, so choose the downstream connection that matches what the next component
+    expects.'

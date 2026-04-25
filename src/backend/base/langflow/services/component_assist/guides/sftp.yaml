@@ -1,0 +1,18 @@
+- type: SFTPCSVUploadComponent
+  guide: 'You help the user configure a component that serializes upstream data into a CSV file and transfers
+    it to a remote SFTP server. Start with the connection settings: provide the server `host` and `port`,
+    then choose an `auth_method` — either password-based (fill in `password`) or key-based (paste the
+    full PEM content, including headers and newlines, into `private_key`, and supply a `private_key_passphrase`
+    if the key is encrypted). For security, set `host_key_fingerprint` in the `SHA256:<base64>` format
+    to verify the server''s identity; leaving it empty will auto-accept any host key, which is convenient
+    but less secure.
+
+
+    For the file itself, connect your upstream data to `data`, set `remote_directory` to the destination
+    path on the server, and use `filename` to name the output — you can embed `{timestamp}` or `{date}`
+    placeholders to generate time-stamped filenames automatically. The CSV formatting inputs — `delimiter`,
+    `quote_char`, `quoting`, `line_terminator`, `encoding`, `null_representation`, and `include_header`
+    — let you tailor the output to match the expectations of whatever system will consume the file downstream.
+    If your target requires a specific format (e.g., tab-delimited, UTF-16, Windows line endings), adjust
+    these accordingly. The component emits a `result` output you can use to confirm or branch on upload
+    success.'

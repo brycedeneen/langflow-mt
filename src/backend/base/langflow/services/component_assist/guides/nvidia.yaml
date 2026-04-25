@@ -1,0 +1,74 @@
+- type: NVIDIAEmbeddingsComponent
+  guide: 'You help the user configure a component that converts text into vector embeddings using NVIDIA''s
+    hosted models. The four inputs work together to authenticate and target the right model endpoint:
+    `nvidia_api_key` is required — without a valid NVIDIA API key the component cannot make any requests,
+    so ensure the user has obtained one from NVIDIA''s developer portal. The `model` field determines
+    which NVIDIA embedding model is used; if the user is unsure, guide them to confirm which models are
+    available for their account. The `base_url` allows pointing the component at a custom or self-hosted
+    NVIDIA-compatible endpoint instead of the default cloud service, which is useful in enterprise or
+    air-gapped deployments. The `temperature` input is less common for embedding models than for generative
+    ones — its effect may be limited or model-dependent, so advise the user to leave it at its default
+    unless they have a specific reason to change it. The component produces an `embeddings` output that
+    can be wired into downstream components expecting vector representations, such as vector store indexers
+    or similarity search nodes.'
+- type: NVIDIAModelComponent
+  guide: You help the user configure a component that sends prompts to an NVIDIA-hosted language model
+    and returns generated text. The core inputs to set up first are `api_key` (your NVIDIA API credential)
+    and `model_name` (the specific model to run inference with); if you only want models that support
+    tool-calling, enable `tool_model_enabled` to filter the selection. The `input_value` carries the user's
+    prompt, while `system_message` lets you define a persistent instruction the model follows throughout
+    the conversation. Use `temperature` to control randomness and `seed` to make outputs reproducible
+    across runs. Set `max_tokens` to cap response length, or leave it at 0 to allow unlimited output.
+    Enable `detailed_thinking` only when using a reasoning model that supports it — toggling it on with
+    an incompatible model will cause errors. The `stream` option enables token-by-token streaming, but
+    note this only functions correctly inside a Chat interface, not in other flow contexts. If you're
+    pointing to a self-hosted or alternative NVIDIA-compatible endpoint, update `base_url` accordingly;
+    otherwise it defaults to the standard NVIDIA integration URL.
+- type: NvidiaIngestComponent
+  guide: 'This component sends documents to NVIDIA''s NeMo Retriever Extraction API and returns a structured
+    dataframe of extracted content, supporting text, tables, charts, images, and infographics from multi-modal
+    documents.
+
+
+    You help the user configure both what to extract and how to handle the results. Start with connectivity:
+    `base_url` must point to a running NeMo Retriever Extraction API instance, and `api_key` provides
+    authentication. For file input, prefer `file_path` (a Data or Message object) over `path`, as it takes
+    precedence when both are provided — and enable `delete_server_file_after_processing` if you want the
+    server copy cleaned up afterward. Toggle the `extract_*` flags to control which content types are
+    pulled; note that `text_depth` (block, line, or span) affects granularity before any splitting occurs,
+    and support varies by document type. If splitting is needed, set `split_text` along with `chunk_size`
+    and `chunk_overlap` in tokens. For image extraction, the filtering inputs (`min_image_size`, `min_aspect_ratio`,
+    `max_aspect_ratio`, `dedup_images`) only take effect when `filter_images` is enabled. Use `silent_errors`,
+    `ignore_unsupported_extensions`, and `ignore_unspecified_files` to control how the component behaves
+    when inputs are missing or problematic rather than letting errors halt the flow. Enable `high_resolution`
+    for scanned PDFs where extraction quality matters.'
+- type: NvidiaRerankComponent
+  guide: 'You help the user configure a component that reorders a set of retrieved documents by relevance
+    using NVIDIA''s reranking API. The core inputs are a search query and search results from a vector
+    store — the query tells the model what the user is actually looking for, and the search results provide
+    the candidate documents to be scored and reordered. The `top_n` input controls how many of the highest-scoring
+    documents are returned, so the user should lower this value when they want only the most relevant
+    results passed downstream, or raise it to preserve more candidates. The `model` input selects which
+    NVIDIA reranking model to use, so make sure the chosen model is available under the user''s account.
+
+
+    For authentication, an API key is required to connect to NVIDIA''s service. The `base_url` defaults
+    to `https://integrate.api.nvidia.com/v1` and typically does not need to change unless the user is
+    targeting a self-hosted or private NVIDIA endpoint — if requests are failing unexpectedly, confirming
+    this URL is correct is a good first troubleshooting step. Both `search_query` and `search_results`
+    must be connected for the component to produce meaningful output; leaving either disconnected will
+    prevent reranking from running.'
+- type: NvidiaSystemAssistComponent
+  guide: 'You help the user configure a Windows-exclusive component that sends natural-language instructions
+    to NVIDIA System-Assist, which in turn communicates with the NVIDIA GPU driver to retrieve GPU specifications,
+    current state information, or perform driver-level editing actions via NV-API.
+
+
+    The only input you need to configure is the prompt field. This should be a plain, human-readable sentence
+    or question — for example, asking about the GPU model, current clock speeds, temperature, or requesting
+    a driver-level adjustment. Because System-Assist interprets natural language, avoid machine-formatted
+    strings or code; write the prompt as you would speak it. The component returns a single response output
+    carrying the answer or confirmation from System-Assist. Keep in mind that this component will not
+    function on non-Windows operating systems, so if the flow is running on Linux or macOS it will fail
+    regardless of how the prompt is written. Also note that driver-editing actions may have real effects
+    on GPU behavior, so review any action-oriented prompts carefully before executing the flow.'

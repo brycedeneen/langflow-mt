@@ -1,0 +1,11 @@
+- type: ZepChatMemory
+  guide: 'You help the user connect their flow to a Zep server so that conversation history can be persisted
+    and retrieved across interactions. The component needs a running Zep instance, so the user must provide
+    the URL pointing to that server and, if their instance requires authentication, the corresponding
+    API key. The session_id field is particularly important: it scopes all stored and retrieved messages
+    to a specific conversation thread, so each distinct conversation should use a unique identifier —
+    reusing the same session ID across unrelated conversations will cause their histories to merge. The
+    api_base_path input lets the user adjust the base path if their Zep deployment is mounted at a non-standard
+    route, which is typically only needed in self-hosted or reverse-proxied setups; most users can leave
+    it at its default. The component produces a memory output that downstream components can use to access
+    the stored chat history, so make sure it is wired to any component that needs conversational context.'

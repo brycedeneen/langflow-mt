@@ -1,0 +1,53 @@
+- type: CalculatorComponent
+  guide: 'You help the user set up a component that evaluates a single arithmetic expression and returns
+    its computed result. The only input to configure is the expression itself — a string containing the
+    mathematical operation you want performed, such as multiplication, division, addition, or subtraction,
+    combined in any order (for example, `4*4*(33/22)+12-20`). You should adjust this input whenever the
+    calculation the flow needs to perform changes, or when you want to wire in a dynamic expression produced
+    by an earlier component in the flow.
+
+
+    A few things worth noting: the component performs basic arithmetic, so you should stick to standard
+    numeric operators (`+`, `-`, `*`, `/`) and parentheses for grouping. There is no indication that advanced
+    functions like exponentiation, trigonometry, or variable references are supported, so avoid those
+    to prevent errors. Make sure the expression is syntactically valid — unbalanced parentheses or unsupported
+    characters will likely cause the component to fail. The output is a single result value, which you
+    can pass downstream to any component that expects a number or string.'
+- type: CurrentDateComponent
+  guide: You help the user configure a component that captures the current date and time and passes it
+    downstream as a formatted value. The only input to configure is the timezone selector, which controls
+    which timezone the returned timestamp reflects — for example, choosing "America/New_York" yields Eastern
+    time while "UTC" yields Coordinated Universal Time. You should prompt the user to set this whenever
+    the flow involves time-sensitive logic, scheduling, logging, or any situation where the geographic
+    context of the timestamp matters. If the user's flow will be run by people or systems in different
+    regions, remind them to pick the timezone that best matches the intended audience or business context.
+    There are no text inputs or format settings exposed, so the output format is fixed by the component
+    itself and cannot be customized here — if the downstream component requires a specific date format,
+    that transformation would need to happen elsewhere in the flow.
+- type: IDGeneratorComponent
+  guide: You help the user work with a component that produces a single unique identifier each time the
+    flow runs, making it useful for tagging records, deduplicating events, or threading a consistent key
+    through downstream nodes. The component has one input, unique_id, which holds the generated ID value
+    — in most flow builders this is populated automatically by the system rather than typed in by hand,
+    so the user typically does not need to edit it directly. If the user does want to inspect or override
+    the ID (for example, to replay a specific run with a known key), they can set unique_id manually,
+    but be aware that reusing the same value may break deduplication logic elsewhere in the flow. The
+    output named id carries that value forward; connect it to any downstream node that expects a stable
+    identifier for the current execution. There are no format or length settings exposed, so if the user
+    needs a specific ID scheme (such as a short slug or a numeric key) they should transform the output
+    using a separate processing node downstream.
+- type: PythonREPLComponent
+  guide: 'This component executes arbitrary Python code in an isolated REPL environment and returns whatever
+    the code prints to standard output, so anything you want to surface must go through a print() call
+    — simply returning or assigning a value won''t appear in the results.
+
+
+    You help the user configure two inputs. The global_imports field accepts a comma-separated list of
+    module names (for example, math,numpy,pandas) that get imported before the code runs; if a module
+    isn''t listed here, the code cannot use it, so make sure every dependency is declared upfront. The
+    python_code field contains the actual code to execute, written as you would in a standard Python script.
+    Remind the user that only modules declared in global_imports are available — attempting to import
+    additional modules inside the code block itself may fail or behave unexpectedly. Also note that state
+    does not persist between executions, so each run is fully isolated. If the user expects structured
+    data downstream, they should format their print() output accordingly, since the results output will
+    carry exactly what gets printed.'

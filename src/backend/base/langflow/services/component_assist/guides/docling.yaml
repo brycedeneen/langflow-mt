@@ -1,0 +1,65 @@
+- type: ChunkDoclingDocumentComponent
+  guide: 'This component takes a collection of DoclingDocuments and splits them into smaller chunks using
+    Docling''s built-in chunking strategies, outputting the results as a dataframe. Connect your document
+    data to `data_inputs` and use `doc_key` if your input uses a non-default column name for the DoclingDocument.
+
+
+    The `chunker` input controls the overall chunking strategy — if you choose the HybridChunker, you
+    must also configure the tokenizer settings: pick a `provider` (Hugging Face or OpenAI), then supply
+    the corresponding `hf_model_name` or `openai_model_name` so the chunker knows which tokenizer vocabulary
+    to apply. The `max_tokens` input sets the upper token limit per chunk and is only relevant for the
+    HybridChunker. The two boolean options refine output quality: enable `merge_peers` to consolidate
+    undersized chunks that share the same metadata context, reducing fragmentation; enable `always_emit_headings`
+    if you need heading chunks preserved even when their sections contain no body content. Note that `hf_model_name`
+    and `openai_model_name` are mutually exclusive based on your chosen provider, so only fill in the
+    one that matches. Leaving tokenizer fields unconfigured while using the HybridChunker will likely
+    cause errors.'
+- type: DoclingInlineComponent
+  guide: 'This component runs documents through local Docling models to extract and structure their content,
+    outputting results as a dataframe. You help the user wire up their file source correctly: use `file_path`
+    when passing a Data or Message object that already carries a file reference (this takes precedence
+    over `path`, which accepts a plain file path directly). The `pipeline` input controls which Docling
+    processing pipeline runs, and `ocr_engine` determines how text is extracted from image-based content
+    — set it to None to skip OCR entirely. If you want richer image handling, enable `do_picture_classification`
+    to categorize picture types, and optionally connect a language model to `pic_desc_llm` along with
+    a custom `pic_desc_prompt` to generate natural-language descriptions of images found in the document.
+
+
+    For error handling and robustness, `silent_errors` prevents processing failures from halting the flow,
+    while `ignore_unsupported_extensions` and `ignore_unspecified_files` let you gracefully skip files
+    that can''t be handled rather than raising errors. Enable `delete_server_file_after_processing` if
+    you want uploaded server files cleaned up automatically after extraction. When multiple documents
+    produce multiple outputs, `separator` controls what appears between them in Message format. Note that
+    all model inference runs locally, so processing time depends on the user''s hardware and the chosen
+    pipeline complexity.'
+- type: DoclingRemoteComponent
+  guide: 'You help the user configure a component that sends documents to a remote Docling Serve instance
+    for conversion and returns the results as a dataframe. The two file input fields work differently:
+    `path` accepts a direct file path, while `file_path` accepts a Data or Message object carrying a `file_path`
+    property — when both are provided, `file_path` takes precedence. Point `api_url` to the URL of your
+    running Docling Serve instance, and if that instance requires authentication or custom request headers,
+    supply them as a dictionary in `api_headers`.
+
+
+    For performance and reliability, `max_concurrency` controls how many documents are submitted in parallel
+    — keep this within your server''s capacity — and `max_poll_timeout` sets how long the component will
+    wait for a conversion to finish before giving up. Use `silent_errors` to suppress exceptions on failure,
+    `ignore_unsupported_extensions` to skip files Docling cannot handle, and `ignore_unspecified_files`
+    to silently pass over Data objects that lack a `file_path` property. If the component is working with
+    server-side files you no longer need after processing, enable `delete_server_file_after_processing`
+    to clean them up automatically. Advanced conversion behaviour can be tuned via `docling_serve_opts`
+    using the options documented at the linked Docling Serve usage guide.'
+- type: ExportDoclingDocumentComponent
+  guide: 'You help the user configure a component that converts DoclingDocument objects into a chosen
+    output format such as Markdown or HTML. Start by connecting the appropriate document source to data_inputs,
+    then pick the target format using export_format — this drives everything else, so set it before tuning
+    the remaining options. If your chosen format is Markdown, you can also control md_image_placeholder
+    (the string inserted wherever an image would appear) and md_page_break_placeholder (the string injected
+    between pages), which is useful when downstream tools need predictable delimiters. The image_mode
+    setting applies more broadly: choose Placeholder to keep the output lightweight with a stand-in string,
+    or Embedded to include images as base64 data directly in the file — be aware that Embedded output
+    can become very large for image-heavy documents. The doc_key input identifies which column in the
+    incoming data holds the DoclingDocument objects, so if your upstream component stores documents under
+    a non-default column name, update this field to match or the export will fail to locate the source
+    documents. The component emits both a general data output and a dataframe, giving you flexibility
+    in how you pass results to subsequent steps.'

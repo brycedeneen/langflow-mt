@@ -1,0 +1,16 @@
+- type: ApifyActorsComponent
+  guide: 'This component runs an Apify Actor and returns its dataset output, letting you scrape websites,
+    extract structured data, or pull content from third-party sources as part of a flow or as a callable
+    tool for an agent.
+
+
+    You must always provide your `apify_token` to authenticate with Apify''s API. Set `actor_id` to the
+    full Actor identifier from the Apify store (e.g., `apify/website-content-crawler`) — the format must
+    match exactly. The `run_input` field takes a JSON object whose structure depends entirely on the Actor
+    you chose; consult that Actor''s documentation for valid keys. Use `dataset_fields` to limit which
+    fields come through: provide a comma-separated list of dot-path field names, and be aware that dots
+    in nested paths are automatically converted to underscores in the output (so `metadata.title` becomes
+    `metadata_title`). If the Actor returns deeply nested records and downstream components expect flat
+    key-value pairs, enable `flatten_dataset` to collapse the entire structure automatically. Note that
+    `dataset_fields` filtering and `flatten_dataset` are applied independently, so you can use both together;
+    just anticipate the underscore-substituted key names when referencing fields later in the flow.'

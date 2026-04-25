@@ -1,0 +1,68 @@
+- type: ChatInput
+  guide: This component captures user messages from the Playground and passes them downstream as a message
+    output for your flow to process. The core field is `input_value`, which holds the actual text of the
+    incoming message — in most cases this is populated automatically when a user types in the Playground,
+    so you rarely need to set it manually. Toggle `should_store_message` if you want the message saved
+    to conversation history; turn it off when you need a stateless pass-through. Use `sender` and `sender_name`
+    to label who is sending the message, which matters if your flow logic branches on sender identity
+    or if you want readable history entries. The `session_id` ties the message to a specific conversation
+    thread — leave it empty to inherit the active session automatically, or supply a value to route the
+    message into a particular session explicitly. If your application supports multiple isolated memory
+    contexts within a session, set `context_id` to add that extra scoping layer. Finally, attach any supporting
+    documents or media through `files` when the message needs to carry file content alongside text. Be
+    aware that `context_id` only affects local memory behavior, so it has no impact if your flow uses
+    an external memory store.
+- type: ChatOutput
+  guide: 'This component renders a message in the Playground''s chat interface and emits it downstream
+    as a message output. The core content comes from `input_value`, which carries the text or data to
+    display — this is typically wired from an upstream model or processing step. Set `sender` and `sender_name`
+    to control how the message is attributed in the chat view (for example, distinguishing an AI reply
+    from a human turn). If you want the message preserved across sessions, enable `should_store_message`;
+    leave `session_id` empty to inherit the active session automatically, or supply a specific ID to route
+    messages into a distinct conversation thread. Use `context_id` when you need an additional memory
+    scoping layer on top of the session.
+
+
+    When the input is structured data rather than plain text, `data_template` lets you define how that
+    data is serialized into a string for display; if left blank, the component falls back to the data
+    object''s own text key. Enable `clean_data` to strip unwanted formatting before that conversion. Note
+    that `session_id` and `context_id` together control memory isolation, so mismatched values between
+    this component and a paired Chat Input can cause history to appear missing or duplicated — keep them
+    consistent across your flow.'
+- type: TextInputComponent
+  guide: This component captures a plain text value and passes it downstream as a string output, acting
+    as a simple entry point for user-supplied content in your flow. You should set `input_value` whenever
+    you want to hardcode or pre-populate a specific string — for example, a prompt fragment, a user message,
+    or any text your downstream components need. If the value you want to inject is already stored as
+    a global variable (such as an API key placeholder or a reusable prompt), enable `use_global_variable`
+    instead; this surfaces a globe icon that lets you pick from your workspace's global variables directly.
+    Be aware that enabling global variables disables multiline editing on the field, so if you need to
+    write or review a longer block of text, leave that toggle off and type directly into `input_value`.
+    The component produces a single text output, so anything connected downstream will receive exactly
+    what you enter here — no transformation or formatting is applied.
+- type: TextOutputComponent
+  guide: 'You help the user configure a component that exposes a text value as a named output endpoint
+    when the flow is called via API. The single input, **input_value**, is the text that will be returned
+    at that output — connect it to whichever upstream node produces the final string you want the API
+    caller to receive. If nothing is connected, the field accepts a static string you can type directly,
+    which is useful for testing or returning a fixed response.
+
+
+    Keep in mind that this component is specifically meaningful in API-serving contexts: it acts as a
+    designated "exit point" that the Langflow API surfaces to callers. If your flow has multiple Text
+    Output components, each becomes a separate named output in the API response, so label connections
+    carefully to avoid confusion. There are no formatting or length constraints visible in the metadata,
+    but since the output is plain text, ensure the upstream data is already coerced to a string before
+    connecting — passing structured data like JSON objects may produce unexpected serialization.'
+- type: WebhookComponent
+  guide: This component acts as an HTTP entry point, receiving incoming POST requests from external systems
+    and passing their payload into your flow. The core field is `data`, which holds the parsed payload
+    delivered by the external caller — in most cases this is populated automatically when a request arrives,
+    so you rarely need to edit it by hand. The `endpoint` field shows you the URL the external system
+    should target, and `curl` provides a ready-made command you can copy to test the integration quickly.
+    The `api_key` is auto-generated and must be included by the caller as an `x-api-key` header; without
+    it, requests will be rejected, so make sure to share this value with whoever is configuring the external
+    system. You cannot choose your own key — only the generated value is accepted. Because `data` is populated
+    at runtime by the incoming request, focus your configuration efforts on copying the endpoint and key
+    to the sending system rather than filling in fields manually. Check the documentation at the provided
+    link if you need details on payload formatting or authentication edge cases.

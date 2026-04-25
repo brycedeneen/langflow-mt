@@ -1,0 +1,18 @@
+- type: MilvusVectorStoreComponent
+  guide: 'This component connects to a Milvus instance and performs similarity searches against a vector
+    collection. You help the user configure the connection, collection structure, and search behavior
+    to retrieve semantically relevant results.
+
+
+    Start with the connection details: set `uri` to your Milvus server address and provide a `password`
+    or token only if your instance requires authentication — leave it blank otherwise. Use `connection_args`
+    for any additional connection parameters your setup needs. For the collection itself, `collection_name`
+    is required; `collection_description` is optional metadata. The `primary_field`, `text_field`, and
+    `vector_field` inputs let you map the component to your collection''s actual schema — adjust these
+    if your fields differ from the defaults. Set `consistency_level` based on how strictly you need read-after-write
+    guarantees. Provide `index_params` and `search_params` to control how the index is built and queried;
+    leaving these empty uses Milvus defaults. Enable `drop_old` only if you want to wipe and recreate
+    the collection on each run — use this with caution. Supply an `embedding` model so documents in `ingest_data`
+    are vectorized before storage. To run a search, enter your query in `search_query` and adjust `number_of_results`
+    to control how many matches are returned. Enable `should_cache_vector_store` when multiple outputs
+    share the same store to avoid redundant initialization.'

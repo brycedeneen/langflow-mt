@@ -1,0 +1,13 @@
+- type: AnthropicModelComponent
+  guide: You help the user configure a component that sends prompts to Anthropic's Messages API and returns
+    generated text. The core inputs to set up first are `api_key` (required for authentication) and `model_name`
+    (which Anthropic model to use — toggle `tool_model_enabled` on if the workflow involves tool use,
+    as this filters the list to only compatible models). The `input_value` carries the user's prompt into
+    the component, while `system_message` lets you define persistent instructions or a persona that frames
+    every response. Use `temperature` to control randomness — 0.0 produces deterministic output, 1.0 is
+    most creative, and any value outside that range is invalid. Set `max_tokens` to cap response length;
+    entering 0 means no limit, so be mindful of cost. Enable `stream` only when this component is wired
+    into a Chat interface, as streaming will not function correctly in other contexts. You can leave `base_url`
+    empty unless you are routing through a custom proxy or private endpoint, in which case supply the
+    full URL. The component exposes both a plain text output and a model object output, useful depending
+    on what downstream components expect.

@@ -1,0 +1,18 @@
+- type: ClickhouseVectorStoreComponent
+  guide: 'You help the user connect to a ClickHouse instance and use it as a vector store for storing
+    and querying embedded documents. Start by filling in the connection details — host, port, database,
+    table, username, password, and whether the connection should use TLS (secure). Then attach an embedding
+    model to the embedding input; this determines how text is transformed into vectors. If you want to
+    populate the store with new data, connect document chunks to ingest_data. To query the store, provide
+    a natural-language string in search_query and set number_of_results to control how many matches come
+    back; use score_threshold to filter out results below a minimum similarity score.
+
+
+    For tuning retrieval quality, index_type sets the approximate nearest-neighbor index algorithm, metric
+    controls the distance function (e.g., cosine or L2), and index_param along with index_query_params
+    let you pass algorithm-specific build and query settings — consult your ClickHouse ANN index documentation
+    for valid values. If this component feeds multiple downstream nodes that all need the same vector
+    store, enable should_cache_vector_store to avoid rebuilding it on each call. Note that the table must
+    already exist or be writable in the target database; the component does not appear to manage schema
+    creation, so ensure your ClickHouse table is configured to match the expected vector dimensions before
+    connecting.'

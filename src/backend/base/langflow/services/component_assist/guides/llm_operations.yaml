@@ -1,0 +1,97 @@
+- type: BatchRunComponent
+  guide: 'This component runs a language model against every row of a DataFrame, collecting responses
+    into a new column of the same DataFrame. You help the user connect the right model and data inputs
+    so each row gets processed in sequence.
+
+
+    Start by selecting a model provider under `model` and supplying the corresponding `api_key`. Use `system_message`
+    to write any shared instruction that should frame every row''s request — think of it as the persistent
+    role or context the model carries across all rows. The `df` input expects a connected DataFrame; if
+    you set `column_name` to a specific column name, only that column''s values are sent as the user message.
+    Leave `column_name` empty and the component will serialize all columns into TOML format before sending,
+    which is useful when row context spans multiple fields but can produce verbose prompts. Set `output_column_name`
+    to control what the new response column is called in the output DataFrame — pick something descriptive
+    to avoid confusion downstream. Toggle `enable_metadata` on if you need the model''s response metadata
+    (such as token counts or finish reasons) appended alongside the answers. Be aware that leaving `column_name`
+    blank with wide DataFrames may push prompts toward token limits, so narrow the input first when working
+    with many columns.'
+- type: GuardrailsComponent
+  guide: 'This component validates a piece of input text against one or more security and safety checks
+    powered by an LLM, routing the result to either a passing or failing output for downstream handling.
+    Start by selecting your model provider and supplying the corresponding API key, then choose which
+    built-in guardrails to enforce using the enabled guardrails selector — you can pick multiple. Connect
+    the text you want to screen to the input text field. If none of the built-in guardrails cover your
+    use case, toggle on the custom guardrail option and write a precise description of what the LLM should
+    detect; vague descriptions produce unreliable results, so be explicit about the category of content
+    you want flagged.
+
+
+    The heuristic threshold controls a fast, pattern-based pre-check that runs before any LLM call: values
+    closer to 0.0 make it stricter and will fail more inputs immediately on lightweight signals like "bypass"
+    or "act as," while higher values reserve judgment for the LLM. If you are seeing too many false positives,
+    raise the threshold; if obvious jailbreak attempts are slipping through, lower it. Note that both
+    the built-in and custom guardrails ultimately rely on LLM inference, so API key validity and model
+    availability directly affect whether validation succeeds at all.'
+- type: LLMSelectorComponent
+  guide: This component examines an incoming message and automatically picks the most suitable LLM from
+    a list you provide, using a separate judge model to make that decision. You should populate `models`
+    with every LLM you want considered as candidates, then set `input_value` to the message being routed.
+    The `judge_llm` is the model responsible for evaluating which candidate is best — choose something
+    capable and cost-effective here, since it runs on every request. Use `optimization` to steer the judge
+    toward priorities like speed, cost, or quality. Enabling `use_openrouter_specs` lets the component
+    pull live capability metadata from OpenRouter, giving the judge richer context for its decision; disabling
+    it means routing is based on model names alone, which is less precise. Set `timeout` to control how
+    long API calls are allowed to run before failing. If routing fails for any reason, `fallback_to_first`
+    determines whether the first model in your list is used as a safe default — leave this enabled unless
+    you want hard failures instead. The three outputs give you the routed response, metadata about the
+    selected model, and the judge's reasoning, which you can inspect or branch on downstream.
+- type: LambdaFilterComponent
+  guide: 'This component uses an LLM to generate and apply a lambda function that filters or transforms
+    your structured data or messages based on plain-language instructions. You provide the data you want
+    to process through the `data` input, then describe what you want done in `filter_instruction` — for
+    example, keeping only records where a field meets a condition, reformatting text, or trimming content
+    to a certain length. Choose your LLM provider with `model` and supply the corresponding `api_key`
+    to authorize requests.
+
+
+    For large datasets, the component has two inputs that control sampling behavior: `max_size` sets the
+    character threshold above which data is considered large, and `sample_size` determines how many items
+    are taken from the head and tail of that dataset when generating the lambda function. Adjust these
+    if you find the LLM is receiving too much or too little context to produce accurate transformations.
+    Keep in mind that the generated function is derived from a sample, so unusual edge cases in the full
+    dataset may not be handled correctly. The component offers three outputs — `data_output`, `dataframe_output`,
+    and `message_output` — so connect the one that matches the format expected by the next component in
+    your flow.'
+- type: SmartRouterComponent
+  guide: 'This component routes an incoming message to different downstream paths by using an LLM to categorize
+    the text against a set of routes you define. You help the user configure which model provider and
+    API key to use, then set up the core routing logic through the remaining inputs.
+
+
+    Start with `routes`, which is the heart of the component — each row defines a named category the LLM
+    will try to match against, and you can optionally supply a custom output value per route if you want
+    the forwarded value to differ from the original input. The `input_text` field carries the primary
+    text being classified. If you want to temporarily override what gets sent and received for every route
+    at once, fill in `message`, which replaces both the input and the output value across all routes —
+    useful for testing or fixed-payload scenarios. Toggle `enable_else_output` on if you want a catch-all
+    output path for messages that don''t match any defined route; leaving it off means unmatched messages
+    have nowhere to go. Finally, `custom_prompt` lets you steer the LLM''s categorization behavior by
+    appending extra instructions to the base prompt — use the `{input_text}` and `{routes}` placeholders
+    to reference the live values inside your instructions.'
+- type: StructuredOutputComponent
+  guide: 'This component sends a message to a language model and forces its response into a defined data
+    structure, making it well-suited for extraction tasks, classification, or any situation where consistent,
+    machine-readable output matters more than free-form text.
+
+
+    You help the user configure six inputs. Start with `model` and `api_key` to connect a supported provider
+    — without a valid key the component cannot run. `input_value` is the actual message or content the
+    model will process, while `system_prompt` carries the formatting instructions that guide how the model
+    shapes its response; be specific here, since vague instructions often produce inconsistent results.
+    `schema_name` is a label for the output structure and should be descriptive but concise. The most
+    critical input is `output_schema`, where the user defines the exact fields and data types they expect
+    back — any field omitted here will not appear in the output, so completeness matters. The component
+    produces two outputs: `structured_output` for downstream components that consume structured objects,
+    and `dataframe_output` if the user wants tabular data. Note that the model''s ability to reliably
+    follow the schema depends heavily on the chosen provider''s support for structured or function-calling
+    output modes, so prefer models known to handle constrained generation well.'

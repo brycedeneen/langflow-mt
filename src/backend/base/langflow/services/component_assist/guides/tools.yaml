@@ -1,0 +1,184 @@
+- type: CalculatorToolComponent
+  guide: 'You help the user set up a component that evaluates a mathematical expression and returns the
+    computed result. The only input to configure is `expression`, which should be a string containing
+    the arithmetic calculation the user wants to perform — for example, something like `4*4*(33/22)+12-20`.
+    This can be a hardcoded value typed directly into the field, or it can be wired in dynamically from
+    an upstream component that produces an expression string at runtime.
+
+
+    A few things to keep in mind: the component is designed for basic arithmetic, so you should steer
+    users toward standard operations (addition, subtraction, multiplication, division, and parentheses
+    for grouping) and caution them against assuming support for advanced functions like trigonometry or
+    logarithms, since those are not indicated in the metadata. The expression must be a valid, parseable
+    string — malformed inputs such as unbalanced parentheses or non-numeric characters are likely to cause
+    errors. The component exposes two outputs, one for running it directly via the API and one for using
+    it as a tool within an agent, so guide the user toward whichever output matches their flow''s design.'
+- type: GoogleSearchAPIComponent
+  guide: 'This component sends a query to Google''s Custom Search API and returns results that can be
+    used either as direct output or as a tool within an agent flow. To use it, you need two credentials:
+    the `google_api_key`, which is your Google Cloud API key with the Custom Search API enabled, and the
+    `google_cse_id`, which is the identifier for your specific Programmable Search Engine — both must
+    be configured before the component will function. The `input_value` field accepts the search query
+    string, and `k` controls how many results are returned, so lower values keep responses concise while
+    higher values give broader coverage.
+
+
+    Be aware that this component is marked deprecated, meaning it may be removed or unsupported in future
+    versions and you should consider migrating to a newer search component if one is available in your
+    environment. Google''s Custom Search API also has quota limits tied to your API key, so if results
+    stop returning unexpectedly, daily request limits are a likely cause. The two outputs let you use
+    the component either in a direct data pipeline (`api_run_model`) or expose it as a callable tool for
+    an AI agent (`api_build_tool`), so connect the appropriate output based on how your flow is structured.'
+- type: GoogleSerperAPIComponent
+  guide: You help the user configure a component that sends a search query to the Serper.dev API and returns
+    Google Search results for use downstream in a flow. The two required fields to set up first are the
+    API key and the query itself — paste the Serper.dev secret key into `serper_api_key` and provide the
+    search string in `query`. Use `k` to control how many results are returned; keep this number reasonable,
+    as fetching a large set of results may increase latency and token usage. The `query_type` field lets
+    you switch between result types such as web search, news, or images — check Serper.dev's documentation
+    for accepted values, since passing an unsupported type will cause the request to fail silently or
+    error. The `query_params` field accepts additional parameters to pass directly to the API, giving
+    you finer control over things like country or language settings. Note that this component is marked
+    deprecated, so you should consider migrating to a supported alternative if building something intended
+    for long-term use. The component exposes two outputs — one for running the API call directly and one
+    for building it as a reusable tool — so connect the appropriate output based on whether you want immediate
+    results or agent-compatible tool behavior.
+- type: PythonCodeStructuredTool
+  guide: This component converts a Python dataclass definition into a LangChain StructuredTool that agents
+    can invoke. You help the user provide the dataclass code in `tool_code`, which should define the input
+    schema and logic following the StructuredTool dataclass pattern — refer to the LangChain documentation
+    linked in the component for the expected structure. The `tool_name` and `tool_description` fields
+    are important because agents rely on the name to call the tool and the description to decide when
+    to use it, so both should be clear and specific. Set `return_direct` to true if you want the tool's
+    output passed straight back to the user without further agent processing; leave it false if the agent
+    should continue reasoning with the result. Use `global_variables` to inject any variables or data
+    the code depends on at runtime, and use `tool_function` to reference additional helper expressions
+    the dataclass may call. The `_classes` and `_functions` inputs appear to be internal resolution fields
+    and are not user-facing. A key constraint to keep in mind is that the dataclass code must conform
+    to LangChain's StructuredTool expectations — malformed or incomplete code will cause the component
+    to fail at runtime rather than at configuration time.
+- type: PythonREPLToolComponent
+  guide: 'You help the user configure a component that executes Python code inside a live REPL session,
+    making it available as a callable tool within their flow. The `name` and `description` inputs define
+    how the tool presents itself to other components or agents — keep the name concise and machine-friendly,
+    and write a description clear enough that an LLM can understand when to invoke it. The `global_imports`
+    field accepts a comma-separated list of module names (e.g. `math,numpy,pandas`) that will be imported
+    once at the start of the session and remain available across executions, so list any libraries your
+    code depends on here rather than importing them inside the code itself. The `code` field holds the
+    actual Python logic to run; since this is a REPL environment, state may persist between calls, so
+    be mindful of variable reuse or side effects across invocations.
+
+
+    One important constraint: modules listed in `global_imports` must already be installed in the runtime
+    environment — the component will not install packages for you, so referencing an unavailable library
+    will cause an error at execution time. Also note that the component exposes two outputs (`api_run_model`
+    and `api_build_tool`), meaning it can be wired both as a directly invokable tool and as a model-compatible
+    action, depending on what the downstream component expects.'
+- type: SearXNGToolComponent
+  guide: 'You help the user configure a component that runs web searches through a self-hosted or remote
+    SearXNG instance and exposes the results as a tool for downstream nodes. The four inputs control where
+    and how the search executes: `url` should point to the base address of the SearXNG instance the user
+    wants to query (for example, `https://searxng.example.com`), so make sure it is reachable from the
+    environment running the flow. `max_results` limits how many results are returned — keep this low for
+    faster responses or raise it when broader coverage matters. `categories` lets the user scope the search
+    to specific SearXNG category names (such as `general`, `news`, or `images`) rather than querying all
+    of them at once, which can improve relevance. `language` filters results by locale, typically as a
+    language code like `en` or `de`.
+
+
+    One important gotcha: because there are no built-in default descriptions for these fields, the user
+    must supply a valid, accessible SearXNG URL or the component will fail silently or error at runtime.
+    The output `result_tool` is a tool object intended to be wired into an agent or tool-executor node,
+    not a raw list of search results, so it should not be connected directly to text-processing components
+    expecting plain strings.'
+- type: SearchAPIComponent
+  guide: 'You help the user configure a component that sends a query to searchapi.io and returns structured
+    search results, with controls over how much data flows downstream. The core inputs to set first are
+    `api_key`, which authenticates requests to the searchapi.io service, and `input_value`, which is the
+    actual search query string. The `engine` field determines which search engine backend is used (for
+    example, "google"), so make sure it matches one of the engines supported by searchapi.io — consult
+    the documentation at https://www.searchapi.io/docs/google for valid options. The `search_params` input
+    accepts additional key-value parameters to refine the search request, such as language or region filters,
+    and should follow the structure the API expects.
+
+
+    The two limiting inputs control how much output the component produces: `max_results` caps the number
+    of result items returned, and `max_snippet_length` truncates the text preview for each result. Keeping
+    these values reasonable prevents large payloads from overwhelming downstream components. Note that
+    this component exposes two outputs — a direct API result model and a tool-wrapped version — so guide
+    the user to connect the appropriate output depending on whether the next component expects raw data
+    or a callable tool interface.'
+- type: SerpAPIComponent
+  guide: 'You help the user configure a component that sends a search query to the SerpAPI service and
+    returns web search results in a controllable, trimmed format. The most essential input is the API
+    key (`serpapi_api_key`), which must be a valid SerpAPI credential — without it the component will
+    fail entirely. The `input_value` field holds the actual search query string passed to the API, so
+    it should be wired to whatever upstream text represents the user''s search intent. Use `search_params`
+    to pass additional SerpAPI-supported parameters (such as engine type, location, or language) as structured
+    data, letting you fine-tune the search beyond the default behavior.
+
+
+    The two limiting inputs control how much data flows downstream: `max_results` caps the number of search
+    result items returned, and `max_snippet_length` truncates the text snippet for each result. Keep these
+    values reasonable — excessively large limits may inflate token usage in downstream nodes, while values
+    that are too small could strip out useful context. The component exposes two outputs: `api_run_model`
+    for direct execution and `api_build_tool` for wrapping the search as a callable tool, so connect the
+    appropriate output depending on whether you need immediate results or a reusable tool interface.'
+- type: TavilySearchToolComponent
+  guide: You help the user configure a web search component that queries the Tavily API and returns structured
+    results suitable for use in LLM pipelines or as an agent tool. At minimum, the user must supply their
+    `api_key` and a `query` — everything else has sensible defaults but can be tuned for the task at hand.
+    Set `search_depth` to "advanced" when you need richer content; note that `chunks_per_source` (1–3
+    chunks per URL) only takes effect in that advanced mode. If the search topic is "news," the `days`
+    field becomes available to limit results to a recent window, while `time_range` offers similar recency
+    filtering for general searches — using both simultaneously may produce unexpected narrowing. Use `max_results`
+    to control response size and cost. Toggle `include_answer` when you want Tavily to synthesize a direct
+    answer alongside raw results, `include_images` to pull related images, and `include_raw_content` to
+    receive the full parsed HTML of each result (which significantly increases payload size). Use `include_domains`
+    or `exclude_domains` as comma-separated lists to whitelist or blacklist specific sources. Most of
+    these finer controls are hidden under the Advanced panel, so remind the user to expand it if they
+    need precise filtering.
+- type: WikidataAPIComponent
+  guide: 'You help the user configure a component that queries Wikidata''s API to perform a similarity
+    search based on a text input and return matching results. The only input you need to focus on is **query**,
+    which accepts a plain-text string describing what the user wants to look up — this could be a concept,
+    entity name, keyword, or short phrase that Wikidata will use to find semantically related entries.
+
+
+    Because there is only one input, the main thing to get right is how the query is phrased: overly vague
+    terms may return broad or irrelevant results, while specific names or identifiers tend to produce
+    more precise matches. The component exposes two outputs — a run model for direct execution within
+    the flow and a build tool output for wrapping the component as a callable tool in an agent context
+    — so make sure the downstream connection matches how the user intends to use the results. There are
+    no authentication fields exposed, which implies the component relies on Wikidata''s public API, so
+    usage may be subject to rate limits or availability constraints outside the component''s control.'
+- type: WikipediaAPIComponent
+  guide: 'You help the user configure a component that queries Wikipedia and returns article content as
+    structured output. The core search term or topic goes into `input_value` — this is what gets looked
+    up on Wikipedia, so it should be a clear, specific query. Use `lang` to set the language edition of
+    Wikipedia (e.g., `"en"` for English, `"es"` for Spanish), which defaults to English if left unchanged.
+    The `k` input controls how many results are returned, so increase it if you need multiple related
+    articles or lower it to keep output focused. Set `load_all_available_meta` to true if you need additional
+    metadata fields beyond the main article content; leave it false to keep responses leaner. The `doc_content_chars_max`
+    input caps the character length of each returned document, which is useful for managing token usage
+    downstream — if responses feel truncated, raise this limit, and if they''re too long, reduce it. The
+    component exposes two outputs: `api_run_model` for directly using the retrieved content in a flow,
+    and `api_build_tool` for wrapping the component as a callable tool within an agent. Make sure `input_value`
+    is always connected or populated, as an empty query will likely return no meaningful results.'
+- type: YfinanceToolComponent
+  guide: 'You help the user configure a component that fetches live financial data and market information
+    by wrapping the unofficial yfinance library. The core inputs are `symbol`, `method`, and `num_news`.
+    The `symbol` field expects a valid ticker string (such as AAPL or GOOG) — make sure it matches the
+    exchange format exactly, since an unrecognized symbol will likely return empty or erroneous data.
+    The `method` field controls what kind of data is retrieved, so help the user pick the value that matches
+    their goal (for example, price data, historical records, or news). The `num_news` input only has an
+    effect when the selected method is `get_news`; for any other method it is ignored, so there is no
+    need to adjust it unless the user is specifically pulling news articles.
+
+
+    Because this component relies on an unofficial third-party package rather than an official Yahoo!
+    Finance API, data availability and reliability can vary — rate limits, schema changes, or access restrictions
+    on Yahoo''s side may affect results without warning. The component exposes two outputs: a run model
+    and a build tool, meaning it can be used either to execute a data fetch directly or to be wired into
+    an agent as a callable tool. Clarify with the user which output fits their flow before connecting
+    it downstream.'

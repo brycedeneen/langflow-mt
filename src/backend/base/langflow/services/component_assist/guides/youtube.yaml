@@ -1,0 +1,100 @@
+- type: YouTubeChannelComponent
+  guide: 'You help the user configure a component that fetches YouTube channel metadata and returns it
+    as a structured DataFrame. The two required inputs are the channel identifier and an API key — the
+    channel URL or ID can be pasted directly from a browser address bar or supplied as a bare channel
+    ID, and the API key must come from a Google Cloud project with the YouTube Data API v3 enabled. Without
+    a valid key the component will fail, so make sure the user has enabled that specific API and is not
+    confusing it with other Google APIs.
+
+
+    The three toggle inputs control which data sections are requested. Enabling include_statistics adds
+    view counts, subscriber counts, and video counts to the output; include_branding appends banner image
+    URLs and thumbnail assets; and include_playlists surfaces the channel''s publicly visible playlists.
+    Each additional section increases the data returned but also counts against the API quota, so advise
+    the user to enable only what downstream nodes actually need. Note that private or hidden playlists
+    will not appear regardless of the toggle, and channels that hide their subscriber counts will return
+    masked values for that field even when statistics are enabled.'
+- type: YouTubeCommentsComponent
+  guide: You help the user configure a component that fetches comments from a specified YouTube video
+    and surfaces them as structured output for downstream processing or analysis. The two required starting
+    points are the video URL and a valid YouTube Data API key — without both, the component cannot make
+    requests, so confirm the user has an active key with the Data API v3 enabled in their Google Cloud
+    project. The max_results input controls how many top-level comments are returned, so advise the user
+    to keep this number reasonable relative to their API quota, since larger values consume more quota
+    units. The sort_by input lets the user choose between time-based ordering (newest first) and relevance-based
+    ordering, which is useful when they want the most meaningful or upvoted comments rather than the most
+    recent. Enabling include_replies will pull threaded responses beneath each top-level comment, which
+    can significantly increase the volume of data and quota usage, so the user should only enable it when
+    reply context genuinely matters. The include_metrics toggle adds engagement data such as like counts
+    and reply counts to each comment, which is helpful for weighting or filtering comments by popularity
+    in later flow steps.
+- type: YouTubePlaylistComponent
+  guide: 'This component extracts every video URL from a YouTube playlist and returns them as a collection
+    you can wire into downstream components. The only input you need to provide is the full URL of the
+    playlist — this should be a standard YouTube playlist link, typically containing a `list=` parameter
+    (for example, `https://www.youtube.com/playlist?list=PL...`). Pasting a single video URL that happens
+    to include a playlist parameter may or may not work as expected, so you should prefer the canonical
+    playlist URL found when browsing directly to the playlist page.
+
+
+    Keep in mind that the component fetches all video URLs in the playlist at runtime, so very large playlists
+    may take longer to process. Private or members-only playlists will likely fail unless the environment
+    has the appropriate access credentials configured externally — the component itself has no authentication
+    input. The output, `video_urls`, is a list of individual YouTube video URLs that you can pass to other
+    components for further processing, such as downloading transcripts or metadata.'
+- type: YouTubeSearchComponent
+  guide: You help the user configure a component that queries the YouTube Data API and returns a list
+    of matching videos. The two required inputs to get started are `query`, which is the search term or
+    phrase to look up, and `api_key`, which must be a valid YouTube Data API v3 key obtained from the
+    Google Cloud Console — without it the component will fail entirely. Use `max_results` to control how
+    many videos are returned, keeping in mind that the YouTube Data API enforces quota limits, so setting
+    this unnecessarily high can exhaust your daily quota quickly. The `order` input determines how results
+    are sorted, such as by relevance, date, or view count, and is worth adjusting when the user has a
+    preference for freshness versus popularity. Finally, `include_metadata` toggles whether richer details
+    like video descriptions and statistics are fetched alongside each result; enabling it provides more
+    context for downstream components but may increase API quota consumption, so you should only recommend
+    it when that extra data is actually needed by later steps in the flow.
+- type: YouTubeTranscriptsComponent
+  guide: 'This component fetches spoken content from a YouTube video and makes it available in three output
+    formats: a dataframe, a message, and a structured data output — choose whichever fits best with the
+    downstream components in your flow.
+
+
+    You''ll always need to provide a valid YouTube video URL in the url field. The chunk_size_seconds
+    input controls how the transcript is divided; smaller values produce finer-grained chunks (useful
+    for precise retrieval or search), while larger values group more speech together into each segment.
+    If you leave translation empty, the transcript is returned in its original language; enter a language
+    code or name to request a translated version, though translation availability depends on what YouTube
+    supports for that particular video. Be aware that transcripts rely on captions being available — either
+    auto-generated or manually uploaded — so videos without any captions will fail to return content.
+    If you''re chaining this into a text processing or embedding flow, consider how your chunk size interacts
+    with any downstream token limits, since very large chunks may overflow context windows in later components.'
+- type: YouTubeTrendingComponent
+  guide: 'This component fetches a list of currently trending YouTube videos and passes them downstream
+    as structured data. You must always provide a valid YouTube Data API key in the api_key field — without
+    it, no requests can be made. Use region to target trending content for a specific country (typically
+    as an ISO 3166-1 alpha-2 code like "US" or "GB"), and category to narrow results to a particular content
+    type such as music, gaming, or news. The max_results field controls how many videos are returned,
+    and must stay between 1 and 50; values outside that range are not supported.
+
+
+    The three toggle inputs — include_statistics, include_content_details, and include_thumbnails — let
+    you control how much data is attached to each video in the output. Enabling include_statistics adds
+    engagement metrics like view counts, likes, and comments; include_content_details appends duration
+    and video quality information; and include_thumbnails provides thumbnail URLs useful for display purposes.
+    Keep in mind that enabling more of these fields increases the data payload and may consume additional
+    API quota, so only enable what downstream components actually need. All enrichment fields are optional
+    and can be left off if you only need basic video metadata.'
+- type: YouTubeVideoDetailsComponent
+  guide: 'This component fetches metadata from a YouTube video and returns it as structured data, pulling
+    from the YouTube Data API based on the URL you provide. At minimum, you must supply a valid video
+    URL in `video_url` and a YouTube Data API key in `api_key` — without both, the component cannot make
+    any requests. The four toggle inputs let you control exactly what gets returned: enable `include_statistics`
+    if you need engagement data like view counts, likes, or comment totals; enable `include_content_details`
+    for duration, playback quality, or age restriction flags; enable `include_tags` to retrieve the creator''s
+    keywords; and enable `include_thumbnails` to get thumbnail URLs across multiple resolutions. Only
+    turn on what your downstream flow actually needs, since each enabled option adds fields to the `video_data`
+    output and may count against your API quota. Keep in mind that the API key must have the YouTube Data
+    API v3 enabled in Google Cloud Console, and certain fields (such as like counts) may be unavailable
+    if the video owner has hidden them — the component will return what the API exposes, which may be
+    a subset of what you requested.'

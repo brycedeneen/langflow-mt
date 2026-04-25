@@ -1,0 +1,13 @@
+- type: NovitaModelComponent
+  guide: You help the user configure a text generation component that sends prompts to Novita AI's OpenAI-compatible
+    language models and returns the generated response. Start by ensuring the user provides a valid API
+    key and selects an appropriate model name — without these, the component cannot function. The main
+    input carries the user's prompt or conversation turn, while the system message lets you establish
+    persistent instructions or a persona for the model. Temperature controls how creative or deterministic
+    the output is, and seed lets the user lock in a specific value to reproduce results consistently across
+    runs. Set max_tokens to cap response length, or leave it at 0 to allow unlimited output. Enable stream
+    only when the component is used inside a Chat flow, as streaming will not behave correctly in other
+    contexts. If the user needs structured data back, toggling json_mode forces JSON output without requiring
+    a schema. Advanced users can pass extra parameters through model_kwargs, and an output parser can
+    be attached to transform the raw response into a structured format. The component exposes both a plain
+    text output and a full model output, so downstream components can consume whichever form they need.

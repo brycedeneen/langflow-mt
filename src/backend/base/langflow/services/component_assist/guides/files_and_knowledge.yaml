@@ -1,0 +1,65 @@
+- type: DirectoryComponent
+  guide: This component recursively scans a directory and loads its files into a dataframe for downstream
+    processing. You help the user point it at the right folder and tune how broadly and deeply it searches.
+    The `path` input is where you start — it defaults to the current working directory, so update it whenever
+    the user wants to target a specific folder. Use `types` to filter by file extension; leaving it empty
+    loads everything the component supports, which can be useful for mixed directories but may pull in
+    unwanted files. The `depth` input controls how many folder levels down the search goes, and `recursive`
+    must be enabled for that depth to matter beyond the top level. If the directory is large, increasing
+    `max_concurrency` and enabling `use_multithreading` can speed up loading. Set `load_hidden` only if
+    the user explicitly needs dot-files or hidden system files, since these are excluded by default. If
+    the user is exploring an unfamiliar directory and wants the flow to continue even when individual
+    files fail to parse, enable `silent_errors` — but remind them that failed files will be silently skipped,
+    which could cause missing data downstream.
+- type: FileComponent
+  guide: 'This component reads a file from a local upload, an S3 bucket, or Google Drive and emits its
+    contents as a message. Start by setting **storage_location** to tell the component where your file
+    lives. For local files, use **path** to upload directly or **file_path** to pass a Data or Message
+    object that already carries a file path — note that **file_path** takes precedence over **path** when
+    both are present. For S3, supply your **aws_access_key_id**, **aws_secret_access_key**, **aws_region**,
+    **bucket_name**, and **s3_file_key**. For Google Drive, provide your service account JSON via **service_account_key**
+    and the target **file_id**, ensuring the file is shared with that service account.
+
+
+    Toggle **advanced_mode** to unlock Docling-powered processing for PDFs, images, and office documents
+    — be aware this can be resource-intensive. When advanced mode is on, you can choose a **pipeline**,
+    select an **ocr_engine** (only valid with the standard pipeline), enable **markdown** export, and
+    customize output formatting with **md_image_placeholder** and **md_page_break_placeholder**. Use **concurrency_multithreading**
+    alongside **use_multithreading** when processing multiple files at once. The behavioral flags **silent_errors**,
+    **ignore_unsupported_extensions**, **ignore_unspecified_files**, and **delete_server_file_after_processing**
+    control how the component handles edge cases and cleanup — adjust these based on how strictly you
+    need errors surfaced and whether temporary server files should be removed after reading.'
+- type: KnowledgeBaseComponent
+  guide: 'You help the user configure a component that searches a knowledge base and retrieves matching
+    records for use downstream in the flow. The most important input to set first is the knowledge base
+    selector, which determines which data source is being queried, followed by the API key for the embedding
+    provider — without a valid key, the component cannot generate the vector embeddings needed to perform
+    similarity search. If the user wants to narrow results to a specific topic or question, they should
+    supply a search query; leaving it blank will return results without any semantic filtering. The top_k
+    value controls how many results come back, so the user should increase it when broader coverage is
+    needed or reduce it for precision.
+
+
+    Two output-shaping options are worth explaining carefully. Include Metadata controls whether retrieved
+    records carry their full metadata fields or just the raw content — if the user needs source attribution,
+    timestamps, or other stored properties downstream, this must be enabled. Include Embeddings only takes
+    effect when Include Metadata is already turned on; enabling it adds the raw embedding vectors to the
+    output, which is useful for debugging or further vector operations but will significantly increase
+    payload size. Remind the user to leave embeddings off unless explicitly needed.'
+- type: SaveToFileComponent
+  guide: 'This component saves data to a file on local storage, AWS S3, or Google Drive, with format options
+    tailored to each destination. Start by setting `storage_location` to match where you want the file
+    to land, then provide `input` (the data to write) and `file_name` (the base name without extension
+    — the component appends the extension automatically based on the chosen format). Each destination
+    has its own format selector: use `local_format`, `aws_format`, or `gdrive_format` depending on your
+    chosen location — only the one matching your selected destination matters. For local storage, you
+    can also enable `append_mode` to add to an existing file rather than overwrite it, but note this only
+    works locally with plain text formats and is not available for cloud destinations.
+
+
+    For AWS S3, you must supply `aws_access_key_id`, `aws_secret_access_key`, `bucket_name`, and `aws_region`;
+    optionally set `s3_prefix` to organize files within the bucket. For Google Drive, provide the full
+    JSON content of your service account key in `service_account_key` and set `folder_id` to the target
+    folder — that folder must already be shared with the service account''s email address, or the upload
+    will fail. Cloud credentials are sensitive, so treat those fields as secrets and avoid hardcoding
+    them in shared flows.'

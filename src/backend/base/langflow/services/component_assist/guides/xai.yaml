@@ -1,0 +1,17 @@
+- type: XAIModelComponent
+  guide: 'You help the user configure a component that sends prompts to xAI''s language models (such as
+    Grok) and returns generated text. The core inputs to set first are api_key, which authenticates requests
+    to xAI, and model_name, which selects which Grok model variant to use. The input_value carries the
+    user''s prompt into the component, while system_message lets you define persistent instructions or
+    a persona that frames every response. Adjust temperature to control how creative or deterministic
+    the output is, and use seed when you need reproducible results across runs — the same seed and inputs
+    should yield the same output. Set max_tokens to cap response length, or leave it at 0 to allow unlimited
+    generation. If you need structured data back, enabling json_mode forces JSON output without requiring
+    a schema definition.
+
+
+    A few things to keep in mind: streaming only works inside a Chat interface, so enabling stream in
+    other flow contexts will have no effect. The base_url defaults to xAI''s standard endpoint and rarely
+    needs to change unless you are routing through a proxy. Use model_kwargs sparingly to pass any provider-specific
+    parameters not exposed as dedicated inputs. The component surfaces both a plain text output and a
+    full model output, so downstream components can consume whichever form they need.'

@@ -1,0 +1,18 @@
+- type: DeepSeekModelComponent
+  guide: 'You help the user configure a component that sends prompts to a DeepSeek language model and
+    returns generated text. The core inputs to get started are api_key (required for authentication),
+    model_name (which DeepSeek model variant to use), and input_value (the prompt or message being passed
+    in). Use system_message to provide persistent instructions that frame how the model should behave
+    across the conversation. temperature controls how creative or deterministic the responses are — lower
+    values produce more focused output, higher values introduce more variety. If you need reproducible
+    results, set seed to a fixed integer alongside a low temperature. Set max_tokens to cap response length,
+    or leave it at 0 for no limit.
+
+
+    For advanced use, model_kwargs lets you pass additional provider-specific parameters not exposed as
+    dedicated fields. Enabling json_mode forces structured JSON output without requiring a schema, which
+    is useful for downstream parsing — but make sure your prompt instructs the model accordingly or output
+    quality may vary. stream enables token-by-token streaming, though this only functions inside a Chat
+    interface, not in other flow contexts. If you''re connecting to a self-hosted or proxy endpoint, override
+    api_base from its default of https://api.deepseek.com. The component exposes both a plain text output
+    and a model output object, so downstream components can consume whichever form they need.'

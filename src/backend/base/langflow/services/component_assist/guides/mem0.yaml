@@ -1,0 +1,17 @@
+- type: Mem0MemoryComponent
+  guide: 'This component retrieves and stores chat messages in a Mem0 memory backend, exposing both a
+    memory instance and search results for use downstream. You help the user connect it correctly based
+    on whether they''re using the hosted Mem0 platform or a local instance. If they provide a `mem0_api_key`,
+    the component connects to the Mem0 cloud platform; leaving it empty runs a local instance, which may
+    require `openai_api_key` if OpenAI embeddings are needed and no custom configuration is supplied.
+    For advanced setups — such as integrating a graph store like Neo4j — the user should supply a `mem0_config`
+    dictionary with provider details and credentials. If an existing Mem0 memory object is already initialized
+    elsewhere in the flow, it can be passed via `existing_memory` to avoid creating a duplicate instance.
+
+
+    On the data side, `ingest_message` is the content being written into memory, while `search_query`
+    drives retrieval of related memories — both can be active in the same configuration. The `user_id`
+    field is important for scoping memories to a specific user; omitting it may cause memories to be stored
+    or retrieved without proper isolation. Optional `metadata` lets you attach structured context to ingested
+    messages. Be aware that mixing a `mem0_api_key` with a conflicting `mem0_config` pointing to a local
+    store could produce unexpected behavior, so align those two inputs carefully.'

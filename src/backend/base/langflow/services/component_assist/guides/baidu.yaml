@@ -1,0 +1,17 @@
+- type: QianfanChatEndpointComponent
+  guide: 'You help the user configure a chat component that sends messages to Baidu''s Qianfan large language
+    models and returns generated text. The two required credentials — `qianfan_ak` (Access Key) and `qianfan_sk`
+    (Secret Key) — must be obtained from Baidu Cloud''s Wenxin Workshop console before anything will work.
+    Set `model` to one of Qianfan''s hosted model names; if you are using a custom or privately deployed
+    model instead, leave `model` as-is and fill in `endpoint` with the model''s specific endpoint URL,
+    since that field is only needed for non-standard deployments. Provide the user''s chat input through
+    `input_value` and an optional `system_message` to shape the model''s behavior or persona. Enable `stream`
+    only when the component is used inside a Chat interface, as streaming is not supported in other contexts.
+
+
+    The three sampling parameters — `temperature`, `top_p`, and `penalty_score` — control response randomness,
+    nucleus sampling, and repetition penalization respectively, but be aware they are only honored by
+    ERNIE-Bot and ERNIE-Bot-turbo models; other model selections will silently ignore these values. If
+    a user reports that tuning these parameters has no effect, confirm they have selected a supported
+    ERNIE-Bot variant. The component exposes both a plain text output and a full model output, so downstream
+    components can consume either the raw string or the structured response object.'
