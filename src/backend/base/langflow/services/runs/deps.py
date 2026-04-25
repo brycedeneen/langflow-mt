@@ -1,24 +1,18 @@
+"""Broker lifespan helpers for the FastAPI app.
+
+Taskiq brokers self-manage their underlying Redis connections; the API
+process only needs to call startup/shutdown to enable enqueueing.
+"""
 from __future__ import annotations
 
-from arq import create_pool
-from arq.connections import ArqRedis, RedisSettings
-
-from lfx.services.deps import get_settings_service
+from langflow.worker_app.brokers import ALL_BROKERS
 
 
-_pool: ArqRedis | None = None
+async def startup_brokers() -> None:
+    for broker in ALL_BROKERS:
+        await broker.startup()
 
 
-async def get_arq_pool() -> ArqRedis:
-    global _pool
-    if _pool is None:
-        settings = get_settings_service().settings
-        _pool = await create_pool(RedisSettings.from_dsn(settings.redis_url))
-    return _pool
-
-
-async def close_arq_pool() -> None:
-    global _pool
-    if _pool is not None:
-        await _pool.aclose()
-        _pool = None
+async def shutdown_brokers() -> None:
+    for broker in ALL_BROKERS:
+        await broker.shutdown()
