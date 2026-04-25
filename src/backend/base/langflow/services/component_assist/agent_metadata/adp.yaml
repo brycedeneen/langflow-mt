@@ -1,0 +1,173 @@
+- component_name: ADPAPIRequestComponent
+  agent_summary: You help the user make arbitrary authenticated REST calls to ADP APIs, returning raw response data. It is
+    a good fit when no purpose-built ADP tool component covers the endpoint you need, or when you want full control over the
+    path, method, query parameters, and body. Prefer over ADP Worker Tools or any of the specific ADP Tools components when
+    you need an endpoint those components do not expose, or need direct access to the raw response rather than filtered fields.
+  agent_usage_notes: '## What it does
+
+    Calls ADP REST APIs using an established ADP connection authenticated with mTLS and a Bearer token. It supports list and
+    by-ID lookups across ADP endpoints, with optional auto-pagination to retrieve full result sets.
+
+
+    ## Inputs to ask about
+
+    - **connection** - Ask the user to connect the output of an ADP Auth component here; this is required before any request
+    can be made.
+
+    - **endpoint** - Ask the user which ADP API endpoint to target (e.g., Workers, Payroll); if they choose "Other", they
+    must also fill in `custom_path`.
+
+    - **custom_path** - Ask the user for the API path (e.g., `/hr/v2/workers`) when the selected endpoint is "Other"; leave
+    blank otherwise.
+
+    - **resource_id** - Ask the user whether they want a single record by ID or a list; leave empty for list/collection endpoints,
+    or enter a specific worker/resource ID for a by-ID lookup.
+
+    - **result_mode** - Ask the user if they want only the first 20 results ("Top 20") or the full dataset ("All" with auto-pagination);
+    suggest "Top 20" as a safe default during development.
+
+
+    ## Outputs
+
+    - **data** - Returns the API response data (list or single record); commonly feeds into a Data parsing component, a table
+    display, or downstream processing nodes.
+
+
+    ## Notes
+
+    - The `connection` input is strictly required — no request can fire without a valid ADP Auth connection wired in.
+
+    - Choosing "All" for `result_mode` will auto-paginate and may result in large payloads or slower response times for high-volume
+    datasets.
+
+    - If `endpoint` is set to "Other", `custom_path` must be provided or the request will likely fail.
+
+    - Keep `method`, `query_params`, `body`, and `timeout` in mind for advanced users who need filtering or non-GET operations.'
+- component_name: ADPAuthComponent
+  agent_summary: You help the user obtain an authenticated connection to ADP by exchanging OAuth 2.0 client credentials and
+    a mutual-TLS certificate/key pair for a bearer token. Use this as the first step in any ADP workflow — its output connection
+    feeds directly into ADP API Request or any of the ADP agent tool components. Prefer over ADP API Request when you need
+    to establish credentials rather than make a specific API call.
+  agent_usage_notes: '## What it does
+
+    Authenticates to ADP using OAuth 2.0 client credentials flow over mutual TLS (mTLS), obtaining an access token that downstream
+    components can use to call ADP APIs.
+
+
+    ## Inputs to ask about
+
+    - **client_id** - Ask the user for their ADP developer application''s client ID; no sensible default.
+
+    - **client_secret** - Ask the user for their ADP developer application''s client secret; no sensible default. Note: this
+    is a plain string input, so remind the user to handle it carefully (e.g. store it in a Langflow secret/variable).
+
+    - **cert_pem** - Ask the user to paste the PEM-encoded client certificate contents or upload a `.pem`/`.crt` file issued
+    by ADP for mTLS; no default.
+
+    - **key_pem** - Ask the user to paste the PEM-encoded private key contents or upload a `.pem`/`.key` file corresponding
+    to the client certificate; no default.
+
+
+    ## Outputs
+
+    - **connection** - Produces an authenticated ADP connection object (including the OAuth access token) that feeds into
+    downstream ADP API call components.
+
+
+    ## Notes
+
+    - All four required inputs must be provided; the component will fail to authenticate if any are missing.
+
+    - `cert_pem` and `key_pem` must be a matched certificate/key pair — mismatched pairs will cause mTLS handshake failures.
+
+    - Both PEM fields are encrypted at rest using Fernet; remind the user not to share exported flows containing these values.
+
+    - `client_secret` is a plain `str` input rather than a `SecretStrInput` — encourage the user to use a Langflow global
+    variable to avoid exposing the secret in the flow definition.
+
+    - The `token_url` override (advanced) should only be changed for staging or sandbox environments; leave it at its default
+    for production.'
+- component_name: ADPMCPComponent
+  agent_summary: You help the user connect to ADP's MCP server and expose its available tools to an Agent component. This
+    is a good fit when you want broad access to ADP-provided tools through the MCP protocol rather than targeting a specific
+    HR domain. Prefer over the domain-specific ADP tools components when the MCP server already bundles the capabilities you
+    need, or when you want a single connection point with optional tool filtering instead of wiring multiple individual components.
+  agent_usage_notes: '## What it does
+
+    Connects to ADP''s MCP (Model Context Protocol) server and exposes its tools so they can be used by an Agent component.
+    It acts as a bridge between an ADP connection and an agent''s tool-calling capabilities.
+
+
+    ## Inputs to ask about
+
+    - **connection** - Ask the user to provide an ADP MCP connection object; this is required and must be configured before
+    the component can function. No default is available — the user must supply a valid connection.
+
+
+    ## Outputs
+
+    - **tools** - Produces a set of ADP MCP tools that feed directly into an Agent component''s tools input, enabling the
+    agent to call ADP-hosted operations.
+
+
+    ## Notes
+
+    - The `connection` input is required — the component will not work without it; ensure the user has set up an ADP connection
+    first.
+
+    - `mcp_url` and `tool_filter` are advanced inputs; only surface them if the user has a specific need to override the default
+    server URL or restrict which tools the agent can access.
+
+    - If `tool_filter` is left blank, all available ADP MCP tools are exposed to the agent — remind the user they can restrict
+    this to a comma-separated list of tool names if they want to limit scope.
+
+    - This component is designed to pair directly with an Agent component; the `tools` output should be wired to the agent''s
+    tools input to function correctly.'
+- component_name: ADPTriggerComponent
+  agent_summary: You help the user receive incoming ADP events by exposing an HTTP POST endpoint that accepts and filters
+    event payloads by type, then passes matching data downstream. This is a good fit as the entry point of a flow that should
+    react to ADP system events rather than make outbound API calls. Prefer over ADP API Request when you want ADP to push
+    events to your flow rather than your flow pulling data from ADP.
+  agent_usage_notes: '## What it does
+
+    ADP Trigger listens for incoming ADP event payloads delivered via HTTP POST and filters them by event type, passing matching
+    events downstream for further processing.
+
+
+    ## Inputs to ask about
+
+    - **event_types** - Ask the user which ADP event types should trigger the flow (e.g., worker hire, termination, pay).
+    Only events matching the selected types will be forwarded; all others are silently ignored.
+
+    - **endpoint** - Ask the user if they need a custom endpoint path, or confirm the auto-generated one to share with ADP
+    for webhook delivery.
+
+    - **api_key** - Inform the user that this key is auto-generated and must be included as the `x-api-key` header in every
+    incoming ADP request; advise them to copy and store it securely.
+
+
+    ## Outputs
+
+    - **output_data** - Emits the matched ADP event payload; typically feeds into a parsing, transformation, or LLM processing
+    component downstream.
+
+
+    ## Notes
+
+    - The `api_key` field is auto-generated, not user-supplied — remind the user to configure ADP''s webhook settings to send
+    this key in the `x-api-key` header, or events will be rejected.
+
+    - Events that do not match any selected `event_types` are silently dropped, so confirm with the user that all required
+    event types are selected before going live.
+
+    - The `data` input is advanced and receives the raw HTTP POST body; users generally should not wire this manually.
+
+    - Refer the user to the [ADP Trigger documentation](https://docs.langflow.org/component-adp-trigger) for details on registering
+    the endpoint with ADP''s developer portal.'
+- component_name: ADPToolsComponent
+  agent_summary: (stub — populated by the agent-metadata bootstrap on its next run.) The unified ADP Tools component exposes
+    ADP HR, payroll, time, and talent agent tools through a multi-select picker. Pick which tile groups (Worker, Pay Data
+    Input, Time Off, …) to expose; each contributes its existing focused agent tools to the agent.
+  agent_usage_notes: (stub) Wire the output of an ADP Auth component to `connection`. Use the `tiles` multi-select to choose
+    which ADP tool groups to expose. Empty selection produces no tools. Read tools share a 30-second per-build cache that
+    deduplicates GETs across tools targeting the same resource; mutating tools (event POSTs) bypass the cache.
