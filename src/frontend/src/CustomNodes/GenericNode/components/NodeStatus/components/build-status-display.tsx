@@ -8,6 +8,7 @@ import {
 } from "@/constants/constants";
 import { BuildStatus } from "@/constants/enums";
 import type { UsageType } from "@/types/chat";
+import { formatUsdFromMicros } from "@/utils/format-currency";
 import { formatTokenCount } from "@/utils/format-token-count";
 
 const StatusMessage = ({ children, className = "text-foreground" }) => (
@@ -28,24 +29,33 @@ const Duration = ({ duration }) => (
   </div>
 );
 
-const TokenUsageDisplay = ({ tokenUsage }: { tokenUsage: UsageType }) => (
-  <div className="flex flex-col gap-1">
-    <div className="flex items-center">
-      <div className="text-xxs">Input tokens:</div>
-      <div className="ml-auto flex items-center gap-1 font-mono text-xs">
-        <ForwardedIconComponent name="Coins" className="h-3 w-3" />
-        {formatTokenCount(tokenUsage.input_tokens)}
+const TokenUsageDisplay = ({ tokenUsage }: { tokenUsage: UsageType }) => {
+  const formattedCost = formatUsdFromMicros(tokenUsage.cost_micros);
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center">
+        <div className="text-xxs">Input tokens:</div>
+        <div className="ml-auto flex items-center gap-1 font-mono text-xs">
+          <ForwardedIconComponent name="Coins" className="h-3 w-3" />
+          {formatTokenCount(tokenUsage.input_tokens)}
+        </div>
       </div>
-    </div>
-    <div className="flex items-center">
-      <div className="text-xxs">Output tokens:</div>
-      <div className="ml-auto flex items-center gap-1 font-mono text-xs">
-        <ForwardedIconComponent name="Coins" className="h-3 w-3 text-xs" />
-        {formatTokenCount(tokenUsage.output_tokens)}
+      <div className="flex items-center">
+        <div className="text-xxs">Output tokens:</div>
+        <div className="ml-auto flex items-center gap-1 font-mono text-xs">
+          <ForwardedIconComponent name="Coins" className="h-3 w-3 text-xs" />
+          {formatTokenCount(tokenUsage.output_tokens)}
+        </div>
       </div>
+      {formattedCost != null && (
+        <div className="flex items-center">
+          <div className="text-xxs">Estimated cost:</div>
+          <div className="ml-auto font-mono text-xs">{formattedCost}</div>
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 const ValidationDetails = ({
   validationString,
