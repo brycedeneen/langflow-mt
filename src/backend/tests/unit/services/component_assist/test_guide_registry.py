@@ -17,28 +17,46 @@ class _FakeWithoutGuide:
     pass
 
 
-def test_class_attribute_takes_priority(monkeypatch: pytest.MonkeyPatch):
+@pytest.mark.asyncio
+async def test_class_attribute_takes_priority(monkeypatch: pytest.MonkeyPatch):
     # Even if YAML says otherwise, class attribute wins.
+    async def _no_row(_name: str) -> str | None:
+        return None
+    monkeypatch.setattr(
+        "langflow.services.component_assist.guide_registry.fetch_component_usage_notes", _no_row,
+    )
     monkeypatch.setattr(
         guide_registry,
         "_load_yaml_bundle",
         lambda: {"_FakeWithGuide": "yaml override should not win"},
     )
-    assert guide_registry.resolve(_FakeWithGuide) == "inline guide for fake component"
+    assert await guide_registry.resolve(_FakeWithGuide) == "inline guide for fake component"
 
 
-def test_yaml_bundle_fallback(monkeypatch: pytest.MonkeyPatch):
+@pytest.mark.asyncio
+async def test_yaml_bundle_fallback(monkeypatch: pytest.MonkeyPatch):
+    async def _no_row(_name: str) -> str | None:
+        return None
+    monkeypatch.setattr(
+        "langflow.services.component_assist.guide_registry.fetch_component_usage_notes", _no_row,
+    )
     monkeypatch.setattr(
         guide_registry,
         "_load_yaml_bundle",
         lambda: {"_FakeWithoutGuide": "yaml guide body"},
     )
-    assert guide_registry.resolve(_FakeWithoutGuide) == "yaml guide body"
+    assert await guide_registry.resolve(_FakeWithoutGuide) == "yaml guide body"
 
 
-def test_returns_none_when_nothing_found(monkeypatch: pytest.MonkeyPatch):
+@pytest.mark.asyncio
+async def test_returns_none_when_nothing_found(monkeypatch: pytest.MonkeyPatch):
+    async def _no_row(_name: str) -> str | None:
+        return None
+    monkeypatch.setattr(
+        "langflow.services.component_assist.guide_registry.fetch_component_usage_notes", _no_row,
+    )
     monkeypatch.setattr(guide_registry, "_load_yaml_bundle", lambda: {})
-    assert guide_registry.resolve(_FakeWithoutGuide) is None
+    assert await guide_registry.resolve(_FakeWithoutGuide) is None
 
 
 class _FakeOptedOut:
@@ -74,3 +92,49 @@ def test_yaml_bundle_skips_malformed_files(
         bundle = guide_registry._load_yaml_bundle()
     assert bundle == {"Good": "from-good"}
     assert any("bad.yaml" in rec.message for rec in caplog.records)
+
+
+@pytest.mark.asyncio
+async def test_db_lookup_takes_priority_over_class_attribute(monkeypatch: pytest.MonkeyPatch):
+    """A non-empty agent_usage_notes in the DB beats an inline assist_guide class attr."""
+    async def _fake_db_lookup(name: str) -> str | None:
+        return "from-db" if name == "_FakeWithGuide" else None
+
+    monkeypatch.setattr(
+        "langflow.services.component_assist.guide_registry.fetch_component_usage_notes",
+        _fake_db_lookup,
+    )
+    monkeypatch.setattr(
+        guide_registry,
+        "_load_yaml_bundle",
+        lambda: {"_FakeWithGuide": "yaml override should not win either"},
+    )
+    assert await guide_registry.resolve(_FakeWithGuide) == "from-db"
+
+
+@pytest.mark.asyncio
+async def test_db_lookup_falls_through_when_null(monkeypatch: pytest.MonkeyPatch):
+    """When DB returns None, the class-attribute path still wins."""
+    async def _no_row(_name: str) -> str | None:
+        return None
+
+    monkeypatch.setattr(
+        "langflow.services.component_assist.guide_registry.fetch_component_usage_notes",
+        _no_row,
+    )
+    monkeypatch.setattr(guide_registry, "_load_yaml_bundle", dict)
+    assert await guide_registry.resolve(_FakeWithGuide) == "inline guide for fake component"
+
+
+@pytest.mark.asyncio
+async def test_db_lookup_falls_through_when_empty_string(monkeypatch: pytest.MonkeyPatch):
+    """Empty string in DB is treated as no content; falls through to next step."""
+    async def _empty(_name: str) -> str | None:
+        return "   "
+
+    monkeypatch.setattr(
+        "langflow.services.component_assist.guide_registry.fetch_component_usage_notes",
+        _empty,
+    )
+    monkeypatch.setattr(guide_registry, "_load_yaml_bundle", lambda: {"_FakeWithoutGuide": "yaml"})
+    assert await guide_registry.resolve(_FakeWithoutGuide) == "yaml"

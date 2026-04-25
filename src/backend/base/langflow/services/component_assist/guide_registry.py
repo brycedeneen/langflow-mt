@@ -1,10 +1,10 @@
 """Resolve a component's assist guide.
 
 Resolution order:
-1. `assist_guide: ClassVar[str]` attribute on the class (highest priority).
-2. YAML bundle under ``guides/*.yaml`` keyed by class name (populated by the
-   bulk generator — see Plan 2).
-3. ``None`` — callers fall back to a generic system prompt.
+1. ``component_metadata.agent_usage_notes`` in the DB (admin-editable).
+2. ``assist_guide: ClassVar[str]`` attribute on the class (legacy).
+3. YAML bundle under ``guides/*.yaml`` keyed by class name (legacy).
+4. ``None`` — callers fall back to a generic system prompt.
 """
 from __future__ import annotations
 
@@ -13,6 +13,10 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+
+from langflow.services.assistant.tools.metadata_lookup import (
+    fetch_component_usage_notes,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -47,11 +51,23 @@ def _load_yaml_bundle() -> dict[str, str]:
     return merged
 
 
-def resolve(component_cls: type) -> str | None:
-    """Return the guide for a component class, or ``None`` if none configured."""
+async def resolve(component_cls: type) -> str | None:
+    """Return the guide for a component class, or ``None`` if none configured.
+
+    Resolution order: DB (component_metadata.agent_usage_notes) -> class attr
+    ``assist_guide`` -> YAML bundle -> ``None``.
+    """
+    # 1. DB lookup (component_metadata.agent_usage_notes).
+    db_value = await fetch_component_usage_notes(component_cls.__name__)
+    if isinstance(db_value, str) and db_value.strip():
+        return db_value
+
+    # 2. Class attribute (legacy inline guide).
     inline = getattr(component_cls, "assist_guide", None)
     if isinstance(inline, str) and inline.strip():
         return inline
+
+    # 3. YAML bundle (legacy bundle).
     return _load_yaml_bundle().get(component_cls.__name__)
 
 

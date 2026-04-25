@@ -154,7 +154,7 @@ async def component_assist_messages(
                 "(assist_enabled=False). It ships with its own bespoke agent."
             ),
         )
-    guide = resolve_guide(component_cls) if component_cls is not None else None
+    guide = await resolve_guide(component_cls) if component_cls is not None else None
 
     # Same provider settings as the flow-level assistant — inherited, no new config surface.
     settings = await _load_assistant_settings(session, org.id, current_user.id)
