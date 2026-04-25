@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import uuid
+from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
@@ -9,6 +10,7 @@ from fastapi import status
 from httpx import AsyncClient
 
 from langflow.services.auth.utils import get_password_hash
+from langflow.services.database.models.flow.model import Flow
 from langflow.services.database.models.membership.model import Membership, MembershipRole
 from langflow.services.database.models.organization.model import Organization
 from langflow.services.database.models.user.model import User
@@ -122,3 +124,102 @@ async def tenant_and_admin(client: AsyncClient):  # noqa: ARG001
             if row is not None:
                 await session.delete(row)
         await session.commit()
+
+
+@pytest.fixture
+async def non_personal_org():
+    """Create an Organization distinct from any user's auto-provisioned personal org.
+
+    Used by tests that need to exercise org-scoped behavior against an org other
+    than the caller's own personal workspace.
+    """
+    slug = f"nonpersonal-{uuid.uuid4().hex[:8]}"
+    async with session_scope() as session:
+        org = Organization(name=f"NonPersonalOrg-{slug}", slug=slug)
+        session.add(org)
+        await session.flush()
+        await session.refresh(org)
+        org_id = org.id
+
+    yield org_id
+
+    async with session_scope() as session:
+        db_org = await session.get(Organization, org_id)
+        if db_org:
+            await session.delete(db_org)
+
+
+@pytest.fixture
+async def org_viewer_user(client: AsyncClient, non_personal_org):  # noqa: ARG001
+    """A user with VIEWER membership in ``non_personal_org``.
+
+    Login password is ``"memberpass"``.
+    """
+    uid = uuid4()
+    async with session_scope() as session:
+        user = User(
+            id=uid,
+            username=f"org_viewer_{uid}",
+            password=get_password_hash("memberpass"),
+            is_active=True,
+            is_superuser=False,
+            is_platform_admin=False,
+        )
+        session.add(user)
+        await session.flush()
+        session.add(
+            Membership(
+                user_id=uid,
+                organization_id=non_personal_org,
+                role=MembershipRole.VIEWER,
+            )
+        )
+        await session.flush()
+        username = user.username
+
+    yield {"id": str(uid), "username": username}
+
+    async with session_scope() as session:
+        db_user = await session.get(User, uid)
+        if db_user:
+            await session.delete(db_user)
+
+
+@pytest.fixture
+async def org_viewer_headers(client: AsyncClient, org_viewer_user):
+    """JWT auth headers for ``org_viewer_user``."""
+    resp = await client.post(
+        "api/v1/login",
+        data={"username": org_viewer_user["username"], "password": "memberpass"},
+    )
+    assert resp.status_code == status.HTTP_200_OK, resp.text
+    return {"Authorization": f"Bearer {resp.json()['access_token']}"}
+
+
+@pytest.fixture
+async def created_flow(non_personal_org, org_viewer_user):
+    """A Flow inside ``non_personal_org``, owned by ``org_viewer_user``.
+
+    Yields a ``SimpleNamespace`` with ``id`` and ``organization_id`` so callers
+    can use attribute access (``created_flow.id``).
+    """
+    owner_id = uuid.UUID(org_viewer_user["id"])
+    async with session_scope() as session:
+        flow = Flow(
+            name=f"flow-{uuid.uuid4()}",
+            data={"nodes": [], "edges": []},
+            user_id=owner_id,
+            organization_id=non_personal_org,
+        )
+        session.add(flow)
+        await session.flush()
+        await session.refresh(flow)
+        flow_id = flow.id
+        org_id = flow.organization_id
+
+    yield SimpleNamespace(id=flow_id, organization_id=org_id)
+
+    async with session_scope() as session:
+        db_flow = await session.get(Flow, flow_id)
+        if db_flow:
+            await session.delete(db_flow)

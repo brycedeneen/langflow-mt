@@ -28,14 +28,14 @@ from lfx.components.adp.adp_mcp import ADPMCPComponent
 # ---------------------------------------------------------------------------
 
 
-def test_bundle_exports_33_components():
-    """Task 10 Step 2: bundle exposes the expected 33 components.
+def test_bundle_exports_34_components():
+    """Task 10 Step 2: bundle exposes the expected 34 components.
 
     Update this number AND `docs/superpowers/plans/2026-04-14-adp-connector.md` Task 10
     together when adding/removing a component so the manual-smoke instructions stay accurate.
     """
-    assert len(adp_bundle_exports) == 33, (
-        f"ADP bundle exports changed: expected 33, got {len(adp_bundle_exports)}. "
+    assert len(adp_bundle_exports) == 34, (
+        f"ADP bundle exports changed: expected 34, got {len(adp_bundle_exports)}. "
         "Update this test AND the manual-smoke count in the ADP connector plan Task 10."
     )
 

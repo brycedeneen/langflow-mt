@@ -18,6 +18,7 @@ from fastapi.responses import StreamingResponse
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.sqlmodel import apaginate
 from lfx.log import logger
+from lfx.services.secret_store import get_secret_store
 from lfx.utils.flow_validation import CustomComponentNotAllowedError, validate_flow_components
 from sqlmodel import and_, col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -36,6 +37,8 @@ from langflow.api.v1.admin.audit_logs import AuditLogListResponse, AuditLogRead
 from langflow.api.v1.schemas import FlowListCreate
 from langflow.initial_setup.constants import STARTER_FOLDER_NAME
 from langflow.services.auth.utils import get_current_active_user
+from langflow.services.database.models.audit_log import AuditTargetType
+from langflow.services.database.models.audit_log.model import AuditAction
 from langflow.services.database.models.flow.model import (
     AccessTypeEnum,
     Flow,
@@ -44,12 +47,7 @@ from langflow.services.database.models.flow.model import (
     FlowRead,
     FlowUpdate,
 )
-from langflow.services.database.models.audit_log import AuditTargetType
-from langflow.services.database.models.audit_log.model import AuditAction
-from langflow.services.database.models.membership.model import MembershipRole
-from langflow.services.database.models.template.model import Template
 from langflow.services.database.models.flow.utils import generate_webhook_api_key, get_webhook_component_in_flow
-from lfx.services.secret_store import get_secret_store
 
 # TODO: Full-version import/export is planned as a follow-up feature. When implemented,
 # re-add imports for create_flow_version_entry, get_flow_version_list, strip_version_data,
@@ -57,14 +55,16 @@ from lfx.services.secret_store import get_secret_store
 from langflow.services.database.models.folder.constants import DEFAULT_FOLDER_NAME
 from langflow.services.database.models.folder.model import Folder
 from langflow.services.database.models.folder.utils import get_default_folder_id
+from langflow.services.database.models.membership.model import MembershipRole
+from langflow.services.database.models.template.model import Template
 from langflow.services.deps import get_audit_service, get_settings_service, get_storage_service, get_variable_service
+from langflow.services.storage.service import StorageService
 from langflow.services.variable.auto_secrets import (
     blank_autosecrets_for_export,
     cleanup_orphaned_autosecrets,
     delete_autosecrets_for_flow,
     promote_plaintext_secrets_to_variables,
 )
-from langflow.services.storage.service import StorageService
 from langflow.utils.compression import compress_response
 
 # build router
@@ -1199,7 +1199,6 @@ async def list_flow_audit_logs(
     session: DbSession,
     flow_id: UUID,
     current_user: CurrentActiveUser,
-    current_org: CurrentOrg,  # noqa: ARG001 - resolves caller's active org context for header consistency
     action: Annotated[AuditAction | None, Query()] = None,
     from_: Annotated[datetime | None, Query(alias="from")] = None,
     to: Annotated[datetime | None, Query()] = None,
