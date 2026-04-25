@@ -55,5 +55,71 @@ def test_agent_node_multiplies_cost():
     config = EstimatorConfig(llm_input=800, llm_output=400, embed_input=512, agent_multiplier=4)
 
     result = estimate_flow_cost(flow_data, pricing=pricing, config=config)
-    # Single call cost was 1 cent; agent multiplier 4 → 4 cents
+    # Single call cost was 1 cent; agent multiplier 4 -> 4 cents
     assert result.expected_cost_cents == 4
+
+
+def test_model_input_list_of_dicts_resolves_to_name_not_provider():
+    """Regression: ModelInput stores [{"name": <id>, "provider": <label>, ...}].
+
+    The estimator must resolve the ``name`` (litellm pricing key), not the
+    ``provider`` label -- otherwise pricing lookup silently fails and the
+    pre-run flow-cost widget renders ``?``.
+    """
+    flow_data = {
+        "nodes": [
+            {
+                "id": "n1",
+                "data": {
+                    "type": "Agent",
+                    "node": {
+                        "template": {
+                            "model": {
+                                "value": [
+                                    {
+                                        "name": "claude-haiku-4-5-20251001",
+                                        "icon": "Anthropic",
+                                        "provider": "Anthropic",
+                                        "metadata": {"context_length": 128000},
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                },
+            }
+        ]
+    }
+    pricing = _pricing_for("claude-haiku-4-5-20251001", in_cents=0.5, out_cents=1.5)
+    config = EstimatorConfig(llm_input=800, llm_output=400, embed_input=512, agent_multiplier=4)
+
+    result = estimate_flow_cost(flow_data, pricing=pricing, config=config)
+    # The model id was resolved -> pricing lookup succeeded -> known cost.
+    assert result.confidence == "rough"
+    assert result.per_component[0]["unknown"] is False
+    assert result.per_component[0]["model"] == "claude-haiku-4-5-20251001"
+
+
+def test_model_input_with_only_provider_returns_no_pricing():
+    """Provider label alone is NOT a litellm key; estimator must not pretend
+    it knows the model when only ``provider`` is present.
+    """
+    flow_data = {
+        "nodes": [
+            {
+                "id": "n1",
+                "data": {
+                    "type": "LanguageModel",
+                    "node": {"template": {"model": {"value": [{"provider": "Anthropic"}]}}},
+                },
+            }
+        ]
+    }
+    pricing = PricingService(overrides={})
+    config = EstimatorConfig(llm_input=800, llm_output=400, embed_input=512, agent_multiplier=4)
+
+    result = estimate_flow_cost(flow_data, pricing=pricing, config=config)
+    assert result.confidence == "none"
+    assert result.per_component[0]["unknown"] is True
+    # Crucially, the provider label did NOT leak through as the model id.
+    assert result.per_component[0]["model"] != "Anthropic"

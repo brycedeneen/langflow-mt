@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Literal
 
+from lfx.utils.model_name import extract_model_name
+
 from langflow.services.pricing.service import PricingService
 
 
@@ -45,16 +47,23 @@ def _classify(node: dict) -> Literal["llm", "embedding", "agent", "other"]:
 
 
 def _get_model_name(node: dict) -> str:
+    """Resolve a string model id from a flow node's template.
+
+    Uses the shared ``extract_model_name`` helper so the pre-run estimator and
+    the per-vertex cost stamp resolve the same shapes the same way. Crucially,
+    this never falls back to a provider label (e.g. "Anthropic") -- those are
+    not litellm pricing keys, and returning them would silently mis-price runs.
+    """
     template = ((node.get("data") or {}).get("node") or {}).get("template") or {}
     for k in ("model_name", "model"):
         if k in template:
             v = template[k]
             if isinstance(v, dict):
-                val = v.get("value")
-                if isinstance(val, list) and val and isinstance(val[0], dict):
-                    return str(val[0].get("provider") or val[0].get("model") or "")
-                return str(val or "")
-            return str(v or "")
+                resolved = extract_model_name(v.get("value"))
+            else:
+                resolved = extract_model_name(v)
+            if resolved:
+                return resolved
     return ""
 
 
