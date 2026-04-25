@@ -1,18 +1,23 @@
-"""Tests for ADPTimeCardsToolsComponent."""
+"""Tests for adp_time_cards_tools module-level builder."""
 
-from unittest.mock import AsyncMock, patch
+from contextlib import asynccontextmanager
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
-
+from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_time_cards_tools import (
-    ADPTimeCardsToolsComponent,
     PATH_MODIFY,
+    build_time_cards_tools,
     build_time_entries_modify_event,
 )
 
 
-def _make(connection, *, enable_mutations=False):
-    return ADPTimeCardsToolsComponent(connection=connection, enable_mutations=enable_mutations)
+def _make_connection(*, access_token="fake-token", api_base_url="https://api.adp.com"):  # noqa: S107
+    conn = MagicMock()
+    conn.access_token = access_token
+    conn.api_base_url = api_base_url
+    return conn
 
 
 def test_build_event_with_work_assignment():
@@ -34,24 +39,31 @@ def test_build_event_without_work_assignment():
     assert body["events"][0]["data"]["transform"]["timeEntries"] == []
 
 
-@pytest.mark.asyncio
-async def test_tools_disabled_empty(adp_connection):
-    c = _make(adp_connection, enable_mutations=False)
-    assert await c.build_tools() == []
+def test_tools_disabled_empty():
+    tools = build_time_cards_tools(_make_connection(), RequestCache(ttl_seconds=30, max_entries=8))
+    assert tools == []
 
 
 @pytest.mark.asyncio
-async def test_tool_routes_correct_path(adp_connection):
-    c = _make(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={})
+async def test_tool_routes_correct_path():
+    client = MagicMock()
+    response = httpx.Response(200, json={"ok": True})
+    client.request = AsyncMock(return_value=response)
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_time_cards_tools.build_mtls_httpx_client", fake_client):
+        tools = build_time_cards_tools(
+            _make_connection(), RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True,
+        )
         await tools[0].ainvoke(
             {"associate_oid": "G3ABC", "work_assignment_id": "WA-1", "time_entries": []},
         )
 
-    assert mock_post.call_args.kwargs["path"] == PATH_MODIFY
+    called_url = client.request.call_args[1]["url"]
+    assert called_url.endswith(PATH_MODIFY)
 
 
 def test_path_constant():
