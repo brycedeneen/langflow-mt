@@ -14,12 +14,12 @@ from .adp_pay_data_input_tools import build_pay_data_input_tools
 from .adp_pay_distributions_tools import build_pay_distributions_tools
 from .adp_pay_statements_tools import build_pay_statements_tools
 from .adp_talent_tools import ADPTalentToolsComponent
-from .adp_team_time_cards_tools import ADPTeamTimeCardsToolsComponent
-from .adp_time_cards_tools import ADPTimeCardsToolsComponent
-from .adp_time_off_tools import ADPTimeOffToolsComponent
+from .adp_team_time_cards_tools import build_team_time_cards_tools
+from .adp_time_cards_tools import build_time_cards_tools
+from .adp_time_off_tools import build_time_off_tools
 from .adp_trigger import ADPTriggerComponent
 from .adp_us_tax_profiles_tools import build_us_tax_profiles_tools
-from .adp_work_schedules_tools import ADPWorkSchedulesToolsComponent
+from .adp_work_schedules_tools import build_work_schedules_tools
 from .adp_worker_business_communication_tools import ADPWorkerBusinessCommunicationToolsComponent
 from .adp_worker_assignment_tools import ADPWorkerAssignmentToolsComponent
 from .adp_worker_assignment_v3_tools import ADPWorkerAssignmentV3ToolsComponent
@@ -50,12 +50,12 @@ __all__ = [
     "build_pay_distributions_tools",
     "build_pay_statements_tools",
     "ADPTalentToolsComponent",
-    "ADPTeamTimeCardsToolsComponent",
-    "ADPTimeCardsToolsComponent",
-    "ADPTimeOffToolsComponent",
+    "build_team_time_cards_tools",
+    "build_time_cards_tools",
+    "build_time_off_tools",
     "ADPTriggerComponent",
     "build_us_tax_profiles_tools",
-    "ADPWorkSchedulesToolsComponent",
+    "build_work_schedules_tools",
     "ADPWorkerBusinessCommunicationToolsComponent",
     "ADPWorkerAssignmentToolsComponent",
     "ADPWorkerAssignmentV3ToolsComponent",

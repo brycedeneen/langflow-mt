@@ -1,4 +1,4 @@
-"""ADPWorkSchedulesToolsComponent — consolidated work-schedule tools.
+"""ADP consolidated work-schedule tools.
 
 Backs ADP WFN `time/work-schedules v1` (19 endpoints total — 9 POSTs +
 9 /meta + 2 GETs). The POSTs cover 3 scopes at varying granularities:
@@ -14,19 +14,22 @@ event endpoint and set the right transform key).
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, Literal
+from typing import Any, Literal
 
-import httpx
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
-from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
-from lfx.custom.custom_component.changelog import ChangelogEntry
-from lfx.custom.custom_component.component import Component
-from lfx.field_typing import Tool
-from lfx.io import BoolInput, HandleInput, Output
+from lfx.components.adp._shared import (
+    HTTP_UNAUTHORIZED,
+    ADPConnection,
+    RequestCache,
+    build_mtls_httpx_client,
+    cached_get_json,
+    fetch_token,
+    validate_adp_url,
+)
+from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
-HTTP_UNAUTHORIZED = 401
 HTTP_CLIENT_ERROR_MIN = 400
 
 PATH_LIST_WORKER = "/time/v1/workers/{aoid}/work-schedules"
@@ -91,18 +94,16 @@ def build_work_schedule_event(
     #   schedule_entry.change → {associateOID, schedulePeriod, scheduleDayDate, scheduleEntryID}
     event_context: dict[str, Any] = {"associateOID": associate_oid}
     if context_pin_fields:
-        for k, v in context_pin_fields.items():
-            event_context[k] = v
+        event_context.update(context_pin_fields)
 
     # change/remove must identify the target — require a pin.
-    if action in ("change", "remove"):
-        if not context_pin_fields:
-            msg = (
-                f"{action!r} on scope={scope!r} requires context_pin_fields "
-                "(e.g. scheduleID / schedulePeriod / scheduleDayDate / scheduleEntryID "
-                "depending on scope)."
-            )
-            raise ValueError(msg)
+    if action in ("change", "remove") and not context_pin_fields:
+        msg = (
+            f"{action!r} on scope={scope!r} requires context_pin_fields "
+            "(e.g. scheduleID / schedulePeriod / scheduleDayDate / scheduleEntryID "
+            "depending on scope)."
+        )
+        raise ValueError(msg)
 
     transform: dict[str, Any] = {}
     if effective_date:
@@ -115,15 +116,14 @@ def build_work_schedule_event(
     # `workerCopyTo`, `startDateCopyTo`, `eventStatusCode` that ADP expects
     # outside the scope entity.
     if additional_transform_fields:
-        for k, v in additional_transform_fields.items():
-            transform[k] = v
+        transform.update(additional_transform_fields)
 
     return {"events": [{"data": {"eventContext": event_context, "transform": transform}}]}
 
 
 class GetWorkerWorkSchedulesInput(BaseModel):
     associate_oid: str = Field(description="ADP associate OID of the worker.")
-    filter: str | None = Field(default=None, alias="$filter", description="OData $filter.")  # noqa: A003
+    filter: str | None = Field(default=None, alias="$filter", description="OData $filter.")
     skip: int | None = Field(default=None, alias="$skip", description="OData $skip.")
     top: int | None = Field(default=None, alias="$top", description="OData $top.")
 
@@ -182,170 +182,133 @@ class ManageWorkScheduleInput(BaseModel):
     )
 
 
-class ADPWorkSchedulesToolsComponent(Component):
-    display_name = "ADP Work Schedules Tools"
-    description = (
-        "Consolidated tools for ADP WFN `time/work-schedules v1`. `get_worker_work_schedules` "
-        "reads a worker's schedules. `manage_work_schedule` fires the right work-schedule / "
-        "-day / -entry event via `scope` + `action` literals (covering 9 POST endpoints). "
-        "Mutations gated behind `enable_mutations`."
-    )
-    icon = "CalendarDays"
-    name = "ADPWorkSchedulesTools"
-    version: int = 2
-    changelog: ClassVar[list[ChangelogEntry]] = [
-        ChangelogEntry(
-            version=1,
-            changes=(
-                "Initial release — 2 consolidated agent tools covering ADP WFN time/work-schedules "
-                "v1: `get_worker_work_schedules` (read) + `manage_work_schedule` (9 mutation "
-                "endpoints via scope/action literals). Mutation gated behind `enable_mutations`."
-            ),
-        ),
-        ChangelogEntry(
-            version=2,
-            changes=(
-                "Corrected `manage_work_schedule` envelope shape after HAR-sample review:\n"
-                "- Removed `item_id` input — ADP's actual event envelopes pin natural keys at the "
-                "TOP LEVEL of eventContext, not nested under the transform key.\n"
-                "- Added `additional_transform_fields` input for top-level transform keys "
-                "(workerCopyTo, startDateCopyTo, eventStatusCode).\n"
-                "- Tool description now documents the scope-specific pin keys "
-                "(scheduleID / schedulePeriod / scheduleDayDate / scheduleEntryID)."
-            ),
-            notes=(
-                "If you were using the previous `item_id` input, switch to `context_pin_fields` "
-                "with the scope's natural key: e.g. {'scheduleID': '...'} for schedule.remove or "
-                "{'schedulePeriod': {...}, 'scheduleDayDate': '...', 'scheduleEntryID': '...'} for "
-                "schedule_entry.change."
-            ),
-        ),
-    ]
+async def _fetch_work_schedules(
+    conn: ADPConnection,
+    *,
+    path: str,
+    params: dict[str, Any] | None,
+    request_cache: RequestCache,
+) -> dict[str, Any]:
+    """Cache-aware GET for work schedules."""
+    url = f"{conn.api_base_url}{path}"
+    validate_adp_url(url, field_name="api_base_url")
+    key = RequestCache.make_key("GET", url, params)
 
-    inputs = [
-        HandleInput(
-            name="connection",
-            display_name="ADP Connection",
-            input_types=["ADPConnection"],
-            info="Connection produced by an ADP Auth component.",
-            required=True,
-        ),
-        BoolInput(
-            name="enable_mutations",
-            display_name="Enable Mutations",
-            info="Expose the work-schedule mutation tool. Off by default.",
-            value=False,
-        ),
-    ]
+    # Peek before opening the mTLS client so cache hits skip PEM-file churn.
+    cached = request_cache.peek(key)
+    if cached is not None:
+        return cached
 
-    outputs = [
-        Output(display_name="Tools", name="tools", method="build_tools"),
-    ]
-
-    async def _execute_request(
-        self, client: httpx.AsyncClient, *, method: str, url: str, headers: dict[str, str],
-        params: dict[str, Any] | None, json_body: dict[str, Any] | None, timeout: float,
-    ) -> httpx.Response:
-        return await client.request(
-            method=method, url=url, headers=headers, params=params, json=json_body, timeout=timeout,
-        )
-
-    async def _call(
-        self, conn: ADPConnection, *, method: str, path: str,
-        params: dict[str, Any] | None = None, body: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        url = f"{conn.api_base_url}{path}"
-        validate_adp_url(url, field_name="api_base_url")
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
         headers = {"Authorization": f"Bearer {conn.access_token}"}
-
-        async with build_mtls_httpx_client(conn, timeout=30.0) as client:
-            response = await self._execute_request(
-                client, method=method, url=url, headers=headers,
-                params=params, json_body=body, timeout=30.0,
-            )
-            if response.status_code == HTTP_UNAUTHORIZED:
-                await fetch_token(conn, force=True)
-                headers["Authorization"] = f"Bearer {conn.access_token}"
-                response = await self._execute_request(
-                    client, method=method, url=url, headers=headers,
-                    params=params, json_body=body, timeout=30.0,
-                )
-
-        if response.status_code >= HTTP_CLIENT_ERROR_MIN:
-            try:
-                detail = response.json()
-            except ValueError:
-                detail = response.text
-            return {"error": detail, "status_code": response.status_code}
-        try:
-            return response.json()
-        except ValueError:
-            return {"ok": True, "status_code": response.status_code}
-
-    async def _post_event(self, conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
-        return await self._call(conn, method="POST", path=path, body=body)
-
-    async def build_tools(self) -> list[Tool]:
-        conn: ADPConnection = self.connection
-        component = self
-
-        async def _get_worker_work_schedules(**kwargs: Any) -> dict[str, Any]:
-            associate_oid = kwargs["associate_oid"]
-            path = PATH_LIST_WORKER.format(aoid=associate_oid)
-            params: dict[str, Any] = {}
-            for source_key, api_key in (("filter", "$filter"), ("skip", "$skip"), ("top", "$top")):
-                val = kwargs.get(source_key)
-                if val is not None:
-                    params[api_key] = val
-            return await component._call(conn, method="GET", path=path, params=params or None)
-
-        tools: list[Tool] = [
-            StructuredTool.from_function(
-                name="get_worker_work_schedules",
-                description=(
-                    "Get a worker's work schedules (per-worker scope) from ADP WFN time/"
-                    "work-schedules v1. Supports OData $filter/$skip/$top. Returns workSchedules, "
-                    "workScheduleTotals, and confirmMessage."
-                ),
-                coroutine=_get_worker_work_schedules,
-                args_schema=GetWorkerWorkSchedulesInput,
-            ),
-        ]
-
-        if not self.enable_mutations:
-            return tools
-
-        async def _manage_work_schedule(**kwargs: Any) -> dict[str, Any]:
-            scope = kwargs["scope"]
-            action = kwargs["action"]
-            try:
-                body = build_work_schedule_event(
-                    scope=scope,
-                    action=action,
-                    associate_oid=kwargs["associate_oid"],
-                    fields=kwargs.get("fields") or {},
-                    context_pin_fields=kwargs.get("context_pin_fields") or {},
-                    additional_transform_fields=kwargs.get("additional_transform_fields") or {},
-                    effective_date=kwargs.get("effective_date"),
-                    event_reason_code=kwargs.get("event_reason_code"),
-                )
-                path = event_path(scope, action)
-            except ValueError as err:
-                return {"error": str(err), "status_code": 422}
-            return await component._post_event(conn, path=path, body=body)
-
-        tools.append(
-            StructuredTool.from_function(
-                name="manage_work_schedule",
-                description=(
-                    "Fire a work-schedule event at the selected scope + action. Scopes: "
-                    "'schedule' (whole employee schedule), 'schedule_day' (a day), "
-                    "'schedule_entry' (a single entry — change only). Actions: add/change/copy/"
-                    "remove (schedule_entry supports only change). Pass ADP-shaped `fields` for "
-                    "the transform payload; include item_id for change/remove/copy."
-                ),
-                coroutine=_manage_work_schedule,
-                args_schema=ManageWorkScheduleInput,
-            ),
+        result = await cached_get_json(
+            client=client, cache=request_cache, url=url, headers=headers, params=params,
         )
+        if result.get("status_code") == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            result = await cached_get_json(
+                client=client, cache=request_cache, url=url, headers=headers, params=params,
+            )
+
+    return result
+
+
+async def _post_event(conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
+    """POST a single ADP event, with one 401-refresh retry."""
+    url = f"{conn.api_base_url}{path}"
+    validate_adp_url(url, field_name="api_base_url")
+    headers = {"Authorization": f"Bearer {conn.access_token}"}
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
+        response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+        if response.status_code == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+    if response.status_code >= HTTP_CLIENT_ERROR_MIN:
+        try:
+            detail = response.json()
+        except ValueError:
+            detail = response.text
+        return {"error": detail, "status_code": response.status_code}
+    try:
+        return response.json()
+    except ValueError:
+        return {"ok": True, "status_code": response.status_code}
+
+
+def build_work_schedules_tools(
+    connection: ADPConnection,
+    request_cache: RequestCache,
+    *,
+    enable_mutations: bool = False,
+) -> list[Tool]:
+    """Build ADP work-schedules tools.
+
+    Always returns the read tool ``get_worker_work_schedules``. Appends the gated
+    ``manage_work_schedule`` tool when ``enable_mutations`` is True.
+    """
+    conn = connection
+
+    async def _get_worker_work_schedules(**kwargs: Any) -> dict[str, Any]:
+        associate_oid = kwargs["associate_oid"]
+        path = PATH_LIST_WORKER.format(aoid=associate_oid)
+        params: dict[str, Any] = {}
+        for source_key, api_key in (("filter", "$filter"), ("skip", "$skip"), ("top", "$top")):
+            val = kwargs.get(source_key)
+            if val is not None:
+                params[api_key] = val
+        return await _fetch_work_schedules(
+            conn, path=path, params=params or None, request_cache=request_cache,
+        )
+
+    tools: list[Tool] = [
+        StructuredTool.from_function(
+            name="get_worker_work_schedules",
+            description=(
+                "Get a worker's work schedules (per-worker scope) from ADP WFN time/"
+                "work-schedules v1. Supports OData $filter/$skip/$top. Returns workSchedules, "
+                "workScheduleTotals, and confirmMessage."
+            ),
+            coroutine=_get_worker_work_schedules,
+            args_schema=GetWorkerWorkSchedulesInput,
+        ),
+    ]
+
+    if not enable_mutations:
         return tools
+
+    async def _manage_work_schedule(**kwargs: Any) -> dict[str, Any]:
+        scope = kwargs["scope"]
+        action = kwargs["action"]
+        try:
+            body = build_work_schedule_event(
+                scope=scope,
+                action=action,
+                associate_oid=kwargs["associate_oid"],
+                fields=kwargs.get("fields") or {},
+                context_pin_fields=kwargs.get("context_pin_fields") or {},
+                additional_transform_fields=kwargs.get("additional_transform_fields") or {},
+                effective_date=kwargs.get("effective_date"),
+                event_reason_code=kwargs.get("event_reason_code"),
+            )
+            path = event_path(scope, action)
+        except ValueError as err:
+            return {"error": str(err), "status_code": 422}
+        return await _post_event(conn, path=path, body=body)
+
+    tools.append(
+        StructuredTool.from_function(
+            name="manage_work_schedule",
+            description=(
+                "Fire a work-schedule event at the selected scope + action. Scopes: "
+                "'schedule' (whole employee schedule), 'schedule_day' (a day), "
+                "'schedule_entry' (a single entry — change only). Actions: add/change/copy/"
+                "remove (schedule_entry supports only change). Pass ADP-shaped `fields` for "
+                "the transform payload; include item_id for change/remove/copy."
+            ),
+            coroutine=_manage_work_schedule,
+            args_schema=ManageWorkScheduleInput,
+        ),
+    )
+    return tools

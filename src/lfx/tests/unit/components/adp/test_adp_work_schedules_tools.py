@@ -1,23 +1,28 @@
-"""Tests for ADPWorkSchedulesToolsComponent.
+"""Tests for adp_work_schedules_tools module-level builder.
 
 Shapes asserted below are grounded in the HAR-sampled ADP request payloads
 under docs/adp-api-specs/time/work-schedules/v1/har-samples.json.
 """
 
-from unittest.mock import AsyncMock, patch
+from contextlib import asynccontextmanager
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
-
+from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_work_schedules_tools import (
-    ADPWorkSchedulesToolsComponent,
     PATH_LIST_WORKER,
     build_work_schedule_event,
+    build_work_schedules_tools,
     event_path,
 )
 
 
-def _make(connection, *, enable_mutations=False):
-    return ADPWorkSchedulesToolsComponent(connection=connection, enable_mutations=enable_mutations)
+def _make_connection(*, access_token="fake-token", api_base_url="https://api.adp.com"):  # noqa: S107
+    conn = MagicMock()
+    conn.access_token = access_token
+    conn.api_base_url = api_base_url
+    return conn
 
 
 # ------------- event_path -------------
@@ -208,36 +213,53 @@ def test_build_unsupported_combo_raises():
 
 
 @pytest.mark.asyncio
-async def test_read_tool_path_and_params(adp_connection):
-    c = _make(adp_connection)
-    mock_call = AsyncMock(return_value={})
-    with patch.object(c, "_call", new=mock_call):
-        tools = await c.build_tools()
+async def test_read_tool_path_and_params():
+    client = MagicMock()
+    client.request = AsyncMock(return_value=httpx.Response(200, json={}))
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    conn = _make_connection()
+    with patch("lfx.components.adp.adp_work_schedules_tools.build_mtls_httpx_client", fake_client):
+        tools = build_work_schedules_tools(conn, RequestCache(ttl_seconds=30, max_entries=8))
         await tools[0].ainvoke({"associate_oid": "G3ABC", "$top": 10})
-    assert mock_call.call_args.kwargs["path"] == PATH_LIST_WORKER.format(aoid="G3ABC")
-    assert mock_call.call_args.kwargs["params"] == {"$top": 10}
+
+    called_url = client.request.call_args[1]["url"]
+    assert called_url.endswith(PATH_LIST_WORKER.format(aoid="G3ABC"))
+    called_params = client.request.call_args[1].get("params", {})
+    assert called_params.get("$top") == 10
 
 
-@pytest.mark.asyncio
-async def test_build_tools_disabled_only_read(adp_connection):
-    c = _make(adp_connection, enable_mutations=False)
-    tools = await c.build_tools()
+def test_build_tools_disabled_only_read():
+    conn = _make_connection()
+    tools = build_work_schedules_tools(conn, RequestCache(ttl_seconds=30, max_entries=8))
     assert [t.name for t in tools] == ["get_worker_work_schedules"]
 
 
-@pytest.mark.asyncio
-async def test_build_tools_enabled_has_manage(adp_connection):
-    c = _make(adp_connection, enable_mutations=True)
-    tools = await c.build_tools()
+def test_build_tools_enabled_has_manage():
+    conn = _make_connection()
+    tools = build_work_schedules_tools(
+        conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True,
+    )
     assert {t.name for t in tools} == {"get_worker_work_schedules", "manage_work_schedule"}
 
 
 @pytest.mark.asyncio
-async def test_manage_routes_schedule_day_copy(adp_connection):
-    c = _make(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={})
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
+async def test_manage_routes_schedule_day_copy():
+    client = MagicMock()
+    client.request = AsyncMock(return_value=httpx.Response(200, json={"ok": True}))
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    conn = _make_connection()
+    with patch("lfx.components.adp.adp_work_schedules_tools.build_mtls_httpx_client", fake_client):
+        tools = build_work_schedules_tools(
+            conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True,
+        )
         await next(t for t in tools if t.name == "manage_work_schedule").ainvoke(
             {
                 "scope": "schedule_day",
@@ -247,15 +269,19 @@ async def test_manage_routes_schedule_day_copy(adp_connection):
                 "fields": {"scheduleDayDate": "2024-06-01"},
             },
         )
-    assert mock_post.call_args.kwargs["path"] == "/events/time/v1/work-schedule-day.copy"
+
+    called_url = client.request.call_args[1]["url"]
+    assert called_url.endswith("/events/time/v1/work-schedule-day.copy")
 
 
 @pytest.mark.asyncio
-async def test_manage_unsupported_combo_returns_422(adp_connection):
-    c = _make(adp_connection, enable_mutations=True)
+async def test_manage_unsupported_combo_returns_422():
+    conn = _make_connection()
     mock_post = AsyncMock()
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
+    with patch("lfx.components.adp.adp_work_schedules_tools._post_event", new=mock_post):
+        tools = build_work_schedules_tools(
+            conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True,
+        )
         result = await next(t for t in tools if t.name == "manage_work_schedule").ainvoke(
             {"scope": "schedule_entry", "action": "add", "associate_oid": "G3ABC"},
         )
@@ -264,11 +290,13 @@ async def test_manage_unsupported_combo_returns_422(adp_connection):
 
 
 @pytest.mark.asyncio
-async def test_manage_missing_pin_returns_422(adp_connection):
-    c = _make(adp_connection, enable_mutations=True)
+async def test_manage_missing_pin_returns_422():
+    conn = _make_connection()
     mock_post = AsyncMock()
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
+    with patch("lfx.components.adp.adp_work_schedules_tools._post_event", new=mock_post):
+        tools = build_work_schedules_tools(
+            conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True,
+        )
         result = await next(t for t in tools if t.name == "manage_work_schedule").ainvoke(
             {"scope": "schedule", "action": "remove", "associate_oid": "G3ABC"},
         )
