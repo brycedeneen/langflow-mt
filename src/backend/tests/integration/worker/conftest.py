@@ -115,10 +115,10 @@ def mock_storage():
 @pytest.fixture
 def worker_ctx(engine_and_factory, redis_service, mock_storage):
     from langflow.services.runs.payload import PayloadOffloader
+    from langflow.worker_app import deps as worker_deps
 
     _, factory = engine_and_factory
 
-    # Build a minimal settings-like object with the attributes execute_run needs
     settings = Mock()
     settings.run_payload_inline_max_bytes = 10 * 1024 * 1024
     settings.queue_high = "runs:high"
@@ -126,19 +126,24 @@ def worker_ctx(engine_and_factory, redis_service, mock_storage):
     settings.queue_low = "runs:low"
     settings.queue_webhooks = "webhooks"
     settings.run_retention_hours = 24
-
-    arq = AsyncMock()
-    arq.enqueue_job = AsyncMock(return_value=None)
+    settings.redis_url = redis_service.url
 
     async def deterministic_runner(flow, triggered_by, inputs, actor_id):
         await asyncio.sleep(0.05)
         return {"ok": True, "echo": inputs}
 
-    return {
+    # Populate the worker_deps state so TaskiqDepends providers resolve
+    worker_deps._set("settings", settings)
+    worker_deps._set("sessionmaker", factory)
+    worker_deps._set("storage", mock_storage)
+    worker_deps._set("redis", redis_service.client)
+    worker_deps._set("graph_runner", deterministic_runner)
+
+    yield {
         "redis": redis_service.client,
         "db_sessionmaker": factory,
         "storage": mock_storage,
         "settings": settings,
-        "arq": arq,
         "graph_runner": deterministic_runner,
     }
+    worker_deps._clear()
