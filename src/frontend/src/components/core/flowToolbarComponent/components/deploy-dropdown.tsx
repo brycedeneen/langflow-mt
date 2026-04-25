@@ -22,6 +22,7 @@ import { customMcpOpen } from "@/customization/utils/custom-mcp-open";
 import ApiModal from "@/modals/apiModal";
 import ExportModal from "@/modals/exportModal";
 import SaveAsTemplateModal from "@/modals/SaveAsTemplateModal";
+import FlowAuditDrawer from "./flow-audit-drawer";
 import useAlertStore from "@/stores/alertStore";
 import useAuthStore from "@/stores/authStore";
 import useFlowStore from "@/stores/flowStore";
@@ -56,6 +57,7 @@ export default function PublishDropdown({
     useAuthStore((state) => state.userData?.is_superuser) === true;
   const [openExportModal, setOpenExportModal] = useState(false);
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
+  const [openAuditDrawer, setOpenAuditDrawer] = useState(false);
 
   const handlePublishedSwitch = async (checked: boolean) => {
     mutateAsync(
@@ -102,7 +104,7 @@ export default function PublishDropdown({
             className="!px-2.5 font-normal"
             data-testid="publish-button"
           >
-            Share
+            More
             <IconComponent name="ChevronDown" className="!h-5 !w-5" />
           </Button>
         </DropdownMenuTrigger>
@@ -155,6 +157,16 @@ export default function PublishDropdown({
               />
             </DropdownMenuItem>
           </CustomLink>
+          {flowId && (
+            <DropdownMenuItem
+              className="deploy-dropdown-item group"
+              onClick={() => setOpenAuditDrawer(true)}
+              data-testid="flow-history-item"
+            >
+              <IconComponent name="History" className="icon-size mr-2" />
+              <span>Flow history</span>
+            </DropdownMenuItem>
+          )}
           {ENABLE_PUBLISH && (
             <DropdownMenuItem
               className="deploy-dropdown-item group"
@@ -232,6 +244,13 @@ export default function PublishDropdown({
           },
         }}
       />
+      {flowId && (
+        <FlowAuditDrawer
+          flowId={flowId}
+          open={openAuditDrawer}
+          onClose={() => setOpenAuditDrawer(false)}
+        />
+      )}
     </>
   );
 }
