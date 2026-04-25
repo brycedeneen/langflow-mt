@@ -1,4 +1,6 @@
 import type { UseMutationResult } from "@tanstack/react-query";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { UserRead } from "@/schemas/api/_generated";
 import type { Users, useMutationFunctionType } from "@/types/api";
 import type { UserInputType } from "@/types/components";
 import { api } from "../../api";
@@ -10,14 +12,16 @@ export const useAddUser: useMutationFunctionType<undefined, UserInputType> = (
 ) => {
   const { mutate } = UseRequestProcessor();
 
-  const addUserFunction = async (
-    user: UserInputType,
-  ): Promise<Array<Users>> => {
-    const res = await api.post(`${getURL("USERS")}/`, user);
-    return res.data;
+  const addUserFunction = async (user: UserInputType): Promise<Users> => {
+    const data = await validatedQueryFn(
+      "api.users.add_user_api_v1_users__post",
+      UserRead,
+      async () => (await api.post<unknown>(`${getURL("USERS")}/`, user)).data,
+    )();
+    return data as unknown as Users;
   };
 
-  const mutation: UseMutationResult<Array<Users>, any, UserInputType> = mutate(
+  const mutation: UseMutationResult<Users, any, UserInputType> = mutate(
     ["useAddUser"],
     addUserFunction,
     options,

@@ -1,4 +1,6 @@
 import type { UseMutationResult } from "@tanstack/react-query";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { VariableReadSchema } from "@/schemas/app/internal/variables";
 import type { useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -20,12 +22,18 @@ export const usePatchGlobalVariables: useMutationFunctionType<
 
   async function patchGlobalVariables(
     GlobalVariable: PatchGlobalVariablesParams,
-  ): Promise<any> {
-    const res = await api.patch(
-      `${getURL("VARIABLES")}/${GlobalVariable.id}`,
-      GlobalVariable,
-    );
-    return res.data;
+  ): Promise<unknown> {
+    return validatedQueryFn(
+      "api.variables.update",
+      VariableReadSchema,
+      async () =>
+        (
+          await api.patch<unknown>(
+            `${getURL("VARIABLES")}/${GlobalVariable.id}`,
+            GlobalVariable,
+          )
+        ).data,
+    )();
   }
 
   const mutation: UseMutationResult<

@@ -1,3 +1,4 @@
+// TODO: Phase 2.g follow-up — binary download, no JSON schema applies
 import { getFetchCredentials } from "@/customization/utils/get-fetch-credentials";
 import type { useMutationFunctionType } from "../../../../types/api";
 import { getURL } from "../../helpers/constants";

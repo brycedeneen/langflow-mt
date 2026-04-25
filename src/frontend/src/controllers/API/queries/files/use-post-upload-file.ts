@@ -1,4 +1,6 @@
 import type { UseMutationResult } from "@tanstack/react-query";
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -19,12 +21,17 @@ export const usePostUploadFile: useMutationFunctionType<
     const formData = new FormData();
     formData.append("file", payload.file);
 
-    const response = await api.post<any>(
-      `${getURL("FILES")}/upload/${payload.id}`,
-      formData,
-    );
-
-    return response.data;
+    return await validatedQueryFn(
+      "api.files.upload_file_api_v1_files_upload__flow_id__post",
+      z.unknown(),
+      async () =>
+        (
+          await api.post<any>(
+            `${getURL("FILES")}/upload/${payload.id}`,
+            formData,
+          )
+        ).data,
+    )();
   };
 
   const mutation: UseMutationResult<IPostUploadFile, any, IPostUploadFile> =

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { validatedEventStream } from "@/lib/validated-stream";
+import { ChatMessageChunkSchema } from "@/schemas/app/stream/chatMessages";
 import useAlertStore from "@/stores/alertStore";
 import { ChatMessageType } from "@/types/chat";
 
@@ -42,16 +44,20 @@ export function useStreamingMessage({
     setIsStreaming(true); // Streaming starts
     return new Promise<boolean>((resolve, reject) => {
       eventSource.current = new EventSource(url);
-      eventSource.current.onmessage = (event) => {
-        const parsedData = JSON.parse(event.data);
-        if (parsedData.chunk) {
-          setChatMessage((prev) => {
-            const newMessage = prev + parsedData.chunk;
-            chatMessageRef.current = newMessage;
-            return newMessage;
-          });
-        }
-      };
+      validatedEventStream(
+        "stream.chatMessages",
+        ChatMessageChunkSchema,
+        eventSource.current,
+        (parsedData) => {
+          if (parsedData.chunk) {
+            setChatMessage((prev) => {
+              const newMessage = prev + parsedData.chunk;
+              chatMessageRef.current = newMessage;
+              return newMessage;
+            });
+          }
+        },
+      );
       eventSource.current.onerror = (event: Event) => {
         setIsStreaming(false);
         eventSource.current?.close();

@@ -1,5 +1,7 @@
 import Convert from "ansi-to-html";
 import { useEffect, useRef, useState } from "react";
+import { validatedEventStream } from "@/lib/validated-stream";
+import { ChatMessageChunkSchema } from "@/schemas/app/stream/chatMessages";
 import { ContentBlockDisplay } from "@/components/core/chatComponents/ContentBlockDisplay";
 import { useUpdateMessage } from "@/controllers/API/queries/messages";
 import { CustomMarkdownField } from "@/customization/components/custom-markdown-field";
@@ -62,12 +64,16 @@ export default function ChatMessage({
     setIsStreaming(true); // Streaming starts
     return new Promise<boolean>((resolve, reject) => {
       eventSource.current = new EventSource(url);
-      eventSource.current.onmessage = (event) => {
-        const parsedData = JSON.parse(event.data);
-        if (parsedData.chunk) {
-          setChatMessage((prev) => prev + parsedData.chunk);
-        }
-      };
+      validatedEventStream(
+        "stream.chatMessages",
+        ChatMessageChunkSchema,
+        eventSource.current,
+        (parsedData) => {
+          if (parsedData.chunk) {
+            setChatMessage((prev) => prev + parsedData.chunk);
+          }
+        },
+      );
       eventSource.current.onerror = (event: Event & { data?: string }) => {
         setIsStreaming(false);
         eventSource.current?.close();

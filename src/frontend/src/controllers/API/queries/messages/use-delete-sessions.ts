@@ -1,4 +1,6 @@
 import type { UseMutationResult } from "@tanstack/react-query";
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type {
   DeleteSessionError,
   DeleteSessionParams,
@@ -27,10 +29,17 @@ export const useDeleteSession = (options?: {
   const deleteSession = async ({
     sessionId,
   }: DeleteSessionParams): Promise<DeleteSessionResponse> => {
-    const response = await api.delete(
-      `${getURL("MESSAGES")}/session/${sessionId}`,
-    );
-    return response.data;
+    const result = await validatedQueryFn(
+      "api.monitor.delete_messages_session_api_v1_monitor_messages_session__session_id__delete",
+      z.unknown(),
+      async () =>
+        (
+          await api.delete<unknown>(
+            `${getURL("MESSAGES")}/session/${sessionId}`,
+          )
+        ).data,
+    )();
+    return result as DeleteSessionResponse;
   };
 
   const mutation: UseMutationResult<

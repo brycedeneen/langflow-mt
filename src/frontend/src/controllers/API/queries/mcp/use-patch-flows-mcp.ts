@@ -1,4 +1,6 @@
 import type { UseMutationResult } from "@tanstack/react-query";
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useMutationFunctionType } from "@/types/api";
 import type {
   AuthSettingsType,
@@ -33,11 +35,17 @@ export const usePatchFlowsMCP: useMutationFunctionType<
   async function patchFlowMCP(
     requestData: PatchFlowMCPRequest,
   ): Promise<PatchFlowMCPResponse> {
-    const res = await api.patch(
-      `${getURL("MCP")}/${params.project_id}`,
-      requestData,
-    );
-    return res.data;
+    return await validatedQueryFn(
+      "api.mcp_projects.update_project_mcp_settings_api_v1_mcp_project__project_id__patch",
+      z.unknown(),
+      async () =>
+        (
+          await api.patch(
+            `${getURL("MCP")}/${params.project_id}`,
+            requestData,
+          )
+        ).data,
+    )() as PatchFlowMCPResponse;
   }
 
   const mutation: UseMutationResult<

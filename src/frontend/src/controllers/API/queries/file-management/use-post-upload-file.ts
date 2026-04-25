@@ -1,4 +1,7 @@
 import type { UseMutationResult } from "@tanstack/react-query";
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { langflow__api__schemas__UploadFileResponse } from "@/schemas/api/_generated";
 import type { useMutationFunctionType } from "@/types/api";
 import type { FileType } from "@/types/file_management";
 import { api } from "../../api";
@@ -73,26 +76,33 @@ export const usePostUploadFileV2: useMutationFunctionType<
     });
 
     try {
-      const response = await api.post<any>(
-        `${getURL("FILE_MANAGEMENT", {}, true)}`,
-        formData,
-        {
-          onUploadProgress: (progressEvent) => {
-            if (progressEvent.progress) {
-              queryClient.setQueryData(["useGetFilesV2"], (old: any) => {
-                if (!Array.isArray(old)) return [];
-                return old.map((file: any) => {
-                  if (file?.id === "temp") {
-                    return { ...file, progress: progressEvent.progress };
+      const responseData = await validatedQueryFn(
+        "api.files.upload_user_file_api_v2_files__post",
+        langflow__api__schemas__UploadFileResponse,
+        async () =>
+          (
+            await api.post<any>(
+              `${getURL("FILE_MANAGEMENT", {}, true)}`,
+              formData,
+              {
+                onUploadProgress: (progressEvent) => {
+                  if (progressEvent.progress) {
+                    queryClient.setQueryData(["useGetFilesV2"], (old: any) => {
+                      if (!Array.isArray(old)) return [];
+                      return old.map((file: any) => {
+                        if (file?.id === "temp") {
+                          return { ...file, progress: progressEvent.progress };
+                        }
+                        return file;
+                      });
+                    });
                   }
-                  return file;
-                });
-              });
-            }
-          },
-        },
-      );
-      return response.data;
+                },
+              },
+            )
+          ).data,
+      )();
+      return responseData;
     } catch (e) {
       queryClient.setQueryData(["useGetFilesV2"], (old: FileType[]) => {
         if (!Array.isArray(old)) return [];

@@ -1,4 +1,6 @@
 import type { UseMutationResult } from "@tanstack/react-query";
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -14,12 +16,18 @@ export const useDeleteMessages: useMutationFunctionType<
 > = (options?) => {
   const { mutate, queryClient } = UseRequestProcessor();
 
-  const deleteMessage = async ({ ids }: DeleteMessagesParams): Promise<any> => {
-    const response = await api.delete(`${getURL("MESSAGES")}`, {
-      data: ids,
-    });
-
-    return response.data;
+  const deleteMessage = async ({ ids }: DeleteMessagesParams): Promise<unknown> => {
+    const result = await validatedQueryFn(
+      "api.monitor.delete_messages_api_v1_monitor_messages_delete",
+      z.unknown(),
+      async () =>
+        (
+          await api.delete<unknown>(`${getURL("MESSAGES")}`, {
+            data: ids,
+          })
+        ).data,
+    )();
+    return result;
   };
 
   const mutation: UseMutationResult<

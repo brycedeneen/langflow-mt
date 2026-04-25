@@ -1,3 +1,5 @@
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { EnabledModelsResponseSchema } from "@/schemas/app/internal/models";
 import { useQueryFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -13,16 +15,16 @@ export const useGetEnabledModels: useQueryFunctionType<
 > = (options) => {
   const { query } = UseRequestProcessor();
 
-  const getEnabledModelsFn = async (): Promise<EnabledModelsResponse> => {
-    const response = await api.get<EnabledModelsResponse>(
-      `${getURL("MODELS")}/enabled_models`,
-    );
-    return response.data;
-  };
+  const getEnabledModelsFn = validatedQueryFn(
+    "api.models.get_enabled_models",
+    EnabledModelsResponseSchema,
+    async () =>
+      (await api.get<unknown>(`${getURL("MODELS")}/enabled_models`)).data,
+  );
 
   const queryResult = query(
     ["useGetEnabledModels"],
-    getEnabledModelsFn,
+    getEnabledModelsFn as () => Promise<EnabledModelsResponse>,
     options,
   );
 

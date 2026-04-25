@@ -1,4 +1,6 @@
 import type { UseMutationResult } from "@tanstack/react-query";
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useMutationFunctionType } from "@/types/api";
 import type { MCPServerType } from "@/types/mcp";
 import { api } from "../../api";
@@ -38,12 +40,19 @@ export const useAddMCPServer: useMutationFunctionType<
         payload.headers = body.headers;
       }
 
-      const res = await api.post(
-        `${getURL("MCP_SERVERS", undefined, true)}/${body.name}`,
-        payload,
-      );
+      const res = await validatedQueryFn(
+        "api.mcp.add_server_api_v2_mcp_servers__server_name__post",
+        z.unknown(),
+        async () =>
+          (
+            await api.post(
+              `${getURL("MCP_SERVERS", undefined, true)}/${body.name}`,
+              payload,
+            )
+          ).data,
+      )() as { message?: string };
 
-      return { message: res.data?.message || "MCP Server added successfully" };
+      return { message: res?.message || "MCP Server added successfully" };
     } catch (error: any) {
       // Transform the error to include a message that can be handled by the UI
       const errorMessage =

@@ -1,4 +1,7 @@
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { RuleRead } from "@/schemas/api/_generated";
 import type { useMutationFunctionType } from "@/types/api";
+import type { z } from "zod";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -14,14 +17,24 @@ type Payload = {
 export const useCreateAlertRule: useMutationFunctionType<
   undefined,
   Payload,
-  unknown
+  z.infer<typeof RuleRead>
 > = (options?) => {
   const { mutate, queryClient } = UseRequestProcessor();
-  const fn = async ({ orgId, ...body }: Payload): Promise<unknown> => {
-    const { data } = await api.post(
-      `${getURL("ADMIN_ALERT_RULES")}/${orgId}/alert-rules`,
-      body,
-    );
+  const fn = async ({
+    orgId,
+    ...body
+  }: Payload): Promise<z.infer<typeof RuleRead>> => {
+    const data = await validatedQueryFn(
+      "api.admin.create_rule_api_v1_admin_orgs__org_id__alert_rules_post",
+      RuleRead,
+      async () =>
+        (
+          await api.post<unknown>(
+            `${getURL("ADMIN_ALERT_RULES")}/${orgId}/alert-rules`,
+            body,
+          )
+        ).data,
+    )();
     return data;
   };
   return mutate(["useCreateAlertRule"], fn, {

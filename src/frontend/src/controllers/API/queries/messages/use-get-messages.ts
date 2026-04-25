@@ -1,6 +1,9 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColDef, ColGroupDef } from "ag-grid-community";
+import { z } from "zod";
 import useFlowStore from "@/stores/flowStore";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { MessageRead } from "@/schemas/api/_generated";
 import type { useQueryFunctionType } from "../../../../types/api";
 import {
   extractColumnsFromRows,
@@ -45,7 +48,12 @@ export const useGetMessagesQuery: useQueryFunctionType<
       config["params"] = { ...config["params"], ...processedParams };
     }
     if (!isPlaygroundPage) {
-      return await api.get<any>(`${getURL("MESSAGES")}`, config);
+      const rows = await validatedQueryFn(
+        "api.monitor.get_messages_api_v1_monitor_messages_get",
+        z.array(MessageRead),
+        async () => (await api.get<unknown>(`${getURL("MESSAGES")}`, config)).data,
+      )();
+      return { data: rows };
     } else {
       return {
         data: JSON.parse(window.sessionStorage.getItem(id ?? "") || "[]"),

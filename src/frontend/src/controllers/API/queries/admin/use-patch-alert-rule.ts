@@ -1,4 +1,7 @@
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { RuleRead } from "@/schemas/api/_generated";
 import type { useMutationFunctionType } from "@/types/api";
+import type { z } from "zod";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -13,11 +16,20 @@ type Payload = {
 export const usePatchAlertRule: useMutationFunctionType<
   undefined,
   Payload,
-  unknown
+  z.infer<typeof RuleRead>
 > = (options?) => {
   const { mutate, queryClient } = UseRequestProcessor();
-  const fn = async ({ id, ...body }: Payload): Promise<unknown> => {
-    const { data } = await api.patch(`${getURL("ADMIN_ALERT_RULE")}/${id}`, body);
+  const fn = async ({
+    id,
+    ...body
+  }: Payload): Promise<z.infer<typeof RuleRead>> => {
+    const data = await validatedQueryFn(
+      "api.admin.patch_rule_api_v1_admin_alert_rules__rule_id__patch",
+      RuleRead,
+      async () =>
+        (await api.patch<unknown>(`${getURL("ADMIN_ALERT_RULE")}/${id}`, body))
+          .data,
+    )();
     return data;
   };
   return mutate(["usePatchAlertRule"], fn, {

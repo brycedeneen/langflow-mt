@@ -1,3 +1,4 @@
+// TODO: Phase 2.g follow-up — binary download, no JSON schema applies
 import { keepPreviousData } from "@tanstack/react-query";
 import type { useQueryFunctionType } from "../../../../types/api";
 import { api } from "../../api";

@@ -1,3 +1,6 @@
+// TODO: Phase 2.e follow-up — this hook uses WebSocket, not EventSource.
+// validatedEventStream only accepts EventSource. A future validatedSocket helper
+// would be needed to wrap wsRef.current.onmessage = handleWebSocketMessage here.
 import { getLocalStorage } from "@/utils/local-storage-util";
 
 export const useStartConversation = (

@@ -1,6 +1,11 @@
 /**
  * Hook for real-time webhook build events via Server-Sent Events (SSE).
  * Provides live build feedback when webhooks are triggered externally.
+ *
+ * TODO: Phase 2.e follow-up — this hook uses named SSE event types via addEventListener
+ * (vertices_sorted, build_start, end_vertex, end, error) rather than onmessage.
+ * validatedEventStream only wraps onmessage. A future validatedNamedEventStream helper
+ * that accepts a record of { eventName: schema } would be needed to cover these call sites.
  */
 
 import { useEffect, useMemo, useRef } from "react";

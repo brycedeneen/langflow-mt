@@ -1,4 +1,6 @@
 import { keepPreviousData } from "@tanstack/react-query";
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useQueryFunctionType } from "../../../../types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -16,11 +18,16 @@ export const useGetProfilePicturesQuery: useQueryFunctionType<
 
   const getProfilePicturesFn =
     async (): Promise<ProfilePicturesQueryResponse> => {
-      const response = await api.get<ProfilePicturesQueryResponse>(
-        `${getURL("FILES")}/profile_pictures/list`,
-      );
-
-      return response.data;
+      return await validatedQueryFn(
+        "api.files.list_profile_pictures_api_v1_files_profile_pictures_list_get",
+        z.unknown(),
+        async () =>
+          (
+            await api.get<ProfilePicturesQueryResponse>(
+              `${getURL("FILES")}/profile_pictures/list`,
+            )
+          ).data,
+      )() as ProfilePicturesQueryResponse;
     };
 
   const responseFn = async () => {

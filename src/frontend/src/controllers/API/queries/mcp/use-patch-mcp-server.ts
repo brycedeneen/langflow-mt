@@ -1,4 +1,6 @@
 import type { UseMutationResult } from "@tanstack/react-query";
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useMutationFunctionType } from "@/types/api";
 import type { MCPServerType } from "@/types/mcp";
 import { api } from "../../api";
@@ -39,10 +41,17 @@ export const usePatchMCPServer: useMutationFunctionType<
         payload.headers = body.headers;
       }
 
-      const res = await api.patch(
-        `${getURL("MCP_SERVERS", undefined, true)}/${body.name}`,
-        payload,
-      );
+      const res = await validatedQueryFn(
+        "api.mcp.update_server_endpoint_api_v2_mcp_servers__server_name__patch",
+        z.unknown(),
+        async () =>
+          (
+            await api.patch(
+              `${getURL("MCP_SERVERS", undefined, true)}/${body.name}`,
+              payload,
+            )
+          ).data,
+      )() as { message?: string };
 
       queryClient.setQueryData(
         ["useGetMCPServers"],
@@ -56,7 +65,7 @@ export const usePatchMCPServer: useMutationFunctionType<
       );
 
       return {
-        message: res.data?.message || "MCP Server patched successfully",
+        message: res?.message || "MCP Server patched successfully",
       };
     } catch (error: any) {
       // Transform the error to include a message that can be handled by the UI

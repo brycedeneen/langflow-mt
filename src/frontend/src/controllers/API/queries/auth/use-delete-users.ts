@@ -1,4 +1,6 @@
 import type { UseMutationResult } from "@tanstack/react-query";
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -15,8 +17,13 @@ export const useDeleteUsers: useMutationFunctionType<
   const { mutate } = UseRequestProcessor();
 
   const deleteMessage = async ({ user_id }: DeleteUserParams): Promise<any> => {
-    const res = await api.delete(`${getURL("USERS")}/${user_id}`);
-    return res.data;
+    const data = await validatedQueryFn(
+      "api.users.delete_user_api_v1_users__user_id__delete",
+      z.unknown(),
+      async () =>
+        (await api.delete<unknown>(`${getURL("USERS")}/${user_id}`)).data,
+    )();
+    return data;
   };
 
   const mutation: UseMutationResult<DeleteUserParams, any, DeleteUserParams> =

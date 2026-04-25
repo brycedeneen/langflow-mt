@@ -1,3 +1,5 @@
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -19,9 +21,16 @@ export const useRemoveMember: useMutationFunctionType<
     orgId,
     userId,
   }: RemoveMemberParams): Promise<void> => {
-    await api.delete(
-      `${getURL("ADMIN_ORGS")}/${orgId}/members/${userId}`,
-    );
+    await validatedQueryFn(
+      "api.admin.remove_member_api_v1_admin_organizations__org_id__members__user_id__delete",
+      z.unknown(),
+      async () =>
+        (
+          await api.delete<unknown>(
+            `${getURL("ADMIN_ORGS")}/${orgId}/members/${userId}`,
+          )
+        ).data,
+    )();
   };
 
   const mutation = mutate(["useRemoveMember"], removeMemberFn, {

@@ -1,4 +1,6 @@
 import type { UseMutationResult } from "@tanstack/react-query";
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -30,12 +32,19 @@ export const usePatchInstallMCP: useMutationFunctionType<
     body: PatchInstallMCPBody,
   ): Promise<PatchInstallMCPResponse> {
     try {
-      const res = await api.post(
-        `${getURL("MCP")}/${params.project_id}/install`,
-        body,
-      );
+      const res = await validatedQueryFn(
+        "api.mcp_projects.install_mcp_config_api_v1_mcp_project__project_id__install_post",
+        z.unknown(),
+        async () =>
+          (
+            await api.post(
+              `${getURL("MCP")}/${params.project_id}/install`,
+              body,
+            )
+          ).data,
+      )() as { message?: string };
 
-      return { message: res.data?.message || "MCP installed successfully" };
+      return { message: res?.message || "MCP installed successfully" };
     } catch (error: any) {
       // Transform the error to include a message that can be handled by the UI
       const errorMessage =

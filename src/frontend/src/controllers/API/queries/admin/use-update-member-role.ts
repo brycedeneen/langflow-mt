@@ -1,8 +1,10 @@
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { MemberRow as MemberRowSchema } from "@/schemas/api/_generated";
 import type { useMutationFunctionType } from "@/types/api";
+import type { z } from "zod";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
-import type { MemberRow } from "./types";
 
 interface UpdateMemberRoleParams {
   orgId: string;
@@ -13,7 +15,7 @@ interface UpdateMemberRoleParams {
 export const useUpdateMemberRole: useMutationFunctionType<
   undefined,
   UpdateMemberRoleParams,
-  MemberRow
+  z.infer<typeof MemberRowSchema>
 > = (options?) => {
   const { mutate, queryClient } = UseRequestProcessor();
 
@@ -21,11 +23,18 @@ export const useUpdateMemberRole: useMutationFunctionType<
     orgId,
     userId,
     role,
-  }: UpdateMemberRoleParams): Promise<MemberRow> => {
-    const { data } = await api.patch<MemberRow>(
-      `${getURL("ADMIN_ORGS")}/${orgId}/members/${userId}`,
-      { role },
-    );
+  }: UpdateMemberRoleParams): Promise<z.infer<typeof MemberRowSchema>> => {
+    const data = await validatedQueryFn(
+      "api.admin.patch_member_role_api_v1_admin_organizations__org_id__members__user_id__patch",
+      MemberRowSchema,
+      async () =>
+        (
+          await api.patch<unknown>(
+            `${getURL("ADMIN_ORGS")}/${orgId}/members/${userId}`,
+            { role },
+          )
+        ).data,
+    )();
     return data;
   };
 

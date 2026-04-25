@@ -1,20 +1,15 @@
 import type { UseQueryResult } from "@tanstack/react-query";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import {
+  SessionResponseSchema,
+  type SessionResponse,
+} from "@/schemas/app/internal/auth";
 import type { useQueryFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
 
-export interface SessionResponse {
-  authenticated: boolean;
-  user?: {
-    id: string;
-    username: string;
-    is_active: boolean;
-    is_superuser: boolean;
-    is_platform_admin: boolean;
-  };
-  store_api_key?: string;
-}
+export type { SessionResponse };
 
 export const useGetAuthSession: useQueryFunctionType<
   undefined,
@@ -22,16 +17,20 @@ export const useGetAuthSession: useQueryFunctionType<
 > = (options?) => {
   const { query } = UseRequestProcessor();
 
-  async function getAuthSessionFn(): Promise<SessionResponse> {
-    try {
-      const response = await api.get<SessionResponse>(getURL("SESSION"));
-      return response.data;
-    } catch (error) {
-      // If the endpoint fails, return unauthenticated
-      console.error("Session validation error:", error);
-      return { authenticated: false };
-    }
-  }
+  const getAuthSessionFn = validatedQueryFn(
+    "api.auth.getSession",
+    SessionResponseSchema,
+    async () => {
+      try {
+        const response = await api.get<unknown>(getURL("SESSION"));
+        return response.data;
+      } catch (error) {
+        // If the endpoint fails, return unauthenticated
+        console.error("Session validation error:", error);
+        return { authenticated: false };
+      }
+    },
+  );
 
   const queryResult: UseQueryResult<SessionResponse> = query(
     ["useGetAuthSession"],

@@ -1,8 +1,10 @@
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { OrgDeleteResult as OrgDeleteResultSchema } from "@/schemas/api/_generated";
 import type { useMutationFunctionType } from "@/types/api";
+import type { z } from "zod";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
-import type { OrgDeleteResult } from "./types";
 
 interface DeleteOrganizationParams {
   orgId: string;
@@ -12,18 +14,24 @@ interface DeleteOrganizationParams {
 export const useDeleteOrganization: useMutationFunctionType<
   undefined,
   DeleteOrganizationParams,
-  OrgDeleteResult
+  z.infer<typeof OrgDeleteResultSchema>
 > = (options?) => {
   const { mutate, queryClient } = UseRequestProcessor();
 
   const deleteOrganizationFn = async ({
     orgId,
     confirm_name,
-  }: DeleteOrganizationParams): Promise<OrgDeleteResult> => {
-    const { data } = await api.delete<OrgDeleteResult>(
-      `${getURL("ADMIN_ORGS")}/${orgId}`,
-      { data: { confirm_name } },
-    );
+  }: DeleteOrganizationParams): Promise<z.infer<typeof OrgDeleteResultSchema>> => {
+    const data = await validatedQueryFn(
+      "api.admin.delete_organization_api_v1_admin_organizations__org_id__delete",
+      OrgDeleteResultSchema,
+      async () =>
+        (
+          await api.delete<unknown>(`${getURL("ADMIN_ORGS")}/${orgId}`, {
+            data: { confirm_name },
+          })
+        ).data,
+    )();
     return data;
   };
 

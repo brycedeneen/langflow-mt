@@ -3,6 +3,9 @@ import { useGetFlowId } from "@/modals/IOModal/hooks/useGetFlowId";
 import useFlowStore from "@/stores/flowStore";
 import { useMessagesStore } from "@/stores/messagesStore";
 import { usePlaygroundStore } from "@/stores/playgroundStore";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { MessageRead } from "@/schemas/api/_generated";
+import { z } from "zod";
 import type { useMutationFunctionType } from "@/types/api";
 import type { Message } from "@/types/messages";
 import { api } from "../../api";
@@ -75,22 +78,29 @@ export const useUpdateSessionName: useMutationFunctionType<
         data: messagesWithNewSessionId,
       };
     } else {
-      const result = await api.patch(
-        `${getURL("MESSAGES")}/session/${data.old_session_id}`,
-        null,
-        {
-          params: { new_session_id: data.new_session_id },
-        },
-      );
+      const renamedMessages = await validatedQueryFn(
+        "api.monitor.update_session_id_api_v1_monitor_messages_session__old_session_id__patch",
+        z.array(MessageRead),
+        async () =>
+          (
+            await api.patch<unknown>(
+              `${getURL("MESSAGES")}/session/${data.old_session_id}`,
+              null,
+              {
+                params: { new_session_id: data.new_session_id },
+              },
+            )
+          ).data,
+      )();
 
       // Update React Query cache with the renamed messages
-      if (result.data && flowId) {
+      if (renamedMessages && flowId) {
         const newCacheKey = [
           "useGetMessagesQuery",
           { id: flowId, session_id: data.new_session_id },
         ];
 
-        queryClient.setQueryData(newCacheKey, result.data);
+        queryClient.setQueryData(newCacheKey, renamedMessages);
 
         // Remove old cache key
         const oldCacheKey = [
@@ -100,7 +110,7 @@ export const useUpdateSessionName: useMutationFunctionType<
         queryClient.removeQueries({ queryKey: oldCacheKey });
       }
 
-      return result.data;
+      return renamedMessages as unknown as Message[];
     }
   };
 

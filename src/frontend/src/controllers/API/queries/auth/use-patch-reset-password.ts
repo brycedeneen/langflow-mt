@@ -1,4 +1,6 @@
 import type { UseMutationResult } from "@tanstack/react-query";
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { resetPasswordType, useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -19,11 +21,18 @@ export const useResetPassword: useMutationFunctionType<
     user_id,
     password,
   }: resetPasswordParams): Promise<any> {
-    const res = await api.patch(
-      `${getURL("USERS")}/${user_id}/reset-password`,
-      password,
-    );
-    return res.data;
+    const data = await validatedQueryFn(
+      "api.users.reset_password_api_v1_users__user_id__reset_password_patch",
+      z.unknown(),
+      async () =>
+        (
+          await api.patch<unknown>(
+            `${getURL("USERS")}/${user_id}/reset-password`,
+            password,
+          )
+        ).data,
+    )();
+    return data;
   }
 
   const mutation: UseMutationResult<

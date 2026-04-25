@@ -1,3 +1,5 @@
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { ApiKeysResponseSchema } from "@/schemas/app/internal/api_key";
 import type { useQueryFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -27,14 +29,11 @@ export const useGetApiKeysQuery: useQueryFunctionType<
   const { query } = UseRequestProcessor();
 
   //@TODO: Request API key from DSLF endpoint
-  const getApiKeysFn = async () => {
-    return await api.get<IApiQueryResponse>(`${getURL("API_KEY")}/`);
-  };
-
-  const responseFn = async () => {
-    const { data } = await getApiKeysFn();
-    return data;
-  };
+  const responseFn = validatedQueryFn(
+    "api.api_key.list",
+    ApiKeysResponseSchema,
+    async () => (await api.get<unknown>(`${getURL("API_KEY")}/`)).data,
+  );
 
   const queryResult = query(["useGetApiKeysQuery"], responseFn, { ...options });
 
