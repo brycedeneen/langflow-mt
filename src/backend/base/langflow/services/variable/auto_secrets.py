@@ -183,30 +183,6 @@ async def promote_plaintext_secrets_to_variables(
     return flow_data
 
 
-async def _list_autosecret_paths(secret_store: SecretStore, base: str) -> list[str]:
-    """Walk a Vault-style two-level prefix and return absolute paths.
-
-    Bridges the two SecretStore contracts in play:
-      * InMemorySecretStore.list(prefix) returns full absolute keys (test backend).
-      * VaultSecretStore.list(prefix) returns next-level relative entries with a
-        trailing ``/`` for sub-directories (KV v2 LIST semantics).
-
-    Returns absolute paths suitable for ``secret_store.delete``.
-    """
-    out: list[str] = []
-    for entry in await secret_store.list(base):
-        if entry.startswith(base):
-            # InMemory contract: list returned a full absolute key.
-            out.append(entry)
-        elif entry.endswith("/"):
-            # Vault contract: sub-directory entry; recurse one level.
-            out.extend(await _list_autosecret_paths(secret_store, base + entry))
-        else:
-            # Vault contract: leaf entry under this prefix.
-            out.append(base + entry)
-    return out
-
-
 async def cleanup_orphaned_autosecrets(
     *,
     flow_data: dict,
@@ -223,12 +199,16 @@ async def cleanup_orphaned_autosecrets(
 
     base = f"{org_id}/flows/{flow_id}/autosecrets/"
     existing: set[tuple[str, str]] = set()
-    for path in await _list_autosecret_paths(secret_store, base):
-        suffix = path[len(base):]
-        node_id, _, field_name = suffix.partition("/")
-        if not node_id or not field_name:
+    for node_entry in await secret_store.list(base):
+        if not node_entry.endswith("/"):
+            # Defensive: leaf at node-id depth shouldn't exist; skip.
             continue
-        existing.add((node_id, field_name))
+        node_id = node_entry.rstrip("/")
+        for field_entry in await secret_store.list(f"{base}{node_id}/"):
+            if field_entry.endswith("/"):
+                # Defensive: sub-dir at field-name depth shouldn't exist; skip.
+                continue
+            existing.add((node_id, field_entry))
 
     current = {(node_id, field_name) for node_id, field_name, _ in _iter_promotable_fields(flow_data)}
 
@@ -249,8 +229,14 @@ async def delete_autosecrets_for_flow(
         return
 
     base = f"{org_id}/flows/{flow_id}/autosecrets/"
-    for path in await _list_autosecret_paths(secret_store, base):
-        await secret_store.delete(path)
+    for node_entry in await secret_store.list(base):
+        if not node_entry.endswith("/"):
+            continue
+        node_id = node_entry.rstrip("/")
+        for field_entry in await secret_store.list(f"{base}{node_id}/"):
+            if field_entry.endswith("/"):
+                continue
+            await secret_store.delete(f"{base}{node_id}/{field_entry}")
 
 
 def blank_autosecrets_for_export(flow_data: dict) -> dict:
