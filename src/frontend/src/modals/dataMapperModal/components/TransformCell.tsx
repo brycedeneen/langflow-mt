@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { InputDef, MappingEntry, SourceRef } from "@/modals/dataMapperModal/types";
 
 export interface TransformCellProps {
@@ -95,6 +95,18 @@ function StaticEditor({
 export function TransformCell({ mapping, inputs, onMappingChange }: TransformCellProps) {
   const { transform } = mapping;
 
+  // Per-row stable React keys for the "array" transform branch's source list.
+  // SourceRef is the wire format (mirrors a Python schema) so we can't add
+  // _id to the type — instead keep a parallel ids ref in lockstep with
+  // mapping.sources via the local add/remove handlers below.
+  const sourceIdsRef = useRef<string[]>([]);
+  while (sourceIdsRef.current.length < mapping.sources.length) {
+    sourceIdsRef.current.push(crypto.randomUUID());
+  }
+  if (sourceIdsRef.current.length > mapping.sources.length) {
+    sourceIdsRef.current = sourceIdsRef.current.slice(0, mapping.sources.length);
+  }
+
   if (transform === "direct") {
     const source = mapping.sources[0];
     return (
@@ -153,7 +165,10 @@ export function TransformCell({ mapping, inputs, onMappingChange }: TransformCel
     return (
       <div className="transform-cell-array">
         {mapping.sources.map((source, index) => (
-          <div key={index} className="array-source-row">
+          <div
+            key={sourceIdsRef.current[index] ?? `source-fallback-${index}`}
+            className="array-source-row"
+          >
             <SourcePicker
               source={source}
               inputs={inputs}
@@ -167,12 +182,15 @@ export function TransformCell({ mapping, inputs, onMappingChange }: TransformCel
             <button
               type="button"
               aria-label="Remove source"
-              onClick={() =>
+              onClick={() => {
+                sourceIdsRef.current = sourceIdsRef.current.filter(
+                  (_, i) => i !== index,
+                );
                 onMappingChange({
                   ...mapping,
                   sources: mapping.sources.filter((_, i) => i !== index),
-                })
-              }
+                });
+              }}
             >
               −
             </button>
@@ -180,12 +198,16 @@ export function TransformCell({ mapping, inputs, onMappingChange }: TransformCel
         ))}
         <button
           type="button"
-          onClick={() =>
+          onClick={() => {
+            sourceIdsRef.current = [
+              ...sourceIdsRef.current,
+              crypto.randomUUID(),
+            ];
             onMappingChange({
               ...mapping,
               sources: [...mapping.sources, { input: "", field: "" }],
-            })
-          }
+            });
+          }}
         >
           Add source
         </button>
