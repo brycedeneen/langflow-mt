@@ -31,7 +31,7 @@
 - Create: `src/frontend/src/modals/SaveAsTemplateModal/StripPanel.tsx`
 - Test: `src/frontend/src/modals/SaveAsTemplateModal/__tests__/StripPanel.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/__tests__/StripPanel.test.tsx`:
 
@@ -234,7 +234,7 @@ describe("StripPanel", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/StripPanel.test.tsx
@@ -242,7 +242,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTem
 
 Expected: FAIL with `Cannot find module '../StripPanel'`.
 
-- [ ] **Step 3: Implement `StripPanel.tsx`**
+- [x] **Step 3: Implement `StripPanel.tsx`**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/StripPanel.tsx`:
 
@@ -383,7 +383,7 @@ export default function StripPanel({
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/StripPanel.test.tsx
@@ -391,7 +391,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTem
 
 Expected: 10 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 > **STOP — ask the user for explicit approval before running this commit.**
 
@@ -408,7 +408,7 @@ git commit -m "feat(save-as-template): add StripPanel with per-field blank/keep 
 - Modify: `src/frontend/src/modals/SaveAsTemplateModal/index.tsx`
 - Modify: `src/frontend/src/modals/SaveAsTemplateModal/__tests__/SaveAsTemplateModal.test.tsx`
 
-- [ ] **Step 1: Add the failing integration tests**
+- [x] **Step 1: Add the failing integration tests**
 
 Append the following 3 tests to the existing `describe("SaveAsTemplateModal — submit wiring", …)` block in `src/frontend/src/modals/SaveAsTemplateModal/__tests__/SaveAsTemplateModal.test.tsx`. First, replace the `baseFlow()` fixture's single-credential body with a multi-credential, multi-component flow so the tests have something to toggle. Find the existing `baseFlow` definition (lines ~42-73) and replace it with:
 
@@ -566,7 +566,7 @@ Now append the 3 new tests at the end of the `describe` block, before its closin
   });
 ```
 
-- [ ] **Step 2: Run the integration tests to verify they fail**
+- [x] **Step 2: Run the integration tests to verify they fail**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/SaveAsTemplateModal.test.tsx
@@ -576,7 +576,7 @@ Expected: the 3 new tests fail because `IconPickerField`'s parent modal hasn't b
 
 If any of the unchanged tests fail, STOP and report — that means the fixture change broke something other than what we intended.
 
-- [ ] **Step 3: Modify `SaveAsTemplateModal/index.tsx`**
+- [x] **Step 3: Modify `SaveAsTemplateModal/index.tsx`**
 
 Edit `src/frontend/src/modals/SaveAsTemplateModal/index.tsx` with three coordinated changes.
 
@@ -699,7 +699,7 @@ export default function SaveAsTemplateModal({ open, onClose, flow }: Props) {
           />
 ```
 
-- [ ] **Step 4: Run the integration tests to verify they pass**
+- [x] **Step 4: Run the integration tests to verify they pass**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/SaveAsTemplateModal.test.tsx
@@ -707,7 +707,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTem
 
 Expected: all tests pass (4 pre-existing + 1 modified payload assertion + 3 new = 8 total in this file should pass; full SaveAsTemplateModal directory should be 50+ tests across 8 suites with no failures).
 
-- [ ] **Step 5: Run the full SaveAsTemplateModal directory**
+- [x] **Step 5: Run the full SaveAsTemplateModal directory**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTemplateModal
@@ -715,7 +715,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTem
 
 Expected: all suites pass — `lucideIconNames`, `useRecentIcons`, `filterIconNames`, `IconPickerField`, `GradientPickerField`, `scanBlankableFields`, `StripPanel`, `SaveAsTemplateModal`. No regressions.
 
-- [ ] **Step 6: Type-check the project (changed files only)**
+- [x] **Step 6: Type-check the project (changed files only)**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/src/frontend && npx tsc --noEmit -p tsconfig.json 2>&1 | grep -E "(SaveAsTemplateModal|StripPanel)" | head -20
@@ -723,11 +723,11 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npx tsc --noEmit -p tsconfig.
 
 Expected: no new errors involving the changed files. (Pre-existing repo-wide errors involving `toBeInTheDocument` etc. in `__tests__/` are out of scope.)
 
-- [ ] **Step 7: Manual smoke test**
+- [x] **Step 7: Manual smoke test**
 
 DO NOT do this yourself — the controller will run the manual smoke test before approving the commit. Skip Step 7 in your work; report back after Step 6 passes.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 > **STOP — ask the user for explicit approval before running this commit.**
 

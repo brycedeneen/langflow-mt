@@ -33,7 +33,7 @@
 - Create: `src/frontend/src/modals/SaveAsTemplateModal/formatRelativeTime.ts`
 - Test: `src/frontend/src/modals/SaveAsTemplateModal/__tests__/formatRelativeTime.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/__tests__/formatRelativeTime.test.ts`:
 
@@ -90,7 +90,7 @@ describe("formatRelativeTime", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/formatRelativeTime.test.ts
@@ -98,7 +98,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTem
 
 Expected: FAIL with `Cannot find module '../formatRelativeTime'`.
 
-- [ ] **Step 3: Implement `formatRelativeTime.ts`**
+- [x] **Step 3: Implement `formatRelativeTime.ts`**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/formatRelativeTime.ts`:
 
@@ -136,7 +136,7 @@ export function formatRelativeTime(
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/formatRelativeTime.test.ts
@@ -144,7 +144,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTem
 
 Expected: 6 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 > **STOP — ask the user for explicit approval before running this commit.**
 
@@ -161,7 +161,7 @@ git commit -m "feat(save-as-template): add formatRelativeTime helper"
 - Create: `src/frontend/src/modals/SaveAsTemplateModal/ConfirmOverwriteDialog.tsx`
 - Test: `src/frontend/src/modals/SaveAsTemplateModal/__tests__/ConfirmOverwriteDialog.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/__tests__/ConfirmOverwriteDialog.test.tsx`:
 
@@ -242,7 +242,7 @@ describe("ConfirmOverwriteDialog", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/ConfirmOverwriteDialog.test.tsx
@@ -250,7 +250,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTem
 
 Expected: FAIL with `Cannot find module '../ConfirmOverwriteDialog'`.
 
-- [ ] **Step 3: Implement `ConfirmOverwriteDialog.tsx`**
+- [x] **Step 3: Implement `ConfirmOverwriteDialog.tsx`**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/ConfirmOverwriteDialog.tsx`:
 
@@ -340,7 +340,7 @@ export default function ConfirmOverwriteDialog({
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/ConfirmOverwriteDialog.test.tsx
@@ -348,7 +348,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTem
 
 Expected: 9 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 > **STOP — ask the user for explicit approval before running this commit.**
 
@@ -365,7 +365,7 @@ git commit -m "feat(save-as-template): add ConfirmOverwriteDialog"
 - Modify: `src/frontend/src/modals/SaveAsTemplateModal/index.tsx`
 - Modify: `src/frontend/src/modals/SaveAsTemplateModal/__tests__/SaveAsTemplateModal.test.tsx`
 
-- [ ] **Step 1: Expand test mocks and add the failing integration tests**
+- [x] **Step 1: Expand test mocks and add the failing integration tests**
 
 In `src/frontend/src/modals/SaveAsTemplateModal/__tests__/SaveAsTemplateModal.test.tsx`, replace the existing `jest.mock("@/controllers/API/queries/templates", …)` block (currently mocks only `useCreateTemplate`) with:
 
@@ -542,7 +542,7 @@ Now append the following 4 tests at the end of the existing `describe("SaveAsTem
   });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/SaveAsTemplateModal.test.tsx
@@ -552,7 +552,7 @@ Expected: the 4 new tests fail (modal has no list-fetch wiring, no confirm dialo
 
 If any pre-existing test fails, STOP and report — the mock-block expansion may have broken something unintended.
 
-- [ ] **Step 3: Modify `SaveAsTemplateModal/index.tsx`**
+- [x] **Step 3: Modify `SaveAsTemplateModal/index.tsx`**
 
 Edit `src/frontend/src/modals/SaveAsTemplateModal/index.tsx` with four coordinated changes.
 
@@ -733,7 +733,7 @@ Update `submitting` to cover both mutations:
 
 The fallback `conflict?.name ?? ""` / `updated_at ?? new Date().toISOString()` only renders when `confirmOpen=false`, so the fallback values are never user-visible — they exist to satisfy the always-mounted Radix Dialog's prop requirements.
 
-- [ ] **Step 4: Run the integration tests to verify they pass**
+- [x] **Step 4: Run the integration tests to verify they pass**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/SaveAsTemplateModal.test.tsx
@@ -741,7 +741,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTem
 
 Expected: all tests pass (5 pre-existing + 4 new = 9 in this file).
 
-- [ ] **Step 5: Run the full SaveAsTemplateModal directory**
+- [x] **Step 5: Run the full SaveAsTemplateModal directory**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTemplateModal
@@ -749,7 +749,7 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npx jest src/modals/SaveAsTem
 
 Expected: all suites pass with no regressions. Full count should be roughly 76 (previous 61 + 6 formatRelativeTime + 9 ConfirmOverwriteDialog + 4 new SaveAsTemplateModal = 80; minor variance if jest counts differently — the number to watch is "no failures").
 
-- [ ] **Step 6: Type-check the changed files**
+- [x] **Step 6: Type-check the changed files**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/src/frontend && npx tsc --noEmit -p tsconfig.json 2>&1 | grep -E "(SaveAsTemplateModal/index|ConfirmOverwriteDialog|formatRelativeTime)" | head -20
@@ -757,11 +757,11 @@ cd /Users/brycedeneen/dev/langflow/src/frontend && npx tsc --noEmit -p tsconfig.
 
 Expected: no new errors in the changed files. Pre-existing `toBeInTheDocument`/`toBeChecked` errors in `__tests__/` are out of scope.
 
-- [ ] **Step 7: Manual smoke test**
+- [x] **Step 7: Manual smoke test**
 
 DO NOT do this yourself — the controller will run the manual smoke test before approving the commit. Skip.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 > **STOP — ask the user for explicit approval before running this commit.**
 

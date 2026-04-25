@@ -38,7 +38,7 @@
 - Create: `src/frontend/src/modals/SaveAsTemplateModal/iconPicker/lucideIconNames.ts`
 - Test: `src/frontend/src/modals/SaveAsTemplateModal/__tests__/lucideIconNames.test.ts`
 
-- [ ] **Step 1: Add dependencies**
+- [x] **Step 1: Add dependencies**
 
 In `src/frontend/package.json`, add `"react-window": "^1.8.10"` to `dependencies` and `"@types/react-window": "^1.8.8"` to `devDependencies` (alphabetical placement). Then install:
 
@@ -48,7 +48,7 @@ cd src/frontend && npm install
 
 Expected: `node_modules/react-window/` and `node_modules/@types/react-window/` exist after install. No other lockfile changes besides the two new entries and their transitive deps.
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/__tests__/lucideIconNames.test.ts`:
 
@@ -93,7 +93,7 @@ describe("LUCIDE_ICON_NAMES", () => {
 });
 ```
 
-- [ ] **Step 3: Run the test to verify it fails**
+- [x] **Step 3: Run the test to verify it fails**
 
 ```bash
 cd src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/lucideIconNames.test.ts
@@ -101,7 +101,7 @@ cd src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/lucideIconN
 
 Expected: FAIL with `Cannot find module '../iconPicker/lucideIconNames'`.
 
-- [ ] **Step 4: Implement `lucideIconNames.ts`**
+- [x] **Step 4: Implement `lucideIconNames.ts`**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/iconPicker/lucideIconNames.ts`:
 
@@ -123,7 +123,7 @@ export const LUCIDE_ICON_NAMES: string[] = Object.keys(dynamicIconImports)
   .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 ```bash
 cd src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/lucideIconNames.test.ts
@@ -131,7 +131,7 @@ cd src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/lucideIconN
 
 Expected: 6 tests pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 > **STOP — ask the user for explicit approval before running this commit.**
 
@@ -148,7 +148,7 @@ git commit -m "feat(icon-picker): add react-window dep + canonical lucide icon-n
 - Create: `src/frontend/src/modals/SaveAsTemplateModal/iconPicker/useRecentIcons.ts`
 - Test: `src/frontend/src/modals/SaveAsTemplateModal/__tests__/useRecentIcons.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/__tests__/useRecentIcons.test.ts`:
 
@@ -221,7 +221,7 @@ describe("useRecentIcons", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 ```bash
 cd src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/useRecentIcons.test.ts
@@ -229,7 +229,7 @@ cd src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/useRecentIc
 
 Expected: FAIL with `Cannot find module '../iconPicker/useRecentIcons'`.
 
-- [ ] **Step 3: Implement `useRecentIcons.ts`**
+- [x] **Step 3: Implement `useRecentIcons.ts`**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/iconPicker/useRecentIcons.ts`:
 
@@ -286,7 +286,7 @@ export function useRecentIcons(): {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 ```bash
 cd src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/useRecentIcons.test.ts
@@ -294,7 +294,7 @@ cd src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/useRecentIc
 
 Expected: 7 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 > **STOP — ask the user for explicit approval before running this commit.**
 
@@ -311,7 +311,7 @@ git commit -m "feat(icon-picker): add useRecentIcons localStorage-backed LRU hoo
 - Create: `src/frontend/src/modals/SaveAsTemplateModal/iconPicker/filterIconNames.ts`
 - Test: `src/frontend/src/modals/SaveAsTemplateModal/__tests__/filterIconNames.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/__tests__/filterIconNames.test.ts`:
 
@@ -351,7 +351,7 @@ describe("filterIconNames", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 ```bash
 cd src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/filterIconNames.test.ts
@@ -359,7 +359,7 @@ cd src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/filterIconN
 
 Expected: FAIL with `Cannot find module '../iconPicker/filterIconNames'`.
 
-- [ ] **Step 3: Implement `filterIconNames.ts`**
+- [x] **Step 3: Implement `filterIconNames.ts`**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/iconPicker/filterIconNames.ts`:
 
@@ -394,7 +394,7 @@ export function filterIconNames(names: string[], query: string): string[] {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 ```bash
 cd src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/filterIconNames.test.ts
@@ -402,7 +402,7 @@ cd src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/filterIconN
 
 Expected: 5 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 > **STOP — ask the user for explicit approval before running this commit.**
 
@@ -420,7 +420,7 @@ git commit -m "feat(icon-picker): add filterIconNames helper with starts-with bo
 
 > **Note:** `IconGrid` is exercised by Task 5's component tests through the `IconPickerField` integration. There is no standalone test file for it — `react-window`'s `FixedSizeGrid` measures DOM size, which jsdom returns as `0`, so a standalone test would render zero cells and have nothing meaningful to assert. The Task 5 test file mocks `react-window` so the grid behavior surfaces in the integrated tests.
 
-- [ ] **Step 1: Implement `IconGrid.tsx`**
+- [x] **Step 1: Implement `IconGrid.tsx`**
 
 Create `src/frontend/src/modals/SaveAsTemplateModal/iconPicker/IconGrid.tsx`:
 
@@ -565,7 +565,7 @@ export default function IconGrid({ names, selected, onSelect, autoFocus }: Props
 }
 ```
 
-- [ ] **Step 2: Type-check**
+- [x] **Step 2: Type-check**
 
 ```bash
 cd src/frontend && npx tsc --noEmit -p tsconfig.json
@@ -573,7 +573,7 @@ cd src/frontend && npx tsc --noEmit -p tsconfig.json
 
 Expected: no new type errors. (Pre-existing repo errors unrelated to these files are acceptable; investigate any error mentioning `iconPicker/IconGrid` or `react-window`.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 > **STOP — ask the user for explicit approval before running this commit.**
 
@@ -590,7 +590,7 @@ git commit -m "feat(icon-picker): add virtualized IconGrid with arrow-key nav"
 - Rewrite: `src/frontend/src/modals/SaveAsTemplateModal/IconPickerField.tsx`
 - Rewrite: `src/frontend/src/modals/SaveAsTemplateModal/__tests__/IconPickerField.test.tsx`
 
-- [ ] **Step 1: Write the failing test file**
+- [x] **Step 1: Write the failing test file**
 
 Replace the contents of `src/frontend/src/modals/SaveAsTemplateModal/__tests__/IconPickerField.test.tsx` with:
 
@@ -746,7 +746,7 @@ describe("IconPickerField", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 ```bash
 cd src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/IconPickerField.test.tsx
@@ -754,7 +754,7 @@ cd src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/IconPickerF
 
 Expected: FAILs because the current `IconPickerField` does not match the new expectations (new aria-label "Choose icon", recents region, empty-state text, etc.).
 
-- [ ] **Step 3: Rewrite `IconPickerField.tsx`**
+- [x] **Step 3: Rewrite `IconPickerField.tsx`**
 
 Replace the contents of `src/frontend/src/modals/SaveAsTemplateModal/IconPickerField.tsx` with:
 
@@ -876,7 +876,7 @@ export default function IconPickerField({ value, onChange }: Props) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 ```bash
 cd src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/IconPickerField.test.tsx
@@ -884,7 +884,7 @@ cd src/frontend && npx jest src/modals/SaveAsTemplateModal/__tests__/IconPickerF
 
 Expected: 9 tests pass.
 
-- [ ] **Step 5: Run the full SaveAsTemplateModal test directory to confirm no regression**
+- [x] **Step 5: Run the full SaveAsTemplateModal test directory to confirm no regression**
 
 ```bash
 cd src/frontend && npx jest src/modals/SaveAsTemplateModal
@@ -892,7 +892,7 @@ cd src/frontend && npx jest src/modals/SaveAsTemplateModal
 
 Expected: All tests pass across `lucideIconNames`, `useRecentIcons`, `filterIconNames`, `IconPickerField`, `GradientPickerField`, `scanBlankableFields`, and `SaveAsTemplateModal`.
 
-- [ ] **Step 6: Type-check the project**
+- [x] **Step 6: Type-check the project**
 
 ```bash
 cd src/frontend && npx tsc --noEmit -p tsconfig.json
@@ -900,7 +900,7 @@ cd src/frontend && npx tsc --noEmit -p tsconfig.json
 
 Expected: no new errors involving the changed files. (Pre-existing repo-wide errors are out of scope.)
 
-- [ ] **Step 7: Manual smoke test**
+- [x] **Step 7: Manual smoke test**
 
 Start the frontend dev server and exercise the picker in a browser:
 
@@ -924,7 +924,7 @@ Then in the running app:
 
 If any of these fail, file the issue and stop before committing.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 > **STOP — ask the user for explicit approval before running this commit.**
 
