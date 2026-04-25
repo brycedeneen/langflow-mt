@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs-button";
 import { testIdCase } from "@/utils/utils";
 import type { InputProps, TabComponentType } from "../../types";
 
-export default function TabComponent({
+function TabComponent({
   id,
   value,
   editNode,
@@ -65,3 +66,5 @@ export default function TabComponent({
     </div>
   );
 }
+
+export default memo(TabComponent, areInputPropsEqual);

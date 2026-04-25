@@ -1,6 +1,7 @@
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { getMinOrMaxValue } from "@/components/core/parameterRenderComponent/components/sliderComponent/helpers/get-min-max-value";
 import type { InputProps } from "@/components/core/parameterRenderComponent/types";
 import { Case } from "@/shared/components/caseComponent";
@@ -37,7 +38,7 @@ const DEFAULT_ACCENT_INDIGO_FOREGROUND_COLOR = "243 75% 59%";
 
 type ColorType = "background" | "text";
 
-export default function SliderComponent({
+function SliderComponent({
   value,
   disabled,
   rangeSpec,
@@ -324,3 +325,5 @@ export default function SliderComponent({
     </div>
   );
 }
+
+export default memo(SliderComponent, areInputPropsEqual);

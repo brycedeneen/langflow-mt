@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import {
   Tabs,
   TabsContent,
@@ -21,7 +22,7 @@ function softValidate(text: string): string {
   return "";
 }
 
-export default function TextFileSecretComponent({
+function TextFileSecretComponent({
   id,
   value,
   handleOnNewValue,
@@ -131,3 +132,5 @@ export default function TextFileSecretComponent({
     </div>
   );
 }
+
+export default memo(TextFileSecretComponent, areInputPropsEqual);

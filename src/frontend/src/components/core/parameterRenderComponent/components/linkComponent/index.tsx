@@ -1,3 +1,5 @@
+import { memo } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { customOpenNewTab } from "@/customization/utils/custom-open-new-tab";
 import { classNames } from "../../../../../utils/utils";
 import IconComponent from "../../../../common/genericIconComponent";
@@ -6,7 +8,7 @@ import type { InputProps, LinkComponentType } from "../../types";
 
 const DEFAULT_ICON = "ExternalLink";
 
-export default function LinkComponent({
+function LinkComponent({
   value,
   disabled = false,
   id = "",
@@ -54,3 +56,5 @@ export default function LinkComponent({
     </div>
   );
 }
+
+export default memo(LinkComponent, areInputPropsEqual);

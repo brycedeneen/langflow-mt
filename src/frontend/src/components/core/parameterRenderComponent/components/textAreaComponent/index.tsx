@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { customGetHostProtocol } from "@/customization/utils/custom-get-host-protocol";
 import { getCurlWebhookCode } from "@/modals/apiModal/utils/get-curl-code";
 import ComponentTextModal from "@/modals/textAreaModal";
@@ -33,7 +34,7 @@ const externalLinkIconClasses = {
   iconTop: "top-[-1.7rem]",
 };
 
-export default function TextAreaComponent({
+function TextAreaComponent({
   value,
   disabled,
   handleOnNewValue,
@@ -194,3 +195,5 @@ export default function TextAreaComponent({
     </div>
   );
 }
+
+export default memo(TextAreaComponent, areInputPropsEqual);

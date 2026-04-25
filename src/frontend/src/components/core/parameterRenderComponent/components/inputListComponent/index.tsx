@@ -1,5 +1,6 @@
 import _ from "lodash";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "../../../../../utils/utils";
@@ -9,7 +10,7 @@ import { ButtonInputList } from "./components/button-input-list";
 import { CursorInput } from "./components/cursor-input";
 import { DeleteButtonInputList } from "./components/delete-button-input-list";
 
-export default function InputListComponent({
+function InputListComponent({
   value = [""],
   handleOnNewValue,
   disabled,
@@ -168,3 +169,5 @@ export default function InputListComponent({
     </div>
   );
 }
+
+export default memo(InputListComponent, areInputPropsEqual);

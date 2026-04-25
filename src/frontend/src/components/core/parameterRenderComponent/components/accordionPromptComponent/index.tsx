@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,7 +46,7 @@ export const generateUniqueVariableName = (
   return variableName;
 };
 
-export default function AccordionPromptComponent({
+function AccordionPromptComponent({
   field_name,
   nodeClass,
   handleOnNewValue,
@@ -653,3 +654,5 @@ export default function AccordionPromptComponent({
     </div>
   );
 }
+
+export default memo(AccordionPromptComponent, areInputPropsEqual);

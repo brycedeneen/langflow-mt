@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
 import { useGetFilesV2 } from "@/controllers/API/queries/file-management";
 import { usePostUploadFile } from "@/controllers/API/queries/files/use-post-upload-file";
@@ -21,7 +22,7 @@ import { Button } from "../../../../ui/button";
 import { getPlaceholder } from "../../helpers/get-placeholder-disabled";
 import type { FileComponentType, InputProps } from "../../types";
 
-export default function InputFileComponent({
+function InputFileComponent({
   value,
   file_path,
   handleOnNewValue,
@@ -357,3 +358,5 @@ export default function InputFileComponent({
     </div>
   );
 }
+
+export default memo(InputFileComponent, areInputPropsEqual);

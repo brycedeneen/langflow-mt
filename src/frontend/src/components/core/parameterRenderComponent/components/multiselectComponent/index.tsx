@@ -1,5 +1,6 @@
 import Fuse from "fuse.js";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { cn } from "../../../../../utils/utils";
 import { default as ForwardedIconComponent } from "../../../../common/genericIconComponent";
 import ShadTooltip from "../../../../common/shadTooltipComponent";
@@ -19,7 +20,7 @@ import {
 } from "../../../../ui/popover";
 import type { InputProps, MultiselectComponentType } from "../../types";
 
-export default function MultiselectComponent({
+function MultiselectComponent({
   disabled,
   value,
   options: defaultOptions,
@@ -225,3 +226,5 @@ export default function MultiselectComponent({
     </Popover>
   );
 }
+
+export default memo(MultiselectComponent, areInputPropsEqual);

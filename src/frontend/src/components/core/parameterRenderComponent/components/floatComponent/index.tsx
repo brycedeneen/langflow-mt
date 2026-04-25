@@ -1,10 +1,11 @@
 import { MinusIcon, PlusIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { cn } from "@/utils/utils";
 import { handleKeyDown } from "../../../../../utils/reactflowUtils";
 import type { FloatComponentType, InputProps } from "../../types";
 
-export default function FloatComponent({
+function FloatComponent({
   value,
   handleOnNewValue,
   rangeSpec,
@@ -127,3 +128,5 @@ export default function FloatComponent({
     </div>
   );
 }
+
+export default memo(FloatComponent, areInputPropsEqual);

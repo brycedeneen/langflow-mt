@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { useGetGlobalVariables } from "@/controllers/API/queries/variables";
 import GeneralDeleteConfirmationModal from "@/shared/components/delete-confirmation-modal";
 import { cn } from "../../../../../utils/utils";
@@ -16,7 +17,7 @@ import {
 } from "./hooks";
 import type { GlobalVariable, GlobalVariableHandlers } from "./types";
 
-export default function InputGlobalComponent({
+function InputGlobalComponent({
   display_name,
   disabled,
   handleOnNewValue,
@@ -158,3 +159,5 @@ export default function InputGlobalComponent({
     />
   );
 }
+
+export default memo(InputGlobalComponent, areInputPropsEqual);

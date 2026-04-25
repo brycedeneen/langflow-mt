@@ -1,3 +1,5 @@
+import { memo } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import CodeAreaModal from "@/modals/codeAreaModal";
 import { useCustomComponentsAllowed } from "@/utils/customComponentGuards";
 import { cn } from "../../../../../utils/utils";
@@ -31,7 +33,7 @@ const externalLinkIconClasses = {
   normalTop: "top-2.5",
 };
 
-export default function CodeAreaComponent({
+function CodeAreaComponent({
   value,
   handleOnNewValue,
   disabled,
@@ -108,3 +110,5 @@ export default function CodeAreaComponent({
     </div>
   );
 }
+
+export default memo(CodeAreaComponent, areInputPropsEqual);

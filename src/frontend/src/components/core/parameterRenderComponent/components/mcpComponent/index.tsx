@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { useAddMCPServer } from "@/controllers/API/queries/mcp/use-add-mcp-server";
 import { useGetMCPServers } from "@/controllers/API/queries/mcp/use-get-mcp-servers";
 import AddMcpServerModal from "@/modals/addMcpServerModal";
@@ -9,7 +10,7 @@ import { default as ForwardedIconComponent } from "../../../../common/genericIco
 import { Button } from "../../../../ui/button";
 import type { InputProps } from "../../types";
 
-export default function McpComponent({
+function McpComponent({
   value,
   disabled,
   handleOnNewValue,
@@ -229,3 +230,5 @@ export default function McpComponent({
     </div>
   );
 }
+
+export default memo(McpComponent, areInputPropsEqual);

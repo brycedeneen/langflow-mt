@@ -1,5 +1,6 @@
 import { cloneDeep } from "lodash";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { Input } from "@/components/ui/input";
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
 import {
@@ -165,4 +166,4 @@ const KeypairListComponent = ({
   );
 };
 
-export default KeypairListComponent;
+export default memo(KeypairListComponent, areInputPropsEqual);

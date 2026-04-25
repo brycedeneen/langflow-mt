@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
 import {
   DropdownMenu,
@@ -74,4 +74,4 @@ const SearchBarComponent = ({
   );
 };
 
-export default SearchBarComponent;
+export default memo(SearchBarComponent);

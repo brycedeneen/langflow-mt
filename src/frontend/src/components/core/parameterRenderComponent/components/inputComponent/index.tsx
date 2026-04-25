@@ -1,5 +1,6 @@
 import * as Form from "@radix-ui/react-form";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { Input } from "@/components/ui/input";
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
@@ -10,7 +11,7 @@ import { getIconName } from "./components/helpers/get-icon-name";
 import CustomInputPopover from "./components/popover";
 import CustomInputPopoverObject from "./components/popoverObject";
 
-export default function InputComponent({
+function InputComponent({
   autoFocus = false,
   onBlur,
   value = "",
@@ -250,3 +251,5 @@ export default function InputComponent({
     </div>
   );
 }
+
+export default memo(InputComponent, areInputPropsEqual);

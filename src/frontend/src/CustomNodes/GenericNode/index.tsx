@@ -1,5 +1,4 @@
 import { useUpdateNodeInternals } from "@xyflow/react";
-import { cloneDeep } from "lodash";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useShallow } from "zustand/react/shallow";
@@ -306,30 +305,30 @@ function GenericNode({
       });
 
       setNode(data.id, (oldNode) => {
-        const newNode = cloneDeep(oldNode);
-        if (newNode.data.node?.outputs) {
-          newNode.data.node.outputs.forEach((out) => {
-            if (out.selected) {
-              out.selected = undefined;
-            }
-          });
+        const oldOutputs = oldNode.data.node?.outputs;
+        if (!oldOutputs) return oldNode;
 
-          const outputIndex = newNode.data.node.outputs.findIndex(
-            (o) => o.name === output.name,
-          );
-          if (outputIndex !== -1) {
-            const outputTypes = output.types || [];
-            const defaultType =
-              outputTypes.length > 0 ? outputTypes[0] : undefined;
-            newNode.data.node.outputs[outputIndex].selected =
-              output.selected ?? defaultType;
-          }
+        const targetIdx = oldOutputs.findIndex((o) => o.name === output.name);
+        const outputTypes = output.types || [];
+        const defaultType = outputTypes.length > 0 ? outputTypes[0] : undefined;
+        const newSelected = output.selected ?? defaultType;
 
-          const selectedOutput = newNode.data.node.outputs[outputIndex]?.name;
-          (newNode.data as NodeDataType).selected_output = selectedOutput;
-        }
+        const newOutputs = oldOutputs.map((out, i) => {
+          if (i === targetIdx) return { ...out, selected: newSelected };
+          if (out.selected) return { ...out, selected: undefined };
+          return out;
+        });
 
-        return newNode;
+        const selectedOutput = newOutputs[targetIdx]?.name;
+
+        return {
+          ...oldNode,
+          data: {
+            ...oldNode.data,
+            node: { ...oldNode.data.node!, outputs: newOutputs },
+            selected_output: selectedOutput,
+          } as NodeDataType,
+        };
       });
       updateNodeInternals(data.id);
     },

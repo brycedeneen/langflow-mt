@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { useShallow } from "zustand/react/shallow";
 import useFlowStore from "@/stores/flowStore";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
@@ -10,7 +11,7 @@ import { applyMappingSuggestion } from "@/modals/dataMapperModal/util/applyMappi
 import { EMPTY_MAPPER_CONFIG, type MapperConfig } from "@/modals/dataMapperModal/types";
 import type { InputProps } from "../../types";
 
-export default function MappingComponent({
+function MappingComponent({
   value,
   handleOnNewValue,
   nodeId,
@@ -188,3 +189,5 @@ export default function MappingComponent({
     </>
   );
 }
+
+export default memo(MappingComponent, areInputPropsEqual);

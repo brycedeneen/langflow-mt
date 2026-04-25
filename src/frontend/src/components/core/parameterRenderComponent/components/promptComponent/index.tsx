@@ -1,3 +1,5 @@
+import { memo } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import SanitizedHTMLWrapper from "@/components/common/sanitizedHTMLWrapper";
 import { regexHighlight } from "@/constants/constants";
@@ -14,7 +16,7 @@ const promptContentClasses = {
   disabled: "disabled-state",
 };
 
-export default function PromptAreaComponent({
+function PromptAreaComponent({
   field_name,
   nodeClass,
   handleOnNewValue,
@@ -127,3 +129,5 @@ export default function PromptAreaComponent({
     </div>
   );
 }
+
+export default memo(PromptAreaComponent, areInputPropsEqual);

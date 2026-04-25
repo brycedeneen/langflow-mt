@@ -1,8 +1,10 @@
+import { memo } from "react";
+import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import Dropdown from "../../../dropdownComponent";
 import type { DropDownComponentType, InputProps } from "../../types";
 import ToggleShadComponent from "../toggleShadComponent";
 
-export default function DropdownComponent({
+function DropdownComponent({
   id,
   value,
   editNode,
@@ -88,3 +90,5 @@ export default function DropdownComponent({
     </div>
   );
 }
+
+export default memo(DropdownComponent, areInputPropsEqual);

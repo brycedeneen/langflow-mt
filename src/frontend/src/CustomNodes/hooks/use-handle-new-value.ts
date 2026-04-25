@@ -1,5 +1,5 @@
 import { useUpdateNodeInternals } from "@xyflow/react";
-import { cloneDeep, debounce } from "lodash";
+import { debounce } from "lodash";
 import { useCallback, useMemo, useRef } from "react";
 import { DEBOUNCE_FIELD_LIST } from "@/constants/constants";
 import { usePostTemplateValue } from "@/controllers/API/queries/nodes/use-post-template-value";
@@ -10,22 +10,10 @@ import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import type { APIClassType, InputFieldType } from "@/types/api";
 import type { AllNodeType } from "@/types/flow";
 import { mutateTemplate } from "../helpers/mutate-template";
+import { applyTemplateChange } from "./applyTemplateChange";
 
 const DEBOUNCE_TIME_1_SECOND = 1000;
 
-// Must match ALL_OPERATION_FIELDS in data_operations.py
-const DATA_OPERATIONS_OPERATION_FIELDS = [
-  "select_keys_input",
-  "filter_key",
-  "operator",
-  "filter_values",
-  "append_update_data",
-  "remove_keys_input",
-  "rename_keys_input",
-  "mapped_json_display",
-  "selected_key",
-  "query",
-];
 
 export type handleOnNewValueType = (
   changes: Partial<InputFieldType>,
@@ -72,14 +60,10 @@ const useHandleOnNewValue = ({
     (newNode: APIClassType) => {
       setNode(
         nodeId,
-        (oldNode) => {
-          const newData = cloneDeep(oldNode.data);
-          newData.node = newNode;
-          return {
-            ...oldNode,
-            data: newData,
-          };
-        },
+        (oldNode) => ({
+          ...oldNode,
+          data: { ...oldNode.data, node: newNode },
+        }),
         true,
         () => {
           updateNodeInternals(nodeId);
@@ -93,9 +77,6 @@ const useHandleOnNewValue = ({
 
   const handleOnNewValue: handleOnNewValueType = useCallback(
     async (changes, options?) => {
-      const newNode = cloneDeep(node);
-      const template = newNode.template;
-
       // Debounced tracking
       track("Component Edited", { nodeId });
 
@@ -103,12 +84,12 @@ const useHandleOnNewValue = ({
         track("Database Selected", { nodeId, databaseName: changes.value });
       }
 
-      if (!template) {
+      if (!node.template) {
         setErrorData({ title: "Template not found in the component" });
         return;
       }
 
-      const parameter = template[name];
+      const parameter = node.template[name];
 
       if (!parameter) {
         setErrorData({ title: "Parameter not found in the template" });
@@ -121,30 +102,9 @@ const useHandleOnNewValue = ({
 
       if (!options?.skipSnapshot) takeSnapshot();
 
-      Object.entries(changes).forEach(([key, value]) => {
-        if (value !== undefined) parameter[key] = value;
-      });
+      const newNode = applyTemplateChange(node, name, changes);
 
-      // When Data Operations "operations" list is cleared, optimistically hide operation-specific fields
-      // so the UI updates immediately without waiting for the debounced API response
-      if (
-        name === "operations" &&
-        Array.isArray(changes.value) &&
-        changes.value.length === 0 &&
-        node.display_name === "Data Operations"
-      ) {
-        for (const field of DATA_OPERATIONS_OPERATION_FIELDS) {
-          if (
-            template[field] &&
-            typeof template[field] === "object" &&
-            "show" in template[field]
-          ) {
-            template[field].show = false;
-          }
-        }
-      }
-
-      const shouldUpdate = parameter.real_time_refresh;
+      const shouldUpdate = newNode.template[name].real_time_refresh;
 
       const setNodeClass = (newNodeClass: APIClassType) => {
         options?.setNodeClass?.(newNodeClass);

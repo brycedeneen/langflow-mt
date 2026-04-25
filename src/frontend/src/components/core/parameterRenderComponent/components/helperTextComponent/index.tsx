@@ -1,3 +1,4 @@
+import { memo } from "react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { cn } from "@/utils/utils";
 
@@ -33,4 +34,4 @@ const HelperTextComponent = ({
   );
 };
 
-export default HelperTextComponent;
+export default memo(HelperTextComponent);
