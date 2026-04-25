@@ -7,6 +7,9 @@ import pytest
 from lfx.constants import BASE_COMPONENTS_PATH
 from lfx.interface.components import aget_all_types_dict, import_langflow_components
 
+# Whole module is component-loader perf sweeps; opt out of default unit_tests run via -m 'not slow'.
+pytestmark = pytest.mark.slow
+
 
 class TestComponentLoading:
     """Test suite for comparing component loading methods performance and functionality."""

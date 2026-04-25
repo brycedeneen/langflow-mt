@@ -145,7 +145,10 @@ coverage: ## run the tests and generate a coverage report
 	@uv run coverage run
 	@uv run coverage erase
 
-unit_tests: ## run unit tests
+## Default marker filter for unit_tests. Override with `markers="..."` (e.g. markers="not api_key_required" to include slow).
+markers ?= not api_key_required and not slow
+
+unit_tests: ## run unit tests (excludes slow + api_key_required by default; override with markers="...")
 	@uv sync --frozen
 	@EXTRA_ARGS=""
 	@if [ "$(async)" = "true" ]; then \
@@ -161,12 +164,43 @@ unit_tests: ## run unit tests
 	--ignore=src/backend/tests/integration \
 	--ignore=src/backend/tests/unit/template \
 	$$EXTRA_ARGS \
-	--instafail -ra -m 'not api_key_required' \
+	--instafail -ra -m '$(markers)' \
 	--durations-path src/backend/tests/.test_durations \
 	--splitting-algorithm least_duration $(args)
 
 unit_tests_looponfail:
 	@make unit_tests args="-f"
+
+unit_tests_slow: ## run only the slow-marked unit tests (excluded from default unit_tests)
+	@uv run pytest src/backend/tests/unit \
+		--ignore=src/backend/tests/integration \
+		--ignore=src/backend/tests/unit/template \
+		--instafail -ra -m 'slow and not api_key_required' $(args)
+
+# ---- Area-targeted unit test runs ----
+# These scope pytest to a single subdirectory of src/backend/tests/unit so you
+# can iterate on one area without paying for the rest of the suite. Same marker
+# defaults as `unit_tests`; pass `markers="..."` to override.
+unit_tests_api: ## run unit tests under tests/unit/api
+	@uv run pytest src/backend/tests/unit/api --instafail -ra -m '$(markers)' $(args)
+
+unit_tests_components: ## run unit tests under tests/unit/components
+	@uv run pytest src/backend/tests/unit/components --instafail -ra -m '$(markers)' $(args)
+
+unit_tests_services: ## run unit tests under tests/unit/services
+	@uv run pytest src/backend/tests/unit/services --instafail -ra -m '$(markers)' $(args)
+
+unit_tests_base: ## run unit tests under tests/unit/base
+	@uv run pytest src/backend/tests/unit/base --instafail -ra -m '$(markers)' $(args)
+
+unit_tests_graph: ## run unit tests under tests/unit/graph
+	@uv run pytest src/backend/tests/unit/graph --instafail -ra -m '$(markers)' $(args)
+
+unit_tests_agentic: ## run unit tests under tests/unit/agentic
+	@uv run pytest src/backend/tests/unit/agentic --instafail -ra -m '$(markers)' $(args)
+
+unit_tests_utils: ## run unit tests under tests/unit/utils
+	@uv run pytest src/backend/tests/unit/utils --instafail -ra -m '$(markers)' $(args)
 
 lfx_tests: ## run lfx package unit tests
 	@echo 'Running LFX Package Tests...'
@@ -915,9 +949,27 @@ help_test: ## show testing commands
 	@echo "$(GREEN)═══════════════════════════════════════════════════════════════════$(NC)"
 	@echo ''
 	@echo "$(GREEN)Backend Unit Tests:$(NC)"
-	@echo "  $(GREEN)make unit_tests$(NC)          - Run backend unit tests"
+	@echo "  $(GREEN)make unit_tests$(NC)          - Run backend unit tests (excludes slow + api_key_required)"
 	@echo "  $(GREEN)make unit_tests_looponfail$(NC) - Run unit tests with loop on fail"
+	@echo "  $(GREEN)make unit_tests_slow$(NC)     - Run only the slow-marked unit tests"
 	@echo "  $(GREEN)make lfx_tests$(NC)           - Run LFX package tests"
+	@echo ''
+	@echo "$(GREEN)Area-Targeted Unit Tests (scope to one subdirectory):$(NC)"
+	@echo "  $(GREEN)make unit_tests_api$(NC)        - tests/unit/api"
+	@echo "  $(GREEN)make unit_tests_components$(NC) - tests/unit/components"
+	@echo "  $(GREEN)make unit_tests_services$(NC)   - tests/unit/services"
+	@echo "  $(GREEN)make unit_tests_base$(NC)       - tests/unit/base"
+	@echo "  $(GREEN)make unit_tests_graph$(NC)      - tests/unit/graph"
+	@echo "  $(GREEN)make unit_tests_agentic$(NC)    - tests/unit/agentic"
+	@echo "  $(GREEN)make unit_tests_utils$(NC)      - tests/unit/utils"
+	@echo ''
+	@echo "$(GREEN)Parallel/Chunked Runs (pytest-split):$(NC)"
+	@echo "  Use --splits N --group K to run a fraction of the suite (group K of N)."
+	@echo "  Splits are wallclock-balanced via the cached .test_durations file."
+	@echo "  Examples:"
+	@echo "    make unit_tests args=\"--splits 4 --group 1\"  # ~25% of the suite"
+	@echo "    make unit_tests args=\"-n auto\"               # parallelize across CPUs (xdist)"
+	@echo "    make unit_tests markers=\"not api_key_required\" # include slow tests"
 	@echo ''
 	@echo "$(GREEN)Backend Integration Tests:$(NC)"
 	@echo "  $(GREEN)make integration_tests$(NC)   - Run all integration tests"
