@@ -21,6 +21,11 @@ const useUpdateAllNodes = (
   const updateAllNodes = useCallback(
     (updates: UpdateNodesType[]) => {
       setNodes((oldNodes) => {
+        // TODO(perf): bulk path retains cloneDeep pending a dedicated refactor —
+        // rewriting to structural sharing is non-trivial because the function
+        // then mutates `newNodes[i].data.node.template[...]` in-place. See
+        // docs/superpowers/specs/2026-04-25-parameter-render-leaf-memoization-design.md
+        // (Section 2 — "use-update-all-nodes.ts — DEFER WITH TODO").
         const newNodes = cloneDeep(oldNodes);
 
         updates.forEach(({ nodeId, newNode, code, name, type }) => {
