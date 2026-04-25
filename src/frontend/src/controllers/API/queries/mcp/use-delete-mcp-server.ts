@@ -1,4 +1,6 @@
 import type { UseMutationResult } from "@tanstack/react-query";
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useMutationFunctionType } from "@/types/api";
 import type { MCPServerType } from "@/types/mcp";
 import { api } from "../../api";
@@ -24,12 +26,19 @@ export const useDeleteMCPServer: useMutationFunctionType<
     payload: MCPServerType,
   ): Promise<DeleteMCPServerResponse> {
     try {
-      const res = await api.delete(
-        `${getURL("MCP_SERVERS", undefined, true)}/${payload.name}`,
-      );
+      const res = await validatedQueryFn(
+        "api.mcp.delete_server_api_v2_mcp_servers__server_name__delete",
+        z.unknown(),
+        async () =>
+          (
+            await api.delete(
+              `${getURL("MCP_SERVERS", undefined, true)}/${payload.name}`,
+            )
+          ).data,
+      )() as { message?: string };
 
       return {
-        message: res.data?.message || "MCP Server deleted successfully",
+        message: res?.message || "MCP Server deleted successfully",
       };
     } catch (error: any) {
       // Transform the error to include a message that can be handled by the UI

@@ -1,5 +1,8 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import { getFetchCredentials } from "@/customization/utils/get-fetch-credentials";
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { langflow__api__schemas__UploadFileResponse } from "@/schemas/api/_generated";
 import type { useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -39,12 +42,17 @@ export const useDuplicateFileV2: useMutationFunctionType<
     const formData = new FormData();
     formData.append("file", file);
 
-    const uploadResponse = await api.post<any>(
-      `${getURL("FILE_MANAGEMENT", {}, true)}/`,
-      formData,
-    );
-
-    return uploadResponse.data;
+    return await validatedQueryFn(
+      "api.files.upload_user_file_api_v2_files__post",
+      langflow__api__schemas__UploadFileResponse,
+      async () =>
+        (
+          await api.post<any>(
+            `${getURL("FILE_MANAGEMENT", {}, true)}/`,
+            formData,
+          )
+        ).data,
+    )();
   };
 
   const mutation: UseMutationResult<any, any, void> = mutate(

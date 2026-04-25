@@ -1,3 +1,5 @@
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useQueryFunctionType } from "@/types/api";
 import type { MCPProjectResponseType } from "@/types/mcp";
 import { api } from "../../api";
@@ -18,10 +20,16 @@ export const useGetFlowsMCP: useQueryFunctionType<
 
   const responseFn = async () => {
     try {
-      const { data } = await api.get<getFlowsMCPResponse>(
-        `${getURL("MCP")}/${params.projectId}?mcp_enabled=false`,
-      );
-      return data;
+      return await validatedQueryFn(
+        "api.mcp_projects.list_project_tools_api_v1_mcp_project__project_id__get",
+        z.unknown(),
+        async () =>
+          (
+            await api.get<getFlowsMCPResponse>(
+              `${getURL("MCP")}/${params.projectId}?mcp_enabled=false`,
+            )
+          ).data,
+      )() as getFlowsMCPResponse;
     } catch (error) {
       console.error(error);
       return { tools: [], auth_settings: undefined };

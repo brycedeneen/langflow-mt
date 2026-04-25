@@ -1,4 +1,6 @@
 import { useEffect, useRef } from "react";
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useQueryFunctionType } from "@/types/api";
 import type { MCPServerInfoType } from "@/types/mcp";
 import { api } from "../../api";
@@ -21,9 +23,16 @@ export const useGetMCPServers: useQueryFunctionType<
   // First fetch: action_count=false (fast)
   const responseFn = async () => {
     try {
-      const { data } = await api.get<getMCPServersResponse>(
-        `${getURL("MCP_SERVERS", undefined, true)}?action_count=false`,
-      );
+      const data = await validatedQueryFn(
+        "api.mcp.get_servers_api_v2_mcp_servers_get",
+        z.array(z.unknown()),
+        async () =>
+          (
+            await api.get<getMCPServersResponse>(
+              `${getURL("MCP_SERVERS", undefined, true)}?action_count=false`,
+            )
+          ).data,
+      )() as getMCPServersResponse;
       // Merge with cached data to preserve non-null mode/toolsCount
       const cachedData = queryClient.getQueryData(["useGetMCPServers"]) as
         | getMCPServersResponse
@@ -55,10 +64,16 @@ export const useGetMCPServers: useQueryFunctionType<
   // Second fetch: action_count=true (slow, updates mode/toolsCount)
   const fetchWithCounts = async () => {
     try {
-      const { data } = await api.get<getMCPServersResponse>(
-        `${getURL("MCP_SERVERS", undefined, true)}?action_count=true`,
-      );
-      return data;
+      return await validatedQueryFn(
+        "api.mcp.get_servers_api_v2_mcp_servers_get",
+        z.array(z.unknown()),
+        async () =>
+          (
+            await api.get<getMCPServersResponse>(
+              `${getURL("MCP_SERVERS", undefined, true)}?action_count=true`,
+            )
+          ).data,
+      )() as getMCPServersResponse;
     } catch (error) {
       console.error(error);
       return [];

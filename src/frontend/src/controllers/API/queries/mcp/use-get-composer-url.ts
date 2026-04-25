@@ -1,3 +1,5 @@
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { ComposerUrlResponse } from "@/schemas/api/_generated";
 import type { useQueryFunctionType } from "@/types/api";
 import type { ComposerUrlResponseType } from "@/types/mcp";
 import { api } from "../../api";
@@ -16,10 +18,11 @@ export const useGetProjectComposerUrl: useQueryFunctionType<
 
   const responseFn = async (): Promise<ComposerUrlResponseType> => {
     try {
-      const response = await api.get(
-        `${getURL("MCP")}/${projectId}/composer-url`,
-      );
-      return response.data;
+      return await validatedQueryFn(
+        "api.mcp_projects.get_project_composer_url_api_v1_mcp_project__project_id__composer_url_get",
+        ComposerUrlResponse,
+        async () => (await api.get(`${getURL("MCP")}/${projectId}/composer-url`)).data,
+      )() as ComposerUrlResponseType;
     } catch (error) {
       console.error(error);
       throw error;
