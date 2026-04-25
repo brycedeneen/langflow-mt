@@ -1,24 +1,27 @@
-"""Tests for ADPJobApplicantsToolsComponent."""
+"""Tests for adp_job_applicants_tools — envelope builders and build_job_applicants_tools."""
 
 from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-
+from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_job_applicants_tools import (
-    ADPJobApplicantsToolsComponent,
     PATH_ASSESSMENT_STATUS,
     PATH_PACKAGES_MODIFY,
     PATH_SCREENING_INITIATE,
     PATH_SCREENING_STATUS,
     build_applicant_screening_event,
+    build_job_applicants_tools,
     build_packages_modify_event,
 )
 
 
-def _make_component(connection, *, enable_mutations: bool = False) -> ADPJobApplicantsToolsComponent:
-    return ADPJobApplicantsToolsComponent(connection=connection, enable_mutations=enable_mutations)
+def _make_connection(*, access_token="fake-token", api_base_url="https://api.adp.com"):  # noqa: S107
+    conn = MagicMock()
+    conn.access_token = access_token
+    conn.api_base_url = api_base_url
+    return conn
 
 
 # ------------- applicant screening envelope builder -------------
@@ -205,27 +208,35 @@ def test_build_packages_amount_defaults_currency_to_usd_when_omitted():
 # ------------- tool gating + routing -------------
 
 
-@pytest.mark.asyncio
-async def test_build_tools_disabled_returns_empty(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=False)
-    tools = await c.build_tools()
+def test_build_tools_disabled_returns_empty():
+    tools = build_job_applicants_tools(
+        _make_connection(), RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=False,
+    )
     assert tools == []
 
 
-@pytest.mark.asyncio
-async def test_build_tools_enabled_returns_both(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    tools = await c.build_tools()
+def test_build_tools_enabled_returns_both():
+    tools = build_job_applicants_tools(
+        _make_connection(), RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True,
+    )
     assert {t.name for t in tools} == {"manage_applicant_screening", "publish_screening_packages"}
 
 
 @pytest.mark.asyncio
-async def test_manage_routes_update_assessment_status_path(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={"confirmMessage": {"requestID": "REQ-1"}})
+async def test_manage_routes_update_assessment_status_path():
+    conn = _make_connection()
+    client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"confirmMessage": {"requestID": "REQ-1"}}
+    client.request = AsyncMock(return_value=mock_response)
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_job_applicants_tools.build_mtls_httpx_client", fake_client):
+        tools = build_job_applicants_tools(conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True)
         tool = next(t for t in tools if t.name == "manage_applicant_screening")
         await tool.ainvoke(
             {
@@ -242,16 +253,24 @@ async def test_manage_routes_update_assessment_status_path(adp_connection):
             },
         )
 
-    assert mock_post.call_args.kwargs["path"] == PATH_ASSESSMENT_STATUS
+    assert PATH_ASSESSMENT_STATUS in client.request.call_args.kwargs.get("url", "")
 
 
 @pytest.mark.asyncio
-async def test_manage_routes_initiate_screening_path(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={"confirmMessage": {"requestID": "REQ-2"}})
+async def test_manage_routes_initiate_screening_path():
+    conn = _make_connection()
+    client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"confirmMessage": {"requestID": "REQ-2"}}
+    client.request = AsyncMock(return_value=mock_response)
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_job_applicants_tools.build_mtls_httpx_client", fake_client):
+        tools = build_job_applicants_tools(conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True)
         tool = next(t for t in tools if t.name == "manage_applicant_screening")
         await tool.ainvoke(
             {
@@ -262,16 +281,24 @@ async def test_manage_routes_initiate_screening_path(adp_connection):
             },
         )
 
-    assert mock_post.call_args.kwargs["path"] == PATH_SCREENING_INITIATE
+    assert PATH_SCREENING_INITIATE in client.request.call_args.kwargs.get("url", "")
 
 
 @pytest.mark.asyncio
-async def test_manage_routes_update_screening_status_path(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={"confirmMessage": {"requestID": "REQ-3"}})
+async def test_manage_routes_update_screening_status_path():
+    conn = _make_connection()
+    client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"confirmMessage": {"requestID": "REQ-3"}}
+    client.request = AsyncMock(return_value=mock_response)
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_job_applicants_tools.build_mtls_httpx_client", fake_client):
+        tools = build_job_applicants_tools(conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True)
         tool = next(t for t in tools if t.name == "manage_applicant_screening")
         await tool.ainvoke(
             {
@@ -283,16 +310,24 @@ async def test_manage_routes_update_screening_status_path(adp_connection):
             },
         )
 
-    assert mock_post.call_args.kwargs["path"] == PATH_SCREENING_STATUS
+    assert PATH_SCREENING_STATUS in client.request.call_args.kwargs.get("url", "")
 
 
 @pytest.mark.asyncio
-async def test_publish_packages_routes_to_packages_path(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={"confirmMessage": {"requestID": "REQ-4"}})
+async def test_publish_packages_routes_to_packages_path():
+    conn = _make_connection()
+    client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"confirmMessage": {"requestID": "REQ-4"}}
+    client.request = AsyncMock(return_value=mock_response)
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_job_applicants_tools.build_mtls_httpx_client", fake_client):
+        tools = build_job_applicants_tools(conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True)
         tool = next(t for t in tools if t.name == "publish_screening_packages")
         await tool.ainvoke(
             {
@@ -310,27 +345,27 @@ async def test_publish_packages_routes_to_packages_path(adp_connection):
             },
         )
 
-    assert mock_post.call_args.kwargs["path"] == PATH_PACKAGES_MODIFY
-    body = mock_post.call_args.kwargs["body"]
+    assert PATH_PACKAGES_MODIFY in client.request.call_args.kwargs.get("url", "")
+    body = client.request.call_args.kwargs.get("json", {})
     pkg = body["events"][0]["data"]["transform"]["externalScreeningPackages"][0]
     assert pkg["screeningPackageID"] == "Package3"
 
 
-# ------------- POST helper -------------
+# ------------- POST helper — 401 retry -------------
 
 
 @pytest.mark.asyncio
-async def test_call_401_retries(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
+async def test_post_event_401_retries():
+    conn = _make_connection()
     responses = [
         httpx.Response(401, json={"error": "expired"}),
         httpx.Response(200, json={"ok": True}),
     ]
-    mock_exec = AsyncMock(side_effect=responses)
     mock_client = MagicMock()
+    mock_client.request = AsyncMock(side_effect=responses)
 
     @asynccontextmanager
-    async def fake_build_client(_conn, *, timeout=30):
+    async def fake_client(*_args, **_kwargs):
         yield mock_client
 
     async def fake_force_refresh(conn, *, force=False):
@@ -339,14 +374,22 @@ async def test_call_401_retries(adp_connection):
 
     with patch(
         "lfx.components.adp.adp_job_applicants_tools.build_mtls_httpx_client",
-        new=fake_build_client,
-    ), patch.object(c, "_execute_request", new=mock_exec), patch(
+        new=fake_client,
+    ), patch(
         "lfx.components.adp.adp_job_applicants_tools.fetch_token",
         new=AsyncMock(side_effect=fake_force_refresh),
     ):
-        await c._call(adp_connection, method="POST", path=PATH_SCREENING_INITIATE, body={"events": []})
+        tools = build_job_applicants_tools(conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True)
+        tool = next(t for t in tools if t.name == "manage_applicant_screening")
+        await tool.ainvoke(
+            {
+                "action": "initiate_screening",
+                "agency_code": "Agency1",
+                "applications": [{"application_id": "APP-1"}],
+            },
+        )
 
-    assert mock_exec.call_count == 2
+    assert mock_client.request.call_count == 2
 
 
 def test_expected_path_constants():

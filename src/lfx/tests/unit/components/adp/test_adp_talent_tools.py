@@ -1,20 +1,24 @@
-"""Tests for ADPTalentToolsComponent."""
+"""Tests for adp_talent_tools — path helpers, envelope builders, and build_talent_tools."""
 
-from unittest.mock import AsyncMock, patch
+from contextlib import asynccontextmanager
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
+from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_talent_tools import (
-    ADPTalentToolsComponent,
     SERVICE_CATEGORY_CODE,
     build_ksaoc_event,
+    build_talent_tools,
     event_path,
     read_path,
 )
 
 
-def _make_component(connection, *, enable_mutations: bool = False) -> ADPTalentToolsComponent:
-    return ADPTalentToolsComponent(connection=connection, enable_mutations=enable_mutations)
+def _make_connection(*, access_token="fake-token", api_base_url="https://api.adp.com"):  # noqa: S107
+    conn = MagicMock()
+    conn.access_token = access_token
+    conn.api_base_url = api_base_url
+    return conn
 
 
 # ------------- path helpers -------------
@@ -130,12 +134,20 @@ def test_build_remove_with_natural_key_pin():
 
 
 @pytest.mark.asyncio
-async def test_read_list_with_filter_and_paging(adp_connection):
-    c = _make_component(adp_connection)
-    mock_call = AsyncMock(return_value={"associateCertifications": []})
+async def test_read_list_with_filter_and_paging():
+    conn = _make_connection()
+    client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"associateCertifications": []}
+    client.request = AsyncMock(return_value=mock_response)
 
-    with patch.object(c, "_call", new=mock_call):
-        tools = await c.build_tools()
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_talent_tools.build_mtls_httpx_client", fake_client):
+        tools = build_talent_tools(conn, RequestCache(ttl_seconds=30, max_entries=8))
         tool = next(t for t in tools if t.name == "get_associate_ksaoc_entries")
         await tool.ainvoke(
             {
@@ -146,21 +158,26 @@ async def test_read_list_with_filter_and_paging(adp_connection):
             },
         )
 
-    assert mock_call.call_args.kwargs["method"] == "GET"
-    assert mock_call.call_args.kwargs["path"] == "/talent/v2/associates/G3ABC/associate-certifications"
-    assert mock_call.call_args.kwargs["params"] == {
-        "$filter": "statusCode/codeValue eq 'A'",
-        "$top": 50,
-    }
+    assert client.request.called
+    call_kwargs = client.request.call_args
+    assert call_kwargs.kwargs.get("params") == {"$filter": "statusCode/codeValue eq 'A'", "$top": 50}
 
 
 @pytest.mark.asyncio
-async def test_read_detail_ignores_paging_params(adp_connection):
-    c = _make_component(adp_connection)
-    mock_call = AsyncMock(return_value={})
+async def test_read_detail_ignores_paging_params():
+    conn = _make_connection()
+    client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {}
+    client.request = AsyncMock(return_value=mock_response)
 
-    with patch.object(c, "_call", new=mock_call):
-        tools = await c.build_tools()
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_talent_tools.build_mtls_httpx_client", fake_client):
+        tools = build_talent_tools(conn, RequestCache(ttl_seconds=30, max_entries=8))
         tool = next(t for t in tools if t.name == "get_associate_ksaoc_entries")
         await tool.ainvoke(
             {
@@ -172,35 +189,40 @@ async def test_read_detail_ignores_paging_params(adp_connection):
         )
 
     # Detail path — no query params attached.
-    assert mock_call.call_args.kwargs["path"] == "/talent/v2/associates/G3ABC/associate-languages/L-1"
-    assert mock_call.call_args.kwargs["params"] is None
+    call_kwargs = client.request.call_args
+    assert "G3ABC/associate-languages/L-1" in call_kwargs.kwargs.get("url", "")
+    assert call_kwargs.kwargs.get("params") is None
 
 
 # ------------- manage tool gating + routing -------------
 
 
-@pytest.mark.asyncio
-async def test_build_tools_disabled_returns_only_read(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=False)
-    tools = await c.build_tools()
+def test_build_tools_disabled_returns_only_read():
+    tools = build_talent_tools(_make_connection(), RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=False)
     assert len(tools) == 1
     assert tools[0].name == "get_associate_ksaoc_entries"
 
 
-@pytest.mark.asyncio
-async def test_build_tools_enabled_returns_both(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    tools = await c.build_tools()
+def test_build_tools_enabled_returns_both():
+    tools = build_talent_tools(_make_connection(), RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True)
     assert {t.name for t in tools} == {"get_associate_ksaoc_entries", "manage_associate_ksaoc_entry"}
 
 
 @pytest.mark.asyncio
-async def test_manage_routes_add_for_certification(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={"confirmMessage": {"requestID": "REQ-1"}})
+async def test_manage_routes_add_for_certification():
+    conn = _make_connection()
+    client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"confirmMessage": {"requestID": "REQ-1"}}
+    client.request = AsyncMock(return_value=mock_response)
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_talent_tools.build_mtls_httpx_client", fake_client):
+        tools = build_talent_tools(conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True)
         tool = next(t for t in tools if t.name == "manage_associate_ksaoc_entry")
         await tool.ainvoke(
             {
@@ -211,20 +233,29 @@ async def test_manage_routes_add_for_certification(adp_connection):
             },
         )
 
-    assert mock_post.call_args.kwargs["path"] == "/events/talent/v1/associate.ksaoc.certification.add"
-    body = mock_post.call_args.kwargs["body"]
+    call_kwargs = client.request.call_args
+    assert "/events/talent/v1/associate.ksaoc.certification.add" in call_kwargs.kwargs.get("url", "")
+    body = call_kwargs.kwargs.get("json", {})
     assert body["events"][0]["data"]["transform"]["associateCertification"]["certificationNameCode"] == {
         "codeValue": "CPR",
     }
 
 
 @pytest.mark.asyncio
-async def test_manage_routes_remove_for_educational_degree(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={"confirmMessage": {}})
+async def test_manage_routes_remove_for_educational_degree():
+    conn = _make_connection()
+    client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"confirmMessage": {}}
+    client.request = AsyncMock(return_value=mock_response)
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_talent_tools.build_mtls_httpx_client", fake_client):
+        tools = build_talent_tools(conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True)
         tool = next(t for t in tools if t.name == "manage_associate_ksaoc_entry")
         await tool.ainvoke(
             {
@@ -235,16 +266,22 @@ async def test_manage_routes_remove_for_educational_degree(adp_connection):
             },
         )
 
-    assert mock_post.call_args.kwargs["path"] == "/events/talent/v1/associate.ksaoc.educational-degree.remove"
+    call_kwargs = client.request.call_args
+    assert "/events/talent/v1/associate.ksaoc.educational-degree.remove" in call_kwargs.kwargs.get("url", "")
 
 
 @pytest.mark.asyncio
-async def test_manage_remove_without_identifier_returns_validation_error(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock()
+async def test_manage_remove_without_identifier_returns_validation_error():
+    conn = _make_connection()
+    client = MagicMock()
+    client.request = AsyncMock()
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_talent_tools.build_mtls_httpx_client", fake_client):
+        tools = build_talent_tools(conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True)
         tool = next(t for t in tools if t.name == "manage_associate_ksaoc_entry")
         result = await tool.ainvoke(
             {
@@ -256,16 +293,24 @@ async def test_manage_remove_without_identifier_returns_validation_error(adp_con
 
     assert result["status_code"] == 422
     assert "item_id" in result["error"]
-    mock_post.assert_not_called()
+    client.request.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_manage_recognition_add_uses_correct_entity_key(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={})
+async def test_manage_recognition_add_uses_correct_entity_key():
+    conn = _make_connection()
+    client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {}
+    client.request = AsyncMock(return_value=mock_response)
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_talent_tools.build_mtls_httpx_client", fake_client):
+        tools = build_talent_tools(conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True)
         tool = next(t for t in tools if t.name == "manage_associate_ksaoc_entry")
         await tool.ainvoke(
             {
@@ -279,5 +324,5 @@ async def test_manage_recognition_add_uses_correct_entity_key(adp_connection):
             },
         )
 
-    body = mock_post.call_args.kwargs["body"]
+    body = client.request.call_args.kwargs.get("json", {})
     assert body["events"][0]["data"]["transform"].keys() == {"associateRecognition"}

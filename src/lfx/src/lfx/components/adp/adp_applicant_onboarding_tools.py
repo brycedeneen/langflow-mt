@@ -1,4 +1,4 @@
-"""ADPApplicantOnboardingToolsComponent — start applicant onboarding.
+"""ADP applicant onboarding tools — module-level builder.
 
 Backs the ADP WFN `applicant-onboarding v2` tile. Wraps POST
 `/hcm/v2/applicant.onboard` (both `inprogress` and `complete` statuses) as a
@@ -10,20 +10,21 @@ Gated behind `enable_mutations` — this creates a real applicant record.
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, Literal
+from typing import Any, Literal
 
-import httpx
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
-from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
-from lfx.custom.custom_component.changelog import ChangelogEntry
-from lfx.custom.custom_component.component import Component
-from lfx.field_typing import Tool
-from lfx.io import BoolInput, HandleInput, Output
-
-HTTP_UNAUTHORIZED = 401
-HTTP_CLIENT_ERROR_MIN = 400
+from lfx.components.adp._shared import (
+    HTTP_CLIENT_ERROR_MIN,
+    HTTP_UNAUTHORIZED,
+    ADPConnection,
+    RequestCache,
+    build_mtls_httpx_client,
+    fetch_token,
+    validate_adp_url,
+)
+from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
 PATH_APPLICANT_ONBOARD = "/hcm/v2/applicant.onboard"
 
@@ -276,7 +277,10 @@ def build_applicant_onboarding_body(
 
 class InitiateApplicantOnboardingInput(BaseModel):
     onboarding_template_code: str = Field(
-        description="ADP onboarding template code (e.g. '9200525655723_1'). Template implies US/CA unless country_code is set.",
+        description=(
+            "ADP onboarding template code (e.g. '9200525655723_1'). "
+            "Template implies US/CA unless country_code is set."
+        ),
     )
     status: Literal["inprogress", "complete"] = Field(
         description="'inprogress' to start an onboarding that will be finished later; 'complete' for a full hire.",
@@ -286,7 +290,10 @@ class InitiateApplicantOnboardingInput(BaseModel):
     hire_date: str = Field(description="Hire date (YYYY-MM-DD).")
     country_code: str | None = Field(
         default=None,
-        description="ISO country code (e.g. 'FR', 'DE'). Required for International templates; omit for US/CA (template implies it).",
+        description=(
+            "ISO country code (e.g. 'FR', 'DE'). Required for International templates; "
+            "omit for US/CA (template implies it)."
+        ),
     )
     pre_hire: bool | None = Field(
         default=None,
@@ -352,118 +359,69 @@ class InitiateApplicantOnboardingInput(BaseModel):
     )
 
 
-class ADPApplicantOnboardingToolsComponent(Component):
-    display_name = "ADP Applicant Onboarding Tools"
-    description = (
-        "Applicant-onboarding tool for Langflow Agents, backing ADP WFN "
-        "`applicant-onboarding v2`. One tool — `initiate_applicant_onboarding` — "
-        "wraps POST /hcm/v2/applicant.onboard with narrow structured args spanning "
-        "US/CA/International templates plus `additional_fields` for tax profile, "
-        "workers-comp, custom fields, and state-specific extensions. "
-        "Gated behind `enable_mutations`."
-    )
-    icon = "UserRoundPlus"
-    name = "ADPApplicantOnboardingTools"
-    version: int = 1
-    changelog: ClassVar[list[ChangelogEntry]] = [
-        ChangelogEntry(
-            version=1,
-            changes=(
-                "Initial release — 1 agent tool for ADP WFN applicant-onboarding v2: "
-                "`initiate_applicant_onboarding` supports both `inprogress` and `complete` "
-                "statuses across US/CA/International templates, with ~25 narrow structured "
-                "args + `additional_fields` escape hatch. Gated behind `enable_mutations` "
-                "(default off)."
-            ),
-        ),
-    ]
+async def _post_onboarding(conn: ADPConnection, body: dict[str, Any]) -> dict[str, Any]:
+    url = f"{conn.api_base_url}{PATH_APPLICANT_ONBOARD}"
+    validate_adp_url(url, field_name="api_base_url")
+    headers = {"Authorization": f"Bearer {conn.access_token}"}
 
-    inputs = [
-        HandleInput(
-            name="connection",
-            display_name="ADP Connection",
-            input_types=["ADPConnection"],
-            info="Connection produced by an ADP Auth component.",
-            required=True,
-        ),
-        BoolInput(
-            name="enable_mutations",
-            display_name="Enable Mutations",
-            info=(
-                "Expose `initiate_applicant_onboarding`. Off by default — creating an "
-                "applicant record kicks off hire paperwork and payroll."
-            ),
-            value=False,
-        ),
-    ]
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
+        response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+        if response.status_code == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
 
-    outputs = [
-        Output(display_name="Tools", name="tools", method="build_tools"),
-    ]
-
-    async def _execute_request(
-        self,
-        client: httpx.AsyncClient,
-        *,
-        url: str,
-        headers: dict[str, str],
-        json_body: dict[str, Any],
-        timeout: float,
-    ) -> httpx.Response:
-        return await client.request(
-            method="POST", url=url, headers=headers, json=json_body, timeout=timeout,
-        )
-
-    async def _post_onboarding(self, conn: ADPConnection, body: dict[str, Any]) -> dict[str, Any]:
-        url = f"{conn.api_base_url}{PATH_APPLICANT_ONBOARD}"
-        validate_adp_url(url, field_name="api_base_url")
-        headers = {"Authorization": f"Bearer {conn.access_token}"}
-
-        async with build_mtls_httpx_client(conn, timeout=30.0) as client:
-            response = await self._execute_request(
-                client, url=url, headers=headers, json_body=body, timeout=30.0,
-            )
-            if response.status_code == HTTP_UNAUTHORIZED:
-                await fetch_token(conn, force=True)
-                headers["Authorization"] = f"Bearer {conn.access_token}"
-                response = await self._execute_request(
-                    client, url=url, headers=headers, json_body=body, timeout=30.0,
-                )
-
-        if response.status_code >= HTTP_CLIENT_ERROR_MIN:
-            try:
-                detail = response.json()
-            except ValueError:
-                detail = response.text
-            return {"error": detail, "status_code": response.status_code}
+    if response.status_code >= HTTP_CLIENT_ERROR_MIN:
         try:
-            return response.json()
+            detail = response.json()
         except ValueError:
-            return {"ok": True, "status_code": response.status_code}
+            detail = response.text
+        return {"error": detail, "status_code": response.status_code}
+    try:
+        return response.json()
+    except ValueError:
+        return {"ok": True, "status_code": response.status_code}
 
-    async def build_tools(self) -> list[Tool]:
-        if not self.enable_mutations:
-            return []
 
-        conn: ADPConnection = self.connection
-        component = self
+def build_applicant_onboarding_tools(
+    connection: ADPConnection,
+    request_cache: RequestCache,  # noqa: ARG001 — accepted for registry uniformity; unused for writes
+    *,
+    enable_mutations: bool = False,
+) -> list[Tool]:
+    """Build ADP applicant onboarding tools.
 
-        async def _initiate_applicant_onboarding(**kw: Any) -> dict[str, Any]:
-            body = build_applicant_onboarding_body(**kw)
-            return await component._post_onboarding(conn, body)
+    Returns up to 1 StructuredTool for initiating applicant onboarding.
+    Gated behind enable_mutations. Writes never consult the request_cache.
+    """
+    if not enable_mutations:
+        return []
 
-        return [
-            StructuredTool.from_function(
-                name="initiate_applicant_onboarding",
-                description=(
-                    "Start applicant onboarding in ADP. Supports both `inprogress` "
-                    "(minimal fields — finish later in ADP UI) and `complete` (full hire). "
-                    "Required: onboarding_template_code, status, first_name, last_name, "
-                    "hire_date. Optional fields cover personal, address, work, payroll, "
-                    "and US I-9 data. Use `additional_fields` to pass tax profile, "
-                    "workers-comp, custom fields, or state-specific extensions."
-                ),
-                coroutine=_initiate_applicant_onboarding,
-                args_schema=InitiateApplicantOnboardingInput,
+    conn = connection
+
+    async def _initiate_applicant_onboarding(**kw: Any) -> dict[str, Any]:
+        body = build_applicant_onboarding_body(**kw)
+        return await _post_onboarding(conn, body)
+
+    return [
+        StructuredTool.from_function(
+            name="initiate_applicant_onboarding",
+            description=(
+                "Start applicant onboarding in ADP. Supports both `inprogress` "
+                "(minimal fields — finish later in ADP UI) and `complete` (full hire). "
+                "Required: onboarding_template_code, status, first_name, last_name, "
+                "hire_date. Optional fields cover personal, address, work, payroll, "
+                "and US I-9 data. Use `additional_fields` to pass tax profile, "
+                "workers-comp, custom fields, or state-specific extensions."
             ),
-        ]
+            coroutine=_initiate_applicant_onboarding,
+            args_schema=InitiateApplicantOnboardingInput,
+        ),
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Back-compat stub — preserved for __init__.py / test_bundle_init.py imports.
+# ---------------------------------------------------------------------------
+class ADPApplicantOnboardingToolsComponent:
+    name = "ADPApplicantOnboardingTools"
