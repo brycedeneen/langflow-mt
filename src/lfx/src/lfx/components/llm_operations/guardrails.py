@@ -332,6 +332,7 @@ Now analyze the user input above and respond according to the instructions:"""
             if hasattr(llm, "invoke"):
                 response = llm.invoke(prompt)
                 self._token_usage = accumulate_usage(self._token_usage, extract_usage_from_message(response))
+                self._model_name = getattr(self, "model_name", None) or getattr(self, "model", None)
                 result = response.content.strip() if hasattr(response, "content") else str(response).strip()
             else:
                 result = str(llm(prompt)).strip()

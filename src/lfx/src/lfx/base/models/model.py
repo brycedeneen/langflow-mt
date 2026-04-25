@@ -275,6 +275,7 @@ class LCModelComponent(Component):
                 usage_data = self.extract_usage(message)
                 if usage_data:
                     self._token_usage = usage_data
+                    self._model_name = getattr(self, "model_name", None) or getattr(self, "model", None)
             elif isinstance(result, dict):
                 result = json.dumps(message, indent=4)
                 self.status = result
@@ -288,6 +289,7 @@ class LCModelComponent(Component):
         if lf_message:
             if lf_message.properties and lf_message.properties.usage:
                 self._token_usage = lf_message.properties.usage
+                self._model_name = getattr(self, "model_name", None) or getattr(self, "model", None)
             return lf_message
 
         # Create message with usage data if available

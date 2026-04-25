@@ -242,6 +242,7 @@ class BatchRunComponent(Component):
             ):
                 response_msg = response[1]
                 self._token_usage = accumulate_usage(self._token_usage, extract_usage_from_message(response_msg))
+                self._model_name = getattr(self, "model_name", None) or getattr(self, "model", None)
                 response_text = response_msg.content if hasattr(response_msg, "content") else str(response_msg)
                 row = self._create_base_row(
                     cast("dict[str, Any]", original_row), model_response=response_text, batch_index=idx

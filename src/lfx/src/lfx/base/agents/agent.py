@@ -314,6 +314,7 @@ class LCAgentComponent(Component):
         usage_data = token_usage_handler.get_usage()
         if usage_data:
             self._token_usage = usage_data
+            self._model_name = getattr(self, "model", None)
             result.properties.usage = usage_data
             # Only update DB and send event if the message was stored (has an ID)
             if result.get_id():

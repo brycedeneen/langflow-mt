@@ -33,12 +33,14 @@ def _make_agent_component(agent_class, result_message):
     """Create a minimal concrete agent component stub for testing."""
     component = agent_class.__new__(agent_class)
     component._token_usage = None
+    component._model_name = None
     component._vertex = _make_vertex_stub()
     component._event_manager = None
     component.tools = []
     component.input_value = "test input"
     component.status = None
     component.chat_history = []
+    component.model = "gpt-4o-mini"
     component.send_message = AsyncMock(return_value=result_message)
     component._get_shared_callbacks = MagicMock(return_value=[])
     component.log = MagicMock()
@@ -77,6 +79,7 @@ class TestAgentTokenCallbackWiring:
 
         # Assert
         assert agent_component._token_usage == usage
+        assert agent_component._model_name == agent_component.model
 
     @pytest.mark.asyncio
     async def test_token_usage_not_set_when_handler_returns_none(self):

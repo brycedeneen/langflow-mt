@@ -190,6 +190,7 @@ class StructuredOutputComponent(Component):
         if result is None:
             result = self._extract_output_with_langchain(llm, output_model, config_dict)
         self._token_usage = token_handler.get_usage()
+        self._model_name = getattr(self, "model_name", None) or getattr(self, "model", None)
 
         # OPTIMIZATION NOTE: Simplified processing based on trustcall response structure
         # Handle non-dict responses (shouldn't happen with trustcall, but defensive)

@@ -276,6 +276,7 @@ class LambdaFilterComponent(Component):
         llm = get_llm(model=self.model, user_id=self.user_id, api_key=self.api_key)
         response = await llm.ainvoke(prompt)
         self._token_usage = extract_usage_from_message(response)
+        self._model_name = getattr(self, "model_name", None) or getattr(self, "model", None)
         response_text = response.content if hasattr(response, "content") else str(response)
 
         fn = self._parse_lambda_from_response(response_text)
