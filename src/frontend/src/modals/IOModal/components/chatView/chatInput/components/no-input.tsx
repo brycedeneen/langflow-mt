@@ -1,4 +1,3 @@
-import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Loading from "@/components/ui/loading";
@@ -12,11 +11,11 @@ interface NoInputViewProps {
   stopBuilding: () => void;
 }
 
-const NoInputView: React.FC<NoInputViewProps> = ({
+const NoInputView = ({
   isBuilding,
   sendMessage,
   stopBuilding,
-}) => {
+}: NoInputViewProps): JSX.Element => {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center">
       <div className="flex w-full flex-col items-center justify-center gap-3 rounded-md border border-input bg-muted p-2 py-4">

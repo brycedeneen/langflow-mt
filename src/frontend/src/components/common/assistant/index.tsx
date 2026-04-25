@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import langflowLogo from "@/assets/LangflowLogoColor.svg";
 import { handleOnNewValueType } from "@/CustomNodes/hooks/use-handle-new-value";
@@ -16,12 +16,12 @@ interface AssistantButtonProps {
   handleOnNewValue?: handleOnNewValueType;
 }
 
-export const AssistantButton: React.FC<AssistantButtonProps> = ({
+export const AssistantButton = ({
   type,
   compData,
   inputValue,
   handleOnNewValue,
-}) => {
+}: AssistantButtonProps): JSX.Element => {
   const { assistantSidebarOpen, setAssistantSidebarOpen, setSelectedCompData } =
     useAssistantManagerStore();
   const flowId = useGetFlowId();

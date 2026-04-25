@@ -33,7 +33,7 @@ interface InputWrapperProps {
   playgroundPage?: boolean;
 }
 
-const InputWrapper: React.FC<InputWrapperProps> = ({
+const InputWrapper = ({
   isBuilding,
   checkSendingOk,
   send,
@@ -49,7 +49,7 @@ const InputWrapper: React.FC<InputWrapperProps> = ({
   setShowAudioInput,
   currentFlowId,
   playgroundPage,
-}) => {
+}: InputWrapperProps): JSX.Element => {
   const classNameFilePreview = `flex w-full items-center gap-2 py-2 overflow-auto`;
 
   // Check if voice mode is available

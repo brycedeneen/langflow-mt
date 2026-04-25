@@ -1,4 +1,3 @@
-import type React from "react";
 import useFlowStore from "@/stores/flowStore";
 import type { APIClassType } from "@/types/api";
 import JsonEditor from "../jsonEditor";
@@ -11,11 +10,11 @@ interface JsonOutputViewComponentProps {
   outputName: string;
 }
 
-const JsonOutputViewComponent: React.FC<JsonOutputViewComponentProps> = ({
+const JsonOutputViewComponent = ({
   data,
   nodeId,
   outputName,
-}) => {
+}: JsonOutputViewComponentProps): JSX.Element => {
   const jsonData = typeof data === "string" ? JSON.parse(data) : data;
   const setNode = useFlowStore((state) => state.setNode);
   const node = useFlowStore((state) => state.getNode(nodeId));

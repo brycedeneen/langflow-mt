@@ -1,4 +1,4 @@
-import { type FC, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import IconComponent from "@/components/common/genericIconComponent";
 import { Button } from "@/components/ui/button";
 import { useGetUserData, useUpdateUser } from "@/controllers/API/queries/auth";
@@ -7,10 +7,13 @@ import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import type { Users } from "@/types/api";
 import { cn } from "@/utils/utils";
 
-export const GetStartedProgress: FC<{
+export const GetStartedProgress = ({
+  userData,
+  handleDismissDialog,
+}: {
   userData: Users;
   handleDismissDialog: () => void;
-}> = ({ userData, handleDismissDialog }) => {
+}): JSX.Element => {
   const [newProjectModal, setNewProjectModal] = useState(false);
 
   const flows = useFlowsManagerStore((state) => state.flows);

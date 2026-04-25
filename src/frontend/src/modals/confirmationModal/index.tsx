@@ -10,14 +10,14 @@ import type {
 } from "../../types/components";
 import BaseModal from "../baseModal";
 
-const Content: React.FC<ContentProps> = ({ children }) => {
+const Content = ({ children }: ContentProps): JSX.Element => {
   return <div className="h-full w-full">{children}</div>;
 };
-const Trigger: React.FC<TriggerProps> = ({
+const Trigger = ({
   children,
   tooltipContent,
   side,
-}: TriggerProps) => {
+}: TriggerProps): JSX.Element => {
   return tooltipContent ? (
     <ShadTooltip side={side} content={tooltipContent}>
       <div className="h-full w-full">{children}</div>
