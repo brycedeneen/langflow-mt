@@ -1,3 +1,4 @@
+// TODO: Phase 2 follow-up — binary download, no JSON schema applies
 import { getFetchCredentials } from "@/customization/utils/get-fetch-credentials";
 import type { FlowType } from "@/types/flow";
 import { downloadFlow, processFlows } from "@/utils/reactflowUtils";

@@ -1,5 +1,7 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import type { ReactFlowJsonObject } from "@xyflow/react";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { FlowRead } from "@/schemas/api/_generated";
 import type { useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -26,9 +28,12 @@ export const usePatchUpdateFlow: useMutationFunctionType<
     id,
     ...payload
   }: IPatchUpdateFlow): Promise<any> => {
-    const response = await api.patch(`${getURL("FLOWS")}/${id}`, payload);
-
-    return response.data;
+    const parsed = await validatedQueryFn(
+      "api.flows.update_flow_api_v1_flows__flow_id__patch",
+      FlowRead,
+      async () => (await api.patch<unknown>(`${getURL("FLOWS")}/${id}`, payload)).data,
+    )();
+    return parsed;
   };
 
   const mutation: UseMutationResult<IPatchUpdateFlow, any, IPatchUpdateFlow> =

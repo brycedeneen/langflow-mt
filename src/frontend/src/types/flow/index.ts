@@ -1,6 +1,13 @@
 import type { Edge, Node, ReactFlowJsonObject } from "@xyflow/react";
+import type { z } from "zod";
+import type { FlowRead } from "@/schemas/api/_generated";
 import type { BuildStatus } from "../../constants/enums";
 import type { APIClassType, OutputFieldType } from "../api/index";
+
+// Wire shape — what the API returns. Inferred from the generated zod schema and
+// kept as a peer to FlowType (which is a frontend-specific overlay that pins
+// `data` to ReactFlowJsonObject for editor consumers).
+export type FlowReadApi = z.infer<typeof FlowRead>;
 
 export type PaginatedFlowsType = {
   items: FlowType[];

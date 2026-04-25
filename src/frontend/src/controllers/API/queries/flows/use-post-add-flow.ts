@@ -1,5 +1,7 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import type { ReactFlowJsonObject } from "@xyflow/react";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { FlowRead } from "@/schemas/api/_generated";
 import { useFolderStore } from "@/stores/foldersStore";
 import type { useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
@@ -30,22 +32,29 @@ export const usePostAddFlow: useMutationFunctionType<
   const myCollectionId = useFolderStore((state) => state.myCollectionId);
 
   const postAddFlowFn = async (payload: IPostAddFlow): Promise<any> => {
-    const response = await api.post(`${getURL("FLOWS")}/`, {
-      name: payload.name,
-      data: payload.data,
-      description: payload.description,
-      is_component: payload.is_component,
-      folder_id: payload.folder_id || null,
-      icon: payload.icon || null,
-      gradient: payload.gradient || null,
-      endpoint_name: payload.endpoint_name || null,
-      tags: payload.tags || null,
-      locked: payload.locked ?? null,
-      mcp_enabled: payload.mcp_enabled || null,
-      built_with_assist: payload.built_with_assist ?? false,
-      based_on_template_flow_id: payload.based_on_template_flow_id ?? null,
-    });
-    return response.data;
+    const parsed = await validatedQueryFn(
+      "api.flows.create_flow_api_v1_flows__post",
+      FlowRead,
+      async () =>
+        (
+          await api.post<unknown>(`${getURL("FLOWS")}/`, {
+            name: payload.name,
+            data: payload.data,
+            description: payload.description,
+            is_component: payload.is_component,
+            folder_id: payload.folder_id || null,
+            icon: payload.icon || null,
+            gradient: payload.gradient || null,
+            endpoint_name: payload.endpoint_name || null,
+            tags: payload.tags || null,
+            locked: payload.locked ?? null,
+            mcp_enabled: payload.mcp_enabled || null,
+            built_with_assist: payload.built_with_assist ?? false,
+            based_on_template_flow_id: payload.based_on_template_flow_id ?? null,
+          })
+        ).data,
+    )();
+    return parsed;
   };
 
   const mutation: UseMutationResult<IPostAddFlow, any, IPostAddFlow> = mutate(
