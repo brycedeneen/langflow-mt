@@ -442,9 +442,10 @@ async def patch_template(
     if not user_can_edit_template(current_user, row):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
-    # Apply partial updates
-    if body.name is not None and body.name != row.name:
-        # Check for name collision
+    # Apply partial updates using model_fields_set for proper null-clearing semantics
+    set_fields = body.model_fields_set
+
+    if "name" in set_fields and body.name is not None and body.name != row.name:
         existing = (
             await session.exec(
                 select(Template)
@@ -453,19 +454,31 @@ async def patch_template(
             )
         ).first()
         if existing is not None:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Template name already exists")
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Template name already exists",
+            )
         row.name = body.name
+    elif "name" in set_fields and body.name is None:
+        # Disallow clearing the name (NOT NULL).
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="name cannot be null",
+        )
 
-    if body.description is not None:
+    if "description" in set_fields:
         row.description = body.description
-    if body.icon is not None:
+    if "icon" in set_fields:
         row.icon = body.icon
-    if body.gradient is not None:
+    if "gradient" in set_fields:
         row.gradient = body.gradient
+    if "agent_summary" in set_fields:
+        row.agent_summary = body.agent_summary
+    if "agent_usage_notes" in set_fields:
+        row.agent_usage_notes = body.agent_usage_notes
 
-    if body.category_ids is not None:
+    if "category_ids" in set_fields and body.category_ids is not None:
         await _validate_category_ids(session, body.category_ids)
-        # Delete all existing category links
         existing_links = (
             await session.exec(
                 select(TemplateCategory).where(TemplateCategory.template_id == template_id)

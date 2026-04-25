@@ -129,6 +129,8 @@ class TemplateRead(BaseModel):
     categories: list[CategoryRead]
     created_at: datetime
     updated_at: datetime
+    agent_summary: str | None = None
+    agent_usage_notes: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -174,9 +176,13 @@ class TemplateUpdate(BaseModel):
 class TemplatePatch(BaseModel):
     """Partial update body for PATCH /templates/{id}.
 
-    All fields are optional.  When *category_ids* is provided (even as an empty
-    list) the existing tag set is replaced atomically.  Omitting *category_ids*
-    from the request body leaves the current tags untouched.
+    Field semantics — driven by ``model_fields_set``:
+    - field absent from request body  -> leave current value untouched
+    - field present and set to ``null`` -> clear the column
+    - field present and set to a value -> overwrite
+
+    For ``category_ids``: an empty list clears tags; the field key being
+    absent leaves tags unchanged (mirrors the column-level rule).
     """
 
     name: str | None = PydanticField(default=None, max_length=255)
@@ -184,3 +190,5 @@ class TemplatePatch(BaseModel):
     icon: str | None = PydanticField(default=None, max_length=64)
     gradient: str | None = PydanticField(default=None, max_length=32)
     category_ids: list[UUID] | None = None
+    agent_summary: str | None = None
+    agent_usage_notes: str | None = None
