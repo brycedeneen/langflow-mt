@@ -6,12 +6,30 @@ from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock
+from taskiq import InMemoryBroker
+
+
+class _RecordingBroker(InMemoryBroker):
+    """InMemoryBroker subclass that records kicks instead of executing them.
+
+    Mirrors the pattern used in tests/unit/services/runs/test_enqueue.py so
+    enqueue assertions can be made without dispatching the task.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.kicked = []
+
+    async def kick(self, message) -> None:  # type: ignore[override]
+        self.kicked.append(message)
+
+    def messages_count(self) -> int:
+        return len(self.kicked)
 
 
 @pytest.fixture
 def runs_client(monkeypatch, tmp_path):
-    """Create a test client with auth/org/arq dependencies overridden."""
+    """Create a test client with auth/org dependencies overridden + InMemoryBroker registry."""
     monkeypatch.setenv("LANGFLOW_DATABASE_URL", f"sqlite+aiosqlite:///{tmp_path / 'test.db'}")
     monkeypatch.setenv("LANGFLOW_SUPERUSER", "admin")
     monkeypatch.setenv("LANGFLOW_SUPERUSER_PASSWORD", "testpassword123")
@@ -19,7 +37,6 @@ def runs_client(monkeypatch, tmp_path):
     from langflow.main import create_app
     from langflow.api.utils.org_helpers import get_current_organization
     from langflow.services.auth.utils import get_current_active_user
-    from langflow.services.runs.deps import get_arq_pool
     from langflow.services.database.models.user.model import User
     from langflow.services.database.models.organization.model import Organization
 
@@ -33,17 +50,26 @@ def runs_client(monkeypatch, tmp_path):
         runs_priority_tier="default",
         runs_max_concurrent=5,
     )
-    fake_arq = AsyncMock()
-    fake_arq.enqueue_job = AsyncMock(return_value=None)
+
+    # Replace the module-level TIER_TO_BROKER registry that the endpoint uses
+    # with InMemoryBroker instances so no real Redis is needed.
+    brokers_registry = {
+        "high": _RecordingBroker(),
+        "default": _RecordingBroker(),
+        "low": _RecordingBroker(),
+    }
+    monkeypatch.setattr(
+        "langflow.api.v2.runs.TIER_TO_BROKER",
+        brokers_registry,
+    )
 
     app.dependency_overrides[get_current_active_user] = lambda: fake_user
     app.dependency_overrides[get_current_organization] = lambda: fake_org
-    app.dependency_overrides[get_arq_pool] = lambda: fake_arq
 
     client = TestClient(app)
     client._fake_org = fake_org
     client._fake_user = fake_user
-    client._fake_arq = fake_arq
+    client._brokers = brokers_registry
     yield client
     app.dependency_overrides.clear()
 
