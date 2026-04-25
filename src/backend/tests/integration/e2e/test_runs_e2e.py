@@ -13,15 +13,19 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import asynccontextmanager
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from redis.asyncio import BlockingConnectionPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
+from taskiq import InMemoryBroker
+
+from langflow.worker_app import brokers as worker_brokers
 
 
 # ---------------------------------------------------------------------------
@@ -32,6 +36,20 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 def _start_app():  # noqa: PT004
     """Disable the parent conftest autouse fixture that starts a full app."""
     pass
+
+
+class _RecordingBroker(InMemoryBroker):
+    """InMemoryBroker subclass that records kicks instead of executing them."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._messages: list = []
+
+    async def kick(self, message) -> None:  # type: ignore[override]
+        self._messages.append(message)
+
+    def messages_count(self) -> int:
+        return len(self._messages)
 
 
 # ---------------------------------------------------------------------------
@@ -104,7 +122,7 @@ async def seeded(engine_and_factory):
 
 
 @pytest.fixture
-def client_and_ctx(monkeypatch, tmp_path, engine_and_factory, seeded):
+def client_and_ctx(monkeypatch, tmp_path, engine_and_factory, seeded, redis_service):
     """Build a TestClient whose session overrides point at the same SQLite DB
     used by execute_run, so both sides see the same rows."""
     monkeypatch.setenv("LANGFLOW_DISTRIBUTED_EXECUTION", "true")
@@ -115,7 +133,6 @@ def client_and_ctx(monkeypatch, tmp_path, engine_and_factory, seeded):
     from langflow.api.utils.org_helpers import get_current_organization
     from langflow.services.auth.utils import get_current_active_user
     from langflow.services.deps import get_settings_service
-    from langflow.services.runs.deps import get_arq_pool
     from lfx.services.deps import injectable_session_scope
 
     # Flip the setting so the endpoint doesn't 503.
@@ -128,17 +145,30 @@ def client_and_ctx(monkeypatch, tmp_path, engine_and_factory, seeded):
         async with sm() as s:
             yield s
 
-    fake_arq = AsyncMock()
-    fake_arq.enqueue_job = AsyncMock(return_value=None)
+    # Replace the module-level TIER_TO_BROKER registry that the endpoint and
+    # worker_app reference with InMemoryBroker instances so no real Redis is
+    # needed for the enqueue path.
+    brokers_registry = {
+        "high": _RecordingBroker(),
+        "default": _RecordingBroker(),
+        "low": _RecordingBroker(),
+    }
+    monkeypatch.setattr("langflow.api.v2.runs.TIER_TO_BROKER", brokers_registry)
+    monkeypatch.setattr("langflow.worker_app.brokers.TIER_TO_BROKER", brokers_registry)
 
-    async def _arq_override():
-        return fake_arq
+    # broker_webhooks was constructed at import time pointing at the default
+    # Settings.redis_url (db 0). The test's redis_service uses db 15. Retarget
+    # the webhook broker's connection pool to the test Redis for the duration
+    # of the fixture so _emit_webhook can kick successfully.
+    original_pool = worker_brokers.broker_webhooks.connection_pool
+    worker_brokers.broker_webhooks.connection_pool = BlockingConnectionPool.from_url(
+        redis_service.url,
+    )
 
     app = create_app()
     app.dependency_overrides[injectable_session_scope] = _session_override
     app.dependency_overrides[get_current_active_user] = lambda: seeded["user"]
     app.dependency_overrides[get_current_organization] = lambda: seeded["org"]
-    app.dependency_overrides[get_arq_pool] = _arq_override
 
     # Settings the worker function will consume.
     real_settings = get_settings_service().settings
@@ -147,31 +177,31 @@ def client_and_ctx(monkeypatch, tmp_path, engine_and_factory, seeded):
     storage = Mock()
     storage.run_payload_inline_max_bytes = 10 * 1024 * 1024
 
-    # Worker context mirroring what WorkerSettings.on_startup populates.
+    # Worker context mirroring what the TaskiqDepends providers consume. The
+    # `arq` key is gone — execute_run is now a Taskiq task with kwargs DI.
     worker_ctx = {
-        "redis": None,  # filled in by the test after redis_service is resolved
+        "redis": redis_service.client,
         "db_sessionmaker": factory,
         "storage": storage,
         "settings": real_settings,
-        "arq": fake_arq,
         "graph_runner": None,  # filled in by the test
     }
 
     client = TestClient(app)
-    yield client, worker_ctx, seeded
-    app.dependency_overrides.clear()
+    try:
+        yield client, worker_ctx, seeded
+    finally:
+        app.dependency_overrides.clear()
+        worker_brokers.broker_webhooks.connection_pool = original_pool
 
 
 # ---------------------------------------------------------------------------
 # Test
 # ---------------------------------------------------------------------------
 @pytest.mark.asyncio
-async def test_full_roundtrip(client_and_ctx, redis_service):
+async def test_full_roundtrip(client_and_ctx):
     """Full enqueue → execute → poll chain."""
     client, worker_ctx, seeded = client_and_ctx
-
-    # Wire in the live Redis client (from the conftest.py redis_service fixture).
-    worker_ctx["redis"] = redis_service.client
 
     # Deterministic runner — avoids real Graph construction.
     async def deterministic_runner(flow, triggered_by, inputs, actor_id):
@@ -189,9 +219,19 @@ async def test_full_roundtrip(client_and_ctx, redis_service):
     assert run_id is not None
 
     # Step 2 — Execute via the worker function directly (same DB, same Redis).
+    # execute_run is now a Taskiq task with TaskiqDepends-injected kwargs; in
+    # tests we call it positionally with the run_id and supply the kwargs the
+    # providers would have resolved.
     from langflow.worker_app.execute import execute_run
 
-    await execute_run(worker_ctx, run_id)
+    await execute_run(
+        run_id,
+        sessionmaker=worker_ctx["db_sessionmaker"],
+        storage=worker_ctx["storage"],
+        settings=worker_ctx["settings"],
+        redis=worker_ctx["redis"],
+        graph_runner=worker_ctx["graph_runner"],
+    )
 
     # Step 3 — GET /api/v2/runs/{run_id} → succeeded
     resp = client.get(f"/api/v2/runs/{run_id}")
