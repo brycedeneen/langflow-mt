@@ -7,12 +7,11 @@ from typing import Any
 from langflow.services.assistant.tools.metadata_lookup import fetch_template_usage_notes
 
 
-async def get_template_instructions(flow_id: str) -> dict[str, Any] | None:
-    """Return the admin-authored usage notes for a starter-project template.
+async def get_template_instructions(template_id: str) -> dict[str, Any] | None:
+    """Return the admin-authored usage notes for a template.
 
-    Returns None when the flow doesn't exist or the id is malformed.
-    Otherwise returns {flow_id, flow_name, agent_usage_notes}. The
-    agent_usage_notes field is None when the flow exists but no metadata
-    row has been authored yet.
+    Returns None when the template doesn't exist or the id is malformed.
+    Otherwise returns ``{template_id, template_name, agent_usage_notes}``.
+    The ``agent_usage_notes`` field is None when no notes have been authored.
     """
-    return await fetch_template_usage_notes(flow_id)
+    return await fetch_template_usage_notes(template_id)

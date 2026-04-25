@@ -82,18 +82,18 @@ async def handle_list_tools() -> list[types.Tool]:
         types.Tool(
             name="get_template_instructions",
             description=(
-                "Fetch the admin-authored usage notes for a starter-project template, "
-                "keyed by flow_id. Returns {flow_id, flow_name, agent_usage_notes}."
+                "Fetch the admin-authored usage notes for a template, "
+                "keyed by template_id. Returns {template_id, template_name, agent_usage_notes}."
             ),
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "flow_id": {
+                    "template_id": {
                         "type": "string",
-                        "description": "UUID of the template's flow.",
+                        "description": "UUID of the template.",
                     },
                 },
-                "required": ["flow_id"],
+                "required": ["template_id"],
             },
         ),
         types.Tool(
@@ -141,12 +141,12 @@ async def handle_call_tool(name: str, arguments: dict | None) -> list[types.Text
             return [types.TextContent(type="text", text=json.dumps({"error": "input_type is required"}))]
         result = await list_compatible_outputs(input_type=input_type)
     elif name == "get_template_instructions":
-        flow_id = arguments.get("flow_id")
-        if not flow_id:
-            return [types.TextContent(type="text", text=json.dumps({"error": "flow_id is required"}))]
-        result = await get_template_instructions(flow_id=flow_id)
+        template_id = arguments.get("template_id")
+        if not template_id:
+            return [types.TextContent(type="text", text=json.dumps({"error": "template_id is required"}))]
+        result = await get_template_instructions(template_id=template_id)
         if result is None:
-            result = {"error": f"Template with flow_id '{flow_id}' not found"}
+            result = {"error": f"Template '{template_id}' not found"}
     else:
         result = {"error": f"Unknown tool: {name}"}
 
