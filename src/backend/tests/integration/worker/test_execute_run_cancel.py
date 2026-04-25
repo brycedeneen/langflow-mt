@@ -30,7 +30,16 @@ async def test_execute_run_honors_cancel(engine_and_factory, seeded, slow_worker
         await asyncio.sleep(0.5)
         await request_cancel(redis_service.client, seeded["run"].id)
 
-    task = asyncio.create_task(execute_run(slow_worker_ctx, str(seeded["run"].id)))
+    task = asyncio.create_task(
+        execute_run(
+            str(seeded["run"].id),
+            sessionmaker=slow_worker_ctx["db_sessionmaker"],
+            storage=slow_worker_ctx["storage"],
+            settings=slow_worker_ctx["settings"],
+            redis=slow_worker_ctx["redis"],
+            graph_runner=slow_worker_ctx["graph_runner"],
+        )
+    )
     cancel_helper = asyncio.create_task(_cancel())
     await asyncio.gather(task, cancel_helper)
 

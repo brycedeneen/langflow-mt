@@ -866,8 +866,8 @@ async def webhook_run_flow(
         from langflow.services.database.models.flow.model import Flow as _Flow
         from langflow.services.database.models.flow_run.model import TriggeredBy
         from langflow.services.deps import session_scope
-        from langflow.services.runs.deps import get_arq_pool
         from langflow.services.runs.enqueue import RunEnqueuer
+        from langflow.worker_app.brokers import TIER_TO_BROKER
 
         _webhook_user = await get_auth_service().get_webhook_user(flow_id_or_name, request)
         try:
@@ -877,14 +877,13 @@ async def webhook_run_flow(
         if not _data:
             raise HTTPException(status_code=400, detail="Request body is empty")
         _inputs = {"body": _data.decode() if isinstance(_data, bytes) else _data}
-        _arq = await get_arq_pool()
         async with session_scope() as _session:
             # FlowRead (returned by the dependency) does not carry organization_id;
             # re-fetch the ORM model inside this session to get it.
             _db_flow = await _session.get(_Flow, flow.id)
             if _db_flow is None or _db_flow.organization_id is None:
                 raise HTTPException(status_code=400, detail="Flow has no associated organization; cannot enqueue.")
-            _enq = RunEnqueuer(db=_session, redis=_arq, settings=_settings)
+            _enq = RunEnqueuer(db=_session, brokers=TIER_TO_BROKER, settings=_settings)
             _run = await _enq.enqueue(
                 org_id=_db_flow.organization_id,
                 flow_id=_db_flow.id,

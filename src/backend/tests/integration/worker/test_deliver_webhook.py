@@ -1,3 +1,5 @@
+import time
+
 import pytest, httpx, respx
 from datetime import datetime, timezone
 from uuid import uuid4
@@ -35,7 +37,14 @@ async def test_deliver_webhook_success(engine_and_factory, worker_ctx, run_with_
 
     with respx.mock:
         route = respx.post("https://hook.test/endpoint").mock(return_value=httpx.Response(200))
-        await deliver_webhook(worker_ctx, str(run_with_webhook.id), "run.succeeded")
+        await deliver_webhook(
+            str(run_with_webhook.id),
+            "run.succeeded",
+            0,
+            sessionmaker=worker_ctx["db_sessionmaker"],
+            settings=worker_ctx["settings"],
+            redis=worker_ctx["redis"],
+        )
         assert route.called
 
     _, factory = engine_and_factory
@@ -52,17 +61,28 @@ async def test_deliver_webhook_5xx_schedules_retry(engine_and_factory, worker_ct
 
     with respx.mock:
         respx.post("https://hook.test/endpoint").mock(return_value=httpx.Response(500))
-        await deliver_webhook(worker_ctx, str(run_with_webhook.id), "run.succeeded", attempt=0)
+        await deliver_webhook(
+            str(run_with_webhook.id),
+            "run.succeeded",
+            0,
+            sessionmaker=worker_ctx["db_sessionmaker"],
+            settings=worker_ctx["settings"],
+            redis=worker_ctx["redis"],
+        )
 
     _, factory = engine_and_factory
     async with factory() as s:
         row = await s.get(FlowRun, run_with_webhook.id)
     assert row.webhook_delivery_state["run.succeeded"]["status"] == "retrying"
-    # A retry job was scheduled
-    retry_calls = [c for c in worker_ctx["arq"].enqueue_job.call_args_list
-                   if c.args and c.args[0] == "deliver_webhook"]
-    assert len(retry_calls) >= 1
-    assert retry_calls[-1].kwargs.get("_defer_by") == 10  # first backoff step
+    # A retry kick was written to the delay:webhooks ZSET with the first
+    # backoff step (10s) as its score offset.
+    items_with_scores = await worker_ctx["redis"].zrange(
+        "delay:webhooks", 0, -1, withscores=True
+    )
+    assert len(items_with_scores) == 1
+    _, score = items_with_scores[0]
+    expected_window = (time.time() + 9.5, time.time() + 11)  # 10s ± slack
+    assert expected_window[0] < score < expected_window[1]
 
 
 @pytest.mark.asyncio
@@ -73,7 +93,14 @@ async def test_deliver_webhook_final_attempt_fails(engine_and_factory, worker_ct
     with respx.mock:
         respx.post("https://hook.test/endpoint").mock(return_value=httpx.Response(500))
         # attempt=5 → attempt+1=6 == len(_BACKOFF_SCHEDULE_SEC) → no more retries
-        await deliver_webhook(worker_ctx, str(run_with_webhook.id), "run.succeeded", attempt=5)
+        await deliver_webhook(
+            str(run_with_webhook.id),
+            "run.succeeded",
+            5,
+            sessionmaker=worker_ctx["db_sessionmaker"],
+            settings=worker_ctx["settings"],
+            redis=worker_ctx["redis"],
+        )
 
     _, factory = engine_and_factory
     async with factory() as s:

@@ -29,3 +29,17 @@ worker:
       # Target queue length per replica. KEDA scales toward
       # ceil(queue_length / listLength) replicas, within minReplicas/maxReplicas.
       listLength: "100"
+
+scheduler:
+  # Singleton Deployment running `langflow scheduler`. Replicas is fixed at 1
+  # — never run two scheduler pods simultaneously, otherwise scheduled tasks
+  # will fire twice.
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  env: []

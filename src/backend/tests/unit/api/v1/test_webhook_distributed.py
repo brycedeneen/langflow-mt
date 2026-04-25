@@ -65,14 +65,28 @@ def test_webhook_enqueues_when_distributed_on(webhook_client, monkeypatch):
     mock_auth.get_webhook_user = AsyncMock(return_value=SimpleNamespace(id=uuid4()))
     monkeypatch.setattr("langflow.api.v1.endpoints.get_auth_service", lambda: mock_auth)
 
-    # Patch get_arq_pool to avoid needing a real Redis connection
-    fake_arq = MagicMock()
-    fake_arq.enqueue_job = AsyncMock(return_value=None)
+    # Replace TIER_TO_BROKER with an in-memory broker registry so no real
+    # Redis is needed. The endpoint imports TIER_TO_BROKER lazily inside the
+    # if-block, so we patch the module-level symbol it pulls from.
+    from taskiq import InMemoryBroker
 
-    async def fake_arq_pool():
-        return fake_arq
+    class _RecordingBroker(InMemoryBroker):
+        def __init__(self) -> None:
+            super().__init__()
+            self.kicked = []
 
-    monkeypatch.setattr("langflow.services.runs.deps.get_arq_pool", fake_arq_pool)
+        async def kick(self, message) -> None:  # type: ignore[override]
+            self.kicked.append(message)
+
+    brokers_registry = {
+        "high": _RecordingBroker(),
+        "default": _RecordingBroker(),
+        "low": _RecordingBroker(),
+    }
+    monkeypatch.setattr(
+        "langflow.worker_app.brokers.TIER_TO_BROKER",
+        brokers_registry,
+    )
 
     # Patch session_scope so there's no real DB session
     from contextlib import asynccontextmanager

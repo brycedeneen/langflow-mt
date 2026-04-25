@@ -114,31 +114,53 @@ def mock_storage():
 
 @pytest.fixture
 def worker_ctx(engine_and_factory, redis_service, mock_storage):
+    from redis.asyncio import BlockingConnectionPool
+
     from langflow.services.runs.payload import PayloadOffloader
+    from langflow.worker_app import brokers as worker_brokers
+    from langflow.worker_app import deps as worker_deps
 
     _, factory = engine_and_factory
 
-    # Build a minimal settings-like object with the attributes execute_run needs
     settings = Mock()
     settings.run_payload_inline_max_bytes = 10 * 1024 * 1024
-    settings.arq_high_queue = "runs:high"
-    settings.arq_default_queue = "runs:default"
-    settings.arq_low_queue = "runs:low"
-    settings.arq_webhooks_queue = "webhooks"
+    settings.queue_high = "runs:high"
+    settings.queue_default = "runs:default"
+    settings.queue_low = "runs:low"
+    settings.queue_webhooks = "webhooks"
     settings.run_retention_hours = 24
-
-    arq = AsyncMock()
-    arq.enqueue_job = AsyncMock(return_value=None)
+    settings.redis_url = redis_service.url
 
     async def deterministic_runner(flow, triggered_by, inputs, actor_id):
         await asyncio.sleep(0.05)
         return {"ok": True, "echo": inputs}
 
-    return {
+    # Populate the worker_deps state so TaskiqDepends providers resolve
+    worker_deps._set("settings", settings)
+    worker_deps._set("sessionmaker", factory)
+    worker_deps._set("storage", mock_storage)
+    worker_deps._set("redis", redis_service.client)
+    worker_deps._set("graph_runner", deterministic_runner)
+
+    # broker_webhooks was constructed at import time pointing at the default
+    # Settings.redis_url (db 0). Tests run against redis_service (db 15), so
+    # we retarget the broker's connection pool to the test Redis for the
+    # duration of the fixture. Webhook kicks via _emit_webhook then land on
+    # the same Redis instance the test's redis_service.client is connected to,
+    # which lets tests assert via `redis.llen("webhooks")`.
+    original_pool = worker_brokers.broker_webhooks.connection_pool
+    worker_brokers.broker_webhooks.connection_pool = BlockingConnectionPool.from_url(
+        redis_service.url,
+    )
+
+    yield {
         "redis": redis_service.client,
         "db_sessionmaker": factory,
         "storage": mock_storage,
         "settings": settings,
-        "arq": arq,
         "graph_runner": deterministic_runner,
     }
+    worker_deps._clear()
+    # Restore the original connection pool so other tests / processes are
+    # unaffected by this fixture's swap. The temporary pool is GC'd.
+    worker_brokers.broker_webhooks.connection_pool = original_pool

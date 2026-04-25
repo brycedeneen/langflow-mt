@@ -17,10 +17,10 @@ def test_runs_settings_defaults(monkeypatch):
     s = Settings(_env_file=None)
     assert s.distributed_execution is False
     assert s.redis_url == "redis://localhost:6379/0"
-    assert s.arq_default_queue == "runs:default"
-    assert s.arq_high_queue == "runs:high"
-    assert s.arq_low_queue == "runs:low"
-    assert s.arq_webhooks_queue == "webhooks"
+    assert s.queue_default == "runs:default"
+    assert s.queue_high == "runs:high"
+    assert s.queue_low == "runs:low"
+    assert s.queue_webhooks == "webhooks"
     assert s.worker_concurrency == 8
     assert s.run_retention_hours == 24
     assert s.run_payload_inline_max_bytes == 1 * 1024 * 1024

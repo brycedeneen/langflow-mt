@@ -67,7 +67,14 @@ async def test_execute_run_times_out(engine_and_factory, seeded_short_timeout, t
     from langflow.worker_app.execute import execute_run
     from langflow.services.database.models.flow_run.model import FlowRun
 
-    await execute_run(timeout_ctx, str(seeded_short_timeout["run"].id))
+    await execute_run(
+        str(seeded_short_timeout["run"].id),
+        sessionmaker=timeout_ctx["db_sessionmaker"],
+        storage=timeout_ctx["storage"],
+        settings=timeout_ctx["settings"],
+        redis=timeout_ctx["redis"],
+        graph_runner=timeout_ctx["graph_runner"],
+    )
 
     _, factory = engine_and_factory
     async with factory() as s:

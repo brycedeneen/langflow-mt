@@ -373,10 +373,10 @@ class Settings(BaseSettings):
     distributed_execution: bool = False
     """Enable dispatching webhook/schedule/MCP-triggered flow runs to Arq workers. When False, the legacy in-process path is used."""
 
-    arq_high_queue: str = "runs:high"
-    arq_default_queue: str = "runs:default"
-    arq_low_queue: str = "runs:low"
-    arq_webhooks_queue: str = "webhooks"
+    queue_high: str = "runs:high"
+    queue_default: str = "runs:default"
+    queue_low: str = "runs:low"
+    queue_webhooks: str = "webhooks"
 
     worker_concurrency: int = 8
     """Max in-flight flow runs per worker process."""

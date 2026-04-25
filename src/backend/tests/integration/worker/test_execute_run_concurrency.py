@@ -1,5 +1,6 @@
 """Integration test: execute_run re-enqueues when per-org concurrency cap is full."""
 from __future__ import annotations
+import json
 import pytest
 from uuid import uuid4
 
@@ -65,7 +66,14 @@ async def test_over_cap_requeues(engine_and_factory, seeded_cap_1, worker_ctx, r
     acquired = await conc.try_acquire(seeded_cap_1["org"].id, limit=1)
     assert acquired, "pre-fill should succeed on a fresh key"
 
-    await execute_run(worker_ctx, str(seeded_cap_1["run"].id))
+    await execute_run(
+        str(seeded_cap_1["run"].id),
+        sessionmaker=worker_ctx["db_sessionmaker"],
+        storage=worker_ctx["storage"],
+        settings=worker_ctx["settings"],
+        redis=worker_ctx["redis"],
+        graph_runner=worker_ctx["graph_runner"],
+    )
 
     _, factory = engine_and_factory
     async with factory() as s:
@@ -74,10 +82,14 @@ async def test_over_cap_requeues(engine_and_factory, seeded_cap_1, worker_ctx, r
     status = row.status.value if hasattr(row.status, "value") else row.status
     assert status == "queued"  # should not have transitioned to running
 
-    # execute_run should have called arq.enqueue_job("execute_run", ...) with _defer_by
-    calls = [
-        c for c in worker_ctx["arq"].enqueue_job.call_args_list
-        if c.args and c.args[0] == "execute_run"
+    # execute_run should have scheduled a delayed kick of execute_run on
+    # runs:default via the delay ZSET. Payload carries a UUID4 nonce, so
+    # assert on `task` and `args` shape rather than full equality.
+    items = await redis_service.client.zrange("delay:runs:default", 0, -1)
+    decoded = [json.loads(i) for i in items]
+    matches = [
+        d for d in decoded
+        if d.get("task") == "execute_run"
+        and d.get("args") == [str(seeded_cap_1["run"].id)]
     ]
-    assert len(calls) == 1
-    assert calls[0].kwargs.get("_defer_by") is not None
+    assert len(matches) == 1

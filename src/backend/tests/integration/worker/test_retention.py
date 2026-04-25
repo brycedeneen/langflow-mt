@@ -56,7 +56,10 @@ async def test_retention_deletes_old_runs(engine_and_factory, worker_ctx, very_o
     from langflow.worker_app.retention import retention_sweep
     from langflow.services.database.models.flow_run.model import FlowRun
 
-    await retention_sweep(worker_ctx)
+    await retention_sweep(
+        sessionmaker=worker_ctx["db_sessionmaker"],
+        settings=worker_ctx["settings"],
+    )
 
     _, factory = engine_and_factory
     async with factory() as s:

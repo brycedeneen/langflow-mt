@@ -45,6 +45,7 @@ from langflow.services.deps import (
     get_telemetry_service,
     session_scope,
 )
+from langflow.services.runs.deps import shutdown_brokers, startup_brokers
 from langflow.services.schema import ServiceType
 from langflow.services.utils import initialize_services, initialize_settings_service, teardown_services
 from langflow.utils.mcp_cleanup import cleanup_mcp_sessions
@@ -169,6 +170,13 @@ def get_lifespan(*, fix_migration=False, version=None):
             await logger.adebug("Initializing services")
             await initialize_services(fix_migration=fix_migration)
             await logger.adebug(f"Services initialized in {asyncio.get_event_loop().time() - start_time:.2f}s")
+
+            current_time = asyncio.get_event_loop().time()
+            await logger.adebug("Starting Taskiq brokers")
+            # Fail-fast: brokers must be ready before the app yields to handle requests.
+            # A failure here aborts startup, which is the desired behaviour.
+            await startup_brokers()
+            await logger.adebug(f"Taskiq brokers started in {asyncio.get_event_loop().time() - current_time:.2f}s")
 
             current_time = asyncio.get_event_loop().time()
             await logger.adebug("Setting up LLM caching")
@@ -365,6 +373,12 @@ def get_lifespan(*, fix_migration=False, version=None):
 
                 # Step 2: Cleaning Up Services
                 with shutdown_progress.step(2):
+                    try:
+                        await asyncio.wait_for(shutdown_brokers(), timeout=10)
+                    except asyncio.TimeoutError:
+                        await logger.awarning("Taskiq broker shutdown timed out after 10s.")
+                    except Exception as e:  # noqa: BLE001
+                        await logger.aerror(f"Failed to shut down Taskiq brokers: {e}")
                     try:
                         await asyncio.wait_for(teardown_services(), timeout=30)
                     except asyncio.TimeoutError:

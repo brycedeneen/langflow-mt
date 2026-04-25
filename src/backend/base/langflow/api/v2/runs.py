@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Annotated, Any
+from typing import Any
 from uuid import UUID
 
-from arq.connections import ArqRedis
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlmodel import select
@@ -14,8 +13,8 @@ from langflow.services.database.models.flow_run.model import FlowRun, RunStatus,
 from langflow.services.database.models.flow_run_log.model import FlowRunLog
 from langflow.services.deps import get_settings_service, get_redis_service
 from langflow.services.runs.cancel import request_cancel
-from langflow.services.runs.deps import get_arq_pool
 from langflow.services.runs.enqueue import RunEnqueuer
+from langflow.worker_app.brokers import TIER_TO_BROKER
 
 router = APIRouter(prefix="/runs", tags=["Runs"])
 
@@ -37,12 +36,11 @@ async def enqueue_run(
     session: DbSession,
     user: CurrentActiveUser,
     org: CurrentOrg,
-    arq: Annotated[ArqRedis, Depends(get_arq_pool)],
 ):
     settings = get_settings_service().settings
     if not settings.distributed_execution:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Distributed execution is disabled")
-    enq = RunEnqueuer(db=session, redis=arq, settings=settings)
+    enq = RunEnqueuer(db=session, brokers=TIER_TO_BROKER, settings=settings)
     try:
         run = await enq.enqueue(
             org_id=org.id,
