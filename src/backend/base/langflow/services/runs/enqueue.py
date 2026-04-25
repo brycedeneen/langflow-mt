@@ -13,9 +13,9 @@ from lfx.services.settings.base import Settings
 
 
 _TIER_TO_QUEUE_ATTR = {
-    "high": "arq_high_queue",
-    "default": "arq_default_queue",
-    "low": "arq_low_queue",
+    "high": "queue_high",
+    "default": "queue_default",
+    "low": "queue_low",
 }
 _TIER_TO_PRIORITY = {"high": 1, "default": 5, "low": 9}
 

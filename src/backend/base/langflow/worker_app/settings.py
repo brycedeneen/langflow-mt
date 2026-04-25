@@ -52,7 +52,7 @@ class WorkerSettings:
         cron(audit_cleanup, name="audit_cleanup", hour=3, minute=0),  # daily 03:00 UTC
         cron(refresh_pricing_cache, name="refresh_pricing_cache", hour=0, minute=0),
     ]
-    queue_name = _settings.arq_default_queue
+    queue_name = _settings.queue_default
     max_jobs = _settings.worker_concurrency
     on_startup = _on_startup
     on_shutdown = _on_shutdown

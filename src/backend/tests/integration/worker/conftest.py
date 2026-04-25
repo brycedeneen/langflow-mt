@@ -121,10 +121,10 @@ def worker_ctx(engine_and_factory, redis_service, mock_storage):
     # Build a minimal settings-like object with the attributes execute_run needs
     settings = Mock()
     settings.run_payload_inline_max_bytes = 10 * 1024 * 1024
-    settings.arq_high_queue = "runs:high"
-    settings.arq_default_queue = "runs:default"
-    settings.arq_low_queue = "runs:low"
-    settings.arq_webhooks_queue = "webhooks"
+    settings.queue_high = "runs:high"
+    settings.queue_default = "runs:default"
+    settings.queue_low = "runs:low"
+    settings.queue_webhooks = "webhooks"
     settings.run_retention_hours = 24
 
     arq = AsyncMock()

@@ -32,5 +32,5 @@ async def reap_lost_runs(ctx) -> None:
     for run_id in reaped_rows:
         await ctx["arq"].enqueue_job(
             "deliver_webhook", str(run_id), "run.failed",
-            _queue_name=ctx["settings"].arq_webhooks_queue,
+            _queue_name=ctx["settings"].queue_webhooks,
         )

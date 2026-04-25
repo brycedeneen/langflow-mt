@@ -25,7 +25,7 @@ CANCEL_POLL_INTERVAL = 2.0
 REQUEUE_DELAY = 5.0
 
 # Avoid circular import by duplicating the tier map (same as enqueue._TIER_TO_QUEUE_ATTR)
-_TIER_TO_QUEUE_ATTR = {"high": "arq_high_queue", "default": "arq_default_queue", "low": "arq_low_queue"}
+_TIER_TO_QUEUE_ATTR = {"high": "queue_high", "default": "queue_default", "low": "queue_low"}
 
 
 async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
@@ -326,7 +326,7 @@ async def _cancel_watcher(redis, run_id: UUID, cancel_event: asyncio.Event, stop
 
 async def _emit_webhook(arq, settings, run_id: UUID, event: str) -> None:
     await arq.enqueue_job(
-        "deliver_webhook", str(run_id), event, _queue_name=settings.arq_webhooks_queue,
+        "deliver_webhook", str(run_id), event, _queue_name=settings.queue_webhooks,
     )
 
 

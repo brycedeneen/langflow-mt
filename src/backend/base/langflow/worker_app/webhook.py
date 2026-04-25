@@ -97,5 +97,5 @@ async def deliver_webhook(ctx, run_id: str, event: str, attempt: int = 0) -> Non
         delay = _BACKOFF_SCHEDULE_SEC[attempt]
         await ctx["arq"].enqueue_job(
             "deliver_webhook", run_id, event, attempt + 1,
-            _queue_name=ctx["settings"].arq_webhooks_queue, _defer_by=delay,
+            _queue_name=ctx["settings"].queue_webhooks, _defer_by=delay,
         )
