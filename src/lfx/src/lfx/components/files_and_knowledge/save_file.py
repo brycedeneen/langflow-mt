@@ -1,7 +1,7 @@
 import json
 from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import orjson
 import pandas as pd
@@ -9,6 +9,7 @@ from fastapi import UploadFile
 from fastapi.encoders import jsonable_encoder
 
 from lfx.custom import Component
+from lfx.custom.custom_component.changelog import ChangelogEntry
 from lfx.inputs import SortableListInput
 from lfx.io import BoolInput, DropdownInput, HandleInput, SecretStrInput, StrInput
 from lfx.schema import Data, DataFrame, Message
@@ -17,12 +18,16 @@ from lfx.template.field.base import Output
 from lfx.utils.validate_cloud import is_astra_cloud_environment
 
 
-def _get_storage_location_options():
-    """Get storage location options, filtering out Local if in Astra cloud environment."""
-    all_options = [{"name": "AWS", "icon": "Amazon"}, {"name": "Google Drive", "icon": "google"}]
-    if is_astra_cloud_environment():
-        return all_options
-    return [{"name": "Local", "icon": "hard-drive"}, *all_options]
+def _get_storage_location_options(*, is_admin: bool):
+    """Return storage-location options.
+
+    `Local` is included only when the caller is an admin (super admin or platform
+    admin) AND the process is not running in an Astra cloud environment.
+    """
+    cloud = [{"name": "AWS", "icon": "Amazon"}, {"name": "Google Drive", "icon": "google"}]
+    if is_admin and not is_astra_cloud_environment():
+        return [{"name": "Local", "icon": "hard-drive"}, *cloud]
+    return cloud
 
 
 class SaveToFileComponent(Component):
@@ -31,6 +36,30 @@ class SaveToFileComponent(Component):
     documentation: str = "https://docs.langflow.org/write-file"
     icon = "file-text"
     name = "SaveToFile"
+    version: int = 1
+    changelog: ClassVar[list[ChangelogEntry]] = [
+        ChangelogEntry(
+            version=1,
+            changes=(
+                "- Restricted **Local** storage to super admins / platform admins. "
+                "Non-admin users see only AWS and Google Drive.\n"
+                "- Added **File Location** input (Local only). Defaults to "
+                "`<config_dir>/outputs/` when blank.\n"
+                "- **File Name** is now strictly a basename: any path components are stripped. "
+                "Use **File Location** for the directory.\n"
+                "- Default selected storage changed from Local to AWS for the seeded options "
+                "(per-user filtering still applies on first interaction)."
+            ),
+            notes=(
+                "If you used **Local** storage and you are not a super admin / platform "
+                "administrator, the flow will now fail at runtime with "
+                '"Local storage is restricted to platform administrators." '
+                "Switch to AWS or Google Drive, or ask an administrator. "
+                "If you embedded path segments inside **File Name** (e.g. "
+                "`subdir/output`), move those segments into the new **File Location** field."
+            ),
+        ),
+    ]
 
     # File format options for different storage types
     LOCAL_DATA_FORMAT_CHOICES = ["csv", "excel", "json", "markdown"]
@@ -58,10 +87,10 @@ class SaveToFileComponent(Component):
             display_name="Storage Location",
             placeholder="Select Location",
             info="Choose where to save the file.",
-            options=_get_storage_location_options(),
+            options=_get_storage_location_options(is_admin=False),
             real_time_refresh=True,
             limit=1,
-            value=[{"name": "Local", "icon": "hard-drive"}],
+            value=[{"name": "AWS", "icon": "Amazon"}],
             advanced=True,
         ),
         # Common inputs
@@ -76,10 +105,20 @@ class SaveToFileComponent(Component):
         StrInput(
             name="file_name",
             display_name="File Name",
-            info="Name file will be saved as (without extension).",
+            info="File name only — no path, no extension. Use 'File Location' for the directory.",
             required=True,
             show=False,
             tool_mode=True,
+        ),
+        StrInput(
+            name="file_location",
+            display_name="File Location",
+            info=(
+                "Directory where the file will be saved. Defaults to the Langflow "
+                "config dir's outputs/ folder if blank."
+            ),
+            required=False,
+            show=False,
         ),
         BoolInput(
             name="append_mode",
@@ -179,23 +218,56 @@ class SaveToFileComponent(Component):
 
     outputs = [Output(display_name="File Path", name="message", method="save_to_file")]
 
-    def update_build_config(self, build_config, field_value, field_name=None):
-        """Update build configuration to show/hide fields based on storage location selection."""
-        # Update options dynamically based on cloud environment
-        # This ensures options are refreshed when build_config is updated
+    async def _resolve_is_admin(self) -> bool:
+        """Return True if the current caller is a super admin or platform admin.
+
+        Falls back to False when there is no user_id (defensive default for tests
+        and synthetic component instances). Reads ``_user_id`` directly to avoid
+        triggering the ``user_id`` property's graph-fallback when no user is set.
+        """
+        user_id = getattr(self, "_user_id", None)
+        if not user_id:
+            return False
+        from langflow.services.database.models.user.crud import get_user_by_id
+
+        async with session_scope() as db:
+            user = await get_user_by_id(db, user_id)
+            if user is None:
+                return False
+            return bool(getattr(user, "is_superuser", False) or getattr(user, "is_platform_admin", False))
+
+    async def update_build_config(self, build_config, field_value, field_name=None):
+        """Update build config to show/hide fields and filter storage options per role."""
+        is_admin = await self._resolve_is_admin()
+
+        # Refresh storage_location options every call so per-user filtering applies.
+        # If the persisted value is no longer in the allowed set (e.g. non-admin
+        # loading a flow saved with Local), reset it AND override the click-event
+        # field_value so visible-field decisions below stay consistent with the
+        # corrected dropdown value.
+        effective_field_value = field_value
         if "storage_location" in build_config:
-            updated_options = _get_storage_location_options()
+            updated_options = _get_storage_location_options(is_admin=is_admin)
             build_config["storage_location"]["options"] = updated_options
+            allowed_names = {o["name"] for o in updated_options}
+            current_value = build_config["storage_location"].get("value") or []
+            current_name = current_value[0].get("name") if current_value else None
+            if current_value and current_name not in allowed_names and updated_options:
+                build_config["storage_location"]["value"] = [updated_options[0]]
+                effective_field_value = build_config["storage_location"]["value"]
 
         if field_name != "storage_location":
             return build_config
 
-        # Extract selected storage location
-        selected = [location["name"] for location in field_value] if isinstance(field_value, list) else []
+        selected = (
+            [location["name"] for location in effective_field_value]
+            if isinstance(effective_field_value, list)
+            else []
+        )
 
-        # Hide all dynamic fields first
         dynamic_fields = [
-            "file_name",  # Common fields (input is always visible)
+            "file_name",
+            "file_location",
             "append_mode",
             "local_format",
             "aws_format",
@@ -208,27 +280,22 @@ class SaveToFileComponent(Component):
             "service_account_key",
             "folder_id",
         ]
-
         for f_name in dynamic_fields:
             if f_name in build_config:
                 build_config[f_name]["show"] = False
 
-        # Show fields based on selected storage location
         if len(selected) == 1:
             location = selected[0]
-
-            # Show file_name when any storage location is selected
             if "file_name" in build_config:
                 build_config["file_name"]["show"] = True
-
-            # Show append_mode only for Local storage (not supported for cloud storage)
             if "append_mode" in build_config:
                 build_config["append_mode"]["show"] = location == "Local"
 
             if location == "Local":
                 if "local_format" in build_config:
                     build_config["local_format"]["show"] = True
-
+                if "file_location" in build_config:
+                    build_config["file_location"]["show"] = True
             elif location == "AWS":
                 aws_fields = [
                     "aws_format",
@@ -242,7 +309,6 @@ class SaveToFileComponent(Component):
                     if f_name in build_config:
                         build_config[f_name]["show"] = True
                         build_config[f_name]["advanced"] = False
-
             elif location == "Google Drive":
                 gdrive_fields = ["gdrive_format", "service_account_key", "folder_id"]
                 for f_name in gdrive_fields:
@@ -275,6 +341,9 @@ class SaveToFileComponent(Component):
 
         # Route to appropriate save method based on storage location
         if storage_location == "Local":
+            if not await self._resolve_is_admin():
+                msg = "Local storage is restricted to platform administrators."
+                raise ValueError(msg)
             return await self._save_to_local()
         if storage_location == "AWS":
             return await self._save_to_aws()
@@ -538,11 +607,19 @@ class SaveToFileComponent(Component):
             msg = f"Invalid file format '{file_format}' for {self._get_input_type()}. Allowed: {allowed_formats}"
             raise ValueError(msg)
 
-        # Prepare file path
-        file_path = Path(self.file_name).expanduser()
+        # Prepare directory: explicit file_location wins, else default to <config_dir>/outputs/
+        location_str = (getattr(self, "file_location", "") or "").strip()
+        if location_str:
+            directory = Path(location_str).expanduser()
+        else:
+            directory = Path(get_settings_service().settings.config_dir) / "outputs"
+
+        # file_name is basename only — strip any path components an admin might paste in.
+        basename = Path(self.file_name).name
+        file_path = directory / basename
+        file_path = self._adjust_file_path_with_format(file_path, file_format)
         if not file_path.parent.exists():
             file_path.parent.mkdir(parents=True, exist_ok=True)
-        file_path = self._adjust_file_path_with_format(file_path, file_format)
 
         # Save the input to file based on type
         if self._get_input_type() == "DataFrame":

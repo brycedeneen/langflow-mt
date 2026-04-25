@@ -229,8 +229,18 @@ class TestSaveToFileComponent(ComponentTestBaseWithoutClient):
             {"input": message, "file_name": "test", "local_format": "csv", "storage_location": [{"name": "Local"}]}
         )
 
-        with pytest.raises(ValueError, match="Invalid file format"):
-            await component.save_to_file()
+        with (
+            patch("lfx.services.deps.session_scope") as mock_session,
+            patch(
+                "langflow.services.database.models.user.crud.get_user_by_id", new_callable=AsyncMock
+            ) as mock_get_user,
+        ):
+            mock_db = AsyncMock()
+            mock_session.return_value.__aenter__.return_value = mock_db
+            mock_get_user.return_value = MagicMock()  # admin by default
+
+            with pytest.raises(ValueError, match="Invalid file format"):
+                await component.save_to_file()
 
     @pytest.mark.asyncio
     async def test_invalid_file_format_for_dataframe(self, component_class):
@@ -241,8 +251,18 @@ class TestSaveToFileComponent(ComponentTestBaseWithoutClient):
             {"input": df, "file_name": "test", "local_format": "txt", "storage_location": [{"name": "Local"}]}
         )
 
-        with pytest.raises(ValueError, match="Invalid file format"):
-            await component.save_to_file()
+        with (
+            patch("lfx.services.deps.session_scope") as mock_session,
+            patch(
+                "langflow.services.database.models.user.crud.get_user_by_id", new_callable=AsyncMock
+            ) as mock_get_user,
+        ):
+            mock_db = AsyncMock()
+            mock_session.return_value.__aenter__.return_value = mock_db
+            mock_get_user.return_value = MagicMock()  # admin by default
+
+            with pytest.raises(ValueError, match="Invalid file format"):
+                await component.save_to_file()
 
     @pytest.mark.asyncio
     async def test_missing_file_name(self, component_class):
@@ -304,24 +324,21 @@ class TestSaveToFileComponent(ComponentTestBaseWithoutClient):
             component.set_attributes(
                 {
                     "input": Message(text="New content"),
-                    "file_name": tmp_path.stem,  # Use filename without extension
+                    "file_name": tmp_path.stem,
+                    "file_location": str(tmp_path.parent),
                     "local_format": "txt",
                     "storage_location": [{"name": "Local"}],
                     "append_mode": True,
                 }
             )
 
-            # Mock the path resolution to return our temp file
             with (
-                patch("lfx.components.files_and_knowledge.save_file.Path") as mock_path_class,
                 patch("langflow.api.v2.files.upload_user_file", new_callable=AsyncMock) as mock_upload,
                 patch("lfx.services.deps.session_scope") as mock_session,
                 patch(
                     "langflow.services.database.models.user.crud.get_user_by_id", new_callable=AsyncMock
                 ) as mock_get_user,
             ):
-                # Make Path() return our temp file path
-                mock_path_class.return_value = tmp_path
                 mock_db = AsyncMock()
                 mock_session.return_value.__aenter__.return_value = mock_db
                 mock_get_user.return_value = MagicMock()
@@ -329,12 +346,9 @@ class TestSaveToFileComponent(ComponentTestBaseWithoutClient):
 
                 result = await component.save_to_file()
 
-                # Verify append happened
                 assert "appended to" in result.text
-                # Verify the file contains both old and new content
                 assert tmp_path.read_text(encoding="utf-8") == "Existing content\nNew content"
         finally:
-            # Clean up temp file
             if tmp_path.exists():
                 tmp_path.unlink()
 
@@ -439,49 +453,446 @@ class TestSaveToFileComponent(ComponentTestBaseWithoutClient):
 
                 mock_creds.reset_mock()
 
-    def test_append_mode_hidden_for_cloud_storage(self, component_class):
-        """Test that append_mode is hidden for AWS and Google Drive storage."""
-        component = component_class()
+    @pytest.mark.asyncio
+    async def test_append_mode_hidden_for_cloud_storage(self, component_class):
+        """append_mode is hidden for AWS / Google Drive, visible for Local (admin user)."""
+        component = component_class(_user_id=str(uuid4()))
 
-        # Test Local storage - append_mode should be visible
-        build_config = {
-            "file_name": {"show": False},
-            "append_mode": {"show": False},
-            "local_format": {"show": False},
-        }
-        result = component.update_build_config(build_config, [{"name": "Local"}], "storage_location")
-        assert result["append_mode"]["show"] is True, "append_mode should be visible for Local storage"
-        assert result["file_name"]["show"] is True
-        assert result["local_format"]["show"] is True
+        admin_user = MagicMock()
+        admin_user.is_superuser = True
+        admin_user.is_platform_admin = False
 
-        # Test AWS storage - append_mode should be hidden
-        build_config = {
-            "file_name": {"show": False},
-            "append_mode": {"show": False},
-            "aws_format": {"show": False},
-        }
-        result = component.update_build_config(build_config, [{"name": "AWS"}], "storage_location")
-        assert result["append_mode"]["show"] is False, "append_mode should be hidden for AWS storage"
-        assert result["file_name"]["show"] is True
-        assert result["aws_format"]["show"] is True
+        with (
+            patch("lfx.services.deps.session_scope") as mock_session,
+            patch(
+                "langflow.services.database.models.user.crud.get_user_by_id", new_callable=AsyncMock
+            ) as mock_get_user,
+        ):
+            mock_db = AsyncMock()
+            mock_session.return_value.__aenter__.return_value = mock_db
+            mock_get_user.return_value = admin_user
 
-        # Test Google Drive storage - append_mode should be hidden
-        build_config = {
-            "file_name": {"show": False},
-            "append_mode": {"show": False},
-            "gdrive_format": {"show": False},
-        }
-        result = component.update_build_config(build_config, [{"name": "Google Drive"}], "storage_location")
-        assert result["append_mode"]["show"] is False, "append_mode should be hidden for Google Drive storage"
-        assert result["file_name"]["show"] is True
-        assert result["gdrive_format"]["show"] is True
+            # Local
+            build_config = {
+                "storage_location": {"options": []},
+                "file_name": {"show": False},
+                "append_mode": {"show": False},
+                "local_format": {"show": False},
+            }
+            result = await component.update_build_config(
+                build_config, [{"name": "Local"}], "storage_location"
+            )
+            assert result["append_mode"]["show"] is True
+            assert result["file_name"]["show"] is True
+            assert result["local_format"]["show"] is True
 
-    def test_storage_location_defaults_to_local(self, component_class):
-        """Test that storage_location input defaults to Local when component is dropped."""
+            # AWS
+            build_config = {
+                "storage_location": {"options": []},
+                "file_name": {"show": False},
+                "append_mode": {"show": False},
+                "aws_format": {"show": False},
+            }
+            result = await component.update_build_config(
+                build_config, [{"name": "AWS"}], "storage_location"
+            )
+            assert result["append_mode"]["show"] is False
+            assert result["file_name"]["show"] is True
+            assert result["aws_format"]["show"] is True
+
+            # Google Drive
+            build_config = {
+                "storage_location": {"options": []},
+                "file_name": {"show": False},
+                "append_mode": {"show": False},
+                "gdrive_format": {"show": False},
+            }
+            result = await component.update_build_config(
+                build_config, [{"name": "Google Drive"}], "storage_location"
+            )
+            assert result["append_mode"]["show"] is False
+            assert result["file_name"]["show"] is True
+            assert result["gdrive_format"]["show"] is True
+
+    @pytest.mark.asyncio
+    async def test_update_build_config_filters_local_for_non_admin(self, component_class):
+        """Non-admin user: storage_location options exclude Local."""
+        component = component_class(_user_id=str(uuid4()))
+
+        non_admin = MagicMock()
+        non_admin.is_superuser = False
+        non_admin.is_platform_admin = False
+
+        with (
+            patch("lfx.services.deps.session_scope") as mock_session,
+            patch(
+                "langflow.services.database.models.user.crud.get_user_by_id", new_callable=AsyncMock
+            ) as mock_get_user,
+            patch(
+                "lfx.components.files_and_knowledge.save_file.is_astra_cloud_environment",
+                return_value=False,
+            ),
+        ):
+            mock_db = AsyncMock()
+            mock_session.return_value.__aenter__.return_value = mock_db
+            mock_get_user.return_value = non_admin
+
+            build_config = {
+                "storage_location": {"options": [], "value": [{"name": "AWS"}]},
+                "file_name": {"show": False},
+                "append_mode": {"show": False},
+                "aws_format": {"show": False},
+                "aws_access_key_id": {"show": False, "advanced": True},
+                "aws_secret_access_key": {"show": False, "advanced": True},
+                "bucket_name": {"show": False, "advanced": True},
+                "aws_region": {"show": False, "advanced": True},
+                "s3_prefix": {"show": False, "advanced": True},
+            }
+            result = await component.update_build_config(
+                build_config, [{"name": "AWS"}], "storage_location"
+            )
+            names = [o["name"] for o in result["storage_location"]["options"]]
+            assert "Local" not in names
+            assert names == ["AWS", "Google Drive"]
+
+    @pytest.mark.asyncio
+    async def test_update_build_config_includes_local_for_admin(self, component_class):
+        """Admin user: storage_location options include Local."""
+        component = component_class(_user_id=str(uuid4()))
+
+        admin_user = MagicMock()
+        admin_user.is_superuser = False
+        admin_user.is_platform_admin = True  # platform admin path
+
+        with (
+            patch("lfx.services.deps.session_scope") as mock_session,
+            patch(
+                "langflow.services.database.models.user.crud.get_user_by_id", new_callable=AsyncMock
+            ) as mock_get_user,
+            patch(
+                "lfx.components.files_and_knowledge.save_file.is_astra_cloud_environment",
+                return_value=False,
+            ),
+        ):
+            mock_db = AsyncMock()
+            mock_session.return_value.__aenter__.return_value = mock_db
+            mock_get_user.return_value = admin_user
+
+            build_config = {
+                "storage_location": {"options": [], "value": [{"name": "Local"}]},
+                "file_name": {"show": False},
+                "append_mode": {"show": False},
+                "local_format": {"show": False},
+            }
+            result = await component.update_build_config(
+                build_config, [{"name": "Local"}], "storage_location"
+            )
+            names = [o["name"] for o in result["storage_location"]["options"]]
+            assert names == ["Local", "AWS", "Google Drive"]
+
+    @pytest.mark.asyncio
+    async def test_update_build_config_no_user_id_treats_as_non_admin(self, component_class):
+        """If user_id is unset, treat as non-admin (defensive default)."""
+        component = component_class()  # no _user_id
+
+        with patch(
+            "lfx.components.files_and_knowledge.save_file.is_astra_cloud_environment",
+            return_value=False,
+        ):
+            build_config = {
+                "storage_location": {"options": [], "value": [{"name": "AWS"}]},
+                "file_name": {"show": False},
+                "append_mode": {"show": False},
+                "aws_format": {"show": False},
+                "aws_access_key_id": {"show": False, "advanced": True},
+                "aws_secret_access_key": {"show": False, "advanced": True},
+                "bucket_name": {"show": False, "advanced": True},
+                "aws_region": {"show": False, "advanced": True},
+                "s3_prefix": {"show": False, "advanced": True},
+            }
+            result = await component.update_build_config(
+                build_config, [{"name": "AWS"}], "storage_location"
+            )
+            names = [o["name"] for o in result["storage_location"]["options"]]
+            assert "Local" not in names
+
+    @pytest.mark.asyncio
+    async def test_update_build_config_resets_local_value_for_non_admin(self, component_class):
+        """Non-admin loading a flow with Local saved: dropdown value is reset to AWS,
+        and local-only fields stay hidden so the UI is internally consistent."""
+        component = component_class(_user_id=str(uuid4()))
+
+        non_admin = MagicMock()
+        non_admin.is_superuser = False
+        non_admin.is_platform_admin = False
+
+        with (
+            patch("lfx.services.deps.session_scope") as mock_session,
+            patch(
+                "langflow.services.database.models.user.crud.get_user_by_id", new_callable=AsyncMock
+            ) as mock_get_user,
+            patch(
+                "lfx.components.files_and_knowledge.save_file.is_astra_cloud_environment",
+                return_value=False,
+            ),
+        ):
+            mock_db = AsyncMock()
+            mock_session.return_value.__aenter__.return_value = mock_db
+            mock_get_user.return_value = non_admin
+
+            build_config = {
+                "storage_location": {"options": [], "value": [{"name": "Local", "icon": "hard-drive"}]},
+                "file_name": {"show": False},
+                "append_mode": {"show": False},
+                "local_format": {"show": False},
+                "aws_format": {"show": False},
+                "aws_access_key_id": {"show": False, "advanced": True},
+                "aws_secret_access_key": {"show": False, "advanced": True},
+                "bucket_name": {"show": False, "advanced": True},
+                "aws_region": {"show": False, "advanced": True},
+                "s3_prefix": {"show": False, "advanced": True},
+            }
+            result = await component.update_build_config(
+                build_config, [{"name": "Local"}], "storage_location"
+            )
+            assert result["storage_location"]["value"][0]["name"] == "AWS"
+            # Local-only fields hidden because effective selection is now AWS
+            assert result["local_format"]["show"] is False
+            assert result["append_mode"]["show"] is False
+            # AWS fields shown instead
+            assert result["aws_format"]["show"] is True
+
+    def test_storage_location_defaults_to_aws(self, component_class):
+        """storage_location seed defaults to AWS — non-admin users never see Local in the seed."""
         storage_input = next(i for i in component_class.inputs if i.name == "storage_location")
-        assert storage_input.value == [{"name": "Local", "icon": "hard-drive"}]
+        assert storage_input.value == [{"name": "AWS", "icon": "Amazon"}]
 
     def test_storage_location_is_advanced(self, component_class):
         """Test that storage_location is in advanced controls."""
         storage_input = next(i for i in component_class.inputs if i.name == "storage_location")
         assert storage_input.advanced is True
+
+    @pytest.mark.asyncio
+    async def test_file_location_visible_only_for_local(self, component_class):
+        """file_location is shown when storage_location == Local; hidden otherwise."""
+        component = component_class(_user_id=str(uuid4()))
+
+        admin_user = MagicMock()
+        admin_user.is_superuser = True
+        admin_user.is_platform_admin = False
+
+        with (
+            patch("lfx.services.deps.session_scope") as mock_session,
+            patch(
+                "langflow.services.database.models.user.crud.get_user_by_id", new_callable=AsyncMock
+            ) as mock_get_user,
+        ):
+            mock_db = AsyncMock()
+            mock_session.return_value.__aenter__.return_value = mock_db
+            mock_get_user.return_value = admin_user
+
+            # Local — file_location visible
+            build_config = {
+                "storage_location": {"options": [], "value": [{"name": "Local"}]},
+                "file_name": {"show": False},
+                "file_location": {"show": False},
+                "append_mode": {"show": False},
+                "local_format": {"show": False},
+            }
+            result = await component.update_build_config(
+                build_config, [{"name": "Local"}], "storage_location"
+            )
+            assert result["file_location"]["show"] is True
+
+            # AWS — file_location hidden
+            build_config = {
+                "storage_location": {"options": [], "value": [{"name": "AWS"}]},
+                "file_name": {"show": False},
+                "file_location": {"show": False},
+                "append_mode": {"show": False},
+                "aws_format": {"show": False},
+                "aws_access_key_id": {"show": False, "advanced": True},
+                "aws_secret_access_key": {"show": False, "advanced": True},
+                "bucket_name": {"show": False, "advanced": True},
+                "aws_region": {"show": False, "advanced": True},
+                "s3_prefix": {"show": False, "advanced": True},
+            }
+            result = await component.update_build_config(
+                build_config, [{"name": "AWS"}], "storage_location"
+            )
+            assert result["file_location"]["show"] is False
+
+    def test_file_location_input_exists(self, component_class):
+        """file_location StrInput is registered on the component."""
+        names = [i.name for i in component_class.inputs]
+        assert "file_location" in names
+        file_location = next(i for i in component_class.inputs if i.name == "file_location")
+        assert file_location.required is False
+        assert file_location.show is False
+
+    @pytest.mark.asyncio
+    async def test_save_to_local_uses_file_location(self, component_class, tmp_path):
+        """Explicit file_location places the file in that directory."""
+        component = component_class(_user_id=str(uuid4()))
+        df = DataFrame([{"col1": 1}])
+        component.set_attributes(
+            {
+                "input": df,
+                "file_name": "out",
+                "file_location": str(tmp_path),
+                "local_format": "csv",
+                "storage_location": [{"name": "Local"}],
+            }
+        )
+
+        with (
+            patch("langflow.api.v2.files.upload_user_file", new_callable=AsyncMock) as mock_upload,
+            patch("lfx.services.deps.session_scope") as mock_session,
+            patch(
+                "langflow.services.database.models.user.crud.get_user_by_id", new_callable=AsyncMock
+            ) as mock_get_user,
+        ):
+            mock_db = AsyncMock()
+            mock_session.return_value.__aenter__.return_value = mock_db
+            mock_get_user.return_value = MagicMock()  # admin by default
+            mock_upload.return_value = "out.csv"
+
+            result = await component.save_to_file()
+
+            written = tmp_path / "out.csv"
+            assert written.exists()
+            assert "out.csv" in result.text
+
+    @pytest.mark.asyncio
+    async def test_save_to_local_default_location_is_config_outputs(self, component_class, tmp_path):
+        """Empty file_location resolves to <config_dir>/outputs/."""
+        component = component_class(_user_id=str(uuid4()))
+        df = DataFrame([{"col1": 1}])
+        component.set_attributes(
+            {
+                "input": df,
+                "file_name": "default_out",
+                "file_location": "",
+                "local_format": "csv",
+                "storage_location": [{"name": "Local"}],
+            }
+        )
+
+        fake_settings = MagicMock()
+        fake_settings.settings.config_dir = str(tmp_path)
+
+        with (
+            patch("langflow.api.v2.files.upload_user_file", new_callable=AsyncMock) as mock_upload,
+            patch("lfx.services.deps.session_scope") as mock_session,
+            patch(
+                "langflow.services.database.models.user.crud.get_user_by_id", new_callable=AsyncMock
+            ) as mock_get_user,
+            patch(
+                "lfx.components.files_and_knowledge.save_file.get_settings_service",
+                return_value=fake_settings,
+            ),
+        ):
+            mock_db = AsyncMock()
+            mock_session.return_value.__aenter__.return_value = mock_db
+            mock_get_user.return_value = MagicMock()
+            mock_upload.return_value = "default_out.csv"
+
+            await component.save_to_file()
+
+            written = tmp_path / "outputs" / "default_out.csv"
+            assert written.exists()
+
+    @pytest.mark.asyncio
+    async def test_save_to_local_strips_path_components_from_file_name(self, component_class, tmp_path):
+        """file_name with embedded slashes/traversal is reduced to basename."""
+        component = component_class(_user_id=str(uuid4()))
+        df = DataFrame([{"col1": 1}])
+        component.set_attributes(
+            {
+                "input": df,
+                "file_name": "../escape/foo",
+                "file_location": str(tmp_path),
+                "local_format": "csv",
+                "storage_location": [{"name": "Local"}],
+            }
+        )
+
+        with (
+            patch("langflow.api.v2.files.upload_user_file", new_callable=AsyncMock) as mock_upload,
+            patch("lfx.services.deps.session_scope") as mock_session,
+            patch(
+                "langflow.services.database.models.user.crud.get_user_by_id", new_callable=AsyncMock
+            ) as mock_get_user,
+        ):
+            mock_db = AsyncMock()
+            mock_session.return_value.__aenter__.return_value = mock_db
+            mock_get_user.return_value = MagicMock()
+            mock_upload.return_value = "foo.csv"
+
+            await component.save_to_file()
+
+            assert (tmp_path / "foo.csv").exists()
+            # No traversal happened — nothing exists at the parent of tmp_path under "escape"
+            assert not (tmp_path.parent / "escape" / "foo.csv").exists()
+
+    @pytest.mark.asyncio
+    async def test_save_to_file_local_blocked_for_non_admin(self, component_class):
+        """Non-admin attempting Local storage at runtime gets ValueError."""
+        component = component_class(_user_id=str(uuid4()))
+        df = DataFrame([{"col1": 1}])
+        component.set_attributes(
+            {"input": df, "file_name": "test_output", "local_format": "csv", "storage_location": [{"name": "Local"}]}
+        )
+
+        non_admin = MagicMock()
+        non_admin.is_superuser = False
+        non_admin.is_platform_admin = False
+
+        with (
+            patch("lfx.services.deps.session_scope") as mock_session,
+            patch(
+                "langflow.services.database.models.user.crud.get_user_by_id", new_callable=AsyncMock
+            ) as mock_get_user,
+        ):
+            mock_db = AsyncMock()
+            mock_session.return_value.__aenter__.return_value = mock_db
+            mock_get_user.return_value = non_admin
+
+            with pytest.raises(ValueError, match="platform administrators"):
+                await component.save_to_file()
+
+    def test_storage_location_options_helper_admin_includes_local(self):
+        """Admin sees Local + AWS + Google Drive."""
+        from lfx.components.files_and_knowledge.save_file import _get_storage_location_options
+
+        with patch(
+            "lfx.components.files_and_knowledge.save_file.is_astra_cloud_environment",
+            return_value=False,
+        ):
+            options = _get_storage_location_options(is_admin=True)
+        names = [o["name"] for o in options]
+        assert names == ["Local", "AWS", "Google Drive"]
+
+    def test_storage_location_options_helper_non_admin_excludes_local(self):
+        """Non-admin sees only AWS + Google Drive."""
+        from lfx.components.files_and_knowledge.save_file import _get_storage_location_options
+
+        with patch(
+            "lfx.components.files_and_knowledge.save_file.is_astra_cloud_environment",
+            return_value=False,
+        ):
+            options = _get_storage_location_options(is_admin=False)
+        names = [o["name"] for o in options]
+        assert names == ["AWS", "Google Drive"]
+
+    def test_storage_location_options_helper_astra_admin_excludes_local(self):
+        """Astra environment hides Local even for admins."""
+        from lfx.components.files_and_knowledge.save_file import _get_storage_location_options
+
+        with patch(
+            "lfx.components.files_and_knowledge.save_file.is_astra_cloud_environment",
+            return_value=True,
+        ):
+            options = _get_storage_location_options(is_admin=True)
+        names = [o["name"] for o in options]
+        assert names == ["AWS", "Google Drive"]
