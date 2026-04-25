@@ -1,20 +1,23 @@
-"""Tests for ADPPayDataInputToolsComponent."""
+"""Tests for adp_pay_data_input_tools module-level builders."""
 
 from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-
+from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_pay_data_input_tools import (
-    ADPPayDataInputToolsComponent,
     PATH_MODIFY,
     build_pay_data_input_event,
+    build_pay_data_input_tools,
 )
 
 
-def _make_component(connection, *, enable_mutations: bool = False) -> ADPPayDataInputToolsComponent:
-    return ADPPayDataInputToolsComponent(connection=connection, enable_mutations=enable_mutations)
+def _make_connection(*, access_token="fake-token", api_base_url="https://api.adp.com"):  # noqa: S107
+    conn = MagicMock()
+    conn.access_token = access_token
+    conn.api_base_url = api_base_url
+    return conn
 
 
 # ------------- envelope builder -------------
@@ -203,71 +206,69 @@ def test_build_event_pay_number_override():
 
 
 @pytest.mark.asyncio
-async def test_post_event_happy_path(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
+async def test_post_event_happy_path():
+    conn = _make_connection()
     fake_response = httpx.Response(200, json={"confirmMessage": {"requestID": "REQ-1"}})
-    mock_client = MagicMock()
+    client = MagicMock()
+    client.request = AsyncMock(return_value=fake_response)
 
     @asynccontextmanager
-    async def fake_build_client(_conn, *, timeout=30):
-        yield mock_client
+    async def fake_client(*_args, **_kwargs):
+        yield client
 
-    with patch(
-        "lfx.components.adp.adp_pay_data_input_tools.build_mtls_httpx_client",
-        new=fake_build_client,
-    ), patch.object(c, "_execute_request", new=AsyncMock(return_value=fake_response)):
-        result = await c._post_event(adp_connection, path=PATH_MODIFY, body={"events": []})
+    with patch("lfx.components.adp.adp_pay_data_input_tools.build_mtls_httpx_client", fake_client):
+        from lfx.components.adp.adp_pay_data_input_tools import _post_event
+        result = await _post_event(conn, path=PATH_MODIFY, body={"events": []})
 
     assert result == {"confirmMessage": {"requestID": "REQ-1"}}
 
 
 @pytest.mark.asyncio
-async def test_post_event_401_retries_with_fresh_token(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
+async def test_post_event_401_retries_with_fresh_token():
+    conn = _make_connection()
     responses = [
         httpx.Response(401, json={"error": "expired"}),
         httpx.Response(200, json={"confirmMessage": {"requestID": "REQ-2"}}),
     ]
-    mock_exec = AsyncMock(side_effect=responses)
-    mock_client = MagicMock()
+    client = MagicMock()
+    client.request = AsyncMock(side_effect=responses)
 
     @asynccontextmanager
-    async def fake_build_client(_conn, *, timeout=30):
-        yield mock_client
+    async def fake_client(*_args, **_kwargs):
+        yield client
 
-    async def fake_force_refresh(conn, *, force=False):
+    async def fake_force_refresh(c, *, force=False):
         assert force is True
-        conn.access_token = "new-token"  # noqa: S105
+        c.access_token = "new-token"  # noqa: S105
 
     with patch(
-        "lfx.components.adp.adp_pay_data_input_tools.build_mtls_httpx_client",
-        new=fake_build_client,
-    ), patch.object(c, "_execute_request", new=mock_exec), patch(
+        "lfx.components.adp.adp_pay_data_input_tools.build_mtls_httpx_client", fake_client,
+    ), patch(
         "lfx.components.adp.adp_pay_data_input_tools.fetch_token",
         new=AsyncMock(side_effect=fake_force_refresh),
     ):
-        await c._post_event(adp_connection, path=PATH_MODIFY, body={"events": []})
+        from lfx.components.adp.adp_pay_data_input_tools import _post_event
+        await _post_event(conn, path=PATH_MODIFY, body={"events": []})
 
-    assert mock_exec.call_count == 2
-    second_headers = mock_exec.call_args_list[1].kwargs["headers"]
+    assert client.request.call_count == 2
+    second_headers = client.request.call_args_list[1].kwargs["headers"]
     assert second_headers["Authorization"] == "Bearer new-token"
 
 
 @pytest.mark.asyncio
-async def test_post_event_http_error_returns_error_dict(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
+async def test_post_event_http_error_returns_error_dict():
+    conn = _make_connection()
     fake_response = httpx.Response(400, json={"errorCode": "INVALID"})
-    mock_client = MagicMock()
+    client = MagicMock()
+    client.request = AsyncMock(return_value=fake_response)
 
     @asynccontextmanager
-    async def fake_build_client(_conn, *, timeout=30):
-        yield mock_client
+    async def fake_client(*_args, **_kwargs):
+        yield client
 
-    with patch(
-        "lfx.components.adp.adp_pay_data_input_tools.build_mtls_httpx_client",
-        new=fake_build_client,
-    ), patch.object(c, "_execute_request", new=AsyncMock(return_value=fake_response)):
-        result = await c._post_event(adp_connection, path=PATH_MODIFY, body={"events": []})
+    with patch("lfx.components.adp.adp_pay_data_input_tools.build_mtls_httpx_client", fake_client):
+        from lfx.components.adp.adp_pay_data_input_tools import _post_event
+        result = await _post_event(conn, path=PATH_MODIFY, body={"events": []})
 
     assert result == {"error": {"errorCode": "INVALID"}, "status_code": 400}
 
@@ -276,17 +277,16 @@ async def test_post_event_http_error_returns_error_dict(adp_connection):
 
 
 @pytest.mark.asyncio
-async def test_build_tools_disabled_returns_empty(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=False)
-    tools = await c.build_tools()
+async def test_build_tools_disabled_returns_empty():
+    tools = build_pay_data_input_tools(_make_connection(), RequestCache(ttl_seconds=30, max_entries=8))
     assert tools == []
 
 
 @pytest.mark.asyncio
-async def test_build_tools_enabled_returns_one_tool(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    tools = await c.build_tools()
-
+async def test_build_tools_enabled_returns_one_tool():
+    tools = build_pay_data_input_tools(
+        _make_connection(), RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True,
+    )
     assert len(tools) == 1
     tool = tools[0]
     assert tool.name == "submit_pay_data_input"
@@ -295,12 +295,16 @@ async def test_build_tools_enabled_returns_one_tool(adp_connection):
 
 
 @pytest.mark.asyncio
-async def test_tool_invocation_builds_envelope_and_posts(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
+async def test_tool_invocation_builds_envelope_and_posts():
+    conn = _make_connection()
     mock_post = AsyncMock(return_value={"confirmMessage": {"requestID": "REQ-9"}})
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
+    with patch(
+        "lfx.components.adp.adp_pay_data_input_tools._post_event", new=mock_post,
+    ):
+        tools = build_pay_data_input_tools(
+            conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True,
+        )
         tool = tools[0]
         result = await tool.ainvoke(
             {

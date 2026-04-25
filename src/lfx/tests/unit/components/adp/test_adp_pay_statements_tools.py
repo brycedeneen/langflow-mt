@@ -1,4 +1,4 @@
-"""Tests for ADPPayStatementsToolsComponent."""
+"""Tests for adp_pay_statements_tools module-level builders."""
 
 import base64
 from contextlib import asynccontextmanager
@@ -6,64 +6,73 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-
+from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_pay_statements_tools import (
-    ADPPayStatementsToolsComponent,
     PATH_DETAIL,
     PATH_IMAGE,
     PATH_LIST,
+    build_pay_statements_tools,
 )
 
 
-def _make(connection) -> ADPPayStatementsToolsComponent:
-    return ADPPayStatementsToolsComponent(connection=connection)
+def _make_connection(*, access_token="fake-token", api_base_url="https://api.adp.com"):  # noqa: S107
+    conn = MagicMock()
+    conn.access_token = access_token
+    conn.api_base_url = api_base_url
+    return conn
 
 
 @pytest.mark.asyncio
-async def test_list_routes_to_list_path(adp_connection):
-    c = _make(adp_connection)
-    mock_call = AsyncMock(return_value={})
-    with patch.object(c, "_call", new=mock_call):
-        tools = await c.build_tools()
+async def test_list_routes_to_list_path():
+    conn = _make_connection()
+    mock_fetch = AsyncMock(return_value={})
+    with patch(
+        "lfx.components.adp.adp_pay_statements_tools._fetch_pay_statements", new=mock_fetch,
+    ):
+        tools = build_pay_statements_tools(conn, RequestCache(ttl_seconds=30, max_entries=8))
         await next(t for t in tools if t.name == "get_worker_pay_statements").ainvoke(
             {"associate_oid": "G3ABC"},
         )
-    assert mock_call.call_args.kwargs["path"] == PATH_LIST.format(aoid="G3ABC")
-    assert mock_call.call_args.kwargs["params"] is None
+    assert mock_fetch.call_args.kwargs["path"] == PATH_LIST.format(aoid="G3ABC")
+    assert mock_fetch.call_args.kwargs["params"] is None
 
 
 @pytest.mark.asyncio
-async def test_list_respects_numberoflastpaydates(adp_connection):
-    c = _make(adp_connection)
-    mock_call = AsyncMock(return_value={})
-    with patch.object(c, "_call", new=mock_call):
-        tools = await c.build_tools()
+async def test_list_respects_numberoflastpaydates():
+    conn = _make_connection()
+    mock_fetch = AsyncMock(return_value={})
+    with patch(
+        "lfx.components.adp.adp_pay_statements_tools._fetch_pay_statements", new=mock_fetch,
+    ):
+        tools = build_pay_statements_tools(conn, RequestCache(ttl_seconds=30, max_entries=8))
         await next(t for t in tools if t.name == "get_worker_pay_statements").ainvoke(
             {"associate_oid": "G3ABC", "numberoflastpaydates": 5},
         )
-    assert mock_call.call_args.kwargs["params"] == {"numberoflastpaydates": 5}
+    assert mock_fetch.call_args.kwargs["params"] == {"numberoflastpaydates": 5}
 
 
 @pytest.mark.asyncio
-async def test_detail_routes_to_detail_path(adp_connection):
-    c = _make(adp_connection)
-    mock_call = AsyncMock(return_value={})
-    with patch.object(c, "_call", new=mock_call):
-        tools = await c.build_tools()
+async def test_detail_routes_to_detail_path():
+    conn = _make_connection()
+    mock_fetch = AsyncMock(return_value={})
+    with patch(
+        "lfx.components.adp.adp_pay_statements_tools._fetch_pay_statements", new=mock_fetch,
+    ):
+        tools = build_pay_statements_tools(conn, RequestCache(ttl_seconds=30, max_entries=8))
         await next(t for t in tools if t.name == "get_worker_pay_statements").ainvoke(
             {"associate_oid": "G3ABC", "pay_statement_id": "PS-7"},
         )
-    assert mock_call.call_args.kwargs["path"] == PATH_DETAIL.format(
+    assert mock_fetch.call_args.kwargs["path"] == PATH_DETAIL.format(
         aoid="G3ABC", pay_statement_id="PS-7",
     )
 
 
 @pytest.mark.asyncio
-async def test_image_routes_with_extension(adp_connection):
-    c = _make(adp_connection)
+async def test_image_routes_with_extension():
+    conn = _make_connection()
     mock_img = AsyncMock(return_value={"content_base64": "abc", "content_type": "application/pdf"})
-    with patch.object(c, "_fetch_image", new=mock_img):
-        tools = await c.build_tools()
+    with patch("lfx.components.adp.adp_pay_statements_tools._fetch_image", new=mock_img):
+        tools = build_pay_statements_tools(conn, RequestCache(ttl_seconds=30, max_entries=8))
         await next(t for t in tools if t.name == "get_worker_pay_statement_image").ainvoke(
             {
                 "associate_oid": "G3ABC",
@@ -78,24 +87,23 @@ async def test_image_routes_with_extension(adp_connection):
 
 
 @pytest.mark.asyncio
-async def test_fetch_image_returns_base64_and_content_type(adp_connection):
-    c = _make(adp_connection)
+async def test_fetch_image_returns_base64_and_content_type():
+    conn = _make_connection()
     raw = b"%PDF-1.7\n...binary..."
     fake_response = httpx.Response(
         200, content=raw, headers={"content-type": "application/pdf"},
     )
-    mock_client = MagicMock()
+    client = MagicMock()
+    client.request = AsyncMock(return_value=fake_response)
 
     @asynccontextmanager
-    async def fake_build_client(_conn, *, timeout=30):
-        yield mock_client
+    async def fake_client(*_args, **_kwargs):
+        yield client
 
-    with patch(
-        "lfx.components.adp.adp_pay_statements_tools.build_mtls_httpx_client",
-        new=fake_build_client,
-    ), patch.object(c, "_execute_request", new=AsyncMock(return_value=fake_response)):
-        result = await c._fetch_image(
-            adp_connection,
+    with patch("lfx.components.adp.adp_pay_statements_tools.build_mtls_httpx_client", fake_client):
+        from lfx.components.adp.adp_pay_statements_tools import _fetch_image
+        result = await _fetch_image(
+            conn,
             path=PATH_IMAGE.format(
                 aoid="G3ABC", pay_statement_id="PS-7", image_id="IMG-1", image_extension="pdf",
             ),
@@ -107,28 +115,26 @@ async def test_fetch_image_returns_base64_and_content_type(adp_connection):
 
 
 @pytest.mark.asyncio
-async def test_fetch_image_error_dict_on_404(adp_connection):
-    c = _make(adp_connection)
+async def test_fetch_image_error_dict_on_404():
+    conn = _make_connection()
     fake_response = httpx.Response(404, json={"errorCode": "NOT_FOUND"})
-    mock_client = MagicMock()
+    client = MagicMock()
+    client.request = AsyncMock(return_value=fake_response)
 
     @asynccontextmanager
-    async def fake_build_client(_conn, *, timeout=30):
-        yield mock_client
+    async def fake_client(*_args, **_kwargs):
+        yield client
 
-    with patch(
-        "lfx.components.adp.adp_pay_statements_tools.build_mtls_httpx_client",
-        new=fake_build_client,
-    ), patch.object(c, "_execute_request", new=AsyncMock(return_value=fake_response)):
-        result = await c._fetch_image(adp_connection, path="/payroll/v1/workers/X/bad")
+    with patch("lfx.components.adp.adp_pay_statements_tools.build_mtls_httpx_client", fake_client):
+        from lfx.components.adp.adp_pay_statements_tools import _fetch_image
+        result = await _fetch_image(conn, path="/payroll/v1/workers/X/bad")
 
     assert result == {"error": {"errorCode": "NOT_FOUND"}, "status_code": 404}
 
 
 @pytest.mark.asyncio
-async def test_build_tools_returns_two_reads(adp_connection):
-    c = _make(adp_connection)
-    tools = await c.build_tools()
+async def test_build_tools_returns_two_reads():
+    tools = build_pay_statements_tools(_make_connection(), RequestCache(ttl_seconds=30, max_entries=8))
     assert {t.name for t in tools} == {"get_worker_pay_statements", "get_worker_pay_statement_image"}
 
 

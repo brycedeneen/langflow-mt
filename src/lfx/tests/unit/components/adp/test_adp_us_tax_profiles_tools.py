@@ -1,18 +1,21 @@
-"""Tests for ADPUSTaxProfilesToolsComponent."""
+"""Tests for adp_us_tax_profiles_tools module-level builders."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
+from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_us_tax_profiles_tools import (
-    ADPUSTaxProfilesToolsComponent,
     build_tax_instruction_event,
+    build_us_tax_profiles_tools,
     event_path,
 )
 
 
-def _make(connection, *, enable_mutations=False):
-    return ADPUSTaxProfilesToolsComponent(connection=connection, enable_mutations=enable_mutations)
+def _make_connection(*, access_token="fake-token", api_base_url="https://api.adp.com"):  # noqa: S107
+    conn = MagicMock()
+    conn.access_token = access_token
+    conn.api_base_url = api_base_url
+    return conn
 
 
 def test_event_path_supported_combos():
@@ -55,48 +58,56 @@ def test_build_state_add_no_pin_needed():
 
 
 @pytest.mark.asyncio
-async def test_read_summary_path(adp_connection):
-    c = _make(adp_connection)
-    mock_call = AsyncMock(return_value={})
-    with patch.object(c, "_call", new=mock_call):
-        tools = await c.build_tools()
+async def test_read_summary_path():
+    conn = _make_connection()
+    mock_fetch = AsyncMock(return_value={})
+    with patch(
+        "lfx.components.adp.adp_us_tax_profiles_tools._fetch_us_tax_profile", new=mock_fetch,
+    ):
+        tools = build_us_tax_profiles_tools(conn, RequestCache(ttl_seconds=30, max_entries=8))
         await next(t for t in tools if t.name == "get_worker_us_tax_profile").ainvoke(
             {"associate_oid": "G3ABC", "view": "summary"},
         )
-    assert mock_call.call_args.kwargs["path"] == "/payroll/v1/workers/G3ABC/us-tax-profiles"
+    assert mock_fetch.call_args.kwargs["path"] == "/payroll/v1/workers/G3ABC/us-tax-profiles"
 
 
 @pytest.mark.asyncio
-async def test_read_state_requires_profile_id(adp_connection):
-    c = _make(adp_connection)
-    mock_call = AsyncMock(return_value={})
-    with patch.object(c, "_call", new=mock_call):
-        tools = await c.build_tools()
+async def test_read_state_requires_profile_id():
+    conn = _make_connection()
+    mock_fetch = AsyncMock(return_value={})
+    with patch(
+        "lfx.components.adp.adp_us_tax_profiles_tools._fetch_us_tax_profile", new=mock_fetch,
+    ):
+        tools = build_us_tax_profiles_tools(conn, RequestCache(ttl_seconds=30, max_entries=8))
         result = await next(t for t in tools if t.name == "get_worker_us_tax_profile").ainvoke(
             {"associate_oid": "G3ABC", "view": "state"},
         )
     assert result["status_code"] == 422
-    mock_call.assert_not_called()
+    mock_fetch.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_read_local_with_profile_id(adp_connection):
-    c = _make(adp_connection)
-    mock_call = AsyncMock(return_value={})
-    with patch.object(c, "_call", new=mock_call):
-        tools = await c.build_tools()
+async def test_read_local_with_profile_id():
+    conn = _make_connection()
+    mock_fetch = AsyncMock(return_value={})
+    with patch(
+        "lfx.components.adp.adp_us_tax_profiles_tools._fetch_us_tax_profile", new=mock_fetch,
+    ):
+        tools = build_us_tax_profiles_tools(conn, RequestCache(ttl_seconds=30, max_entries=8))
         await next(t for t in tools if t.name == "get_worker_us_tax_profile").ainvoke(
             {"associate_oid": "G3ABC", "view": "local", "profile_id": "P-1"},
         )
-    assert mock_call.call_args.kwargs["path"] == "/payroll/v1/workers/G3ABC/us-tax-profiles/P-1/local"
+    assert mock_fetch.call_args.kwargs["path"] == "/payroll/v1/workers/G3ABC/us-tax-profiles/P-1/local"
 
 
 @pytest.mark.asyncio
-async def test_manage_routes_state_add(adp_connection):
-    c = _make(adp_connection, enable_mutations=True)
+async def test_manage_routes_state_add():
+    conn = _make_connection()
     mock_post = AsyncMock(return_value={})
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
+    with patch("lfx.components.adp.adp_us_tax_profiles_tools._post_event", new=mock_post):
+        tools = build_us_tax_profiles_tools(
+            conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True,
+        )
         await next(t for t in tools if t.name == "manage_worker_us_tax_instruction").ainvoke(
             {
                 "jurisdiction": "state",
@@ -109,11 +120,13 @@ async def test_manage_routes_state_add(adp_connection):
 
 
 @pytest.mark.asyncio
-async def test_manage_unsupported_combo_returns_422(adp_connection):
-    c = _make(adp_connection, enable_mutations=True)
+async def test_manage_unsupported_combo_returns_422():
+    conn = _make_connection()
     mock_post = AsyncMock()
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
+    with patch("lfx.components.adp.adp_us_tax_profiles_tools._post_event", new=mock_post):
+        tools = build_us_tax_profiles_tools(
+            conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True,
+        )
         result = await next(t for t in tools if t.name == "manage_worker_us_tax_instruction").ainvoke(
             {"jurisdiction": "federal", "action": "add", "associate_oid": "G3ABC"},
         )
