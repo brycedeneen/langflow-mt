@@ -21,6 +21,7 @@ from lfx.io import (
 from lfx.schema.message import Message
 from lfx.schema.table import EditMode
 from lfx.schema.token_usage import extract_usage_from_message
+from lfx.utils.model_name import extract_model_name
 
 
 class SmartRouterComponent(Component):
@@ -253,7 +254,9 @@ class SmartRouterComponent(Component):
             if hasattr(llm, "invoke"):
                 response = llm.invoke(prompt)
                 self._token_usage = extract_usage_from_message(response)
-                self._model_name = getattr(self, "model_name", None) or getattr(self, "model", None)
+                self._model_name = extract_model_name(getattr(self, "model_name", None)) or extract_model_name(
+                    getattr(self, "model", None)
+                )
                 if hasattr(response, "content"):
                     categorization = response.content.strip().strip('"')
                 else:

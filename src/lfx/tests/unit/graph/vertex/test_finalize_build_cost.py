@@ -102,3 +102,31 @@ def test_finalize_build_handles_unpriced_model():
     result_data = vertex.set_result.call_args.args[0]
     assert result_data.token_usage.model_name == "unpriced-model"
     assert result_data.token_usage.cost_micros is None
+
+
+def test_finalize_build_resolves_model_name_from_list_of_dicts():
+    """Regression: the agent's self.model is a list-of-dicts; finalize_build
+    must receive a string model id (not a list) to look up pricing.
+
+    The contract enforced by extract_model_name() is that by the time
+    finalize_build runs, ``_model_name`` has already been resolved to a clean
+    string. This test documents that contract end-to-end.
+    """
+    usage = Usage(input_tokens=1000, output_tokens=500, total_tokens=1500)
+    # Simulate a stamp that already extracted the name (matches the new helper):
+    vertex = _make_vertex_stub(model_name="claude-haiku-4-5-20251001", usage=usage)
+
+    pricing = MagicMock()
+    pricing.compute_cost_micros.return_value = 50_000
+
+    settings = SimpleNamespace(cost_tracking_enabled=True)
+
+    with (
+        patch("lfx.graph.vertex.base._get_pricing_service", return_value=pricing),
+        patch("lfx.graph.vertex.base.get_settings_service", return_value=SimpleNamespace(settings=settings)),
+    ):
+        vertex.finalize_build()
+
+    pricing.compute_cost_micros.assert_called_once_with(
+        "claude-haiku-4-5-20251001", input_tokens=1000, output_tokens=500
+    )

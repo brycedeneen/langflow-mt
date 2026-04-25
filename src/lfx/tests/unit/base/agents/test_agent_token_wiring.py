@@ -30,7 +30,12 @@ def _make_agent_executor_mock():
 
 
 def _make_agent_component(agent_class, result_message):
-    """Create a minimal concrete agent component stub for testing."""
+    """Create a minimal concrete agent component stub for testing.
+
+    Uses the real ModelInput-on-disk shape (a list of dicts keyed by ``name``
+    and ``provider``) for ``component.model`` so the test exercises the same
+    extraction path that runs in production.
+    """
     component = agent_class.__new__(agent_class)
     component._token_usage = None
     component._model_name = None
@@ -40,7 +45,14 @@ def _make_agent_component(agent_class, result_message):
     component.input_value = "test input"
     component.status = None
     component.chat_history = []
-    component.model = "gpt-4o-mini"
+    component.model = [
+        {
+            "name": "claude-haiku-4-5-20251001",
+            "icon": "Anthropic",
+            "provider": "Anthropic",
+            "metadata": {"context_length": 128000, "model_class": "ChatAnthropic"},
+        }
+    ]
     component.send_message = AsyncMock(return_value=result_message)
     component._get_shared_callbacks = MagicMock(return_value=[])
     component.log = MagicMock()
@@ -77,9 +89,10 @@ class TestAgentTokenCallbackWiring:
             # Act
             await agent_component.run_agent(_make_agent_executor_mock())
 
-        # Assert
+        # Assert: _model_name is resolved to a clean string id (not the raw
+        # list-of-dicts that ``component.model`` holds in production).
         assert agent_component._token_usage == usage
-        assert agent_component._model_name == agent_component.model
+        assert agent_component._model_name == "claude-haiku-4-5-20251001"
 
     @pytest.mark.asyncio
     async def test_token_usage_not_set_when_handler_returns_none(self):

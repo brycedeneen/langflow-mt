@@ -17,6 +17,7 @@ from lfx.schema.properties import Usage
 from lfx.schema.token_usage import extract_usage_from_message
 from lfx.template.field.base import Output
 from lfx.utils.constants import MESSAGE_SENDER_AI
+from lfx.utils.model_name import extract_model_name
 
 # Enabled detailed thinking for NVIDIA reasoning models.
 #
@@ -275,7 +276,9 @@ class LCModelComponent(Component):
                 usage_data = self.extract_usage(message)
                 if usage_data:
                     self._token_usage = usage_data
-                    self._model_name = getattr(self, "model_name", None) or getattr(self, "model", None)
+                    self._model_name = extract_model_name(getattr(self, "model_name", None)) or extract_model_name(
+                        getattr(self, "model", None)
+                    )
             elif isinstance(result, dict):
                 result = json.dumps(message, indent=4)
                 self.status = result
@@ -289,7 +292,9 @@ class LCModelComponent(Component):
         if lf_message:
             if lf_message.properties and lf_message.properties.usage:
                 self._token_usage = lf_message.properties.usage
-                self._model_name = getattr(self, "model_name", None) or getattr(self, "model", None)
+                self._model_name = extract_model_name(getattr(self, "model_name", None)) or extract_model_name(
+                    getattr(self, "model", None)
+                )
             return lf_message
 
         # Create message with usage data if available

@@ -13,6 +13,7 @@ from lfx.schema.data import Data
 from lfx.schema.message import Message
 from lfx.schema.token_usage import accumulate_usage, extract_usage_from_message
 from lfx.template.field.base import Output
+from lfx.utils.model_name import extract_model_name
 
 
 class LLMSelectorComponent(Component):
@@ -360,7 +361,9 @@ Return ONLY the index number:"""
 
             response = await self.judge_llm.ainvoke([system_message, user_message])
             self._token_usage = accumulate_usage(self._token_usage, extract_usage_from_message(response))
-            self._model_name = getattr(self, "model_name", None) or getattr(self, "model", None)
+            self._model_name = extract_model_name(getattr(self, "model_name", None)) or extract_model_name(
+                getattr(self, "model", None)
+            )
             selected_index, chosen_model_instance = self._parse_judge_response(response.content.strip())
             self._selected_model_name = get_model_name(chosen_model_instance)
             if self._selected_model_name:

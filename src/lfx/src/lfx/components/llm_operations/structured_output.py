@@ -22,6 +22,7 @@ from lfx.log.logger import logger
 from lfx.schema.data import Data
 from lfx.schema.dataframe import DataFrame
 from lfx.schema.table import EditMode
+from lfx.utils.model_name import extract_model_name
 
 
 class StructuredOutputComponent(Component):
@@ -190,7 +191,9 @@ class StructuredOutputComponent(Component):
         if result is None:
             result = self._extract_output_with_langchain(llm, output_model, config_dict)
         self._token_usage = token_handler.get_usage()
-        self._model_name = getattr(self, "model_name", None) or getattr(self, "model", None)
+        self._model_name = extract_model_name(getattr(self, "model_name", None)) or extract_model_name(
+            getattr(self, "model", None)
+        )
 
         # OPTIMIZATION NOTE: Simplified processing based on trustcall response structure
         # Handle non-dict responses (shouldn't happen with trustcall, but defensive)

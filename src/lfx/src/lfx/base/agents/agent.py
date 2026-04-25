@@ -35,6 +35,7 @@ from lfx.schema.log import OnTokenFunctionType
 from lfx.schema.message import Message
 from lfx.template.field.base import Output
 from lfx.utils.constants import MESSAGE_SENDER_AI
+from lfx.utils.model_name import extract_model_name
 
 if TYPE_CHECKING:
     from lfx.schema.log import OnTokenFunctionType, SendMessageFunctionType
@@ -314,7 +315,7 @@ class LCAgentComponent(Component):
         usage_data = token_usage_handler.get_usage()
         if usage_data:
             self._token_usage = usage_data
-            self._model_name = getattr(self, "model", None)
+            self._model_name = extract_model_name(getattr(self, "model", None))
             result.properties.usage = usage_data
             # Only update DB and send event if the message was stored (has an ID)
             if result.get_id():

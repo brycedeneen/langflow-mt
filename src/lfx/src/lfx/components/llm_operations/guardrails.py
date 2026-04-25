@@ -11,6 +11,7 @@ from lfx.field_typing.range_spec import RangeSpec
 from lfx.io import BoolInput, ModelInput, MultilineInput, MultiselectInput, Output, SecretStrInput, SliderInput
 from lfx.schema import Data
 from lfx.schema.token_usage import accumulate_usage, extract_usage_from_message
+from lfx.utils.model_name import extract_model_name
 
 guardrail_descriptions = {
     "PII": (
@@ -332,7 +333,9 @@ Now analyze the user input above and respond according to the instructions:"""
             if hasattr(llm, "invoke"):
                 response = llm.invoke(prompt)
                 self._token_usage = accumulate_usage(self._token_usage, extract_usage_from_message(response))
-                self._model_name = getattr(self, "model_name", None) or getattr(self, "model", None)
+                self._model_name = extract_model_name(getattr(self, "model_name", None)) or extract_model_name(
+                    getattr(self, "model", None)
+                )
                 result = response.content.strip() if hasattr(response, "content") else str(response).strip()
             else:
                 result = str(llm(prompt)).strip()
