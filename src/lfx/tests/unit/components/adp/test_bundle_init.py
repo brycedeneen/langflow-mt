@@ -24,7 +24,6 @@ def test_bundle_exports_all_components():
         ADPWorkerAssignmentV3ToolsComponent,
         ADPWorkerBiologicalToolsComponent,
         ADPWorkerCompensationToolsComponent,
-        ADPWorkerDemographicToolsComponent,
         ADPWorkerDeploymentToolsComponent,
         ADPWorkerHrProfilesToolsComponent,
         ADPWorkerIdentificationToolsComponent,
@@ -61,7 +60,6 @@ def test_bundle_exports_all_components():
     assert ADPWorkerDeploymentToolsComponent.name == "ADPWorkerDeploymentTools"
     assert ADPWorkerIdentificationToolsComponent.name == "ADPWorkerIdentificationTools"
     assert ADPWorkerAssignmentToolsComponent.name == "ADPWorkerAssignmentTools"
-    assert ADPWorkerDemographicToolsComponent.name == "ADPWorkerDemographicTools"
     assert ADPWorkerBiologicalToolsComponent.name == "ADPWorkerBiologicalTools"
     assert ADPWorkerHrProfilesToolsComponent.name == "ADPWorkerHrProfilesTools"
     assert ADPWorkerLeavesToolsComponent.name == "ADPWorkerLeavesTools"
