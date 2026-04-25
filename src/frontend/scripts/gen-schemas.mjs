@@ -20,6 +20,7 @@
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { rewriteV3ToV4 } from "./zod4-postprocessor.mjs";
 
 const [, , openapiPath] = process.argv;
 if (!openapiPath) {
@@ -100,9 +101,13 @@ const generated = [
   `// components.schemas before passing to openapi-zod-client (which doesn't natively`,
   `// support nested \`$defs\`). See`,
   `// docs/superpowers/research/2026-04-24-phase-1-tooling-block.md.`,
+  `//`,
+  `// Post-process: scripts/zod4-postprocessor.mjs rewrites v3 idioms`,
+  `// (.passthrough(), single-arg z.record, z.nativeEnum) emitted by`,
+  `// openapi-zod-client into v4 syntax (z.looseObject, two-arg z.record, z.enum).`,
   `/* eslint-disable */`,
   ``,
-  promoted.join(""),
+  rewriteV3ToV4(promoted.join("")),
 ].join("\n");
 fs.writeFileSync(path.join(OUT_DIR, "_generated.ts"), generated);
 

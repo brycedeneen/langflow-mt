@@ -12,7 +12,7 @@ describe("ValidationError", () => {
     const zErr = new z.ZodError([{
       code: "invalid_type",
       expected: "string",
-      received: "undefined",
+      input: undefined,
       path: ["data", "nodes", 2, "id"],
       message: "Required",
     }]);
@@ -39,7 +39,7 @@ describe("reportParseFailure", () => {
     const reporter = jest.fn();
     configureReporter(reporter);
     const zErr = new z.ZodError([{
-      code: "invalid_type", expected: "string", received: "number",
+      code: "invalid_type", expected: "string", input: 0,
       path: ["data", "x"], message: "bad",
     }]);
     const payload = { id: "a.b.c", mode: "permissive" as const, error: zErr, raw: {}, boundary: "http" as const };
@@ -52,8 +52,8 @@ describe("reportParseFailure", () => {
   it("does not dedupe different (id, path) pairs", () => {
     const reporter = jest.fn();
     configureReporter(reporter);
-    const zErr1 = new z.ZodError([{ code: "invalid_type", expected: "string", received: "number", path: ["a"], message: "" }]);
-    const zErr2 = new z.ZodError([{ code: "invalid_type", expected: "string", received: "number", path: ["b"], message: "" }]);
+    const zErr1 = new z.ZodError([{ code: "invalid_type", expected: "string", input: 0, path: ["a"], message: "" }]);
+    const zErr2 = new z.ZodError([{ code: "invalid_type", expected: "string", input: 0, path: ["b"], message: "" }]);
     reportParseFailure({ id: "x.y.z", mode: "permissive", error: zErr1, raw: {}, boundary: "http" });
     reportParseFailure({ id: "x.y.z", mode: "permissive", error: zErr2, raw: {}, boundary: "http" });
     expect(reporter).toHaveBeenCalledTimes(2);

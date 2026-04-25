@@ -6,15 +6,13 @@ import { registerSchema } from "@/lib/schema-registry";
 // get_language_model_options / get_embedding_model_options in unified_models.py.
 // TODO: backend returns untyped list[dict] — shape inferred from source inspection
 
-export const ModelOptionItemSchema = z
-  .object({
-    name: z.string().optional(),
-    icon: z.string().optional(),
-    category: z.string().optional(),
-    provider: z.string().optional(),
-    metadata: z.record(z.unknown()).optional(),
-  })
-  .passthrough();
+export const ModelOptionItemSchema = z.looseObject({
+  name: z.string().optional(),
+  icon: z.string().optional(),
+  category: z.string().optional(),
+  provider: z.string().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
 
 export type ModelOptionItem = z.infer<typeof ModelOptionItemSchema>;
 

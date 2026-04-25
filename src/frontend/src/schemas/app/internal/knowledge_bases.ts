@@ -14,62 +14,52 @@ import { registerSchema } from "@/lib/schema-registry";
 // ---------------------------------------------------------------------------
 
 /** Column config item — permissive, exact shape depends on KB creation request */
-export const ColumnConfigItemSchema = z
-  .object({
-    name: z.string().optional(),
-    data_type: z.string().optional(),
-  })
-  .passthrough();
+export const ColumnConfigItemSchema = z.looseObject({
+  name: z.string().optional(),
+  data_type: z.string().optional(),
+});
 
-export const KnowledgeBaseInfoSchema = z
-  .object({
-    id: z.string(),
-    dir_name: z.string(),
-    name: z.string(),
-    embedding_provider: z.string().optional(),
-    embedding_model: z.string().optional(),
-    size: z.number().optional(),
-    words: z.number().optional(),
-    characters: z.number().optional(),
-    chunks: z.number().optional(),
-    avg_chunk_size: z.number().optional(),
-    chunk_size: z.number().nullable().optional(),
-    chunk_overlap: z.number().nullable().optional(),
-    separator: z.string().nullable().optional(),
-    status: z.string().optional(),
-    failure_reason: z.string().nullable().optional(),
-    last_job_id: z.string().nullable().optional(),
-    source_types: z.array(z.string()).optional(),
-    column_config: z.array(ColumnConfigItemSchema).nullable().optional(),
-  })
-  .passthrough();
+export const KnowledgeBaseInfoSchema = z.looseObject({
+  id: z.string(),
+  dir_name: z.string(),
+  name: z.string(),
+  embedding_provider: z.string().optional(),
+  embedding_model: z.string().optional(),
+  size: z.number().optional(),
+  words: z.number().optional(),
+  characters: z.number().optional(),
+  chunks: z.number().optional(),
+  avg_chunk_size: z.number().optional(),
+  chunk_size: z.number().nullable().optional(),
+  chunk_overlap: z.number().nullable().optional(),
+  separator: z.string().nullable().optional(),
+  status: z.string().optional(),
+  failure_reason: z.string().nullable().optional(),
+  last_job_id: z.string().nullable().optional(),
+  source_types: z.array(z.string()).optional(),
+  column_config: z.array(ColumnConfigItemSchema).nullable().optional(),
+});
 
-export const ChunkInfoSchema = z
-  .object({
-    id: z.string(),
-    content: z.string(),
-    char_count: z.number().optional(),
-    metadata: z.record(z.unknown()).optional(),
-  })
-  .passthrough();
+export const ChunkInfoSchema = z.looseObject({
+  id: z.string(),
+  content: z.string(),
+  char_count: z.number().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
 
-export const PaginatedChunkResponseSchema = z
-  .object({
-    chunks: z.array(ChunkInfoSchema),
-    total: z.number(),
-    page: z.number(),
-    limit: z.number(),
-    total_pages: z.number(),
-  })
-  .passthrough();
+export const PaginatedChunkResponseSchema = z.looseObject({
+  chunks: z.array(ChunkInfoSchema),
+  total: z.number(),
+  page: z.number(),
+  limit: z.number(),
+  total_pages: z.number(),
+});
 
 /** Mirrors langflow.api.v1.schemas.TaskResponse */
-export const TaskResponseSchema = z
-  .object({
-    id: z.string(),
-    href: z.string().optional(),
-  })
-  .passthrough();
+export const TaskResponseSchema = z.looseObject({
+  id: z.string(),
+  href: z.string().optional(),
+});
 
 // ---------------------------------------------------------------------------
 // Route: POST /knowledge_bases  (+ /knowledge_bases/)
@@ -89,29 +79,23 @@ export type CreateKnowledgeBaseResponse = z.infer<
 // ---------------------------------------------------------------------------
 registerSchema("api.knowledge_bases.preview_chunks", "permissive");
 
-export const PreviewChunkItemSchema = z
-  .object({
-    content: z.string().optional(),
-    index: z.number().optional(),
-    char_count: z.number().optional(),
-    start: z.number().optional(),
-    end: z.number().optional(),
-  })
-  .passthrough();
+export const PreviewChunkItemSchema = z.looseObject({
+  content: z.string().optional(),
+  index: z.number().optional(),
+  char_count: z.number().optional(),
+  start: z.number().optional(),
+  end: z.number().optional(),
+});
 
-export const PreviewFileResultSchema = z
-  .object({
-    file_name: z.string().optional(),
-    total_chunks: z.number().optional(),
-    preview_chunks: z.array(PreviewChunkItemSchema).optional(),
-  })
-  .passthrough();
+export const PreviewFileResultSchema = z.looseObject({
+  file_name: z.string().optional(),
+  total_chunks: z.number().optional(),
+  preview_chunks: z.array(PreviewChunkItemSchema).optional(),
+});
 
-export const PreviewChunksResponseSchema = z
-  .object({
-    files: z.array(PreviewFileResultSchema),
-  })
-  .passthrough();
+export const PreviewChunksResponseSchema = z.looseObject({
+  files: z.array(PreviewFileResultSchema),
+});
 
 export type PreviewChunksResponse = z.infer<typeof PreviewChunksResponseSchema>;
 
@@ -126,7 +110,7 @@ registerSchema(
 );
 
 export const IngestResponseSchema = z
-  .union([TaskResponseSchema, z.record(z.unknown())])
+  .union([TaskResponseSchema, z.record(z.string(), z.unknown())])
   .optional();
 
 export type IngestResponse = z.infer<typeof IngestResponseSchema>;
@@ -171,11 +155,9 @@ export type KnowledgeBaseChunksResponse = z.infer<
 // ---------------------------------------------------------------------------
 registerSchema("api.knowledge_bases.delete_knowledge_base", "permissive");
 
-export const DeleteKBResponseSchema = z
-  .object({
-    message: z.string(),
-  })
-  .passthrough();
+export const DeleteKBResponseSchema = z.looseObject({
+  message: z.string(),
+});
 
 export type DeleteKBResponse = z.infer<typeof DeleteKBResponseSchema>;
 
@@ -189,13 +171,11 @@ registerSchema(
   "permissive",
 );
 
-export const BulkDeleteKBResponseSchema = z
-  .object({
-    message: z.string().optional(),
-    deleted_count: z.number().optional(),
-    not_found: z.string().optional(),
-  })
-  .passthrough();
+export const BulkDeleteKBResponseSchema = z.looseObject({
+  message: z.string().optional(),
+  deleted_count: z.number().optional(),
+  not_found: z.string().optional(),
+});
 
 export type BulkDeleteKBResponse = z.infer<typeof BulkDeleteKBResponseSchema>;
 
@@ -206,11 +186,9 @@ export type BulkDeleteKBResponse = z.infer<typeof BulkDeleteKBResponseSchema>;
 // ---------------------------------------------------------------------------
 registerSchema("api.knowledge_bases.cancel_ingestion", "permissive");
 
-export const CancelIngestionResponseSchema = z
-  .object({
-    message: z.string(),
-  })
-  .passthrough();
+export const CancelIngestionResponseSchema = z.looseObject({
+  message: z.string(),
+});
 
 export type CancelIngestionResponse = z.infer<
   typeof CancelIngestionResponseSchema
