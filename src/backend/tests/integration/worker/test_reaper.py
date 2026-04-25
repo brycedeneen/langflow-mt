@@ -4,6 +4,26 @@ from uuid import uuid4
 
 
 @pytest.fixture
+async def webhooks_broker_on_test_redis(redis_service, monkeypatch):
+    """Repoint reaper's broker_webhooks at the test Redis instance.
+
+    The module-level broker_webhooks in worker_app.brokers is bound at
+    import time to the production redis URL (db 0). The reaper does
+    `deliver_webhook.kicker().with_broker(broker_webhooks).kiq(...)`,
+    so we swap the broker for one pointed at the test redis (db 15)
+    that worker_ctx asserts against.
+    """
+    from taskiq_redis import ListQueueBroker
+    from langflow.worker_app import reaper as reaper_mod
+
+    test_broker = ListQueueBroker(url=redis_service.url, queue_name="webhooks")
+    await test_broker.startup()
+    monkeypatch.setattr(reaper_mod, "broker_webhooks", test_broker)
+    yield test_broker
+    await test_broker.shutdown()
+
+
+@pytest.fixture
 async def stale_running_run(engine_and_factory):
     from langflow.services.database.models.organization.model import Organization
     from langflow.services.database.models.flow.model import Flow
@@ -27,11 +47,19 @@ async def stale_running_run(engine_and_factory):
 
 
 @pytest.mark.asyncio
-async def test_reaper_marks_stale_running_failed(engine_and_factory, worker_ctx, stale_running_run):
+async def test_reaper_marks_stale_running_failed(
+    engine_and_factory,
+    worker_ctx,
+    webhooks_broker_on_test_redis,
+    stale_running_run,
+):
     from langflow.worker_app.reaper import reap_lost_runs
     from langflow.services.database.models.flow_run.model import FlowRun
 
-    await reap_lost_runs(worker_ctx)
+    await reap_lost_runs(
+        sessionmaker=worker_ctx["db_sessionmaker"],
+        redis=worker_ctx["redis"],
+    )
 
     _, factory = engine_and_factory
     async with factory() as s:
@@ -39,6 +67,6 @@ async def test_reaper_marks_stale_running_failed(engine_and_factory, worker_ctx,
     status = row.status.value if hasattr(row.status, "value") else row.status
     assert status == "failed"
     assert row.error and row.error.get("type") == "worker_lost"
-    # Webhook enqueued
-    calls = [c for c in worker_ctx["arq"].enqueue_job.call_args_list if c.args and c.args[0] == "deliver_webhook"]
-    assert any("run.failed" in c.args for c in calls)
+    # Webhook enqueued onto the "webhooks" Redis list
+    length = await worker_ctx["redis"].llen("webhooks")
+    assert length == 1
