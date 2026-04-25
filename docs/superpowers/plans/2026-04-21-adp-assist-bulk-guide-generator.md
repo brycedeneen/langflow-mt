@@ -64,7 +64,7 @@ Memory callouts:
 - Create: `tests/unit/assist_guide_gen/__init__.py` (empty)
 - Create: `tests/unit/assist_guide_gen/test_walker.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 """Discovery + exclusion rule tests."""
@@ -123,14 +123,14 @@ def test_excluded_directory_names_covers_known_skips():
     assert "deactivated" in EXCLUDED_DIRECTORY_NAMES
 ```
 
-- [ ] **Step 2: Run and confirm failure**
+- [x] **Step 2: Run and confirm failure**
 
 ```bash
 uv run pytest tests/unit/assist_guide_gen/test_walker.py -v
 ```
 Expected: ImportError.
 
-- [ ] **Step 3: Implement the walker**
+- [x] **Step 3: Implement the walker**
 
 ```python
 # scripts/_assist_guide_gen/walker.py
@@ -176,14 +176,14 @@ def iter_all(roots: Iterable[Path]) -> Iterator[FileCandidate]:
         yield from iter_candidate_files(root)
 ```
 
-- [ ] **Step 4: Run and confirm passing**
+- [x] **Step 4: Run and confirm passing**
 
 ```bash
 uv run pytest tests/unit/assist_guide_gen/test_walker.py -v
 ```
 Expected: 5 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/_assist_guide_gen/__init__.py \
@@ -201,7 +201,7 @@ git commit -m "feat(assist-guides): component discovery walker with exclusion ru
 - Create: `scripts/_assist_guide_gen/extract.py`
 - Create: `tests/unit/assist_guide_gen/test_extract.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 """Tests for per-class metadata extraction."""
@@ -264,14 +264,14 @@ def test_completeness_flags_thin_metadata():
     assert metadata_completeness(extract_metadata(_Thin)) == "thin"
 ```
 
-- [ ] **Step 2: Run and confirm failure**
+- [x] **Step 2: Run and confirm failure**
 
 ```bash
 uv run pytest tests/unit/assist_guide_gen/test_extract.py -v
 ```
 Expected: ImportError.
 
-- [ ] **Step 3: Implement extraction**
+- [x] **Step 3: Implement extraction**
 
 ```python
 # scripts/_assist_guide_gen/extract.py
@@ -341,14 +341,14 @@ def metadata_completeness(meta: ComponentMetadata) -> Literal["rich", "thin"]:
     return "rich" if (has_description and (has_input_info or not meta.inputs)) else "thin"
 ```
 
-- [ ] **Step 4: Run and confirm passing**
+- [x] **Step 4: Run and confirm passing**
 
 ```bash
 uv run pytest tests/unit/assist_guide_gen/test_extract.py -v
 ```
 Expected: 3 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/_assist_guide_gen/extract.py tests/unit/assist_guide_gen/test_extract.py
@@ -363,7 +363,7 @@ git commit -m "feat(assist-guides): component metadata extraction + completeness
 - Create: `scripts/_assist_guide_gen/synthesize.py`
 - Create: `tests/unit/assist_guide_gen/test_synthesize.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 """Tests for LLM-backed guide synthesis."""
@@ -419,14 +419,14 @@ def test_synthesize_falls_back_when_llm_returns_empty():
     assert "split" in guide.lower()
 ```
 
-- [ ] **Step 2: Run and confirm failure**
+- [x] **Step 2: Run and confirm failure**
 
 ```bash
 uv run pytest tests/unit/assist_guide_gen/test_synthesize.py -v
 ```
 Expected: ImportError.
 
-- [ ] **Step 3: Implement synthesis**
+- [x] **Step 3: Implement synthesis**
 
 ```python
 # scripts/_assist_guide_gen/synthesize.py
@@ -514,14 +514,14 @@ def synthesize_guide(meta: ComponentMetadata, *, llm: LLMCall) -> str:
     return result
 ```
 
-- [ ] **Step 4: Run and confirm passing**
+- [x] **Step 4: Run and confirm passing**
 
 ```bash
 uv run pytest tests/unit/assist_guide_gen/test_synthesize.py -v
 ```
 Expected: 3 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/_assist_guide_gen/synthesize.py tests/unit/assist_guide_gen/test_synthesize.py
@@ -536,7 +536,7 @@ git commit -m "feat(assist-guides): LLM-backed guide synthesis with deterministi
 - Create: `scripts/_assist_guide_gen/emit.py`
 - Create: `tests/unit/assist_guide_gen/test_emit.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 """YAML emit + review report tests."""
@@ -610,14 +610,14 @@ def test_write_review_report(tmp_path: Path):
     assert "opted out" in body.lower() or "skipped-opted-out" in body
 ```
 
-- [ ] **Step 2: Run and confirm failure**
+- [x] **Step 2: Run and confirm failure**
 
 ```bash
 uv run pytest tests/unit/assist_guide_gen/test_emit.py -v
 ```
 Expected: ImportError.
 
-- [ ] **Step 3: Implement emission**
+- [x] **Step 3: Implement emission**
 
 ```python
 # scripts/_assist_guide_gen/emit.py
@@ -715,14 +715,14 @@ def write_review_report(rows: Iterable[ReportRow], path: Path) -> None:
     path.write_text("\n".join(lines))
 ```
 
-- [ ] **Step 4: Run and confirm passing**
+- [x] **Step 4: Run and confirm passing**
 
 ```bash
 uv run pytest tests/unit/assist_guide_gen/test_emit.py -v
 ```
 Expected: 4 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/_assist_guide_gen/emit.py tests/unit/assist_guide_gen/test_emit.py
@@ -738,7 +738,7 @@ git commit -m "feat(assist-guides): YAML partitioning and review-report writer"
 - Create: `src/backend/base/langflow/services/component_assist/guides/*.yaml` (produced by running the script)
 - Create: `docs/adp-assist-guide-generation-report.md` (produced by running the script)
 
-- [ ] **Step 1: Write the CLI entrypoint**
+- [x] **Step 1: Write the CLI entrypoint**
 
 ```python
 # scripts/generate_component_assist_guides.py
@@ -920,14 +920,14 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-- [ ] **Step 2: Dry-run the generator**
+- [x] **Step 2: Dry-run the generator**
 
 ```bash
 uv run python scripts/generate_component_assist_guides.py --dry-run
 ```
 Expected: prints `Would process ~400 files across ~30 categories.`
 
-- [ ] **Step 3: Generate a single category as a sanity check**
+- [x] **Step 3: Generate a single category as a sanity check**
 
 Pick a small, well-instrumented category (`input_output` is a good candidate).
 
@@ -937,7 +937,7 @@ ANTHROPIC_API_KEY=... uv run python scripts/generate_component_assist_guides.py 
 
 Inspect `src/backend/base/langflow/services/component_assist/guides/input_output.yaml`. Confirm the YAML parses, has one entry per user-facing class, and the guide bodies read like real guidance (not boilerplate or hallucination).
 
-- [ ] **Step 4: Full generation run**
+- [x] **Step 4: Full generation run**
 
 ```bash
 ANTHROPIC_API_KEY=... uv run python scripts/generate_component_assist_guides.py --concurrency 8
@@ -945,7 +945,7 @@ ANTHROPIC_API_KEY=... uv run python scripts/generate_component_assist_guides.py 
 
 Expect several minutes to tens of minutes depending on concurrency and provider latency. The run emits progress lines and a final summary. On completion, `docs/adp-assist-guide-generation-report.md` exists and lists any components flagged as thin.
 
-- [ ] **Step 5: Review the output**
+- [x] **Step 5: Review the output**
 
 Skim each YAML file. Spot-check 3–5 guides per large category for:
 - Hallucinated capabilities (generator invented behavior that isn't in the metadata)
@@ -954,7 +954,7 @@ Skim each YAML file. Spot-check 3–5 guides per large category for:
 
 Delete or rewrite any problematic entries in-place. The registry loads whatever is on disk.
 
-- [ ] **Step 6: Commit per category**
+- [x] **Step 6: Commit per category**
 
 Per the spec's review workflow, commit in small batches:
 
@@ -967,14 +967,14 @@ git commit -m "feat(assist-guides): starter guides for input_output/processing/d
 
 Repeat for subsequent clusters of categories, sized for reviewability (3–5 files each).
 
-- [ ] **Step 7: Commit the review report**
+- [x] **Step 7: Commit the review report**
 
 ```bash
 git add docs/adp-assist-guide-generation-report.md
 git commit -m "docs(assist-guides): generation review report"
 ```
 
-- [ ] **Step 8: Smoke-test the end-to-end flow**
+- [x] **Step 8: Smoke-test the end-to-end flow**
 
 With Plan 1's infrastructure already in place:
 
@@ -986,7 +986,7 @@ With Plan 1's infrastructure already in place:
 
 If the response is generic, open the YAML entry for that component type and confirm the guide text actually loaded (check server logs for any YAML parse errors).
 
-- [ ] **Step 9: Commit the generator script if not already committed**
+- [x] **Step 9: Commit the generator script if not already committed**
 
 ```bash
 git add scripts/generate_component_assist_guides.py
