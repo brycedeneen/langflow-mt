@@ -1,4 +1,4 @@
-"""ADPTalentToolsComponent — consolidated talent/associate-KSAOC tools.
+"""Consolidated talent/associate-KSAOC tools — module-level builder.
 
 Backs 7 ADP WFN talent tiles that share an identical shape — one entity type
 each (certifications, competencies, educational-degrees, languages, licenses,
@@ -19,20 +19,21 @@ supported fields per kind so an agent can populate correctly.
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, Literal
+from typing import Any, Literal
 
-import httpx
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
-from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
-from lfx.custom.custom_component.changelog import ChangelogEntry
-from lfx.custom.custom_component.component import Component
-from lfx.field_typing import Tool
-from lfx.io import BoolInput, HandleInput, Output
-
-HTTP_UNAUTHORIZED = 401
-HTTP_CLIENT_ERROR_MIN = 400
+from lfx.components.adp._shared import (
+    HTTP_CLIENT_ERROR_MIN,
+    HTTP_UNAUTHORIZED,
+    ADPConnection,
+    RequestCache,
+    build_mtls_httpx_client,
+    fetch_token,
+    validate_adp_url,
+)
+from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
 TalentKind = Literal[
     "certification",
@@ -132,8 +133,7 @@ def build_ksaoc_event(
         if item_id:
             entity_ctx["itemID"] = item_id
         if context_pin_fields:
-            for k, v in context_pin_fields.items():
-                entity_ctx[k] = v
+            entity_ctx.update(context_pin_fields)
         if action == "remove" and not entity_ctx:
             msg = "'remove' action requires item_id or context_pin_fields"
             raise ValueError(msg)
@@ -167,7 +167,7 @@ class GetAssociateKsaocEntriesInput(BaseModel):
         default=None,
         description="Specific entity ID to fetch; omit to list all entries for the worker.",
     )
-    filter: str | None = Field(  # noqa: A003
+    filter: str | None = Field(
         default=None,
         alias="$filter",
         description="Optional OData $filter. Only applies when listing (item_id omitted).",
@@ -228,175 +228,121 @@ class ManageAssociateKsaocEntryInput(BaseModel):
     )
 
 
-class ADPTalentToolsComponent(Component):
-    display_name = "ADP Talent Tools"
-    description = (
-        "Consolidated read + write tools for the 7 ADP WFN talent/associate-KSAOC tiles "
-        "(certifications, competencies, educational-degrees, languages, licenses, memberships, "
-        "recognitions). Two tools only: `get_associate_ksaoc_entries` (read, kind-aware) and "
-        "`manage_associate_ksaoc_entry` (write, gated, action-aware)."
-    )
-    icon = "GraduationCap"
-    name = "ADPTalentTools"
-    version: int = 1
-    changelog: ClassVar[list[ChangelogEntry]] = [
-        ChangelogEntry(
-            version=1,
-            changes=(
-                "Initial release — 2 consolidated agent tools covering 7 ADP WFN talent/"
-                "associate-KSAOC tiles. `get_associate_ksaoc_entries` lists or fetches entries "
-                "for any kind; `manage_associate_ksaoc_entry` handles add/change/remove across "
-                "kinds via `kind` + `action` literals. Mutations gated behind `enable_mutations`."
-            ),
-        ),
-    ]
+async def _call_talent(
+    conn: ADPConnection,
+    *,
+    method: str,
+    path: str,
+    params: dict[str, Any] | None = None,
+    body: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    url = f"{conn.api_base_url}{path}"
+    validate_adp_url(url, field_name="api_base_url")
+    headers = {"Authorization": f"Bearer {conn.access_token}"}
 
-    inputs = [
-        HandleInput(
-            name="connection",
-            display_name="ADP Connection",
-            input_types=["ADPConnection"],
-            info="Connection produced by an ADP Auth component.",
-            required=True,
-        ),
-        BoolInput(
-            name="enable_mutations",
-            display_name="Enable Mutations",
-            info=(
-                "Expose the manage-talent tool to the agent. Off by default — these writes "
-                "modify associate KSAOC records."
-            ),
-            value=False,
-        ),
-    ]
-
-    outputs = [
-        Output(display_name="Tools", name="tools", method="build_tools"),
-    ]
-
-    async def _execute_request(
-        self,
-        client: httpx.AsyncClient,
-        *,
-        method: str,
-        url: str,
-        headers: dict[str, str],
-        params: dict[str, Any] | None,
-        json_body: dict[str, Any] | None,
-        timeout: float,
-    ) -> httpx.Response:
-        return await client.request(
-            method=method,
-            url=url,
-            headers=headers,
-            params=params,
-            json=json_body,
-            timeout=timeout,
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
+        response = await client.request(
+            method=method, url=url, headers=headers, params=params, json=body, timeout=30.0,
         )
-
-    async def _call(
-        self,
-        conn: ADPConnection,
-        *,
-        method: str,
-        path: str,
-        params: dict[str, Any] | None = None,
-        body: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        url = f"{conn.api_base_url}{path}"
-        validate_adp_url(url, field_name="api_base_url")
-        headers = {"Authorization": f"Bearer {conn.access_token}"}
-
-        async with build_mtls_httpx_client(conn, timeout=30.0) as client:
-            response = await self._execute_request(
-                client, method=method, url=url, headers=headers,
-                params=params, json_body=body, timeout=30.0,
+        if response.status_code == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            response = await client.request(
+                method=method, url=url, headers=headers, params=params, json=body, timeout=30.0,
             )
-            if response.status_code == HTTP_UNAUTHORIZED:
-                await fetch_token(conn, force=True)
-                headers["Authorization"] = f"Bearer {conn.access_token}"
-                response = await self._execute_request(
-                    client, method=method, url=url, headers=headers,
-                    params=params, json_body=body, timeout=30.0,
-                )
 
-        if response.status_code >= HTTP_CLIENT_ERROR_MIN:
-            try:
-                detail = response.json()
-            except ValueError:
-                detail = response.text
-            return {"error": detail, "status_code": response.status_code}
+    if response.status_code >= HTTP_CLIENT_ERROR_MIN:
         try:
-            return response.json()
+            detail = response.json()
         except ValueError:
-            return {"ok": True, "status_code": response.status_code}
+            detail = response.text
+        return {"error": detail, "status_code": response.status_code}
+    try:
+        return response.json()
+    except ValueError:
+        return {"ok": True, "status_code": response.status_code}
 
-    async def _post_event(self, conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
-        return await self._call(conn, method="POST", path=path, body=body)
 
-    async def build_tools(self) -> list[Tool]:
-        conn: ADPConnection = self.connection
-        component = self
+async def _post_event(conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
+    return await _call_talent(conn, method="POST", path=path, body=body)
 
-        async def _get_associate_ksaoc_entries(**kwargs: Any) -> dict[str, Any]:
-            kind = kwargs["kind"]
-            associate_oid = kwargs["associate_oid"]
-            item_id = kwargs.get("item_id")
-            path = read_path(kind, associate_oid=associate_oid, item_id=item_id)
-            params: dict[str, Any] = {}
-            if not item_id:
-                for source_key, api_key in (("filter", "$filter"), ("skip", "$skip"), ("top", "$top")):
-                    val = kwargs.get(source_key)
-                    if val is not None:
-                        params[api_key] = val
-            return await component._call(conn, method="GET", path=path, params=params or None)
 
-        tools: list[Tool] = [
-            StructuredTool.from_function(
-                name="get_associate_ksaoc_entries",
-                description=(
-                    "Get a worker's talent/KSAOC entries for the selected kind "
-                    "(certification, competency, educational_degree, language, license, "
-                    "membership, recognition). If item_id is provided, fetches one; otherwise "
-                    "lists with optional OData $filter/$skip/$top. Each entry includes an "
-                    "itemID you can pass to `manage_associate_ksaoc_entry`."
-                ),
-                coroutine=_get_associate_ksaoc_entries,
-                args_schema=GetAssociateKsaocEntriesInput,
+def build_talent_tools(
+    connection: ADPConnection,
+    request_cache: RequestCache,  # noqa: ARG001 — accepted for registry uniformity; unused (all calls are un-cached)
+    *,
+    enable_mutations: bool = False,
+) -> list[Tool]:
+    conn = connection
+
+    async def _get_associate_ksaoc_entries(**kwargs: Any) -> dict[str, Any]:
+        kind = kwargs["kind"]
+        associate_oid = kwargs["associate_oid"]
+        item_id = kwargs.get("item_id")
+        path = read_path(kind, associate_oid=associate_oid, item_id=item_id)
+        params: dict[str, Any] = {}
+        if not item_id:
+            for source_key, api_key in (("filter", "$filter"), ("skip", "$skip"), ("top", "$top")):
+                val = kwargs.get(source_key)
+                if val is not None:
+                    params[api_key] = val
+        return await _call_talent(conn, method="GET", path=path, params=params or None)
+
+    tools: list[Tool] = [
+        StructuredTool.from_function(
+            name="get_associate_ksaoc_entries",
+            description=(
+                "Get a worker's talent/KSAOC entries for the selected kind "
+                "(certification, competency, educational_degree, language, license, "
+                "membership, recognition). If item_id is provided, fetches one; otherwise "
+                "lists with optional OData $filter/$skip/$top. Each entry includes an "
+                "itemID you can pass to `manage_associate_ksaoc_entry`."
             ),
-        ]
+            coroutine=_get_associate_ksaoc_entries,
+            args_schema=GetAssociateKsaocEntriesInput,
+        ),
+    ]
 
-        if not self.enable_mutations:
-            return tools
-
-        async def _manage_associate_ksaoc_entry(**kwargs: Any) -> dict[str, Any]:
-            kind = kwargs["kind"]
-            action = kwargs["action"]
-            try:
-                body = build_ksaoc_event(
-                    kind=kind,
-                    action=action,
-                    associate_oid=kwargs["associate_oid"],
-                    fields=kwargs.get("fields") or {},
-                    item_id=kwargs.get("item_id"),
-                    context_pin_fields=kwargs.get("context_pin_fields") or {},
-                )
-            except ValueError as err:
-                return {"error": str(err), "status_code": 422}
-            return await component._post_event(conn, path=event_path(kind, action), body=body)
-
-        tools.append(
-            StructuredTool.from_function(
-                name="manage_associate_ksaoc_entry",
-                description=(
-                    "Add, change, or remove a worker's talent/KSAOC entry for the selected kind. "
-                    "For 'add': populate `fields` with the entity payload (per-kind field list in "
-                    "the input schema). For 'change': pass `item_id` + changed `fields`. For "
-                    "'remove': pass `item_id` (or `context_pin_fields` for natural-key pins)."
-                ),
-                coroutine=_manage_associate_ksaoc_entry,
-                args_schema=ManageAssociateKsaocEntryInput,
-            ),
-        )
-
+    if not enable_mutations:
         return tools
+
+    async def _manage_associate_ksaoc_entry(**kwargs: Any) -> dict[str, Any]:
+        kind = kwargs["kind"]
+        action = kwargs["action"]
+        try:
+            body = build_ksaoc_event(
+                kind=kind,
+                action=action,
+                associate_oid=kwargs["associate_oid"],
+                fields=kwargs.get("fields") or {},
+                item_id=kwargs.get("item_id"),
+                context_pin_fields=kwargs.get("context_pin_fields") or {},
+            )
+        except ValueError as err:
+            return {"error": str(err), "status_code": 422}
+        return await _post_event(conn, path=event_path(kind, action), body=body)
+
+    tools.append(
+        StructuredTool.from_function(
+            name="manage_associate_ksaoc_entry",
+            description=(
+                "Add, change, or remove a worker's talent/KSAOC entry for the selected kind. "
+                "For 'add': populate `fields` with the entity payload (per-kind field list in "
+                "the input schema). For 'change': pass `item_id` + changed `fields`. For "
+                "'remove': pass `item_id` (or `context_pin_fields` for natural-key pins)."
+            ),
+            coroutine=_manage_associate_ksaoc_entry,
+            args_schema=ManageAssociateKsaocEntryInput,
+        ),
+    )
+
+    return tools
+
+
+# ---------------------------------------------------------------------------
+# Back-compat stub — preserved for __init__.py / test_bundle_init.py imports.
+# The Langflow registry uses build_talent_tools(); this class is never
+# instantiated at runtime.
+# ---------------------------------------------------------------------------
+class ADPTalentToolsComponent:
+    name = "ADPTalentTools"

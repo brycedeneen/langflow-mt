@@ -1,4 +1,4 @@
-"""ADPJobApplicantsToolsComponent — job-applicant screening/assessment mutation tools.
+"""ADP job-applicant screening/assessment mutation tools — module-level builder.
 
 Backs the ADP WFN `staffing/job-applicants v2` tile. The tile is all-mutations,
 covering four ADP → third-party-screening-vendor integration endpoints:
@@ -16,20 +16,21 @@ Both tools gated behind `enable_mutations`.
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, Literal
+from typing import Any, Literal
 
-import httpx
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
-from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
-from lfx.custom.custom_component.changelog import ChangelogEntry
-from lfx.custom.custom_component.component import Component
-from lfx.field_typing import Tool
-from lfx.io import BoolInput, HandleInput, Output
-
-HTTP_UNAUTHORIZED = 401
-HTTP_CLIENT_ERROR_MIN = 400
+from lfx.components.adp._shared import (
+    HTTP_CLIENT_ERROR_MIN,
+    HTTP_UNAUTHORIZED,
+    ADPConnection,
+    RequestCache,
+    build_mtls_httpx_client,
+    fetch_token,
+    validate_adp_url,
+)
+from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
 PATH_ASSESSMENT_STATUS = "/events/staffing/v1/job-applicant.external-assessment.status.change"
 PATH_SCREENING_INITIATE = "/events/staffing/v1/job-applicant.external-screening.initiate"
@@ -104,8 +105,7 @@ def build_applicant_screening_event(
         "jobApplications": [_build_application(app, action=action) for app in applications],
     }
     if additional_transform_fields:
-        for key, value in additional_transform_fields.items():
-            transform[key] = value
+        transform.update(additional_transform_fields)
 
     return {
         "events": [
@@ -243,163 +243,102 @@ class PublishScreeningPackagesInput(BaseModel):
     packages: list[ScreeningPackage] = Field(description="One or more packages to publish/modify.")
 
 
-class ADPJobApplicantsToolsComponent(Component):
-    display_name = "ADP Job Applicants Tools"
-    description = (
-        "Mutation tools for ADP WFN `staffing/job-applicants v2` — screening-agency vendor "
-        "integration. `manage_applicant_screening` consolidates initiate / update-screening-status "
-        "/ update-assessment-status for one or more applicants. `publish_screening_packages` "
-        "publishes or modifies screening/assessment packages. Both gated behind `enable_mutations`."
-    )
-    icon = "ShieldCheck"
-    name = "ADPJobApplicantsTools"
-    version: int = 1
-    changelog: ClassVar[list[ChangelogEntry]] = [
-        ChangelogEntry(
-            version=1,
-            changes=(
-                "Initial release — 2 agent tools for ADP WFN staffing/job-applicants v2: "
-                "`manage_applicant_screening` (consolidates 3 per-applicant endpoints via an "
-                "`action` literal) and `publish_screening_packages`. Both gated behind the "
-                "`enable_mutations` input (default off)."
-            ),
-        ),
-    ]
-
-    inputs = [
-        HandleInput(
-            name="connection",
-            display_name="ADP Connection",
-            input_types=["ADPConnection"],
-            info="Connection produced by an ADP Auth component.",
-            required=True,
-        ),
-        BoolInput(
-            name="enable_mutations",
-            display_name="Enable Mutations",
-            info=(
-                "Expose the applicant-screening tools to the agent. Off by default — these "
-                "write to ADP's staffing records and are only for screening-agency integrations."
-            ),
-            value=False,
-        ),
-    ]
-
-    outputs = [
-        Output(display_name="Tools", name="tools", method="build_tools"),
-    ]
-
-    async def _execute_request(
-        self,
-        client: httpx.AsyncClient,
-        *,
-        method: str,
-        url: str,
-        headers: dict[str, str],
-        json_body: dict[str, Any] | None,
-        timeout: float,
-    ) -> httpx.Response:
-        return await client.request(
-            method=method,
-            url=url,
-            headers=headers,
-            json=json_body,
-            timeout=timeout,
-        )
-
-    async def _call(
-        self,
-        conn: ADPConnection,
-        *,
-        method: str,
-        path: str,
-        body: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        url = f"{conn.api_base_url}{path}"
-        validate_adp_url(url, field_name="api_base_url")
-        headers = {"Authorization": f"Bearer {conn.access_token}"}
-
-        async with build_mtls_httpx_client(conn, timeout=30.0) as client:
-            response = await self._execute_request(
-                client, method=method, url=url, headers=headers, json_body=body, timeout=30.0,
-            )
-            if response.status_code == HTTP_UNAUTHORIZED:
-                await fetch_token(conn, force=True)
-                headers["Authorization"] = f"Bearer {conn.access_token}"
-                response = await self._execute_request(
-                    client, method=method, url=url, headers=headers, json_body=body, timeout=30.0,
-                )
-
-        if response.status_code >= HTTP_CLIENT_ERROR_MIN:
-            try:
-                detail = response.json()
-            except ValueError:
-                detail = response.text
-            return {"error": detail, "status_code": response.status_code}
+async def _post_event(conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
+    """POST a single ADP event, with one 401-refresh retry."""
+    url = f"{conn.api_base_url}{path}"
+    validate_adp_url(url, field_name="api_base_url")
+    headers = {"Authorization": f"Bearer {conn.access_token}"}
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
+        response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+        if response.status_code == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+    if response.status_code >= HTTP_CLIENT_ERROR_MIN:
         try:
-            return response.json()
+            detail = response.json()
         except ValueError:
-            return {"ok": True, "status_code": response.status_code}
+            detail = response.text
+        return {"error": detail, "status_code": response.status_code}
+    try:
+        return response.json()
+    except ValueError:
+        return {"ok": True, "status_code": response.status_code}
 
-    async def _post_event(self, conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
-        return await self._call(conn, method="POST", path=path, body=body)
 
-    async def build_tools(self) -> list[Tool]:
-        if not self.enable_mutations:
-            return []
+def build_job_applicants_tools(
+    connection: ADPConnection,
+    request_cache: RequestCache,  # noqa: ARG001 — accepted for registry uniformity; unused for writes
+    *,
+    enable_mutations: bool = False,
+) -> list[Tool]:
+    """Build ADP job-applicant screening mutation tools.
 
-        conn: ADPConnection = self.connection
-        component = self
+    Returns up to 2 StructuredTools for applicant screening management and
+    package publishing. Both gated behind enable_mutations. Writes never
+    consult the request_cache.
+    """
+    if not enable_mutations:
+        return []
 
-        async def _manage_applicant_screening(**kwargs: Any) -> dict[str, Any]:
-            normalized = dict(kwargs)
-            apps = normalized.get("applications") or []
-            normalized_apps: list[dict[str, Any]] = []
-            for app in apps:
-                app_dict = app.model_dump() if hasattr(app, "model_dump") else dict(app)
-                links = app_dict.get("links") or []
-                app_dict["links"] = [
-                    link.model_dump() if hasattr(link, "model_dump") else link for link in links
-                ]
-                normalized_apps.append(app_dict)
-            normalized["applications"] = normalized_apps
+    conn = connection
 
-            action = normalized["action"]
-            body = build_applicant_screening_event(**normalized)
-            path = _APPLICANT_ACTION_PATHS[action]
-            return await component._post_event(conn, path=path, body=body)
-
-        async def _publish_screening_packages(**kwargs: Any) -> dict[str, Any]:
-            normalized = dict(kwargs)
-            packages = normalized.get("packages") or []
-            normalized["packages"] = [
-                pkg.model_dump() if hasattr(pkg, "model_dump") else pkg for pkg in packages
+    async def _manage_applicant_screening(**kwargs: Any) -> dict[str, Any]:
+        normalized = dict(kwargs)
+        apps = normalized.get("applications") or []
+        normalized_apps: list[dict[str, Any]] = []
+        for app in apps:
+            app_dict = app.model_dump() if hasattr(app, "model_dump") else dict(app)
+            links = app_dict.get("links") or []
+            app_dict["links"] = [
+                link.model_dump() if hasattr(link, "model_dump") else link for link in links
             ]
-            body = build_packages_modify_event(**normalized)
-            return await component._post_event(conn, path=PATH_PACKAGES_MODIFY, body=body)
+            normalized_apps.append(app_dict)
+        normalized["applications"] = normalized_apps
 
-        return [
-            StructuredTool.from_function(
-                name="manage_applicant_screening",
-                description=(
-                    "Manage screening/assessment events for one or more job applicants. Set "
-                    "`action='initiate_screening'` to start a background screening, "
-                    "`'update_screening_status'` to update screening status, or "
-                    "`'update_assessment_status'` to update assessment results. Requires "
-                    "`agency_code` and a list of `applications` (each with application_id, "
-                    "optionally package_id, status_code, and result links)."
-                ),
-                coroutine=_manage_applicant_screening,
-                args_schema=ManageApplicantScreeningInput,
-            ),
-            StructuredTool.from_function(
-                name="publish_screening_packages",
-                description=(
-                    "Publish or modify one or more screening/assessment packages offered by a "
-                    "screening agency. Each package has a name, description, status, price, "
-                    "and effective/expiration dates."
-                ),
-                coroutine=_publish_screening_packages,
-                args_schema=PublishScreeningPackagesInput,
-            ),
+        action = normalized["action"]
+        body = build_applicant_screening_event(**normalized)
+        path = _APPLICANT_ACTION_PATHS[action]
+        return await _post_event(conn, path=path, body=body)
+
+    async def _publish_screening_packages(**kwargs: Any) -> dict[str, Any]:
+        normalized = dict(kwargs)
+        packages = normalized.get("packages") or []
+        normalized["packages"] = [
+            pkg.model_dump() if hasattr(pkg, "model_dump") else pkg for pkg in packages
         ]
+        body = build_packages_modify_event(**normalized)
+        return await _post_event(conn, path=PATH_PACKAGES_MODIFY, body=body)
+
+    return [
+        StructuredTool.from_function(
+            name="manage_applicant_screening",
+            description=(
+                "Manage screening/assessment events for one or more job applicants. Set "
+                "`action='initiate_screening'` to start a background screening, "
+                "`'update_screening_status'` to update screening status, or "
+                "`'update_assessment_status'` to update assessment results. Requires "
+                "`agency_code` and a list of `applications` (each with application_id, "
+                "optionally package_id, status_code, and result links)."
+            ),
+            coroutine=_manage_applicant_screening,
+            args_schema=ManageApplicantScreeningInput,
+        ),
+        StructuredTool.from_function(
+            name="publish_screening_packages",
+            description=(
+                "Publish or modify one or more screening/assessment packages offered by a "
+                "screening agency. Each package has a name, description, status, price, "
+                "and effective/expiration dates."
+            ),
+            coroutine=_publish_screening_packages,
+            args_schema=PublishScreeningPackagesInput,
+        ),
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Back-compat stub — preserved for __init__.py / test_bundle_init.py imports.
+# ---------------------------------------------------------------------------
+class ADPJobApplicantsToolsComponent:
+    name = "ADPJobApplicantsTools"

@@ -1,29 +1,35 @@
 """ADP connector bundle: Auth, API Request, MCP, Worker Tools, Trigger."""
 
 from .adp_api_request import ADPAPIRequestComponent
-from .adp_tools import ADPToolsComponent
-from .adp_applicant_onboarding_tools import ADPApplicantOnboardingToolsComponent
+from .adp_applicant_onboarding_tools import (  # noqa: F401
+    ADPApplicantOnboardingToolsComponent,
+    build_applicant_onboarding_tools,
+)
 from .adp_auth import ADPAuthComponent
-from .adp_benefits_tools import ADPBenefitsToolsComponent
-from .adp_data_collection_entries_tools import ADPDataCollectionEntriesToolsComponent
+from .adp_benefits_tools import ADPBenefitsToolsComponent, build_benefits_tools  # noqa: F401
+from .adp_data_collection_entries_tools import (  # noqa: F401
+    ADPDataCollectionEntriesToolsComponent,
+    build_data_collection_entries_tools,
+)
 from .adp_deduction_configurations_tools import ADPDeductionConfigurationsToolsComponent
-from .adp_job_applicants_tools import ADPJobApplicantsToolsComponent
-from .adp_job_requisitions_tools import ADPJobRequisitionsToolsComponent
+from .adp_job_applicants_tools import ADPJobApplicantsToolsComponent, build_job_applicants_tools  # noqa: F401
+from .adp_job_requisitions_tools import ADPJobRequisitionsToolsComponent, build_job_requisitions_tools  # noqa: F401
 from .adp_mcp import ADPMCPComponent
 from .adp_pay_data_input_tools import ADPPayDataInputToolsComponent
 from .adp_pay_distributions_tools import ADPPayDistributionsToolsComponent
 from .adp_pay_statements_tools import ADPPayStatementsToolsComponent
-from .adp_talent_tools import ADPTalentToolsComponent
+from .adp_talent_tools import ADPTalentToolsComponent, build_talent_tools  # noqa: F401
 from .adp_team_time_cards_tools import ADPTeamTimeCardsToolsComponent
 from .adp_time_cards_tools import ADPTimeCardsToolsComponent
 from .adp_time_off_tools import ADPTimeOffToolsComponent
+from .adp_tools import ADPToolsComponent
 from .adp_trigger import ADPTriggerComponent
 from .adp_us_tax_profiles_tools import ADPUSTaxProfilesToolsComponent
 from .adp_work_schedules_tools import ADPWorkSchedulesToolsComponent
-from .adp_worker_business_communication_tools import ADPWorkerBusinessCommunicationToolsComponent
 from .adp_worker_assignment_tools import ADPWorkerAssignmentToolsComponent
 from .adp_worker_assignment_v3_tools import ADPWorkerAssignmentV3ToolsComponent
 from .adp_worker_biological_tools import ADPWorkerBiologicalToolsComponent
+from .adp_worker_business_communication_tools import ADPWorkerBusinessCommunicationToolsComponent
 from .adp_worker_compensation_tools import ADPWorkerCompensationToolsComponent
 from .adp_worker_demographic_tools import build_worker_demographic_tools
 from .adp_worker_deployment_tools import ADPWorkerDeploymentToolsComponent
@@ -37,7 +43,6 @@ from .adp_worker_tools import build_worker_tools
 
 __all__ = [
     "ADPAPIRequestComponent",
-    "ADPToolsComponent",
     "ADPApplicantOnboardingToolsComponent",
     "ADPAuthComponent",
     "ADPBenefitsToolsComponent",
@@ -53,15 +58,15 @@ __all__ = [
     "ADPTeamTimeCardsToolsComponent",
     "ADPTimeCardsToolsComponent",
     "ADPTimeOffToolsComponent",
+    "ADPToolsComponent",
     "ADPTriggerComponent",
     "ADPUSTaxProfilesToolsComponent",
     "ADPWorkSchedulesToolsComponent",
-    "ADPWorkerBusinessCommunicationToolsComponent",
     "ADPWorkerAssignmentToolsComponent",
     "ADPWorkerAssignmentV3ToolsComponent",
     "ADPWorkerBiologicalToolsComponent",
+    "ADPWorkerBusinessCommunicationToolsComponent",
     "ADPWorkerCompensationToolsComponent",
-    "build_worker_demographic_tools",
     "ADPWorkerDeploymentToolsComponent",
     "ADPWorkerHrProfilesToolsComponent",
     "ADPWorkerIdentificationToolsComponent",
@@ -69,5 +74,6 @@ __all__ = [
     "ADPWorkerLifecycleToolsComponent",
     "ADPWorkerPayrollInstructionsToolsComponent",
     "ADPWorkerPersonalCommunicationToolsComponent",
+    "build_worker_demographic_tools",
     "build_worker_tools",
 ]

@@ -1,20 +1,23 @@
-"""Tests for ADPApplicantOnboardingToolsComponent."""
+"""Tests for adp_applicant_onboarding_tools — body builders and build_applicant_onboarding_tools."""
 
-from unittest.mock import AsyncMock, patch
+from contextlib import asynccontextmanager
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
-
+from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_applicant_onboarding_tools import (
-    ADPApplicantOnboardingToolsComponent,
     PATH_APPLICANT_ONBOARD,
     build_applicant_onboarding_body,
+    build_applicant_onboarding_tools,
 )
 
 
-def _make_component(connection, *, enable_mutations: bool = False):
-    return ADPApplicantOnboardingToolsComponent(
-        connection=connection, enable_mutations=enable_mutations,
-    )
+def _make_connection(*, access_token="fake-token", api_base_url="https://api.adp.com"):  # noqa: S107
+    conn = MagicMock()
+    conn.access_token = access_token
+    conn.api_base_url = api_base_url
+    return conn
 
 
 # ---------- builder: minimal / inprogress flavors ----------
@@ -187,26 +190,39 @@ def test_build_body_payroll_omitted_when_no_payroll_fields():
 # ---------- mutation gate / tool routing ----------
 
 
-@pytest.mark.asyncio
-async def test_build_tools_disabled_returns_empty(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=False)
-    assert await c.build_tools() == []
+def test_build_tools_disabled_returns_empty():
+    tools = build_applicant_onboarding_tools(
+        _make_connection(), RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=False,
+    )
+    assert tools == []
 
 
-@pytest.mark.asyncio
-async def test_build_tools_enabled_returns_one_tool(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    tools = await c.build_tools()
+def test_build_tools_enabled_returns_one_tool():
+    tools = build_applicant_onboarding_tools(
+        _make_connection(), RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True,
+    )
     assert {t.name for t in tools} == {"initiate_applicant_onboarding"}
 
 
 @pytest.mark.asyncio
-async def test_tool_invocation_posts_to_correct_path_with_envelope(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={"alternateIDs": [{"idValue": "12345"}]})
+async def test_tool_invocation_posts_to_correct_path_with_envelope():
+    conn = _make_connection()
+    mock_client = MagicMock()
+    mock_client.request = AsyncMock(
+        return_value=httpx.Response(200, json={"alternateIDs": [{"idValue": "12345"}]}),
+    )
 
-    with patch.object(c, "_post_onboarding", new=mock_post):
-        tools = await c.build_tools()
+    @asynccontextmanager
+    async def fake_build_client(_conn, *, timeout=30.0):  # noqa: ARG001
+        yield mock_client
+
+    with patch(
+        "lfx.components.adp.adp_applicant_onboarding_tools.build_mtls_httpx_client",
+        new=fake_build_client,
+    ):
+        tools = build_applicant_onboarding_tools(
+            conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True,
+        )
         tool = tools[0]
         await tool.ainvoke({
             "onboarding_template_code": "T1",
@@ -214,41 +230,47 @@ async def test_tool_invocation_posts_to_correct_path_with_envelope(adp_connectio
             "first_name": "A", "last_name": "B", "hire_date": "2026-01-01",
         })
 
-    call = mock_post.call_args
-    assert call.args[0] is adp_connection
-    body = call.args[1]
+    call_kwargs = mock_client.request.call_args.kwargs
+    assert PATH_APPLICANT_ONBOARD in call_kwargs.get("url", "")
+    body = call_kwargs.get("json", {})
     assert "applicantOnboarding" in body
     assert body["applicantOnboarding"]["onboardingTemplateCode"] == {"code": "T1"}
     assert body["applicantOnboarding"]["onboardingStatus"] == {"statusCode": {"code": "inprogress"}}
 
 
 @pytest.mark.asyncio
-async def test_post_onboarding_hits_correct_url(adp_connection):
-    """End-to-end: verify _post_onboarding builds the correct URL from the connection."""
-    from contextlib import asynccontextmanager
-
-    import httpx
-    from unittest.mock import MagicMock
-
-    c = _make_component(adp_connection, enable_mutations=True)
-    fake_response = httpx.Response(200, json={"ok": True})
+async def test_post_onboarding_401_retries():
+    """End-to-end: verify _post_onboarding performs a 401-refresh retry."""
+    conn = _make_connection()
+    responses = [
+        httpx.Response(401, json={"error": "expired"}),
+        httpx.Response(200, json={"ok": True}),
+    ]
     mock_client = MagicMock()
-    captured: dict = {}
+    mock_client.request = AsyncMock(side_effect=responses)
 
     @asynccontextmanager
-    async def fake_build_client(_conn, *, timeout=30.0):
+    async def fake_build_client(_conn, *, timeout=30.0):  # noqa: ARG001
         yield mock_client
 
-    async def fake_execute(_client, *, url, headers, json_body, timeout):  # noqa: ARG001
-        captured["url"] = url
-        captured["body"] = json_body
-        return fake_response
+    async def fake_force_refresh(c, *, force=False):
+        assert force is True
+        c.access_token = "refreshed"  # noqa: S105
 
     with patch(
         "lfx.components.adp.adp_applicant_onboarding_tools.build_mtls_httpx_client",
         new=fake_build_client,
-    ), patch.object(c, "_execute_request", new=fake_execute):
-        result = await c._post_onboarding(adp_connection, {"applicantOnboarding": {}})
+    ), patch(
+        "lfx.components.adp.adp_applicant_onboarding_tools.fetch_token",
+        new=AsyncMock(side_effect=fake_force_refresh),
+    ):
+        tools = build_applicant_onboarding_tools(
+            conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True,
+        )
+        await tools[0].ainvoke({
+            "onboarding_template_code": "T1",
+            "status": "inprogress",
+            "first_name": "A", "last_name": "B", "hire_date": "2026-01-01",
+        })
 
-    assert captured["url"].endswith(PATH_APPLICANT_ONBOARD)
-    assert result == {"ok": True}
+    assert mock_client.request.call_count == 2
