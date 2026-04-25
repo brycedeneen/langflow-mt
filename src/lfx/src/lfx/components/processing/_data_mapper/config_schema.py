@@ -36,10 +36,12 @@ class JoinDef(BaseModel):
 
 
 class InputDef(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    # `input_schema` is exposed on the wire as `schema` for backwards compatibility;
+    # the Python attribute is renamed to avoid shadowing `BaseModel.schema()`.
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
     alias: str
     schema_source: SchemaSource = "autodetect"
-    schema: InputSchema = Field(default_factory=InputSchema)
+    input_schema: InputSchema = Field(default_factory=InputSchema, alias="schema")
     sample: dict[str, Any] | list[Any] | None = None
     jsonschema: dict[str, Any] | None = None
     join: JoinDef | None = None

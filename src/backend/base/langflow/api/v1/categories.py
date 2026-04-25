@@ -25,7 +25,7 @@ from langflow.services.database.models.category.model import (
 router = APIRouter(prefix="/categories", tags=["Categories"])
 
 
-@router.get("/", response_model=list[CategoryRead])
+@router.get("", response_model=list[CategoryRead])
 async def list_categories(
     _user: CurrentActiveUser,
     session: DbSessionReadOnly,
@@ -47,7 +47,7 @@ async def get_category(
     return obj
 
 
-@router.post("/", response_model=CategoryRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=CategoryRead, status_code=status.HTTP_201_CREATED)
 async def create_category(
     payload: CategoryCreate,
     admin: PlatformAdmin,

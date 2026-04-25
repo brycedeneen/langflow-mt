@@ -160,7 +160,7 @@ async def test_list_categories_returns_alpha_sorted(
     logged_in_headers,
     seed_categories,
 ):
-    resp = await client.get("api/v1/categories/", headers=logged_in_headers)
+    resp = await client.get("api/v1/categories", headers=logged_in_headers)
     assert resp.status_code == status.HTTP_200_OK
     items = resp.json()
     # Filter to only the seeded names so other test data doesn't interfere
@@ -171,7 +171,7 @@ async def test_list_categories_returns_alpha_sorted(
 
 @pytest.mark.asyncio
 async def test_list_categories_requires_auth(client: AsyncClient):
-    resp = await client.get("api/v1/categories/")
+    resp = await client.get("api/v1/categories")
     assert resp.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
 
 
@@ -215,7 +215,7 @@ async def test_create_category_as_regular_user_returns_403(
     logged_in_headers,
 ):
     resp = await client.post(
-        "api/v1/categories/",
+        "api/v1/categories",
         json={"name": "ShouldFail", "icon": "x", "color": "#fff"},
         headers=logged_in_headers,
     )
@@ -229,7 +229,7 @@ async def test_create_category_as_platform_admin_returns_201(
 ):
     name = f"NewCat-{uuid.uuid4()}"
     resp = await client.post(
-        "api/v1/categories/",
+        "api/v1/categories",
         json={"name": name, "icon": "tag", "color": "#abc", "description": "hello"},
         headers=platform_admin_headers,
     )
@@ -255,10 +255,10 @@ async def test_create_category_duplicate_name_returns_409(
 ):
     name = f"DupCat-{uuid.uuid4()}"
     payload = {"name": name, "icon": "tag", "color": "#abc"}
-    resp1 = await client.post("api/v1/categories/", json=payload, headers=platform_admin_headers)
+    resp1 = await client.post("api/v1/categories", json=payload, headers=platform_admin_headers)
     assert resp1.status_code == status.HTTP_201_CREATED, resp1.text
 
-    resp2 = await client.post("api/v1/categories/", json=payload, headers=platform_admin_headers)
+    resp2 = await client.post("api/v1/categories", json=payload, headers=platform_admin_headers)
     assert resp2.status_code == status.HTTP_409_CONFLICT
 
     # cleanup
@@ -275,14 +275,14 @@ async def test_create_category_duplicate_name_case_insensitive_returns_409(
 ):
     base_name = f"CaseDup-{uuid.uuid4()}"
     resp1 = await client.post(
-        "api/v1/categories/",
+        "api/v1/categories",
         json={"name": base_name.lower(), "icon": "tag", "color": "#abc"},
         headers=platform_admin_headers,
     )
     assert resp1.status_code == status.HTTP_201_CREATED, resp1.text
 
     resp2 = await client.post(
-        "api/v1/categories/",
+        "api/v1/categories",
         json={"name": base_name.upper(), "icon": "tag", "color": "#abc"},
         headers=platform_admin_headers,
     )
