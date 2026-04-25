@@ -1,3 +1,5 @@
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { ListModelsResponseSchema } from "@/schemas/app/internal/models";
 import { useQueryFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -45,10 +47,13 @@ export const useGetModelProviders: useQueryFunctionType<
 
     // Fetch the models with provider information including is_enabled status from server
     // Let errors propagate so React Query can retry and preserve stale data
-    const response = await api.get<ModelProviderInfo[]>(url);
-    const providersData = response.data;
+    const providersData = await validatedQueryFn(
+      "api.models.list_models",
+      ListModelsResponseSchema,
+      async () => (await api.get<unknown>(url)).data,
+    )();
 
-    return providersData.map((providerInfo) => ({
+    return (providersData as unknown as ModelProviderInfo[]).map((providerInfo) => ({
       ...providerInfo,
       icon: getProviderIcon(providerInfo.provider),
     }));

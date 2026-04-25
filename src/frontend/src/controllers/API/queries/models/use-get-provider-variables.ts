@@ -1,4 +1,6 @@
 import { ProviderVariable } from "@/constants/providerConstants";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { ProviderVariableMappingSchema } from "@/schemas/app/internal/models";
 import { useQueryFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -25,8 +27,11 @@ export const useGetProviderVariables: useQueryFunctionType<
     async (): Promise<ProviderVariablesMapping> => {
       try {
         const url = `${getURL("MODELS")}/provider-variable-mapping`;
-        const response = await api.get<ProviderVariablesMapping>(url);
-        return response.data;
+        return (await validatedQueryFn(
+          "api.models.get_model_provider_mapping",
+          ProviderVariableMappingSchema,
+          async () => (await api.get<unknown>(url)).data,
+        )()) as ProviderVariablesMapping;
       } catch (error) {
         console.error("Error fetching provider variables mapping:", error);
         return {};

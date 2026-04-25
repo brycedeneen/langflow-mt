@@ -1,3 +1,5 @@
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -14,9 +16,14 @@ export const useDeleteApiKey: useMutationFunctionType<
 > = (options) => {
   const { mutate } = UseRequestProcessor();
 
-  const deleteApiKeyFn = async (payload: IDeleteApiKey): Promise<any> => {
-    const res = await api.delete(`${getURL("API_KEY")}/${payload.keyId}`);
-    return res.data;
+  const deleteApiKeyFn = async (payload: IDeleteApiKey): Promise<unknown> => {
+    return validatedQueryFn(
+      "api.api_key.delete",
+      z.unknown(),
+      async () =>
+        (await api.delete<unknown>(`${getURL("API_KEY")}/${payload.keyId}`))
+          .data,
+    )();
   };
 
   const mutation = mutate(["useDeleteApiKey"], deleteApiKeyFn, options);

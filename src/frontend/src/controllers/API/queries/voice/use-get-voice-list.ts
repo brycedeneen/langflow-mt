@@ -1,4 +1,6 @@
 import { useVoiceStore } from "@/stores/voiceStore";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { ElevenLabsVoiceIdsResponseSchema } from "@/schemas/app/internal/voice";
 import { useQueryFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -17,15 +19,25 @@ export const useGetVoiceList = (elevenlabsApiKey: string, options?: any) => {
       return [];
     }
 
-    const res = await api.get(`${getURL("VOICE")}/elevenlabs/voice_ids`);
-    const data = res.data;
+    const data = await validatedQueryFn(
+      "api.voice.elevenlabs_voice_ids",
+      ElevenLabsVoiceIdsResponseSchema,
+      async () =>
+        (await api.get<unknown>(`${getURL("VOICE")}/elevenlabs/voice_ids`))
+          .data,
+    )();
+
+    // If the response is an error object rather than a list, return empty
+    if (!Array.isArray(data)) {
+      return [];
+    }
 
     const voicesMapped = data.map((voice) => ({
-      name: voice.name,
-      value: voice.voice_id,
+      name: voice.name ?? "",
+      value: voice.voice_id ?? "",
     }));
 
-    setVoices(voicesMapped);
+    setVoices(voicesMapped as unknown as { name: string; voice_id: string }[]);
     return voicesMapped;
   };
 

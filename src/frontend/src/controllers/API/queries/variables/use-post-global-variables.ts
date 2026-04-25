@@ -1,5 +1,7 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import { VALID_CATEGORIES } from "@/constants/constants";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { VariableReadSchema } from "@/schemas/app/internal/variables";
 import type { useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -34,14 +36,20 @@ export const usePostGlobalVariables: useMutationFunctionType<
     default_fields = [],
     category,
   }: PostGlobalVariablesParams): Promise<PostGlobalVariablesResponse> => {
-    const res = await api.post(`${getURL("VARIABLES")}/`, {
-      name,
-      value,
-      type,
-      default_fields: default_fields,
-      category,
-    });
-    return res.data;
+    return validatedQueryFn(
+      "api.variables.create",
+      VariableReadSchema,
+      async () =>
+        (
+          await api.post<unknown>(`${getURL("VARIABLES")}/`, {
+            name,
+            value,
+            type,
+            default_fields: default_fields,
+            category,
+          })
+        ).data,
+    )() as Promise<PostGlobalVariablesResponse>;
   };
 
   const mutation: UseMutationResult<

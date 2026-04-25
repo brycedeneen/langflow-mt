@@ -1,3 +1,5 @@
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { ApiKeyStoreResponseSchema } from "@/schemas/app/internal/api_key";
 import type { useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -14,11 +16,17 @@ export const usePostAddApiKey: useMutationFunctionType<
 > = (options) => {
   const { mutate } = UseRequestProcessor();
 
-  const postAddApiKeyFn = async (payload: IPostAddApiKey): Promise<any> => {
-    const res = await api.post<any>(`${getURL("API_KEY")}/store`, {
-      api_key: payload.key,
-    });
-    return res.data;
+  const postAddApiKeyFn = async (payload: IPostAddApiKey): Promise<unknown> => {
+    return validatedQueryFn(
+      "api.api_key.store",
+      ApiKeyStoreResponseSchema,
+      async () =>
+        (
+          await api.post<unknown>(`${getURL("API_KEY")}/store`, {
+            api_key: payload.key,
+          })
+        ).data,
+    )();
   };
 
   const mutation = mutate(["usePostAddApiKey"], postAddApiKeyFn, options);

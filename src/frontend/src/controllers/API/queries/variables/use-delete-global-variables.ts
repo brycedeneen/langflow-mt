@@ -1,5 +1,7 @@
 import type { UseMutationResult } from "@tanstack/react-query";
+import { z } from "zod";
 import { refreshAllModelInputs } from "@/hooks/use-refresh-model-inputs";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -17,9 +19,13 @@ export const useDeleteGlobalVariables: useMutationFunctionType<
 
   const deleteGlobalVariables = async ({
     id,
-  }: DeleteGlobalVariablesParams): Promise<any> => {
-    const res = await api.delete(`${getURL("VARIABLES")}/${id}`);
-    return res.data;
+  }: DeleteGlobalVariablesParams): Promise<unknown> => {
+    return validatedQueryFn(
+      "api.variables.delete",
+      z.unknown(),
+      async () =>
+        (await api.delete<unknown>(`${getURL("VARIABLES")}/${id}`)).data,
+    )();
   };
 
   const mutation: UseMutationResult<

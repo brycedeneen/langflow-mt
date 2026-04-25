@@ -1,4 +1,6 @@
 import { UseMutationOptions, useMutation } from "@tanstack/react-query";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { ValidateProviderResponseSchema } from "@/schemas/app/internal/models";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 
@@ -24,11 +26,17 @@ export const useValidateProvider = (
 ) => {
   return useMutation<ValidateProviderResponse, Error, ValidateProviderRequest>({
     mutationFn: async (request: ValidateProviderRequest) => {
-      const response = await api.post<ValidateProviderResponse>(
-        `${getURL("MODELS")}/validate-provider`,
-        request,
-      );
-      return response.data;
+      return validatedQueryFn(
+        "api.models.validate_provider",
+        ValidateProviderResponseSchema,
+        async () =>
+          (
+            await api.post<unknown>(
+              `${getURL("MODELS")}/validate-provider`,
+              request,
+            )
+          ).data,
+      )() as Promise<ValidateProviderResponse>;
     },
     retry: 0,
     ...options,

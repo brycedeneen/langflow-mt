@@ -1,7 +1,10 @@
 import type { UseQueryResult } from "@tanstack/react-query";
+import { z } from "zod";
 import useAuthStore from "@/stores/authStore";
 import { useGlobalVariablesStore } from "@/stores/globalVariablesStore/globalVariables";
 import getUnavailableFields from "@/stores/globalVariablesStore/utils/get-unavailable-fields";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { VariableReadSchema } from "@/schemas/app/internal/variables";
 import type { useQueryFunctionType } from "@/types/api";
 import type { GlobalVariable } from "@/types/global_variables";
 import { api } from "../../api";
@@ -28,11 +31,16 @@ export const useGetGlobalVariables: useQueryFunctionType<
 
   const getGlobalVariablesFn = async (): Promise<GlobalVariable[]> => {
     if (!isAuthenticated) return [];
-    const res = await api.get(`${getURL("VARIABLES")}/`);
-    setGlobalVariablesEntries(res.data.map((entry) => entry.name));
-    setUnavailableFields(getUnavailableFields(res.data));
-    setGlobalVariablesEntities(res.data);
-    return res.data;
+    const data = await validatedQueryFn(
+      "api.variables.list",
+      z.array(VariableReadSchema),
+      async () => (await api.get<unknown>(`${getURL("VARIABLES")}/`)).data,
+    )();
+    const vars = data as unknown as GlobalVariable[];
+    setGlobalVariablesEntries(vars.map((entry) => entry.name ?? ""));
+    setUnavailableFields(getUnavailableFields(vars));
+    setGlobalVariablesEntities(vars);
+    return vars;
   };
 
   const queryResult: UseQueryResult<GlobalVariable[], Error> = query(

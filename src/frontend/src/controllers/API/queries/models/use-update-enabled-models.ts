@@ -1,4 +1,8 @@
 import { UseMutationResult } from "@tanstack/react-query";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import {
+  UpdateEnabledModelsResponseSchema,
+} from "@/schemas/app/internal/models";
 import { useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -25,11 +29,17 @@ export const useUpdateEnabledModels: useMutationFunctionType<
   const updateEnabledModelsFn = async (data: {
     updates: ModelStatusUpdate[];
   }): Promise<UpdateEnabledModelsResponse> => {
-    const response = await api.post<UpdateEnabledModelsResponse>(
-      `${getURL("MODELS")}/enabled_models`,
-      data.updates,
-    );
-    return response.data;
+    return validatedQueryFn(
+      "api.models.update_enabled_models",
+      UpdateEnabledModelsResponseSchema,
+      async () =>
+        (
+          await api.post<unknown>(
+            `${getURL("MODELS")}/enabled_models`,
+            data.updates,
+          )
+        ).data,
+    )() as Promise<UpdateEnabledModelsResponse>;
   };
 
   const mutation: UseMutationResult<
