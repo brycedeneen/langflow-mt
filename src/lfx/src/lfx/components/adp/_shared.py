@@ -143,7 +143,7 @@ async def _post_token_request(client: httpx.AsyncClient, conn: ADPConnection) ->
     )
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class _CacheEntry:
     expires_at: float
     value: Any
@@ -189,4 +189,10 @@ class RequestCache:
         self._entries.move_to_end(key)
         while len(self._entries) > self._max:
             evicted_key, _ = self._entries.popitem(last=False)
+            # Drop the lock alongside the entry. Edge case: if a fetch is in flight
+            # for `evicted_key` when this fires, a later concurrent caller could
+            # create a new lock and run a parallel fetch (mild thundering-herd
+            # under capacity churn). Acceptable here because (a) the cache is
+            # closure-scoped to one build_tools() call and bounded by max_entries,
+            # (b) ADP read patterns rarely exceed max_entries unique URLs per turn.
             self._locks.pop(evicted_key, None)

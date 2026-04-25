@@ -41,9 +41,14 @@ async def test_ttl_expiry_refetches():
         return {"value": calls}
 
     key = RequestCache.make_key("GET", "https://api.adp.com/hr/v2/workers/X", None)
-    base = time.monotonic()
-    with patch("lfx.components.adp._shared.time.monotonic", side_effect=[base, base, base + 31, base + 31, base + 31]):
+    now_ref = [1000.0]
+
+    def fake_monotonic():
+        return now_ref[0]
+
+    with patch("lfx.components.adp._shared.time.monotonic", side_effect=fake_monotonic):
         first = await cache.get_or_fetch(key, fetch)
+        now_ref[0] = 1031.0  # advance past 30s TTL
         second = await cache.get_or_fetch(key, fetch)
 
     assert first == {"value": 1}
