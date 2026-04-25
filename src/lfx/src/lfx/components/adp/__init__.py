@@ -32,7 +32,7 @@ from .adp_worker_leaves_tools import ADPWorkerLeavesToolsComponent
 from .adp_worker_lifecycle_tools import ADPWorkerLifecycleToolsComponent
 from .adp_worker_payroll_instructions_tools import ADPWorkerPayrollInstructionsToolsComponent
 from .adp_worker_personal_communication_tools import ADPWorkerPersonalCommunicationToolsComponent
-from .adp_worker_tools import ADPWorkerToolsComponent
+from .adp_worker_tools import build_worker_tools
 
 __all__ = [
     "ADPAPIRequestComponent",
@@ -67,5 +67,5 @@ __all__ = [
     "ADPWorkerLifecycleToolsComponent",
     "ADPWorkerPayrollInstructionsToolsComponent",
     "ADPWorkerPersonalCommunicationToolsComponent",
-    "ADPWorkerToolsComponent",
+    "build_worker_tools",
 ]

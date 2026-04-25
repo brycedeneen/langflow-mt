@@ -1,21 +1,22 @@
-"""ADPWorkerToolsComponent — focused employee data tools for Langflow Agents."""
+"""Worker-data agent tools backed by GET /hr/v2/workers/{associateOID}."""
 
 from __future__ import annotations
 
-from typing import Any, ClassVar
+from typing import Any
 
-import httpx
 from langchain_core.tools import StructuredTool
-
-from lfx.field_typing import Tool
 from pydantic import BaseModel, Field
 
-from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
-from lfx.custom.custom_component.changelog import ChangelogEntry
-from lfx.custom.custom_component.component import Component
-from lfx.io import HandleInput, Output
-
-HTTP_UNAUTHORIZED = 401
+from lfx.components.adp._shared import (
+    HTTP_UNAUTHORIZED,
+    ADPConnection,
+    RequestCache,
+    build_mtls_httpx_client,
+    cached_get_json,
+    fetch_token,
+    validate_adp_url,
+)
+from lfx.field_typing import Tool
 
 
 def extract_name(worker: dict[str, Any]) -> dict[str, Any]:
@@ -212,211 +213,130 @@ class WorkerToolInput(BaseModel):
     associate_oid: str = Field(description="The ADP associate OID (unique employee identifier)")
 
 
-class ADPWorkerToolsComponent(Component):
-    display_name = "ADP Worker Tools"
-    description = (
-        "Exposes focused employee-data tools (name, address, contact, job, compensation) "
-        "to a Langflow Agent. Each tool calls the ADP /hr/v2/workers API and returns "
-        "only the relevant fields."
-    )
-    icon = "Users"
-    name = "ADPWorkerTools"
-    version: int = 2
-    changelog: ClassVar[list[ChangelogEntry]] = [
-        ChangelogEntry(
-            version=1,
-            changes=(
-                "Initial release — 5 tools exposing `GET /hr/v2/workers/{aoid}`: "
-                "name, addresses, contact information, job, compensation."
-            ),
-        ),
-        ChangelogEntry(
-            version=2,
-            changes=(
-                "Added 4 agent tools covering the remaining Workers v2 top-level groups: "
-                "`get_employee_ids`, `get_employee_dates`, `get_employee_status`, "
-                "`get_employee_business_communication`."
-            ),
-        ),
-    ]
+async def _fetch_worker(
+    conn: ADPConnection,
+    associate_oid: str,
+    *,
+    request_cache: RequestCache,
+) -> dict[str, Any]:
+    url = f"{conn.api_base_url}/hr/v2/workers/{associate_oid}"
+    validate_adp_url(url, field_name="api_base_url")
 
-    inputs = [
-        HandleInput(
-            name="connection",
-            display_name="ADP Connection",
-            input_types=["ADPConnection"],
-            info="Connection produced by an ADP Auth component.",
-            required=True,
-        ),
-    ]
-
-    outputs = [
-        Output(display_name="Tools", name="tools", method="build_tools"),
-    ]
-
-    async def _execute_request(
-        self,
-        client: httpx.AsyncClient,
-        *,
-        url: str,
-        headers: dict[str, str],
-        timeout: float,
-    ) -> httpx.Response:
-        return await client.request(
-            method="GET",
-            url=url,
-            headers=headers,
-            timeout=timeout,
-        )
-
-    async def _fetch_worker(self, conn: ADPConnection, associate_oid: str) -> dict[str, Any]:
-        url = f"{conn.api_base_url}/hr/v2/workers/{associate_oid}"
-        validate_adp_url(url, field_name="api_base_url")
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
         headers = {"Authorization": f"Bearer {conn.access_token}"}
+        result = await cached_get_json(client=client, cache=request_cache, url=url, headers=headers)
+        if result.get("status_code") == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            result = await cached_get_json(client=client, cache=request_cache, url=url, headers=headers)
 
-        async with build_mtls_httpx_client(conn, timeout=30.0) as client:
-            response = await self._execute_request(client, url=url, headers=headers, timeout=30.0)
+    if "error" in result:
+        return result
+    workers = result.get("workers", [])
+    if not workers:
+        return {"error": "No worker found", "status_code": 404}
+    return workers[0]
 
-            if response.status_code == HTTP_UNAUTHORIZED:
-                await fetch_token(conn, force=True)
-                headers["Authorization"] = f"Bearer {conn.access_token}"
-                response = await self._execute_request(client, url=url, headers=headers, timeout=30.0)
 
-        if response.status_code >= 400:
-            try:
-                detail = response.json()
-            except ValueError:
-                detail = response.text
-            return {"error": detail, "status_code": response.status_code}
+def build_worker_tools(connection: ADPConnection, request_cache: RequestCache) -> list[Tool]:
+    async def _get_employee_name(associate_oid: str) -> dict[str, Any]:
+        worker = await _fetch_worker(connection, associate_oid, request_cache=request_cache)
+        return worker if "error" in worker else extract_name(worker)
 
-        data = response.json()
-        workers = data.get("workers", [])
-        if not workers:
-            return {"error": "No worker found", "status_code": 404}
-        return workers[0]
+    async def _get_employee_addresses(associate_oid: str) -> dict[str, Any]:
+        worker = await _fetch_worker(connection, associate_oid, request_cache=request_cache)
+        return worker if "error" in worker else extract_addresses(worker)
 
-    async def build_tools(self) -> list[Tool]:
-        conn: ADPConnection = self.connection
-        component = self
+    async def _get_employee_contact_information(associate_oid: str) -> dict[str, Any]:
+        worker = await _fetch_worker(connection, associate_oid, request_cache=request_cache)
+        return worker if "error" in worker else extract_contact_information(worker)
 
-        async def _get_employee_name(associate_oid: str) -> dict[str, Any]:
-            worker = await component._fetch_worker(conn, associate_oid)
-            if "error" in worker:
-                return worker
-            return extract_name(worker)
+    async def _get_employee_job(associate_oid: str) -> dict[str, Any]:
+        worker = await _fetch_worker(connection, associate_oid, request_cache=request_cache)
+        return worker if "error" in worker else extract_job(worker)
 
-        async def _get_employee_addresses(associate_oid: str) -> dict[str, Any]:
-            worker = await component._fetch_worker(conn, associate_oid)
-            if "error" in worker:
-                return worker
-            return extract_addresses(worker)
+    async def _get_employee_compensation(associate_oid: str) -> dict[str, Any]:
+        worker = await _fetch_worker(connection, associate_oid, request_cache=request_cache)
+        return worker if "error" in worker else extract_compensation(worker)
 
-        async def _get_employee_contact_information(associate_oid: str) -> dict[str, Any]:
-            worker = await component._fetch_worker(conn, associate_oid)
-            if "error" in worker:
-                return worker
-            return extract_contact_information(worker)
+    async def _get_employee_ids(associate_oid: str) -> dict[str, Any]:
+        worker = await _fetch_worker(connection, associate_oid, request_cache=request_cache)
+        return worker if "error" in worker else extract_ids(worker)
 
-        async def _get_employee_job(associate_oid: str) -> dict[str, Any]:
-            worker = await component._fetch_worker(conn, associate_oid)
-            if "error" in worker:
-                return worker
-            return extract_job(worker)
+    async def _get_employee_dates(associate_oid: str) -> dict[str, Any]:
+        worker = await _fetch_worker(connection, associate_oid, request_cache=request_cache)
+        return worker if "error" in worker else extract_dates(worker)
 
-        async def _get_employee_compensation(associate_oid: str) -> dict[str, Any]:
-            worker = await component._fetch_worker(conn, associate_oid)
-            if "error" in worker:
-                return worker
-            return extract_compensation(worker)
+    async def _get_employee_status(associate_oid: str) -> dict[str, Any]:
+        worker = await _fetch_worker(connection, associate_oid, request_cache=request_cache)
+        return worker if "error" in worker else extract_status(worker)
 
-        async def _get_employee_ids(associate_oid: str) -> dict[str, Any]:
-            worker = await component._fetch_worker(conn, associate_oid)
-            if "error" in worker:
-                return worker
-            return extract_ids(worker)
+    async def _get_employee_business_communication(associate_oid: str) -> dict[str, Any]:
+        worker = await _fetch_worker(connection, associate_oid, request_cache=request_cache)
+        return worker if "error" in worker else extract_business_communication(worker)
 
-        async def _get_employee_dates(associate_oid: str) -> dict[str, Any]:
-            worker = await component._fetch_worker(conn, associate_oid)
-            if "error" in worker:
-                return worker
-            return extract_dates(worker)
-
-        async def _get_employee_status(associate_oid: str) -> dict[str, Any]:
-            worker = await component._fetch_worker(conn, associate_oid)
-            if "error" in worker:
-                return worker
-            return extract_status(worker)
-
-        async def _get_employee_business_communication(associate_oid: str) -> dict[str, Any]:
-            worker = await component._fetch_worker(conn, associate_oid)
-            if "error" in worker:
-                return worker
-            return extract_business_communication(worker)
-
-        tools = [
-            StructuredTool.from_function(
-                name="get_employee_name",
-                description="Get an employee's legal and preferred name by their ADP associate OID.",
-                coroutine=_get_employee_name,
-                args_schema=WorkerToolInput,
+    return [
+        StructuredTool.from_function(
+            name="get_employee_name",
+            description="Get an employee's legal and preferred name by their ADP associate OID.",
+            coroutine=_get_employee_name,
+            args_schema=WorkerToolInput,
+        ),
+        StructuredTool.from_function(
+            name="get_employee_addresses",
+            description="Get an employee's legal address by their ADP associate OID.",
+            coroutine=_get_employee_addresses,
+            args_schema=WorkerToolInput,
+        ),
+        StructuredTool.from_function(
+            name="get_employee_contact_information",
+            description="Get an employee's contact information (emails, phone numbers) by their ADP associate OID.",
+            coroutine=_get_employee_contact_information,
+            args_schema=WorkerToolInput,
+        ),
+        StructuredTool.from_function(
+            name="get_employee_job",
+            description="Get an employee's job details (title, department, location, manager) by their ADP associate OID.",
+            coroutine=_get_employee_job,
+            args_schema=WorkerToolInput,
+        ),
+        StructuredTool.from_function(
+            name="get_employee_compensation",
+            description="Get an employee's compensation details (base pay, additional remunerations) by their ADP associate OID.",
+            coroutine=_get_employee_compensation,
+            args_schema=WorkerToolInput,
+        ),
+        StructuredTool.from_function(
+            name="get_employee_ids",
+            description="Get an employee's identifiers (associateOID, workerID, alternateIDs) by their ADP associate OID.",
+            coroutine=_get_employee_ids,
+            args_schema=WorkerToolInput,
+        ),
+        StructuredTool.from_function(
+            name="get_employee_dates",
+            description=(
+                "Get an employee's lifecycle dates (first hire, original hire, rehire, "
+                "termination, retirement, leave-return, etc.) by their ADP associate OID."
             ),
-            StructuredTool.from_function(
-                name="get_employee_addresses",
-                description="Get an employee's legal address by their ADP associate OID.",
-                coroutine=_get_employee_addresses,
-                args_schema=WorkerToolInput,
+            coroutine=_get_employee_dates,
+            args_schema=WorkerToolInput,
+        ),
+        StructuredTool.from_function(
+            name="get_employee_status",
+            description=(
+                "Get an employee's current worker status (active/terminated/leave), "
+                "status reason, and effective date by their ADP associate OID."
             ),
-            StructuredTool.from_function(
-                name="get_employee_contact_information",
-                description="Get an employee's contact information (emails, phone numbers) by their ADP associate OID.",
-                coroutine=_get_employee_contact_information,
-                args_schema=WorkerToolInput,
+            coroutine=_get_employee_status,
+            args_schema=WorkerToolInput,
+        ),
+        StructuredTool.from_function(
+            name="get_employee_business_communication",
+            description=(
+                "Get an employee's business communication channels (work email, work phone, "
+                "work mobile) by their ADP associate OID. Distinct from personal contact info."
             ),
-            StructuredTool.from_function(
-                name="get_employee_job",
-                description="Get an employee's job details (title, department, location, manager) by their ADP associate OID.",
-                coroutine=_get_employee_job,
-                args_schema=WorkerToolInput,
-            ),
-            StructuredTool.from_function(
-                name="get_employee_compensation",
-                description="Get an employee's compensation details (base pay, additional remunerations) by their ADP associate OID.",
-                coroutine=_get_employee_compensation,
-                args_schema=WorkerToolInput,
-            ),
-            StructuredTool.from_function(
-                name="get_employee_ids",
-                description="Get an employee's identifiers (associateOID, workerID, alternateIDs) by their ADP associate OID.",
-                coroutine=_get_employee_ids,
-                args_schema=WorkerToolInput,
-            ),
-            StructuredTool.from_function(
-                name="get_employee_dates",
-                description=(
-                    "Get an employee's lifecycle dates (first hire, original hire, rehire, "
-                    "termination, retirement, leave-return, etc.) by their ADP associate OID."
-                ),
-                coroutine=_get_employee_dates,
-                args_schema=WorkerToolInput,
-            ),
-            StructuredTool.from_function(
-                name="get_employee_status",
-                description=(
-                    "Get an employee's current worker status (active/terminated/leave), "
-                    "status reason, and effective date by their ADP associate OID."
-                ),
-                coroutine=_get_employee_status,
-                args_schema=WorkerToolInput,
-            ),
-            StructuredTool.from_function(
-                name="get_employee_business_communication",
-                description=(
-                    "Get an employee's business communication channels (work email, work phone, "
-                    "work mobile) by their ADP associate OID. Distinct from personal contact info."
-                ),
-                coroutine=_get_employee_business_communication,
-                args_schema=WorkerToolInput,
-            ),
-        ]
-
-        return tools
+            coroutine=_get_employee_business_communication,
+            args_schema=WorkerToolInput,
+        ),
+    ]

@@ -31,7 +31,6 @@ def test_bundle_exports_all_components():
         ADPWorkerLifecycleToolsComponent,
         ADPWorkerPayrollInstructionsToolsComponent,
         ADPWorkerPersonalCommunicationToolsComponent,
-        ADPWorkerToolsComponent,
     )
 
     assert ADPAuthComponent.name == "ADPAuth"
@@ -53,7 +52,6 @@ def test_bundle_exports_all_components():
     assert ADPMCPComponent.name == "ADPMCP"
     assert ADPPayDataInputToolsComponent.name == "ADPPayDataInputTools"
     assert ADPPayDistributionsToolsComponent.name == "ADPPayDistributionsTools"
-    assert ADPWorkerToolsComponent.name == "ADPWorkerTools"
     assert ADPTriggerComponent.name == "ADPTrigger"
     assert ADPWorkerCompensationToolsComponent.name == "ADPWorkerCompensationTools"
     assert ADPWorkerPersonalCommunicationToolsComponent.name == "ADPWorkerPersonalCommunicationTools"

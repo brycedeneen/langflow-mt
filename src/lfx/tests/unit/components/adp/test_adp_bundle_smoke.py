@@ -132,7 +132,7 @@ def test_mcp_accepts_adp_connection_wire():
 
 
 TOOL_COMPONENT_SAMPLES = [
-    ("lfx.components.adp.adp_worker_tools", "ADPWorkerToolsComponent"),
+    ("lfx.components.adp.adp_pay_distributions_tools", "ADPPayDistributionsToolsComponent"),
     ("lfx.components.adp.adp_pay_statements_tools", "ADPPayStatementsToolsComponent"),
     ("lfx.components.adp.adp_time_cards_tools", "ADPTimeCardsToolsComponent"),
     ("lfx.components.adp.adp_work_schedules_tools", "ADPWorkSchedulesToolsComponent"),

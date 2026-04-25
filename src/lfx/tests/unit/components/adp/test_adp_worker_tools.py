@@ -1,4 +1,4 @@
-"""Tests for ADPWorkerToolsComponent."""
+"""Tests for adp_worker_tools — extract_* helpers and build_worker_tools builder."""
 
 from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -6,8 +6,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
+from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_worker_tools import (
-    ADPWorkerToolsComponent,
+    build_worker_tools,
     extract_addresses,
     extract_business_communication,
     extract_compensation,
@@ -106,12 +107,16 @@ SAMPLE_WORKER_RESPONSE = {
 }
 
 
-def _make_component(connection, **overrides) -> ADPWorkerToolsComponent:
-    defaults = {
-        "connection": connection,
-    }
-    defaults.update(overrides)
-    return ADPWorkerToolsComponent(**defaults)
+def _make_connection(*, access_token="T1", api_base_url="https://api.adp.com"):
+    conn = MagicMock()
+    conn.access_token = access_token
+    conn.api_base_url = api_base_url
+    return conn
+
+
+# ---------------------------------------------------------------------------
+# extract_* pure function tests
+# ---------------------------------------------------------------------------
 
 
 def test_extract_name(adp_connection):
@@ -295,111 +300,19 @@ def test_extract_business_communication_missing(adp_connection):
     assert result == {"emails": [], "landlines": [], "mobiles": []}
 
 
-@pytest.mark.asyncio
-async def test_fetch_worker_happy_path(adp_connection):
-    c = _make_component(adp_connection)
-
-    fake_response = httpx.Response(200, json=SAMPLE_WORKER_RESPONSE)
-    mock_client = MagicMock()
-
-    @asynccontextmanager
-    async def fake_build_client(_conn, *, timeout=30):
-        yield mock_client
-
-    with patch(
-        "lfx.components.adp.adp_worker_tools.build_mtls_httpx_client",
-        new=fake_build_client,
-    ), patch.object(c, "_execute_request", new=AsyncMock(return_value=fake_response)):
-        result = await c._fetch_worker(adp_connection, "G3ABC")
-
-    assert result["associateOID"] == "G3ABC"
-    assert result["person"]["legalName"]["givenName"] == "Jane"
+# ---------------------------------------------------------------------------
+# build_worker_tools builder tests
+# ---------------------------------------------------------------------------
 
 
 @pytest.mark.asyncio
-async def test_fetch_worker_401_retries_with_fresh_token(adp_connection):
-    c = _make_component(adp_connection)
+async def test_build_worker_tools_returns_nine_tools():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    tools = build_worker_tools(conn, cache)
 
-    responses = [
-        httpx.Response(401, json={"error": "expired"}),
-        httpx.Response(200, json=SAMPLE_WORKER_RESPONSE),
-    ]
-    mock_exec = AsyncMock(side_effect=responses)
-    mock_client = MagicMock()
-
-    @asynccontextmanager
-    async def fake_build_client(_conn, *, timeout=30):
-        yield mock_client
-
-    async def fake_force_refresh(conn, *, force=False):
-        assert force is True
-        conn.access_token = "new-token"
-
-    with patch(
-        "lfx.components.adp.adp_worker_tools.build_mtls_httpx_client",
-        new=fake_build_client,
-    ), patch.object(c, "_execute_request", new=mock_exec), patch(
-        "lfx.components.adp.adp_worker_tools.fetch_token",
-        new=AsyncMock(side_effect=fake_force_refresh),
-    ):
-        result = await c._fetch_worker(adp_connection, "G3ABC")
-
-    assert result["associateOID"] == "G3ABC"
-    assert mock_exec.call_count == 2
-    second_headers = mock_exec.call_args_list[1].kwargs["headers"]
-    assert second_headers["Authorization"] == "Bearer new-token"
-
-
-@pytest.mark.asyncio
-async def test_fetch_worker_http_error_returns_error_dict(adp_connection):
-    c = _make_component(adp_connection)
-
-    fake_response = httpx.Response(500, json={"error": "internal"})
-    mock_client = MagicMock()
-
-    @asynccontextmanager
-    async def fake_build_client(_conn, *, timeout=30):
-        yield mock_client
-
-    with patch(
-        "lfx.components.adp.adp_worker_tools.build_mtls_httpx_client",
-        new=fake_build_client,
-    ), patch.object(c, "_execute_request", new=AsyncMock(return_value=fake_response)):
-        result = await c._fetch_worker(adp_connection, "G3ABC")
-
-    assert result["error"] == {"error": "internal"}
-    assert result["status_code"] == 500
-
-
-@pytest.mark.asyncio
-async def test_fetch_worker_empty_workers_returns_not_found(adp_connection):
-    c = _make_component(adp_connection)
-
-    fake_response = httpx.Response(200, json={"workers": []})
-    mock_client = MagicMock()
-
-    @asynccontextmanager
-    async def fake_build_client(_conn, *, timeout=30):
-        yield mock_client
-
-    with patch(
-        "lfx.components.adp.adp_worker_tools.build_mtls_httpx_client",
-        new=fake_build_client,
-    ), patch.object(c, "_execute_request", new=AsyncMock(return_value=fake_response)):
-        result = await c._fetch_worker(adp_connection, "NONEXISTENT")
-
-    assert result["error"] == "No worker found"
-    assert result["status_code"] == 404
-
-
-@pytest.mark.asyncio
-async def test_build_tools_returns_nine_tools(adp_connection):
-    c = _make_component(adp_connection)
-    tools = await c.build_tools()
-
-    assert len(tools) == 9
-    names = {t.name for t in tools}
-    assert names == {
+    names = [t.name for t in tools]
+    assert names == [
         "get_employee_name",
         "get_employee_addresses",
         "get_employee_contact_information",
@@ -409,34 +322,121 @@ async def test_build_tools_returns_nine_tools(adp_connection):
         "get_employee_dates",
         "get_employee_status",
         "get_employee_business_communication",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_get_employee_name_returns_expected_shape():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    tools = build_worker_tools(conn, cache)
+    get_name = next(t for t in tools if t.name == "get_employee_name")
+
+    response = MagicMock(spec=httpx.Response)
+    response.status_code = 200
+    response.json.return_value = SAMPLE_WORKER_RESPONSE
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.return_value = response
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_worker_tools.build_mtls_httpx_client", fake_client):
+        result = await get_name.ainvoke({"associate_oid": "G3ABC"})
+
+    assert result == {
+        "legalName": {"firstName": "Jane", "middleName": "Marie", "lastName": "Doe"},
+        "preferredName": {"firstName": "Janie", "lastName": "Doe"},
     }
-    for tool in tools:
-        assert tool.description
-        assert tool.args_schema is not None
 
 
 @pytest.mark.asyncio
-async def test_tool_invocation_calls_fetch_and_extracts(adp_connection):
-    c = _make_component(adp_connection)
-    worker = SAMPLE_WORKER_RESPONSE["workers"][0]
+async def test_two_tools_same_oid_share_cache():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    tools = build_worker_tools(conn, cache)
+    get_name = next(t for t in tools if t.name == "get_employee_name")
+    get_compensation = next(t for t in tools if t.name == "get_employee_compensation")
 
-    with patch.object(c, "_fetch_worker", new=AsyncMock(return_value=worker)):
-        tools = await c.build_tools()
-        name_tool = next(t for t in tools if t.name == "get_employee_name")
-        result = await name_tool.ainvoke({"associate_oid": "G3ABC"})
+    response = MagicMock(spec=httpx.Response)
+    response.status_code = 200
+    response.json.return_value = SAMPLE_WORKER_RESPONSE
 
-    assert result["legalName"]["firstName"] == "Jane"
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.return_value = response
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_worker_tools.build_mtls_httpx_client", fake_client):
+        await get_name.ainvoke({"associate_oid": "G3ABC"})
+        await get_compensation.ainvoke({"associate_oid": "G3ABC"})
+
+    # Cache: 1 GET to /hr/v2/workers/G3ABC, served from cache on second tool call.
+    assert client.request.await_count == 1
 
 
 @pytest.mark.asyncio
-async def test_tool_invocation_propagates_error_dict(adp_connection):
-    c = _make_component(adp_connection)
-    error_result = {"error": "internal", "status_code": 500}
+async def test_unauthorized_triggers_refresh_and_retry():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    tools = build_worker_tools(conn, cache)
+    get_name = next(t for t in tools if t.name == "get_employee_name")
 
-    with patch.object(c, "_fetch_worker", new=AsyncMock(return_value=error_result)):
-        tools = await c.build_tools()
-        name_tool = next(t for t in tools if t.name == "get_employee_name")
-        result = await name_tool.ainvoke({"associate_oid": "BAD"})
+    unauthorized = MagicMock(spec=httpx.Response)
+    unauthorized.status_code = 401
+    unauthorized.json.return_value = {"message": "unauthorized"}
 
-    assert result["error"] == "internal"
-    assert result["status_code"] == 500
+    success = MagicMock(spec=httpx.Response)
+    success.status_code = 200
+    success.json.return_value = SAMPLE_WORKER_RESPONSE
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.side_effect = [unauthorized, success]
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_worker_tools.build_mtls_httpx_client", fake_client), \
+         patch("lfx.components.adp.adp_worker_tools.fetch_token", AsyncMock()) as fetch_token_mock:
+        result = await get_name.ainvoke({"associate_oid": "G3ABC"})
+
+    assert "legalName" in result
+    fetch_token_mock.assert_awaited_once()
+    assert client.request.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_error_response_not_cached():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    tools = build_worker_tools(conn, cache)
+    get_name = next(t for t in tools if t.name == "get_employee_name")
+
+    error = MagicMock(spec=httpx.Response)
+    error.status_code = 500
+    error.json.return_value = {"message": "boom"}
+    error.text = ""
+
+    success = MagicMock(spec=httpx.Response)
+    success.status_code = 200
+    success.json.return_value = SAMPLE_WORKER_RESPONSE
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.side_effect = [error, success]
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_worker_tools.build_mtls_httpx_client", fake_client):
+        first = await get_name.ainvoke({"associate_oid": "G3ABC"})
+        second = await get_name.ainvoke({"associate_oid": "G3ABC"})
+
+    assert first.get("status_code") == 500
+    assert "legalName" in second  # not served from cache; refetched
+    assert client.request.await_count == 2
