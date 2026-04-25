@@ -149,8 +149,17 @@ export default function UsersPage() {
   }
 
   function handleEditUser(userId, user) {
+    const { username, password, is_active, is_superuser, is_platform_admin } =
+      user;
+    const editableFields = {
+      username,
+      password,
+      is_active,
+      is_superuser,
+      is_platform_admin,
+    };
     mutateUpdateUser(
-      { user_id: userId, user: user },
+      { user_id: userId, user: editableFields },
       {
         onSuccess: () => {
           resetFilter();

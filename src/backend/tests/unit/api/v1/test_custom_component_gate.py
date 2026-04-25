@@ -12,11 +12,14 @@ import uuid
 
 from sqlmodel import select
 
+from langflow.services.auth.utils import get_password_hash
 from langflow.services.database.models.flow.model import Flow
 from langflow.services.database.models.folder.constants import DEFAULT_FOLDER_NAME
 from langflow.services.database.models.folder.model import Folder
-from langflow.services.database.models.membership.model import Membership
+from langflow.services.database.models.membership.model import Membership, MembershipRole
 from langflow.services.database.models.organization.model import Organization
+from langflow.services.database.models.template.model import Template
+from langflow.services.database.models.user.model import User
 from langflow.services.deps import session_scope
 
 from .conftest import login_as
@@ -288,3 +291,81 @@ async def test_create_template_rejects_custom_source_flow_for_tenant(client, ten
             if row is not None:
                 await session.delete(row)
                 await session.commit()
+
+
+async def test_update_template_rejects_custom_source_flow_for_superuser(client, tenant_and_admin):
+    """Regression for the latent defense-in-depth gap on PUT /templates/{id}:
+    a superuser who is NOT a platform admin cannot re-source a template from
+    a flow containing custom code. Mirrors the create_template gate test so
+    the enforcement stays in sync across both entry points."""
+    slug = uuid.uuid4().hex[:8]
+    async with session_scope() as session:
+        # Superuser but NOT platform admin — reaches the handler (gated on
+        # `get_current_active_superuser`) and then the gate itself (keyed on
+        # `is_platform_admin`).
+        user = User(
+            username=f"suser-nonpa-{slug}",
+            password=get_password_hash("testpassword"),
+            is_active=True,
+            is_superuser=True,
+            is_platform_admin=False,
+        )
+        session.add(user)
+        await session.flush()
+        # Join the same org as the source flow so `_load_source_and_blank`'s
+        # org check passes and execution reaches the custom-component gate.
+        session.add(
+            Membership(
+                user_id=user.id,
+                organization_id=tenant_and_admin["org_id"],
+                role=MembershipRole.OWNER,
+            )
+        )
+        # Seed a custom-code source flow in the shared org.
+        source = Flow(
+            name=f"src-custom-update-{slug}",
+            data=flow_payload_with_custom_code(),
+            user_id=tenant_and_admin["admin_id"],
+            organization_id=tenant_and_admin["org_id"],
+        )
+        # Seed an org-scoped template to update. Empty nodes/edges are fine —
+        # the PUT replaces them with content sourced from `source_flow_id`.
+        template = Template(
+            name=f"tmpl-update-{slug}",
+            description="existing",
+            scope="org",
+            org_id=tenant_and_admin["org_id"],
+            nodes=[],
+            edges=[],
+            created_by=tenant_and_admin["admin_id"],
+            updated_by=tenant_and_admin["admin_id"],
+        )
+        session.add_all([source, template])
+        await session.commit()
+        await session.refresh(source)
+        await session.refresh(template)
+        user_id = user.id
+        source_id = source.id
+        template_id = template.id
+
+    try:
+        headers = await login_as(client, f"suser-nonpa-{slug}")
+        resp = await client.put(
+            f"api/v1/templates/{template_id}",
+            headers=headers,
+            json={
+                "name": f"tmpl-update-{slug}",
+                "description": "should be rejected",
+                "source_flow_id": str(source_id),
+                "blanked_fields": [],
+            },
+        )
+        assert resp.status_code == 403, resp.text
+        assert "custom components are not allowed" in resp.json()["detail"].lower()
+    finally:
+        async with session_scope() as session:
+            for model, pk in [(Template, template_id), (Flow, source_id), (User, user_id)]:
+                row = await session.get(model, pk)
+                if row is not None:
+                    await session.delete(row)
+            await session.commit()

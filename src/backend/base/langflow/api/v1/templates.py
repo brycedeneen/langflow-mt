@@ -384,6 +384,19 @@ async def update_template(
         caller_is_platform_admin=bool(getattr(current_user, "is_platform_admin", False)),
     )
 
+    try:
+        allow_custom, is_pa = resolve_component_gate_flags(current_user)
+        validate_flow_components(
+            {"nodes": blanked_nodes, "edges": edges},
+            allow_custom=allow_custom,
+            caller_is_platform_admin=is_pa,
+        )
+    except CustomComponentNotAllowedError as err:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Custom components are not allowed on this deployment.",
+        ) from err
+
     row.name = body.name
     row.description = body.description
     row.icon = body.icon
