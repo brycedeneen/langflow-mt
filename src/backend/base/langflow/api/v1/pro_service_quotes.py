@@ -54,7 +54,7 @@ from langflow.services.professional_services.submit_service import (
     ActiveRequestError,
     submit_quote,
 )
-from langflow.services.professional_services.webhook_service import fire_quote_webhook
+from langflow.services.professional_services.webhook_service import deliver_quote_webhook
 
 router = APIRouter(tags=["Pro-Service Quotes"])
 
@@ -280,10 +280,19 @@ async def submit_quote_endpoint(
     await session.refresh(quote)
     await session.refresh(flow)
     requester = await session.get(User, quote.requester_user_id)
+    settings_row = await read_settings_singleton_async(session)
     result = quote_to_read(quote, org, flow, requester)
 
     # Best-effort async webhook delivery. Failure is silent (logged at WARNING).
     # The webhook fires after the DB commit so the in-product quote remains
-    # the source of truth even if the receiver is down.
-    fire_quote_webhook(quote_id=quote.id, base_url="")
+    # the source of truth even if the receiver is down. The base_url is
+    # currently empty; Phase C.3 will surface a configurable settings field
+    # so receivers can deep-link back to the flow.
+    await deliver_quote_webhook(
+        settings_row=settings_row,
+        quote=quote,
+        org=org,
+        requester=requester,
+        base_url="",
+    )
     return result
