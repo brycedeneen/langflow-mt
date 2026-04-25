@@ -2,13 +2,13 @@ import { memo, useEffect } from "react";
 import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { useGetGlobalVariables } from "@/controllers/API/queries/variables";
 import GeneralDeleteConfirmationModal from "@/shared/components/delete-confirmation-modal";
+import { looksLikeVariableName } from "../../../../../utils/reactflowUtils";
 import { cn } from "../../../../../utils/utils";
 import ForwardedIconComponent from "../../../../common/genericIconComponent";
 import { CommandItem } from "../../../../ui/command";
 import GlobalVariableModal from "../../../GlobalVariableModal/GlobalVariableModal";
 import { getPlaceholder } from "../../helpers/get-placeholder-disabled";
 import type { InputGlobalComponentType, InputProps } from "../../types";
-import { looksLikeVariableName } from "../../../../../utils/reactflowUtils";
 import InputComponent from "../inputComponent";
 import {
   useGlobalVariableValue,
@@ -16,6 +16,13 @@ import {
   useUnavailableField,
 } from "./hooks";
 import type { GlobalVariable, GlobalVariableHandlers } from "./types";
+
+// Sentinel prefix the backend writes to a SecretStrInput's `value` after it
+// promotes a typed plaintext secret into a Vault-backed auto-Variable. The
+// underlying variable is filtered out of /api/v1/variables, so without
+// special-casing here the marker reads as an "orphaned global variable" and
+// triggers the cleanup path that blanks the field on reload.
+const AUTOSECRET_VALUE_PREFIX = "__autosecret|";
 
 function InputGlobalComponent({
   display_name,
@@ -46,24 +53,37 @@ function InputGlobalComponent({
   );
   const unavailableField = useUnavailableField(display_name, currentValue);
 
+  const isAutosecret =
+    typeof currentValue === "string" &&
+    currentValue.startsWith(AUTOSECRET_VALUE_PREFIX);
+  // Treat marker-backed values as "valid stored secret" so the cleanup paths
+  // below don't blank them.
+  const effectiveValueExists = valueExists || isAutosecret;
+
   useInitialLoad(
     isDisabled,
     loadFromDb,
     typedGlobalVariables,
-    valueExists,
+    effectiveValueExists,
     unavailableField,
     handleOnNewValue,
   );
 
   // Clean up when selected variable no longer exists
   useEffect(() => {
-    if (loadFromDb && currentValue && !valueExists && !isDisabled) {
+    if (loadFromDb && currentValue && !effectiveValueExists && !isDisabled) {
       handleOnNewValue(
         { value: "", load_from_db: false },
         { skipSnapshot: true },
       );
     }
-  }, [loadFromDb, currentValue, valueExists, isDisabled, handleOnNewValue]);
+  }, [
+    loadFromDb,
+    currentValue,
+    effectiveValueExists,
+    isDisabled,
+    handleOnNewValue,
+  ]);
 
   // Create handlers object for better organization
   const handlers: GlobalVariableHandlers = {
@@ -121,16 +141,29 @@ function InputGlobalComponent({
   const isEnvVarName =
     password && currentValue && looksLikeVariableName(currentValue);
   if (
-    (loadFromDb &&
+    !isAutosecret &&
+    ((loadFromDb &&
       currentValue &&
       !valueExists &&
       !variableOptions.includes(currentValue)) ||
-    (isEnvVarName && !variableOptions.includes(currentValue))
+      (isEnvVarName && !variableOptions.includes(currentValue)))
   ) {
     variableOptions = [...variableOptions, currentValue];
   }
 
-  const selectedOption = loadFromDb || isEnvVarName ? currentValue : "";
+  const selectedOption = isAutosecret
+    ? ""
+    : loadFromDb || isEnvVarName
+      ? currentValue
+      : "";
+
+  // Hide the raw marker from the rendered input — show a placeholder hinting
+  // the secret is already stored. The marker stays in flow state so a no-op
+  // save round-trips correctly through the backend's preserve-marker branch.
+  const displayedValue = isAutosecret ? "" : currentValue;
+  const displayedPlaceholder = isAutosecret
+    ? "Stored — type to replace"
+    : getPlaceholder(disabled, placeholder);
 
   if (!showParameter) {
     return null;
@@ -140,12 +173,12 @@ function InputGlobalComponent({
     <InputComponent
       nodeStyle
       popoverWidth="17.5rem"
-      placeholder={getPlaceholder(disabled, placeholder)}
+      placeholder={displayedPlaceholder}
       id={id}
       editNode={editNode}
       disabled={disabled}
       password={password ?? false}
-      value={currentValue}
+      value={displayedValue}
       options={variableOptions}
       optionsPlaceholder="Global Variables"
       optionsIcon="Globe"
