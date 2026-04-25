@@ -20,6 +20,8 @@ class Usage(BaseModel):
     input_tokens: int | None = None
     output_tokens: int | None = None
     total_tokens: int | None = None
+    model_name: str | None = None
+    cost_micros: int | None = None
 
 
 class Properties(BaseModel):
