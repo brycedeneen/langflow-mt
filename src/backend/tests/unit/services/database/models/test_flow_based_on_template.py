@@ -1,4 +1,4 @@
-"""Unit tests for Flow.based_on_template_flow_id column."""
+"""Unit tests for Flow.based_on_template_id column."""
 
 from __future__ import annotations
 
@@ -39,17 +39,17 @@ def _user(s: Session) -> User:
     return u
 
 
-def test_based_on_template_flow_id_defaults_to_none(session):
+def test_based_on_template_id_defaults_to_none(session):
     user = _user(session)
     org = _org(session)
     flow = Flow(name="F", user_id=user.id, organization_id=org.id)
     session.add(flow)
     session.commit()
     session.refresh(flow)
-    assert flow.based_on_template_flow_id is None
+    assert flow.based_on_template_id is None
 
 
-def test_based_on_template_flow_id_persists_and_loads(session):
+def test_based_on_template_id_persists_and_loads(session):
     user = _user(session)
     org = _org(session)
     template = Flow(name="T", user_id=user.id, organization_id=org.id)
@@ -61,14 +61,14 @@ def test_based_on_template_flow_id_persists_and_loads(session):
         name="C",
         user_id=user.id,
         organization_id=org.id,
-        based_on_template_flow_id=template.id,
+        based_on_template_id=template.id,
     )
     session.add(clone)
     session.commit()
     session.refresh(clone)
 
     loaded = session.exec(select(Flow).where(Flow.id == clone.id)).one()
-    assert loaded.based_on_template_flow_id == template.id
+    assert loaded.based_on_template_id == template.id
 
 
 def test_template_delete_nulls_pointer_on_clones(session):
@@ -83,7 +83,7 @@ def test_template_delete_nulls_pointer_on_clones(session):
         name="C",
         user_id=user.id,
         organization_id=org.id,
-        based_on_template_flow_id=template.id,
+        based_on_template_id=template.id,
     )
     session.add(clone)
     session.commit()
@@ -93,6 +93,6 @@ def test_template_delete_nulls_pointer_on_clones(session):
     session.commit()
 
     refreshed = session.exec(select(Flow).where(Flow.id == clone.id)).one()
-    assert refreshed.based_on_template_flow_id is None
+    assert refreshed.based_on_template_id is None
     # Clone itself still exists
     assert refreshed.name == "C"

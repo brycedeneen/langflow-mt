@@ -8,7 +8,7 @@ from langflow.services.assistant.tools.metadata_lookup import fetch_template_usa
 
 
 async def build_flow_template_context(
-    based_on_template_flow_id: UUID | None,
+    based_on_template_id: UUID | None,
 ) -> str:
     """Return a markdown block describing the flow's source template, or an empty string.
 
@@ -17,13 +17,13 @@ async def build_flow_template_context(
     agent_usage_notes so it can customize the flow with the user intelligently.
 
     Returns "" when:
-      - based_on_template_flow_id is None (ordinary user flow), or
+      - based_on_template_id is None (ordinary user flow), or
       - the pointer is set but no TemplateMetadata row / notes exist for it, or
       - the pointer references a flow that no longer exists (stale pointer).
     """
-    if based_on_template_flow_id is None:
+    if based_on_template_id is None:
         return ""
-    notes = await fetch_template_usage_notes(str(based_on_template_flow_id))
+    notes = await fetch_template_usage_notes(str(based_on_template_id))
     if notes is None or notes.get("agent_usage_notes") is None:
         return ""
     return (

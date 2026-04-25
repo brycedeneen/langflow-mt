@@ -16,7 +16,7 @@ export const FlowReadSchema = z
     updated_at: z.string().optional().nullable(),
     webhook: z.boolean().optional().nullable(),
     built_with_assist: z.boolean().optional().nullable(),
-    based_on_template_flow_id: z.string().uuid().optional().nullable(),
+    based_on_template_id: z.string().uuid().optional().nullable(),
     endpoint_name: z.string().optional().nullable(),
     tags: z.array(z.string()).optional().nullable(),
     locked: z.boolean().optional().nullable(),

@@ -54,6 +54,12 @@ class Template(SQLModel, table=True):
     )
     icon: str | None = Field(default=None, max_length=64)
     gradient: str | None = Field(default=None, max_length=32)
+    agent_summary: str | None = Field(
+        default=None, sa_column=Column(Text(), nullable=True),
+    )
+    agent_usage_notes: str | None = Field(
+        default=None, sa_column=Column(Text(), nullable=True),
+    )
 
     scope: str = Field(
         default="platform",

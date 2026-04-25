@@ -77,12 +77,12 @@ export default function TemplatesModal({
         );
         const flowPayload = adaptTemplateDetailToFlow(detail);
         updateIds(flowPayload.data!);
-        // `based_on_template_flow_id` is a FK to `flow.id`; `detail.id` is a
-        // `template.id`, so override the auto-fallback to avoid FK violations.
+        // based_on_template_id is the source template's id; detail.id is a fresh flow's id
+        // Override the auto-fallback to avoid FK violations (detail.id is a template.id, not a flow.id).
         id = await addFlow({
           flow: flowPayload,
           built_with_assist: withAssist,
-          based_on_template_flow_id: null,
+          based_on_template_id: null,
         });
         templateAnalyticsName = detail.name;
       } else {

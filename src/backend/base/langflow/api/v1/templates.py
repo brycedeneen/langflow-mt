@@ -579,7 +579,7 @@ async def delete_template(
     # 409 guard: refuse to delete if any flow still references this template
     referencing_flow_ids = (
         await session.exec(
-            select(Flow.id).where(Flow.based_on_template_flow_id == template_id)
+            select(Flow.id).where(Flow.based_on_template_id == template_id)
         )
     ).all()
     if referencing_flow_ids:

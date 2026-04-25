@@ -402,7 +402,7 @@ async def send_message(
             org_id=org_id,
             user_id=user_id,
             model_name=model_name,
-            based_on_template_flow_id=flow.based_on_template_flow_id,
+            based_on_template_id=flow.based_on_template_id,
             base_url=base_url,
         )
         service.set_conversation_history(history_dicts)
@@ -620,7 +620,7 @@ async def greet_conversation(
         org_id=org.id,
         user_id=current_user.id,
         model_name=settings["model"],
-        based_on_template_flow_id=flow.based_on_template_flow_id,
+        based_on_template_id=flow.based_on_template_id,
     )
 
     # 6. Non-streaming one-shot LLM call with the __greet__ sentinel

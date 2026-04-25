@@ -299,7 +299,7 @@ export const FlowCreate = z
       .union([z.boolean(), z.null()])
       .optional()
       .default(false),
-    based_on_template_flow_id: z.union([z.string(), z.null()]).optional(),
+    based_on_template_id: z.union([z.string(), z.null()]).optional(),
     endpoint_name: z.union([z.string(), z.null()]).optional(),
     tags: z.union([z.array(z.string()), z.null()]).optional(),
     locked: z.union([z.boolean(), z.null()]).optional().default(false),
@@ -332,7 +332,7 @@ export const FlowRead = z
       .union([z.boolean(), z.null()])
       .optional()
       .default(false),
-    based_on_template_flow_id: z.union([z.string(), z.null()]).optional(),
+    based_on_template_id: z.union([z.string(), z.null()]).optional(),
     endpoint_name: z.union([z.string(), z.null()]).optional(),
     tags: z.union([z.array(z.string()), z.null()]).optional(),
     locked: z.union([z.boolean(), z.null()]).optional().default(false),

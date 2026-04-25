@@ -151,9 +151,9 @@ async def test_delete_returns_409_when_flow_references(
         await session.refresh(t)
         tmpl_id = t.id
 
-    # Create a flow that "references" this template via based_on_template_flow_id.
+    # Create a flow that "references" this template via based_on_template_id.
     # SQLite doesn't enforce FK constraints by default, so we can set
-    # based_on_template_flow_id = tmpl_id (a Template UUID, not a Flow UUID).
+    # based_on_template_id = tmpl_id (a Template UUID).
     flow_id = uuid.uuid4()
     async with session_scope() as session:
         flow = Flow(
@@ -161,7 +161,7 @@ async def test_delete_returns_409_when_flow_references(
             name=f"RefFlow-{uuid.uuid4()}",
             data={"nodes": [], "edges": []},
             user_id=admin_uid,
-            based_on_template_flow_id=tmpl_id,
+            based_on_template_id=tmpl_id,
         )
         session.add(flow)
         await session.flush()

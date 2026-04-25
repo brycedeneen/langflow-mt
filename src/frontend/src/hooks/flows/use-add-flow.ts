@@ -59,7 +59,7 @@ const useAddFlow = () => {
     override?: boolean;
     new_blank?: boolean;
     built_with_assist?: boolean;
-    based_on_template_flow_id?: string | null;
+    based_on_template_id?: string | null;
   }): Promise<string> => {
     const flow = cloneDeep(params?.flow) ?? undefined;
     const flowData = flow
@@ -116,9 +116,9 @@ const useAddFlow = () => {
       // Explicit null means "no link"; omit the key to fall back to
       // params.flow.id (the ADP Assist template-cloning path, where
       // params.flow is a real Flow row).
-      based_on_template_flow_id:
-        params && "based_on_template_flow_id" in params
-          ? (params.based_on_template_flow_id ?? null)
+      based_on_template_id:
+        params && "based_on_template_id" in params
+          ? (params.based_on_template_id ?? null)
           : (params?.flow?.id ?? null),
     };
 

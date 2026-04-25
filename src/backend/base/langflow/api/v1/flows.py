@@ -406,8 +406,8 @@ async def create_flow(
         ) from err
 
     # Guard: reject creation if the referenced template is archived
-    if flow.based_on_template_flow_id is not None:
-        t = await session.get(Template, flow.based_on_template_flow_id)
+    if flow.based_on_template_id is not None:
+        t = await session.get(Template, flow.based_on_template_id)
         if t is not None and t.archived_at is not None:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

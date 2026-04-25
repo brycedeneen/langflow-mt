@@ -57,7 +57,7 @@ async def apply_template(
         new_data = regenerate_flow_ids(template_data)
 
         target.data = new_data
-        target.based_on_template_flow_id = template_uuid
+        target.based_on_template_id = template_uuid
         session.add(target)
         await session.commit()
         await session.refresh(target)

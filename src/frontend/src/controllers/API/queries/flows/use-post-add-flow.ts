@@ -21,7 +21,7 @@ interface IPostAddFlow {
   locked?: boolean | null;
   mcp_enabled: boolean | undefined;
   built_with_assist?: boolean;
-  based_on_template_flow_id?: string | null;
+  based_on_template_id?: string | null;
 }
 
 export const usePostAddFlow: useMutationFunctionType<
@@ -50,7 +50,7 @@ export const usePostAddFlow: useMutationFunctionType<
             locked: payload.locked ?? null,
             mcp_enabled: payload.mcp_enabled || null,
             built_with_assist: payload.built_with_assist ?? false,
-            based_on_template_flow_id: payload.based_on_template_flow_id ?? null,
+            based_on_template_id: payload.based_on_template_id ?? null,
           })
         ).data,
     )();

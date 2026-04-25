@@ -200,7 +200,7 @@ describe("TemplatesModal — Saved Templates tab", () => {
     expect(callArg.flow.data.nodes).toEqual([{ id: "node-a" }]);
     expect(callArg.flow.data.edges).toEqual([{ id: "edge-a" }]);
     expect(callArg.built_with_assist).toBe(false);
-    expect(callArg.based_on_template_flow_id).toBeNull();
+    expect(callArg.based_on_template_id).toBeNull();
 
     expect(updateIds).toHaveBeenCalledWith(callArg.flow.data);
     expect(track).toHaveBeenCalledWith("New Flow Created", {

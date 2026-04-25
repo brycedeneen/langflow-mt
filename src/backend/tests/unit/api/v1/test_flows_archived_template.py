@@ -1,4 +1,4 @@
-"""Tests for C7: flow creation 422 guard when based_on_template_flow_id points to archived template."""
+"""Tests for C7: flow creation 422 guard when based_on_template_id points to archived template."""
 
 from __future__ import annotations
 
@@ -76,11 +76,11 @@ async def test_create_flow_with_archived_template_returns_422(
     logged_in_headers,
     _archived_template,
 ):
-    """Flow creation with based_on_template_flow_id pointing to an archived template → 422."""
+    """Flow creation with based_on_template_id pointing to an archived template → 422."""
     payload = {
         "name": f"ShouldFail-{uuid.uuid4()}",
         "data": {"nodes": [], "edges": []},
-        "based_on_template_flow_id": str(_archived_template),
+        "based_on_template_id": str(_archived_template),
     }
     resp = await client.post("api/v1/flows/", json=payload, headers=logged_in_headers)
     assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -92,12 +92,12 @@ async def test_create_flow_with_live_template_succeeds(
     logged_in_headers,
     _live_template,
 ):
-    """Flow creation with based_on_template_flow_id pointing to a live template → 201."""
+    """Flow creation with based_on_template_id pointing to a live template → 201."""
     flow_name = f"LiveFlow-{uuid.uuid4()}"
     payload = {
         "name": flow_name,
         "data": {"nodes": [], "edges": []},
-        "based_on_template_flow_id": str(_live_template),
+        "based_on_template_id": str(_live_template),
     }
     resp = await client.post("api/v1/flows/", json=payload, headers=logged_in_headers)
     # The guard should pass; creation may succeed (201) or fail for other reasons (name dup etc.)

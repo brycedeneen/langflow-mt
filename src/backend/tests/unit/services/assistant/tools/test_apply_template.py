@@ -44,7 +44,7 @@ async def test_apply_template_happy_path(active_super_user):
     async with session_scope() as session:
         from uuid import UUID
         updated = (await session.exec(select(Flow).where(Flow.id == UUID(target_id)))).one()
-        assert updated.based_on_template_flow_id == UUID(template_id)
+        assert updated.based_on_template_id == UUID(template_id)
         assert len(updated.data["nodes"]) == 1
         # The node's id was regenerated (not equal to the template's)
         assert updated.data["nodes"][0]["id"] != "Webhook-aaaaa"
