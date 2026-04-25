@@ -38,6 +38,8 @@ export type UsageType = {
   input_tokens?: number | null;
   output_tokens?: number | null;
   total_tokens?: number | null;
+  model_name?: string | null;
+  cost_micros?: number | null;
 };
 
 export type PropertiesType = {
