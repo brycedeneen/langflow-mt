@@ -5,9 +5,15 @@ from typing import Any
 from uuid import UUID, uuid4
 
 import httpx
+from redis.asyncio import Redis
+from taskiq import TaskiqDepends
+
 from langflow.services.database.models.flow.model import Flow
 from langflow.services.database.models.flow_run.model import FlowRun
 from langflow.services.runs.webhook_sign import sign_body
+from langflow.worker_app.brokers import broker_webhooks
+from langflow.worker_app.delayed_enqueue import schedule_delayed_kick
+from langflow.worker_app.deps import get_db_sessionmaker, get_settings, get_redis
 
 
 _BACKOFF_SCHEDULE_SEC = [10, 30, 120, 600, 1800, 3600]  # 6 attempts max
@@ -33,9 +39,17 @@ def _build_payload(run: FlowRun, event: str) -> dict[str, Any]:
     }
 
 
-async def deliver_webhook(ctx, run_id: str, event: str, attempt: int = 0) -> None:
-    session_factory = ctx["db_sessionmaker"]
-    async with session_factory() as session:
+@broker_webhooks.task(task_name="deliver_webhook")
+async def deliver_webhook(
+    run_id: str,
+    event: str,
+    attempt: int = 0,
+    *,
+    sessionmaker=TaskiqDepends(get_db_sessionmaker),
+    settings=TaskiqDepends(get_settings),
+    redis: Redis = TaskiqDepends(get_redis),
+) -> None:
+    async with sessionmaker() as session:
         run = await session.get(FlowRun, UUID(run_id))
         if run is None:
             return
@@ -76,7 +90,7 @@ async def deliver_webhook(ctx, run_id: str, event: str, attempt: int = 0) -> Non
         status_label = "failed"
         should_retry = False
 
-    async with session_factory() as session:
+    async with sessionmaker() as session:
         run = await session.get(FlowRun, UUID(run_id))
         if run is None:
             return
@@ -95,7 +109,10 @@ async def deliver_webhook(ctx, run_id: str, event: str, attempt: int = 0) -> Non
 
     if should_retry:
         delay = _BACKOFF_SCHEDULE_SEC[attempt]
-        await ctx["arq"].enqueue_job(
-            "deliver_webhook", run_id, event, attempt + 1,
-            _queue_name=ctx["settings"].queue_webhooks, _defer_by=delay,
+        await schedule_delayed_kick(
+            redis=redis,
+            task_name="deliver_webhook",
+            queue_name="webhooks",
+            args=[run_id, event, attempt + 1],
+            delay_s=delay,
         )

@@ -8,6 +8,9 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
+from redis.asyncio import Redis
+from taskiq import TaskiqDepends
+
 from lfx.log.logger import logger
 
 from langflow.services.database.models.flow.model import Flow
@@ -16,6 +19,15 @@ from langflow.services.database.models.organization.model import Organization
 from langflow.services.runs.concurrency import OrgConcurrency
 from langflow.services.runs.cancel import is_cancel_requested
 from langflow.services.runs.payload import PayloadOffloader
+from langflow.worker_app.brokers import broker_default, broker_high, broker_low, broker_webhooks, TIER_TO_BROKER
+from langflow.worker_app.delayed_enqueue import schedule_delayed_kick
+from langflow.worker_app.deps import (
+    get_db_sessionmaker,
+    get_storage,
+    get_settings,
+    get_redis,
+    get_graph_runner,
+)
 from langflow.worker_app.log_sink import RunLogSink
 
 
@@ -24,18 +36,26 @@ HEARTBEAT_INTERVAL = 15.0
 CANCEL_POLL_INTERVAL = 2.0
 REQUEUE_DELAY = 5.0
 
-# Avoid circular import by duplicating the tier map (same as enqueue._TIER_TO_QUEUE_ATTR)
-_TIER_TO_QUEUE_ATTR = {"high": "queue_high", "default": "queue_default", "low": "queue_low"}
+
+_TIER_TO_QUEUE_NAME = {
+    "high": "runs:high",
+    "default": "runs:default",
+    "low": "runs:low",
+}
 
 
-async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
+@broker_default.task(task_name="execute_run")
+async def execute_run(
+    run_id: str,
+    *,
+    sessionmaker = TaskiqDepends(get_db_sessionmaker),
+    storage = TaskiqDepends(get_storage),
+    settings = TaskiqDepends(get_settings),
+    redis: Redis = TaskiqDepends(get_redis),
+    graph_runner = TaskiqDepends(get_graph_runner),
+) -> None:
     run_uuid = UUID(run_id)
-    redis = ctx["redis"]
-    session_factory = ctx["db_sessionmaker"]
-    storage = ctx["storage"]
-    settings = ctx["settings"]
-    arq = ctx["arq"]
-    graph_runner = ctx.get("graph_runner")  # injection hook for tests
+    session_factory = sessionmaker
 
     logger.info(f"[run={run_id}] worker picked up job (worker_id={WORKER_ID})")
 
@@ -62,12 +82,18 @@ async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
 
         acquired = await concurrency.try_acquire(org.id, limit=org.runs_max_concurrent)
         if not acquired:
-            queue = getattr(settings, _TIER_TO_QUEUE_ATTR[org.runs_priority_tier])
+            queue = _TIER_TO_QUEUE_NAME[org.runs_priority_tier]
             logger.info(
                 f"[run={run_id}] org={org.id} at concurrency cap "
                 f"(limit={org.runs_max_concurrent}); requeueing to {queue} in {REQUEUE_DELAY}s"
             )
-            await arq.enqueue_job("execute_run", run_id, _queue_name=queue, _defer_by=REQUEUE_DELAY)
+            await schedule_delayed_kick(
+                redis=redis,
+                task_name="execute_run",
+                queue_name=queue,
+                args=[run_id],
+                delay_s=REQUEUE_DELAY,
+            )
             return
 
         run.status = RunStatus.RUNNING
@@ -94,7 +120,7 @@ async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
     if inputs_ref:
         inputs = await offloader.load(inputs_ref)
 
-    await _emit_webhook(arq, settings, run_uuid, "run.started")
+    await _emit_webhook(run_uuid, "run.started")
 
     sink = RunLogSink(session_factory=session_factory, run_id=run_uuid)
     await sink.start()
@@ -207,7 +233,7 @@ async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
         RunStatus.CANCELLED: "run.cancelled",
         RunStatus.TIMED_OUT: "run.timed_out",
     }
-    await _emit_webhook(arq, settings, run_uuid, event_map[terminal])
+    await _emit_webhook(run_uuid, event_map[terminal])
 
     if terminal in {RunStatus.FAILED, RunStatus.TIMED_OUT}:
         async with session_factory() as session:
@@ -224,8 +250,14 @@ async def execute_run(ctx: dict[str, Any], run_id: str) -> None:
                 await session.commit()
                 backoff = min(30 * (2 ** (run.attempt - 1)), 1800)
                 org = await session.get(Organization, run.organization_id)
-                queue = getattr(settings, _TIER_TO_QUEUE_ATTR[org.runs_priority_tier])
-                await arq.enqueue_job("execute_run", run_id, _queue_name=queue, _defer_by=backoff)
+                queue = _TIER_TO_QUEUE_NAME[org.runs_priority_tier]
+                await schedule_delayed_kick(
+                    redis=redis,
+                    task_name="execute_run",
+                    queue_name=queue,
+                    args=[run_id],
+                    delay_s=backoff,
+                )
                 logger.info(
                     f"[run={run_id}] auto-retry attempt={run.attempt}/{run.max_retries} "
                     f"requeued to {queue} in {backoff}s"
@@ -324,10 +356,9 @@ async def _cancel_watcher(redis, run_id: UUID, cancel_event: asyncio.Event, stop
             pass
 
 
-async def _emit_webhook(arq, settings, run_id: UUID, event: str) -> None:
-    await arq.enqueue_job(
-        "deliver_webhook", str(run_id), event, _queue_name=settings.queue_webhooks,
-    )
+async def _emit_webhook(run_id: UUID, event: str) -> None:
+    from langflow.worker_app.webhook import deliver_webhook
+    await deliver_webhook.kicker().with_broker(broker_webhooks).kiq(str(run_id), event)
 
 
 def _jsonable(obj: Any) -> Any:

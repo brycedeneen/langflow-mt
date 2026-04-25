@@ -36,3 +36,27 @@ async def test_delayed_kick_enqueues_after_delay(redis_service):
     )
     assert drained == 1
     await broker.shutdown()
+
+
+@pytest.mark.asyncio
+async def test_identical_args_dont_collapse(redis_service):
+    """Two schedules with identical (task, args) must NOT collapse to one ZSET entry.
+
+    The nonce in the payload guarantees member-uniqueness in the ZSET.
+    """
+    await schedule_delayed_kick(
+        redis=redis_service.client,
+        task_name="t",
+        queue_name="q",
+        args=["same"],
+        delay_s=10,
+    )
+    await schedule_delayed_kick(
+        redis=redis_service.client,
+        task_name="t",
+        queue_name="q",
+        args=["same"],
+        delay_s=10,
+    )
+    count = await redis_service.client.zcard("delay:q")
+    assert count == 2
