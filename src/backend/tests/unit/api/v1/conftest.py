@@ -197,6 +197,55 @@ async def org_viewer_headers(client: AsyncClient, org_viewer_user):
 
 
 @pytest.fixture
+async def org_admin_user(client: AsyncClient, non_personal_org):  # noqa: ARG001
+    """A user with ADMIN membership in ``non_personal_org``.
+
+    Login password is ``"adminpass"``. Mirrors the shape of ``org_viewer_user``
+    but with ``MembershipRole.ADMIN`` so tests can exercise admin-gated
+    org-scoped endpoints.
+    """
+    uid = uuid4()
+    async with session_scope() as session:
+        user = User(
+            id=uid,
+            username=f"org_admin_{uid}",
+            password=get_password_hash("adminpass"),
+            is_active=True,
+            is_superuser=False,
+            is_platform_admin=False,
+        )
+        session.add(user)
+        await session.flush()
+        session.add(
+            Membership(
+                user_id=uid,
+                organization_id=non_personal_org,
+                role=MembershipRole.ADMIN,
+            )
+        )
+        await session.flush()
+        username = user.username
+
+    yield {"id": str(uid), "username": username}
+
+    async with session_scope() as session:
+        db_user = await session.get(User, uid)
+        if db_user:
+            await session.delete(db_user)
+
+
+@pytest.fixture
+async def org_admin_headers(client: AsyncClient, org_admin_user):
+    """JWT auth headers for ``org_admin_user``."""
+    resp = await client.post(
+        "api/v1/login",
+        data={"username": org_admin_user["username"], "password": "adminpass"},
+    )
+    assert resp.status_code == status.HTTP_200_OK, resp.text
+    return {"Authorization": f"Bearer {resp.json()['access_token']}"}
+
+
+@pytest.fixture
 async def created_flow(non_personal_org, org_viewer_user):
     """A Flow inside ``non_personal_org``, owned by ``org_viewer_user``.
 

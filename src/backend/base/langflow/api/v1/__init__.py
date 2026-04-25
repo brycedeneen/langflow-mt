@@ -1,5 +1,6 @@
 from langflow.api.v1.api_key import router as api_key_router
 from langflow.api.v1.assistant import router as assistant_router
+from langflow.api.v1.audit_logs import router as audit_logs_router
 from langflow.api.v1.categories import router as categories_router
 from langflow.api.v1.chat import router as chat_router
 from langflow.api.v1.component_assist import router as component_assist_router
@@ -31,6 +32,7 @@ from langflow.api.v1.voice_mode import router as voice_mode_router
 __all__ = [
     "api_key_router",
     "assistant_router",
+    "audit_logs_router",
     "categories_router",
     "chat_router",
     "component_assist_router",
