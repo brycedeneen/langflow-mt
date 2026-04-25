@@ -17,6 +17,7 @@ import anyio
 import httpx
 import orjson
 import sqlalchemy as sa
+import yaml
 from aiofile import async_open
 from emoji import demojize, purely_emoji
 from lfx.base.constants import (
@@ -29,7 +30,7 @@ from lfx.base.constants import (
 from lfx.log.logger import logger
 from lfx.template.field.prompt import DEFAULT_PROMPT_INTUT_TYPES
 from lfx.utils.util import escape_json_dump
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import selectinload
 from sqlmodel import col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -47,6 +48,7 @@ from langflow.services.database.models.folder.constants import (
     LEGACY_FOLDER_NAMES,
 )
 from langflow.services.database.models.folder.model import Folder, FolderCreate, FolderRead
+from langflow.services.database.models.component_metadata.model import ComponentMetadata
 from langflow.services.database.models.template_metadata.model import TemplateMetadata
 from langflow.services.deps import (
     get_auth_service,
@@ -1105,6 +1107,101 @@ async def create_or_update_template_metadata(
                     f"Skipping TemplateMetadata seed for '{template_name}': "
                     f"admin has taken ownership (updated_by={existing.updated_by})."
                 )
+
+
+async def create_or_update_component_agent_metadata(
+    yaml_dir: anyio.Path | Path | None = None,
+) -> None:
+    """Seed ``ComponentMetadata`` rows from per-category YAML bundles.
+
+    Each YAML file under ``yaml_dir`` is a list of
+    ``{component_name, agent_summary, agent_usage_notes}`` entries.
+
+    Upsert policy (matches ``create_or_update_template_metadata``):
+    - No existing row -> INSERT with ``updated_by=None``.
+    - Existing row, ``updated_by IS NULL`` -> UPDATE (re-seed).
+    - Existing row, ``updated_by IS NOT NULL`` -> SKIP (admin took ownership).
+    - IntegrityError on INSERT (concurrent worker won the race) -> swallow + debug log.
+    """
+    if yaml_dir is None:
+        yaml_dir = anyio.Path(__file__).resolve().parent.parent / "services" / "component_assist" / "agent_metadata"
+    else:
+        yaml_dir = anyio.Path(yaml_dir)
+
+    yaml_files: list[anyio.Path] = [f async for f in yaml_dir.glob("*.yaml")]
+
+    if not yaml_files:
+        await logger.adebug(
+            f"No component agent-metadata YAML files in {yaml_dir}; skipping."
+        )
+        return
+
+    inserted = 0
+    reseeded = 0
+    skipped = 0
+
+    for yaml_file in yaml_files:
+        try:
+            content = await yaml_file.read_text(encoding="utf-8")
+            entries = yaml.safe_load(content) or []
+        except yaml.YAMLError as e:
+            await logger.awarning(f"Skipping malformed agent-metadata YAML {yaml_file.name}: {e}")
+            continue
+        except Exception as e:  # noqa: BLE001
+            await logger.aexception(f"Skipping agent-metadata YAML {yaml_file.name}: {e}")
+            continue
+
+        if not isinstance(entries, list):
+            await logger.awarning(f"Top-level YAML in {yaml_file.name} is not a list; skipping.")
+            continue
+
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            component_name = entry.get("component_name")
+            if not isinstance(component_name, str) or not component_name.strip():
+                continue
+            agent_summary = entry.get("agent_summary")
+            agent_usage_notes = entry.get("agent_usage_notes")
+
+            # Per-entry session: lets us isolate IntegrityError on a single insert race
+            # without rolling back unrelated entries. Diverges from create_or_update_template_metadata
+            # which uses a single session because there's no per-row race risk there.
+            async with session_scope() as session:
+                existing_stmt = select(ComponentMetadata).where(
+                    ComponentMetadata.component_name == component_name
+                )
+                existing = (await session.exec(existing_stmt)).first()
+
+                if existing is None:
+                    row = ComponentMetadata(
+                        component_name=component_name,
+                        agent_summary=agent_summary,
+                        agent_usage_notes=agent_usage_notes,
+                        updated_by=None,
+                    )
+                    session.add(row)
+                    try:
+                        await session.flush()
+                    except IntegrityError:
+                        await session.rollback()
+                        await logger.adebug(
+                            f"Race on component_metadata insert for '{component_name}'; another worker won."
+                        )
+                        continue
+                    inserted += 1
+                elif existing.updated_by is None:
+                    existing.agent_summary = agent_summary
+                    existing.agent_usage_notes = agent_usage_notes
+                    session.add(existing)
+                    reseeded += 1
+                else:
+                    skipped += 1
+
+    await logger.ainfo(
+        f"Component agent metadata seed: inserted {inserted}, "
+        f"re-seeded {reseeded}, skipped {skipped} (admin-owned)."
+    )
 
 
 async def get_or_create_default_folder(session: AsyncSession, user_id: UUID) -> FolderRead:
