@@ -1,32 +1,38 @@
-"""Tests for auto-Variable lifecycle helpers.
+"""Tests for autosecret lifecycle helpers (Vault-backed)."""
 
-These helpers walk flow `data` dicts and promote / clean up / blank values for
-fields whose `_input_type == "TextFileSecretInput"`. The Variable service is
-mocked; the helpers are pure orchestration.
-"""
+from __future__ import annotations
 
-from unittest.mock import AsyncMock
-from uuid import uuid4
+from unittest.mock import AsyncMock, patch
+from uuid import UUID, uuid4
 
 import pytest
 
+from lfx.services.secret_store.factory import InMemorySecretStore
 from langflow.services.variable.auto_secrets import (
-    AUTOSECRET_PREFIX,
-    autosecret_name,
+    LEGACY_AUTOSECRET_PREFIX,
+    NEW_AUTOSECRET_PREFIX as AUTOSECRET_PREFIX,
+    autosecret_marker,
+    autosecret_vault_path,
     promote_plaintext_secrets_to_variables,
 )
 
 
-def _flow_data(field_template: dict) -> dict:
+USER_ID = uuid4()
+FLOW_ID = UUID("4312a8ac-22db-4d86-805e-86d19451c489")
+ORG_ID = UUID("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
+NODE_ID = "APIRequest-abc123"
+
+
+def _flow_data(field_template: dict, *, field_name: str = "cert_pem") -> dict:
     """Build a minimal flow `data` dict with one node + one templated field."""
     return {
         "nodes": [
             {
-                "id": "APIRequest-abc123",
+                "id": NODE_ID,
                 "data": {
                     "node": {
                         "template": {
-                            "cert_pem": field_template,
+                            field_name: field_template,
                         },
                     },
                 },
@@ -36,20 +42,17 @@ def _flow_data(field_template: dict) -> dict:
     }
 
 
-USER_ID = uuid4()
-FLOW_ID = uuid4()
-
-
-def test_autosecret_name_is_deterministic():
-    name = autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem")
-    assert name.startswith(AUTOSECRET_PREFIX)
-    assert str(FLOW_ID) in name
-    assert "APIRequest-abc123" in name
-    assert name.endswith("_cert_pem")
+@pytest.fixture
+def patched_org_lookup():
+    with patch(
+        "langflow.services.variable.auto_secrets._get_org_id_for_flow",
+        return_value=ORG_ID,
+    ) as patched:
+        yield patched
 
 
 @pytest.mark.asyncio
-async def test_promote_creates_variable_for_plaintext_textfilesecret():
+async def test_promote_writes_plaintext_to_vault(patched_org_lookup):
     flow_data = _flow_data(
         {
             "_input_type": "TextFileSecretInput",
@@ -58,430 +61,184 @@ async def test_promote_creates_variable_for_plaintext_textfilesecret():
             "load_from_db": False,
         }
     )
-    svc = AsyncMock()
-    svc.create_variable = AsyncMock()
-    svc.list_autosecret_names_for_flow = AsyncMock(return_value=[])
-    svc.has_user_managed_variable = AsyncMock(return_value=False)
-
-    session = AsyncMock()
+    secret_store = InMemorySecretStore()
+    variable_service = AsyncMock()
+    variable_service.has_user_managed_variable = AsyncMock(return_value=False)
 
     out = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
         user_id=USER_ID,
-        variable_service=svc,
-        session=session,
+        secret_store=secret_store,
+        variable_service=variable_service,
+        session=AsyncMock(),
     )
-
-    expected_name = autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem")
-    svc.create_variable.assert_awaited_once()
-    call_kwargs = svc.create_variable.await_args.kwargs
-    assert call_kwargs["name"] == expected_name
-    assert call_kwargs["value"].startswith("-----BEGIN CERTIFICATE-----")
-    assert call_kwargs["user_id"] == USER_ID
 
     field = out["nodes"][0]["data"]["node"]["template"]["cert_pem"]
-    assert field["value"] == expected_name
+    assert field["value"] == autosecret_marker(FLOW_ID, NODE_ID, "cert_pem")
     assert field["load_from_db"] is True
 
-
-@pytest.mark.asyncio
-async def test_promote_skips_non_promotable_fields():
-    """SecretStrInput with auto_promote=False (or absent) is not promoted."""
-    flow_data = _flow_data(
-        {
-            "_input_type": "SecretStrInput",
-            "auto_promote": False,
-            "value": "whatever",
-            "load_from_db": False,
-        }
-    )
-    svc = AsyncMock()
-    svc.create_variable = AsyncMock()
-    svc.list_autosecret_names_for_flow = AsyncMock(return_value=[])
-    session = AsyncMock()
-
-    out = await promote_plaintext_secrets_to_variables(
-        flow_data=flow_data,
-        flow_id=FLOW_ID,
-        user_id=USER_ID,
-        variable_service=svc,
-        session=session,
-    )
-
-    svc.create_variable.assert_not_called()
-    assert out["nodes"][0]["data"]["node"]["template"]["cert_pem"]["value"] == "whatever"
+    stored = await secret_store.get(autosecret_vault_path(ORG_ID, FLOW_ID, NODE_ID, "cert_pem"))
+    assert stored == {"value": "-----BEGIN CERTIFICATE-----\nAAA\n-----END CERTIFICATE-----\n"}
 
 
 @pytest.mark.asyncio
-async def test_promote_skips_empty_plaintext():
+async def test_promote_empty_value_with_existing_secret_preserves_marker(patched_org_lookup):
+    """Issue 1 fix: empty value next to an existing Vault secret = 'untouched'."""
+    secret_store = InMemorySecretStore()
+    path = autosecret_vault_path(ORG_ID, FLOW_ID, NODE_ID, "cert_pem")
+    await secret_store.put(path, {"value": "previously-saved-secret"})
+
     flow_data = _flow_data(
         {
             "_input_type": "TextFileSecretInput",
             "auto_promote": True,
             "value": "",
-            "load_from_db": False,
+            "load_from_db": True,
         }
     )
-    svc = AsyncMock()
-    svc.create_variable = AsyncMock()
-    svc.list_autosecret_names_for_flow = AsyncMock(return_value=[])
-    svc.has_user_managed_variable = AsyncMock(return_value=False)
-    session = AsyncMock()
 
     out = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
         user_id=USER_ID,
-        variable_service=svc,
-        session=session,
+        secret_store=secret_store,
+        variable_service=AsyncMock(),
+        session=AsyncMock(),
     )
 
-    svc.create_variable.assert_not_called()
-    assert out["nodes"][0]["data"]["node"]["template"]["cert_pem"]["load_from_db"] is False
+    field = out["nodes"][0]["data"]["node"]["template"]["cert_pem"]
+    assert field["value"] == autosecret_marker(FLOW_ID, NODE_ID, "cert_pem")
+    assert field["load_from_db"] is True
+    assert (await secret_store.get(path))["value"] == "previously-saved-secret"
 
 
 @pytest.mark.asyncio
-async def test_promote_skips_already_promoted_reference():
-    existing_name = autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem")
+async def test_promote_empty_value_with_no_secret_clears_field(patched_org_lookup):
     flow_data = _flow_data(
         {
             "_input_type": "TextFileSecretInput",
             "auto_promote": True,
-            "value": existing_name,
+            "value": "",
             "load_from_db": True,
         }
     )
-    svc = AsyncMock()
-    svc.create_variable = AsyncMock()
-    svc.list_autosecret_names_for_flow = AsyncMock(return_value=[existing_name])
-    session = AsyncMock()
-
     out = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
         user_id=USER_ID,
-        variable_service=svc,
-        session=session,
+        secret_store=InMemorySecretStore(),
+        variable_service=AsyncMock(),
+        session=AsyncMock(),
     )
-
-    svc.create_variable.assert_not_called()
-    assert out["nodes"][0]["data"]["node"]["template"]["cert_pem"]["value"] == existing_name
-
-
-@pytest.mark.asyncio
-async def test_promote_upserts_when_value_changed():
-    # User edited the field: value is a new plaintext, load_from_db is False
-    # (frontend resets it when the user changes the masked value), but an
-    # auto-Variable with the expected name already exists — the helper should
-    # UPDATE it, not create a duplicate.
-    existing_name = autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem")
-    new_value = "-----BEGIN CERTIFICATE-----\nNEW\n-----END CERTIFICATE-----\n"
-    flow_data = _flow_data(
-        {
-            "_input_type": "TextFileSecretInput",
-            "auto_promote": True,
-            "value": new_value,
-            "load_from_db": False,
-        }
-    )
-    svc = AsyncMock()
-    svc.create_variable = AsyncMock()
-    svc.update_variable_value = AsyncMock()
-    svc.list_autosecret_names_for_flow = AsyncMock(return_value=[existing_name])
-    svc.has_user_managed_variable = AsyncMock(return_value=False)
-    session = AsyncMock()
-
-    out = await promote_plaintext_secrets_to_variables(
-        flow_data=flow_data,
-        flow_id=FLOW_ID,
-        user_id=USER_ID,
-        variable_service=svc,
-        session=session,
-    )
-
-    svc.create_variable.assert_not_called()
-    svc.update_variable_value.assert_awaited_once()
-    call_kwargs = svc.update_variable_value.await_args.kwargs
-    assert call_kwargs["name"] == existing_name
-    assert call_kwargs["value"] == new_value
-    assert out["nodes"][0]["data"]["node"]["template"]["cert_pem"]["value"] == existing_name
-    assert out["nodes"][0]["data"]["node"]["template"]["cert_pem"]["load_from_db"] is True
-
-
-from langflow.services.variable.auto_secrets import cleanup_orphaned_autosecrets
-
-
-@pytest.mark.asyncio
-async def test_cleanup_deletes_autosecrets_for_removed_nodes():
-    # Flow currently has one APIRequest node; DB has two autosecrets,
-    # one of which references a node that no longer exists.
-    flow_data = _flow_data(
-        {
-            "_input_type": "TextFileSecretInput",
-            "auto_promote": True,
-            "value": autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem"),
-            "load_from_db": True,
-        }
-    )
-    current_name = autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem")
-    orphan_name = autosecret_name(FLOW_ID, "APIRequest-old999", "cert_pem")
-
-    svc = AsyncMock()
-    svc.list_autosecret_names_for_flow = AsyncMock(return_value=[current_name, orphan_name])
-    svc.delete_variable = AsyncMock()
-    session = AsyncMock()
-
-    await cleanup_orphaned_autosecrets(
-        flow_data=flow_data,
-        flow_id=FLOW_ID,
-        user_id=USER_ID,
-        variable_service=svc,
-        session=session,
-    )
-
-    svc.delete_variable.assert_awaited_once()
-    call_kwargs = svc.delete_variable.await_args.kwargs
-    assert call_kwargs["name"] == orphan_name
-
-
-@pytest.mark.asyncio
-async def test_cleanup_no_op_when_no_orphans():
-    flow_data = _flow_data(
-        {
-            "_input_type": "TextFileSecretInput",
-            "auto_promote": True,
-            "value": autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem"),
-            "load_from_db": True,
-        }
-    )
-    svc = AsyncMock()
-    svc.list_autosecret_names_for_flow = AsyncMock(
-        return_value=[autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem")]
-    )
-    svc.delete_variable = AsyncMock()
-    session = AsyncMock()
-
-    await cleanup_orphaned_autosecrets(
-        flow_data=flow_data,
-        flow_id=FLOW_ID,
-        user_id=USER_ID,
-        variable_service=svc,
-        session=session,
-    )
-
-    svc.delete_variable.assert_not_called()
-
-
-from langflow.services.variable.auto_secrets import delete_autosecrets_for_flow
-
-
-@pytest.mark.asyncio
-async def test_delete_autosecrets_for_flow_removes_all_for_that_flow():
-    svc = AsyncMock()
-    svc.list_autosecret_names_for_flow = AsyncMock(
-        return_value=[
-            autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem"),
-            autosecret_name(FLOW_ID, "APIRequest-abc123", "key_pem"),
-        ]
-    )
-    svc.delete_variable = AsyncMock()
-    session = AsyncMock()
-
-    await delete_autosecrets_for_flow(
-        flow_id=FLOW_ID,
-        user_id=USER_ID,
-        variable_service=svc,
-        session=session,
-    )
-
-    assert svc.delete_variable.await_count == 2
-
-
-from langflow.services.variable.auto_secrets import blank_autosecrets_for_export
-
-
-def test_blank_autosecrets_blanks_textfilesecret_refs():
-    ref = autosecret_name(FLOW_ID, "APIRequest-abc123", "cert_pem")
-    flow_data = _flow_data(
-        {
-            "_input_type": "TextFileSecretInput",
-            "auto_promote": True,
-            "value": ref,
-            "load_from_db": True,
-        }
-    )
-
-    out = blank_autosecrets_for_export(flow_data)
-
     field = out["nodes"][0]["data"]["node"]["template"]["cert_pem"]
     assert field["value"] == ""
-    assert field["load_from_db"] is True
+    assert field["load_from_db"] is False
 
 
-def test_blank_autosecrets_ignores_non_autosecret_variables():
-    # A user-managed Variable referenced via load_from_db should NOT be blanked.
+@pytest.mark.asyncio
+async def test_promote_existing_marker_passes_through(patched_org_lookup):
+    marker = autosecret_marker(FLOW_ID, NODE_ID, "cert_pem")
     flow_data = _flow_data(
         {
             "_input_type": "TextFileSecretInput",
             "auto_promote": True,
-            "value": "my_global_variable",
+            "value": marker,
             "load_from_db": True,
         }
     )
 
-    out = blank_autosecrets_for_export(flow_data)
-
+    secret_store = InMemorySecretStore()
+    out = await promote_plaintext_secrets_to_variables(
+        flow_data=flow_data,
+        flow_id=FLOW_ID,
+        user_id=USER_ID,
+        secret_store=secret_store,
+        variable_service=AsyncMock(),
+        session=AsyncMock(),
+    )
     field = out["nodes"][0]["data"]["node"]["template"]["cert_pem"]
-    assert field["value"] == "my_global_variable"
+    assert field["value"] == marker
+    path = autosecret_vault_path(ORG_ID, FLOW_ID, NODE_ID, "cert_pem")
+    assert await secret_store.get(path) is None
 
 
-from langflow.services.variable.auto_secrets import _iter_promotable_fields
-
-
-def test_iter_promotable_fields_yields_secret_str_with_auto_promote_true():
-    flow_data = _flow_data(
-        {
-            "_input_type": "SecretStrInput",
-            "auto_promote": True,
-            "value": "sk-secret",
-            "load_from_db": False,
-        }
-    )
-    yielded = list(_iter_promotable_fields(flow_data))
-    assert len(yielded) == 1
-    assert yielded[0][1] == "cert_pem"  # field name is `cert_pem` per _flow_data
-
-
-def test_iter_promotable_fields_skips_secret_str_with_auto_promote_false():
-    flow_data = _flow_data(
-        {
-            "_input_type": "SecretStrInput",
-            "auto_promote": False,
-            "value": "sk-secret",
-        }
-    )
-    assert list(_iter_promotable_fields(flow_data)) == []
-
-
-def test_iter_promotable_fields_yields_text_file_secret_input_with_auto_promote_true():
+@pytest.mark.asyncio
+async def test_promote_legacy_marker_clears_field(patched_org_lookup):
+    """Dev-data hygiene: legacy underscore-delimited markers reset to empty."""
+    legacy = LEGACY_AUTOSECRET_PREFIX + f"{FLOW_ID}_{NODE_ID}_cert_pem"
     flow_data = _flow_data(
         {
             "_input_type": "TextFileSecretInput",
             "auto_promote": True,
-            "value": "-----BEGIN CERTIFICATE-----\nAAA\n-----END CERTIFICATE-----\n",
-        }
-    )
-    yielded = list(_iter_promotable_fields(flow_data))
-    assert len(yielded) == 1
-
-
-def test_iter_promotable_fields_ignores_missing_auto_promote_key():
-    """Legacy flows saved before the feature landed have no auto_promote key.
-    They must be treated as non-promotable."""
-    flow_data = _flow_data(
-        {
-            "_input_type": "SecretStrInput",
-            "value": "sk-legacy",
-        }
-    )
-    assert list(_iter_promotable_fields(flow_data)) == []
-
-
-@pytest.mark.asyncio
-async def test_promote_preserves_user_managed_variable_reference():
-    """If the field value matches an existing user-managed Variable name,
-    the field is preserved as a reference (not overwritten with an autosecret)."""
-    flow_data = _flow_data(
-        {
-            "_input_type": "SecretStrInput",
-            "auto_promote": True,
-            "value": "my_company_api_key",  # user-managed Variable name
+            "value": legacy,
             "load_from_db": True,
         }
     )
-    svc = AsyncMock()
-    svc.list_autosecret_names_for_flow = AsyncMock(return_value=[])
-    svc.has_user_managed_variable = AsyncMock(return_value=True)  # yes, it's user-managed
-    svc.create_variable = AsyncMock()
-    svc.update_variable_value = AsyncMock()
-    session = AsyncMock()
-
     out = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
         user_id=USER_ID,
-        variable_service=svc,
-        session=session,
+        secret_store=InMemorySecretStore(),
+        variable_service=AsyncMock(),
+        session=AsyncMock(),
     )
-
-    svc.has_user_managed_variable.assert_awaited_once()
-    svc.create_variable.assert_not_called()
-    svc.update_variable_value.assert_not_called()
-
     field = out["nodes"][0]["data"]["node"]["template"]["cert_pem"]
-    assert field["value"] == "my_company_api_key"
-    assert field["load_from_db"] is True
+    assert field["value"] == ""
+    assert field["load_from_db"] is False
 
 
 @pytest.mark.asyncio
-async def test_promote_promotes_when_value_does_not_match_any_variable():
-    """Typed plaintext with no matching user-managed Variable gets promoted."""
+async def test_promote_user_managed_variable_name_passes_through(patched_org_lookup):
     flow_data = _flow_data(
         {
             "_input_type": "SecretStrInput",
             "auto_promote": True,
-            "value": "sk-typed-plaintext-secret",
+            "value": "OPENAI_API_KEY",
+            "load_from_db": True,
+        },
+        field_name="api_key",
+    )
+
+    variable_service = AsyncMock()
+    variable_service.has_user_managed_variable = AsyncMock(return_value=True)
+
+    secret_store = InMemorySecretStore()
+    out = await promote_plaintext_secrets_to_variables(
+        flow_data=flow_data,
+        flow_id=FLOW_ID,
+        user_id=USER_ID,
+        secret_store=secret_store,
+        variable_service=variable_service,
+        session=AsyncMock(),
+    )
+    field = out["nodes"][0]["data"]["node"]["template"]["api_key"]
+    assert field["value"] == "OPENAI_API_KEY"
+    assert await secret_store.list(f"{ORG_ID}/flows/") == []
+
+
+@pytest.mark.asyncio
+async def test_promote_skips_when_org_missing():
+    """Defensive: missing flow row → no-op, don't crash the save."""
+    flow_data = _flow_data(
+        {
+            "_input_type": "SecretStrInput",
+            "auto_promote": True,
+            "value": "plaintext",
             "load_from_db": False,
         }
     )
-    svc = AsyncMock()
-    svc.list_autosecret_names_for_flow = AsyncMock(return_value=[])
-    svc.has_user_managed_variable = AsyncMock(return_value=False)
-    svc.create_variable = AsyncMock()
-    session = AsyncMock()
-
-    out = await promote_plaintext_secrets_to_variables(
-        flow_data=flow_data,
-        flow_id=FLOW_ID,
-        user_id=USER_ID,
-        variable_service=svc,
-        session=session,
-    )
-
-    svc.create_variable.assert_awaited_once()
+    with patch(
+        "langflow.services.variable.auto_secrets._get_org_id_for_flow",
+        return_value=None,
+    ):
+        out = await promote_plaintext_secrets_to_variables(
+            flow_data=flow_data,
+            flow_id=FLOW_ID,
+            user_id=USER_ID,
+            secret_store=InMemorySecretStore(),
+            variable_service=AsyncMock(),
+            session=AsyncMock(),
+        )
     field = out["nodes"][0]["data"]["node"]["template"]["cert_pem"]
-    assert field["value"].startswith(AUTOSECRET_PREFIX)
-
-
-@pytest.mark.asyncio
-async def test_promote_preserves_foreign_autosecret_prefix():
-    """Values starting with AUTOSECRET_PREFIX (even for a different flow)
-    are preserved as-is to avoid re-wrapping."""
-    foreign_autosecret = f"{AUTOSECRET_PREFIX}other-flow-id_OtherNode_cert_pem"
-    flow_data = _flow_data(
-        {
-            "_input_type": "SecretStrInput",
-            "auto_promote": True,
-            "value": foreign_autosecret,
-            "load_from_db": True,
-        }
-    )
-    svc = AsyncMock()
-    svc.list_autosecret_names_for_flow = AsyncMock(return_value=[])
-    svc.has_user_managed_variable = AsyncMock(return_value=False)
-    svc.create_variable = AsyncMock()
-    session = AsyncMock()
-
-    out = await promote_plaintext_secrets_to_variables(
-        flow_data=flow_data,
-        flow_id=FLOW_ID,
-        user_id=USER_ID,
-        variable_service=svc,
-        session=session,
-    )
-
-    svc.create_variable.assert_not_called()
-    svc.has_user_managed_variable.assert_not_called()  # short-circuited earlier
-    field = out["nodes"][0]["data"]["node"]["template"]["cert_pem"]
-    assert field["value"] == foreign_autosecret
+    assert field["value"] == "plaintext"

@@ -17,12 +17,13 @@ from sqlmodel import select
 from langflow.services.variable.constants import CREDENTIAL_TYPE
 
 if TYPE_CHECKING:
+    from lfx.services.secret_store.base import SecretStore
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from langflow.services.variable.service import VariableService
 
 
-AUTOSECRET_PREFIX = "__autosecret_"
+AUTOSECRET_PREFIX = "__autosecret|"
 
 
 def autosecret_flow_prefix(flow_id: UUID) -> str:
@@ -127,68 +128,61 @@ async def promote_plaintext_secrets_to_variables(
     flow_data: dict,
     flow_id: UUID,
     user_id: UUID,
+    secret_store: SecretStore,
     variable_service: VariableService,
     session: AsyncSession,
 ) -> dict:
-    """Upsert a hidden Variable for every promotable field whose value is
-    typed-in plaintext; rewrite the field to reference the Variable by name.
+    """Walk a flow's template, promote plaintext secrets into Vault, and
+    rewrite the field to reference the value via a stable marker.
 
-    Preserves values that are:
-    - already autosecret references (any flow_id), idempotent.
-    - the name of an existing user-managed Variable (picked, not typed).
-
-    Returns the (possibly-mutated) flow_data dict.
+    Branches:
+      1. Empty value, no Vault secret existing → clean save (clear the field).
+      2. Empty value, Vault secret exists → preserve marker (Issue 1 fix).
+      3. Already a current-format autosecret marker → passthrough.
+      3b. Legacy underscore-delimited marker → clear (dev-data hygiene).
+      4. User-picked user-managed Variable name → passthrough.
+      5. Typed-in plaintext → write Vault, point field at marker.
     """
-    existing_names = set(
-        await variable_service.list_autosecret_names_for_flow(
-            flow_id=flow_id,
-            user_id=user_id,
-            session=session,
-        )
-    )
+    org_id = await _get_org_id_for_flow(flow_id, session=session)
+    if org_id is None:
+        return flow_data
 
     for node_id, field_name, field in _iter_promotable_fields(flow_data):
-        expected_name = autosecret_name(flow_id, node_id, field_name)
+        marker = autosecret_marker(flow_id, node_id, field_name)
+        path = autosecret_vault_path(org_id, flow_id, node_id, field_name)
         value = field.get("value") or ""
 
-        # Empty plaintext: clear any stale reference so the save is clean.
-        # Orphaned autosecret Variables are garbage-collected by
-        # cleanup_orphaned_autosecrets, which runs separately.
+        # Branch 1 + 2: empty value
         if not value:
+            existing = await secret_store.get(path)
+            if existing and existing.get("value"):
+                # Issue 1 fix: user re-saved without retyping; preserve.
+                field["value"] = marker
+                field["load_from_db"] = True
+            else:
+                field["value"] = ""
+                field["load_from_db"] = False
+            continue
+
+        # Branch 3: current-format marker
+        if isinstance(value, str) and value.startswith(AUTOSECRET_PREFIX):
+            continue
+
+        # Branch 3b: legacy marker (dev-data hygiene; no prod data exists)
+        if isinstance(value, str) and value.startswith(LEGACY_AUTOSECRET_PREFIX):
             field["value"] = ""
             field["load_from_db"] = False
             continue
 
-        # Any autosecret reference (our flow_id's or a foreign one) is
-        # preserved. Foreign refs (e.g. copied from another flow on import)
-        # can't resolve at runtime, but the export blanker will zero them
-        # out on next export — we don't re-wrap them.
-        if isinstance(value, str) and value.startswith(AUTOSECRET_PREFIX):
-            continue
-
-        # User picked an existing user-managed Variable by name. Preserve.
+        # Branch 4: user-picked user-managed Variable name
         if await variable_service.has_user_managed_variable(
-            name=value, user_id=user_id, session=session
+            name=value, user_id=user_id, session=session,
         ):
             continue
 
-        # Typed-in plaintext: upsert the autosecret Variable in place.
-        if expected_name in existing_names:
-            await variable_service.update_variable_value(
-                name=expected_name,
-                value=value,
-                user_id=user_id,
-                session=session,
-            )
-        else:
-            await variable_service.create_variable(
-                name=expected_name,
-                value=value,
-                user_id=user_id,
-                type_=CREDENTIAL_TYPE,
-                session=session,
-            )
-        field["value"] = expected_name
+        # Branch 5: typed-in plaintext
+        await secret_store.put(path, {"value": value})
+        field["value"] = marker
         field["load_from_db"] = True
 
     return flow_data
