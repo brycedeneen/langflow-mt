@@ -9,6 +9,9 @@ from typing import Any, Literal
 class InputMetadata:
     name: str
     info: str | None
+    field_type: str | None = None
+    required: bool = False
+    advanced: bool = False
 
 
 @dataclass(frozen=True)
@@ -26,6 +29,15 @@ def _safe_str(value: Any) -> str:
     return value.strip() if isinstance(value, str) else ""
 
 
+def _input_field_type(raw: Any) -> str | None:
+    """Prefer an explicit ``field_type`` attribute; fall back to the Python class name."""
+    explicit = getattr(raw, "field_type", None)
+    if isinstance(explicit, str) and explicit.strip():
+        return explicit.strip()
+    cls = type(raw)
+    return cls.__name__ if cls is not object else None
+
+
 def extract_metadata(component_cls: type) -> ComponentMetadata:
     class_name = component_cls.__name__
     display_name = _safe_str(getattr(component_cls, "display_name", ""))
@@ -38,7 +50,15 @@ def extract_metadata(component_cls: type) -> ComponentMetadata:
         name = getattr(raw, "name", None) or ""
         info = getattr(raw, "info", None)
         if name:
-            inputs.append(InputMetadata(name=name, info=info if isinstance(info, str) else None))
+            inputs.append(
+                InputMetadata(
+                    name=name,
+                    info=info if isinstance(info, str) else None,
+                    field_type=_input_field_type(raw),
+                    required=bool(getattr(raw, "required", False)),
+                    advanced=bool(getattr(raw, "advanced", False)),
+                )
+            )
 
     outputs: list[str] = []
     for raw in getattr(component_cls, "outputs", []) or []:
