@@ -28,7 +28,7 @@ export function FilesPanel({ files, onRemoveFile }: FilesPanelProps) {
         <div className="flex flex-col gap-1">
           {files.map((file, index) => (
             <div
-              key={`${file.name}-${index}`}
+              key={file.name}
               className="group flex items-center justify-between rounded-md px-2 py-1.5 hover:bg-muted"
             >
               <div className="flex items-center gap-2 truncate">

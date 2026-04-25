@@ -106,7 +106,7 @@ export default function ToolsComponent({
           <div className="flex w-full flex-wrap gap-1 overflow-hidden py-1.5">
             {visibleActions.map((action, index) => (
               <Badge
-                key={index}
+                key={action.name}
                 variant="secondaryStatic"
                 size="sq"
                 className="truncate font-normal"

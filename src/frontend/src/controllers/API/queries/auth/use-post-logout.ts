@@ -15,7 +15,7 @@ export const useLogout: useMutationFunctionType<undefined, void> = (
   const { mutate, queryClient } = UseRequestProcessor();
   const logout = useAuthStore((state) => state.logout);
 
-  async function logoutUser(): Promise<any> {
+  async function logoutUser(): Promise<unknown> {
     const data = await validatedQueryFn(
       "api.auth.logout",
       z.unknown(),

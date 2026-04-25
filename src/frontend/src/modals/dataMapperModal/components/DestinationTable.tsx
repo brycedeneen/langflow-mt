@@ -224,7 +224,7 @@ export function DestinationTable(props: DestinationTableProps) {
 
             return (
               <tr
-                key={`${dest.name}-${idx}`}
+                key={dest.name}
                 style={{
                   borderLeft: pendingEntry
                     ? "3px solid #3b82f6"

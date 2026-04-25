@@ -398,7 +398,7 @@ export default function UsersPage() {
                   {!isPending && (
                     <TableBody className="border-b">
                       {filterUserList.map((user: UserInputType, index) => (
-                        <TableRow key={index}>
+                        <TableRow key={user.id}>
                           <TableCell className="truncate py-2 font-medium">
                             <ShadTooltip content={user.id}>
                               <span className="cursor-default">{user.id}</span>

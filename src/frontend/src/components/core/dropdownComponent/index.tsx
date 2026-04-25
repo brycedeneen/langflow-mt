@@ -453,7 +453,7 @@ export default function Dropdown({
         {filteredOptions?.length > 0 ? (
           filteredOptions?.map((option, index) => (
             <ShadTooltip
-              key={index}
+              key={option}
               delayDuration={700}
               styleClasses="whitespace-pre-wrap"
               content={formatTooltipContent(option, index)}

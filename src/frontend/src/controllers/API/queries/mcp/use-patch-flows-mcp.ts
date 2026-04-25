@@ -1,7 +1,7 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import { z } from "zod";
 import { validatedQueryFn } from "@/lib/validated-fetch";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import type {
   AuthSettingsType,
   ComposerUrlResponseType,
@@ -50,7 +50,7 @@ export const usePatchFlowsMCP: useMutationFunctionType<
 
   const mutation: UseMutationResult<
     PatchFlowMCPResponse,
-    any,
+    ApiError,
     PatchFlowMCPRequest
   > = mutate(["usePatchFlowsMCP", params.project_id], patchFlowMCP, {
     onSuccess: (data, variables, context, ...rest) => {

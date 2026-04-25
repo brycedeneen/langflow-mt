@@ -3,7 +3,7 @@ import type { ReactFlowJsonObject } from "@xyflow/react";
 import { validatedQueryFn } from "@/lib/validated-fetch";
 import { FlowRead } from "@/schemas/api/_generated";
 import { useFolderStore } from "@/stores/foldersStore";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -31,7 +31,7 @@ export const usePostAddFlow: useMutationFunctionType<
   const { mutate, queryClient } = UseRequestProcessor();
   const myCollectionId = useFolderStore((state) => state.myCollectionId);
 
-  const postAddFlowFn = async (payload: IPostAddFlow): Promise<any> => {
+  const postAddFlowFn = async (payload: IPostAddFlow): Promise<unknown> => {
     const parsed = await validatedQueryFn(
       "api.flows.create_flow_api_v1_flows__post",
       FlowRead,
@@ -57,7 +57,7 @@ export const usePostAddFlow: useMutationFunctionType<
     return parsed;
   };
 
-  const mutation: UseMutationResult<IPostAddFlow, any, IPostAddFlow> = mutate(
+  const mutation: UseMutationResult<IPostAddFlow, ApiError, IPostAddFlow> = mutate(
     ["usePostAddFlow"],
     postAddFlowFn,
     {
@@ -72,7 +72,10 @@ export const usePostAddFlow: useMutationFunctionType<
           });
 
           queryClient.refetchQueries({
-            queryKey: ["useGetFolder", response.folder_id ?? myCollectionId],
+            queryKey: [
+              "useGetFolder",
+              (response as { folder_id?: string }).folder_id ?? myCollectionId,
+            ],
           });
         }
       },

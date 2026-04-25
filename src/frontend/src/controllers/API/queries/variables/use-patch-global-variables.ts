@@ -1,7 +1,7 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import { validatedQueryFn } from "@/lib/validated-fetch";
 import { VariableReadSchema } from "@/schemas/app/internal/variables";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -38,7 +38,7 @@ export const usePatchGlobalVariables: useMutationFunctionType<
 
   const mutation: UseMutationResult<
     PatchGlobalVariablesParams,
-    any,
+    ApiError,
     PatchGlobalVariablesParams
   > = mutate(["usePatchGlobalVariables"], patchGlobalVariables, {
     onSettled: () => {

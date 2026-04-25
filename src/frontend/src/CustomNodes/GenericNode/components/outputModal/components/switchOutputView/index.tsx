@@ -95,7 +95,10 @@ const SwitchOutputView: React.FC<SwitchOutputViewProps> = ({
     return (
       <div className="space-y-4">
         {tools?.map((tool, index) => (
-          <div key={index} className="border rounded-lg p-4 bg-muted/20">
+          <div
+            key={tool?.name ?? index}
+            className="border rounded-lg p-4 bg-muted/20"
+          >
             <div
               data-testid="tool_name"
               className={

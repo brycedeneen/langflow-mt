@@ -388,3 +388,5 @@ export type TransactionLogsRow = {
   outputs: Record<string, unknown> | null;
   status: string;
 };
+
+export type { ApiError } from "./error";

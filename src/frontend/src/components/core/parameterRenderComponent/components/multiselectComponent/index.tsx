@@ -166,7 +166,7 @@ export default function MultiselectComponent({
       <CommandEmpty>No values found.</CommandEmpty>
       <CommandGroup>
         {filteredOptions.map((option, index) => (
-          <ShadTooltip key={index} delayDuration={700} content={option}>
+          <ShadTooltip key={option} delayDuration={700} content={option}>
             <div>
               <CommandItem
                 value={option}

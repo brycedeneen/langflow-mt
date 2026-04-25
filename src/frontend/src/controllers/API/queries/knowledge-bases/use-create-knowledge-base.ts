@@ -1,5 +1,5 @@
 import type { UseMutationResult } from "@tanstack/react-query";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -35,7 +35,7 @@ export const useCreateKnowledgeBase: useMutationFunctionType<
 
   const mutation: UseMutationResult<
     KnowledgeBaseInfo,
-    any,
+    ApiError,
     CreateKnowledgeBaseRequest
   > = mutate(["useCreateKnowledgeBase"], createKnowledgeBaseFn, {
     ...options,

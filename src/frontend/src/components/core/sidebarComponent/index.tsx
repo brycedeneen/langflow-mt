@@ -33,7 +33,7 @@ const SideBarButtonsComponent = ({ items }: SideBarButtonsComponentProps) => {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item, index) => (
-                <SidebarMenuItem key={index}>
+                <SidebarMenuItem key={item.title}>
                   <CustomLink to={item.href!} replace>
                     <SidebarMenuButton
                       size="md"

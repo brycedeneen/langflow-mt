@@ -1,7 +1,7 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import { z } from "zod";
 import { validatedQueryFn } from "@/lib/validated-fetch";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -57,7 +57,7 @@ export const usePatchInstallMCP: useMutationFunctionType<
 
   const mutation: UseMutationResult<
     PatchInstallMCPResponse,
-    any,
+    ApiError,
     PatchInstallMCPBody
   > = mutate(["usePatchInstallMCP", params.project_id], patchInstallMCP, {
     ...options,

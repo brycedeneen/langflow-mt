@@ -3,7 +3,7 @@ import { useGetFlowId } from "@/modals/IOModal/hooks/useGetFlowId";
 import useFlowStore from "@/stores/flowStore";
 import { validatedQueryFn } from "@/lib/validated-fetch";
 import { MessageRead } from "@/schemas/api/_generated";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import type { Message } from "@/types/messages";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -61,7 +61,7 @@ export const useUpdateMessage: useMutationFunctionType<
     }
   };
 
-  const mutation: UseMutationResult<Message, any, UpdateMessageParams> = mutate(
+  const mutation: UseMutationResult<Message, ApiError, UpdateMessageParams> = mutate(
     ["useUpdateMessages"],
     updateMessageApi,
     {

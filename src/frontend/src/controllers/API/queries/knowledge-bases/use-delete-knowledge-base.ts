@@ -1,5 +1,5 @@
 import type { UseMutationResult } from "@tanstack/react-query";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -17,19 +17,19 @@ export const useDeleteKnowledgeBase: useMutationFunctionType<
 
   const deleteKnowledgeBaseFn = async (
     params: DeleteKnowledgeBaseParams,
-  ): Promise<any> => {
+  ): Promise<unknown> => {
     const names = Array.isArray(params.kb_names)
       ? params.kb_names
       : [params.kb_names];
 
     // Use bulk endpoint for all deletes (works for single or multiple)
-    const response = await api.delete<any>(`${getURL("KNOWLEDGE_BASES")}/`, {
+    const response = await api.delete<unknown>(`${getURL("KNOWLEDGE_BASES")}/`, {
       data: { kb_names: names },
     });
     return response.data;
   };
 
-  const mutation: UseMutationResult<any, any, DeleteKnowledgeBaseParams> =
+  const mutation: UseMutationResult<unknown, ApiError, DeleteKnowledgeBaseParams> =
     mutate(["useDeleteKnowledgeBase"], deleteKnowledgeBaseFn, {
       onSettled: (data, error, variables, context, ...rest) => {
         queryClient.invalidateQueries({

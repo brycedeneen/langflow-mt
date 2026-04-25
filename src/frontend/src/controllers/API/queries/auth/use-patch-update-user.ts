@@ -1,7 +1,7 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import { validatedQueryFn } from "@/lib/validated-fetch";
 import { UserRead } from "@/schemas/api/_generated";
-import type { changeUser, useMutationFunctionType } from "@/types/api";
+import type { ApiError, changeUser, useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -17,7 +17,7 @@ export const useUpdateUser: useMutationFunctionType<
 > = (options?) => {
   const { mutate } = UseRequestProcessor();
 
-  async function updateUser({ user_id, user }: UpdateUserParams): Promise<any> {
+  async function updateUser({ user_id, user }: UpdateUserParams): Promise<unknown> {
     const data = await validatedQueryFn(
       "api.users.patch_user_api_v1_users__user_id__patch",
       UserRead,
@@ -27,7 +27,7 @@ export const useUpdateUser: useMutationFunctionType<
     return data;
   }
 
-  const mutation: UseMutationResult<UpdateUserParams, any, UpdateUserParams> =
+  const mutation: UseMutationResult<UpdateUserParams, ApiError, UpdateUserParams> =
     mutate(["useUpdateUser"], updateUser, options);
 
   return mutation;

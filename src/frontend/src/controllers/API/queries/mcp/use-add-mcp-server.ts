@@ -1,7 +1,7 @@
 import type { UseMutationResult } from "@tanstack/react-query";
 import { z } from "zod";
 import { validatedQueryFn } from "@/lib/validated-fetch";
-import type { useMutationFunctionType } from "@/types/api";
+import type { ApiError, useMutationFunctionType } from "@/types/api";
 import type { MCPServerType } from "@/types/mcp";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -63,7 +63,7 @@ export const useAddMCPServer: useMutationFunctionType<
     }
   }
 
-  const mutation: UseMutationResult<AddMCPServerResponse, any, MCPServerType> =
+  const mutation: UseMutationResult<AddMCPServerResponse, ApiError, MCPServerType> =
     mutate(["useAddMCPServer"], addMCPServer, {
       ...options,
       retry: 0,
