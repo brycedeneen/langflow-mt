@@ -27,17 +27,12 @@ AUTOSECRET_PREFIX = "__autosecret|"
 
 
 def autosecret_flow_prefix(flow_id: UUID) -> str:
-    """Name prefix shared by all auto-Variables for a given flow.
+    """Name prefix shared by all legacy auto-Variables for a given flow.
 
-    Single source of truth for both constructing a full auto-name (via
-    ``autosecret_name``) and querying by LIKE-prefix in the service layer.
+    Retained for the Variable-service code path that still scans Postgres for
+    pre-Vault rows; new writes use ``autosecret_vault_path``.
     """
     return f"{AUTOSECRET_PREFIX}{flow_id}_"
-
-
-def autosecret_name(flow_id: UUID, node_id: str, field_name: str) -> str:
-    """Deterministic name for a per-field hidden Variable."""
-    return f"{autosecret_flow_prefix(flow_id)}{node_id}_{field_name}"
 
 
 LEGACY_AUTOSECRET_PREFIX = "__autosecret_"
@@ -188,57 +183,74 @@ async def promote_plaintext_secrets_to_variables(
     return flow_data
 
 
+async def _list_autosecret_paths(secret_store: SecretStore, base: str) -> list[str]:
+    """Walk a Vault-style two-level prefix and return absolute paths.
+
+    Bridges the two SecretStore contracts in play:
+      * InMemorySecretStore.list(prefix) returns full absolute keys (test backend).
+      * VaultSecretStore.list(prefix) returns next-level relative entries with a
+        trailing ``/`` for sub-directories (KV v2 LIST semantics).
+
+    Returns absolute paths suitable for ``secret_store.delete``.
+    """
+    out: list[str] = []
+    for entry in await secret_store.list(base):
+        if entry.startswith(base):
+            # InMemory contract: list returned a full absolute key.
+            out.append(entry)
+        elif entry.endswith("/"):
+            # Vault contract: sub-directory entry; recurse one level.
+            out.extend(await _list_autosecret_paths(secret_store, base + entry))
+        else:
+            # Vault contract: leaf entry under this prefix.
+            out.append(base + entry)
+    return out
+
+
 async def cleanup_orphaned_autosecrets(
     *,
     flow_data: dict,
     flow_id: UUID,
     user_id: UUID,
-    variable_service: VariableService,
+    secret_store: SecretStore,
     session: AsyncSession,
 ) -> None:
-    """Delete auto-Variables whose (node_id, field_name) is no longer present
-    in the flow's current template.
+    """Delete Vault autosecrets whose (node_id, field_name) is no longer
+    present in the flow's current template."""
+    org_id = await _get_org_id_for_flow(flow_id, session=session)
+    if org_id is None:
+        return
 
-    Called after a save to garbage-collect Variables left behind by node or
-    field removals.
-    """
-    current_names = {
-        autosecret_name(flow_id, node_id, field_name)
-        for node_id, field_name, _ in _iter_promotable_fields(flow_data)
-    }
-    existing = await variable_service.list_autosecret_names_for_flow(
-        flow_id=flow_id,
-        user_id=user_id,
-        session=session,
-    )
-    for name in existing:
-        if name not in current_names:
-            await variable_service.delete_variable(
-                name=name,
-                user_id=user_id,
-                session=session,
-            )
+    base = f"{org_id}/flows/{flow_id}/autosecrets/"
+    existing: set[tuple[str, str]] = set()
+    for path in await _list_autosecret_paths(secret_store, base):
+        suffix = path[len(base):]
+        node_id, _, field_name = suffix.partition("/")
+        if not node_id or not field_name:
+            continue
+        existing.add((node_id, field_name))
+
+    current = {(node_id, field_name) for node_id, field_name, _ in _iter_promotable_fields(flow_data)}
+
+    for node_id, field_name in existing - current:
+        await secret_store.delete(f"{base}{node_id}/{field_name}")
 
 
 async def delete_autosecrets_for_flow(
     *,
     flow_id: UUID,
     user_id: UUID,
-    variable_service: VariableService,
+    secret_store: SecretStore,
     session: AsyncSession,
 ) -> None:
-    """Delete every auto-Variable owned by this flow. Call on flow delete."""
-    names = await variable_service.list_autosecret_names_for_flow(
-        flow_id=flow_id,
-        user_id=user_id,
-        session=session,
-    )
-    for name in names:
-        await variable_service.delete_variable(
-            name=name,
-            user_id=user_id,
-            session=session,
-        )
+    """Delete every Vault autosecret owned by this flow. Call on flow delete."""
+    org_id = await _get_org_id_for_flow(flow_id, session=session)
+    if org_id is None:
+        return
+
+    base = f"{org_id}/flows/{flow_id}/autosecrets/"
+    for path in await _list_autosecret_paths(secret_store, base):
+        await secret_store.delete(path)
 
 
 def blank_autosecrets_for_export(flow_data: dict) -> dict:
