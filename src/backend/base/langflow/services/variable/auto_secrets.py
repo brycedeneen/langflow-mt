@@ -37,6 +37,51 @@ def autosecret_name(flow_id: UUID, node_id: str, field_name: str) -> str:
     return f"{autosecret_flow_prefix(flow_id)}{node_id}_{field_name}"
 
 
+LEGACY_AUTOSECRET_PREFIX = "__autosecret_"
+AUTOSECRET_DELIM = "|"
+NEW_AUTOSECRET_PREFIX = "__autosecret" + AUTOSECRET_DELIM
+
+
+def autosecret_marker(flow_id: UUID, node_id: str, field_name: str) -> str:
+    """Build the marker stored in `field["value"]` for an autosecret-backed field."""
+    return AUTOSECRET_DELIM.join(
+        ["__autosecret", str(flow_id), node_id, field_name]
+    )
+
+
+def autosecret_vault_path(
+    org_id: UUID, flow_id: UUID, node_id: str, field_name: str
+) -> str:
+    """Vault KV v2 path for a per-field autosecret."""
+    return f"{org_id}/flows/{flow_id}/autosecrets/{node_id}/{field_name}"
+
+
+def parse_autosecret_marker(marker: str) -> tuple[UUID, str, str]:
+    """Inverse of autosecret_marker.
+
+    Raises ValueError on malformed input. Specifically rejects the legacy
+    underscore-delimited prefix; callers should treat that prefix separately
+    via LEGACY_AUTOSECRET_PREFIX.
+    """
+    if not isinstance(marker, str) or not marker.startswith("__autosecret" + AUTOSECRET_DELIM):
+        msg = f"not an autosecret marker: {marker!r}"
+        raise ValueError(msg)
+    parts = marker.split(AUTOSECRET_DELIM)
+    if len(parts) != 4:
+        msg = f"autosecret marker has wrong segment count: {marker!r}"
+        raise ValueError(msg)
+    _prefix, flow_id_str, node_id, field_name = parts
+    try:
+        flow_id = UUID(flow_id_str)
+    except ValueError as exc:
+        msg = f"autosecret marker has invalid flow_id: {flow_id_str!r}"
+        raise ValueError(msg) from exc
+    if not node_id or not field_name:
+        msg = f"autosecret marker has empty node_id or field_name: {marker!r}"
+        raise ValueError(msg)
+    return flow_id, node_id, field_name
+
+
 def _iter_promotable_fields(flow_data: dict) -> list[tuple[str, str, dict]]:
     """Yield (node_id, field_name, field_dict) for every field marked auto_promote=True.
 
