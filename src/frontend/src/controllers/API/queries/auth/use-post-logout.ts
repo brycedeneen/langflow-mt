@@ -1,7 +1,9 @@
+import { z } from "zod";
 import useAuthStore from "@/stores/authStore";
 import useFlowStore from "@/stores/flowStore";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import { useFolderStore } from "@/stores/foldersStore";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -14,8 +16,12 @@ export const useLogout: useMutationFunctionType<undefined, void> = (
   const logout = useAuthStore((state) => state.logout);
 
   async function logoutUser(): Promise<any> {
-    const res = await api.post(`${getURL("LOGOUT")}`);
-    return res.data;
+    const data = await validatedQueryFn(
+      "api.auth.logout",
+      z.unknown(),
+      async () => (await api.post<unknown>(`${getURL("LOGOUT")}`)).data,
+    )();
+    return data;
   }
 
   const cleanupLocalState = () => {

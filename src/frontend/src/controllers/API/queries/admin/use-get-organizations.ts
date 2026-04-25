@@ -1,8 +1,10 @@
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { OrgListResponse as OrgListResponseSchema } from "@/schemas/api/_generated";
 import type { useQueryFunctionType } from "@/types/api";
+import type { z } from "zod";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
-import type { OrgListResponse } from "./types";
 
 interface GetOrganizationsParams {
   q?: string;
@@ -12,24 +14,26 @@ interface GetOrganizationsParams {
 
 export const useGetOrganizations: useQueryFunctionType<
   GetOrganizationsParams,
-  OrgListResponse
+  z.infer<typeof OrgListResponseSchema>
 > = (params, options) => {
   const { query } = UseRequestProcessor();
 
-  const getOrganizationsFn = async (): Promise<OrgListResponse> => {
-    const baseUrl = getURL("ADMIN_ORGS");
-    const searchParams = new URLSearchParams();
-    if (params.q !== undefined) searchParams.set("q", params.q);
-    if (params.limit !== undefined)
-      searchParams.set("limit", String(params.limit));
-    if (params.offset !== undefined)
-      searchParams.set("offset", String(params.offset));
-    const qs = searchParams.toString();
-    const url = qs ? `${baseUrl}?${qs}` : baseUrl;
-
-    const { data } = await api.get<OrgListResponse>(url);
-    return data;
-  };
+  const getOrganizationsFn = validatedQueryFn(
+    "api.admin.list_organizations_api_v1_admin_organizations_get",
+    OrgListResponseSchema,
+    async () => {
+      const baseUrl = getURL("ADMIN_ORGS");
+      const searchParams = new URLSearchParams();
+      if (params.q !== undefined) searchParams.set("q", params.q);
+      if (params.limit !== undefined)
+        searchParams.set("limit", String(params.limit));
+      if (params.offset !== undefined)
+        searchParams.set("offset", String(params.offset));
+      const qs = searchParams.toString();
+      const url = qs ? `${baseUrl}?${qs}` : baseUrl;
+      return (await api.get<unknown>(url)).data;
+    },
+  );
 
   const queryResult = query(
     [

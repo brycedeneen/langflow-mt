@@ -1,3 +1,5 @@
+import { z } from "zod";
+import { validatedQueryFn } from "@/lib/validated-fetch";
 import type { useMutationFunctionType } from "@/types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
@@ -11,7 +13,16 @@ export const useMarkNotificationRead: useMutationFunctionType<
   const { mutate, queryClient } = UseRequestProcessor();
 
   const fn = async ({ id }: { id: string }): Promise<void> => {
-    await api.post(`${getURL("ADMIN_NOTIFICATIONS")}/${id}/read`);
+    await validatedQueryFn(
+      "api.admin.mark_read_api_v1_admin_notifications__notification_id__read_post",
+      z.unknown(),
+      async () =>
+        (
+          await api.post<unknown>(
+            `${getURL("ADMIN_NOTIFICATIONS")}/${id}/read`,
+          )
+        ).data,
+    )();
   };
 
   return mutate(["useMarkNotificationRead"], fn, {

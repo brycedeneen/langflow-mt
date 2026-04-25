@@ -1,4 +1,6 @@
 import { LANGFLOW_REFRESH_TOKEN } from "@/constants/constants";
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { TokenResponseSchema } from "@/schemas/app/internal/auth";
 import type { useMutationFunctionType } from "@/types/api";
 import { cookieManager } from "@/utils/cookie-manager";
 import { api } from "../../api";
@@ -19,10 +21,13 @@ export const useRefreshAccessToken: useMutationFunctionType<
   const { mutate } = UseRequestProcessor();
 
   async function refreshAccess(): Promise<IRefreshAccessToken> {
-    const res = await api.post<IRefreshAccessToken>(`${getURL("REFRESH")}`);
-    cookieManager.set(LANGFLOW_REFRESH_TOKEN, res.data.refresh_token);
-
-    return res.data;
+    const data = await validatedQueryFn(
+      "api.auth.refresh",
+      TokenResponseSchema,
+      async () => (await api.post<unknown>(`${getURL("REFRESH")}`)).data,
+    )();
+    cookieManager.set(LANGFLOW_REFRESH_TOKEN, data.refresh_token ?? "");
+    return data as IRefreshAccessToken;
   }
 
   const mutation = mutate(["useRefreshAccessToken"], refreshAccess, {

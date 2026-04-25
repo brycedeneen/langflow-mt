@@ -1,29 +1,17 @@
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import {
+  AuditLogListResponse as AuditLogListResponseSchema,
+  AuditLogRead,
+} from "@/schemas/api/_generated";
 import type { useQueryFunctionType } from "@/types/api";
+import type { z } from "zod";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
 
-export type AuditLogListItem = {
-  id: string;
-  occurred_at: string;
-  actor_user_id: string | null;
-  actor_email: string;
-  actor_is_super: boolean;
-  org_id: string | null;
-  target_type: string;
-  target_id: string;
-  action: string;
-  diff: Record<string, unknown>;
-  diff_hash: string;
-  request_metadata: Record<string, unknown>;
-};
-
-export type AuditLogListResponse = {
-  items: AuditLogListItem[];
-  total: number;
-  page: number;
-  size: number;
-};
+// Re-export for downstream compatibility
+export type AuditLogListItem = z.infer<typeof AuditLogRead>;
+export type AuditLogListResponse = z.infer<typeof AuditLogListResponseSchema>;
 
 export type AuditLogListParams = {
   org_id?: string;
@@ -37,16 +25,16 @@ export type AuditLogListParams = {
   size?: number;
 };
 
-export const useGetAuditLogs: useQueryFunctionType<AuditLogListParams, AuditLogListResponse> = (
-  params,
-  options,
-) => {
+export const useGetAuditLogs: useQueryFunctionType<
+  AuditLogListParams,
+  AuditLogListResponse
+> = (params, options) => {
   const { query } = UseRequestProcessor();
-  const fn = async (): Promise<AuditLogListResponse> => {
-    const { data } = await api.get<AuditLogListResponse>(getURL("ADMIN_AUDIT_LOGS"), {
-      params,
-    });
-    return data;
-  };
+  const fn = validatedQueryFn(
+    "api.admin.list_audit_logs_api_v1_admin_audit_logs_get",
+    AuditLogListResponseSchema,
+    async () =>
+      (await api.get<unknown>(getURL("ADMIN_AUDIT_LOGS"), { params })).data,
+  );
   return query(["admin", "audit-logs", params], fn, { ...options });
 };

@@ -1,8 +1,10 @@
+import { validatedQueryFn } from "@/lib/validated-fetch";
+import { MemberRow as MemberRowSchema } from "@/schemas/api/_generated";
 import type { useMutationFunctionType } from "@/types/api";
+import type { z } from "zod";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
-import type { MemberRow } from "./types";
 
 interface AddMemberParams {
   orgId: string;
@@ -13,7 +15,7 @@ interface AddMemberParams {
 export const useAddMember: useMutationFunctionType<
   undefined,
   AddMemberParams,
-  MemberRow
+  z.infer<typeof MemberRowSchema>
 > = (options?) => {
   const { mutate, queryClient } = UseRequestProcessor();
 
@@ -21,11 +23,18 @@ export const useAddMember: useMutationFunctionType<
     orgId,
     user_id,
     role,
-  }: AddMemberParams): Promise<MemberRow> => {
-    const { data } = await api.post<MemberRow>(
-      `${getURL("ADMIN_ORGS")}/${orgId}/members`,
-      { user_id, role },
-    );
+  }: AddMemberParams): Promise<z.infer<typeof MemberRowSchema>> => {
+    const data = await validatedQueryFn(
+      "api.admin.add_member_api_v1_admin_organizations__org_id__members_post",
+      MemberRowSchema,
+      async () =>
+        (
+          await api.post<unknown>(
+            `${getURL("ADMIN_ORGS")}/${orgId}/members`,
+            { user_id, role },
+          )
+        ).data,
+    )();
     return data;
   };
 
