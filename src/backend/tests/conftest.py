@@ -12,6 +12,7 @@ from uuid import UUID, uuid4
 import anyio
 import orjson
 import pytest
+import pytest_asyncio
 from asgi_lifespan import LifespanManager
 from blockbuster import blockbuster_ctx
 from dotenv import load_dotenv
@@ -905,3 +906,78 @@ async def redis_service():
     yield svc
     await svc.client.flushdb()
     await svc.stop()
+
+
+# ---------------------------------------------------------------------
+# Session-scoped client infrastructure (`shared_client`).
+#
+# The existing `client` fixture rebuilds the FastAPI app and DB per test.
+# `shared_client` runs ONE app for the whole pytest session and uses a
+# per-test SQL transaction with rollback to give each test a clean DB
+# view. Tests using `load_flows` or `noclient` keywords must keep using
+# `client` — those features need per-test app construction.
+# ---------------------------------------------------------------------
+
+
+@pytest.fixture(scope="session")
+def shared_app_db_path():
+    """One on-disk sqlite file shared across the whole pytest session."""
+    db_dir = tempfile.mkdtemp(prefix="langflow-shared-")
+    db_path = Path(db_dir) / "test.db"
+    yield db_path
+    with suppress(FileNotFoundError):
+        db_path.unlink()
+    with suppress(FileNotFoundError):
+        Path(db_dir).rmdir()
+
+
+@pytest.fixture(scope="session")
+def shared_app_env(shared_app_db_path):
+    """Set the env vars create_app() needs, once. Cleared at session end."""
+    import os
+
+    previous = {
+        k: os.environ.get(k)
+        for k in ("LANGFLOW_DATABASE_URL", "LANGFLOW_SUPERUSER", "LANGFLOW_SUPERUSER_PASSWORD")
+    }
+    os.environ["LANGFLOW_DATABASE_URL"] = f"sqlite:///{shared_app_db_path}"
+    os.environ["LANGFLOW_SUPERUSER"] = "admin"
+    os.environ["LANGFLOW_SUPERUSER_PASSWORD"] = "testpassword123"  # noqa: S105
+    yield
+    for k, v in previous.items():
+        if v is None:
+            os.environ.pop(k, None)
+        else:
+            os.environ[k] = v
+
+
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
+async def shared_app(shared_app_env):  # noqa: ARG001
+    """One FastAPI app + one lifespan startup for the whole session."""
+    from lfx.services.manager import get_service_manager
+
+    get_service_manager().factories.clear()
+    get_service_manager().services.clear()
+    app = create_app()
+    db_service = get_db_service()
+    db_service.reload_engine()
+    async with LifespanManager(app, startup_timeout=None, shutdown_timeout=60) as manager:
+        yield manager.app
+
+
+@pytest_asyncio.fixture(loop_scope="session")
+async def shared_client(shared_app) -> AsyncGenerator:
+    """Per-test AsyncClient against the shared app.
+
+    NOTE: this fixture does NOT yet provide per-test DB rollback — a
+    follow-up task wraps each test in a SAVEPOINT once we've confirmed
+    the no-rollback variant works end-to-end. In the meantime, tests
+    using shared_client must clean up their own DB writes (or only
+    test read-only paths).
+    """
+    async with AsyncClient(
+        transport=ASGITransport(app=shared_app),
+        base_url="http://testserver/",
+        http2=True,
+    ) as client:
+        yield client
