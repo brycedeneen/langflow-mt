@@ -6,19 +6,15 @@ import RolePicker from "../rolePicker";
 // Polyfill them here so the listbox can open under userEvent.click().
 beforeAll(() => {
   if (!Element.prototype.hasPointerCapture) {
-    // @ts-expect-error - jsdom shim
     Element.prototype.hasPointerCapture = () => false;
   }
   if (!Element.prototype.releasePointerCapture) {
-    // @ts-expect-error - jsdom shim
     Element.prototype.releasePointerCapture = () => {};
   }
   if (!Element.prototype.setPointerCapture) {
-    // @ts-expect-error - jsdom shim
     Element.prototype.setPointerCapture = () => {};
   }
   if (!Element.prototype.scrollIntoView) {
-    // @ts-expect-error - jsdom shim
     Element.prototype.scrollIntoView = () => {};
   }
 });

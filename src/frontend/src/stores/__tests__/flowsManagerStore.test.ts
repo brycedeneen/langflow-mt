@@ -42,7 +42,7 @@ describe("useFlowsManagerStore", () => {
     description: "Test Description 1",
     data: { nodes: [], edges: [] },
     is_component: false,
-  } as FlowType;
+  } as unknown as FlowType;
 
   const mockFlow2: FlowType = {
     id: "flow-2",
@@ -50,7 +50,7 @@ describe("useFlowsManagerStore", () => {
     description: "Test Description 2",
     data: { nodes: [], edges: [] },
     is_component: false,
-  } as FlowType;
+  } as unknown as FlowType;
 
   const mockFlows = [mockFlow1, mockFlow2];
 
@@ -294,8 +294,8 @@ describe("useFlowsManagerStore", () => {
     beforeEach(() => {
       // Setup flowStore mock with test data
       mockFlowStore.getState.mockReturnValue({
-        nodes: [{ id: "node-1", data: {} }],
-        edges: [{ id: "edge-1" }],
+        nodes: [{ id: "node-1", data: {} }] as never[],
+        edges: [{ id: "edge-1" }] as never[],
         resetFlow: mockResetFlow,
         setNodes: mockSetNodes,
         setEdges: mockSetEdges,
@@ -332,8 +332,8 @@ describe("useFlowsManagerStore", () => {
 
       // Setup initial state
       mockFlowStore.getState.mockReturnValue({
-        nodes: [{ id: "node-2", data: {} }],
-        edges: [{ id: "edge-2" }],
+        nodes: [{ id: "node-2", data: {} }] as never[],
+        edges: [{ id: "edge-2" }] as never[],
         resetFlow: mockResetFlow,
         setNodes: mockSetNodes,
         setEdges: mockSetEdges,
@@ -346,8 +346,8 @@ describe("useFlowsManagerStore", () => {
 
       // Change the flow store state
       mockFlowStore.getState.mockReturnValue({
-        nodes: [{ id: "node-3", data: {} }],
-        edges: [{ id: "edge-3" }],
+        nodes: [{ id: "node-3", data: {} }] as never[],
+        edges: [{ id: "edge-3" }] as never[],
         resetFlow: mockResetFlow,
         setNodes: mockSetNodes,
         setEdges: mockSetEdges,
@@ -365,8 +365,8 @@ describe("useFlowsManagerStore", () => {
       const { result } = renderHook(() => useFlowsManagerStore());
 
       mockFlowStore.getState.mockReturnValue({
-        nodes: [{ id: "node-1", data: {} }],
-        edges: [{ id: "edge-1" }],
+        nodes: [{ id: "node-1", data: {} }] as never[],
+        edges: [{ id: "edge-1" }] as never[],
         resetFlow: mockResetFlow,
         setNodes: mockSetNodes,
         setEdges: mockSetEdges,

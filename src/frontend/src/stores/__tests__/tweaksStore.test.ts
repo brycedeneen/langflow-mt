@@ -55,7 +55,7 @@ const mockNode: AllNodeType = {
       frozen: false,
     },
     type: "TestNode",
-  } as NodeDataType,
+  } as unknown as NodeDataType,
 };
 
 const mockNode2: AllNodeType = {
@@ -73,7 +73,7 @@ const mockNode2: AllNodeType = {
       frozen: false,
     },
     type: "AnotherNode",
-  } as NodeDataType,
+  } as unknown as NodeDataType,
 };
 
 const mockFrozenNode: AllNodeType = {
@@ -91,7 +91,7 @@ const mockFrozenNode: AllNodeType = {
       frozen: true,
     },
     type: "FrozenNode",
-  } as NodeDataType,
+  } as unknown as NodeDataType,
 };
 
 describe("useTweaksStore", () => {
@@ -377,7 +377,7 @@ describe("useTweaksStore", () => {
     });
 
     it("should skip nodes that are not genericNode type", () => {
-      const nonGenericNode = { ...mockNode, type: "customNode" };
+      const nonGenericNode = { ...mockNode, type: "customNode" } as unknown as AllNodeType;
       const { result } = renderHook(() => useTweaksStore());
 
       act(() => {
@@ -398,7 +398,7 @@ describe("useTweaksStore", () => {
           ...mockNode.data,
           node: { ...mockNode.data.node, template: undefined },
         },
-      };
+      } as unknown as AllNodeType;
       const { result } = renderHook(() => useTweaksStore());
 
       act(() => {
@@ -468,7 +468,7 @@ describe("useTweaksStore", () => {
                 },
               },
             },
-          } as NodeDataType,
+          } as unknown as NodeDataType,
         }));
       });
 
@@ -554,7 +554,7 @@ describe("useTweaksStore", () => {
         });
       }).toThrow();
 
-      JSON.parse.mockRestore();
+      (JSON.parse as jest.Mock).mockRestore();
     });
 
     it("should handle multiple node updates with same ID", () => {

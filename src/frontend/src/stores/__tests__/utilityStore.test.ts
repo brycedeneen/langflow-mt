@@ -182,8 +182,8 @@ describe("useUtilityStore", () => {
 
       act(() => {
         result.current.setSelectedItems("string-item");
-        result.current.setSelectedItems(123);
-        result.current.setSelectedItems({ id: "object-item" });
+        result.current.setSelectedItems(123 as any);
+        result.current.setSelectedItems({ id: "object-item" } as any);
       });
 
       expect(result.current.selectedItems).toEqual([
@@ -513,19 +513,19 @@ describe("useUtilityStore", () => {
       const { result } = renderHook(() => useUtilityStore());
 
       act(() => {
-        result.current.setEventDelivery(EventDeliveryType.WEBHOOK);
+        result.current.setEventDelivery(EventDeliveryType.STREAMING);
       });
 
-      expect(result.current.eventDelivery).toBe(EventDeliveryType.WEBHOOK);
+      expect(result.current.eventDelivery).toBe(EventDeliveryType.STREAMING);
     });
 
     it("should switch between event delivery types", () => {
       const { result } = renderHook(() => useUtilityStore());
 
       act(() => {
-        result.current.setEventDelivery(EventDeliveryType.WEBHOOK);
+        result.current.setEventDelivery(EventDeliveryType.STREAMING);
       });
-      expect(result.current.eventDelivery).toBe(EventDeliveryType.WEBHOOK);
+      expect(result.current.eventDelivery).toBe(EventDeliveryType.STREAMING);
 
       act(() => {
         result.current.setEventDelivery(EventDeliveryType.POLLING);
@@ -695,7 +695,7 @@ describe("useUtilityStore", () => {
       };
 
       act(() => {
-        result.current.setSelectedItems(complexObject);
+        result.current.setSelectedItems(complexObject as any);
       });
 
       expect(result.current.selectedItems).toEqual([complexObject]);

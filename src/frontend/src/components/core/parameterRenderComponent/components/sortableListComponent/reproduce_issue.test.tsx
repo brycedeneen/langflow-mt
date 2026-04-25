@@ -39,6 +39,7 @@ describe("SortableListComponent reproduction", () => {
       fileTypes: [],
       onDelete: jest.fn(),
       id: "test-id",
+      editNode: false,
       limit: 10,
     };
 

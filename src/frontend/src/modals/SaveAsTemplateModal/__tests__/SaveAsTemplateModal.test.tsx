@@ -1,4 +1,5 @@
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
+import "@testing-library/jest-dom/jest-globals";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import SaveAsTemplateModal from "../index";
@@ -155,7 +156,7 @@ describe("SaveAsTemplateModal — submit wiring", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: /save as template/i }));
     expect(mutateMock).toHaveBeenCalledTimes(1);
-    const [payload] = mutateMock.mock.calls[0];
+    const [payload] = mutateMock.mock.calls[0] as [any, ...unknown[]];
     expect(payload).toMatchObject({
       source_flow_id: "flow-abc",
       name: "My Template",
@@ -248,7 +249,7 @@ describe("SaveAsTemplateModal — submit wiring", () => {
     fireEvent.click(screen.getByRole("button", { name: /save as template/i }));
 
     expect(mutateMock).toHaveBeenCalledTimes(1);
-    const [payload] = mutateMock.mock.calls[0];
+    const [payload] = mutateMock.mock.calls[0] as [any, ...unknown[]];
     expect(payload.blanked_fields).toHaveLength(2);
     expect(payload.blanked_fields).toEqual(
       expect.arrayContaining([
@@ -273,7 +274,7 @@ describe("SaveAsTemplateModal — submit wiring", () => {
     fireEvent.click(bearer); // re-check
     fireEvent.click(screen.getByRole("button", { name: /save as template/i }));
 
-    const [payload] = mutateMock.mock.calls[0];
+    const [payload] = mutateMock.mock.calls[0] as [any, ...unknown[]];
     expect(payload.blanked_fields).toHaveLength(3);
     expect(payload.blanked_fields).toContainEqual({
       node_id: "Node-1",
@@ -310,7 +311,7 @@ describe("SaveAsTemplateModal — submit wiring", () => {
       target: { value: "T" },
     });
     fireEvent.click(screen.getByRole("button", { name: /save as template/i }));
-    const [payload] = mutateMock.mock.calls[0];
+    const [payload] = mutateMock.mock.calls[0] as [any, ...unknown[]];
     expect(payload.blanked_fields).toHaveLength(3);
   });
 
@@ -393,7 +394,7 @@ describe("SaveAsTemplateModal — submit wiring", () => {
     fireEvent.click(screen.getByRole("button", { name: /^overwrite$/i }));
 
     expect(updateMock).toHaveBeenCalledTimes(1);
-    const [vars] = updateMock.mock.calls[0];
+    const [vars] = updateMock.mock.calls[0] as [any, ...unknown[]];
     expect(vars.templateId).toBe("T-1");
     expect(vars.body).toMatchObject({
       source_flow_id: "flow-abc",

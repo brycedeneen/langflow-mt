@@ -26,6 +26,7 @@ export const createTestWrapper = () => {
  */
 export const mockKnowledgeBase: KnowledgeBaseInfo = {
   id: "kb-1",
+  dir_name: "test-knowledge-base",
   name: "Test Knowledge Base",
   embedding_provider: "OpenAI",
   embedding_model: "text-embedding-ada-002",
@@ -40,6 +41,7 @@ export const mockKnowledgeBaseList: KnowledgeBaseInfo[] = [
   mockKnowledgeBase,
   {
     id: "kb-2",
+    dir_name: "second-knowledge-base",
     name: "Second Knowledge Base",
     embedding_provider: "Anthropic",
     embedding_model: "claude-embedding",
@@ -51,6 +53,7 @@ export const mockKnowledgeBaseList: KnowledgeBaseInfo[] = [
   },
   {
     id: "kb-3",
+    dir_name: "third-knowledge-base",
     name: "Third Knowledge Base",
     embedding_model: undefined, // Test case for missing embedding model
     size: 512000,

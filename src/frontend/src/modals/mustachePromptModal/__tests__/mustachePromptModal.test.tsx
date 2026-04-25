@@ -187,8 +187,18 @@ describe("MustachePromptModal", () => {
     value: "",
     setValue: jest.fn(),
     nodeClass: {
+      description: "",
+      display_name: "",
+      documentation: "",
       template: {
-        template: { value: "" },
+        template: {
+          value: "",
+          type: "str",
+          required: false,
+          list: false,
+          show: true,
+          readonly: false,
+        },
       },
     },
     setNodeClass: jest.fn(),

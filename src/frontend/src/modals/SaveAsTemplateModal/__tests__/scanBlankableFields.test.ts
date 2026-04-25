@@ -30,7 +30,7 @@ describe("scanBlankableFields", () => {
     });
     const result = scanBlankableFields(flow);
     expect(result).toHaveLength(1);
-    expect(result[0]).toEqual<BlankableFieldInfo>({
+    expect(result[0]).toEqual({
       node_id: "Node-abc",
       field_name: "api_key",
       component_display_name: "Test Component",

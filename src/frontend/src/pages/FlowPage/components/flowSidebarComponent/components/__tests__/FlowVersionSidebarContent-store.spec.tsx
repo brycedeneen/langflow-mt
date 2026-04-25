@@ -94,7 +94,7 @@ const setStateMock = jest.fn((partial: any) => {
 jest.mock("@/stores/flowStore", () => {
   const store: any = (selector: any) => selector(storeState);
   store.getState = () => storeState;
-  store.setState = (...args: any[]) => setStateMock(...args);
+  store.setState = (...args: any[]) => (setStateMock as (...a: any[]) => void)(...args);
   store.subscribe = jest.fn((cb: any) => {
     storeSubscribers.add(cb);
     return () => storeSubscribers.delete(cb);
@@ -316,7 +316,7 @@ describe("FlowVersionSidebarContent store behavior", () => {
     const entryRow = screen.getByText("v1").closest("[class*=cursor-pointer]");
     if (entryRow) {
       act(() => {
-        entryRow.click();
+        (entryRow as HTMLElement).click();
       });
     }
 
@@ -352,7 +352,7 @@ describe("FlowVersionSidebarContent store behavior", () => {
     const entryRow = screen.getByText("v1").closest("[class*=cursor-pointer]");
     if (entryRow) {
       act(() => {
-        entryRow.click();
+        (entryRow as HTMLElement).click();
       });
     }
 
@@ -387,7 +387,7 @@ describe("FlowVersionSidebarContent store behavior", () => {
     const entryRow = screen.getByText("v1").closest("[class*=cursor-pointer]");
     if (entryRow) {
       act(() => {
-        entryRow.click();
+        (entryRow as HTMLElement).click();
       });
     }
 
@@ -409,7 +409,7 @@ describe("FlowVersionSidebarContent store behavior", () => {
     const entryRow = screen.getByText("v1").closest("[class*=cursor-pointer]");
     if (entryRow) {
       act(() => {
-        entryRow.click();
+        (entryRow as HTMLElement).click();
       });
     }
 
@@ -422,7 +422,7 @@ describe("FlowVersionSidebarContent store behavior", () => {
       .closest("[class*=cursor-pointer]");
     if (draftRow) {
       act(() => {
-        draftRow.click();
+        (draftRow as HTMLElement).click();
       });
     }
 

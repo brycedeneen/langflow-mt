@@ -300,7 +300,7 @@ describe("useFlowStore", () => {
   describe("inputs and outputs management", () => {
     it("should set inputs", () => {
       const { result } = renderHook(() => useFlowStore());
-      const mockInputs = [{ name: "input1", type: "text" }];
+      const mockInputs = [{ id: "input1", displayName: "input1", type: "text" }];
 
       act(() => {
         result.current.setInputs(mockInputs);
@@ -311,7 +311,7 @@ describe("useFlowStore", () => {
 
     it("should set outputs", () => {
       const { result } = renderHook(() => useFlowStore());
-      const mockOutputs = [{ name: "output1", type: "text" }];
+      const mockOutputs = [{ id: "output1", displayName: "output1", type: "text" }];
 
       act(() => {
         result.current.setOutputs(mockOutputs);
@@ -340,7 +340,7 @@ describe("useFlowStore", () => {
   describe("flow pool management", () => {
     it("should set flow pool", () => {
       const { result } = renderHook(() => useFlowStore());
-      const mockFlowPool = { flow1: { id: "flow1", data: {} } };
+      const mockFlowPool = { flow1: { id: "flow1", data: {} } } as any;
 
       act(() => {
         result.current.setFlowPool(mockFlowPool);
@@ -365,7 +365,7 @@ describe("useFlowStore", () => {
       const mockAbort = jest.fn();
       act(() => {
         useFlowStore.setState({
-          buildController: { abort: mockAbort },
+          buildController: { abort: mockAbort, signal: {} as AbortSignal },
           updateEdgesRunningByNodes: jest.fn(),
           revertBuiltStatusFromBuilding: jest.fn(),
           nodes: [mockNode],
@@ -412,7 +412,7 @@ describe("useFlowStore", () => {
 
       act(() => {
         useFlowStore.setState({
-          reactFlowInstance: { fitView: mockFitView },
+          reactFlowInstance: { fitView: mockFitView } as any,
           nodes: [mockNode],
         });
       });
@@ -465,8 +465,8 @@ describe("useFlowStore", () => {
 
       // Set up inputs/outputs
       act(() => {
-        result.current.setInputs([{ name: "input1", type: "text" }]);
-        result.current.setOutputs([{ name: "output1", type: "text" }]);
+        result.current.setInputs([{ id: "input1", displayName: "input1", type: "text" }]);
+        result.current.setOutputs([{ id: "output1", displayName: "output1", type: "text" }]);
         result.current.setHasIO(true);
       });
 
@@ -550,9 +550,9 @@ describe("useFlowStore", () => {
         result.current.setPlaygroundPage(true);
         result.current.setPositionDictionary({ 10: 20, 30: 40 });
         result.current.setComponentsToUpdate([]);
-        result.current.setInputs([{ name: "concurrent-input", type: "text" }]);
+        result.current.setInputs([{ id: "concurrent-input", displayName: "concurrent-input", type: "text" }]);
         result.current.setOutputs([
-          { name: "concurrent-output", type: "text" },
+          { id: "concurrent-output", displayName: "concurrent-output", type: "text" },
         ]);
         result.current.setHasIO(true);
       });
@@ -612,7 +612,7 @@ describe("useFlowStore", () => {
             createEdge("e2", "n2"),
             createEdge("e3", "n3"),
           ],
-          stopNodeId: null,
+          stopNodeId: undefined,
         });
       });
 
@@ -671,7 +671,7 @@ describe("useFlowStore", () => {
       const originalEdge = createEdge("e1", "n1");
 
       act(() => {
-        useFlowStore.setState({ edges: [originalEdge], stopNodeId: null });
+        useFlowStore.setState({ edges: [originalEdge], stopNodeId: undefined });
       });
 
       const edgeBefore = result.current.edges[0];
