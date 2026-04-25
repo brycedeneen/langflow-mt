@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 import httpx
 
+from lfx.custom.custom_component.changelog import ChangelogEntry
 from lfx.custom.custom_component.component import Component
 from lfx.io import (
     DataInput,
@@ -45,6 +46,23 @@ class ADPAPIRequestComponent(Component):
     description = "Call ADP REST APIs using an ADPConnection. Authenticated with mTLS + Bearer token."
     icon = "Globe"
     name = "ADPAPIRequest"
+    version: int = 1
+    changelog: ClassVar[list[ChangelogEntry]] = [
+        ChangelogEntry(
+            version=1,
+            changes=(
+                "Initial release. Calls ADP REST APIs using an ADPConnection from the "
+                "ADP Auth component:\n"
+                "- mTLS + Bearer-token requests with automatic 401 token refresh.\n"
+                "- Endpoint catalog (Workers, Worker Demographics, Pay Statements, "
+                "Time Cards, Jobs, Meta) plus an 'Other (custom path)' escape hatch.\n"
+                "- TableInput-driven JSON request body for non-GET methods.\n"
+                "- Result Mode toggle (Top 20 single page / All auto-paginated).\n"
+                "- SSRF allowlist via shared `validate_adp_url` so requests can only "
+                "target approved ADP hosts."
+            ),
+        ),
+    ]
 
     inputs = [
         HandleInput(

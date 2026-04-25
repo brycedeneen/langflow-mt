@@ -130,6 +130,11 @@ def worker_ctx(engine_and_factory, redis_service, mock_storage):
     settings.queue_webhooks = "webhooks"
     settings.run_retention_hours = 24
     settings.redis_url = redis_service.url
+    settings.webhook_allow_http = False
+    # Tests use respx to mock the HTTP layer with non-resolvable hosts (e.g.
+    # https://hook.test/endpoint). Skip the SSRF guard's host-resolution step
+    # so the mocked URL is never DNS-resolved before respx intercepts.
+    settings.webhook_skip_url_validation = True
 
     async def deterministic_runner(flow, triggered_by, inputs, actor_id):
         await asyncio.sleep(0.05)

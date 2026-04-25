@@ -3,16 +3,12 @@ import json
 from typing import Any
 
 from langchain_classic.agents import Tool
-from langchain_core.tools import StructuredTool
-from pydantic.v1 import Field, create_model
-from pydantic.v1.fields import Undefined
 from typing_extensions import override
 
 from lfx.base.langchain_utilities.model import LCToolComponent
 from lfx.inputs.inputs import BoolInput, DropdownInput, FieldTypes, HandleInput, MessageTextInput, MultilineInput
 from lfx.io import Output
 from lfx.log.logger import logger
-from lfx.schema.data import Data
 from lfx.schema.dotdict import dotdict
 
 
@@ -30,14 +26,23 @@ class PythonCodeStructuredTool(LCToolComponent):
         "_classes",
         "_functions",
     ]
-    display_name = "Python Code Structured"
-    description = "structuredtool dataclass code to tool"
+    display_name = "Python Code Structured (Deactivated)"
+    description = (
+        "Deactivated: this component has been disabled because it executes user-provided "
+        "Python code via exec(), which is unsafe. Use the Python REPL component instead."
+    )
     documentation = "https://python.langchain.com/docs/modules/tools/custom_tools/#structuredtool-dataclass"
     name = "PythonCodeStructuredTool"
     icon = "Python"
     field_order = ["name", "description", "tool_code", "return_direct", "tool_function"]
     legacy: bool = True
     replacement = ["processing.PythonREPLComponent"]
+
+    _DEACTIVATED_MESSAGE = (
+        "PythonCodeStructuredTool has been deactivated because it executes user-provided "
+        "code via exec(). Use the Python REPL component "
+        "(processing.PythonREPLComponent) instead."
+    )
 
     inputs = [
         MultilineInput(
@@ -138,89 +143,13 @@ class PythonCodeStructuredTool(LCToolComponent):
         return build_config
 
     async def build_tool(self) -> Tool:
-        local_namespace = {}  # type: ignore[var-annotated]
-        modules = self._find_imports(self.tool_code)
-        import_code = ""
-        for module in modules["imports"]:
-            import_code += f"global {module}\nimport {module}\n"
-        for from_module in modules["from_imports"]:
-            for alias in from_module.names:
-                import_code += f"global {alias.name}\n"
-            import_code += (
-                f"from {from_module.module} import {', '.join([alias.name for alias in from_module.names])}\n"
-            )
-        exec(import_code, globals())
-        exec(self.tool_code, globals(), local_namespace)
-
-        class PythonCodeToolFunc:
-            params: dict = {}
-
-            def run(**kwargs):
-                for key, arg in kwargs.items():
-                    if key not in PythonCodeToolFunc.params:
-                        PythonCodeToolFunc.params[key] = arg
-                return local_namespace[self.tool_function](**PythonCodeToolFunc.params)
-
-        globals_ = globals()
-        local = {}
-        local[self.tool_function] = PythonCodeToolFunc
-        globals_.update(local)
-
-        if isinstance(self.global_variables, list):
-            for data in self.global_variables:
-                if isinstance(data, Data):
-                    globals_.update(data.data)
-        elif isinstance(self.global_variables, dict):
-            globals_.update(self.global_variables)
-
-        classes = json.loads(self._attributes["_classes"])
-        for class_dict in classes:
-            exec("\n".join(class_dict["code"]), globals_)
-
-        named_functions = json.loads(self._attributes["_functions"])
-        schema_fields = {}
-
-        for attr in self._attributes:
-            if attr in self.DEFAULT_KEYS:
-                continue
-
-            func_name = attr.split("|")[0]
-            field_name = attr.split("|")[1]
-            func_arg = self._find_arg(named_functions, func_name, field_name)
-            if func_arg is None:
-                msg = f"Failed to find arg: {field_name}"
-                raise ValueError(msg)
-
-            field_annotation = func_arg["annotation"]
-            field_description = self._get_value(self._attributes[attr], str)
-
-            if field_annotation:
-                exec(f"temp_annotation_type = {field_annotation}", globals_)
-                schema_annotation = globals_["temp_annotation_type"]
-            else:
-                schema_annotation = Any
-            schema_fields[field_name] = (
-                schema_annotation,
-                Field(
-                    default=func_arg.get("default", Undefined),
-                    description=field_description,
-                ),
-            )
-
-        if "temp_annotation_type" in globals_:
-            globals_.pop("temp_annotation_type")
-
-        python_code_tool_schema = None
-        if schema_fields:
-            python_code_tool_schema = create_model("PythonCodeToolSchema", **schema_fields)
-
-        return StructuredTool.from_function(
-            func=local[self.tool_function].run,
-            args_schema=python_code_tool_schema,
-            name=self.tool_name,
-            description=self.tool_description,
-            return_direct=self.return_direct,
-        )
+        # Hard gate — this component executes user-supplied Python via exec()
+        # and is replaced by PythonREPLComponent. Refuse to run so flows that
+        # still reference it surface a clear migration error instead of
+        # silently executing arbitrary code. The original implementation
+        # (4x exec() of self.tool_code, dynamic class/function definition,
+        # etc.) is preserved in git history.
+        raise RuntimeError(self._DEACTIVATED_MESSAGE)
 
     async def update_frontend_node(self, new_frontend_node: dict, current_frontend_node: dict):
         """This function is called after the code validation is done."""

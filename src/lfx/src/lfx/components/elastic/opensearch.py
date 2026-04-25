@@ -241,11 +241,12 @@ class OpenSearchVectorStoreComponent(LCVectorStoreComponent):
         BoolInput(
             name="verify_certs",
             display_name="Verify SSL Certificates",
-            value=False,
+            value=True,
             advanced=True,
             info=(
-                "Verify SSL certificates when connecting. "
-                "Disable for self-signed certificates in development environments."
+                "Verify SSL certificates when connecting. Leave enabled for production. "
+                "Only disable for self-signed certificates in local development environments; "
+                "disabling is not recommended for production as it allows man-in-the-middle attacks."
             ),
         ),
         IntInput(
