@@ -26,7 +26,16 @@ class InMemorySecretStore(SecretStore):
         self._store.pop(path, None)
 
     async def list(self, prefix: str) -> list[str]:
-        return [k for k in self._store if k.startswith(prefix)]
+        seen: set[str] = set()
+        for key in self._store:
+            if not key.startswith(prefix):
+                continue
+            rest = key[len(prefix):]
+            if not rest:
+                continue
+            head, sep, _ = rest.partition("/")
+            seen.add(head + ("/" if sep else ""))
+        return sorted(seen)
 
 
 _instance: SecretStore | None = None
