@@ -174,5 +174,26 @@ class CombineRecordsComponent(Component):
         return out
 
     def _merge_by_key(self, left: list[dict], right: list[dict]) -> list[dict]:
-        msg = "Merge by key not implemented yet."
-        raise NotImplementedError(msg)
+        keys_str = (self.join_keys or "").strip()
+        keys = [k.strip() for k in keys_str.split(",") if k.strip()]
+        if not keys:
+            msg = "CombineRecords: 'Merge by key' requires at least one join_keys value."
+            raise ValueError(msg)
+
+        join_type = self.join_type or "inner"
+        if join_type not in ("inner", "left", "right", "outer"):
+            msg = f"CombineRecords: unknown join_type '{join_type}'."
+            raise ValueError(msg)
+
+        left_df = pd.DataFrame(left) if left else pd.DataFrame(columns=keys)
+        right_df = pd.DataFrame(right) if right else pd.DataFrame(columns=keys)
+
+        merged = left_df.merge(
+            right_df,
+            on=keys,
+            how=join_type,
+            suffixes=("_left", "_right"),
+        )
+        # Replace pandas NaN with None for cleaner JSON-ish records.
+        merged = merged.where(pd.notna(merged), None)
+        return merged.to_dict(orient="records")

@@ -173,3 +173,107 @@ async def test_empty_both_returns_empty():
     cmp = _new_combine(_data_list([]), _data_list([]), mode="Append")
     result = await cmp.build_combined()
     assert result == [] or (isinstance(result, list) and len(result) == 0)
+
+
+@pytest.mark.asyncio
+async def test_merge_by_key_inner_join():
+    left = _data_list([
+        {"id": 1, "name": "Alice"},
+        {"id": 2, "name": "Bob"},
+        {"id": 3, "name": "Charlie"},
+    ])
+    right = _data_list([
+        {"id": 1, "country": "US"},
+        {"id": 2, "country": "UK"},
+        {"id": 4, "country": "CA"},
+    ])
+    cmp = _new_combine(left, right, mode="Merge by key", join_keys="id", join_type="inner")
+    result = await cmp.build_combined()
+    rows = [d.data for d in result]
+    assert sorted(r["id"] for r in rows) == [1, 2]
+    by_id = {r["id"]: r for r in rows}
+    assert by_id[1]["name"] == "Alice" and by_id[1]["country"] == "US"
+    assert by_id[2]["name"] == "Bob" and by_id[2]["country"] == "UK"
+
+
+@pytest.mark.asyncio
+async def test_merge_by_key_left_join():
+    left = _data_list([{"id": 1, "n": "A"}, {"id": 2, "n": "B"}])
+    right = _data_list([{"id": 1, "c": "US"}])
+    cmp = _new_combine(left, right, mode="Merge by key", join_keys="id", join_type="left")
+    result = await cmp.build_combined()
+    rows = sorted([d.data for d in result], key=lambda r: r["id"])
+    assert rows[0]["id"] == 1 and rows[0]["c"] == "US"
+    assert rows[1]["id"] == 2 and (rows[1].get("c") is None or pd.isna(rows[1]["c"]))
+
+
+@pytest.mark.asyncio
+async def test_merge_by_key_right_join():
+    left = _data_list([{"id": 1, "n": "A"}])
+    right = _data_list([{"id": 1, "c": "US"}, {"id": 2, "c": "UK"}])
+    cmp = _new_combine(left, right, mode="Merge by key", join_keys="id", join_type="right")
+    result = await cmp.build_combined()
+    rows = sorted([d.data for d in result], key=lambda r: r["id"])
+    assert len(rows) == 2
+    assert rows[1]["id"] == 2
+
+
+@pytest.mark.asyncio
+async def test_merge_by_key_outer_join():
+    left = _data_list([{"id": 1, "n": "A"}])
+    right = _data_list([{"id": 2, "c": "UK"}])
+    cmp = _new_combine(left, right, mode="Merge by key", join_keys="id", join_type="outer")
+    result = await cmp.build_combined()
+    assert len(result) == 2
+
+
+@pytest.mark.asyncio
+async def test_merge_by_key_multi_key():
+    left = _data_list([
+        {"a": 1, "b": "x", "n": "L1"},
+        {"a": 1, "b": "y", "n": "L2"},
+    ])
+    right = _data_list([
+        {"a": 1, "b": "x", "c": "R1"},
+    ])
+    cmp = _new_combine(left, right, mode="Merge by key", join_keys="a, b", join_type="inner")
+    result = await cmp.build_combined()
+    rows = [d.data for d in result]
+    assert len(rows) == 1
+    assert rows[0]["n"] == "L1" and rows[0]["c"] == "R1"
+
+
+@pytest.mark.asyncio
+async def test_merge_by_key_dataframe():
+    left = _df([{"id": 1, "n": "A"}, {"id": 2, "n": "B"}])
+    right = _df([{"id": 1, "c": "US"}, {"id": 2, "c": "UK"}])
+    cmp = _new_combine(left, right, mode="Merge by key", join_keys="id", join_type="inner")
+    result = await cmp.build_combined()
+    assert isinstance(result, DataFrame)
+    rows = sorted(result.to_dict(orient="records"), key=lambda r: r["id"])
+    assert rows[0]["n"] == "A" and rows[0]["c"] == "US"
+
+
+@pytest.mark.asyncio
+async def test_merge_by_key_validation_missing_join_keys_raises():
+    cmp = _new_combine(
+        _data_list([{"id": 1}]),
+        _data_list([{"id": 1}]),
+        mode="Merge by key",
+        join_keys="",
+    )
+    with pytest.raises(ValueError, match="join_keys"):
+        await cmp.build_combined()
+
+
+@pytest.mark.asyncio
+async def test_merge_by_key_column_conflict_suffixes():
+    """When both sides have a non-key column with the same name, pandas
+    suffixes them with _left / _right (we use those suffixes explicitly)."""
+    left = _data_list([{"id": 1, "name": "L"}])
+    right = _data_list([{"id": 1, "name": "R"}])
+    cmp = _new_combine(left, right, mode="Merge by key", join_keys="id", join_type="inner")
+    result = await cmp.build_combined()
+    row = result[0].data
+    assert row["name_left"] == "L"
+    assert row["name_right"] == "R"
