@@ -419,28 +419,6 @@ class DatabaseVariableService(VariableService, Service):
         await session.refresh(variable)
         return variable
 
-    async def list_autosecret_names_for_flow(
-        self,
-        *,
-        flow_id: UUID,
-        user_id: UUID,
-        session: AsyncSession,
-    ) -> list[str]:
-        """Return all auto-Variable names that belong to a given flow+user.
-
-        Used by auto_secrets module for promote / cleanup flows. Bypasses the
-        standard list filter that hides these from users.
-        """
-        from langflow.services.variable.auto_secrets import autosecret_flow_prefix
-
-        prefix = autosecret_flow_prefix(flow_id)
-        stmt = select(Variable.name).where(
-            Variable.user_id == user_id,
-            Variable.name.like(f"{prefix}%"),
-        )
-        result = await session.exec(stmt)
-        return list(result.all())
-
     async def has_user_managed_variable(
         self,
         *,
