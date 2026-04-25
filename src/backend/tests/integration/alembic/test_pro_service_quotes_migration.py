@@ -77,6 +77,44 @@ def test_pro_service_quotes_migration_round_trip():
             an_cols = {c["name"] for c in insp.get_columns("admin_notification")}
             assert "audience_user_id" in an_cols
 
+            # Verify pro_service_quote indexes (composite ordering matters)
+            quote_indexes = {
+                idx["name"]: idx["column_names"]
+                for idx in insp.get_indexes("pro_service_quote")
+            }
+            assert quote_indexes["ix_pro_service_quote_org_status_created"] == [
+                "org_id",
+                "status",
+                "created_at",
+            ]
+            assert quote_indexes["ix_pro_service_quote_status_created"] == [
+                "status",
+                "created_at",
+            ]
+            assert quote_indexes["ix_pro_service_quote_flow_id"] == ["flow_id"]
+
+            # Verify the new admin_notification index
+            an_indexes = {
+                idx["name"]: idx["column_names"]
+                for idx in insp.get_indexes("admin_notification")
+            }
+            assert an_indexes["ix_admin_notification_user_read_created"] == [
+                "audience_user_id",
+                "read_at",
+                "created_at",
+            ]
+
+            # Verify audience_user_id FK uses SET NULL (not CASCADE).
+            # This is the bug-fix invariant: notifications must survive
+            # deletion of the targeted user.
+            an_fks = insp.get_foreign_keys("admin_notification")
+            audience_fk = next(
+                fk for fk in an_fks if fk["constrained_columns"] == ["audience_user_id"]
+            )
+            assert audience_fk["referred_table"] == "user"
+            # SQLAlchemy's inspector returns ondelete in `options`.
+            assert audience_fk["options"].get("ondelete", "").upper() == "SET NULL"
+
             # Singleton row seeded
             with engine.connect() as conn:
                 row = conn.exec_driver_sql(

@@ -123,12 +123,24 @@ def upgrade() -> None:
         "WHERE integration_minutes_low IS NULL OR integration_minutes_high IS NULL"
     )
 
-    # 8. Seed professional_services_settings singleton.
-    op.execute(
-        "INSERT INTO professional_services_settings "
-        "(id, default_hourly_rate_low, default_hourly_rate_high, updated_at) "
-        "VALUES (1, 200.00, 200.00, CURRENT_TIMESTAMP)"
-    )
+    # 8. Seed professional_services_settings singleton (idempotent).
+    # Use dialect-aware INSERT so upgrade() can be replayed without a prior
+    # downgrade (e.g. partial-failure recovery).
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        op.execute(
+            "INSERT INTO professional_services_settings "
+            "(id, default_hourly_rate_low, default_hourly_rate_high, updated_at) "
+            "VALUES (1, 200.00, 200.00, CURRENT_TIMESTAMP) "
+            "ON CONFLICT (id) DO NOTHING"
+        )
+    else:
+        # SQLite uses INSERT OR IGNORE; MySQL also accepts this syntax.
+        op.execute(
+            "INSERT OR IGNORE INTO professional_services_settings "
+            "(id, default_hourly_rate_low, default_hourly_rate_high, updated_at) "
+            "VALUES (1, 200.00, 200.00, CURRENT_TIMESTAMP)"
+        )
 
 
 def downgrade() -> None:
