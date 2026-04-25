@@ -28,6 +28,6 @@ async def build_flow_template_context(
         return ""
     return (
         "## Current Flow Template\n\n"
-        f'This flow was created from the "{notes["flow_name"]}" template.\n'
+        f'This flow was created from the "{notes["template_name"]}" template.\n'
         f"{notes['agent_usage_notes']}\n\n"
     )
