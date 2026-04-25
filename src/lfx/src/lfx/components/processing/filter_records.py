@@ -147,22 +147,57 @@ class FilterRecordsComponent(Component):
         )
         return merged, out_shape
 
-    def _row_predicate(self, record: dict) -> bool:
-        """Evaluate the conditions table against one record dict."""
-        from lfx.components.processing._record_ops import evaluate, get_path
+    def _validate(self) -> list[dict]:
+        """Validate the conditions table. Returns the cleaned list of rows
+        (blank rows stripped). Raises ValueError on user-facing errors.
+        """
+        import re as _re
 
         rows = self.conditions or []
-        if not rows:
-            # Empty conditions: vacuously True for AND, vacuously False for OR.
-            # Build-time validation rejects this with Keep mode, so OR with
-            # empty conditions only reaches us in Exclude mode.
-            return True if self.combinator == "AND" else False
+        # Strip blank rows (no field set).
+        cleaned = [r for r in rows if (r.get("field") or "").strip()]
 
-        def one(row: dict) -> bool:
-            field = row.get("field", "")
+        if not cleaned and self.mode == "Keep matching":
+            msg = (
+                "FilterRecords: add at least one condition, or switch Mode to "
+                "'Exclude matching' to pass all records through unmatched."
+            )
+            raise ValueError(msg)
+
+        for row in cleaned:
             operator = row.get("operator", "equals")
             value = row.get("value", "") or ""
-            field_value = get_path(record, field) if field else None
+            if operator == "matches regex":
+                try:
+                    _re.compile(value)
+                except _re.error as exc:
+                    msg = f"FilterRecords: Invalid regex '{value}': {exc}"
+                    raise ValueError(msg) from exc
+            elif operator == "between":
+                parts = [p.strip() for p in value.split(",")]
+                if len(parts) != 2 or not all(parts):
+                    msg = (
+                        f"FilterRecords: 'between' value must be exactly two "
+                        f"comma-separated numbers (got '{value}')."
+                    )
+                    raise ValueError(msg)
+
+        return cleaned
+
+    def _row_predicate_for(self, record: dict, rows: list[dict]) -> bool:
+        """Evaluate the cleaned conditions list against one record dict."""
+        from lfx.components.processing._record_ops import evaluate, get_path
+
+        if not rows:
+            # Empty conditions reach here only with Exclude mode (Keep mode
+            # was already rejected by _validate). Vacuously True.
+            return True
+
+        def one(row: dict) -> bool:
+            field = row["field"]
+            operator = row.get("operator", "equals")
+            value = row.get("value", "") or ""
+            field_value = get_path(record, field)
             return evaluate(operator, field_value, value)
 
         if self.combinator == "OR":
@@ -172,13 +207,14 @@ class FilterRecordsComponent(Component):
     def _partition(self) -> tuple[Any, Any]:
         from lfx.components.processing._record_ops import from_record_list
 
+        cleaned_rows = self._validate()
         records, shape = self._normalize_records()
         invert = self.mode == "Exclude matching"
 
         matched_records: list[dict] = []
         unmatched_records: list[dict] = []
         for record in records:
-            predicate = self._row_predicate(record)
+            predicate = self._row_predicate_for(record, cleaned_rows)
             if invert:
                 predicate = not predicate
             (matched_records if predicate else unmatched_records).append(record)

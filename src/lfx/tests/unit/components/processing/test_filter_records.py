@@ -189,3 +189,55 @@ async def test_filter_is_list_handle_input_framework_shape():
     assert isinstance(matched, list)
     assert len(matched) == 1
     assert matched[0].data == {"name": "Alice", "country": "US"}
+
+
+@pytest.mark.asyncio
+async def test_validation_invalid_regex_raises():
+    cmp = _new(
+        _records(),
+        [{"field": "name", "operator": "matches regex", "value": "[unclosed"}],
+    )
+    with pytest.raises(ValueError, match="Invalid regex"):
+        await cmp.build_matched()
+
+
+@pytest.mark.asyncio
+async def test_validation_between_wrong_value_count_raises():
+    cmp = _new(
+        _records(),
+        [{"field": "age", "operator": "between", "value": "10"}],
+    )
+    with pytest.raises(ValueError, match="between"):
+        await cmp.build_matched()
+
+
+@pytest.mark.asyncio
+async def test_validation_empty_conditions_with_keep_mode_raises():
+    cmp = _new(_records(), [], mode="Keep matching")
+    with pytest.raises(ValueError, match="at least one condition"):
+        await cmp.build_matched()
+
+
+@pytest.mark.asyncio
+async def test_validation_empty_conditions_with_exclude_mode_returns_all_unmatched():
+    cmp = _new(_records(), [], mode="Exclude matching")
+    matched = await cmp.build_matched()
+    unmatched = await cmp.build_unmatched()
+    # Empty conditions are vacuously True; Exclude inverts to False;
+    # so all records land in unmatched.
+    assert [d.data["name"] for d in matched] == []
+    assert [d.data["name"] for d in unmatched] == ["Alice", "Bob", "Charlie"]
+
+
+@pytest.mark.asyncio
+async def test_validation_skips_blank_rows():
+    """User adds a row, doesn't fill it in. Should be ignored, not raise."""
+    cmp = _new(
+        _records(),
+        [
+            {"field": "country", "operator": "equals", "value": "US"},
+            {"field": "", "operator": "equals", "value": ""},
+        ],
+    )
+    matched = await cmp.build_matched()
+    assert [d.data["name"] for d in matched] == ["Alice", "Charlie"]
