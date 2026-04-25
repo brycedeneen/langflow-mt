@@ -115,5 +115,64 @@ class CombineRecordsComponent(Component):
         return build_config
 
     async def build_combined(self) -> Data | list[Data] | DataFrame:
-        msg = "CombineRecordsComponent.build_combined is not implemented yet."
+        from lfx.components.processing._record_ops import (
+            InputShape,
+            detect_shape,
+            from_record_list,
+            to_record_list,
+        )
+
+        left_shape = detect_shape(self.left)
+        right_shape = detect_shape(self.right)
+        out_shape = self._output_shape(left_shape, right_shape)
+
+        left_records = to_record_list(self.left)
+        right_records = to_record_list(self.right)
+
+        if self.mode == "Append":
+            combined = left_records + right_records
+        elif self.mode == "Union (dedupe)":
+            combined = self._union_dedupe(left_records, right_records)
+        elif self.mode == "Merge by key":
+            combined = self._merge_by_key(left_records, right_records)
+        else:
+            msg = f"Unknown mode: {self.mode}"
+            raise ValueError(msg)
+
+        return from_record_list(combined, out_shape)
+
+    def _output_shape(self, left_shape, right_shape):
+        from lfx.components.processing._record_ops import InputShape
+
+        # Mixed input → DataFrame.
+        if left_shape != right_shape and InputShape.DATAFRAME in (left_shape, right_shape):
+            return InputShape.DATAFRAME
+        if left_shape == InputShape.DATAFRAME:
+            return InputShape.DATAFRAME
+        # Both Data-flavored: prefer DATA_LIST since combination is N+M ≥ 1.
+        return InputShape.DATA_LIST
+
+    def _union_dedupe(self, left: list[dict], right: list[dict]) -> list[dict]:
+        keys_str = (self.dedupe_keys or "").strip()
+        keys = [k.strip() for k in keys_str.split(",") if k.strip()]
+
+        seen: set = set()
+        out: list[dict] = []
+
+        def signature(record: dict) -> tuple:
+            if keys:
+                return tuple(record.get(k) for k in keys)
+            # Full-record equality: tuple of sorted items, with values converted
+            # to a hashable representation (str fallback for nested structures).
+            return tuple(sorted((k, _hashable(v)) for k, v in record.items()))
+
+        for record in left + right:
+            sig = signature(record)
+            if sig not in seen:
+                seen.add(sig)
+                out.append(record)
+        return out
+
+    def _merge_by_key(self, left: list[dict], right: list[dict]) -> list[dict]:
+        msg = "Merge by key not implemented yet."
         raise NotImplementedError(msg)
