@@ -83,5 +83,5 @@ async def generate_quote_text(
     return GeneratedQuoteText(
         headline_summary=response["headline_summary"],
         narrative=response["narrative"],
-        conversation_summary=response.get("conversation_summary"),
+        conversation_summary=response["conversation_summary"],
     )

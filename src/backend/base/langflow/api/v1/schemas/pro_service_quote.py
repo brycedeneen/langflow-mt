@@ -52,7 +52,7 @@ class QuoteUpdateRequest(BaseModel):
 class QuoteRead(BaseModel):
     id: UUID
     org_id: UUID
-    org_name: str  # denormalized at read time for list/detail
+    org_name: str | None  # denormalized at read time for list/detail
     flow_id: UUID | None
     flow_name: str | None  # denormalized at read time; None when flow was deleted
     requester_user_id: UUID
@@ -83,7 +83,7 @@ def quote_to_read(quote, org, flow, requester) -> "QuoteRead":
     return QuoteRead(
         id=quote.id,
         org_id=quote.org_id,
-        org_name=org.name if org else "(unknown)",
+        org_name=org.name if org else None,
         flow_id=quote.flow_id,
         flow_name=flow.name if flow else None,
         requester_user_id=quote.requester_user_id,
