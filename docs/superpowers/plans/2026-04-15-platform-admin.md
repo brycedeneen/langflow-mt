@@ -1717,14 +1717,14 @@ cd src/backend/base && uv run pytest ../../tests/unit/api/v1/test_admin.py ../..
 ```
 Result: `test_admin.py` **17/17 pass**; `test_users.py` passes; `tests/unit/alembic/` is green **except** `test_migration_execution.py::test_no_phantom_migrations`, which flags 22 `modify_type` diffs in admin-related tables (`admin_notification`, `alert_rule`, `flow_usage_daily`, `org_usage_daily`, `org_usage_threshold`). The diffs are autogenerate rendering drift under SQLAlchemy 2.0.49 (Enum vs VARCHAR(N), Integer vs BIGINT, Uuid vs CHAR(32)) — not a genuine schema divergence. Tracked as a follow-up to regenerate the admin-table migrations against the current dep versions. Does not block platform-admin feature sign-off.
 
-- [ ] **Step 2: Run the frontend typecheck/build** — _blocked by unrelated vite/rolldown failure_
+- [x] **Step 2: Run the frontend typecheck/build** — _unblocked by `7f657b5e92 fix(frontend): declare whatwg-fetch so vite/rolldown resolves fetch-intercept`_
 
 ```bash
 cd frontend && npm run build
 ```
 Result: **fails** with `Rolldown failed to resolve import "whatwg-fetch" from "node_modules/fetch-intercept/lib/browser.js"`. Pre-existing after `6d0e3e41c7 chore(frontend): upgrade all npm packages to latest`; either add `whatwg-fetch` as an explicit dep or externalize `fetch-intercept`. Tracked separately. Typecheck of non-test frontend sources is clean; admin-page sources compile.
 
-- [ ] **Step 3: Finish up**
+- [x] **Step 3: Finish up**
 
 If everything is green, this feature branch is ready. Consult the superpowers:finishing-a-development-branch skill for PR/merge guidance.
 

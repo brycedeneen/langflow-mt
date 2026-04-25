@@ -44,7 +44,7 @@
 
 Two small platform changes that must land before the seeder can work. They're independent of each other but small enough to ship together.
 
-- [ ] **Step 1: Make `updated_by` nullable in the model**
+- [x] **Step 1: Make `updated_by` nullable in the model**
 
 Open `src/backend/base/langflow/services/database/models/_metadata/metadata_mixin.py`. Change line 27 from:
 
@@ -60,13 +60,13 @@ to:
 
 The `default=None` lets the seeder insert without an acting user. `nullable=True` makes the SQL column allow NULL.
 
-- [ ] **Step 2: Update the `TemplateMetadataRead` Pydantic schema to match**
+- [x] **Step 2: Update the `TemplateMetadataRead` Pydantic schema to match**
 
 Open `src/backend/base/langflow/services/database/models/template_metadata/model.py:25-29`. Change `updated_by: UUID` on line 28 to `updated_by: UUID | None`.
 
 (`component_metadata/model.py` may have a similar `Read` model — grep for `updated_by: UUID` and update any non-nullable Pydantic schemas to match. Stage them with this task.)
 
-- [ ] **Step 3: Generate the alembic revision**
+- [x] **Step 3: Generate the alembic revision**
 
 Run from the langflow backend dir:
 
@@ -79,7 +79,7 @@ Inspect the generated file. Expected diff: `op.alter_column('template_metadata',
 
 If autogenerate produces additional unrelated changes (drift from prior schema), revert those — keep only the `nullable=True` alter. The downgrade should set `nullable=False`.
 
-- [ ] **Step 4: Apply the migration**
+- [x] **Step 4: Apply the migration**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow/src/backend/base
@@ -94,7 +94,7 @@ sqlite3 ~/.cache/langflow/langflow.db ".schema template_metadata" | grep updated
 
 Expected: `updated_by` shown without `NOT NULL`.
 
-- [ ] **Step 5: Filter `.metadata.json` files out of `load_starter_projects`**
+- [x] **Step 5: Filter `.metadata.json` files out of `load_starter_projects`**
 
 Open `src/backend/base/langflow/initial_setup/setup.py:556-575`. Find the loop:
 
@@ -120,7 +120,7 @@ Insert a skip immediately after the `async for` line:
 
 This prevents the existing starter-project seeder from trying to parse our metadata JSON as a flow.
 
-- [ ] **Step 6: Run the existing assistant + initial-setup test surface to confirm nothing broke**
+- [x] **Step 6: Run the existing assistant + initial-setup test surface to confirm nothing broke**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow
@@ -129,7 +129,7 @@ uv run pytest src/backend/tests/unit/services/assistant/ -v
 
 Expected: ALL PASS (the metadata model change doesn't affect assistant tests, but a quick sanity check is cheap).
 
-- [ ] **Step 7: Stage**
+- [x] **Step 7: Stage**
 
 ```bash
 git add src/backend/base/langflow/services/database/models/_metadata/metadata_mixin.py \
@@ -162,7 +162,7 @@ Boot the dev environment, create a new flow, drag-and-drop the 4 components, wir
 
 Either path, the shape test in this task is the safety net.
 
-- [ ] **Step 1: Create the flow JSON**
+- [x] **Step 1: Create the flow JSON**
 
 Place at `src/backend/base/langflow/initial_setup/starter_projects/ADP Worker Sync to SFTP.json`. Required structural properties (asserted by the shape test in Step 4):
 
@@ -192,7 +192,7 @@ If you build this via path A (scaffold from `Simple Agent.json`), the Agent ↔ 
 
 If structural details differ from what the running components expose (e.g., the ADP Trigger's primary Data output is named differently), prefer path B (export from the running app) — that captures the truth.
 
-- [ ] **Step 2: Create the metadata sibling JSON**
+- [x] **Step 2: Create the metadata sibling JSON**
 
 Place at `src/backend/base/langflow/initial_setup/starter_projects/ADP Worker Sync to SFTP.metadata.json` with this exact content:
 
@@ -205,7 +205,7 @@ Place at `src/backend/base/langflow/initial_setup/starter_projects/ADP Worker Sy
 
 (The `agent_usage_notes` string is one big JSON-encoded string with `\n` line breaks. The content matches Section D of the spec verbatim.)
 
-- [ ] **Step 3: Create the test directory if missing**
+- [x] **Step 3: Create the test directory if missing**
 
 Check whether `src/backend/tests/unit/initial_setup/` exists:
 
@@ -220,7 +220,7 @@ mkdir -p /Users/brycedeneen/dev/langflow/src/backend/tests/unit/initial_setup
 touch /Users/brycedeneen/dev/langflow/src/backend/tests/unit/initial_setup/__init__.py
 ```
 
-- [ ] **Step 4: Write the shape test**
+- [x] **Step 4: Write the shape test**
 
 Create `src/backend/tests/unit/initial_setup/test_adp_sftp_template_shape.py`:
 
@@ -350,7 +350,7 @@ def test_metadata_sibling_file_present_and_well_formed():
     assert "adp_client_id" in notes
 ```
 
-- [ ] **Step 5: Run the shape test**
+- [x] **Step 5: Run the shape test**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow
@@ -361,7 +361,7 @@ Expected: ALL PASS. If any test fails, the JSON authoring missed a structural re
 
 If the test reveals that a particular template field name (e.g., `agent_llm` vs `model_provider`, or `model_name` vs `model_id`) doesn't match the running Agent component's actual schema, escalate (DONE_WITH_CONCERNS) — the spec used illustrative names that may need to match real component output. Don't guess; confirm against the running component or against an exported `Simple Agent.json` snapshot.
 
-- [ ] **Step 6: Stage**
+- [x] **Step 6: Stage**
 
 ```bash
 git add "src/backend/base/langflow/initial_setup/starter_projects/ADP Worker Sync to SFTP.json" \
@@ -380,7 +380,7 @@ git add "src/backend/base/langflow/initial_setup/starter_projects/ADP Worker Syn
 
 The seeder walks `starter_projects/` for `*.metadata.json` files, looks up the matching seeded flow by name within the Starter Projects folder, and upserts a `TemplateMetadata` row per the rules in the spec.
 
-- [ ] **Step 1: Locate / verify the Flow-by-name-and-folder helper**
+- [x] **Step 1: Locate / verify the Flow-by-name-and-folder helper**
 
 Search `src/backend/base/langflow/initial_setup/setup.py` and `src/backend/base/langflow/services/database/models/flow/` for an existing query that finds a `Flow` row by `name` within a specific `folder_id`:
 
@@ -390,7 +390,7 @@ grep -rn "Flow.name\|name.*folder_id\|select.*Flow.*name" /Users/brycedeneen/dev
 
 Likely candidate: `get_all_flows_similar_to_project` (used at setup.py:1174). Inspect it; if its return shape works, reuse. Otherwise the seeder builds its own SQL inline (next step).
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 Create `src/backend/tests/unit/initial_setup/test_template_metadata_seeding.py`:
 
@@ -544,7 +544,7 @@ async def test_malformed_json_is_logged_and_skipped(db_session, starter_folder, 
 
 (`db_session` fixture: use the langflow test fixture pattern. Inspect existing test files like `src/backend/tests/unit/services/assistant/test_flow_template_context.py` for the canonical async DB-session fixture and reuse.)
 
-- [ ] **Step 3: Run the tests to verify they fail**
+- [x] **Step 3: Run the tests to verify they fail**
 
 ```bash
 uv run pytest src/backend/tests/unit/initial_setup/test_template_metadata_seeding.py -v
@@ -552,7 +552,7 @@ uv run pytest src/backend/tests/unit/initial_setup/test_template_metadata_seedin
 
 Expected: FAIL with `ImportError` (function doesn't exist yet).
 
-- [ ] **Step 4: Implement `create_or_update_template_metadata`**
+- [x] **Step 4: Implement `create_or_update_template_metadata`**
 
 Open `src/backend/base/langflow/initial_setup/setup.py`. Add the function after `create_or_update_starter_projects` (around line 1200, just below the existing seeder):
 
@@ -660,7 +660,7 @@ from langflow.services.database.models.template_metadata.model import TemplateMe
 
 (Check whether `select` is already imported via sqlmodel; setup.py likely uses a different ORM helper. If it imports from `sqlalchemy.future`, mirror that style.)
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 ```bash
 uv run pytest src/backend/tests/unit/initial_setup/test_template_metadata_seeding.py -v
@@ -670,7 +670,7 @@ Expected: 5 PASS.
 
 If a test fails because of fixture-shape issues (e.g., `db_session` doesn't have `exec`), align with the project's actual async-session API by inspecting an existing similar test and matching its style.
 
-- [ ] **Step 6: Stage**
+- [x] **Step 6: Stage**
 
 ```bash
 git add src/backend/base/langflow/initial_setup/setup.py \
@@ -684,11 +684,11 @@ git add src/backend/base/langflow/initial_setup/setup.py \
 **Files:**
 - Modify: `src/backend/base/langflow/main.py:220` — add the new seeder call after `create_or_update_starter_projects`.
 
-- [ ] **Step 1: Read the existing lifespan hook context**
+- [x] **Step 1: Read the existing lifespan hook context**
 
 Open `src/backend/base/langflow/main.py:220`. Confirm the surrounding shape — there's a try/except around starter-project setup, and the line currently reads `await create_or_update_starter_projects(all_types_dict)`.
 
-- [ ] **Step 2: Update the import at top of `main.py`**
+- [x] **Step 2: Update the import at top of `main.py`**
 
 Add `create_or_update_template_metadata` alongside `create_or_update_starter_projects`. Find the import block around line 33:
 
@@ -711,7 +711,7 @@ from langflow.initial_setup.setup import (
 )
 ```
 
-- [ ] **Step 3: Insert the call after the existing seeder**
+- [x] **Step 3: Insert the call after the existing seeder**
 
 In the lifespan hook, change:
 
@@ -728,7 +728,7 @@ to:
 
 The same try/except wrapping (if present) covers both calls — the metadata seeder swallows individual file errors per its own contract, but a startup-level failure logs and continues.
 
-- [ ] **Step 4: Smoke test — boot the app once**
+- [x] **Step 4: Smoke test — boot the app once**
 
 ```bash
 cd /Users/brycedeneen/dev/langflow
@@ -742,7 +742,7 @@ Watch for:
 
 Kill the process (`Ctrl+C`) once startup logs settle.
 
-- [ ] **Step 5: Verify the metadata row exists**
+- [x] **Step 5: Verify the metadata row exists**
 
 ```bash
 sqlite3 ~/.cache/langflow/langflow.db "SELECT flow_id, agent_summary, length(agent_usage_notes), updated_by FROM template_metadata;"
@@ -750,7 +750,7 @@ sqlite3 ~/.cache/langflow/langflow.db "SELECT flow_id, agent_summary, length(age
 
 Expected: at least one row for the ADP template with a non-null `agent_summary`, an `agent_usage_notes` length around 2000–3000 chars, and `updated_by` empty.
 
-- [ ] **Step 6: Run the broader test surface**
+- [x] **Step 6: Run the broader test surface**
 
 ```bash
 uv run pytest src/backend/tests/unit/initial_setup/ src/backend/tests/unit/services/assistant/ -v
@@ -758,7 +758,7 @@ uv run pytest src/backend/tests/unit/initial_setup/ src/backend/tests/unit/servi
 
 Expected: ALL PASS.
 
-- [ ] **Step 7: Stage**
+- [x] **Step 7: Stage**
 
 ```bash
 git add src/backend/base/langflow/main.py
@@ -772,15 +772,15 @@ git add src/backend/base/langflow/main.py
 
 Validates that the template loads, appears in the picker, and the assistant follows `agent_usage_notes` end-to-end.
 
-- [ ] **Step 1: Boot the dev environment**
+- [x] **Step 1: Boot the dev environment**
 
 Backend running, frontend dev server up. LLM provider configured for the assistant. Wipe local sqlite if you want to test cold-start behavior, otherwise existing variables persist between Path 1 and Path 2.
 
-- [ ] **Step 2: Confirm template appears in picker**
+- [x] **Step 2: Confirm template appears in picker**
 
 In the app: **New Project** → template grid. Confirm `ADP Worker Sync to SFTP` shows up with the description from the JSON. Click it → confirm preview/details look right.
 
-- [ ] **Step 3: Path 1 — credentials missing (clean slate)**
+- [x] **Step 3: Path 1 — credentials missing (clean slate)**
 
 If you have `adp_*` variables already, delete them via the variable store UI first.
 
@@ -792,7 +792,7 @@ Click **Build with ADP Assist** on the template card. Confirm:
 - Provide each — confirm a variable is created in the variable store after each (`adp_client_id`, `adp_client_secret`, `adp_client_certificate`, `adp_client_key`).
 - Once all four are saved, assistant says "Saved securely — these will be reused for any future ADP integrations." and proceeds.
 
-- [ ] **Step 4: Path 1 continued — the 5 questions**
+- [x] **Step 4: Path 1 continued — the 5 questions**
 
 Walk through:
 
@@ -809,13 +809,13 @@ Then watch for:
 - SFTP `password` field shows a variable reference (e.g., `sftp_password_<short_token>`), not the literal `P@ssword1!`.
 - Assistant's final message contains the webhook URL + API key with `x-api-key` instructions.
 
-- [ ] **Step 5: Path 2 — credentials already configured (re-test)**
+- [x] **Step 5: Path 2 — credentials already configured (re-test)**
 
 Open another new flow from the same template via Build with ADP Assist. Confirm:
 
 - Assistant says "I found your ADP credentials." and **skips straight to the 5 questions** without re-asking for ADP creds.
 
-- [ ] **Step 6: Smoke test — fire a fake webhook**
+- [x] **Step 6: Smoke test — fire a fake webhook**
 
 Using the surfaced URL + API key from Path 1's flow:
 
@@ -828,7 +828,7 @@ curl -X POST "<surfaced_webhook_url>" \
 
 Expected: the SFTP target receives a CSV file named like `test-20260419_143052.csv` containing one row with the requested fields.
 
-- [ ] **Step 7: Report readiness**
+- [x] **Step 7: Report readiness**
 
 Post a verification report:
 

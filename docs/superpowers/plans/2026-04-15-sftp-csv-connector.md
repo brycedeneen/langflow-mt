@@ -37,7 +37,7 @@ The component file holds both the class and the small pure helpers (`_normalize_
 - Create: `src/lfx/tests/unit/components/sftp/__init__.py`
 - Test: `src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py`
 
-- [ ] **Step 1: Add `asyncssh` to `src/lfx/pyproject.toml`**
+- [x] **Step 1: Add `asyncssh` to `src/lfx/pyproject.toml`**
 
 Find the `[project]` `dependencies = [` list (around line 10). Add `"asyncssh>=2.14.0"` in alphabetical position. Example diff:
 
@@ -50,7 +50,7 @@ dependencies = [
 ]
 ```
 
-- [ ] **Step 2: Install the new dep**
+- [x] **Step 2: Install the new dep**
 
 Run from the repo root:
 
@@ -60,7 +60,7 @@ uv sync --package lfx
 
 Expected: completes without error and reports asyncssh installed.
 
-- [ ] **Step 3: Create empty test package marker**
+- [x] **Step 3: Create empty test package marker**
 
 ```python
 # src/lfx/tests/unit/components/sftp/__init__.py
@@ -68,7 +68,7 @@ Expected: completes without error and reports asyncssh installed.
 
 (Empty file — just makes the directory a package.)
 
-- [ ] **Step 4: Write the failing smoke test**
+- [x] **Step 4: Write the failing smoke test**
 
 Create `src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py`:
 
@@ -80,7 +80,7 @@ def test_component_imports_and_registers():
     assert SFTPCSVUploadComponent.name == "SFTPCSVUpload"
 ```
 
-- [ ] **Step 5: Run the test to verify it fails**
+- [x] **Step 5: Run the test to verify it fails**
 
 ```bash
 uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py -v
@@ -88,7 +88,7 @@ uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upl
 
 Expected: FAIL with `ModuleNotFoundError: No module named 'lfx.components.sftp'`.
 
-- [ ] **Step 6: Create the component skeleton**
+- [x] **Step 6: Create the component skeleton**
 
 `src/lfx/src/lfx/components/sftp/sftp_csv_upload.py`:
 
@@ -114,7 +114,7 @@ class SFTPCSVUploadComponent(Component):
         raise NotImplementedError
 ```
 
-- [ ] **Step 7: Create the package `__init__.py`**
+- [x] **Step 7: Create the package `__init__.py`**
 
 `src/lfx/src/lfx/components/sftp/__init__.py`:
 
@@ -126,7 +126,7 @@ from .sftp_csv_upload import SFTPCSVUploadComponent
 __all__ = ["SFTPCSVUploadComponent"]
 ```
 
-- [ ] **Step 8: Run the smoke test to verify it passes**
+- [x] **Step 8: Run the smoke test to verify it passes**
 
 ```bash
 uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py -v
@@ -134,7 +134,7 @@ uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upl
 
 Expected: 1 passed.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/lfx/pyproject.toml src/lfx/src/lfx/components/sftp/ src/lfx/tests/unit/components/sftp/
@@ -151,7 +151,7 @@ git commit -m "feat(sftp): scaffold SFTP CSV Upload component"
 
 Goal: a pure function `_normalize_to_dataframe(value) -> pandas.DataFrame` that accepts a `DataFrame`, a single `Data` (dict-like with `.data` attribute), a list of `Data` / list of dicts. Anything else raises `TypeError`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `test_sftp_csv_upload.py`:
 
@@ -190,7 +190,7 @@ def test_normalize_unsupported_type_raises():
         _normalize_to_dataframe(42)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py::test_normalize_dataframe_passthrough -v
@@ -198,7 +198,7 @@ uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upl
 
 Expected: FAIL with `ImportError: cannot import name '_normalize_to_dataframe'`.
 
-- [ ] **Step 3: Implement the helper**
+- [x] **Step 3: Implement the helper**
 
 In `sftp_csv_upload.py`, add at module scope above the class:
 
@@ -228,7 +228,7 @@ def _normalize_to_dataframe(value: object) -> pd.DataFrame:
     raise TypeError(msg)
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py -v
@@ -236,7 +236,7 @@ uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upl
 
 Expected: all 6 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/sftp/sftp_csv_upload.py src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py
@@ -253,7 +253,7 @@ git commit -m "feat(sftp): add input normalization helper"
 
 Goal: `_resolve_remote_path(remote_directory, filename, *, now=None) -> str`. Substitutes `{timestamp}` → `YYYYMMDD_HHMMSS` UTC and `{date}` → `YYYYMMDD` UTC. Joins with `posixpath.join`. Rejects resolved filename containing `/`. The `now` parameter is a `time.struct_time` for testability; defaults to `time.gmtime()`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `test_sftp_csv_upload.py`:
 
@@ -300,7 +300,7 @@ def test_resolve_path_uses_gmtime_when_now_omitted():
 
 (Remove the `test_resolve_path_substitutes_both_tokens` placeholder.)
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py -v
@@ -308,7 +308,7 @@ uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upl
 
 Expected: import error on `_resolve_remote_path`.
 
-- [ ] **Step 3: Implement the helper**
+- [x] **Step 3: Implement the helper**
 
 Add to `sftp_csv_upload.py`:
 
@@ -334,7 +334,7 @@ def _resolve_remote_path(
     return posixpath.join(remote_directory, rendered)
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py -v
@@ -342,7 +342,7 @@ uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upl
 
 Expected: all tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/sftp/sftp_csv_upload.py src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py
@@ -359,7 +359,7 @@ git commit -m "feat(sftp): add filename templating helper"
 
 Goal: `_render_csv_bytes(df, *, delimiter, include_header, encoding, quote_char, quoting, line_terminator, null_representation) -> bytes`. Maps the `quoting` dropdown (`Minimal`/`All`/`Non-numeric`/`None`) to `csv.QUOTE_*` constants and writes via `df.to_csv()`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append:
 
@@ -440,7 +440,7 @@ def test_csv_custom_quote_char():
     assert b"'has,comma'" in out
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py -v
@@ -448,7 +448,7 @@ uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upl
 
 Expected: import error on `_render_csv_bytes`.
 
-- [ ] **Step 3: Implement the helper**
+- [x] **Step 3: Implement the helper**
 
 Add to `sftp_csv_upload.py`:
 
@@ -495,7 +495,7 @@ def _render_csv_bytes(
 
 Note: encoding is applied at the byte stage rather than via pandas' `encoding=` argument so `utf-8-sig` produces a single leading BOM (pandas would otherwise emit one BOM per call to `to_csv` only when writing to a path).
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py -v
@@ -503,7 +503,7 @@ uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upl
 
 Expected: all tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/sftp/sftp_csv_upload.py src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py
@@ -520,7 +520,7 @@ git commit -m "feat(sftp): add CSV bytes renderer"
 
 Goal: `_compute_sha256_fingerprint(host_key) -> str` and `_verify_host_key(host_key, expected_fingerprint) -> None`. Fingerprint format is the standard `SHA256:<base64>` form that asyncssh and openssh use, compared case-insensitively after stripping any `SHA256:` prefix.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append:
 
@@ -569,7 +569,7 @@ def test_verify_host_key_raises_on_mismatch():
         _verify_host_key(_FakeHostKey(raw), expected="SHA256:wrongfingerprintxxxxxxxxxxxxxxxxxxxxxxxxxxx")
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py -v
@@ -577,7 +577,7 @@ uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upl
 
 Expected: import error.
 
-- [ ] **Step 3: Implement the helpers**
+- [x] **Step 3: Implement the helpers**
 
 Add to `sftp_csv_upload.py`:
 
@@ -607,7 +607,7 @@ def _verify_host_key(host_key, *, expected: str) -> None:
         raise ValueError(msg)
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py -v
@@ -615,7 +615,7 @@ uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upl
 
 Expected: all tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/sftp/sftp_csv_upload.py src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py
@@ -632,7 +632,7 @@ git commit -m "feat(sftp): add host-key fingerprint verification"
 
 Goal: wire up the full input list with dynamic password vs SSH-key fields, implement `build_upload()`, and add `update_build_config` to toggle field visibility on `auth_method` change. Mock `asyncssh.connect` in tests — this task is purely about orchestration.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append:
 
@@ -801,7 +801,7 @@ def test_update_build_config_toggles_ssh_key_fields():
     assert out["private_key_passphrase"]["show"] is True
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py -v
@@ -809,7 +809,7 @@ uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upl
 
 Expected: many failures — `inputs = []` so component construction will reject the kwargs, and `build_upload` raises `NotImplementedError`.
 
-- [ ] **Step 3: Implement the full component**
+- [x] **Step 3: Implement the full component**
 
 Replace the contents of `sftp_csv_upload.py` so it now reads end-to-end as below. Keep all helpers from prior tasks (shown again here for completeness — do not duplicate; this is the final file):
 
@@ -1131,7 +1131,7 @@ class SFTPCSVUploadComponent(Component):
         return Message(text=text)
 ```
 
-- [ ] **Step 4: Run all unit tests to verify they pass**
+- [x] **Step 4: Run all unit tests to verify they pass**
 
 ```bash
 uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py -v
@@ -1139,7 +1139,7 @@ uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upl
 
 Expected: all tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/sftp/sftp_csv_upload.py src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py
@@ -1155,7 +1155,7 @@ git commit -m "feat(sftp): implement SFTP CSV Upload component end-to-end"
 
 Goal: stand up an in-process SFTP server using asyncssh's server APIs on `127.0.0.1:0`, run the component against it, and assert the file landed correctly. Marked `@pytest.mark.integration` so default test runs skip it.
 
-- [ ] **Step 1: Write the failing integration test**
+- [x] **Step 1: Write the failing integration test**
 
 ```python
 """Integration test: SFTPCSVUploadComponent against an in-process asyncssh server."""
@@ -1250,7 +1250,7 @@ async def test_bad_password_raises_permission_denied(tmp_path):
         await server.wait_closed()
 ```
 
-- [ ] **Step 2: Run the integration test**
+- [x] **Step 2: Run the integration test**
 
 ```bash
 uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upload_integration.py -v -m integration
@@ -1258,7 +1258,7 @@ uv run --package lfx pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upl
 
 Expected: both tests pass. (If asyncssh's `sftp_factory=True` requires an explicit `SFTPServer` subclass on this version, the agent should add a no-op `class _SFTPServer(asyncssh.SFTPServer): pass` and pass `sftp_factory=_SFTPServer`. Default file-system rooting is fine for this test.)
 
-- [ ] **Step 3: Run the full unit test suite once more to confirm no regressions**
+- [x] **Step 3: Run the full unit test suite once more to confirm no regressions**
 
 ```bash
 uv run --package lfx pytest src/lfx/tests/unit/components/sftp/ -v
@@ -1266,7 +1266,7 @@ uv run --package lfx pytest src/lfx/tests/unit/components/sftp/ -v
 
 Expected: all unit + integration tests pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/lfx/tests/unit/components/sftp/test_sftp_csv_upload_integration.py

@@ -26,7 +26,7 @@
 - Create: `src/lfx/tests/unit/components/adp/test_adp_worker_tools.py`
 - Create: `src/lfx/src/lfx/components/adp/adp_worker_tools.py`
 
-- [ ] **Step 1: Write the failing test for `_fetch_worker` happy path**
+- [x] **Step 1: Write the failing test for `_fetch_worker` happy path**
 
 ```python
 """Tests for ADPWorkerToolsComponent."""
@@ -135,12 +135,12 @@ async def test_fetch_worker_happy_path(adp_connection):
     assert result["person"]["legalName"]["givenName"] == "Jane"
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd /Users/brycedeneen/dev/langflow && python -m pytest src/lfx/tests/unit/components/adp/test_adp_worker_tools.py::test_fetch_worker_happy_path -v`
 Expected: FAIL — module `adp_worker_tools` does not exist
 
-- [ ] **Step 3: Write the component scaffold with `_fetch_worker`**
+- [x] **Step 3: Write the component scaffold with `_fetch_worker`**
 
 ```python
 """ADPWorkerToolsComponent — focused employee data tools for Langflow Agents."""
@@ -233,12 +233,12 @@ class ADPWorkerToolsComponent(Component):
         return []
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd /Users/brycedeneen/dev/langflow && python -m pytest src/lfx/tests/unit/components/adp/test_adp_worker_tools.py::test_fetch_worker_happy_path -v`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/adp/adp_worker_tools.py src/lfx/tests/unit/components/adp/test_adp_worker_tools.py
@@ -252,7 +252,7 @@ git commit -m "feat(adp): scaffold ADPWorkerToolsComponent with _fetch_worker"
 **Files:**
 - Modify: `src/lfx/tests/unit/components/adp/test_adp_worker_tools.py`
 
-- [ ] **Step 1: Write failing tests for 401 retry and error cases**
+- [x] **Step 1: Write failing tests for 401 retry and error cases**
 
 Add to `test_adp_worker_tools.py`:
 
@@ -333,12 +333,12 @@ async def test_fetch_worker_empty_workers_returns_not_found(adp_connection):
     assert result["status_code"] == 404
 ```
 
-- [ ] **Step 2: Run tests to verify they pass** (implementation already handles these cases)
+- [x] **Step 2: Run tests to verify they pass** (implementation already handles these cases)
 
 Run: `cd /Users/brycedeneen/dev/langflow && python -m pytest src/lfx/tests/unit/components/adp/test_adp_worker_tools.py -v`
 Expected: PASS — all 4 tests
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/lfx/tests/unit/components/adp/test_adp_worker_tools.py
@@ -353,7 +353,7 @@ git commit -m "test(adp): add _fetch_worker 401 retry and error handling tests"
 - Modify: `src/lfx/src/lfx/components/adp/adp_worker_tools.py`
 - Modify: `src/lfx/tests/unit/components/adp/test_adp_worker_tools.py`
 
-- [ ] **Step 1: Write failing tests for the three extraction functions**
+- [x] **Step 1: Write failing tests for the three extraction functions**
 
 Add to `test_adp_worker_tools.py`:
 
@@ -420,12 +420,12 @@ def test_extract_contact_information_missing(adp_connection):
     assert result == {"emails": [], "landlines": [], "mobiles": []}
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd /Users/brycedeneen/dev/langflow && python -m pytest src/lfx/tests/unit/components/adp/test_adp_worker_tools.py -k "extract_name or extract_address or extract_contact" -v`
 Expected: FAIL — functions not defined
 
-- [ ] **Step 3: Implement the three extraction functions**
+- [x] **Step 3: Implement the three extraction functions**
 
 Add to `adp_worker_tools.py` (module-level, before the class):
 
@@ -479,12 +479,12 @@ def extract_contact_information(worker: dict[str, Any]) -> dict[str, Any]:
     }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd /Users/brycedeneen/dev/langflow && python -m pytest src/lfx/tests/unit/components/adp/test_adp_worker_tools.py -k "extract_name or extract_address or extract_contact" -v`
 Expected: PASS — all 6 tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/adp/adp_worker_tools.py src/lfx/tests/unit/components/adp/test_adp_worker_tools.py
@@ -499,7 +499,7 @@ git commit -m "feat(adp): add name, address, contact extraction functions"
 - Modify: `src/lfx/src/lfx/components/adp/adp_worker_tools.py`
 - Modify: `src/lfx/tests/unit/components/adp/test_adp_worker_tools.py`
 
-- [ ] **Step 1: Write failing tests for job and compensation extraction**
+- [x] **Step 1: Write failing tests for job and compensation extraction**
 
 Add to `test_adp_worker_tools.py`:
 
@@ -558,12 +558,12 @@ def test_extract_compensation_missing_assignment(adp_connection):
     }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd /Users/brycedeneen/dev/langflow && python -m pytest src/lfx/tests/unit/components/adp/test_adp_worker_tools.py -k "extract_job or extract_compensation" -v`
 Expected: FAIL — functions not defined
 
-- [ ] **Step 3: Implement the two extraction functions**
+- [x] **Step 3: Implement the two extraction functions**
 
 Add to `adp_worker_tools.py` (module-level, after the other extraction functions):
 
@@ -651,12 +651,12 @@ def extract_compensation(worker: dict[str, Any]) -> dict[str, Any]:
     }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd /Users/brycedeneen/dev/langflow && python -m pytest src/lfx/tests/unit/components/adp/test_adp_worker_tools.py -k "extract_job or extract_compensation" -v`
 Expected: PASS — all 4 tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/adp/adp_worker_tools.py src/lfx/tests/unit/components/adp/test_adp_worker_tools.py
@@ -671,7 +671,7 @@ git commit -m "feat(adp): add job and compensation extraction functions"
 - Modify: `src/lfx/src/lfx/components/adp/adp_worker_tools.py`
 - Modify: `src/lfx/tests/unit/components/adp/test_adp_worker_tools.py`
 
-- [ ] **Step 1: Write failing test for `build_tools`**
+- [x] **Step 1: Write failing test for `build_tools`**
 
 Add to `test_adp_worker_tools.py`:
 
@@ -722,12 +722,12 @@ async def test_tool_invocation_propagates_error_dict(adp_connection):
     assert result["status_code"] == 500
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd /Users/brycedeneen/dev/langflow && python -m pytest src/lfx/tests/unit/components/adp/test_adp_worker_tools.py -k "build_tools or tool_invocation" -v`
 Expected: FAIL — `build_tools` returns empty list
 
-- [ ] **Step 3: Implement `build_tools`**
+- [x] **Step 3: Implement `build_tools`**
 
 Replace the `build_tools` method in `ADPWorkerToolsComponent`:
 
@@ -802,12 +802,12 @@ Replace the `build_tools` method in `ADPWorkerToolsComponent`:
         return tools
 ```
 
-- [ ] **Step 4: Run all tests to verify they pass**
+- [x] **Step 4: Run all tests to verify they pass**
 
 Run: `cd /Users/brycedeneen/dev/langflow && python -m pytest src/lfx/tests/unit/components/adp/test_adp_worker_tools.py -v`
 Expected: PASS — all tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/adp/adp_worker_tools.py src/lfx/tests/unit/components/adp/test_adp_worker_tools.py
@@ -821,7 +821,7 @@ git commit -m "feat(adp): wire up build_tools with 5 StructuredTool instances"
 **Files:**
 - Modify: `src/lfx/src/lfx/components/adp/__init__.py`
 
-- [ ] **Step 1: Update `__init__.py` to export the new component**
+- [x] **Step 1: Update `__init__.py` to export the new component**
 
 Replace the contents of `src/lfx/src/lfx/components/adp/__init__.py`:
 
@@ -841,12 +841,12 @@ __all__ = [
 ]
 ```
 
-- [ ] **Step 2: Run the full ADP test suite**
+- [x] **Step 2: Run the full ADP test suite**
 
 Run: `cd /Users/brycedeneen/dev/langflow && python -m pytest src/lfx/tests/unit/components/adp/ -v`
 Expected: PASS — all ADP tests including new ones
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/lfx/src/lfx/components/adp/__init__.py

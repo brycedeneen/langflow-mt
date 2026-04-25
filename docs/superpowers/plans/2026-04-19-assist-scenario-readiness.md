@@ -70,7 +70,7 @@ The risk-verification spike confirmed three plan-level surprises. The plan below
 
 Smallest, isolated change. Single-line addition + info-string update + one test.
 
-- [ ] **Step 1: Read the current function**
+- [x] **Step 1: Read the current function**
 
 Open `src/lfx/src/lfx/components/sftp/sftp_csv_upload.py:65-73` to confirm shape:
 
@@ -85,7 +85,7 @@ def _resolve_remote_path(
         msg = "filename must not contain path separator '/'; use remote_directory"
 ```
 
-- [ ] **Step 2: Add the failing test**
+- [x] **Step 2: Add the failing test**
 
 Open `src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py`. Read the existing test fixtures and patterns first, then add this test alongside the others (re-using existing imports if compatible):
 
@@ -99,7 +99,7 @@ def test_resolve_remote_path_replaces_datestamp_alias_with_full_timestamp():
     assert result == "/uploads/test-20260419_143052.csv"
 ```
 
-- [ ] **Step 3: Run test to verify it fails**
+- [x] **Step 3: Run test to verify it fails**
 
 ```bash
 LFX_TEST_ALLOW_LANGFLOW=1 pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py::test_resolve_remote_path_replaces_datestamp_alias_with_full_timestamp -v
@@ -107,7 +107,7 @@ LFX_TEST_ALLOW_LANGFLOW=1 pytest src/lfx/tests/unit/components/sftp/test_sftp_cs
 
 Expected: FAIL with the literal `{datestamp}` left in the result.
 
-- [ ] **Step 4: Add the alias replacement**
+- [x] **Step 4: Add the alias replacement**
 
 Edit `_resolve_remote_path` to insert one line above the existing `{timestamp}` replacement:
 
@@ -123,7 +123,7 @@ def _resolve_remote_path(
         msg = "filename must not contain path separator '/'; use remote_directory"
 ```
 
-- [ ] **Step 5: Update the `info=` text on the filename input**
+- [x] **Step 5: Update the `info=` text on the filename input**
 
 Edit line 185 of `sftp_csv_upload.py`:
 
@@ -131,7 +131,7 @@ Edit line 185 of `sftp_csv_upload.py`:
             info="Supports {timestamp} (UTC YYYYMMDD_HHMMSS), {datestamp} (alias for {timestamp}), and {date} (UTC YYYYMMDD).",
 ```
 
-- [ ] **Step 6: Run test to verify it passes + the rest of the SFTP tests**
+- [x] **Step 6: Run test to verify it passes + the rest of the SFTP tests**
 
 ```bash
 LFX_TEST_ALLOW_LANGFLOW=1 pytest src/lfx/tests/unit/components/sftp/test_sftp_csv_upload.py -v
@@ -139,7 +139,7 @@ LFX_TEST_ALLOW_LANGFLOW=1 pytest src/lfx/tests/unit/components/sftp/test_sftp_cs
 
 Expected: ALL PASS.
 
-- [ ] **Step 7: Stage**
+- [x] **Step 7: Stage**
 
 ```bash
 git add src/lfx/src/lfx/components/sftp/sftp_csv_upload.py \
@@ -158,7 +158,7 @@ Do NOT commit. Human batches.
 
 Backend fix. The auto-provisioner `_provision_webhook_api_key` exists in `api/v1/flows.py:165`. It's called by `create_flow` and `update_flow` but not by the assistant's persist path. So when the assistant adds an ADP Trigger via mutation tools and writes the flow back, no api_key is provisioned. Mirror what `update_flow` does after writing `db_flow.data`.
 
-- [ ] **Step 1: Read the existing call sites in `api/v1/flows.py`**
+- [x] **Step 1: Read the existing call sites in `api/v1/flows.py`**
 
 ```bash
 grep -n "_provision_webhook_api_key" /Users/brycedeneen/dev/langflow/src/backend/base/langflow/api/v1/flows.py
@@ -166,11 +166,11 @@ grep -n "_provision_webhook_api_key" /Users/brycedeneen/dev/langflow/src/backend
 
 Open the function definition at line ~165 and both call sites. Note exactly what they pass (typically: `session`, the loaded flow object, the org id) and any error handling. The assistant call needs to mirror the same arguments.
 
-- [ ] **Step 2: Read `_persist_assistant_turn`**
+- [x] **Step 2: Read `_persist_assistant_turn`**
 
 Open `src/backend/base/langflow/api/v1/assistant.py` around line 218 and read the function end to end. Find the exact line that writes `db_flow.data = final_flow_data` and the surrounding session/commit shape.
 
-- [ ] **Step 3: Write the failing test**
+- [x] **Step 3: Write the failing test**
 
 Create `src/backend/tests/unit/api/v1/test_assistant_persist_provisions_api_key.py`. The test must:
 
@@ -218,7 +218,7 @@ async def test_persist_provisions_api_key_when_assistant_adds_webhook(
 
 If the existing fixtures don't expose what you need, BLOCK and report — don't fabricate state.
 
-- [ ] **Step 4: Run the test to verify it fails**
+- [x] **Step 4: Run the test to verify it fails**
 
 ```bash
 pytest src/backend/tests/unit/api/v1/test_assistant_persist_provisions_api_key.py -v
@@ -226,7 +226,7 @@ pytest src/backend/tests/unit/api/v1/test_assistant_persist_provisions_api_key.p
 
 Expected: FAIL — no secret store entry exists.
 
-- [ ] **Step 5: Implement the fix**
+- [x] **Step 5: Implement the fix**
 
 In `src/backend/base/langflow/api/v1/assistant.py`, after the `db_flow.data = final_flow_data` write and before the session commit, add a call mirroring what `update_flow` does. Reuse the same imports — `_provision_webhook_api_key` from `api.v1.flows` (or move it to a shared util if importing from flows.py creates a circular import; in that case factor it out into `api/v1/_webhook_provisioning.py` or similar and import from both sites).
 
@@ -240,7 +240,7 @@ await session.commit()
 
 (Exact arg order per the real function signature found in Step 1.)
 
-- [ ] **Step 6: Run test to verify it passes**
+- [x] **Step 6: Run test to verify it passes**
 
 ```bash
 pytest src/backend/tests/unit/api/v1/test_assistant_persist_provisions_api_key.py -v
@@ -248,7 +248,7 @@ pytest src/backend/tests/unit/api/v1/test_assistant_persist_provisions_api_key.p
 
 Expected: PASS.
 
-- [ ] **Step 7: Run the broader assistant test suite to confirm nothing broke**
+- [x] **Step 7: Run the broader assistant test suite to confirm nothing broke**
 
 ```bash
 pytest src/backend/tests/unit/api/v1/test_assistant_stream_partial_persistence.py \
@@ -257,7 +257,7 @@ pytest src/backend/tests/unit/api/v1/test_assistant_stream_partial_persistence.p
 
 Expected: ALL PASS.
 
-- [ ] **Step 8: Stage**
+- [x] **Step 8: Stage**
 
 ```bash
 git add src/backend/base/langflow/api/v1/assistant.py \
@@ -276,11 +276,11 @@ git add src/backend/base/langflow/api/v1/assistant.py \
 
 Generic read-back tool. Useful for non-secret fields the assistant wants to surface (component model name an agent picked, endpoint URLs, etc.). The webhook api_key is NOT one of these (it's in the secret store, not the template) — that's Task 5.
 
-- [ ] **Step 1: Read `mutation.py` to mirror its shape**
+- [x] **Step 1: Read `mutation.py` to mirror its shape**
 
 Open `src/backend/base/langflow/services/assistant/tools/mutation.py`. Confirm the constructor signature (it takes `flow_data`) and how methods access `flow_data["nodes"]`. Mirror this for `FlowInspectionTools`.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 Create `src/backend/tests/unit/services/assistant/tools/test_inspection_get_node_field_value.py`:
 
@@ -336,7 +336,7 @@ def test_get_node_field_value_coerces_non_string_values_to_string():
     assert tools.get_node_field_value("trigger-1", "port") == "22"
 ```
 
-- [ ] **Step 3: Run tests to verify they fail**
+- [x] **Step 3: Run tests to verify they fail**
 
 ```bash
 pytest src/backend/tests/unit/services/assistant/tools/test_inspection_get_node_field_value.py -v
@@ -344,7 +344,7 @@ pytest src/backend/tests/unit/services/assistant/tools/test_inspection_get_node_
 
 Expected: FAIL with `ModuleNotFoundError`.
 
-- [ ] **Step 4: Implement `FlowInspectionTools`**
+- [x] **Step 4: Implement `FlowInspectionTools`**
 
 Create `src/backend/base/langflow/services/assistant/tools/inspection.py`:
 
@@ -386,7 +386,7 @@ class FlowInspectionTools:
         return str(value)
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 ```bash
 pytest src/backend/tests/unit/services/assistant/tools/test_inspection_get_node_field_value.py -v
@@ -394,7 +394,7 @@ pytest src/backend/tests/unit/services/assistant/tools/test_inspection_get_node_
 
 Expected: 5 PASS.
 
-- [ ] **Step 6: Add registry entry + dispatch wiring**
+- [x] **Step 6: Add registry entry + dispatch wiring**
 
 Open `src/backend/base/langflow/services/assistant/tools/registry.py`. Add a new constant block immediately after `MUTATION_TOOLS` (Task 5 will add a second entry to this same block):
 
@@ -467,7 +467,7 @@ from langflow.services.assistant.tools.registry import (
                 return {"result": result}
 ```
 
-- [ ] **Step 7: Add a service-level dispatch test**
+- [x] **Step 7: Add a service-level dispatch test**
 
 Append to the same test file (or create `test_inspection_dispatch.py` if you prefer a separate file):
 
@@ -496,7 +496,7 @@ async def test_get_node_field_value_dispatches_to_inspection_tools():
 
 If `AssistantService.__init__` requires more state, inspect `src/backend/tests/unit/test_assistant_service.py` for the canonical construction pattern and use that.
 
-- [ ] **Step 8: Run the dispatch + unit tests + the rest of the assistant suite**
+- [x] **Step 8: Run the dispatch + unit tests + the rest of the assistant suite**
 
 ```bash
 pytest src/backend/tests/unit/services/assistant/ src/backend/tests/unit/test_assistant_service.py -v
@@ -504,7 +504,7 @@ pytest src/backend/tests/unit/services/assistant/ src/backend/tests/unit/test_as
 
 Expected: ALL PASS.
 
-- [ ] **Step 9: Stage**
+- [x] **Step 9: Stage**
 
 ```bash
 git add src/backend/base/langflow/services/assistant/tools/inspection.py \
@@ -531,7 +531,7 @@ The webhook api_key lives in the secret store at `{org_id}/webhooks/{flow_id}` (
 
 Use **option 1** — keeps the tool signature minimal (the LLM doesn't need to know its own flow_id) and matches how `FlowMutationTools` is built. The tool's parameter list to the LLM is empty.
 
-- [ ] **Step 1: Update `FlowInspectionTools.__init__` to accept context**
+- [x] **Step 1: Update `FlowInspectionTools.__init__` to accept context**
 
 Edit `inspection.py`:
 
@@ -553,7 +553,7 @@ class FlowInspectionTools:
 
 The `*` keeps `flow_data` as the only positional arg so existing tests don't break. The new context fields default to `None` so existing call sites (Task 4's tests) keep working.
 
-- [ ] **Step 2: Update `AssistantService.__init__` to pass the context**
+- [x] **Step 2: Update `AssistantService.__init__` to pass the context**
 
 In `src/backend/base/langflow/services/assistant/service.py`, change:
 
@@ -574,7 +574,7 @@ self.inspection_tools = FlowInspectionTools(
 
 `flow_id` and `org_id` are already constructor args of `AssistantService` (see lines 121–139). The base URL needs sourcing — see Step 3.
 
-- [ ] **Step 3: Source the base URL**
+- [x] **Step 3: Source the base URL**
 
 Find how the existing webhook URL is rendered today (look for code that constructs the webhook URL in `api/v1/flows.py` or elsewhere). Common langflow pattern: read from app settings.
 
@@ -587,7 +587,7 @@ If there's an existing setting, add a small helper `_get_base_url()` on `Assista
 
 If sourcing the base URL turns out to be ambiguous, **report back as DONE_WITH_CONCERNS** with a recommendation, rather than guessing.
 
-- [ ] **Step 4: Write the failing tests**
+- [x] **Step 4: Write the failing tests**
 
 Create `src/backend/tests/unit/services/assistant/tools/test_inspection_get_webhook_credentials.py`:
 
@@ -649,7 +649,7 @@ async def test_get_webhook_credentials_returns_error_when_no_key_provisioned(mon
     }
 ```
 
-- [ ] **Step 5: Run tests to verify they fail**
+- [x] **Step 5: Run tests to verify they fail**
 
 ```bash
 pytest src/backend/tests/unit/services/assistant/tools/test_inspection_get_webhook_credentials.py -v
@@ -657,7 +657,7 @@ pytest src/backend/tests/unit/services/assistant/tools/test_inspection_get_webho
 
 Expected: FAIL with `AttributeError: 'FlowInspectionTools' object has no attribute 'get_webhook_credentials'`.
 
-- [ ] **Step 6: Implement `get_webhook_credentials`**
+- [x] **Step 6: Implement `get_webhook_credentials`**
 
 Add to `inspection.py`:
 
@@ -695,7 +695,7 @@ from langflow.services.secret_store.factory import get_secret_store
 
 The exact import path for `get_secret_store` may differ — confirm by reading `src/backend/base/langflow/services/secret_store/`. If the actual signature returns `dict | None` directly vs. a wrapper, adjust the test fakes accordingly.
 
-- [ ] **Step 7: Add the registry entry**
+- [x] **Step 7: Add the registry entry**
 
 Append to `INSPECTION_TOOLS` in `registry.py`:
 
@@ -714,7 +714,7 @@ Append to `INSPECTION_TOOLS` in `registry.py`:
 
 (No parameters — context comes from the service's flow.)
 
-- [ ] **Step 8: Update the dispatch branch to await async inspection tools**
+- [x] **Step 8: Update the dispatch branch to await async inspection tools**
 
 Task 4 wrote the inspection branch as synchronous. Now we need it to handle async methods. Edit `_execute_tool` in `service.py`:
 
@@ -730,7 +730,7 @@ Task 4 wrote the inspection branch as synchronous. Now we need it to handle asyn
 
 (Mirrors the mutation branch's coroutine handling.)
 
-- [ ] **Step 9: Run tests to verify they pass**
+- [x] **Step 9: Run tests to verify they pass**
 
 ```bash
 pytest src/backend/tests/unit/services/assistant/tools/test_inspection_get_webhook_credentials.py \
@@ -739,7 +739,7 @@ pytest src/backend/tests/unit/services/assistant/tools/test_inspection_get_webho
 
 Expected: ALL PASS.
 
-- [ ] **Step 10: Run the broader assistant suite**
+- [x] **Step 10: Run the broader assistant suite**
 
 ```bash
 pytest src/backend/tests/unit/services/assistant/ src/backend/tests/unit/test_assistant_service.py -v
@@ -747,7 +747,7 @@ pytest src/backend/tests/unit/services/assistant/ src/backend/tests/unit/test_as
 
 Expected: ALL PASS.
 
-- [ ] **Step 11: Stage**
+- [x] **Step 11: Stage**
 
 ```bash
 git add src/backend/base/langflow/services/assistant/tools/inspection.py \
@@ -772,7 +772,7 @@ For password-typed fields the assistant cannot pass a literal to `set_field_valu
 
 Forward-compat note (per user direction): future metadata work will tag fields as "secret" so the assistant knows when to use this tool. For now the playbook (Task 7) lists the known secret fields explicitly.
 
-- [ ] **Step 1: Locate the variable store API**
+- [x] **Step 1: Locate the variable store API**
 
 ```bash
 grep -rn "class.*VariableService\|create_variable\|variable_service" \
@@ -783,15 +783,15 @@ grep -rn "user_variables\|/variables" \
 
 Find the canonical Python entry point (probably `VariableService.create_variable(...)` or similar). Note its signature (does it require `user_id`? `org_id`? a session?). Note where the value gets encrypted/persisted.
 
-- [ ] **Step 2: Confirm the FlowMutationTools constructor**
+- [x] **Step 2: Confirm the FlowMutationTools constructor**
 
 Open `src/backend/base/langflow/services/assistant/tools/mutation.py`. Read the `__init__` signature. Variables need at least `user_id` (variables are scoped per user in most Langflow installs). If the constructor doesn't already have it, add it as a kwarg-only param the same way Task 5 added context to `FlowInspectionTools`.
 
-- [ ] **Step 3: Update `AssistantService` to pass user_id (and any other needed context) to mutation_tools**
+- [x] **Step 3: Update `AssistantService` to pass user_id (and any other needed context) to mutation_tools**
 
 If the mutation_tools constructor needs new params, update `service.py:138` to pass them. (`AssistantService.__init__` already takes `user_id` per the existing file.)
 
-- [ ] **Step 4: Write the failing test**
+- [x] **Step 4: Write the failing test**
 
 Create `src/backend/tests/unit/services/assistant/tools/test_create_secret_variable.py`:
 
@@ -832,7 +832,7 @@ async def test_create_secret_variable_returns_error_when_user_id_missing(monkeyp
     assert result == {"error": "cannot create secret variable: missing user context"}
 ```
 
-- [ ] **Step 5: Run tests to verify they fail**
+- [x] **Step 5: Run tests to verify they fail**
 
 ```bash
 pytest src/backend/tests/unit/services/assistant/tools/test_create_secret_variable.py -v
@@ -840,7 +840,7 @@ pytest src/backend/tests/unit/services/assistant/tools/test_create_secret_variab
 
 Expected: FAIL.
 
-- [ ] **Step 6: Implement `create_secret_variable`**
+- [x] **Step 6: Implement `create_secret_variable`**
 
 Add to `FlowMutationTools` in `mutation.py`:
 
@@ -867,7 +867,7 @@ Add to `FlowMutationTools` in `mutation.py`:
 
 Adjust the `get_variable_service` import to match what Step 1 found.
 
-- [ ] **Step 7: Add the registry entry**
+- [x] **Step 7: Add the registry entry**
 
 Append to `MUTATION_TOOLS` in `registry.py`:
 
@@ -894,7 +894,7 @@ Append to `MUTATION_TOOLS` in `registry.py`:
     },
 ```
 
-- [ ] **Step 8: Run tests to verify pass**
+- [x] **Step 8: Run tests to verify pass**
 
 ```bash
 pytest src/backend/tests/unit/services/assistant/tools/test_create_secret_variable.py -v
@@ -902,7 +902,7 @@ pytest src/backend/tests/unit/services/assistant/tools/test_create_secret_variab
 
 Expected: PASS.
 
-- [ ] **Step 9: Run the broader assistant + mutation suites**
+- [x] **Step 9: Run the broader assistant + mutation suites**
 
 ```bash
 pytest src/backend/tests/unit/services/assistant/ \
@@ -912,7 +912,7 @@ pytest src/backend/tests/unit/services/assistant/ \
 
 Expected: ALL PASS.
 
-- [ ] **Step 10: Stage**
+- [x] **Step 10: Stage**
 
 ```bash
 git add src/backend/base/langflow/services/assistant/tools/mutation.py \
@@ -935,7 +935,7 @@ The existing prompt has a `## Guidelines` section (line 50) of bullet points. Ad
 
 ### 7.A — Pacing rules
 
-- [ ] **Step A1: Write the failing test**
+- [x] **Step A1: Write the failing test**
 
 Create `src/backend/tests/unit/services/assistant/test_pacing_guidelines_in_prompt.py`:
 
@@ -971,7 +971,7 @@ def test_pacing_rule_surface_actionables_after_build():
     assert "surface anything the user must act on" in SYSTEM_PROMPT_TEMPLATE.lower()
 ```
 
-- [ ] **Step A2: Run to verify failure**
+- [x] **Step A2: Run to verify failure**
 
 ```bash
 pytest src/backend/tests/unit/services/assistant/test_pacing_guidelines_in_prompt.py -v
@@ -979,7 +979,7 @@ pytest src/backend/tests/unit/services/assistant/test_pacing_guidelines_in_promp
 
 Expected: 7 FAIL.
 
-- [ ] **Step A3: Add the pacing block**
+- [x] **Step A3: Add the pacing block**
 
 In `service.py`, after the existing `[TEST_FAILURE]` bullet (line 87–97) and before the closing `"""` at line 98, add:
 
@@ -1000,7 +1000,7 @@ about SFTP port if 22 is fine — use it and mention it.
 act on (for example, the webhook URL and API key the upstream system needs).
 ```
 
-- [ ] **Step A4: Run to verify pass**
+- [x] **Step A4: Run to verify pass**
 
 ```bash
 pytest src/backend/tests/unit/services/assistant/test_pacing_guidelines_in_prompt.py -v
@@ -1010,7 +1010,7 @@ Expected: 7 PASS.
 
 ### 7.B — ADP integration playbook (with corrected mechanics)
 
-- [ ] **Step B1: Write the failing test**
+- [x] **Step B1: Write the failing test**
 
 Create `src/backend/tests/unit/services/assistant/test_adp_playbook_in_prompt.py`:
 
@@ -1076,7 +1076,7 @@ def test_secret_field_routing_via_create_secret_variable():
     assert "password" in text
 ```
 
-- [ ] **Step B2: Run to verify failure**
+- [x] **Step B2: Run to verify failure**
 
 ```bash
 pytest src/backend/tests/unit/services/assistant/test_adp_playbook_in_prompt.py -v
@@ -1084,7 +1084,7 @@ pytest src/backend/tests/unit/services/assistant/test_adp_playbook_in_prompt.py 
 
 Expected: 10 FAIL.
 
-- [ ] **Step B3: Add the ADP playbook block to `SYSTEM_PROMPT_TEMPLATE`**
+- [x] **Step B3: Add the ADP playbook block to `SYSTEM_PROMPT_TEMPLATE`**
 
 Append to the prompt template, after the pacing block:
 
@@ -1157,7 +1157,7 @@ collision-safe) by default. Offer `{date}` only if the user explicitly \
 wants one file per day and accepts the overwrite trade-off.
 ```
 
-- [ ] **Step B4: Run to verify pass**
+- [x] **Step B4: Run to verify pass**
 
 ```bash
 pytest src/backend/tests/unit/services/assistant/test_adp_playbook_in_prompt.py -v
@@ -1167,7 +1167,7 @@ Expected: 10 PASS.
 
 ### 7.C — Template override (separate test file because the rule lives inside the playbook block but is still worth asserting independently)
 
-- [ ] **Step C1: Write the failing test**
+- [x] **Step C1: Write the failing test**
 
 Create `src/backend/tests/unit/services/assistant/test_template_override_in_prompt.py`:
 
@@ -1185,7 +1185,7 @@ def test_template_override_falls_back_to_playbook():
     assert "fall back to" in text or "fallback to" in text
 ```
 
-- [ ] **Step C2: Run to verify pass (the rule is already in 7.B)**
+- [x] **Step C2: Run to verify pass (the rule is already in 7.B)**
 
 ```bash
 pytest src/backend/tests/unit/services/assistant/test_template_override_in_prompt.py -v
@@ -1197,7 +1197,7 @@ If they fail, the wording in Step B3's "Template override" bullet doesn't match 
 
 ### 7.D — Sanity check + stage
 
-- [ ] **Step D1: Run all three new prompt tests + the existing prompt tests**
+- [x] **Step D1: Run all three new prompt tests + the existing prompt tests**
 
 ```bash
 pytest src/backend/tests/unit/services/assistant/ -v -k "prompt or guideline or playbook or override"
@@ -1205,7 +1205,7 @@ pytest src/backend/tests/unit/services/assistant/ -v -k "prompt or guideline or 
 
 Expected: ALL PASS. The existing `test_greeting_guidelines_in_prompt.py` and `test_test_failure_guideline_in_prompt.py` tests should still pass — the new content was appended, not replacing existing bullets.
 
-- [ ] **Step D2: Run the full assistant test suite**
+- [x] **Step D2: Run the full assistant test suite**
 
 ```bash
 pytest src/backend/tests/unit/services/assistant/ src/backend/tests/unit/test_assistant_service.py -v
@@ -1213,7 +1213,7 @@ pytest src/backend/tests/unit/services/assistant/ src/backend/tests/unit/test_as
 
 Expected: ALL PASS.
 
-- [ ] **Step D3: Stage**
+- [x] **Step D3: Stage**
 
 ```bash
 git add src/backend/base/langflow/services/assistant/service.py \
@@ -1230,11 +1230,11 @@ git add src/backend/base/langflow/services/assistant/service.py \
 
 This task validates that a real LLM following the system prompt actually emits the playbook-prescribed behavior — including the new `create_secret_variable`/`get_webhook_credentials` flow.
 
-- [ ] **Step 1: Boot the dev environment**
+- [x] **Step 1: Boot the dev environment**
 
 Backend running, frontend dev server up, an LLM provider configured for the assistant.
 
-- [ ] **Step 2: Run Scenario A end-to-end**
+- [x] **Step 2: Run Scenario A end-to-end**
 
 1. Open the app, click **New Project** → blank template → **Build with ADP Assist**.
 2. Wait for the assistant greeting.
@@ -1248,7 +1248,7 @@ Backend running, frontend dev server up, an LLM provider configured for the assi
    - SFTP `password` field shows a variable reference (not the literal); the variable exists in the variable store.
    - Final assistant message contains the webhook URL and the API key, with instructions to use the `x-api-key` header.
 
-- [ ] **Step 3: Run Scenario B end-to-end**
+- [x] **Step 3: Run Scenario B end-to-end**
 
 1. Open a new blank flow → Build with ADP Assist.
 2. Paste the Scenario B prompt:
@@ -1262,11 +1262,11 @@ Backend running, frontend dev server up, an LLM provider configured for the assi
    - Reply "test, then a dash, then a datestamp, csv" → assistant builds the same flow as Scenario A.
    - Final message contains URL + API key.
 
-- [ ] **Step 4: Verify the SFTP filename rendering**
+- [x] **Step 4: Verify the SFTP filename rendering**
 
 Inspect the SFTP CSV Upload component on the canvas. Confirm the filename field shows `test-{datestamp}.csv`. Hover the filename input — confirm the info tooltip mentions `{datestamp}`.
 
-- [ ] **Step 5: Verify the webhook actually fires end-to-end (optional smoke test)**
+- [x] **Step 5: Verify the webhook actually fires end-to-end (optional smoke test)**
 
 Use the surfaced URL + API key to send a fake ADP webhook payload via curl:
 
@@ -1279,7 +1279,7 @@ curl -X POST "<url>" \
 
 Confirm the request is accepted (no 401/403) and that a CSV file appears on the SFTP target with the expected name format.
 
-- [ ] **Step 6: Report readiness**
+- [x] **Step 6: Report readiness**
 
 Post a verification report:
 

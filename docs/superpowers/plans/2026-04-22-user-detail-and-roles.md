@@ -2593,7 +2593,7 @@ git commit -m "feat(admin): members table uses RoleBadge + row link"
 **Files:**
 - Read-only pass; produce a markdown file listing every endpoint + line to modify.
 
-- [ ] **Step 1: Grep**
+- [x] **Step 1: Grep**
 
 ```bash
 grep -rn "user_id == current_user" src/backend/base/langflow/api/ src/lfx/src/lfx/ || true
@@ -2615,7 +2615,7 @@ Each entry: `file:line — current check → replacement`.
 
 Every site gets an explicit plan. Expect ~15-25 sites across flows + folders + build + run + stream.
 
-- [ ] **Step 3: Propose commit**
+- [x] **Step 3: Propose commit**
 
 ```bash
 git add docs/superpowers/plans/2026-04-22-flow-ownership-worklist.md
@@ -2630,7 +2630,7 @@ git commit -m "docs: flow/folder ownership transition worklist"
 - Modify: `src/backend/base/langflow/api/v1/flows.py` (list flows, get flow)
 - Create: `src/backend/tests/unit/api/v1/test_flow_role_enforcement.py`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```python
 # test_flow_role_enforcement.py
@@ -2664,7 +2664,7 @@ async def test_get_flow_403_for_non_member(
     assert r.status_code == 403
 ```
 
-- [ ] **Step 2: Update the list-flows endpoint**
+- [x] **Step 2: Update the list-flows endpoint**
 
 Find the current handler (likely wrapped around `Flow.user_id == current_user.id`). Replace the where-clause with an org-membership join:
 
@@ -2697,7 +2697,7 @@ async def read_flows(
 
 Exact shape depends on current signature — preserve existing query params, pagination, ordering.
 
-- [ ] **Step 3: Update `read_flow` (single)**
+- [x] **Step 3: Update `read_flow` (single)**
 
 ```python
 @router.get("/{flow_id}")
@@ -2711,9 +2711,9 @@ async def read_flow(
     return flow
 ```
 
-- [ ] **Step 4: Run tests — pass**
+- [x] **Step 4: Run tests — pass**
 
-- [ ] **Step 5: Propose commit**
+- [x] **Step 5: Propose commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/flows.py \
@@ -2728,7 +2728,7 @@ git commit -m "feat(flows): org-role gate on list/read (Viewer+)"
 **Files:**
 - Modify: `src/backend/base/langflow/api/v1/flows.py` (create/update/delete)
 
-- [ ] **Step 1: Extend the test file**
+- [x] **Step 1: Extend the test file**
 
 ```python
 @pytest.mark.parametrize("caller_role,expected", [
@@ -2778,7 +2778,7 @@ async def test_create_flow_role_matrix(
     assert r.status_code == expected
 ```
 
-- [ ] **Step 2: Update each write endpoint**
+- [x] **Step 2: Update each write endpoint**
 
 For `create_flow`, `update_flow`, `delete_flow`:
 
@@ -2816,9 +2816,9 @@ async def delete_flow(flow_id: UUID, current_user: CurrentActiveUser, session: D
 
 Keep exact signatures and response models as they currently stand — only swap the authorization check.
 
-- [ ] **Step 3: Tests pass**
+- [x] **Step 3: Tests pass**
 
-- [ ] **Step 4: Propose commit**
+- [x] **Step 4: Propose commit**
 
 ```bash
 git add src/backend/base/langflow/api/v1/flows.py \
@@ -2833,11 +2833,11 @@ git commit -m "feat(flows): org-role gate on create/update/delete (Member+)"
 **Files:**
 - Modify: `src/backend/base/langflow/api/v1/folders.py` (or the file that hosts folder endpoints)
 
-- [ ] **Step 1: Extend tests** for folder create/update/delete with same matrix, same expected outcomes.
+- [x] **Step 1: Extend tests** for folder create/update/delete with same matrix, same expected outcomes.
 
-- [ ] **Step 2: Apply same transformation** — Viewer+ on read; Member+ on create/update/delete; drop `user_id == current_user.id` checks.
+- [x] **Step 2: Apply same transformation** — Viewer+ on read; Member+ on create/update/delete; drop `user_id == current_user.id` checks.
 
-- [ ] **Step 3: Propose commit**
+- [x] **Step 3: Propose commit**
 
 ```bash
 git commit -m "feat(folders): org-role gate replacing per-user ownership"
@@ -2850,7 +2850,7 @@ git commit -m "feat(folders): org-role gate replacing per-user ownership"
 **Files:**
 - Modify: build/run/stream endpoints (likely `src/backend/base/langflow/api/v1/endpoints.py` and/or `chat.py` — grep for `/build/` and `/run/` registrations)
 
-- [ ] **Step 1: Extend tests**
+- [x] **Step 1: Extend tests**
 
 ```python
 @pytest.mark.parametrize("caller_role,expected_any_of", [
@@ -2872,7 +2872,7 @@ async def test_run_flow_role_matrix(
     assert r.status_code in expected_any_of
 ```
 
-- [ ] **Step 2: Add `assert_org_role(..., MembershipRole.OPERATOR, ...)` to every execution endpoint**
+- [x] **Step 2: Add `assert_org_role(..., MembershipRole.OPERATOR, ...)` to every execution endpoint**
 
 For each flagged endpoint (build, run, run-public, stream, cancel):
 
@@ -2884,9 +2884,9 @@ await assert_org_role(current_user, flow.organization_id, MembershipRole.OPERATO
 
 Apply only after resolving the flow — skip `X-Public-Flow`-style anonymous paths, which must stay unauthenticated.
 
-- [ ] **Step 3: Tests pass**
+- [x] **Step 3: Tests pass**
 
-- [ ] **Step 4: Propose commit**
+- [x] **Step 4: Propose commit**
 
 ```bash
 git commit -m "feat(flows): Operator+ gate on run/build/stream endpoints"
@@ -2899,17 +2899,17 @@ git commit -m "feat(flows): Operator+ gate on run/build/stream endpoints"
 **Files:**
 - Search: `grep -rn "user_id" src/frontend/src/pages/`
 
-- [ ] **Step 1: Find client-side filters** that pass `user_id=<self>` to flow list queries. Most common location: the flows page (`src/frontend/src/pages/MainPage/` or similar).
+- [x] **Step 1: Find client-side filters** that pass `user_id=<self>` to flow list queries. Most common location: the flows page (`src/frontend/src/pages/MainPage/` or similar).
 
-- [ ] **Step 2: Replace with org-scoped listing.** The backend already returns flows for all orgs the user is in. If the UI had a "My Flows" tab, rename to "Recent" or remove.
+- [x] **Step 2: Replace with org-scoped listing.** The backend already returns flows for all orgs the user is in. If the UI had a "My Flows" tab, rename to "Recent" or remove.
 
-- [ ] **Step 3: Verify manually**
+- [x] **Step 3: Verify manually**
 
 Start dev server. Confirm:
 - Flow list shows flows from all orgs the user is a member of.
 - No broken empty-states due to removed filters.
 
-- [ ] **Step 4: Propose commit**
+- [x] **Step 4: Propose commit**
 
 ```bash
 git commit -m "feat(frontend): flow list scoped to org membership, not user_id"
