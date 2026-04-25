@@ -297,3 +297,10 @@ async def test_mixed_inputs_dataframe_left():
     cmp = _new_combine(left, right, mode="Append")
     result = await cmp.build_combined()
     assert isinstance(result, DataFrame)
+
+
+def test_component_is_registered_in_bundle():
+    from lfx.components import processing
+
+    assert "CombineRecordsComponent" in processing.__all__
+    assert processing.CombineRecordsComponent is CombineRecordsComponent

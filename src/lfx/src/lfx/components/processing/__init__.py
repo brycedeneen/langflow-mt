@@ -7,12 +7,14 @@ from typing import TYPE_CHECKING, Any
 from lfx.components._importing import import_mod
 
 if TYPE_CHECKING:
+    from lfx.components.processing.combine_records import CombineRecordsComponent
     from lfx.components.processing.combine_text import CombineTextComponent
     from lfx.components.processing.converter import TypeConverterComponent
     from lfx.components.processing.create_list import CreateListComponent
     from lfx.components.processing.data_mapper import DataMapperComponent
     from lfx.components.processing.data_operations import DataOperationsComponent
     from lfx.components.processing.dataframe_operations import DataFrameOperationsComponent
+    from lfx.components.processing.filter_records import FilterRecordsComponent
     from lfx.components.processing.json_cleaner import JSONCleaner
     from lfx.components.processing.output_parser import OutputParserComponent
     from lfx.components.processing.parse_data import ParseDataComponent
@@ -22,12 +24,14 @@ if TYPE_CHECKING:
     from lfx.components.processing.store_message import MessageStoreComponent
 
 _dynamic_imports = {
+    "CombineRecordsComponent": "combine_records",
     "CombineTextComponent": "combine_text",
     "TypeConverterComponent": "converter",
     "CreateListComponent": "create_list",
     "DataMapperComponent": "data_mapper",
     "DataOperationsComponent": "data_operations",
     "DataFrameOperationsComponent": "dataframe_operations",
+    "FilterRecordsComponent": "filter_records",
     "JSONCleaner": "json_cleaner",
     "OutputParserComponent": "output_parser",
     "ParseDataComponent": "parse_data",
@@ -38,11 +42,13 @@ _dynamic_imports = {
 }
 
 __all__ = [
+    "CombineRecordsComponent",
     "CombineTextComponent",
     "CreateListComponent",
     "DataFrameOperationsComponent",
     "DataMapperComponent",
     "DataOperationsComponent",
+    "FilterRecordsComponent",
     "JSONCleaner",
     "MessageStoreComponent",
     "OutputParserComponent",

@@ -241,3 +241,10 @@ async def test_validation_skips_blank_rows():
     )
     matched = await cmp.build_matched()
     assert [d.data["name"] for d in matched] == ["Alice", "Charlie"]
+
+
+def test_component_is_registered_in_bundle():
+    from lfx.components import processing
+
+    assert "FilterRecordsComponent" in processing.__all__
+    assert processing.FilterRecordsComponent is FilterRecordsComponent
