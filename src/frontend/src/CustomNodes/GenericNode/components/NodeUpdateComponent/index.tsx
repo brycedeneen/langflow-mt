@@ -1,7 +1,11 @@
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils/utils";
 
-export default function NodeUpdateComponent({
+// memo: parent (GenericNode) re-renders frequently from canvas/zustand updates;
+// this banner depends only on stable callbacks (after parent useCallback wrap)
+// and primitive flags.
+function NodeUpdateComponent({
   hasBreakingChange,
   showNode,
   handleUpdateCode,
@@ -58,3 +62,5 @@ export default function NodeUpdateComponent({
     </div>
   );
 }
+
+export default memo(NodeUpdateComponent);

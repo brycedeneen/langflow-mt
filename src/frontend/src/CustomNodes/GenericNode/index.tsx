@@ -476,6 +476,12 @@ function GenericNode({
     () => handleUpdateCode(true),
     [handleUpdateCode],
   );
+  // useCallback so the memo'd NodeUpdateComponent doesn't see a fresh fn ref
+  // every parent render (parent re-renders on every flow store / canvas tick).
+  const memoizedHandleUpdateCode = useCallback(
+    () => handleUpdateCode(),
+    [handleUpdateCode],
+  );
   const memoizedSetDismissAll = useCallback(
     () => addDismissedNodes([data.id]),
     [addDismissedNodes, data.id],
@@ -509,7 +515,7 @@ function GenericNode({
           <NodeUpdateComponent
             hasBreakingChange={hasBreakingChange}
             showNode={showNode}
-            handleUpdateCode={() => handleUpdateCode()}
+            handleUpdateCode={memoizedHandleUpdateCode}
             loadingUpdate={loadingUpdate}
             setDismissAll={memoizedSetDismissAll}
           />

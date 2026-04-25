@@ -1,10 +1,13 @@
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 
 import { getNodeOutputColors } from "../../../helpers/get-node-output-colors";
 import { getNodeOutputColorsName } from "../../../helpers/get-node-output-colors-name";
 import NodeOutputField from "../NodeOutputfield";
 
-export const OutputParameter = ({
+// memo: rendered inside NodeOutputs.map() — `output` is a stable .map() entry,
+// `outputs`/`data`/`types`/`handleSelectOutput` come from useMemo'd selectors at
+// the GenericNode parent, and the rest are primitives.
+const OutputParameterImpl = ({
   output,
   outputs = [],
   idx,
@@ -93,3 +96,5 @@ export const OutputParameter = ({
     />
   );
 };
+
+export const OutputParameter = memo(OutputParameterImpl);
