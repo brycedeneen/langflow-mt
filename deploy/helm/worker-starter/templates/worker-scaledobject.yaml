@@ -15,6 +15,6 @@ spec:
     - type: redis
       metadata:
         address: {{ .Values.worker.autoscaling.redis.address | quote }}
-        listName: "arq:queue:{{ .Values.worker.autoscaling.redis.queueName }}"
+        listName: "{{ .Values.worker.autoscaling.redis.queueName }}"
         listLength: {{ .Values.worker.autoscaling.redis.listLength | quote }}
 {{- end }}
