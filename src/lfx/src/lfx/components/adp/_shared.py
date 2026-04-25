@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import asyncio
 import re
-from collections.abc import AsyncIterator
+import time
+from collections import OrderedDict
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from urllib.parse import urlsplit
+from typing import Any
+from urllib.parse import urlencode, urlsplit
 
 import httpx
 
@@ -137,3 +141,52 @@ async def _post_token_request(client: httpx.AsyncClient, conn: ADPConnection) ->
         },
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
+
+
+@dataclass
+class _CacheEntry:
+    expires_at: float
+    value: Any
+
+
+class RequestCache:
+    """Read-through cache for ADP GETs, scoped to a single build_tools() call.
+
+    Closure-scoped, so also implicitly per-ADPConnection: two ADP Tools components
+    in one flow get two independent caches with no cross-tenant leakage.
+    Reads only — writes never consult or populate this cache.
+    """
+
+    def __init__(self, *, ttl_seconds: float = 30.0, max_entries: int = 128) -> None:
+        self._ttl = ttl_seconds
+        self._max = max_entries
+        self._entries: OrderedDict[str, _CacheEntry] = OrderedDict()
+        self._locks: dict[str, asyncio.Lock] = {}
+
+    @staticmethod
+    def make_key(method: str, url: str, query: Mapping[str, Any] | None = None) -> str:
+        # Resolved URL (post path-substitution), sorted query items, no Authorization.
+        items = sorted((query or {}).items())
+        return f"{method.upper()} {url}?{urlencode(items, doseq=True)}"
+
+    async def get_or_fetch(self, key: str, fetch: Callable[[], Awaitable[Any]]) -> Any:
+        now = time.monotonic()
+        entry = self._entries.get(key)
+        if entry and entry.expires_at > now:
+            self._entries.move_to_end(key)
+            return entry.value
+        lock = self._locks.setdefault(key, asyncio.Lock())
+        async with lock:
+            entry = self._entries.get(key)
+            if entry and entry.expires_at > time.monotonic():
+                return entry.value
+            value = await fetch()
+            self._store(key, value)
+            return value
+
+    def _store(self, key: str, value: Any) -> None:
+        self._entries[key] = _CacheEntry(expires_at=time.monotonic() + self._ttl, value=value)
+        self._entries.move_to_end(key)
+        while len(self._entries) > self._max:
+            evicted_key, _ = self._entries.popitem(last=False)
+            self._locks.pop(evicted_key, None)
