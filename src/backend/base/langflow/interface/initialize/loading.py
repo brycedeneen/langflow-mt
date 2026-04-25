@@ -115,13 +115,24 @@ async def update_params_with_load_from_db_fields(
     *,
     fallback_to_env_vars=False,
 ):
+    from lfx.services.secret_store import get_secret_store
+    from langflow.services.variable.resolver import resolve_secret_reference
+
+    secret_store = get_secret_store()
+
     async with session_scope() as session:
         for field in load_from_db_fields:
             if field not in params or not params[field]:
                 continue
 
             try:
-                key = await custom_component.get_variable(name=params[field], field=field, session=session)
+                key = await resolve_secret_reference(
+                    custom_component=custom_component,
+                    name=params[field],
+                    field=field,
+                    session=session,
+                    secret_store=secret_store,
+                )
             except ValueError as e:
                 if "User id is not set" in str(e):
                     raise
@@ -130,7 +141,7 @@ async def update_params_with_load_from_db_fields(
                 await logger.adebug(str(e))
                 key = None
 
-            if fallback_to_env_vars and key is None:
+            if fallback_to_env_vars and not key:
                 key = os.getenv(params[field])
                 if key:
                     await logger.ainfo(f"Using environment variable {params[field]} for {field}")
@@ -138,7 +149,7 @@ async def update_params_with_load_from_db_fields(
                     await logger.aerror(f"Environment variable {params[field]} is not set.")
 
             params[field] = key if key is not None else None
-            if key is None:
+            if not key:
                 await logger.awarning(f"Could not get value for {field}. Setting it to None.")
 
         return params

@@ -419,6 +419,7 @@ async def create_flow(
                 flow_data=flow.data,
                 flow_id=flow_id,
                 user_id=current_user.id,
+                secret_store=get_secret_store(),
                 variable_service=get_variable_service(),
                 session=session,
             )
@@ -608,10 +609,12 @@ async def update_flow(
 
         if "data" in update_data and update_data["data"] is not None:
             var_svc = get_variable_service()
+            sec_store = get_secret_store()
             update_data["data"] = await promote_plaintext_secrets_to_variables(
                 flow_data=update_data["data"],
                 flow_id=db_flow.id,
                 user_id=current_user.id,
+                secret_store=sec_store,
                 variable_service=var_svc,
                 session=session,
             )
@@ -619,7 +622,7 @@ async def update_flow(
                 flow_data=update_data["data"],
                 flow_id=db_flow.id,
                 user_id=current_user.id,
-                variable_service=var_svc,
+                secret_store=sec_store,
                 session=session,
             )
 
@@ -900,7 +903,7 @@ async def delete_flow(
     await delete_autosecrets_for_flow(
         flow_id=flow.id,
         user_id=current_user.id,
-        variable_service=get_variable_service(),
+        secret_store=get_secret_store(),
         session=session,
     )
     await cascade_delete_flow(session, flow.id)
