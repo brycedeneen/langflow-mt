@@ -1,6 +1,7 @@
 """ADP connector bundle: Auth, API Request, MCP, Worker Tools, Trigger."""
 
 from .adp_api_request import ADPAPIRequestComponent
+from .adp_tools import ADPToolsComponent
 from .adp_applicant_onboarding_tools import ADPApplicantOnboardingToolsComponent
 from .adp_auth import ADPAuthComponent
 from .adp_benefits_tools import ADPBenefitsToolsComponent
@@ -36,6 +37,7 @@ from .adp_worker_tools import build_worker_tools
 
 __all__ = [
     "ADPAPIRequestComponent",
+    "ADPToolsComponent",
     "ADPApplicantOnboardingToolsComponent",
     "ADPAuthComponent",
     "ADPBenefitsToolsComponent",
