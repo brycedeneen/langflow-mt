@@ -100,6 +100,90 @@ class FilterRecordsComponent(Component):
         _, unmatched = self._partition()
         return unmatched
 
+    def _normalize_records(self) -> tuple[list[dict], Any]:
+        """Resolve self.records into a (record_dicts, output_shape) tuple.
+
+        Rule: with `is_list=True`, the framework always wraps inputs into a
+        list. We treat `self.records` as that list and merge all items into
+        one record stream. Output shape follows a single predictable rule:
+
+        - All items are DataFrame → DataFrame out (DATAFRAME)
+        - Otherwise → list[Data] out (DATA_LIST)
+        - Empty / no items → empty DATA_LIST
+
+        Bare inputs (Data or DataFrame, used in tests that bypass framework
+        wrapping) are silently wrapped in a list so the rule still applies.
+        """
+        from lfx.components.processing._record_ops import (
+            InputShape,
+            detect_shape,
+            to_record_list,
+        )
+        from lfx.schema import Data, DataFrame
+
+        raw = self.records
+
+        # Defensive: tests sometimes assign bare Data/DataFrame; wrap.
+        if isinstance(raw, (Data, DataFrame)):
+            raw = [raw]
+        elif raw is None:
+            return [], InputShape.DATA_LIST
+
+        if not isinstance(raw, list):
+            msg = f"FilterRecords: unsupported records type: {type(raw).__name__}"
+            raise TypeError(msg)
+
+        if len(raw) == 0:
+            return [], InputShape.DATA_LIST
+
+        item_shapes = [detect_shape(item) for item in raw]
+        merged: list[dict] = []
+        for item in raw:
+            merged.extend(to_record_list(item))
+        out_shape = (
+            InputShape.DATAFRAME
+            if all(s is InputShape.DATAFRAME for s in item_shapes)
+            else InputShape.DATA_LIST
+        )
+        return merged, out_shape
+
+    def _row_predicate(self, record: dict) -> bool:
+        """Evaluate the conditions table against one record dict."""
+        from lfx.components.processing._record_ops import evaluate, get_path
+
+        rows = self.conditions or []
+        if not rows:
+            # Empty conditions: vacuously True for AND, vacuously False for OR.
+            # Build-time validation rejects this with Keep mode, so OR with
+            # empty conditions only reaches us in Exclude mode.
+            return True if self.combinator == "AND" else False
+
+        def one(row: dict) -> bool:
+            field = row.get("field", "")
+            operator = row.get("operator", "equals")
+            value = row.get("value", "") or ""
+            field_value = get_path(record, field) if field else None
+            return evaluate(operator, field_value, value)
+
+        if self.combinator == "OR":
+            return any(one(r) for r in rows)
+        return all(one(r) for r in rows)
+
     def _partition(self) -> tuple[Any, Any]:
-        msg = "FilterRecordsComponent._partition is not implemented yet."
-        raise NotImplementedError(msg)
+        from lfx.components.processing._record_ops import from_record_list
+
+        records, shape = self._normalize_records()
+        invert = self.mode == "Exclude matching"
+
+        matched_records: list[dict] = []
+        unmatched_records: list[dict] = []
+        for record in records:
+            predicate = self._row_predicate(record)
+            if invert:
+                predicate = not predicate
+            (matched_records if predicate else unmatched_records).append(record)
+
+        return (
+            from_record_list(matched_records, shape),
+            from_record_list(unmatched_records, shape),
+        )
