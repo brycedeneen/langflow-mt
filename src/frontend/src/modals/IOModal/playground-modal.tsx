@@ -1,6 +1,6 @@
 //import LangflowLogoColor from "@/assets/LangflowLogocolor.svg?react";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import ThemeButtons from "@/components/core/appHeaderComponent/components/ThemeButtons";
 import { useGetMessagesQuery } from "@/controllers/API/queries/messages";
@@ -60,16 +60,30 @@ export default function IOModal({
       flowName: state.currentFlow?.name,
     })),
   );
-  const filteredInputs = inputs.filter((input) => input.type !== "ChatInput");
-  const chatInput = inputs.find((input) => input.type === "ChatInput");
-  const filteredOutputs = outputs.filter(
-    (output) => output.type !== "ChatOutput",
+  const filteredInputs = useMemo(
+    () => inputs.filter((input) => input.type !== "ChatInput"),
+    [inputs],
   );
-  const chatOutput = outputs.find((output) => output.type === "ChatOutput");
-  const filteredNodes = nodes.filter(
-    (node) =>
-      inputs.some((input) => input.id === node.id) ||
-      filteredOutputs.some((output) => output.id === node.id),
+  const chatInput = useMemo(
+    () => inputs.find((input) => input.type === "ChatInput"),
+    [inputs],
+  );
+  const filteredOutputs = useMemo(
+    () => outputs.filter((output) => output.type !== "ChatOutput"),
+    [outputs],
+  );
+  const chatOutput = useMemo(
+    () => outputs.find((output) => output.type === "ChatOutput"),
+    [outputs],
+  );
+  const filteredNodes = useMemo(
+    () =>
+      nodes.filter(
+        (node) =>
+          inputs.some((input) => input.id === node.id) ||
+          filteredOutputs.some((output) => output.id === node.id),
+      ),
+    [nodes, inputs, filteredOutputs],
   );
   const haveChat = chatInput || chatOutput;
   const setErrorData = useAlertStore((state) => state.setErrorData);
