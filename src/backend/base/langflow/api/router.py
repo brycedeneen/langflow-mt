@@ -4,6 +4,7 @@ from fastapi import APIRouter
 from langflow.api.v1 import (
     api_key_router,
     assistant_router,
+    audit_logs_router,
     categories_router,
     chat_router,
     component_assist_router,
@@ -81,6 +82,7 @@ router_v1.include_router(model_options_router)
 router_v1.include_router(deployment_router)
 router_v1.include_router(flows_cost_router)
 router_v1.include_router(usage_dashboard_router)
+router_v1.include_router(audit_logs_router)
 
 
 # Agentic flow execution - lazy import to avoid circular dependency
