@@ -1,4 +1,5 @@
 import type { ComponentProps } from "react";
+import { useMemo } from "react";
 import type { handleOnNewValueType } from "@/CustomNodes/hooks/use-handle-new-value";
 import CodeAreaComponent from "@/components/core/parameterRenderComponent/components/codeAreaComponent";
 import ModelInputComponent from "@/components/core/parameterRenderComponent/components/modelInputComponent";
@@ -72,6 +73,40 @@ export function ParameterRenderComponent({
     templateData.name
   ).toLowerCase();
 
+  const multiselectOptions = useMemo<string[]>(
+    () =>
+      ((Array.isArray(templateData.options)
+        ? templateData.options
+        : [templateData.options]) as string[]) || [],
+    [templateData.options],
+  );
+
+  const tableNodeColumns = useMemo(
+    () =>
+      Array.isArray(templateData?.table_schema)
+        ? templateData.table_schema
+        : templateData?.table_schema?.columns,
+    [templateData?.table_schema],
+  );
+
+  const tabOptions = useMemo<string[]>(
+    () => (templateData?.options as string[] | undefined) || [],
+    [templateData?.options],
+  );
+
+  const modelOptions = useMemo(
+    () =>
+      (templateData?.options as ComponentProps<
+        typeof ModelInputComponent
+      >["options"]) || [],
+    [templateData?.options],
+  );
+
+  const sortableOptions = useMemo(
+    () => templateData?.options,
+    [templateData?.options],
+  );
+
   const renderComponent = (): React.ReactElement<InputProps> => {
     const baseInputProps: InputProps = {
       id,
@@ -109,11 +144,7 @@ export function ParameterRenderComponent({
             <MultiselectComponent
               {...baseInputProps}
               combobox={templateData.combobox}
-              options={
-                ((Array.isArray(templateData.options)
-                  ? templateData.options
-                  : [templateData.options]) as string[]) || []
-              }
+              options={multiselectOptions}
               id={`multiselect_${id}`}
             />
           );
@@ -234,11 +265,7 @@ export function ParameterRenderComponent({
           <TableNodeComponent
             {...baseInputProps}
             description={templateData.info || "Add or edit data"}
-            columns={
-              Array.isArray(templateData?.table_schema)
-                ? templateData.table_schema
-                : templateData?.table_schema?.columns
-            }
+            columns={tableNodeColumns}
             tableTitle={templateData?.display_name ?? "Table"}
             table_options={templateData?.table_options}
             trigger_icon={templateData?.trigger_icon}
@@ -278,7 +305,7 @@ export function ParameterRenderComponent({
             {...baseInputProps}
             helperText={templateData?.helper_text}
             helperMetadata={templateData?.helper_text_metadata}
-            options={templateData?.options}
+            options={sortableOptions}
             searchCategory={templateData?.search_category}
             limit={templateData?.limit}
             id={`sortablelist_${id}`}
@@ -312,7 +339,7 @@ export function ParameterRenderComponent({
         return (
           <TabComponent
             {...baseInputProps}
-            options={(templateData?.options as string[] | undefined) || []}
+            options={tabOptions}
             id={`tab_${id}`}
           />
         );
@@ -349,11 +376,7 @@ export function ParameterRenderComponent({
         return (
           <ModelInputComponent
             {...baseInputProps}
-            options={
-              (templateData?.options as ComponentProps<
-                typeof ModelInputComponent
-              >["options"]) || []
-            }
+            options={modelOptions}
             placeholder={templateData?.placeholder}
             externalOptions={templateData?.external_options}
           />
