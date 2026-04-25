@@ -184,6 +184,28 @@ class RequestCache:
             self._store(key, value)
             return value
 
+    def peek(self, key: str) -> Any | None:
+        """Lock-free read; returns the cached value if present and not expired, else None.
+
+        Safe in single-task asyncio: there is no await between the dict lookup
+        and the returned value. Concurrent peekers may both observe a miss
+        and proceed to acquire ``lock_for(key)`` to serialize the fetch.
+        """
+        entry = self._entries.get(key)
+        if entry and entry.expires_at > time.monotonic():
+            self._entries.move_to_end(key)
+            return entry.value
+        return None
+
+    def lock_for(self, key: str) -> asyncio.Lock:
+        """Get (or create) the per-key lock for serialized fetches on a cold miss."""
+        return self._locks.setdefault(key, asyncio.Lock())
+
+    def put(self, key: str, value: Any) -> None:
+        """Store a value under key. Caller is responsible for serialization
+        (typically via ``async with cache.lock_for(key):``)."""
+        self._store(key, value)
+
     def _store(self, key: str, value: Any) -> None:
         self._entries[key] = _CacheEntry(expires_at=time.monotonic() + self._ttl, value=value)
         self._entries.move_to_end(key)
@@ -213,35 +235,47 @@ async def cached_get_json(
 ) -> dict[str, Any]:
     """Cache-aware GET returning parsed JSON.
 
-    Caches the parsed JSON dict on 2xx. On any error (>=400 or non-JSON),
-    returns ``{"error": ..., "status_code": ...}`` and does NOT cache.
-    Bearer tokens in ``headers`` are passed through but never participate in the key.
+    Caches the parsed JSON dict on 2xx. On any error (HTTP status >= 400 or
+    a non-JSON 2xx body), returns ``{"error": ..., "status_code": ...}`` and
+    does NOT cache. Bearer tokens in ``headers`` are passed through but never
+    participate in the key.
 
-    The 401-refresh dance is the caller's responsibility — this helper does not retry.
+    Concurrency: cold-miss callers serialize on the per-key lock so a single
+    HTTP request is fired even when many coroutines target the same key
+    simultaneously. The 401-refresh dance is the caller's responsibility — this
+    helper does not retry.
     """
     key = RequestCache.make_key("GET", url, params)
 
-    # Fast path: cache hit within TTL.
-    entry = cache._entries.get(key)
-    if entry and entry.expires_at > time.monotonic():
-        cache._entries.move_to_end(key)
-        return entry.value
+    # Fast path — lock-free peek.
+    cached = cache.peek(key)
+    if cached is not None:
+        return cached
 
-    # Miss — fetch, only store on success.
-    response = await client.request(
-        method="GET", url=url, headers=dict(headers), params=dict(params or {}), timeout=timeout,
-    )
-    if response.status_code >= HTTP_CLIENT_ERROR_MIN:
+    # Cold miss. Serialize on the per-key lock so only one fetcher fires.
+    async with cache.lock_for(key):
+        cached = cache.peek(key)
+        if cached is not None:
+            return cached
+
+        response = await client.request(
+            method="GET",
+            url=url,
+            headers=dict(headers),
+            params=dict(params or {}),
+            timeout=timeout,
+        )
+        if response.status_code >= HTTP_CLIENT_ERROR_MIN:
+            try:
+                detail = response.json()
+            except ValueError:
+                detail = response.text
+            return {"error": detail, "status_code": response.status_code}
+
         try:
-            detail = response.json()
+            result = response.json()
         except ValueError:
-            detail = response.text
-        return {"error": detail, "status_code": response.status_code}
+            return {"error": response.text, "status_code": response.status_code}
 
-    result = response.json()
-
-    # Re-route through the lock-protected store path so concurrent callers also benefit.
-    async def _return_existing() -> dict[str, Any]:
+        cache.put(key, result)
         return result
-
-    return await cache.get_or_fetch(key, _return_existing)

@@ -205,3 +205,60 @@ async def test_cached_get_json_does_not_cache_errors():
     assert first == {"error": {"message": "boom"}, "status_code": 500}
     assert second == {"workers": []}  # not served from cache; second request fired
     assert client.request.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_cached_get_json_concurrent_cold_miss_fires_one_request():
+    """Regression guard: parallel cold-miss callers must not all fire HTTP requests."""
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    response_payload = {"workers": [{"associateOID": "G3ABC"}]}
+
+    in_flight = 0
+    max_in_flight = 0
+
+    async def _request(*_args, **_kwargs):
+        nonlocal in_flight, max_in_flight
+        in_flight += 1
+        max_in_flight = max(max_in_flight, in_flight)
+        await asyncio.sleep(0.01)
+        in_flight -= 1
+        mock_response = MagicMock(spec=httpx.Response)
+        mock_response.status_code = 200
+        mock_response.json.return_value = response_payload
+        return mock_response
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.side_effect = _request
+
+    url = "https://api.adp.com/hr/v2/workers/G3ABC"
+    headers = {"Authorization": "Bearer T1"}
+
+    results = await asyncio.gather(*[
+        cached_get_json(client=client, cache=cache, url=url, headers=headers)
+        for _ in range(10)
+    ])
+
+    assert all(r == response_payload for r in results)
+    assert max_in_flight == 1
+    assert client.request.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_cached_get_json_returns_text_when_error_body_is_not_json():
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    error_response = MagicMock(spec=httpx.Response)
+    error_response.status_code = 502
+    error_response.json.side_effect = ValueError("not json")
+    error_response.text = "<html>Bad Gateway</html>"
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.return_value = error_response
+
+    result = await cached_get_json(
+        client=client,
+        cache=cache,
+        url="https://api.adp.com/hr/v2/workers/G3ABC",
+        headers={"Authorization": "Bearer T1"},
+    )
+
+    assert result == {"error": "<html>Bad Gateway</html>", "status_code": 502}
