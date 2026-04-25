@@ -114,7 +114,10 @@ def mock_storage():
 
 @pytest.fixture
 def worker_ctx(engine_and_factory, redis_service, mock_storage):
+    from redis.asyncio import BlockingConnectionPool
+
     from langflow.services.runs.payload import PayloadOffloader
+    from langflow.worker_app import brokers as worker_brokers
     from langflow.worker_app import deps as worker_deps
 
     _, factory = engine_and_factory
@@ -139,6 +142,17 @@ def worker_ctx(engine_and_factory, redis_service, mock_storage):
     worker_deps._set("redis", redis_service.client)
     worker_deps._set("graph_runner", deterministic_runner)
 
+    # broker_webhooks was constructed at import time pointing at the default
+    # Settings.redis_url (db 0). Tests run against redis_service (db 15), so
+    # we retarget the broker's connection pool to the test Redis for the
+    # duration of the fixture. Webhook kicks via _emit_webhook then land on
+    # the same Redis instance the test's redis_service.client is connected to,
+    # which lets tests assert via `redis.llen("webhooks")`.
+    original_pool = worker_brokers.broker_webhooks.connection_pool
+    worker_brokers.broker_webhooks.connection_pool = BlockingConnectionPool.from_url(
+        redis_service.url,
+    )
+
     yield {
         "redis": redis_service.client,
         "db_sessionmaker": factory,
@@ -147,3 +161,6 @@ def worker_ctx(engine_and_factory, redis_service, mock_storage):
         "graph_runner": deterministic_runner,
     }
     worker_deps._clear()
+    # Restore the original connection pool so other tests / processes are
+    # unaffected by this fixture's swap. The temporary pool is GC'd.
+    worker_brokers.broker_webhooks.connection_pool = original_pool

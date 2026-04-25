@@ -1,5 +1,6 @@
 """Integration test: execute_run auto-retries by re-enqueuing with incremented attempt."""
 from __future__ import annotations
+import json
 import pytest
 from uuid import uuid4
 
@@ -68,7 +69,14 @@ async def test_auto_retry_reenqueues(engine_and_factory, seeded_retry, failing_c
     from langflow.worker_app.execute import execute_run
     from langflow.services.database.models.flow_run.model import FlowRun
 
-    await execute_run(failing_ctx, str(seeded_retry["run"].id))
+    await execute_run(
+        str(seeded_retry["run"].id),
+        sessionmaker=failing_ctx["db_sessionmaker"],
+        storage=failing_ctx["storage"],
+        settings=failing_ctx["settings"],
+        redis=failing_ctx["redis"],
+        graph_runner=failing_ctx["graph_runner"],
+    )
 
     _, factory = engine_and_factory
     async with factory() as s:
@@ -82,10 +90,14 @@ async def test_auto_retry_reenqueues(engine_and_factory, seeded_retry, failing_c
     assert row.started_at is None
     assert row.finished_at is None
 
-    # A new execute_run job should have been enqueued with _defer_by set
-    reenqueue_calls = [
-        c for c in failing_ctx["arq"].enqueue_job.call_args_list
-        if c.args and c.args[0] == "execute_run"
+    # A new execute_run kick should have been scheduled in the delay ZSET
+    # for queue runs:default. Payload includes a UUID4 nonce per delayed_enqueue
+    # contract — assert on `task` and `args`, not full equality.
+    items = await failing_ctx["redis"].zrange("delay:runs:default", 0, -1)
+    decoded = [json.loads(i) for i in items]
+    matches = [
+        d for d in decoded
+        if d.get("task") == "execute_run"
+        and d.get("args") == [str(seeded_retry["run"].id)]
     ]
-    assert len(reenqueue_calls) >= 1
-    assert reenqueue_calls[-1].kwargs.get("_defer_by") is not None
+    assert len(matches) >= 1
