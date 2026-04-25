@@ -218,12 +218,11 @@ unit_tests_smoke: ## fast smoke run (no app/DB fixtures); ~30-60s
 		--instafail -ra -m '$(markers)' $(args)
 
 # ---- Opt-in parallel run via pytest-xdist ----
-# CAUTION: some unit tests share DB state and fail under xdist (e.g.
-# services/database/test_vertex_builds.py, services/flow/test_flow_runner.py).
-# Speedup on this codebase is ~1.5x because pytest startup + import is ~22s
-# before any tests run; the gains scale with the test-execution fraction.
-# Use selectively (per-area is most useful), not for the whole suite.
-unit_tests_parallel: ## run unit tests with -n auto (CAVEAT: some tests share state)
+# CAUTION: pytest startup + import cost is ~22s on this codebase, so the
+# speedup is modest (~1.5x on services/). Use selectively (per-area is
+# most useful), not for the whole suite. If you hit new xdist-only
+# failures, they likely indicate test-isolation bugs worth fixing.
+unit_tests_parallel: ## run unit tests with -n auto
 	@uv run pytest src/backend/tests/unit \
 		--ignore=src/backend/tests/integration \
 		--ignore=src/backend/tests/unit/template \

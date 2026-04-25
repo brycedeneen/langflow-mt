@@ -19,7 +19,17 @@ async def cleanup_database(async_session: AsyncSession):
 
 
 @pytest.fixture
-def vertex_build_data():
+def test_org_id():
+    """Provide a fixed organization UUID for tests.
+
+    The vertex_build table has organization_id NOT NULL (multi-tenant schema).
+    SQLite doesn't enforce the FK, so any UUID satisfies the constraint.
+    """
+    return uuid4()
+
+
+@pytest.fixture
+def vertex_build_data(test_org_id):
     """Fixture to create sample vertex build data."""
     return VertexBuildBase(
         id=str(uuid4()),
@@ -27,6 +37,7 @@ def vertex_build_data():
         timestamp=datetime.now(timezone.utc),
         artifacts={},
         valid=True,
+        organization_id=test_org_id,
     )
 
 
@@ -52,7 +63,9 @@ def timestamp_generator():
     return get_timestamp
 
 
-async def create_test_builds(async_session: AsyncSession, count: int, flow_id, vertex_id, timestamp_generator=None):
+async def create_test_builds(
+    async_session: AsyncSession, count: int, flow_id, vertex_id, timestamp_generator=None, organization_id=None
+):
     """Helper function to create test build entries."""
     base_time = datetime.now(timezone.utc) if timestamp_generator is None else timestamp_generator(0)
 
@@ -65,6 +78,7 @@ async def create_test_builds(async_session: AsyncSession, count: int, flow_id, v
             timestamp=base_time - timedelta(minutes=i) if timestamp_generator is None else timestamp_generator(i),
             artifacts={},
             valid=True,
+            organization_id=organization_id or uuid4(),
         )
         builds.append(build)
 
@@ -100,6 +114,7 @@ async def test_log_vertex_build_max_global_limit(async_session: AsyncSession, ve
             count=mock_settings.max_vertex_builds_to_keep + 2,
             flow_id=vertex_build_data.flow_id,
             vertex_id=str(uuid4()),  # Different vertex ID each time
+            organization_id=vertex_build_data.organization_id,
         )
 
         count = await async_session.scalar(select(func.count()).select_from(VertexBuildTable))
@@ -118,6 +133,7 @@ async def test_log_vertex_build_max_per_vertex_limit(async_session: AsyncSession
             count=mock_settings.max_vertex_builds_per_vertex + 2,
             flow_id=vertex_build_data.flow_id,
             vertex_id=vertex_build_data.id,  # Same vertex ID
+            organization_id=vertex_build_data.organization_id,
         )
 
         # Count builds for this vertex
@@ -148,6 +164,7 @@ async def test_log_vertex_build_integrity_error(async_session: AsyncSession, ver
             timestamp=datetime.now(timezone.utc),
             artifacts={},
             valid=True,
+            organization_id=vertex_build_data.organization_id,
         )
 
         # This should not raise an error since build_id is auto-generated
@@ -156,7 +173,7 @@ async def test_log_vertex_build_integrity_error(async_session: AsyncSession, ver
 
 
 @pytest.mark.asyncio
-async def test_log_vertex_build_ordering(async_session: AsyncSession, timestamp_generator):
+async def test_log_vertex_build_ordering(async_session: AsyncSession, timestamp_generator, test_org_id):
     """Test that oldest builds are deleted first."""
     max_builds = 5
     builds = []
@@ -171,6 +188,7 @@ async def test_log_vertex_build_ordering(async_session: AsyncSession, timestamp_
             timestamp=timestamp_generator(i),
             artifacts={},
             valid=True,
+            organization_id=test_org_id,
         )
         builds.append(build)
 
@@ -218,6 +236,7 @@ async def test_log_vertex_build_with_different_limits(
             timestamp=timestamp_generator(i),
             artifacts={},
             valid=True,
+            organization_id=vertex_build_data.organization_id,
         )
         builds.append(build)
 
@@ -248,6 +267,7 @@ async def test_log_vertex_build_with_different_limits(
             timestamp=timestamp_generator(i),
             artifacts={},
             valid=True,
+            organization_id=vertex_build_data.organization_id,
         )
         vertex_builds.append(build)
 
