@@ -30,6 +30,7 @@ from langflow.api.router import router
 from langflow.api.v1.mcp_projects import init_mcp_servers
 from langflow.initial_setup.setup import (
     copy_profile_pictures,
+    create_or_update_component_agent_metadata,
     create_or_update_template_metadata,
     load_bundles_from_urls,
     load_flows_from_directory,
@@ -209,6 +210,17 @@ def get_lifespan(*, fix_migration=False, version=None):
                 )
             except Exception as e:  # noqa: BLE001
                 await logger.awarning(f"Failed to seed template metadata: {e}")
+
+            # Seed component agent metadata from per-category YAML bundles.
+            current_time = asyncio.get_event_loop().time()
+            await logger.adebug("Seeding component agent metadata")
+            try:
+                await create_or_update_component_agent_metadata()
+                await logger.adebug(
+                    f"Component agent metadata seeded in {asyncio.get_event_loop().time() - current_time:.2f}s"
+                )
+            except Exception as e:  # noqa: BLE001
+                await logger.awarning(f"Failed to seed component agent metadata: {e}")
 
             # Initialize agentic global variables early (before MCP server and flows)
             if get_settings_service().settings.agentic_experience:
