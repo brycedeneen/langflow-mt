@@ -6,7 +6,8 @@ from uuid import UUID
 
 from sqlmodel import select
 
-from langflow.services.database.models import ComponentMetadata, Flow, TemplateMetadata
+from langflow.services.database.models import ComponentMetadata
+from langflow.services.database.models.template.model import Template
 from langflow.services.deps import session_scope
 
 
@@ -37,60 +38,50 @@ async def fetch_component_usage_notes(component_name: str) -> str | None:
 
 
 async def fetch_template_summaries() -> list[dict]:
-    """Return rows with (flow_id, flow_name, agent_summary) for prompt injection.
+    """Return rows with (template_id, template_name, agent_summary) for prompt injection.
 
-    Only includes templates whose agent_summary is non-null. Sorted by flow name.
-    Used by Task 11 (system prompt injection); parked here since the lookup is
-    metadata-shaped.
+    Only includes templates whose ``agent_summary`` is non-null and that are
+    neither archived nor soft-deleted. Sorted by template name.
     """
     async with session_scope() as session:
-        metas = (
+        rows = (
             await session.exec(
-                select(TemplateMetadata).where(TemplateMetadata.agent_summary.is_not(None))
+                select(Template)
+                .where(Template.agent_summary.is_not(None))
+                .where(Template.deleted_at.is_(None))
+                .where(Template.archived_at.is_(None))
             )
         ).all()
-        if not metas:
-            return []
-        flow_ids = [m.flow_id for m in metas]
-        flows = (await session.exec(select(Flow).where(Flow.id.in_(flow_ids)))).all()
-    flow_by_id = {f.id: f for f in flows}
-    out = []
-    for m in metas:
-        flow = flow_by_id.get(m.flow_id)
-        if flow is None:
-            continue
-        out.append(
-            {
-                "flow_id": str(flow.id),
-                "flow_name": flow.name,
-                "agent_summary": m.agent_summary,
-            }
-        )
-    out.sort(key=lambda r: r["flow_name"])
+    out = [
+        {
+            "template_id": str(t.id),
+            "template_name": t.name,
+            "agent_summary": t.agent_summary,
+        }
+        for t in rows
+    ]
+    out.sort(key=lambda r: r["template_name"])
     return out
 
 
-async def fetch_template_usage_notes(flow_id: str) -> dict | None:
-    """Return {flow_id, flow_name, agent_usage_notes} for a single template.
+async def fetch_template_usage_notes(template_id: str) -> dict | None:
+    """Return {template_id, template_name, agent_usage_notes} for a single template.
 
-    Returns None when flow_id is malformed or the flow doesn't exist. Returns
-    agent_usage_notes=None when the flow exists but has no metadata row.
+    Returns None when ``template_id`` is malformed or the template doesn't exist.
+    Returns ``agent_usage_notes=None`` when the template exists but has no notes.
     """
     try:
-        parsed = UUID(flow_id)
+        parsed = UUID(template_id)
     except ValueError:
         return None
     async with session_scope() as session:
-        flow = (await session.exec(select(Flow).where(Flow.id == parsed))).one_or_none()
-        if flow is None:
-            return None
-        meta = (
-            await session.exec(
-                select(TemplateMetadata).where(TemplateMetadata.flow_id == parsed)
-            )
+        t = (
+            await session.exec(select(Template).where(Template.id == parsed))
         ).one_or_none()
+    if t is None:
+        return None
     return {
-        "flow_id": flow_id,
-        "flow_name": flow.name,
-        "agent_usage_notes": meta.agent_usage_notes if meta else None,
+        "template_id": str(t.id),
+        "template_name": t.name,
+        "agent_usage_notes": t.agent_usage_notes,
     }

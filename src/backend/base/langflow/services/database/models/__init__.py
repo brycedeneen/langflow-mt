@@ -22,7 +22,6 @@ from .membership import Membership, MembershipRole
 from .message import MessageTable
 from .organization import Organization
 from .template import Template
-from .template_metadata import TemplateMetadata
 from .traces.model import SpanTable, TraceTable
 from .transactions import TransactionTable
 from .user import User
@@ -61,7 +60,6 @@ __all__ = [
     "SpanTable",
     "Template",
     "TemplateCategory",
-    "TemplateMetadata",
     "TraceTable",
     "TransactionTable",
     "User",

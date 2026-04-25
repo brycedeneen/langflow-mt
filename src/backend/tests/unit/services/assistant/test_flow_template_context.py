@@ -5,72 +5,67 @@ from __future__ import annotations
 import pytest
 from uuid import uuid4
 
-from langflow.services.assistant.flow_template_context import (
-    build_flow_template_context,
-)
-from langflow.services.database.models import Flow, Folder, TemplateMetadata
-from langflow.services.database.models.flow.starter import STARTER_FOLDER_NAME
+from langflow.services.assistant.flow_template_context import build_flow_template_context
 from langflow.services.deps import session_scope
 
 
 @pytest.mark.asyncio
-async def test_returns_empty_when_pointer_is_none():
-    result = await build_flow_template_context(None)
-    assert result == ""
+async def test_returns_empty_when_pointer_none():
+    assert await build_flow_template_context(None) == ""
 
 
 @pytest.mark.asyncio
-async def test_returns_empty_when_pointer_set_but_no_metadata_row(active_super_user):
+async def test_returns_empty_for_unknown_template():
+    assert await build_flow_template_context(uuid4()) == ""
+
+
+@pytest.mark.asyncio
+async def test_returns_block_for_template_with_notes(active_super_user):  # noqa: ARG001
+    from langflow.services.database.models.template.model import Template
+
+    t = Template(name="My Tpl", nodes=[], edges=[], scope="platform", agent_usage_notes="Use carefully")
+
     async with session_scope() as session:
-        folder = Folder(name=STARTER_FOLDER_NAME, user_id=active_super_user.id)
-        session.add(folder)
+        session.add(t)
         await session.commit()
-        await session.refresh(folder)
-        template = Flow(name="Tpl-no-meta", user_id=active_super_user.id, folder_id=folder.id)
-        session.add(template)
-        await session.commit()
-        await session.refresh(template)
-        template_id = template.id
+        await session.refresh(t)
 
-    result = await build_flow_template_context(template_id)
-    assert result == ""
+    try:
+        block = await build_flow_template_context(t.id)
+        assert "My Tpl" in block
+        assert "Use carefully" in block
+    finally:
+        async with session_scope() as session:
+            from sqlmodel import select
+
+            row = (
+                await session.exec(select(Template).where(Template.name == "My Tpl"))
+            ).one_or_none()
+            if row:
+                await session.delete(row)
+            await session.commit()
 
 
 @pytest.mark.asyncio
-async def test_returns_empty_when_pointer_references_missing_flow():
-    # No flow in DB with this id → helper still returns "" gracefully
-    result = await build_flow_template_context(uuid4())
-    assert result == ""
+async def test_returns_empty_for_template_without_notes(active_super_user):  # noqa: ARG001
+    from langflow.services.database.models.template.model import Template
 
+    t = Template(name="Notes-less", nodes=[], edges=[], scope="platform")
 
-@pytest.mark.asyncio
-async def test_returns_instructions_block_when_pointer_and_metadata_present(
-    active_super_user,
-):
     async with session_scope() as session:
-        folder = Folder(name=STARTER_FOLDER_NAME, user_id=active_super_user.id)
-        session.add(folder)
+        session.add(t)
         await session.commit()
-        await session.refresh(folder)
-        template = Flow(
-            name="Slack Notifier",
-            user_id=active_super_user.id,
-            folder_id=folder.id,
-        )
-        session.add(template)
-        await session.commit()
-        await session.refresh(template)
-        session.add(
-            TemplateMetadata(
-                flow_id=template.id,
-                agent_usage_notes="Ask for the Slack channel first.",
-                updated_by=active_super_user.id,
-            )
-        )
-        await session.commit()
-        template_id = template.id
+        await session.refresh(t)
 
-    result = await build_flow_template_context(template_id)
-    assert "## Current Flow Template" in result
-    assert '"Slack Notifier"' in result
-    assert "Ask for the Slack channel first." in result
+    try:
+        assert await build_flow_template_context(t.id) == ""
+    finally:
+        async with session_scope() as session:
+            from sqlmodel import select
+
+            row = (
+                await session.exec(select(Template).where(Template.name == "Notes-less"))
+            ).one_or_none()
+            if row:
+                await session.delete(row)
+            await session.commit()

@@ -45,7 +45,6 @@ export const URLs = {
   ADMIN_AUDIT_LOGS: `admin/audit-logs`,
   ADMIN_AUDIT_LOG: `admin/audit-logs/`,
   METADATA_COMPONENTS: `admin/metadata/components`,
-  METADATA_TEMPLATES: `admin/metadata/templates`,
   ORG_USAGE_KPI: `orgs`,
   ORG_USAGE_CHARTS: `orgs`,
   ORG_USAGE_FLOWS: `orgs`,

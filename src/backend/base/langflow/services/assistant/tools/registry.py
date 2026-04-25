@@ -45,32 +45,32 @@ CATALOG_TOOLS = [
     {
         "name": "get_template_instructions",
         "description": (
-            "Fetch the full admin-authored usage notes for a starter-project "
-            "template, keyed by flow_id. Call this after matching a template "
+            "Fetch the full admin-authored usage notes for a template, "
+            "keyed by template_id. Call this after matching a template "
             "from the Available Templates list in the system prompt, before "
-            "mutating the flow. Returns {flow_id, flow_name, agent_usage_notes}."
+            "mutating the flow. Returns {template_id, template_name, agent_usage_notes}."
         ),
         "parameters": {
             "type": "object",
             "properties": {
-                "flow_id": {
+                "template_id": {
                     "type": "string",
-                    "description": "UUID of the template's flow.",
+                    "description": "UUID of the template.",
                 },
             },
-            "required": ["flow_id"],
+            "required": ["template_id"],
         },
     },
     {
         "name": "apply_template",
         "description": (
-            "Load a starter-project template's nodes and edges into the current "
-            "flow atomically. Use this after matching a template from the Available "
-            "Templates list in the system prompt — pass the target flow's id and the "
-            "template's flow_id. Sets the current flow's template pointer so later "
+            "Load a template's nodes and edges into the current flow atomically. "
+            "Use this after matching a template from the Available Templates list "
+            "in the system prompt — pass the target flow's id and the template's "
+            "template_id. Sets the current flow's template pointer so later "
             "messages carry the template's instructions. Returns the applied patch "
-            "(added_nodes and added_edges) and the template's name. Refuses when the "
-            "target is non-empty or the source isn't a starter-project template."
+            "(added_nodes and added_edges) and the template's name. Refuses when "
+            "the target is non-empty or the template is archived/deleted."
         ),
         "parameters": {
             "type": "object",
@@ -79,12 +79,12 @@ CATALOG_TOOLS = [
                     "type": "string",
                     "description": "UUID of the flow to apply the template to (typically the current flow).",
                 },
-                "template_flow_id": {
+                "template_id": {
                     "type": "string",
-                    "description": "UUID of the template flow (from the Available Templates list).",
+                    "description": "UUID of the template (from the Available Templates list).",
                 },
             },
-            "required": ["target_flow_id", "template_flow_id"],
+            "required": ["target_flow_id", "template_id"],
         },
     },
 ]

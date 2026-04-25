@@ -1,4 +1,4 @@
-"""Per-message helper that injects the flow's source-template notes into the system prompt."""
+"""Per-message helper that injects the source-template notes into the system prompt."""
 
 from __future__ import annotations
 
@@ -8,26 +8,26 @@ from langflow.services.assistant.tools.metadata_lookup import fetch_template_usa
 
 
 async def build_flow_template_context(
-    based_on_template_flow_id: UUID | None,
+    based_on_template_id: UUID | None,
 ) -> str:
-    """Return a markdown block describing the flow's source template, or an empty string.
+    """Return a markdown block describing the flow's source template, or "".
 
-    The block is inserted between `{canvas_summary}` and `{available_templates}`
+    The block is inserted between ``{canvas_summary}`` and ``{available_templates}``
     in SYSTEM_PROMPT_TEMPLATE. It gives the LLM the template's admin-authored
-    agent_usage_notes so it can customize the flow with the user intelligently.
+    ``agent_usage_notes`` so it can customize the flow with the user intelligently.
 
     Returns "" when:
-      - based_on_template_flow_id is None (ordinary user flow), or
-      - the pointer is set but no TemplateMetadata row / notes exist for it, or
-      - the pointer references a flow that no longer exists (stale pointer).
+      - based_on_template_id is None (ordinary user flow), or
+      - the pointer references a template that no longer exists, or
+      - the template has no agent_usage_notes set.
     """
-    if based_on_template_flow_id is None:
+    if based_on_template_id is None:
         return ""
-    notes = await fetch_template_usage_notes(str(based_on_template_flow_id))
+    notes = await fetch_template_usage_notes(str(based_on_template_id))
     if notes is None or notes.get("agent_usage_notes") is None:
         return ""
     return (
         "## Current Flow Template\n\n"
-        f'This flow was created from the "{notes["flow_name"]}" template.\n'
+        f'This flow was created from the "{notes["template_name"]}" template.\n'
         f"{notes['agent_usage_notes']}\n\n"
     )

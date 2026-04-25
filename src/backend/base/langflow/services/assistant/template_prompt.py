@@ -1,4 +1,4 @@
-"""System-prompt block listing available starter-project templates."""
+"""System-prompt block listing available templates."""
 
 from __future__ import annotations
 
@@ -6,8 +6,8 @@ from langflow.services.assistant.tools.metadata_lookup import fetch_template_sum
 
 _HEADER = (
     "## Available Templates\n\n"
-    "The following starter-project flows are available. Use "
-    "`get_template_instructions(flow_id)` if the user's request matches one.\n"
+    "The following templates are available. Use "
+    "`get_template_instructions(template_id)` if the user's request matches one.\n"
 )
 
 
@@ -19,6 +19,6 @@ async def build_available_templates_block() -> str:
     lines = [_HEADER]
     for row in rows:
         lines.append(
-            f'- [flow_id: {row["flow_id"]}] "{row["flow_name"]}" — {row["agent_summary"]}'
+            f'- [template_id: {row["template_id"]}] "{row["template_name"]}" — {row["agent_summary"]}'
         )
     return "\n".join(lines) + "\n"

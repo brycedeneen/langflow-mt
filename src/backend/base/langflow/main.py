@@ -31,7 +31,6 @@ from langflow.api.v1.mcp_projects import init_mcp_servers
 from langflow.initial_setup.setup import (
     copy_profile_pictures,
     create_or_update_component_agent_metadata,
-    create_or_update_template_metadata,
     load_bundles_from_urls,
     load_flows_from_directory,
     sync_flows_from_fs,
@@ -199,17 +198,6 @@ def get_lifespan(*, fix_migration=False, version=None):
             await logger.adebug("Caching types")
             all_types_dict = await get_and_cache_all_types_dict(get_settings_service(), telemetry_service)
             await logger.adebug(f"Types cached in {asyncio.get_event_loop().time() - current_time:.2f}s")
-
-            # Seed template metadata from .metadata.json sidecars (ADP etc.).
-            current_time = asyncio.get_event_loop().time()
-            await logger.adebug("Seeding template metadata")
-            try:
-                await create_or_update_template_metadata()
-                await logger.adebug(
-                    f"Template metadata seeded in {asyncio.get_event_loop().time() - current_time:.2f}s"
-                )
-            except Exception as e:  # noqa: BLE001
-                await logger.awarning(f"Failed to seed template metadata: {e}")
 
             # Seed component agent metadata from per-category YAML bundles.
             current_time = asyncio.get_event_loop().time()

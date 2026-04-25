@@ -36,6 +36,8 @@ export type TemplateRead = {
   org_id: string | null;
   created_by: string | null;
   categories: Category[];
+  agent_summary: string | null;
+  agent_usage_notes: string | null;
 };
 
 export type TemplateReadDetail = TemplateRead & {
@@ -67,6 +69,8 @@ export type TemplatePatchBody = {
   gradient?: string | null;
   /** null = leave tags unchanged; [] = clear all tags; id[] = full-replace */
   category_ids?: string[] | null;
+  agent_summary?: string | null;
+  agent_usage_notes?: string | null;
 };
 
 export type TemplateUpdateBody = TemplateCreateBody;

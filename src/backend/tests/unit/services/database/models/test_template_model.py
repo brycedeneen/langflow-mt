@@ -4,9 +4,10 @@ import uuid
 
 import pytest
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine, select
 
 from langflow.services.database.models import Organization, User
+from langflow.services.database.models.flow.model import Flow
 from langflow.services.database.models.template.model import Template
 
 
@@ -92,3 +93,91 @@ def test_template_platform_scope_requires_null_org_id(session):
     session.add(t)
     with pytest.raises(IntegrityError):
         session.commit()
+
+
+# ---------------------------------------------------------------------------
+# Helpers for agent-fields + Flow.based_on_template_id tests
+# ---------------------------------------------------------------------------
+
+
+def _org(s: Session) -> Organization:
+    o = Organization(name=f"org-{uuid.uuid4()}", slug=f"org-{uuid.uuid4()}")
+    s.add(o)
+    s.commit()
+    s.refresh(o)
+    return o
+
+
+def _user(s: Session) -> User:
+    u = User(username=f"u-{uuid.uuid4()}", password="x")
+    s.add(u)
+    s.commit()
+    s.refresh(u)
+    return u
+
+
+def test_template_persists_agent_fields(session):
+    t = Template(
+        name="Tpl with notes",
+        nodes=[],
+        edges=[],
+        scope="platform",
+        agent_summary="short",
+        agent_usage_notes="long\nmultiline",
+    )
+    session.add(t)
+    session.commit()
+    session.refresh(t)
+    assert t.agent_summary == "short"
+    assert t.agent_usage_notes == "long\nmultiline"
+
+
+def test_template_agent_fields_default_to_none(session):
+    t = Template(
+        name="Tpl no agent",
+        nodes=[],
+        edges=[],
+        scope="platform",
+    )
+    session.add(t)
+    session.commit()
+    session.refresh(t)
+    assert t.agent_summary is None
+    assert t.agent_usage_notes is None
+
+
+def test_flow_based_on_template_id_nullable(session):
+    user = _user(session)
+    org = _org(session)
+    f = Flow(name="F", user_id=user.id, organization_id=org.id)
+    session.add(f)
+    session.commit()
+    session.refresh(f)
+    assert f.based_on_template_id is None
+
+
+def test_flow_based_on_template_id_persists(session):
+    user = _user(session)
+    org = _org(session)
+    t = Template(
+        name="Source Tpl",
+        nodes=[],
+        edges=[],
+        scope="platform",
+    )
+    session.add(t)
+    session.commit()
+    session.refresh(t)
+
+    f = Flow(
+        name="Clone",
+        user_id=user.id,
+        organization_id=org.id,
+        based_on_template_id=t.id,
+    )
+    session.add(f)
+    session.commit()
+    session.refresh(f)
+
+    loaded = session.exec(select(Flow).where(Flow.id == f.id)).one()
+    assert loaded.based_on_template_id == t.id

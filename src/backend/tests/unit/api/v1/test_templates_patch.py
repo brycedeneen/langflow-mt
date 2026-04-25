@@ -260,3 +260,101 @@ async def test_unknown_category_id_returns_422(
     )
     assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     assert "Unknown category_ids" in resp.json()["detail"]
+
+
+# ---------------------------------------------------------------------------
+# Agent metadata field tests (Task 3)
+# ---------------------------------------------------------------------------
+
+
+async def test_patch_agent_metadata_fields_set_and_reflected(
+    client: AsyncClient,
+    admin_headers,
+    platform_template,
+):
+    """PATCH agent_summary + agent_usage_notes → 200, both in response and in GET."""
+    resp = await client.patch(
+        f"api/v1/templates/{platform_template}",
+        headers=admin_headers,
+        json={"agent_summary": "Handles payroll.", "agent_usage_notes": "Use for ADP WFN."},
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    body = resp.json()
+    assert body["agent_summary"] == "Handles payroll."
+    assert body["agent_usage_notes"] == "Use for ADP WFN."
+
+    # Verify GET reflects the same values
+    get_resp = await client.get(
+        f"api/v1/templates/{platform_template}",
+        headers=admin_headers,
+    )
+    assert get_resp.status_code == status.HTTP_200_OK
+    get_body = get_resp.json()
+    assert get_body["agent_summary"] == "Handles payroll."
+    assert get_body["agent_usage_notes"] == "Use for ADP WFN."
+
+
+async def test_patch_agent_metadata_null_clears_values(
+    client: AsyncClient,
+    admin_headers,
+    platform_template,
+):
+    """PATCH agent_summary=null + agent_usage_notes=null clears previously set values."""
+    # First set values
+    set_resp = await client.patch(
+        f"api/v1/templates/{platform_template}",
+        headers=admin_headers,
+        json={"agent_summary": "initial summary", "agent_usage_notes": "initial notes"},
+    )
+    assert set_resp.status_code == status.HTTP_200_OK
+
+    # Now clear them with explicit null
+    clear_resp = await client.patch(
+        f"api/v1/templates/{platform_template}",
+        headers=admin_headers,
+        json={"agent_summary": None, "agent_usage_notes": None},
+    )
+    assert clear_resp.status_code == status.HTTP_200_OK
+    body = clear_resp.json()
+    assert body["agent_summary"] is None
+    assert body["agent_usage_notes"] is None
+
+
+async def test_patch_omitting_agent_summary_leaves_it_unchanged(
+    client: AsyncClient,
+    admin_headers,
+    platform_template,
+):
+    """Omitting agent_summary from PATCH body leaves the existing value untouched."""
+    # Seed agent_summary
+    set_resp = await client.patch(
+        f"api/v1/templates/{platform_template}",
+        headers=admin_headers,
+        json={"agent_summary": "keep me"},
+    )
+    assert set_resp.status_code == status.HTTP_200_OK
+
+    # PATCH only description — agent_summary should survive
+    desc_resp = await client.patch(
+        f"api/v1/templates/{platform_template}",
+        headers=admin_headers,
+        json={"description": "new desc"},
+    )
+    assert desc_resp.status_code == status.HTTP_200_OK
+    body = desc_resp.json()
+    assert body["agent_summary"] == "keep me"
+    assert body["description"] == "new desc"
+
+
+async def test_non_admin_patching_agent_summary_gets_403(
+    client: AsyncClient,
+    regular_headers,
+    platform_template,
+):
+    """Non-admin patching agent_summary → 403 (platform template requires editor rights)."""
+    resp = await client.patch(
+        f"api/v1/templates/{platform_template}",
+        headers=regular_headers,
+        json={"agent_summary": "should not stick"},
+    )
+    assert resp.status_code == status.HTTP_403_FORBIDDEN

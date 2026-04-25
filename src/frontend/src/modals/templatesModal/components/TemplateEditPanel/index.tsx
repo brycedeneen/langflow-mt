@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useUpdateTemplate } from "@/controllers/API/queries/templates/use-update-template";
 import useAlertStore from "@/stores/alertStore";
 import IconPickerField from "@/modals/SaveAsTemplateModal/IconPickerField";
@@ -30,6 +31,8 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
     template.categories.map((c) => c.id),
   );
+  const [agentSummary, setAgentSummary] = useState(template.agent_summary ?? "");
+  const [agentUsageNotes, setAgentUsageNotes] = useState(template.agent_usage_notes ?? "");
 
   const { mutate: updateTemplate, isPending } = useUpdateTemplate();
   const setSuccessData = useAlertStore((s) => s.setSuccessData);
@@ -43,6 +46,8 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
       setIcon(template.icon ?? "FileText");
       setGradient(template.gradient ?? "0");
       setSelectedCategoryIds(template.categories.map((c) => c.id));
+      setAgentSummary(template.agent_summary ?? "");
+      setAgentUsageNotes(template.agent_usage_notes ?? "");
     }
   }, [open, template]);
 
@@ -57,6 +62,8 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
           gradient,
           // Full-replace semantics: send the complete id array.
           category_ids: selectedCategoryIds,
+          agent_summary: agentSummary.trim() === "" ? null : agentSummary,
+          agent_usage_notes: agentUsageNotes.trim() === "" ? null : agentUsageNotes,
         },
       },
       {
@@ -125,6 +132,31 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
               selectedIds={selectedCategoryIds}
               onChange={setSelectedCategoryIds}
               disabled={isPending}
+            />
+          </div>
+
+          {/* Agent Summary */}
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="tpl-edit-agent-summary">Agent summary</Label>
+            <Textarea
+              id="tpl-edit-agent-summary"
+              rows={2}
+              value={agentSummary}
+              onChange={(e) => setAgentSummary(e.target.value)}
+              placeholder="Short description the assistant uses to match this template to user requests."
+            />
+          </div>
+
+          {/* Agent Usage Notes */}
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="tpl-edit-agent-usage-notes">Agent usage notes</Label>
+            <Textarea
+              id="tpl-edit-agent-usage-notes"
+              rows={6}
+              value={agentUsageNotes}
+              onChange={(e) => setAgentUsageNotes(e.target.value)}
+              placeholder="Guidance the assistant injects when a user works with a flow created from this template."
+              className="resize-y"
             />
           </div>
         </div>

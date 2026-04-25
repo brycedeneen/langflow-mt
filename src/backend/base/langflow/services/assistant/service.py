@@ -242,7 +242,7 @@ class AssistantService:
         org_id: UUID,
         user_id: UUID,
         model_name: str,
-        based_on_template_flow_id: UUID | None = None,
+        based_on_template_id: UUID | None = None,
         base_url: str | None = None,
     ) -> None:
         self.provider_client = provider_client
@@ -251,7 +251,7 @@ class AssistantService:
         self.org_id = org_id
         self.user_id = user_id
         self.model_name = model_name
-        self.based_on_template_flow_id = based_on_template_flow_id
+        self.based_on_template_id = based_on_template_id
         self.base_url = base_url
         self.mutation_tools = FlowMutationTools(flow_data, user_id=user_id, org_id=org_id)
         self.inspection_tools = FlowInspectionTools(
@@ -365,7 +365,7 @@ class AssistantService:
         canvas_summary = self._build_canvas_summary()
         available_templates = await build_available_templates_block()
         flow_template_context = await build_flow_template_context(
-            self.based_on_template_flow_id
+            self.based_on_template_id
         )
         system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
             canvas_summary=canvas_summary,
@@ -499,7 +499,7 @@ class AssistantService:
         canvas_summary = self._build_canvas_summary()
         available_templates = await build_available_templates_block()
         flow_template_context = await build_flow_template_context(
-            self.based_on_template_flow_id
+            self.based_on_template_id
         )
         system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
             canvas_summary=canvas_summary,

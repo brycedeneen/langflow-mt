@@ -49,16 +49,16 @@ class FlowBase(SQLModel):
         nullable=True,
         description="Set to True when the flow was created via the ADP Assist template-modal entry point",
     )
-    based_on_template_flow_id: UUID | None = Field(
+    based_on_template_id: UUID | None = Field(
         default=None,
         sa_column=Column(
             Uuid(),
-            ForeignKey("flow.id", ondelete="SET NULL"),
+            ForeignKey("template.id", ondelete="SET NULL"),
             nullable=True,
         ),
         description=(
-            "For flows cloned from a template via ADP Assist: the template "
-            "flow's id, used to resolve TemplateMetadata for conversation context"
+            "For flows cloned from a template: the source template's id, used to "
+            "resolve the template's agent metadata for assistant context."
         ),
     )
     endpoint_name: str | None = Field(default=None, nullable=True, index=True)
