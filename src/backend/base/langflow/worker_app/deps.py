@@ -20,6 +20,10 @@ def _set(key: str, value: Any) -> None:
     _state[key] = value
 
 
+def _get(key: str, default: Any = None) -> Any:
+    return _state.get(key, default)
+
+
 def _clear() -> None:
     _state.clear()
 

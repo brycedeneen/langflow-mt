@@ -5,7 +5,7 @@ import os
 import socket
 
 from redis.asyncio import Redis
-from taskiq import TaskiqEvents
+from taskiq import TaskiqEvents, TaskiqState
 
 from lfx.log.logger import logger
 
@@ -16,7 +16,7 @@ from langflow.worker_app.brokers import ALL_BROKERS
 WORKER_ID = f"{socket.gethostname()}:{os.getpid()}"
 
 
-async def _on_startup(state: object) -> None:
+async def _on_startup(_state: TaskiqState) -> None:
     from langflow.services.deps import get_db_service, get_settings_service, get_storage_service
     from langflow.services.utils import initialize_services
 
@@ -34,19 +34,30 @@ async def _on_startup(state: object) -> None:
     logger.info(f"Langflow worker started: worker_id={WORKER_ID}")
 
 
-async def _on_shutdown(state: object) -> None:
-    redis = worker_deps._state.get("redis")
+async def _on_shutdown(_state: TaskiqState) -> None:
+    redis = worker_deps._get("redis")
     if redis is not None:
         await redis.aclose()
     worker_deps._clear()
     logger.info(f"Langflow worker shutting down: worker_id={WORKER_ID}")
 
 
+_registered = False
+
+
 def register_lifecycle() -> None:
-    """Wire startup/shutdown to every broker so the active worker fires them."""
+    """Wire startup/shutdown to every broker so the active worker fires them.
+
+    Idempotent: only registers once per process, even if this module is
+    imported multiple times (e.g. during pytest collection).
+    """
+    global _registered
+    if _registered:
+        return
     for broker in ALL_BROKERS:
         broker.add_event_handler(TaskiqEvents.WORKER_STARTUP, _on_startup)
         broker.add_event_handler(TaskiqEvents.WORKER_SHUTDOWN, _on_shutdown)
+    _registered = True
 
 
 register_lifecycle()

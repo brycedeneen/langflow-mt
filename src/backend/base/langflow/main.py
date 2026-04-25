@@ -173,6 +173,8 @@ def get_lifespan(*, fix_migration=False, version=None):
 
             current_time = asyncio.get_event_loop().time()
             await logger.adebug("Starting Taskiq brokers")
+            # Fail-fast: brokers must be ready before the app yields to handle requests.
+            # A failure here aborts startup, which is the desired behaviour.
             await startup_brokers()
             await logger.adebug(f"Taskiq brokers started in {asyncio.get_event_loop().time() - current_time:.2f}s")
 
