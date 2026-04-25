@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { z } from "zod";
 import { validatedQueryFn } from "@/lib/validated-fetch";
 import { FlowRead } from "@/schemas/api/_generated";
@@ -13,7 +14,6 @@ export const useGetBasicExamplesQuery: useQueryFunctionType<
   FlowType[]
 > = (options) => {
   const { query } = UseRequestProcessor();
-  const setExamples = useFlowsManagerStore((state) => state.setExamples);
 
   const responseFn = async () => {
     const data = await validatedQueryFn(
@@ -22,9 +22,6 @@ export const useGetBasicExamplesQuery: useQueryFunctionType<
       async () =>
         (await api.get<unknown>(`${getURL("FLOWS")}/basic_examples/`)).data,
     )();
-    if (data) {
-      setExamples(data as FlowType[]);
-    }
     return data as FlowType[];
   };
 
@@ -32,6 +29,15 @@ export const useGetBasicExamplesQuery: useQueryFunctionType<
     ...options,
     retry: 3,
   });
+
+  // Sync examples into the flows-manager store outside the queryFn so this
+  // hook does not subscribe to the store it mutates. Setter is read via
+  // getState().
+  useEffect(() => {
+    const data = queryResult.data;
+    if (!data) return;
+    useFlowsManagerStore.getState().setExamples(data);
+  }, [queryResult.data]);
 
   return queryResult;
 };

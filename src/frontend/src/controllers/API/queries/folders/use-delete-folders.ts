@@ -14,14 +14,11 @@ export const useDeleteFolders: useMutationFunctionType<
   DeleteFoldersParams
 > = (options?) => {
   const { mutate, queryClient } = UseRequestProcessor();
-  const setFolders = useFolderStore((state) => state.setFolders);
-  const folders = useFolderStore((state) => state.folders);
 
   const deleteFolder = async ({
     folder_id,
   }: DeleteFoldersParams): Promise<any> => {
     await api.delete(`${getURL("PROJECTS")}/${folder_id}`);
-    setFolders(folders.filter((f) => f.id !== folder_id));
     return folder_id;
   };
 
@@ -31,6 +28,16 @@ export const useDeleteFolders: useMutationFunctionType<
     DeleteFoldersParams
   > = mutate(["useDeleteFolders"], deleteFolder, {
     ...options,
+    onSuccess: (...args) => {
+      // Update the folder store outside the mutationFn so this hook does not
+      // subscribe to the store it mutates. State + setter read via getState().
+      const folder_id = args[0];
+      const folderState = useFolderStore.getState();
+      folderState.setFolders(
+        folderState.folders.filter((f) => f.id !== folder_id),
+      );
+      (options as any)?.onSuccess?.(...args);
+    },
     onSettled: (id) => {
       queryClient.refetchQueries({ queryKey: ["useGetFolders", id] });
       queryClient.invalidateQueries({ queryKey: ["useGetFolders"] });

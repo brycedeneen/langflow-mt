@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import type { FolderType } from "@/pages/MainPage/entities";
 import useAuthStore from "@/stores/authStore";
 import { useFolderStore } from "@/stores/foldersStore";
@@ -13,27 +14,32 @@ export const useGetFoldersQuery: useQueryFunctionType<
 > = (options) => {
   const { query } = UseRequestProcessor();
 
-  const setMyCollectionId = useFolderStore((state) => state.setMyCollectionId);
-  const setFolders = useFolderStore((state) => state.setFolders);
-  const defaultFolderName = useUtilityStore((state) => state.defaultFolderName);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   const getFoldersFn = async (): Promise<FolderType[]> => {
     const res = await api.get(`${getURL("PROJECTS")}/`);
-    const data = res.data;
-
-    // Find default folder by name, or fall back to first folder if not found
-    const myCollectionId =
-      data?.find((f) => f.name === defaultFolderName)?.id ?? data?.[0]?.id;
-    setMyCollectionId(myCollectionId);
-    setFolders(data);
-
-    return data;
+    return res.data;
   };
 
   const queryResult = query(["useGetFolders"], getFoldersFn, {
     ...options,
     enabled: isAuthenticated && (options?.enabled ?? true),
   });
+
+  // Sync folders into the folder store outside the queryFn so this hook does
+  // not subscribe to the store it mutates. Read defaultFolderName and setters
+  // via getState() to avoid subscribing.
+  useEffect(() => {
+    const data = queryResult.data;
+    if (!data) return;
+    const defaultFolderName = useUtilityStore.getState().defaultFolderName;
+    const folderState = useFolderStore.getState();
+    // Find default folder by name, or fall back to first folder if not found
+    const myCollectionId =
+      data?.find((f) => f.name === defaultFolderName)?.id ?? data?.[0]?.id;
+    folderState.setMyCollectionId(myCollectionId);
+    folderState.setFolders(data);
+  }, [queryResult.data]);
+
   return queryResult;
 };

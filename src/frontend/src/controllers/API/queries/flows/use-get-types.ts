@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { ENABLE_KNOWLEDGE_BASES } from "@/customization/feature-flags";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import { useTypesStore } from "@/stores/typesStore";
@@ -15,8 +16,6 @@ export const useGetTypes: useQueryFunctionType<
   { checkCache?: boolean }
 > = (options) => {
   const { query } = UseRequestProcessor();
-  const setLoading = useFlowsManagerStore((state) => state.setIsLoading);
-  const setTypes = useTypesStore((state) => state.setTypes);
 
   const getTypesFn = async (checkCache = false) => {
     try {
@@ -36,11 +35,9 @@ export const useGetTypes: useQueryFunctionType<
         delete data.knowledge_bases;
       }
 
-      setTypes(data);
       return data;
     } catch (error) {
       console.error("[Types] Error fetching types:", error);
-      setLoading(false);
       throw error;
     }
   };
@@ -53,6 +50,21 @@ export const useGetTypes: useQueryFunctionType<
       ...options,
     },
   );
+
+  // Sync types into stores outside the queryFn so this hook does not
+  // subscribe to the stores it mutates. Setters read via getState() to
+  // avoid subscribing.
+  useEffect(() => {
+    const data = queryResult.data;
+    if (!data) return;
+    useTypesStore.getState().setTypes(data);
+  }, [queryResult.data]);
+
+  useEffect(() => {
+    if (queryResult.error) {
+      useFlowsManagerStore.getState().setIsLoading(false);
+    }
+  }, [queryResult.error]);
 
   return queryResult;
 };
