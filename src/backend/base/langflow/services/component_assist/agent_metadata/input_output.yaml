@@ -1,0 +1,90 @@
+- component_name: ChatInput
+  agent_summary: |-
+    You help the user receive a chat message from the Playground as a structured message object, optionally attaching files, tagging the sender, and storing the exchange in session history. Use this as the entry point for conversational flows triggered interactively in the Playground. Prefer over Text Input when you need chat-specific metadata like sender identity, session tracking, or file attachments rather than a plain string value.
+  agent_usage_notes: |-
+    ## What it does
+    Chat Input captures user messages from the Langflow Playground and passes them into a flow as a `Message` object. It serves as the standard entry point for conversational flows that rely on the interactive chat interface.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user what default or placeholder message (if any) should pre-populate the chat input field; suitable when testing with a fixed prompt. Default: leave empty so the Playground accepts live user input.
+
+    ## Outputs
+    - **message** - Produces a `Message` object containing the user's chat text; commonly feeds into an LLM node, a prompt template, or an agent as the human turn of a conversation.
+
+    ## Notes
+    - This component is designed for use with the Langflow Playground; if the flow will be triggered via API rather than the Playground UI, consider whether a plain **Text Input** component is more appropriate.
+    - `input_value` is only meaningful as a static default — in normal Playground usage the user's typed message overrides it at runtime.
+    - Because nearly all other inputs are `advanced=True`, most flows need no additional configuration beyond dropping this component in and connecting its `message` output.
+- component_name: ChatOutput
+  agent_summary: |-
+    You help the user display a final chat message in the Playground interface, rendering the output of a flow as a conversational response with optional sender metadata and session tracking. It is the standard endpoint for chat-based flows and pairs naturally with Chat Input. Prefer over Text Output when the target is the interactive Playground UI rather than an API response.
+  agent_usage_notes: |-
+    ## What it does
+    Chat Output displays a message in the Langflow Playground chat interface. It serves as the final node in a conversational flow, rendering the AI's response to the user.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user what message or data should be displayed as the chat output; this is typically connected to the output of an LLM or agent component upstream.
+
+    ## Outputs
+    - **message** - Produces a chat message object rendered in the Playground; commonly used as the terminal node in a flow and rarely connected to downstream components, though it can feed into logging or post-processing steps if needed.
+
+    ## Notes
+    - This component is almost always the **last node** in a chat flow — confirm the user has connected an upstream LLM, chain, or agent to `input_value`.
+    - All other inputs (`sender`, `sender_name`, `session_id`, etc.) are advanced; only raise them if the user has a specific need such as multi-user session tracking or custom sender labeling.
+    - The `data_template` advanced input matters if the upstream component returns a `Data` object rather than a plain string — flag this if the user sees unexpected output formatting.
+    - There are no secret/credential inputs required for this component.
+- component_name: TextInputComponent
+  agent_summary: |-
+    You help the user pass a static or predefined string value into a flow as a text message. It is a good fit for fixed prompts, template variables, or any non-interactive text you want to inject without a live chat session. Prefer over Chat Input when the text is not coming from a human typing in the Playground but instead from a hardcoded value or global variable set at design time.
+  agent_usage_notes: |-
+    ## What it does
+    Accepts a static or user-supplied text string and passes it downstream as a message. It serves as a simple entry point for plain text values in a flow.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user what text they want to inject into the flow (e.g., a prompt snippet, a fixed instruction, or a sample query). No universal default applies — it depends entirely on the use case.
+
+    ## Outputs
+    - **text** - Emits the entered string as a `Message` object; commonly feeds into prompt templates, LLM inputs, or any component that accepts a text or message input.
+
+    ## Notes
+    - This component is best used for static or rarely-changing text; if the text needs to be dynamic at runtime, consider a **Chat Input** component instead.
+    - Keep inputs short and self-contained — very long text may be easier to manage through a **File** component or a document loader.
+    - If the user needs to reference a globally defined variable (e.g., a shared system prompt), the `use_global_variable` toggle (advanced) enables that, but it disables multiline editing, so flag this trade-off if they plan to enter multi-line text.
+- component_name: TextOutputComponent
+  agent_summary: |-
+    You help the user expose a plain text value as a named output endpoint accessible via the API. This is a good fit when you need to return a string result from a flow programmatically rather than displaying it in the Playground. Prefer over Chat Output when the consumer is an external API caller rather than an interactive chat interface.
+  agent_usage_notes: |-
+    ## What it does
+    Accepts a text value and exposes it as an API output, making it the final delivery point for text results when Langflow flows are called via API.
+
+    ## Inputs to ask about
+    - **input_value** - Ask the user what text or upstream component output should be sent as the final result; this is typically connected to the output of a preceding component (e.g., an LLM or prompt) rather than typed manually, so the default can be left empty.
+
+    ## Outputs
+    - **text** - Passes through the received text value; commonly used as the terminal output node that the API response returns to the caller.
+
+    ## Notes
+    - This component is primarily designed for **API usage** — when running flows interactively in the UI, a standard message display may be more appropriate.
+    - The `input_value` field is almost always **wired** from an upstream component (like a model or chain output) rather than filled in with static text.
+    - Only one Text Output component is needed per flow exit point; if multiple outputs are required, use multiple instances.
+    - Pair with a **Text Input** component at the start of the flow to create a clean API-friendly request/response pattern.
+- component_name: WebhookComponent
+  agent_summary: |-
+    You help the user receive an HTTP POST payload from an external system and pass it into a flow as structured data. This is a good fit when you want to trigger a flow from a third-party service, webhook event, or automated pipeline rather than from manual user input. Prefer over Text Input or Chat Input when the trigger and data originate from an external system rather than a human typing in the Playground.
+  agent_usage_notes: |-
+    ## What it does
+    The Webhook component exposes an HTTP POST endpoint that receives payloads from external systems, allowing outside services to trigger a Langflow flow in real time. It handles authentication via an API key passed as a request header.
+
+    ## Inputs to ask about
+    - **endpoint** - Ask the user for the endpoint path or URL slug they want to use to receive incoming webhook requests; this is typically auto-generated or provided by Langflow, so confirm whether they want a custom value or will use the default.
+    - **api_key** - Ask the user if they already have an API key or if they want to use the auto-generated one; remind them it must be sent as the `x-api-key` header in every incoming request.
+
+    ## Outputs
+    - **output_data** - Emits the parsed payload received from the incoming HTTP POST request; typically feeds into a text or data processing component such as a parser, prompt, or conditional router.
+
+    ## Notes
+    - The `api_key` field is not a `SecretStrInput` type but functions as an authentication credential — advise the user to treat it as sensitive and avoid sharing it publicly.
+    - External services calling this webhook **must** include the API key as `x-api-key` in the request headers, or the request will be rejected.
+    - The component only handles HTTP POST requests; remind the user that GET or other methods will not trigger the flow.
+    - The `curl` and `data` fields are advanced and generally managed internally — users rarely need to configure them manually.
+    - Refer the user to the [Webhook documentation](https://docs.langflow.org/component-webhook) for platform-specific setup details.
