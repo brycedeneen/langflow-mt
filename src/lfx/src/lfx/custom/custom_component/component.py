@@ -146,6 +146,7 @@ class Component(CustomComponent):
         self._components: list[Component] = []
         self._event_manager: EventManager | None = None
         self._token_usage: Usage | None = None
+        self._model_name: str | None = None
         self._state_model = None
         self._telemetry_input_values: dict[str, Any] | None = None
 
