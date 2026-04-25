@@ -10,7 +10,7 @@ import {
 } from "@xyflow/react";
 import _, { cloneDeep } from "lodash";
 import {
-  type KeyboardEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent,
   useCallback,
   useEffect,
@@ -357,29 +357,17 @@ export default function Page({
   const cutAction = useShortcutsStore((state) => state.cut);
   const pasteAction = useShortcutsStore((state) => state.paste);
   const downloadAction = useShortcutsStore((state) => state.download);
-  //@ts-ignore
   useHotkeys(undoAction, handleUndo);
-  //@ts-ignore
   useHotkeys(redoAction, handleRedo);
-  //@ts-ignore
   useHotkeys(redoAltAction, handleRedo);
-  //@ts-ignore
   useHotkeys(groupAction, handleGroup);
-  //@ts-ignore
   useHotkeys(duplicate, handleDuplicate);
-  //@ts-ignore
   useHotkeys(copyAction, handleCopy);
-  //@ts-ignore
   useHotkeys(cutAction, handleCut);
-  //@ts-ignore
   useHotkeys(pasteAction, handlePaste);
-  //@ts-ignore
   useHotkeys(deleteAction, handleDelete);
-  //@ts-ignore
   useHotkeys(downloadAction, handleDownload);
-  //@ts-ignore
   useHotkeys("delete", handleDelete);
-  //@ts-ignore
   useHotkeys("escape", handleEscape);
 
   const onConnectMod = useCallback(
@@ -693,7 +681,7 @@ export default function Page({
     reactFlowWrapper.current?.style.setProperty("--selected", accentColor);
   };
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = (e: ReactKeyboardEvent) => {
     if (isLocked) {
       e.preventDefault();
       e.stopPropagation();

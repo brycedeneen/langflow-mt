@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import {
   LANGFLOW_ACCESS_TOKEN,
   LANGFLOW_API_TOKEN,
@@ -45,7 +45,7 @@ export function AuthProvider({ children }): React.ReactElement {
   // Session validation is now handled by components that need it
   // (e.g., via useGetAuthSession hook) rather than reading cookies here
 
-  function getUser() {
+  const getUser = useCallback(() => {
     mutateLoggedUser(
       {},
       {
@@ -62,9 +62,9 @@ export function AuthProvider({ children }): React.ReactElement {
         },
       },
     );
-  }
+  }, [mutateLoggedUser, checkHasStore, fetchApiData]);
 
-  function login(newAccessToken: string, refreshToken?: string) {
+  const login = useCallback((newAccessToken: string, refreshToken?: string) => {
     cookieManager.set(LANGFLOW_ACCESS_TOKEN, newAccessToken);
     setLocalStorage(LANGFLOW_ACCESS_TOKEN, newAccessToken);
 
@@ -118,13 +118,13 @@ export function AuthProvider({ children }): React.ReactElement {
     // Execute auth requests directly
     // Cookies are set by the server and browser handles them automatically
     executeAuthRequests();
-  }
+  }, [mutateLoggedUser, mutateGetGlobalVariables, checkHasStore, fetchApiData, setIsAuthenticated]);
 
-  function storeApiKey(apikey: string) {
+  const storeApiKey = useCallback((apikey: string) => {
     setApiKey(apikey);
-  }
+  }, []);
 
-  function clearAuthSession() {
+  const clearAuthSession = useCallback(() => {
     cookieManager.clearAuthCookies();
     localStorage.removeItem(LANGFLOW_ACCESS_TOKEN);
     localStorage.removeItem(LANGFLOW_API_TOKEN);
@@ -133,25 +133,23 @@ export function AuthProvider({ children }): React.ReactElement {
     setApiKey(null);
     setUserData(null);
     setIsAuthenticated(false);
-  }
+  }, [setIsAuthenticated]);
 
-  return (
-    // !! to convert string to boolean
-    <AuthContext.Provider
-      value={{
-        accessToken,
-        login,
-        setUserData,
-        userData,
-        authenticationErrorCount: 0,
-        setApiKey,
-        apiKey,
-        storeApiKey,
-        getUser,
-        clearAuthSession,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo<AuthContextType>(
+    () => ({
+      accessToken,
+      login,
+      setUserData,
+      userData,
+      authenticationErrorCount: 0,
+      setApiKey,
+      apiKey,
+      storeApiKey,
+      getUser,
+      clearAuthSession,
+    }),
+    [accessToken, login, userData, apiKey, storeApiKey, getUser, clearAuthSession],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
