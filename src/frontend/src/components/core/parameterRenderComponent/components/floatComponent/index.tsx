@@ -32,15 +32,9 @@ export default function FloatComponent({
     setLocalValue(value.toString());
   }, [value]);
 
-  const [cursor, setCursor] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    inputRef.current?.setSelectionRange(cursor, cursor);
-  }, [cursor, localValue]);
-
   const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCursor(e.target.selectionStart);
     setLocalValue(e.target.value);
   };
 

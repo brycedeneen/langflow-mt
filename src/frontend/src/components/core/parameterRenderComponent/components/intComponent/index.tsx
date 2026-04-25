@@ -1,5 +1,5 @@
 import { MinusIcon, PlusIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
 import { cn } from "@/utils/utils";
 import { handleKeyDown } from "../../../../../utils/reactflowUtils";
@@ -24,12 +24,7 @@ export default function IntComponent({
     }
   }, [disabled, handleOnNewValue]);
 
-  const [cursor, setCursor] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    inputRef.current?.setSelectionRange(cursor, cursor);
-  }, [cursor, value]);
 
   const parseAndValidate = (raw: string): number | null => {
     const trimmed = raw.trim();
@@ -44,7 +39,6 @@ export default function IntComponent({
   };
 
   const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCursor(e.target.selectionStart ?? null);
     const raw = e.target.value;
     const parsed = parseAndValidate(raw);
     handleOnNewValue({
