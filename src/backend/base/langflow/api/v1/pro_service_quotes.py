@@ -11,10 +11,11 @@ families on a single router.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func
 from sqlmodel import select
 
 from langflow.api.utils.core import CurrentActiveUser, DbSession
@@ -25,6 +26,7 @@ from langflow.api.utils.org_helpers import (
 from langflow.api.v1.schemas.pro_service_quote import (
     ComponentBreakdownItem,
     PreviewResponse,
+    QuoteListResponse,
     QuoteRead,
     QuoteSubmitRequest,
     quote_to_read,
@@ -33,6 +35,10 @@ from langflow.services.database.models.component_metadata.model import Component
 from langflow.services.database.models.flow.model import Flow
 from langflow.services.database.models.membership.model import Membership, MembershipRole
 from langflow.services.database.models.organization.model import Organization
+from langflow.services.database.models.pro_service_quote.model import (
+    ProServiceQuote,
+    ProServiceQuoteStatus,
+)
 from langflow.services.database.models.user.model import User
 from langflow.services.professional_services.estimate_service import (
     compute_cost_range,
@@ -45,6 +51,7 @@ from langflow.services.professional_services.llm_service import (
 from langflow.services.professional_services.permissions import (
     PrincipalContext,
     can_submit,
+    can_view_quote,
 )
 from langflow.services.professional_services.settings_service import (
     read_settings_singleton_async,
@@ -122,6 +129,47 @@ def _build_principal(
         is_platform_admin=user.is_platform_admin,
         is_org_admin=is_org_admin,
     )
+
+
+async def _build_principal_for_user(
+    user: User,
+    session: "DbSession",
+) -> list[PrincipalContext]:
+    """Build a list of PrincipalContexts (one per org membership).
+
+    Used by list/detail/PATCH which may be called by cross-tenant admins (no
+    membership) or by org members with multiple memberships (e.g., personal
+    org + non-personal org). Returning a list lets the caller filter quotes
+    against any of the user's orgs without arbitrarily picking one.
+
+    Cross-tenant admins (super-admin / platform-admin) without any membership
+    still receive a single placeholder principal so ``is_admin`` checks work.
+    """
+    rows = (
+        await session.exec(
+            select(Membership).where(Membership.user_id == user.id)
+        )
+    ).all()
+    if not rows:
+        return [
+            PrincipalContext(
+                user_id=user.id,
+                org_id=None,
+                is_superuser=user.is_superuser,
+                is_platform_admin=user.is_platform_admin,
+                is_org_admin=False,
+            )
+        ]
+    return [
+        PrincipalContext(
+            user_id=user.id,
+            org_id=m.organization_id,
+            is_superuser=user.is_superuser,
+            is_platform_admin=user.is_platform_admin,
+            is_org_admin=m.role in (MembershipRole.OWNER, MembershipRole.ADMIN),
+        )
+        for m in rows
+    ]
 
 
 def _component_types_from_nodes(nodes: list[dict[str, Any]]) -> list[str]:
@@ -296,3 +344,113 @@ async def submit_quote_endpoint(
         base_url="",
     )
     return result
+
+
+@router.get("/pro-service-quotes", response_model=QuoteListResponse)
+async def list_quotes(
+    user: CurrentActiveUser,
+    session: DbSession,
+    status_filter: Annotated[ProServiceQuoteStatus | None, Query(alias="status")] = None,
+    org_id_filter: Annotated[UUID | None, Query(alias="org_id")] = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> QuoteListResponse:
+    """List quotes visible to the calling principal.
+
+    Org members see their own org's rows. Cross-tenant admins (super-admin or
+    platform-admin) see all rows; they can narrow with ``?org_id=...``. Status
+    filter is supported for both. Denormalized org/flow/requester fields are
+    resolved in batch to avoid N+1.
+    """
+    principals = await _build_principal_for_user(user, session)
+    is_admin = any(p.is_admin for p in principals)
+    visible_org_ids = [p.org_id for p in principals if p.org_id is not None]
+
+    query = select(ProServiceQuote).order_by(ProServiceQuote.created_at.desc())
+    count_query = select(func.count(ProServiceQuote.id))
+
+    if not is_admin:
+        if not visible_org_ids:
+            return QuoteListResponse(items=[], total=0)
+        query = query.where(ProServiceQuote.org_id.in_(visible_org_ids))
+        count_query = count_query.where(ProServiceQuote.org_id.in_(visible_org_ids))
+    elif org_id_filter is not None:
+        query = query.where(ProServiceQuote.org_id == org_id_filter)
+        count_query = count_query.where(ProServiceQuote.org_id == org_id_filter)
+
+    if status_filter is not None:
+        query = query.where(ProServiceQuote.status == status_filter)
+        count_query = count_query.where(ProServiceQuote.status == status_filter)
+
+    total = (await session.exec(count_query)).one()
+    rows = (await session.exec(query.limit(limit).offset(offset))).all()
+
+    org_ids = {r.org_id for r in rows}
+    flow_ids = {r.flow_id for r in rows if r.flow_id}
+    user_ids = {r.requester_user_id for r in rows}
+    orgs = (
+        {
+            o.id: o
+            for o in (
+                await session.exec(
+                    select(Organization).where(Organization.id.in_(org_ids))
+                )
+            ).all()
+        }
+        if org_ids
+        else {}
+    )
+    flows = (
+        {
+            f.id: f
+            for f in (
+                await session.exec(select(Flow).where(Flow.id.in_(flow_ids)))
+            ).all()
+        }
+        if flow_ids
+        else {}
+    )
+    users = (
+        {
+            u.id: u
+            for u in (
+                await session.exec(select(User).where(User.id.in_(user_ids)))
+            ).all()
+        }
+        if user_ids
+        else {}
+    )
+
+    items = [
+        quote_to_read(
+            r,
+            orgs.get(r.org_id),
+            flows.get(r.flow_id) if r.flow_id else None,
+            users.get(r.requester_user_id),
+        )
+        for r in rows
+    ]
+    return QuoteListResponse(items=items, total=int(total))
+
+
+@router.get("/pro-service-quotes/{quote_id}", response_model=QuoteRead)
+async def get_quote(
+    quote_id: UUID,
+    user: CurrentActiveUser,
+    session: DbSession,
+) -> QuoteRead:
+    """Fetch a single quote, denormalized.
+
+    Returns 404 (not 403) for cross-tenant access so we don't leak existence.
+    """
+    quote = await session.get(ProServiceQuote, quote_id)
+    principals = await _build_principal_for_user(user, session)
+    if quote is None or not any(can_view_quote(quote, p) for p in principals):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="quote_not_found"
+        )
+
+    org = await session.get(Organization, quote.org_id)
+    flow = await session.get(Flow, quote.flow_id) if quote.flow_id else None
+    requester = await session.get(User, quote.requester_user_id)
+    return quote_to_read(quote, org, flow, requester)
