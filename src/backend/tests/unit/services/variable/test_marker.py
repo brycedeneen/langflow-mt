@@ -65,3 +65,35 @@ def test_parse_handles_underscores_in_node_id_and_field_name():
 def test_parse_rejects_malformed(bad):
     with pytest.raises(ValueError):
         parse_autosecret_marker(bad)
+
+
+@pytest.mark.asyncio
+async def test_get_org_id_for_flow_returns_org(monkeypatch):
+    from langflow.services.variable import auto_secrets
+
+    org_id_value = UUID("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
+
+    async def fake_exec(self_inner, stmt):
+        class _Result:
+            def first(self_inner):
+                return org_id_value
+        return _Result()
+
+    session = type("S", (), {"exec": fake_exec})()
+    out = await auto_secrets._get_org_id_for_flow(FLOW_ID, session=session)
+    assert out == org_id_value
+
+
+@pytest.mark.asyncio
+async def test_get_org_id_for_flow_missing_returns_none():
+    from langflow.services.variable import auto_secrets
+
+    async def fake_exec(self_inner, stmt):
+        class _Result:
+            def first(self_inner):
+                return None
+        return _Result()
+
+    session = type("S", (), {"exec": fake_exec})()
+    out = await auto_secrets._get_org_id_for_flow(FLOW_ID, session=session)
+    assert out is None

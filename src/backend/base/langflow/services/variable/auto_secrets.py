@@ -12,6 +12,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from uuid import UUID
 
+from sqlmodel import select
+
 from langflow.services.variable.constants import CREDENTIAL_TYPE
 
 if TYPE_CHECKING:
@@ -80,6 +82,19 @@ def parse_autosecret_marker(marker: str) -> tuple[UUID, str, str]:
         msg = f"autosecret marker has empty node_id or field_name: {marker!r}"
         raise ValueError(msg)
     return flow_id, node_id, field_name
+
+
+async def _get_org_id_for_flow(flow_id: UUID, *, session: AsyncSession) -> UUID | None:
+    """Return the organization_id of the given flow, or None if the flow row is gone.
+
+    Defensive: never raises. Callers fall through to a no-op when None is
+    returned (treat as "flow no longer exists or untracked org").
+    """
+    from langflow.services.database.models.flow import Flow  # local import to avoid cycle
+
+    stmt = select(Flow.organization_id).where(Flow.id == flow_id)
+    result = await session.exec(stmt)
+    return result.first()
 
 
 def _iter_promotable_fields(flow_data: dict) -> list[tuple[str, str, dict]]:
