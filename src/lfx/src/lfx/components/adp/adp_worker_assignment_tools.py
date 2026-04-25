@@ -1,27 +1,35 @@
-"""ADPWorkerAssignmentToolsComponent — work-assignment mutations.
+"""ADP worker assignment tools — work-assignment mutations.
 
 Backs the ADP WFN `workers-work-assignment-management v2` tile. Four mutation
 endpoints: change reports-to (manager), change assigned organizational units,
 modify a work assignment generically, terminate a specific work assignment.
-Gated behind `enable_mutations`.
 """
 
 from __future__ import annotations
 
-from typing import Any, ClassVar
+from typing import Any
 
-import httpx
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
-from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
-from lfx.custom.custom_component.changelog import ChangelogEntry
-from lfx.custom.custom_component.component import Component
-from lfx.field_typing import Tool
-from lfx.io import BoolInput, HandleInput, Output
+from lfx.components.adp._shared import (
+    HTTP_CLIENT_ERROR_MIN,
+    HTTP_UNAUTHORIZED,
+    ADPConnection,
+    RequestCache,
+    build_mtls_httpx_client,
+    fetch_token,
+    validate_adp_url,
+)
+from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
-HTTP_UNAUTHORIZED = 401
-HTTP_CLIENT_ERROR_MIN = 400
+
+# ---------------------------------------------------------------------------
+# Backward-compat stub — __init__.py still imports this name; orchestrator
+# will update __init__.py in a consolidated commit after all batches land.
+# ---------------------------------------------------------------------------
+class ADPWorkerAssignmentToolsComponent:
+    """Deprecated stub — use build_worker_assignment_tools instead."""
 
 PATH_REPORTS_TO_MODIFY = "/events/hr/v1/worker.reports-to.modify"
 PATH_ORG_UNITS_MODIFY = "/events/hr/v1/worker.work-assignment.assigned-organizational-units.modify"
@@ -107,8 +115,10 @@ def build_modify_work_assignment_event(
     effective_date: str | None = None,
     reason_code: str | None = None,
 ) -> dict[str, Any]:
-    """Generic work-assignment modification; caller provides the fields to change
-    as an ADP-shaped dict (e.g. `{"jobTitle": "Senior Engineer"}`).
+    """Generic work-assignment modification.
+
+    Caller provides the fields to change as an ADP-shaped dict
+    (e.g. `{"jobTitle": "Senior Engineer"}`).
     """
     return _event(
         event_context={
@@ -197,135 +207,83 @@ class TerminateWorkAssignmentInput(BaseModel):
     )
 
 
-class ADPWorkerAssignmentToolsComponent(Component):
-    display_name = "ADP Worker Assignment Tools"
-    description = (
-        "Work-assignment mutation tools for Langflow Agents, backing ADP WFN "
-        "`workers-work-assignment-management v2`: change manager, change org units, "
-        "generic modify, terminate a work assignment. Gated behind `enable_mutations`."
-    )
-    icon = "Briefcase"
-    name = "ADPWorkerAssignmentTools"
-    version: int = 1
-    changelog: ClassVar[list[ChangelogEntry]] = [
-        ChangelogEntry(
-            version=1,
-            changes=(
-                "Initial release — 4 agent tools for ADP WFN workers-work-assignment-management v2: "
-                "`change_employee_manager`, `change_employee_organizational_units`, "
-                "`modify_employee_work_assignment`, `terminate_employee_work_assignment`. "
-                "Gated behind `enable_mutations` (default off)."
-            ),
-        ),
-    ]
-
-    inputs = [
-        HandleInput(
-            name="connection",
-            display_name="ADP Connection",
-            input_types=["ADPConnection"],
-            info="Connection produced by an ADP Auth component.",
-            required=True,
-        ),
-        BoolInput(
-            name="enable_mutations",
-            display_name="Enable Mutations",
-            info="Expose manager/org/work-assignment mutation tools. Off by default.",
-            value=False,
-        ),
-    ]
-
-    outputs = [
-        Output(display_name="Tools", name="tools", method="build_tools"),
-    ]
-
-    async def _execute_request(
-        self, client: httpx.AsyncClient, *, url: str, headers: dict[str, str],
-        json_body: dict[str, Any], timeout: float,
-    ) -> httpx.Response:
-        return await client.request("POST", url, headers=headers, json=json_body, timeout=timeout)
-
-    async def _post_event(self, conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
-        url = f"{conn.api_base_url}{path}"
-        validate_adp_url(url, field_name="api_base_url")
-        headers = {"Authorization": f"Bearer {conn.access_token}"}
-        async with build_mtls_httpx_client(conn, timeout=30.0) as client:
-            response = await self._execute_request(client, url=url, headers=headers, json_body=body, timeout=30.0)
-            if response.status_code == HTTP_UNAUTHORIZED:
-                await fetch_token(conn, force=True)
-                headers["Authorization"] = f"Bearer {conn.access_token}"
-                response = await self._execute_request(
-                    client, url=url, headers=headers, json_body=body, timeout=30.0,
-                )
-        if response.status_code >= HTTP_CLIENT_ERROR_MIN:
-            try:
-                detail = response.json()
-            except ValueError:
-                detail = response.text
-            return {"error": detail, "status_code": response.status_code}
+async def _post_event(conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
+    """POST a single ADP event, with one 401-refresh retry."""
+    url = f"{conn.api_base_url}{path}"
+    validate_adp_url(url, field_name="api_base_url")
+    headers = {"Authorization": f"Bearer {conn.access_token}"}
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
+        response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+        if response.status_code == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+    if response.status_code >= HTTP_CLIENT_ERROR_MIN:
         try:
-            return response.json()
+            detail = response.json()
         except ValueError:
-            return {"ok": True, "status_code": response.status_code}
+            detail = response.text
+        return {"error": detail, "status_code": response.status_code}
+    try:
+        return response.json()
+    except ValueError:
+        return {"ok": True, "status_code": response.status_code}
 
-    async def build_tools(self) -> list[Tool]:
-        if not self.enable_mutations:
-            return []
-        conn: ADPConnection = self.connection
-        component = self
 
-        async def _change_manager(**kw: Any) -> dict[str, Any]:
-            return await component._post_event(
-                conn, path=PATH_REPORTS_TO_MODIFY, body=build_change_reports_to_event(**kw),
-            )
+def build_worker_assignment_tools(
+    connection: ADPConnection,
+    request_cache: RequestCache,  # accepted for registry uniformity; unused for writes  # noqa: ARG001
+) -> list[Tool]:
+    conn = connection
 
-        async def _change_org_units(**kw: Any) -> dict[str, Any]:
-            return await component._post_event(
-                conn, path=PATH_ORG_UNITS_MODIFY, body=build_change_org_units_event(**kw),
-            )
+    async def _change_manager(**kw: Any) -> dict[str, Any]:
+        return await _post_event(conn, path=PATH_REPORTS_TO_MODIFY, body=build_change_reports_to_event(**kw))
 
-        async def _modify_work_assignment(**kw: Any) -> dict[str, Any]:
-            return await component._post_event(
-                conn, path=PATH_WORK_ASSIGNMENT_MODIFY, body=build_modify_work_assignment_event(**kw),
-            )
+    async def _change_org_units(**kw: Any) -> dict[str, Any]:
+        return await _post_event(conn, path=PATH_ORG_UNITS_MODIFY, body=build_change_org_units_event(**kw))
 
-        async def _terminate_work_assignment(**kw: Any) -> dict[str, Any]:
-            return await component._post_event(
-                conn, path=PATH_WORK_ASSIGNMENT_TERMINATE, body=build_terminate_work_assignment_event(**kw),
-            )
+    async def _modify_work_assignment(**kw: Any) -> dict[str, Any]:
+        return await _post_event(
+            conn, path=PATH_WORK_ASSIGNMENT_MODIFY, body=build_modify_work_assignment_event(**kw),
+        )
 
-        return [
-            StructuredTool.from_function(
-                name="change_employee_manager",
-                description="Change the employee's reports-to manager on a work assignment.",
-                coroutine=_change_manager,
-                args_schema=ChangeReportsToInput,
+    async def _terminate_work_assignment(**kw: Any) -> dict[str, Any]:
+        return await _post_event(
+            conn, path=PATH_WORK_ASSIGNMENT_TERMINATE, body=build_terminate_work_assignment_event(**kw),
+        )
+
+    return [
+        StructuredTool.from_function(
+            name="change_employee_manager",
+            description="Change the employee's reports-to manager on a work assignment.",
+            coroutine=_change_manager,
+            args_schema=ChangeReportsToInput,
+        ),
+        StructuredTool.from_function(
+            name="change_employee_organizational_units",
+            description=(
+                "Change the organizational units (department, division, cost center, etc.) "
+                "assigned to an employee's work assignment."
             ),
-            StructuredTool.from_function(
-                name="change_employee_organizational_units",
-                description=(
-                    "Change the organizational units (department, division, cost center, etc.) "
-                    "assigned to an employee's work assignment."
-                ),
-                coroutine=_change_org_units,
-                args_schema=ChangeOrgUnitsInput,
+            coroutine=_change_org_units,
+            args_schema=ChangeOrgUnitsInput,
+        ),
+        StructuredTool.from_function(
+            name="modify_employee_work_assignment",
+            description=(
+                "Generic modification of an employee's work assignment. Caller provides an "
+                "ADP-shaped `work_assignment_fields` dict with the properties to change."
             ),
-            StructuredTool.from_function(
-                name="modify_employee_work_assignment",
-                description=(
-                    "Generic modification of an employee's work assignment. Caller provides an "
-                    "ADP-shaped `work_assignment_fields` dict with the properties to change."
-                ),
-                coroutine=_modify_work_assignment,
-                args_schema=ModifyWorkAssignmentInput,
+            coroutine=_modify_work_assignment,
+            args_schema=ModifyWorkAssignmentInput,
+        ),
+        StructuredTool.from_function(
+            name="terminate_employee_work_assignment",
+            description=(
+                "Terminate a specific work assignment (not the employee overall). Use the "
+                "lifecycle tile for full-worker termination."
             ),
-            StructuredTool.from_function(
-                name="terminate_employee_work_assignment",
-                description=(
-                    "Terminate a specific work assignment (not the employee overall). Use the "
-                    "lifecycle tile for full-worker termination."
-                ),
-                coroutine=_terminate_work_assignment,
-                args_schema=TerminateWorkAssignmentInput,
-            ),
-        ]
+            coroutine=_terminate_work_assignment,
+            args_schema=TerminateWorkAssignmentInput,
+        ),
+    ]

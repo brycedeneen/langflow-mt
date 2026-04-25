@@ -1,28 +1,37 @@
-"""ADPWorkerAssignmentV3ToolsComponent — add a work assignment via the HR v3 REST API.
+"""ADP worker assignment v3 tools — add a work assignment via the HR v3 REST API.
 
 Backs the ADP WFN `hr-work-assignment-management v3` tile. Unlike the v2 tile,
 this uses a RESTful `POST /hr/v3/workers/{aoid}/work-assignments` with the
 workAssignment body directly (no event envelope). The body can be very large
-(100+ fields); this component exposes narrow args for the common ones plus an
+(100+ fields); this module exposes narrow args for the common ones plus an
 `additional_fields` escape hatch.
 """
 
 from __future__ import annotations
 
-from typing import Any, ClassVar
+from typing import Any
 
-import httpx
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
-from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
-from lfx.custom.custom_component.changelog import ChangelogEntry
-from lfx.custom.custom_component.component import Component
-from lfx.field_typing import Tool
-from lfx.io import BoolInput, HandleInput, Output
+from lfx.components.adp._shared import (
+    HTTP_CLIENT_ERROR_MIN,
+    HTTP_UNAUTHORIZED,
+    ADPConnection,
+    RequestCache,
+    build_mtls_httpx_client,
+    fetch_token,
+    validate_adp_url,
+)
+from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
-HTTP_UNAUTHORIZED = 401
-HTTP_CLIENT_ERROR_MIN = 400
+
+# ---------------------------------------------------------------------------
+# Backward-compat stub — orchestrator will update __init__.py later.
+# ---------------------------------------------------------------------------
+class ADPWorkerAssignmentV3ToolsComponent:
+    """Deprecated stub — use build_worker_assignment_v3_tools instead."""
+
 
 WORK_ASSIGNMENT_PATH_TEMPLATE = "/hr/v3/workers/{aoid}/work-assignments"
 
@@ -49,7 +58,7 @@ def build_add_work_assignment_body(
     department_name: str | None = None,
     work_location_name: str | None = None,
     annual_base_pay: float | None = None,
-    currency_code: str = "USD",
+    currency_code: str = "USD",  # noqa: ARG001 — reserved for future comp rate support; schema exposes it
     additional_fields: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Construct the body for `POST /hr/v3/workers/{aoid}/work-assignments`.
@@ -129,99 +138,52 @@ class AddWorkAssignmentInput(BaseModel):
     )
 
 
-class ADPWorkerAssignmentV3ToolsComponent(Component):
-    display_name = "ADP Worker Assignment Tools (v3 REST)"
-    description = (
-        "Add-work-assignment tool for Langflow Agents, backing ADP WFN "
-        "`hr-work-assignment-management v3` (RESTful POST, not event envelope). "
-        "Gated behind `enable_mutations`."
-    )
-    icon = "BriefcaseBusiness"
-    name = "ADPWorkerAssignmentV3Tools"
-    version: int = 1
-    changelog: ClassVar[list[ChangelogEntry]] = [
-        ChangelogEntry(
-            version=1,
-            changes=(
-                "Initial release — 1 agent tool for ADP WFN hr-work-assignment-management v3: "
-                "`add_employee_work_assignment` (RESTful POST). Narrow args + "
-                "`additional_fields` escape hatch. Gated behind `enable_mutations` (default off)."
-            ),
-        ),
-    ]
-
-    inputs = [
-        HandleInput(
-            name="connection",
-            display_name="ADP Connection",
-            input_types=["ADPConnection"],
-            info="Connection produced by an ADP Auth component.",
-            required=True,
-        ),
-        BoolInput(
-            name="enable_mutations",
-            display_name="Enable Mutations",
-            info="Expose add-work-assignment tool. Off by default.",
-            value=False,
-        ),
-    ]
-
-    outputs = [
-        Output(display_name="Tools", name="tools", method="build_tools"),
-    ]
-
-    async def _execute_request(
-        self, client: httpx.AsyncClient, *, url: str, headers: dict[str, str],
-        json_body: dict[str, Any], timeout: float,
-    ) -> httpx.Response:
-        return await client.request("POST", url, headers=headers, json=json_body, timeout=timeout)
-
-    async def _post_add_work_assignment(
-        self, conn: ADPConnection, *, associate_oid: str, body: dict[str, Any],
-    ) -> dict[str, Any]:
-        path = WORK_ASSIGNMENT_PATH_TEMPLATE.format(aoid=associate_oid)
-        url = f"{conn.api_base_url}{path}"
-        validate_adp_url(url, field_name="api_base_url")
-        headers = {"Authorization": f"Bearer {conn.access_token}"}
-        async with build_mtls_httpx_client(conn, timeout=30.0) as client:
-            response = await self._execute_request(client, url=url, headers=headers, json_body=body, timeout=30.0)
-            if response.status_code == HTTP_UNAUTHORIZED:
-                await fetch_token(conn, force=True)
-                headers["Authorization"] = f"Bearer {conn.access_token}"
-                response = await self._execute_request(
-                    client, url=url, headers=headers, json_body=body, timeout=30.0,
-                )
-        if response.status_code >= HTTP_CLIENT_ERROR_MIN:
-            try:
-                detail = response.json()
-            except ValueError:
-                detail = response.text
-            return {"error": detail, "status_code": response.status_code}
+async def _post_add_work_assignment(
+    conn: ADPConnection, *, associate_oid: str, body: dict[str, Any],
+) -> dict[str, Any]:
+    """POST the add-work-assignment body, with one 401-refresh retry."""
+    path = WORK_ASSIGNMENT_PATH_TEMPLATE.format(aoid=associate_oid)
+    url = f"{conn.api_base_url}{path}"
+    validate_adp_url(url, field_name="api_base_url")
+    headers = {"Authorization": f"Bearer {conn.access_token}"}
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
+        response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+        if response.status_code == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+    if response.status_code >= HTTP_CLIENT_ERROR_MIN:
         try:
-            return response.json()
+            detail = response.json()
         except ValueError:
-            return {"ok": True, "status_code": response.status_code}
+            detail = response.text
+        return {"error": detail, "status_code": response.status_code}
+    try:
+        return response.json()
+    except ValueError:
+        return {"ok": True, "status_code": response.status_code}
 
-    async def build_tools(self) -> list[Tool]:
-        if not self.enable_mutations:
-            return []
-        conn: ADPConnection = self.connection
-        component = self
 
-        async def _add_work_assignment(**kw: Any) -> dict[str, Any]:
-            associate_oid = kw.pop("associate_oid")
-            body = build_add_work_assignment_body(**kw)
-            return await component._post_add_work_assignment(conn, associate_oid=associate_oid, body=body)
+def build_worker_assignment_v3_tools(
+    connection: ADPConnection,
+    request_cache: RequestCache,  # accepted for registry uniformity; unused for writes  # noqa: ARG001
+) -> list[Tool]:
+    conn = connection
 
-        return [
-            StructuredTool.from_function(
-                name="add_employee_work_assignment",
-                description=(
-                    "Create a new work assignment for an employee via the v3 REST endpoint. "
-                    "Pass the hire date plus common fields (job, position, comp, location, "
-                    "manager). Use `additional_fields` for deeper ADP attributes."
-                ),
-                coroutine=_add_work_assignment,
-                args_schema=AddWorkAssignmentInput,
+    async def _add_work_assignment(**kw: Any) -> dict[str, Any]:
+        associate_oid = kw.pop("associate_oid")
+        body = build_add_work_assignment_body(**kw)
+        return await _post_add_work_assignment(conn, associate_oid=associate_oid, body=body)
+
+    return [
+        StructuredTool.from_function(
+            name="add_employee_work_assignment",
+            description=(
+                "Create a new work assignment for an employee via the v3 REST endpoint. "
+                "Pass the hire date plus common fields (job, position, comp, location, "
+                "manager). Use `additional_fields` for deeper ADP attributes."
             ),
-        ]
+            coroutine=_add_work_assignment,
+            args_schema=AddWorkAssignmentInput,
+        ),
+    ]

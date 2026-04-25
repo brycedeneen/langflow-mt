@@ -1,18 +1,23 @@
-"""Tests for ADPWorkerAssignmentV3ToolsComponent."""
+"""Tests for adp_worker_assignment_v3_tools — build_worker_assignment_v3_tools builder."""
 
-from unittest.mock import AsyncMock, patch
+from contextlib import asynccontextmanager
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
-
+from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_worker_assignment_v3_tools import (
-    ADPWorkerAssignmentV3ToolsComponent,
     WORK_ASSIGNMENT_PATH_TEMPLATE,
     build_add_work_assignment_body,
+    build_worker_assignment_v3_tools,
 )
 
 
-def _make(connection, *, enable_mutations=False):
-    return ADPWorkerAssignmentV3ToolsComponent(connection=connection, enable_mutations=enable_mutations)
+def _make_connection(*, access_token="fake-token", api_base_url="https://api.adp.com"):  # noqa: S107
+    conn = MagicMock()
+    conn.access_token = access_token
+    conn.api_base_url = api_base_url
+    return conn
 
 
 def test_build_add_work_assignment_body_minimum():
@@ -59,21 +64,70 @@ def test_build_add_work_assignment_body_additional_fields_deep_merge():
     assert wa["job"]["jobFamilies"][0]["jobFamilyCode"] == {"code": "SWE"}
 
 
-@pytest.mark.asyncio
-async def test_build_tools_gated(adp_connection):
-    c = _make(adp_connection, enable_mutations=False)
-    assert await c.build_tools() == []
-
-
-@pytest.mark.asyncio
-async def test_tool_invocation_builds_url_with_aoid(adp_connection):
-    c = _make(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={"ok": True})
-    with patch.object(c, "_post_add_work_assignment", new=mock_post):
-        tools = {t.name: t for t in await c.build_tools()}
-        await tools["add_employee_work_assignment"].ainvoke(
-            {"associate_oid": "G3ABC", "hire_date": "2026-05-01"},
-        )
-    call = mock_post.call_args
-    assert call.kwargs["associate_oid"] == "G3ABC"
+def test_work_assignment_path_template():
     assert WORK_ASSIGNMENT_PATH_TEMPLATE.format(aoid="G3ABC") == "/hr/v3/workers/G3ABC/work-assignments"
+
+
+@pytest.mark.asyncio
+async def test_build_tools_returns_one_tool():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    tools = build_worker_assignment_v3_tools(conn, cache)
+    assert len(tools) == 1
+    assert tools[0].name == "add_employee_work_assignment"
+
+
+@pytest.mark.asyncio
+async def test_tool_invocation_posts_to_correct_url():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    tools = build_worker_assignment_v3_tools(conn, cache)
+    tool = tools[0]
+
+    response = MagicMock(spec=httpx.Response)
+    response.status_code = 201
+    response.json.return_value = {"ok": True}
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.return_value = response
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_worker_assignment_v3_tools.build_mtls_httpx_client", fake_client):
+        result = await tool.ainvoke({"associate_oid": "G3ABC", "hire_date": "2026-05-01"})
+
+    assert result == {"ok": True}
+    call = client.request.call_args
+    assert "G3ABC/work-assignments" in (call.kwargs.get("url") or call.args[1])
+
+
+@pytest.mark.asyncio
+async def test_unauthorized_triggers_refresh_and_retry():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    tools = build_worker_assignment_v3_tools(conn, cache)
+    tool = tools[0]
+
+    unauthorized = MagicMock(spec=httpx.Response)
+    unauthorized.status_code = 401
+    unauthorized.json.return_value = {"message": "unauthorized"}
+
+    success = MagicMock(spec=httpx.Response)
+    success.status_code = 201
+    success.json.return_value = {"ok": True}
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.side_effect = [unauthorized, success]
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    with patch("lfx.components.adp.adp_worker_assignment_v3_tools.build_mtls_httpx_client", fake_client), \
+         patch("lfx.components.adp.adp_worker_assignment_v3_tools.fetch_token", AsyncMock()) as fetch_mock:
+        await tool.ainvoke({"associate_oid": "G3ABC", "hire_date": "2026-05-01"})
+
+    fetch_mock.assert_awaited_once()
+    assert client.request.await_count == 2

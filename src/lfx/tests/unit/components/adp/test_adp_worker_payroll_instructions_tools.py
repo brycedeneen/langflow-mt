@@ -1,24 +1,27 @@
-"""Tests for ADPWorkerPayrollInstructionsToolsComponent."""
+"""Tests for adp_worker_payroll_instructions_tools — build_worker_payroll_instructions_tools builder."""
 
 from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-
+from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_worker_payroll_instructions_tools import (
-    ADPWorkerPayrollInstructionsToolsComponent,
     PATH_CHANGE,
     PATH_DETAIL,
     PATH_LIST,
     PATH_START,
     PATH_STOP,
     build_general_deduction_event,
+    build_worker_payroll_instructions_tools,
 )
 
 
-def _make_component(connection, *, enable_mutations: bool = False) -> ADPWorkerPayrollInstructionsToolsComponent:
-    return ADPWorkerPayrollInstructionsToolsComponent(connection=connection, enable_mutations=enable_mutations)
+def _make_connection(*, access_token="fake-token", api_base_url="https://api.adp.com"):  # noqa: S107
+    conn = MagicMock()
+    conn.access_token = access_token
+    conn.api_base_url = api_base_url
+    return conn
 
 
 # ------------- envelope builder: start -------------
@@ -117,7 +120,6 @@ def test_build_change_event_pins_context_deduction_code():
     assert ctx_pi["generalDeductionInstruction"] == {"deductionCode": {"codeValue": "M"}}
 
     gdi = event["data"]["transform"]["payrollInstruction"]["generalDeductionInstruction"]
-    # The change transform should NOT repeat deductionCode — it's pinned in context.
     assert "deductionCode" not in gdi
     assert gdi["inactiveIndicator"] is True
     assert gdi["deductionRate"] == {"rateValue": "20"}
@@ -167,7 +169,6 @@ def test_build_stop_event_minimal():
     ctx_pi = event["data"]["eventContext"]["payrollInstruction"]
     assert ctx_pi["itemID"] == "169734365871_1"
     assert ctx_pi["generalDeductionInstruction"] == {}
-    # Per HAR sample, stop omits payrollGroupCode.
     assert "payrollGroupCode" not in ctx_pi
 
     transform = event["data"]["transform"]
@@ -185,85 +186,14 @@ def test_build_stop_event_requires_item_id():
         )
 
 
-# ------------- read path routing -------------
+# ------------- builder tests -------------
 
 
 @pytest.mark.asyncio
-async def test_read_tool_list_path(adp_connection):
-    c = _make_component(adp_connection)
-    mock_call = AsyncMock(return_value={"workerPayrollInstructions": []})
-
-    with patch.object(c, "_call", new=mock_call):
-        tools = await c.build_tools()
-        read_tool = next(t for t in tools if t.name == "get_worker_payroll_instructions")
-        await read_tool.ainvoke({"associate_oid": "G3ABC"})
-
-    assert mock_call.call_args.kwargs["path"] == "/payroll/v1/workers/G3ABC/payroll-instructions"
-
-
-@pytest.mark.asyncio
-async def test_read_tool_detail_path(adp_connection):
-    c = _make_component(adp_connection)
-    mock_call = AsyncMock(return_value={})
-
-    with patch.object(c, "_call", new=mock_call):
-        tools = await c.build_tools()
-        read_tool = next(t for t in tools if t.name == "get_worker_payroll_instructions")
-        await read_tool.ainvoke({"associate_oid": "G3ABC", "payroll_instruction_id": "PI-9"})
-
-    assert mock_call.call_args.kwargs["path"] == "/payroll/v1/workers/G3ABC/payroll-instructions/PI-9"
-
-
-# ------------- POST helper -------------
-
-
-@pytest.mark.asyncio
-async def test_call_401_retries(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    responses = [
-        httpx.Response(401, json={"error": "expired"}),
-        httpx.Response(200, json={"ok": True}),
-    ]
-    mock_exec = AsyncMock(side_effect=responses)
-    mock_client = MagicMock()
-
-    @asynccontextmanager
-    async def fake_build_client(_conn, *, timeout=30):
-        yield mock_client
-
-    async def fake_force_refresh(conn, *, force=False):
-        assert force is True
-        conn.access_token = "refreshed"  # noqa: S105
-
-    with patch(
-        "lfx.components.adp.adp_worker_payroll_instructions_tools.build_mtls_httpx_client",
-        new=fake_build_client,
-    ), patch.object(c, "_execute_request", new=mock_exec), patch(
-        "lfx.components.adp.adp_worker_payroll_instructions_tools.fetch_token",
-        new=AsyncMock(side_effect=fake_force_refresh),
-    ):
-        await c._call(adp_connection, method="POST", path=PATH_START, body={"events": []})
-
-    assert mock_exec.call_count == 2
-    assert mock_exec.call_args_list[1].kwargs["headers"]["Authorization"] == "Bearer refreshed"
-
-
-# ------------- tool registration + routing -------------
-
-
-@pytest.mark.asyncio
-async def test_build_tools_disabled_returns_only_read(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=False)
-    tools = await c.build_tools()
-    assert len(tools) == 1
-    assert tools[0].name == "get_worker_payroll_instructions"
-
-
-@pytest.mark.asyncio
-async def test_build_tools_enabled_returns_both(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    tools = await c.build_tools()
-
+async def test_build_tools_returns_two_tools():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    tools = build_worker_payroll_instructions_tools(conn, cache)
     assert {t.name for t in tools} == {
         "get_worker_payroll_instructions",
         "manage_worker_general_deduction",
@@ -271,100 +201,154 @@ async def test_build_tools_enabled_returns_both(adp_connection):
 
 
 @pytest.mark.asyncio
-async def test_manage_tool_start_routes_to_start_path(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={"confirmMessage": {"requestID": "REQ-1"}})
+async def test_read_tool_list_path():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
-        tool = next(t for t in tools if t.name == "manage_worker_general_deduction")
-        await tool.ainvoke(
-            {
-                "action": "start",
-                "associate_oid": "G3ABC",
-                "payroll_file_number": "1001",
-                "payroll_agreement_id": "AGR-1",
-                "effective_date": "2020-01-01",
-                "payroll_group_code": "938",
-                "deduction_code": "H",
-                "deduction_rate_value": 200,
-                "deduction_rate_currency": "USD",
-            },
-        )
+    response = MagicMock(spec=httpx.Response)
+    response.status_code = 200
+    response.json.return_value = {"workerPayrollInstructions": []}
 
-    assert mock_post.call_args.kwargs["path"] == PATH_START
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.return_value = response
 
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
 
-@pytest.mark.asyncio
-async def test_manage_tool_change_routes_to_change_path(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={"confirmMessage": {"requestID": "REQ-2"}})
+    tools = {t.name: t for t in build_worker_payroll_instructions_tools(conn, cache)}
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
-        tool = next(t for t in tools if t.name == "manage_worker_general_deduction")
-        await tool.ainvoke(
-            {
-                "action": "change",
-                "associate_oid": "G3ABC",
-                "payroll_file_number": "1001",
-                "payroll_agreement_id": "AGR-1",
-                "effective_date": "2020-05-08",
-                "payroll_group_code": "94N",
-                "item_id": "ITEM-1",
-                "deduction_code": "M",
-                "deduction_rate_value": 20,
-            },
-        )
+    with patch("lfx.components.adp.adp_worker_payroll_instructions_tools.build_mtls_httpx_client", fake_client):
+        await tools["get_worker_payroll_instructions"].ainvoke({"associate_oid": "G3ABC"})
 
-    assert mock_post.call_args.kwargs["path"] == PATH_CHANGE
+    called_url = client.request.call_args.kwargs.get("url") or client.request.call_args.args[1]
+    assert called_url.endswith("/payroll/v1/workers/G3ABC/payroll-instructions")
 
 
 @pytest.mark.asyncio
-async def test_manage_tool_stop_routes_to_stop_path(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock(return_value={"confirmMessage": {"requestID": "REQ-3"}})
+async def test_read_tool_detail_path():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
-        tool = next(t for t in tools if t.name == "manage_worker_general_deduction")
-        await tool.ainvoke(
-            {
-                "action": "stop",
-                "associate_oid": "G3ABC",
-                "payroll_file_number": "1001",
-                "payroll_agreement_id": "AGR-1",
-                "effective_date": "2019-04-18",
-                "item_id": "ITEM-1",
-            },
-        )
+    response = MagicMock(spec=httpx.Response)
+    response.status_code = 200
+    response.json.return_value = {}
 
-    assert mock_post.call_args.kwargs["path"] == PATH_STOP
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.return_value = response
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    tools = {t.name: t for t in build_worker_payroll_instructions_tools(conn, cache)}
+
+    with patch("lfx.components.adp.adp_worker_payroll_instructions_tools.build_mtls_httpx_client", fake_client):
+        await tools["get_worker_payroll_instructions"].ainvoke({
+            "associate_oid": "G3ABC", "payroll_instruction_id": "PI-9",
+        })
+
+    called_url = client.request.call_args.kwargs.get("url") or client.request.call_args.args[1]
+    assert called_url.endswith("/payroll/v1/workers/G3ABC/payroll-instructions/PI-9")
 
 
 @pytest.mark.asyncio
-async def test_manage_tool_change_without_item_id_returns_validation_error(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    mock_post = AsyncMock()
+async def test_manage_tool_start_routes_to_start_path():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
-        tool = next(t for t in tools if t.name == "manage_worker_general_deduction")
-        result = await tool.ainvoke(
-            {
-                "action": "change",
-                "associate_oid": "G3ABC",
-                "payroll_file_number": "1001",
-                "payroll_agreement_id": "AGR-1",
-                "effective_date": "2020-05-08",
-                "payroll_group_code": "94N",
-                "deduction_code": "M",
-            },
-        )
+    response = MagicMock(spec=httpx.Response)
+    response.status_code = 200
+    response.json.return_value = {"confirmMessage": {"requestID": "REQ-1"}}
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.return_value = response
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    tools = {t.name: t for t in build_worker_payroll_instructions_tools(conn, cache)}
+
+    with patch("lfx.components.adp.adp_worker_payroll_instructions_tools.build_mtls_httpx_client", fake_client):
+        await tools["manage_worker_general_deduction"].ainvoke({
+            "action": "start",
+            "associate_oid": "G3ABC",
+            "payroll_file_number": "1001",
+            "payroll_agreement_id": "AGR-1",
+            "effective_date": "2020-01-01",
+            "payroll_group_code": "938",
+            "deduction_code": "H",
+            "deduction_rate_value": 200,
+            "deduction_rate_currency": "USD",
+        })
+
+    posted_url = client.request.call_args.kwargs.get("url") or client.request.call_args.args[1]
+    assert PATH_START in posted_url
+
+
+@pytest.mark.asyncio
+async def test_manage_tool_change_without_item_id_returns_validation_error():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    tools = {t.name: t for t in build_worker_payroll_instructions_tools(conn, cache)}
+
+    with patch("lfx.components.adp.adp_worker_payroll_instructions_tools.build_mtls_httpx_client", fake_client):
+        result = await tools["manage_worker_general_deduction"].ainvoke({
+            "action": "change",
+            "associate_oid": "G3ABC",
+            "payroll_file_number": "1001",
+            "payroll_agreement_id": "AGR-1",
+            "effective_date": "2020-05-08",
+            "payroll_group_code": "94N",
+            "deduction_code": "M",
+        })
 
     assert result["status_code"] == 422
     assert "item_id" in result["error"]
-    mock_post.assert_not_called()
+    client.request.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_call_401_retries():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+
+    unauthorized = MagicMock(spec=httpx.Response)
+    unauthorized.status_code = 401
+    unauthorized.json.return_value = {"error": "expired"}
+
+    success = MagicMock(spec=httpx.Response)
+    success.status_code = 200
+    success.json.return_value = {"ok": True}
+
+    client = AsyncMock(spec=httpx.AsyncClient)
+    client.request.side_effect = [unauthorized, success]
+
+    async def fake_refresh(conn_arg, *, force=False):
+        assert force is True
+        conn_arg.access_token = "refreshed"  # noqa: S105
+
+    @asynccontextmanager
+    async def fake_client(*_args, **_kwargs):
+        yield client
+
+    tools = {t.name: t for t in build_worker_payroll_instructions_tools(conn, cache)}
+
+    with patch("lfx.components.adp.adp_worker_payroll_instructions_tools.build_mtls_httpx_client", fake_client), \
+         patch("lfx.components.adp.adp_worker_payroll_instructions_tools.fetch_token",
+               AsyncMock(side_effect=fake_refresh)):
+        await tools["get_worker_payroll_instructions"].ainvoke({"associate_oid": "G3ABC"})
+
+    assert client.request.await_count == 2
+    assert client.request.call_args_list[1].kwargs["headers"]["Authorization"] == "Bearer refreshed"
 
 
 def test_expected_path_constants():

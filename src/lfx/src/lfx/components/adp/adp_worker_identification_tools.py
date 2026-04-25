@@ -1,26 +1,34 @@
-"""ADPWorkerIdentificationToolsComponent — government ID add/change.
+"""ADP worker identification tools — government ID add/change.
 
 Backs the ADP WFN `workers-identification-management v2` tile. Two endpoints:
-add a government ID (SSN, SIN, NIN) and change an existing one. Gated behind
-`enable_mutations` — PII mutations are high-blast-radius.
+add a government ID (SSN, SIN, NIN) and change an existing one.
 """
 
 from __future__ import annotations
 
-from typing import Any, ClassVar
+from typing import Any
 
-import httpx
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
-from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
-from lfx.custom.custom_component.changelog import ChangelogEntry
-from lfx.custom.custom_component.component import Component
-from lfx.field_typing import Tool
-from lfx.io import BoolInput, HandleInput, Output
+from lfx.components.adp._shared import (
+    HTTP_CLIENT_ERROR_MIN,
+    HTTP_UNAUTHORIZED,
+    ADPConnection,
+    RequestCache,
+    build_mtls_httpx_client,
+    fetch_token,
+    validate_adp_url,
+)
+from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
-HTTP_UNAUTHORIZED = 401
-HTTP_CLIENT_ERROR_MIN = 400
+
+# ---------------------------------------------------------------------------
+# Backward-compat stub — orchestrator will update __init__.py later.
+# ---------------------------------------------------------------------------
+class ADPWorkerIdentificationToolsComponent:
+    """Deprecated stub — use build_worker_identification_tools instead."""
+
 
 PATH_ADD_GOVERNMENT_ID = "/events/hr/v1/worker.government-id.add"
 PATH_CHANGE_GOVERNMENT_ID = "/events/hr/v1/worker.government-id.change"
@@ -158,113 +166,60 @@ class ChangeGovernmentIdInput(BaseModel):
     reason_code: str | None = Field(default=None, description="ADP event reason code. Optional.")
 
 
-class ADPWorkerIdentificationToolsComponent(Component):
-    display_name = "ADP Worker Identification Tools"
-    description = (
-        "Government-ID mutation tools for Langflow Agents, backing ADP WFN "
-        "`workers-identification-management v2`: add a government ID (SSN/SIN/NIN), "
-        "change an existing one. Gated behind `enable_mutations`."
-    )
-    icon = "IdCard"
-    name = "ADPWorkerIdentificationTools"
-    version: int = 1
-    changelog: ClassVar[list[ChangelogEntry]] = [
-        ChangelogEntry(
-            version=1,
-            changes=(
-                "Initial release — 2 agent tools for ADP WFN worker-identification-management v2: "
-                "`add_employee_government_id`, `change_employee_government_id`. "
-                "Gated behind `enable_mutations` (default off)."
-            ),
-        ),
-    ]
-
-    inputs = [
-        HandleInput(
-            name="connection",
-            display_name="ADP Connection",
-            input_types=["ADPConnection"],
-            info="Connection produced by an ADP Auth component.",
-            required=True,
-        ),
-        BoolInput(
-            name="enable_mutations",
-            display_name="Enable Mutations",
-            info=(
-                "Expose the government-ID mutation tools to the agent. Off by default — "
-                "this is PII. Only enable in flows intended to act on identification data."
-            ),
-            value=False,
-        ),
-    ]
-
-    outputs = [
-        Output(display_name="Tools", name="tools", method="build_tools"),
-    ]
-
-    async def _execute_request(
-        self, client: httpx.AsyncClient, *, url: str, headers: dict[str, str],
-        json_body: dict[str, Any], timeout: float,
-    ) -> httpx.Response:
-        return await client.request("POST", url, headers=headers, json=json_body, timeout=timeout)
-
-    async def _post_event(self, conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
-        url = f"{conn.api_base_url}{path}"
-        validate_adp_url(url, field_name="api_base_url")
-        headers = {"Authorization": f"Bearer {conn.access_token}"}
-
-        async with build_mtls_httpx_client(conn, timeout=30.0) as client:
-            response = await self._execute_request(client, url=url, headers=headers, json_body=body, timeout=30.0)
-            if response.status_code == HTTP_UNAUTHORIZED:
-                await fetch_token(conn, force=True)
-                headers["Authorization"] = f"Bearer {conn.access_token}"
-                response = await self._execute_request(
-                    client, url=url, headers=headers, json_body=body, timeout=30.0,
-                )
-
-        if response.status_code >= HTTP_CLIENT_ERROR_MIN:
-            try:
-                detail = response.json()
-            except ValueError:
-                detail = response.text
-            return {"error": detail, "status_code": response.status_code}
+async def _post_event(conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
+    """POST a single ADP event, with one 401-refresh retry."""
+    url = f"{conn.api_base_url}{path}"
+    validate_adp_url(url, field_name="api_base_url")
+    headers = {"Authorization": f"Bearer {conn.access_token}"}
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
+        response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+        if response.status_code == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+    if response.status_code >= HTTP_CLIENT_ERROR_MIN:
         try:
-            return response.json()
+            detail = response.json()
         except ValueError:
-            return {"ok": True, "status_code": response.status_code}
+            detail = response.text
+        return {"error": detail, "status_code": response.status_code}
+    try:
+        return response.json()
+    except ValueError:
+        return {"ok": True, "status_code": response.status_code}
 
-    async def build_tools(self) -> list[Tool]:
-        if not self.enable_mutations:
-            return []
 
-        conn: ADPConnection = self.connection
-        component = self
+def build_worker_identification_tools(
+    connection: ADPConnection,
+    request_cache: RequestCache,  # accepted for registry uniformity; unused for writes  # noqa: ARG001
+) -> list[Tool]:
+    conn = connection
 
-        async def _add_government_id(**kwargs: Any) -> dict[str, Any]:
-            body = build_add_government_id_event(**kwargs)
-            return await component._post_event(conn, path=PATH_ADD_GOVERNMENT_ID, body=body)
+    async def _add_government_id(**kwargs: Any) -> dict[str, Any]:
+        body = build_add_government_id_event(**kwargs)
+        return await _post_event(conn, path=PATH_ADD_GOVERNMENT_ID, body=body)
 
-        async def _change_government_id(**kwargs: Any) -> dict[str, Any]:
-            body = build_change_government_id_event(**kwargs)
-            return await component._post_event(conn, path=PATH_CHANGE_GOVERNMENT_ID, body=body)
+    async def _change_government_id(**kwargs: Any) -> dict[str, Any]:
+        body = build_change_government_id_event(**kwargs)
+        return await _post_event(conn, path=PATH_CHANGE_GOVERNMENT_ID, body=body)
 
-        return [
-            StructuredTool.from_function(
-                name="add_employee_government_id",
-                description=(
-                    "Add a government ID (SSN, SIN, NIN, etc.) for an employee. "
-                    "Use `name_code` to specify the type."
-                ),
-                coroutine=_add_government_id,
-                args_schema=AddGovernmentIdInput,
+    return [
+        StructuredTool.from_function(
+            name="add_employee_government_id",
+            description=(
+                "Add a government ID (SSN, SIN, NIN, etc.) for an employee. "
+                "Use `name_code` to specify the type."
             ),
-            StructuredTool.from_function(
-                name="change_employee_government_id",
-                description=(
-                    "Change an existing government ID entry for an employee. "
-                    "Requires the government-ID itemID."
-                ),
-                coroutine=_change_government_id,
-                args_schema=ChangeGovernmentIdInput,
+            coroutine=_add_government_id,
+            args_schema=AddGovernmentIdInput,
+        ),
+        StructuredTool.from_function(
+            name="change_employee_government_id",
+            description=(
+                "Change an existing government ID entry for an employee. "
+                "Requires the government-ID itemID."
             ),
-        ]
+            coroutine=_change_government_id,
+            args_schema=ChangeGovernmentIdInput,
+        ),
+    ]

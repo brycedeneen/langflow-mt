@@ -1,27 +1,35 @@
-"""ADPWorkerLifecycleToolsComponent — rehire (and future hire/terminate).
+"""ADP worker lifecycle tools — rehire (and future hire/terminate).
 
 Backs the ADP WFN `workers-lifecycle-management v2` tile. Currently exposes
 `worker.rehire` with a minimum-viable field set plus an `additional_worker_fields`
 escape hatch for any ADP-shaped worker attributes the narrow args don't cover.
-Gated behind `enable_mutations`.
 """
 
 from __future__ import annotations
 
-from typing import Any, ClassVar
+from typing import Any
 
-import httpx
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
-from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
-from lfx.custom.custom_component.changelog import ChangelogEntry
-from lfx.custom.custom_component.component import Component
-from lfx.field_typing import Tool
-from lfx.io import BoolInput, HandleInput, Output
+from lfx.components.adp._shared import (
+    HTTP_CLIENT_ERROR_MIN,
+    HTTP_UNAUTHORIZED,
+    ADPConnection,
+    RequestCache,
+    build_mtls_httpx_client,
+    fetch_token,
+    validate_adp_url,
+)
+from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
-HTTP_UNAUTHORIZED = 401
-HTTP_CLIENT_ERROR_MIN = 400
+
+# ---------------------------------------------------------------------------
+# Backward-compat stub — orchestrator will update __init__.py later.
+# ---------------------------------------------------------------------------
+class ADPWorkerLifecycleToolsComponent:
+    """Deprecated stub — use build_worker_lifecycle_tools instead."""
+
 
 PATH_REHIRE = "/events/hr/v1/worker.rehire"
 
@@ -132,96 +140,48 @@ class RehireEmployeeInput(BaseModel):
     )
 
 
-class ADPWorkerLifecycleToolsComponent(Component):
-    display_name = "ADP Worker Lifecycle Tools"
-    description = (
-        "Worker lifecycle mutation tools, backing ADP WFN `workers-lifecycle-management v2`. "
-        "Currently exposes rehire; hire and terminate are planned follow-ups. "
-        "Gated behind `enable_mutations`."
-    )
-    icon = "UserPlus"
-    name = "ADPWorkerLifecycleTools"
-    version: int = 1
-    changelog: ClassVar[list[ChangelogEntry]] = [
-        ChangelogEntry(
-            version=1,
-            changes=(
-                "Initial release — 1 agent tool for ADP WFN workers-lifecycle-management v2: "
-                "`rehire_employee` with narrow structured args + `additional_worker_fields` "
-                "escape hatch for the full worker schema. Gated behind `enable_mutations` "
-                "(default off)."
-            ),
-        ),
-    ]
-
-    inputs = [
-        HandleInput(
-            name="connection",
-            display_name="ADP Connection",
-            input_types=["ADPConnection"],
-            info="Connection produced by an ADP Auth component.",
-            required=True,
-        ),
-        BoolInput(
-            name="enable_mutations",
-            display_name="Enable Mutations",
-            info="Expose rehire tool. Off by default — rehires are high-blast-radius.",
-            value=False,
-        ),
-    ]
-
-    outputs = [
-        Output(display_name="Tools", name="tools", method="build_tools"),
-    ]
-
-    async def _execute_request(
-        self, client: httpx.AsyncClient, *, url: str, headers: dict[str, str],
-        json_body: dict[str, Any], timeout: float,
-    ) -> httpx.Response:
-        return await client.request("POST", url, headers=headers, json=json_body, timeout=timeout)
-
-    async def _post_event(self, conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
-        url = f"{conn.api_base_url}{path}"
-        validate_adp_url(url, field_name="api_base_url")
-        headers = {"Authorization": f"Bearer {conn.access_token}"}
-        async with build_mtls_httpx_client(conn, timeout=30.0) as client:
-            response = await self._execute_request(client, url=url, headers=headers, json_body=body, timeout=30.0)
-            if response.status_code == HTTP_UNAUTHORIZED:
-                await fetch_token(conn, force=True)
-                headers["Authorization"] = f"Bearer {conn.access_token}"
-                response = await self._execute_request(
-                    client, url=url, headers=headers, json_body=body, timeout=30.0,
-                )
-        if response.status_code >= HTTP_CLIENT_ERROR_MIN:
-            try:
-                detail = response.json()
-            except ValueError:
-                detail = response.text
-            return {"error": detail, "status_code": response.status_code}
+async def _post_event(conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
+    """POST a single ADP event, with one 401-refresh retry."""
+    url = f"{conn.api_base_url}{path}"
+    validate_adp_url(url, field_name="api_base_url")
+    headers = {"Authorization": f"Bearer {conn.access_token}"}
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
+        response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+        if response.status_code == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+    if response.status_code >= HTTP_CLIENT_ERROR_MIN:
         try:
-            return response.json()
+            detail = response.json()
         except ValueError:
-            return {"ok": True, "status_code": response.status_code}
+            detail = response.text
+        return {"error": detail, "status_code": response.status_code}
+    try:
+        return response.json()
+    except ValueError:
+        return {"ok": True, "status_code": response.status_code}
 
-    async def build_tools(self) -> list[Tool]:
-        if not self.enable_mutations:
-            return []
-        conn: ADPConnection = self.connection
-        component = self
 
-        async def _rehire_employee(**kw: Any) -> dict[str, Any]:
-            body = build_rehire_event(**kw)
-            return await component._post_event(conn, path=PATH_REHIRE, body=body)
+def build_worker_lifecycle_tools(
+    connection: ADPConnection,
+    request_cache: RequestCache,  # accepted for registry uniformity; unused for writes  # noqa: ARG001
+) -> list[Tool]:
+    conn = connection
 
-        return [
-            StructuredTool.from_function(
-                name="rehire_employee",
-                description=(
-                    "Rehire a former employee. Pass the essentials (associate OID, work assignment "
-                    "item ID, rehire date, and optional job/pay/location). Use "
-                    "`additional_worker_fields` for ADP attributes not in the narrow arg list."
-                ),
-                coroutine=_rehire_employee,
-                args_schema=RehireEmployeeInput,
+    async def _rehire_employee(**kw: Any) -> dict[str, Any]:
+        body = build_rehire_event(**kw)
+        return await _post_event(conn, path=PATH_REHIRE, body=body)
+
+    return [
+        StructuredTool.from_function(
+            name="rehire_employee",
+            description=(
+                "Rehire a former employee. Pass the essentials (associate OID, work assignment "
+                "item ID, rehire date, and optional job/pay/location). Use "
+                "`additional_worker_fields` for ADP attributes not in the narrow arg list."
             ),
-        ]
+            coroutine=_rehire_employee,
+            args_schema=RehireEmployeeInput,
+        ),
+    ]
