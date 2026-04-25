@@ -21,6 +21,8 @@ from .jobs import Job
 from .membership import Membership, MembershipRole
 from .message import MessageTable
 from .organization import Organization
+from .pro_service_quote import ProServiceQuote, ProServiceQuoteStatus
+from .professional_services_settings import ProfessionalServicesSettings
 from .template import Template
 from .traces.model import SpanTable, TraceTable
 from .transactions import TransactionTable
@@ -56,6 +58,9 @@ __all__ = [
     "MembershipRole",
     "MessageTable",
     "Organization",
+    "ProServiceQuote",
+    "ProServiceQuoteStatus",
+    "ProfessionalServicesSettings",
     "SSOConfig",
     "SSOUserProfile",
     "SpanTable",
