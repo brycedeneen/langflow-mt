@@ -1,22 +1,25 @@
-"""Tests for ADPPayDistributionsToolsComponent."""
+"""Tests for adp_pay_distributions_tools module-level builders."""
 
 from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-
+from lfx.components.adp._shared import RequestCache
 from lfx.components.adp.adp_pay_distributions_tools import (
-    ADPPayDistributionsToolsComponent,
     PATH_CHANGE,
     PATH_DETAIL,
     PATH_LIST,
     build_change_pay_distribution_event,
+    build_pay_distributions_tools,
 )
 
 
-def _make_component(connection, *, enable_mutations: bool = False) -> ADPPayDistributionsToolsComponent:
-    return ADPPayDistributionsToolsComponent(connection=connection, enable_mutations=enable_mutations)
+def _make_connection(*, access_token="fake-token", api_base_url="https://api.adp.com"):  # noqa: S107
+    conn = MagicMock()
+    conn.access_token = access_token
+    conn.api_base_url = api_base_url
+    return conn
 
 
 # ------------- envelope builder -------------
@@ -204,74 +207,84 @@ def test_build_omits_effective_date_when_missing():
     assert "effectiveDateTime" not in transform
 
 
-# ------------- _call helper -------------
+# ------------- _fetch_pay_distributions helper -------------
 
 
 @pytest.mark.asyncio
-async def test_call_get_happy_path(adp_connection):
-    c = _make_component(adp_connection)
+async def test_fetch_pay_distributions_happy_path():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
     fake_response = httpx.Response(200, json={"payDistributions": []})
-    mock_client = MagicMock()
+    client = MagicMock()
+    client.request = AsyncMock(return_value=fake_response)
 
     @asynccontextmanager
-    async def fake_build_client(_conn, *, timeout=30):
-        yield mock_client
+    async def fake_client(*_args, **_kwargs):
+        yield client
 
-    with patch(
-        "lfx.components.adp.adp_pay_distributions_tools.build_mtls_httpx_client",
-        new=fake_build_client,
-    ), patch.object(c, "_execute_request", new=AsyncMock(return_value=fake_response)):
-        result = await c._call(adp_connection, method="GET", path=PATH_LIST.format(aoid="G3ABC"))
+    with patch("lfx.components.adp.adp_pay_distributions_tools.build_mtls_httpx_client", fake_client):
+        from lfx.components.adp.adp_pay_distributions_tools import _fetch_pay_distributions
+        result = await _fetch_pay_distributions(
+            conn, path=PATH_LIST.format(aoid="G3ABC"), request_cache=cache,
+        )
 
     assert result == {"payDistributions": []}
 
 
 @pytest.mark.asyncio
-async def test_call_401_retries(adp_connection):
-    c = _make_component(adp_connection)
-    responses = [
-        httpx.Response(401, json={"error": "expired"}),
-        httpx.Response(200, json={"ok": True}),
-    ]
-    mock_exec = AsyncMock(side_effect=responses)
-    mock_client = MagicMock()
+async def test_fetch_pay_distributions_401_retries():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    client = MagicMock()
 
     @asynccontextmanager
-    async def fake_build_client(_conn, *, timeout=30):
-        yield mock_client
+    async def fake_client(*_args, **_kwargs):
+        yield client
 
-    async def fake_force_refresh(conn, *, force=False):
+    async def fake_force_refresh(c, *, force=False):
         assert force is True
-        conn.access_token = "refreshed"  # noqa: S105
+        c.access_token = "refreshed"  # noqa: S105
 
     with patch(
-        "lfx.components.adp.adp_pay_distributions_tools.build_mtls_httpx_client",
-        new=fake_build_client,
-    ), patch.object(c, "_execute_request", new=mock_exec), patch(
+        "lfx.components.adp.adp_pay_distributions_tools.build_mtls_httpx_client", fake_client,
+    ), patch(
+        "lfx.components.adp.adp_pay_distributions_tools.cached_get_json",
+        new=AsyncMock(side_effect=[
+            {"status_code": 401, "error": "expired"},
+            {"payDistributions": []},
+        ]),
+    ), patch(
         "lfx.components.adp.adp_pay_distributions_tools.fetch_token",
         new=AsyncMock(side_effect=fake_force_refresh),
     ):
-        await c._call(adp_connection, method="GET", path=PATH_LIST.format(aoid="G3ABC"))
+        from lfx.components.adp.adp_pay_distributions_tools import _fetch_pay_distributions
+        result = await _fetch_pay_distributions(
+            conn, path=PATH_LIST.format(aoid="G3ABC"), request_cache=cache,
+        )
 
-    assert mock_exec.call_count == 2
-    assert mock_exec.call_args_list[1].kwargs["headers"]["Authorization"] == "Bearer refreshed"
+    assert result == {"payDistributions": []}
 
 
 @pytest.mark.asyncio
-async def test_call_http_error_returns_dict(adp_connection):
-    c = _make_component(adp_connection)
-    fake_response = httpx.Response(404, json={"errorCode": "NOT_FOUND"})
-    mock_client = MagicMock()
+async def test_fetch_pay_distributions_http_error_returns_dict():
+    conn = _make_connection()
+    cache = RequestCache(ttl_seconds=30, max_entries=8)
+    client = MagicMock()
 
     @asynccontextmanager
-    async def fake_build_client(_conn, *, timeout=30):
-        yield mock_client
+    async def fake_client(*_args, **_kwargs):
+        yield client
 
     with patch(
-        "lfx.components.adp.adp_pay_distributions_tools.build_mtls_httpx_client",
-        new=fake_build_client,
-    ), patch.object(c, "_execute_request", new=AsyncMock(return_value=fake_response)):
-        result = await c._call(adp_connection, method="GET", path="/payroll/v2/workers/missing/pay-distributions")
+        "lfx.components.adp.adp_pay_distributions_tools.build_mtls_httpx_client", fake_client,
+    ), patch(
+        "lfx.components.adp.adp_pay_distributions_tools.cached_get_json",
+        new=AsyncMock(return_value={"error": {"errorCode": "NOT_FOUND"}, "status_code": 404}),
+    ):
+        from lfx.components.adp.adp_pay_distributions_tools import _fetch_pay_distributions
+        result = await _fetch_pay_distributions(
+            conn, path="/payroll/v2/workers/missing/pay-distributions", request_cache=cache,
+        )
 
     assert result == {"error": {"errorCode": "NOT_FOUND"}, "status_code": 404}
 
@@ -280,18 +293,17 @@ async def test_call_http_error_returns_dict(adp_connection):
 
 
 @pytest.mark.asyncio
-async def test_build_tools_disabled_returns_only_read(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=False)
-    tools = await c.build_tools()
+async def test_build_tools_disabled_returns_only_read():
+    tools = build_pay_distributions_tools(_make_connection(), RequestCache(ttl_seconds=30, max_entries=8))
     assert len(tools) == 1
     assert tools[0].name == "get_worker_pay_distributions"
 
 
 @pytest.mark.asyncio
-async def test_build_tools_enabled_returns_both(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
-    tools = await c.build_tools()
-
+async def test_build_tools_enabled_returns_both():
+    tools = build_pay_distributions_tools(
+        _make_connection(), RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True,
+    )
     assert {t.name for t in tools} == {
         "get_worker_pay_distributions",
         "change_worker_pay_distributions",
@@ -302,39 +314,44 @@ async def test_build_tools_enabled_returns_both(adp_connection):
 
 
 @pytest.mark.asyncio
-async def test_read_tool_list_routes_to_list_path(adp_connection):
-    c = _make_component(adp_connection)
-    mock_call = AsyncMock(return_value={"payDistributions": []})
+async def test_read_tool_list_routes_to_list_path():
+    conn = _make_connection()
+    mock_fetch = AsyncMock(return_value={"payDistributions": []})
 
-    with patch.object(c, "_call", new=mock_call):
-        tools = await c.build_tools()
+    with patch(
+        "lfx.components.adp.adp_pay_distributions_tools._fetch_pay_distributions", new=mock_fetch,
+    ):
+        tools = build_pay_distributions_tools(conn, RequestCache(ttl_seconds=30, max_entries=8))
         read_tool = next(t for t in tools if t.name == "get_worker_pay_distributions")
         await read_tool.ainvoke({"associate_oid": "G3ABC"})
 
-    assert mock_call.call_args.kwargs["path"] == "/payroll/v2/workers/G3ABC/pay-distributions"
-    assert mock_call.call_args.kwargs["method"] == "GET"
+    assert mock_fetch.call_args.kwargs["path"] == "/payroll/v2/workers/G3ABC/pay-distributions"
 
 
 @pytest.mark.asyncio
-async def test_read_tool_detail_routes_to_detail_path(adp_connection):
-    c = _make_component(adp_connection)
-    mock_call = AsyncMock(return_value={})
+async def test_read_tool_detail_routes_to_detail_path():
+    conn = _make_connection()
+    mock_fetch = AsyncMock(return_value={})
 
-    with patch.object(c, "_call", new=mock_call):
-        tools = await c.build_tools()
+    with patch(
+        "lfx.components.adp.adp_pay_distributions_tools._fetch_pay_distributions", new=mock_fetch,
+    ):
+        tools = build_pay_distributions_tools(conn, RequestCache(ttl_seconds=30, max_entries=8))
         read_tool = next(t for t in tools if t.name == "get_worker_pay_distributions")
         await read_tool.ainvoke({"associate_oid": "G3ABC", "pay_distribution_id": "PD-9"})
 
-    assert mock_call.call_args.kwargs["path"] == "/payroll/v2/workers/G3ABC/pay-distributions/PD-9"
+    assert mock_fetch.call_args.kwargs["path"] == "/payroll/v2/workers/G3ABC/pay-distributions/PD-9"
 
 
 @pytest.mark.asyncio
-async def test_change_tool_builds_envelope_and_posts(adp_connection):
-    c = _make_component(adp_connection, enable_mutations=True)
+async def test_change_tool_builds_envelope_and_posts():
+    conn = _make_connection()
     mock_post = AsyncMock(return_value={"confirmMessage": {"requestID": "REQ-9"}})
 
-    with patch.object(c, "_post_event", new=mock_post):
-        tools = await c.build_tools()
+    with patch("lfx.components.adp.adp_pay_distributions_tools._post_event", new=mock_post):
+        tools = build_pay_distributions_tools(
+            conn, RequestCache(ttl_seconds=30, max_entries=8), enable_mutations=True,
+        )
         change_tool = next(t for t in tools if t.name == "change_worker_pay_distributions")
         result = await change_tool.ainvoke(
             {

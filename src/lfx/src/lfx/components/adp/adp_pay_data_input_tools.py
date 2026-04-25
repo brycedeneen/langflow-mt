@@ -1,28 +1,29 @@
-"""ADPPayDataInputToolsComponent — pay-data-input submission tool for Langflow Agents.
+"""ADP pay-data-input submission tool for Langflow Agents.
 
 Backs the ADP WFN `payroll/pay-data-input v1` tile. Exposes a single structured
 tool that submits pay-data-input events (earnings, deductions, memos, reportable
-earnings/benefits, tax-frequency overrides) for a single worker × pay-number
+earnings/benefits, tax-frequency overrides) for a single worker x pay-number
 combination. Gated behind `enable_mutations` because pay-run modifications are
 high-blast-radius.
 """
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, Literal
+from typing import Any, Literal
 
-import httpx
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
-from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
-from lfx.custom.custom_component.changelog import ChangelogEntry
-from lfx.custom.custom_component.component import Component
-from lfx.field_typing import Tool
-from lfx.io import BoolInput, HandleInput, Output
-
-HTTP_UNAUTHORIZED = 401
-HTTP_CLIENT_ERROR_MIN = 400
+from lfx.components.adp._shared import (
+    HTTP_CLIENT_ERROR_MIN,
+    HTTP_UNAUTHORIZED,
+    ADPConnection,
+    RequestCache,
+    build_mtls_httpx_client,
+    fetch_token,
+    validate_adp_url,
+)
+from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
 PATH_MODIFY = "/events/payroll/v1/pay-data-input.modify"
 
@@ -128,8 +129,7 @@ def build_pay_data_input_event(
     if cancel_automatic_pay_indicator:
         pay_input["cancelAutomaticPayIndicator"] = "true"
     if additional_fields:
-        for key, value in additional_fields.items():
-            pay_input[key] = value
+        pay_input.update(additional_fields)
 
     event_context: dict[str, Any] = {"payrollGroupCode": _code(payroll_group_code)}
     if payroll_processing_job_id:
@@ -234,131 +234,73 @@ class SubmitPayDataInputArgs(BaseModel):
     )
 
 
-class ADPPayDataInputToolsComponent(Component):
-    display_name = "ADP Pay Data Input Tools"
-    description = (
-        "Agent tool for submitting ADP WFN pay-data-input events: earnings, deductions, "
-        "memos, reportable earnings/benefits, and tax-frequency overrides for a single "
-        "worker × pay number. Gated behind `enable_mutations` — turn on only when the "
-        "flow is meant to modify payroll."
-    )
-    icon = "CircleDollarSign"
-    name = "ADPPayDataInputTools"
-    version: int = 1
-    changelog: ClassVar[list[ChangelogEntry]] = [
-        ChangelogEntry(
-            version=1,
-            changes=(
-                "Initial release — single agent tool `submit_pay_data_input` backing ADP WFN "
-                "`payroll/pay-data-input v1`. Supports earnings, deductions, memos, reportable "
-                "earnings/benefits, and tax-cycle overrides with Add/Append modification types. "
-                "Gated behind the `enable_mutations` input (default off)."
-            ),
-        ),
-    ]
-
-    inputs = [
-        HandleInput(
-            name="connection",
-            display_name="ADP Connection",
-            input_types=["ADPConnection"],
-            info="Connection produced by an ADP Auth component.",
-            required=True,
-        ),
-        BoolInput(
-            name="enable_mutations",
-            display_name="Enable Mutations",
-            info=(
-                "Expose the pay-data-input submission tool to the agent. Off by default — "
-                "pay-run modifications are high-blast-radius. Turn on only when the flow is "
-                "meant to act on payroll data."
-            ),
-            value=False,
-        ),
-    ]
-
-    outputs = [
-        Output(display_name="Tools", name="tools", method="build_tools"),
-    ]
-
-    async def _execute_request(
-        self,
-        client: httpx.AsyncClient,
-        *,
-        url: str,
-        headers: dict[str, str],
-        json_body: dict[str, Any],
-        timeout: float,
-    ) -> httpx.Response:
-        return await client.request(
-            method="POST",
-            url=url,
-            headers=headers,
-            json=json_body,
-            timeout=timeout,
-        )
-
-    async def _post_event(self, conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
-        url = f"{conn.api_base_url}{path}"
-        validate_adp_url(url, field_name="api_base_url")
-        headers = {"Authorization": f"Bearer {conn.access_token}"}
-
-        async with build_mtls_httpx_client(conn, timeout=30.0) as client:
-            response = await self._execute_request(client, url=url, headers=headers, json_body=body, timeout=30.0)
-
-            if response.status_code == HTTP_UNAUTHORIZED:
-                await fetch_token(conn, force=True)
-                headers["Authorization"] = f"Bearer {conn.access_token}"
-                response = await self._execute_request(
-                    client, url=url, headers=headers, json_body=body, timeout=30.0,
-                )
-
-        if response.status_code >= HTTP_CLIENT_ERROR_MIN:
-            try:
-                detail = response.json()
-            except ValueError:
-                detail = response.text
-            return {"error": detail, "status_code": response.status_code}
-
+async def _post_event(conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
+    """POST a single ADP event, with one 401-refresh retry."""
+    url = f"{conn.api_base_url}{path}"
+    validate_adp_url(url, field_name="api_base_url")
+    headers = {"Authorization": f"Bearer {conn.access_token}"}
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
+        response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+        if response.status_code == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+    if response.status_code >= HTTP_CLIENT_ERROR_MIN:
         try:
-            return response.json()
+            detail = response.json()
         except ValueError:
-            return {"ok": True, "status_code": response.status_code}
+            detail = response.text
+        return {"error": detail, "status_code": response.status_code}
+    try:
+        return response.json()
+    except ValueError:
+        return {"ok": True, "status_code": response.status_code}
 
-    async def build_tools(self) -> list[Tool]:
-        if not self.enable_mutations:
-            return []
 
-        conn: ADPConnection = self.connection
-        component = self
+def build_pay_data_input_tools(
+    connection: ADPConnection,
+    request_cache: RequestCache,  # noqa: ARG001 — accepted for registry uniformity; unused for writes
+    *,
+    enable_mutations: bool = False,
+) -> list[Tool]:
+    """Build ADP pay-data-input mutation tools.
 
-        async def _submit_pay_data_input(**kwargs: Any) -> dict[str, Any]:
-            # Pydantic models arrive as dicts via StructuredTool — normalize all list items.
-            normalized = dict(kwargs)
-            for key in (
-                "earning_inputs",
-                "deduction_inputs",
-                "memo_inputs",
-                "reportable_earning_benefit_inputs",
-                "tax_inputs",
-            ):
-                items = normalized.get(key) or []
-                normalized[key] = [item.model_dump() if hasattr(item, "model_dump") else item for item in items]
-            body = build_pay_data_input_event(**normalized)
-            return await component._post_event(conn, path=PATH_MODIFY, body=body)
+    Returns a single StructuredTool for submitting pay-data-input events.
+    Gated behind ``enable_mutations`` (default off).
+    Writes never consult the request_cache.
+    """
+    if not enable_mutations:
+        return []
 
-        return [
-            StructuredTool.from_function(
-                name="submit_pay_data_input",
-                description=(
-                    "Submit a pay-data-input modification for a single worker and pay number: "
-                    "add/append earnings (hours, amounts, rates), deductions, memos, reportable "
-                    "earnings/benefits, and tax-cycle overrides. Requires the worker's associate OID, "
-                    "payroll group code, and payroll file number. Use `modification_type='Add'` to "
-                    "replace existing inputs of this type, `'Append'` to add alongside. Returns the "
-                    "ADP event response."
-                ),
-                coroutine=_submit_pay_data_input,
-                args_schema=SubmitPayDataInputArgs,
+    conn = connection
+
+    async def _submit_pay_data_input(**kwargs: Any) -> dict[str, Any]:
+        # Pydantic models arrive as dicts via StructuredTool — normalize all list items.
+        normalized = dict(kwargs)
+        for key in (
+            "earning_inputs",
+            "deduction_inputs",
+            "memo_inputs",
+            "reportable_earning_benefit_inputs",
+            "tax_inputs",
+        ):
+            items = normalized.get(key) or []
+            normalized[key] = [item.model_dump() if hasattr(item, "model_dump") else item for item in items]
+        body = build_pay_data_input_event(**normalized)
+        return await _post_event(conn, path=PATH_MODIFY, body=body)
+
+    return [
+        StructuredTool.from_function(
+            name="submit_pay_data_input",
+            description=(
+                "Submit a pay-data-input modification for a single worker and pay number: "
+                "add/append earnings (hours, amounts, rates), deductions, memos, reportable "
+                "earnings/benefits, and tax-cycle overrides. Requires the worker's associate OID, "
+                "payroll group code, and payroll file number. Use `modification_type='Add'` to "
+                "replace existing inputs of this type, `'Append'` to add alongside. Returns the "
+                "ADP event response."
             ),
-        ]
+            coroutine=_submit_pay_data_input,
+            args_schema=SubmitPayDataInputArgs,
+        ),
+    ]

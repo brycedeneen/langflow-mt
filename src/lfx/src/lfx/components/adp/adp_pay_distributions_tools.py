@@ -1,4 +1,4 @@
-"""ADPPayDistributionsToolsComponent — pay-distribution read + change tools.
+"""ADP pay-distribution read + change tools.
 
 Backs the ADP WFN `payroll/pay-distributions v2` tile. Exposes:
 
@@ -13,20 +13,22 @@ Canadian accounts differ only in the `financialParty` sub-shape.
 
 from __future__ import annotations
 
-from typing import Any, ClassVar
+from typing import Any
 
-import httpx
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
-from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url
-from lfx.custom.custom_component.changelog import ChangelogEntry
-from lfx.custom.custom_component.component import Component
-from lfx.field_typing import Tool
-from lfx.io import BoolInput, HandleInput, Output
-
-HTTP_UNAUTHORIZED = 401
-HTTP_CLIENT_ERROR_MIN = 400
+from lfx.components.adp._shared import (
+    HTTP_CLIENT_ERROR_MIN,
+    HTTP_UNAUTHORIZED,
+    ADPConnection,
+    RequestCache,
+    build_mtls_httpx_client,
+    cached_get_json,
+    fetch_token,
+    validate_adp_url,
+)
+from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 
 PATH_LIST = "/payroll/v2/workers/{aoid}/pay-distributions"
 PATH_DETAIL = "/payroll/v2/workers/{aoid}/pay-distributions/{pay_distribution_id}"
@@ -113,8 +115,7 @@ def build_change_pay_distribution_event(
         ],
     }
     if additional_fields:
-        for key, value in additional_fields.items():
-            pay_distribution[key] = value
+        pay_distribution.update(additional_fields)
 
     transform: dict[str, Any] = {"payDistribution": pay_distribution}
     if effective_date:
@@ -150,7 +151,10 @@ class DistributionInstruction(BaseModel):
     )
     distribution_percentage: float | None = Field(
         default=None,
-        description="Percentage of net pay for this instruction (e.g. 50 for 50%). Mutually exclusive with amount/remaining.",
+        description=(
+            "Percentage of net pay for this instruction (e.g. 50 for 50%). "
+            "Mutually exclusive with amount/remaining."
+        ),
     )
     distribution_amount: float | None = Field(
         default=None,
@@ -158,7 +162,10 @@ class DistributionInstruction(BaseModel):
     )
     remaining_balance_indicator: bool = Field(
         default=False,
-        description="True if this instruction takes the remaining (full-net) balance. Mutually exclusive with percentage/amount.",
+        description=(
+            "True if this instruction takes the remaining (full-net) balance. "
+            "Mutually exclusive with percentage/amount."
+        ),
     )
     instruction_status_code: str | None = Field(
         default=None,
@@ -195,7 +202,10 @@ class ChangePayDistributionsInput(BaseModel):
     )
     distribution_instructions: list[DistributionInstruction] = Field(
         default_factory=list,
-        description="Full list of distribution instructions for this worker. Pass [] to remove all direct-deposit instructions.",
+        description=(
+            "Full list of distribution instructions for this worker. "
+            "Pass [] to remove all direct-deposit instructions."
+        ),
     )
     effective_date: str | None = Field(default=None, description="ISO-8601 effective date (YYYY-MM-DD).")
     additional_fields: dict[str, Any] = Field(
@@ -204,162 +214,115 @@ class ChangePayDistributionsInput(BaseModel):
     )
 
 
-class ADPPayDistributionsToolsComponent(Component):
-    display_name = "ADP Pay Distributions Tools"
-    description = (
-        "Read + change tools for ADP WFN `payroll/pay-distributions v2`. "
-        "`get_worker_pay_distributions` lists or fetches a worker's direct-deposit "
-        "distributions. `change_worker_pay_distributions` handles add/update/inactivate/remove-all "
-        "via a single instructions array; gated behind `enable_mutations`."
-    )
-    icon = "Banknote"
-    name = "ADPPayDistributionsTools"
-    version: int = 1
-    changelog: ClassVar[list[ChangelogEntry]] = [
-        ChangelogEntry(
-            version=1,
-            changes=(
-                "Initial release — 2 agent tools for ADP WFN payroll/pay-distributions v2: "
-                "`get_worker_pay_distributions` (list + detail) and `change_worker_pay_distributions` "
-                "(consolidated add/update/inactivate/remove-all). Mutation gated behind the "
-                "`enable_mutations` input (default off)."
-            ),
-        ),
-    ]
+async def _fetch_pay_distributions(
+    conn: ADPConnection,
+    *,
+    path: str,
+    request_cache: RequestCache,
+) -> dict[str, Any]:
+    """GET pay-distributions with cache peek before opening mTLS client."""
+    url = f"{conn.api_base_url}{path}"
+    validate_adp_url(url, field_name="api_base_url")
+    key = RequestCache.make_key("GET", url, None)
 
-    inputs = [
-        HandleInput(
-            name="connection",
-            display_name="ADP Connection",
-            input_types=["ADPConnection"],
-            info="Connection produced by an ADP Auth component.",
-            required=True,
-        ),
-        BoolInput(
-            name="enable_mutations",
-            display_name="Enable Mutations",
-            info=(
-                "Expose the change-pay-distributions tool to the agent. Off by default — "
-                "direct-deposit changes are high-blast-radius. Turn on only when the flow is "
-                "meant to act on pay-distribution data."
-            ),
-            value=False,
-        ),
-    ]
+    # Peek before opening the mTLS client so cache hits skip PEM-file churn.
+    cached = request_cache.peek(key)
+    if cached is not None:
+        return cached
 
-    outputs = [
-        Output(display_name="Tools", name="tools", method="build_tools"),
-    ]
-
-    async def _execute_request(
-        self,
-        client: httpx.AsyncClient,
-        *,
-        method: str,
-        url: str,
-        headers: dict[str, str],
-        json_body: dict[str, Any] | None,
-        timeout: float,
-    ) -> httpx.Response:
-        return await client.request(
-            method=method,
-            url=url,
-            headers=headers,
-            json=json_body,
-            timeout=timeout,
-        )
-
-    async def _call(
-        self,
-        conn: ADPConnection,
-        *,
-        method: str,
-        path: str,
-        body: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        url = f"{conn.api_base_url}{path}"
-        validate_adp_url(url, field_name="api_base_url")
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
         headers = {"Authorization": f"Bearer {conn.access_token}"}
+        result = await cached_get_json(client=client, cache=request_cache, url=url, headers=headers)
+        if result.get("status_code") == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            result = await cached_get_json(client=client, cache=request_cache, url=url, headers=headers)
 
-        async with build_mtls_httpx_client(conn, timeout=30.0) as client:
-            response = await self._execute_request(
-                client, method=method, url=url, headers=headers, json_body=body, timeout=30.0,
-            )
-            if response.status_code == HTTP_UNAUTHORIZED:
-                await fetch_token(conn, force=True)
-                headers["Authorization"] = f"Bearer {conn.access_token}"
-                response = await self._execute_request(
-                    client, method=method, url=url, headers=headers, json_body=body, timeout=30.0,
-                )
+    return result
 
-        if response.status_code >= HTTP_CLIENT_ERROR_MIN:
-            try:
-                detail = response.json()
-            except ValueError:
-                detail = response.text
-            return {"error": detail, "status_code": response.status_code}
+
+async def _post_event(conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
+    """POST a single ADP event, with one 401-refresh retry."""
+    url = f"{conn.api_base_url}{path}"
+    validate_adp_url(url, field_name="api_base_url")
+    headers = {"Authorization": f"Bearer {conn.access_token}"}
+    async with build_mtls_httpx_client(conn, timeout=30.0) as client:
+        response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+        if response.status_code == HTTP_UNAUTHORIZED:
+            await fetch_token(conn, force=True)
+            headers["Authorization"] = f"Bearer {conn.access_token}"
+            response = await client.request("POST", url=url, headers=headers, json=body, timeout=30.0)
+    if response.status_code >= HTTP_CLIENT_ERROR_MIN:
         try:
-            return response.json()
+            detail = response.json()
         except ValueError:
-            return {"ok": True, "status_code": response.status_code}
+            detail = response.text
+        return {"error": detail, "status_code": response.status_code}
+    try:
+        return response.json()
+    except ValueError:
+        return {"ok": True, "status_code": response.status_code}
 
-    async def _post_event(self, conn: ADPConnection, *, path: str, body: dict[str, Any]) -> dict[str, Any]:
-        return await self._call(conn, method="POST", path=path, body=body)
 
-    async def build_tools(self) -> list[Tool]:
-        conn: ADPConnection = self.connection
-        component = self
+def build_pay_distributions_tools(
+    connection: ADPConnection,
+    request_cache: RequestCache,
+    *,
+    enable_mutations: bool = False,
+) -> list[Tool]:
+    """Build ADP pay-distributions read + optional write tools."""
+    conn = connection
 
-        async def _get_worker_pay_distributions(
-            associate_oid: str, pay_distribution_id: str | None = None,
-        ) -> dict[str, Any]:
-            if pay_distribution_id:
-                path = PATH_DETAIL.format(aoid=associate_oid, pay_distribution_id=pay_distribution_id)
-            else:
-                path = PATH_LIST.format(aoid=associate_oid)
-            return await component._call(conn, method="GET", path=path)
+    async def _get_worker_pay_distributions(
+        associate_oid: str, pay_distribution_id: str | None = None,
+    ) -> dict[str, Any]:
+        if pay_distribution_id:
+            path = PATH_DETAIL.format(aoid=associate_oid, pay_distribution_id=pay_distribution_id)
+        else:
+            path = PATH_LIST.format(aoid=associate_oid)
+        return await _fetch_pay_distributions(conn, path=path, request_cache=request_cache)
 
-        tools: list[Tool] = [
-            StructuredTool.from_function(
-                name="get_worker_pay_distributions",
-                description=(
-                    "Get a worker's pay-distribution (direct-deposit) instructions. If "
-                    "`pay_distribution_id` is provided, fetches that single distribution; "
-                    "otherwise lists all distributions for the worker. Each instruction includes "
-                    "itemID (pass to `change_worker_pay_distributions` as `item_id` to update), "
-                    "distribution amount/percentage/remaining-balance, and deposit account."
-                ),
-                coroutine=_get_worker_pay_distributions,
-                args_schema=GetPayDistributionsInput,
+    tools: list[Tool] = [
+        StructuredTool.from_function(
+            name="get_worker_pay_distributions",
+            description=(
+                "Get a worker's pay-distribution (direct-deposit) instructions. If "
+                "`pay_distribution_id` is provided, fetches that single distribution; "
+                "otherwise lists all distributions for the worker. Each instruction includes "
+                "itemID (pass to `change_worker_pay_distributions` as `item_id` to update), "
+                "distribution amount/percentage/remaining-balance, and deposit account."
             ),
-        ]
+            coroutine=_get_worker_pay_distributions,
+            args_schema=GetPayDistributionsInput,
+        ),
+    ]
 
-        if not self.enable_mutations:
-            return tools
-
-        async def _change_worker_pay_distributions(**kwargs: Any) -> dict[str, Any]:
-            normalized = dict(kwargs)
-            items = normalized.get("distribution_instructions") or []
-            normalized["distribution_instructions"] = [
-                item.model_dump() if hasattr(item, "model_dump") else item for item in items
-            ]
-            body = build_change_pay_distribution_event(**normalized)
-            return await component._post_event(conn, path=PATH_CHANGE, body=body)
-
-        tools.append(
-            StructuredTool.from_function(
-                name="change_worker_pay_distributions",
-                description=(
-                    "Change a worker's pay-distribution (direct-deposit) instructions. Handles "
-                    "add (omit item_id), update (include item_id), inactivate (include item_id + "
-                    "instruction_status_code='I'), and remove-all (pass an empty "
-                    "distribution_instructions list). For US accounts use routing_transit_id; for "
-                    "Canadian accounts use financial_party_scheme_code + branch_name_code. Requires "
-                    "the worker's associate_oid and work_assignment_item_id."
-                ),
-                coroutine=_change_worker_pay_distributions,
-                args_schema=ChangePayDistributionsInput,
-            ),
-        )
-
+    if not enable_mutations:
         return tools
+
+    async def _change_worker_pay_distributions(**kwargs: Any) -> dict[str, Any]:
+        normalized = dict(kwargs)
+        items = normalized.get("distribution_instructions") or []
+        normalized["distribution_instructions"] = [
+            item.model_dump() if hasattr(item, "model_dump") else item for item in items
+        ]
+        body = build_change_pay_distribution_event(**normalized)
+        return await _post_event(conn, path=PATH_CHANGE, body=body)
+
+    tools.append(
+        StructuredTool.from_function(
+            name="change_worker_pay_distributions",
+            description=(
+                "Change a worker's pay-distribution (direct-deposit) instructions. Handles "
+                "add (omit item_id), update (include item_id), inactivate (include item_id + "
+                "instruction_status_code='I'), and remove-all (pass an empty "
+                "distribution_instructions list). For US accounts use routing_transit_id; for "
+                "Canadian accounts use financial_party_scheme_code + branch_name_code. Requires "
+                "the worker's associate_oid and work_assignment_item_id."
+            ),
+            coroutine=_change_worker_pay_distributions,
+            args_schema=ChangePayDistributionsInput,
+        ),
+    )
+
+    return tools
