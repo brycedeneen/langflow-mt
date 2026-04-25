@@ -1124,7 +1124,9 @@ async def create_or_update_component_agent_metadata(
     - IntegrityError on INSERT (concurrent worker won the race) -> swallow + debug log.
     """
     if yaml_dir is None:
-        yaml_dir = anyio.Path(__file__).resolve().parent.parent / "services" / "component_assist" / "agent_metadata"
+        # `anyio.Path.resolve()` is a coroutine; matching create_or_update_template_metadata,
+        # we rely on `__file__` already being absolute and skip resolve() entirely.
+        yaml_dir = anyio.Path(__file__).parent.parent / "services" / "component_assist" / "agent_metadata"
     else:
         yaml_dir = anyio.Path(yaml_dir)
 
