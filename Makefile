@@ -202,6 +202,33 @@ unit_tests_agentic: ## run unit tests under tests/unit/agentic
 unit_tests_utils: ## run unit tests under tests/unit/utils
 	@uv run pytest src/backend/tests/unit/utils --instafail -ra -m '$(markers)' $(args)
 
+# ---- Smoke run: pure-function-ish areas with no `client` fixture ----
+# Hand-picked subdirectories that don't spin up a FastAPI app or DB per test.
+# Intended for sub-60s feedback during iteration / pre-commit.
+unit_tests_smoke: ## fast smoke run (no app/DB fixtures); ~30-60s
+	@uv run pytest \
+		src/backend/tests/unit/inputs \
+		src/backend/tests/unit/schema \
+		src/backend/tests/unit/serialization \
+		src/backend/tests/unit/io \
+		src/backend/tests/unit/exceptions \
+		src/backend/tests/unit/helpers \
+		src/backend/tests/unit/scripts \
+		src/backend/tests/unit/custom \
+		--instafail -ra -m '$(markers)' $(args)
+
+# ---- Opt-in parallel run via pytest-xdist ----
+# CAUTION: some unit tests share DB state and fail under xdist (e.g.
+# services/database/test_vertex_builds.py, services/flow/test_flow_runner.py).
+# Speedup on this codebase is ~1.5x because pytest startup + import is ~22s
+# before any tests run; the gains scale with the test-execution fraction.
+# Use selectively (per-area is most useful), not for the whole suite.
+unit_tests_parallel: ## run unit tests with -n auto (CAVEAT: some tests share state)
+	@uv run pytest src/backend/tests/unit \
+		--ignore=src/backend/tests/integration \
+		--ignore=src/backend/tests/unit/template \
+		--instafail -ra -m '$(markers)' -n auto $(args)
+
 lfx_tests: ## run lfx package unit tests
 	@echo 'Running LFX Package Tests...'
 	@cd src/lfx && \
@@ -950,6 +977,8 @@ help_test: ## show testing commands
 	@echo ''
 	@echo "$(GREEN)Backend Unit Tests:$(NC)"
 	@echo "  $(GREEN)make unit_tests$(NC)          - Run backend unit tests (excludes slow + api_key_required)"
+	@echo "  $(GREEN)make unit_tests_smoke$(NC)    - Fast smoke run (pure-function dirs only, ~30-60s)"
+	@echo "  $(GREEN)make unit_tests_parallel$(NC) - Run with -n auto (~1.5x; some tests share DB state)"
 	@echo "  $(GREEN)make unit_tests_looponfail$(NC) - Run unit tests with loop on fail"
 	@echo "  $(GREEN)make unit_tests_slow$(NC)     - Run only the slow-marked unit tests"
 	@echo "  $(GREEN)make lfx_tests$(NC)           - Run LFX package tests"
