@@ -94,15 +94,10 @@ export const useGetBuildsMutation: useMutationFunctionType<
     (state) => state.webhookPollingInterval,
   );
 
-  const setFlowPool = useFlowStore((state) => state.setFlowPool);
-  const currentFlow = useFlowStore((state) => state.currentFlow);
-
   const flowIdRef = useRef<string | null>(null);
   const requestInProgressRef = useRef<Record<string, boolean>>({});
   const errorDisplayCountRef = useRef<number>(0);
   const timeoutIdsRef = useRef<number[]>([]);
-
-  const setErrorData = useAlertStore((state) => state.setErrorData);
 
   const getBuildsFn = async (
     payload: IGetBuilds,
@@ -117,7 +112,10 @@ export const useGetBuildsMutation: useMutationFunctionType<
       config["params"] = { flow_id: payload.flowId };
       const res = await api.get<any>(`${getURL("BUILDS")}`, config);
 
-      if (currentFlow) {
+      // Read store state via getState() instead of subscribing — this hook
+      // mutates flowStore/alertStore via the polling loop and components that
+      // call this hook may subscribe to those same stores (render-loop hazard).
+      if (useFlowStore.getState().currentFlow) {
         const newFlowPool = res?.data?.vertex_builds;
         if (Object.keys(newFlowPool).length > 0) {
           // Merge with existing flow pool to preserve duration from SSE events
@@ -144,7 +142,7 @@ export const useGetBuildsMutation: useMutationFunctionType<
             }
           });
 
-          setFlowPool(mergedFlowPool);
+          useFlowStore.getState().setFlowPool(mergedFlowPool);
         }
 
         if (errorDisplayCountRef.current < MAX_ERROR_DISPLAY_COUNT) {
@@ -153,7 +151,7 @@ export const useGetBuildsMutation: useMutationFunctionType<
             if (nodeBuild.length > 0 && nodeBuild[0]?.valid === false) {
               const errorMessage = nodeBuild?.[0]?.params || "Unknown error";
               if (errorMessage) {
-                setErrorData({
+                useAlertStore.getState().setErrorData({
                   title: "Last build failed",
                   list: [errorMessage],
                 });

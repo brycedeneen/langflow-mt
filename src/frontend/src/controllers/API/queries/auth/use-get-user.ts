@@ -19,15 +19,16 @@ export const useGetUserData: useMutationFunctionType<undefined, any> = (
       UserRead,
       async () => (await api.get<unknown>(`${getURL("USERS")}/whoami`)).data,
     )();
-    setUserData(data as unknown as Users);
     return data;
   };
 
-  const mutation: UseMutationResult = mutate(
-    ["useGetUserData"],
-    getUserData,
-    options,
-  );
+  const mutation: UseMutationResult = mutate(["useGetUserData"], getUserData, {
+    ...options,
+    onSuccess: (...args) => {
+      setUserData(args[0] as unknown as Users);
+      (options as any)?.onSuccess?.(...args);
+    },
+  });
 
   return mutation;
 };

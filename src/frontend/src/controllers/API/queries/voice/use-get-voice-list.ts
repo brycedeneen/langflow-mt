@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useVoiceStore } from "@/stores/voiceStore";
 import { validatedQueryFn } from "@/lib/validated-fetch";
 import { ElevenLabsVoiceIdsResponseSchema } from "@/schemas/app/internal/voice";
@@ -8,12 +9,11 @@ import { UseRequestProcessor } from "../../services/request-processor";
 
 export const useGetVoiceList = (elevenlabsApiKey: string, options?: any) => {
   const { query } = UseRequestProcessor();
-  const setVoices = useVoiceStore((state) => state.setVoices);
-  const voices = useVoiceStore((state) => state.voices);
 
   const getVoiceListFn = async () => {
-    if (voices.length > 0) {
-      return voices;
+    const cachedVoices = useVoiceStore.getState().voices;
+    if (cachedVoices.length > 0) {
+      return cachedVoices;
     }
     if (!elevenlabsApiKey) {
       return [];
@@ -41,7 +41,6 @@ export const useGetVoiceList = (elevenlabsApiKey: string, options?: any) => {
       voice_id: voice.voice_id ?? "",
     }));
 
-    setVoices(voicesMapped);
     return voicesMapped;
   };
 
@@ -57,5 +56,16 @@ export const useGetVoiceList = (elevenlabsApiKey: string, options?: any) => {
     getVoiceListFn,
     defaultOptions,
   );
+
+  // Sync voices into the voice store outside the queryFn so this hook does
+  // not subscribe to the store it mutates. Setter is read via getState().
+  useEffect(() => {
+    const data = queryResult.data;
+    if (!data || data.length === 0) return;
+    // Avoid redundant set if the store already has the same identity.
+    if (useVoiceStore.getState().voices === data) return;
+    useVoiceStore.getState().setVoices(data);
+  }, [queryResult.data]);
+
   return queryResult;
 };

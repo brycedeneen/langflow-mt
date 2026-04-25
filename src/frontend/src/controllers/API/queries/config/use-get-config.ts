@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useEffect } from "react";
 import {
   DEFAULT_POLLING_INTERVAL,
   DEFAULT_TIMEOUT,
@@ -51,34 +52,6 @@ export const useGetConfig: useQueryFunctionType<
   undefined,
   ConfigResponseType
 > = (options) => {
-  const setAutoSaving = useFlowsManagerStore((state) => state.setAutoSaving);
-  const setAutoSavingInterval = useFlowsManagerStore(
-    (state) => state.setAutoSavingInterval,
-  );
-  const setHealthCheckMaxRetries = useFlowsManagerStore(
-    (state) => state.setHealthCheckMaxRetries,
-  );
-  const setMaxFileSizeUpload = useUtilityStore(
-    (state) => state.setMaxFileSizeUpload,
-  );
-  const setSerializationMaxItemsLength = useUtilityStore(
-    (state) => state.setSerializationMaxItemsLength,
-  );
-  const setFeatureFlags = useUtilityStore((state) => state.setFeatureFlags);
-  const setWebhookPollingInterval = useUtilityStore(
-    (state) => state.setWebhookPollingInterval,
-  );
-  const setEventDelivery = useUtilityStore((state) => state.setEventDelivery);
-  const setWebhookAuthEnable = useUtilityStore(
-    (state) => state.setWebhookAuthEnable,
-  );
-  const setDefaultFolderName = useUtilityStore(
-    (state) => state.setDefaultFolderName,
-  );
-  const setHideGettingStartedProgress = useUtilityStore(
-    (state) => state.setHideGettingStartedProgress,
-  );
-
   const { query } = UseRequestProcessor();
 
   const getConfigFn = async () => {
@@ -86,43 +59,58 @@ export const useGetConfig: useQueryFunctionType<
     // - Authenticated: Full ConfigResponse with all settings
     // - Unauthenticated: PublicConfigResponse with limited settings
     const response = await api.get<ConfigResponseType>(`${getURL("CONFIG")}`);
-    const data = response["data"];
-    if (data) {
-      // Set timeout (present in both response types)
-      const timeoutInMilliseconds = data.frontend_timeout
-        ? data.frontend_timeout * 1000
-        : DEFAULT_TIMEOUT;
-      axios.defaults.baseURL = "";
-      axios.defaults.timeout = timeoutInMilliseconds;
-
-      // Set fields present in both public and full config
-      setMaxFileSizeUpload(data.max_file_size_upload);
-      setEventDelivery(data.event_delivery ?? EventDeliveryType.POLLING);
-
-      // Set authenticated-only fields if present (full config)
-      if (isFullConfig(data)) {
-        setAutoSaving(data.auto_saving);
-        setAutoSavingInterval(data.auto_saving_interval);
-        setHealthCheckMaxRetries(data.health_check_max_retries);
-        setFeatureFlags(data.feature_flags);
-        setSerializationMaxItemsLength(data.serialization_max_items_length);
-        setWebhookPollingInterval(
-          data.webhook_polling_interval ?? DEFAULT_POLLING_INTERVAL,
-        );
-        setWebhookAuthEnable(data.webhook_auth_enable ?? true);
-        setDefaultFolderName(data.default_folder_name ?? "Starter Project");
-        setHideGettingStartedProgress(
-          data.hide_getting_started_progress ?? false,
-        );
-      }
-    }
-    return data;
+    return response.data;
   };
 
   const queryResult = query(["useGetConfig"], getConfigFn, {
     refetchOnWindowFocus: false,
     ...options,
   });
+
+  // Sync config into stores outside the queryFn so this hook does not
+  // subscribe to the stores it mutates (render-loop hazard). Setters are
+  // accessed via getState() to avoid subscribing.
+  useEffect(() => {
+    const data = queryResult.data;
+    if (!data) return;
+
+    // Set timeout (present in both response types)
+    const timeoutInMilliseconds = data.frontend_timeout
+      ? data.frontend_timeout * 1000
+      : DEFAULT_TIMEOUT;
+    axios.defaults.baseURL = "";
+    axios.defaults.timeout = timeoutInMilliseconds;
+
+    const utilityState = useUtilityStore.getState();
+    const flowsManagerState = useFlowsManagerStore.getState();
+
+    // Set fields present in both public and full config
+    utilityState.setMaxFileSizeUpload(data.max_file_size_upload);
+    utilityState.setEventDelivery(
+      data.event_delivery ?? EventDeliveryType.POLLING,
+    );
+
+    // Set authenticated-only fields if present (full config)
+    if (isFullConfig(data)) {
+      flowsManagerState.setAutoSaving(data.auto_saving);
+      flowsManagerState.setAutoSavingInterval(data.auto_saving_interval);
+      flowsManagerState.setHealthCheckMaxRetries(data.health_check_max_retries);
+      utilityState.setFeatureFlags(data.feature_flags);
+      utilityState.setSerializationMaxItemsLength(
+        data.serialization_max_items_length,
+      );
+      utilityState.setWebhookPollingInterval(
+        data.webhook_polling_interval ?? DEFAULT_POLLING_INTERVAL,
+      );
+      utilityState.setWebhookAuthEnable(data.webhook_auth_enable ?? true);
+      utilityState.setDefaultFolderName(
+        data.default_folder_name ?? "Starter Project",
+      );
+      utilityState.setHideGettingStartedProgress(
+        data.hide_getting_started_progress ?? false,
+      );
+    }
+  }, [queryResult.data]);
 
   return queryResult;
 };
