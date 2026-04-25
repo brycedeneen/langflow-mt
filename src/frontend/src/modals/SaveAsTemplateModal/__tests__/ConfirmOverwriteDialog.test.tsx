@@ -1,4 +1,5 @@
 import { describe, expect, it, jest, beforeAll, afterAll } from "@jest/globals";
+import "@testing-library/jest-dom/jest-globals";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ConfirmOverwriteDialog from "../ConfirmOverwriteDialog";

@@ -11,7 +11,7 @@ const TestComponent = ({ onToggle }: { onToggle?: () => void }) => {
       <button
         data-testid="toggle-btn"
         onClick={() => {
-          setOpen((prev) => !prev);
+          setOpen(!open);
           onToggle?.();
         }}
       >

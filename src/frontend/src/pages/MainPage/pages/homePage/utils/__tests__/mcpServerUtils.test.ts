@@ -98,6 +98,7 @@ describe("mcpServerUtils", () => {
         apiUrl: "https://api.test.com",
         isOAuthProject: false,
         authHeadersFragment: "",
+        transport: "streamablehttp",
       });
 
       expect(json).toContain('"mcpServers"');
@@ -113,6 +114,7 @@ describe("mcpServerUtils", () => {
         apiUrl: "https://api.test.com",
         isOAuthProject: false,
         authHeadersFragment: "",
+        transport: "streamablehttp",
       });
 
       expect(json).toContain('"command": "wsl"');
@@ -126,6 +128,7 @@ describe("mcpServerUtils", () => {
         apiUrl: "https://api.test.com",
         isOAuthProject: false,
         authHeadersFragment: "",
+        transport: "streamablehttp",
       });
 
       expect(json).toContain('"command": "cmd"');
@@ -140,6 +143,7 @@ describe("mcpServerUtils", () => {
         apiUrl: "https://api.test.com",
         isOAuthProject: true,
         authHeadersFragment: "",
+        transport: "sse",
       });
 
       expect(json).toContain('"mcp-composer"');
@@ -156,6 +160,7 @@ describe("mcpServerUtils", () => {
         apiUrl: "https://api.test.com",
         isOAuthProject: false,
         authHeadersFragment: '"--headers","x-api-key","test-key"',
+        transport: "streamablehttp",
       });
 
       expect(json).toContain('"--headers"');

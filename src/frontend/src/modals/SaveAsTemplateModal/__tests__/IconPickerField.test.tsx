@@ -36,6 +36,7 @@ jest.mock("react-window", () => {
 });
 
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
+import "@testing-library/jest-dom/jest-globals";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import IconPickerField from "../IconPickerField";
 import { RECENT_ICONS_STORAGE_KEY } from "../iconPicker/useRecentIcons";

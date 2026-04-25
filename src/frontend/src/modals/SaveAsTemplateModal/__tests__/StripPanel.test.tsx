@@ -1,4 +1,5 @@
 import { describe, expect, it, jest } from "@jest/globals";
+import "@testing-library/jest-dom/jest-globals";
 import { render, screen, fireEvent } from "@testing-library/react";
 import StripPanel from "../StripPanel";
 import type { BlankableFieldInfo } from "../scanBlankableFields";

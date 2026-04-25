@@ -162,7 +162,7 @@ describe("useDarkStore", () => {
 
     it("should handle store initialization edge cases", () => {
       // Test with different localStorage values
-      localStorageMock.getItem.mockImplementation((key) => {
+      (localStorageMock.getItem as jest.Mock).mockImplementation((key: string) => {
         switch (key) {
           case "isDark":
             return "true";
@@ -176,8 +176,8 @@ describe("useDarkStore", () => {
       const { result } = renderHook(() => useDarkStore());
 
       // Even if the store doesn't initialize properly, the test setup should work
-      expect(localStorageMock.getItem("isDark")).toBe("true");
-      expect(localStorageMock.getItem("githubStars")).toBe("1500");
+      expect((localStorageMock.getItem as jest.Mock)("isDark")).toBe("true");
+      expect((localStorageMock.getItem as jest.Mock)("githubStars")).toBe("1500");
     });
   });
 

@@ -42,9 +42,9 @@ const mockUpdateMessageProperties = jest.fn();
 jest.mock(
   "@/components/core/playgroundComponent/chat-view/utils/message-utils",
   () => ({
-    findLastBotMessage: (...args: any[]) => mockFindLastBotMessage(...args),
+    findLastBotMessage: (...args: any[]) => (mockFindLastBotMessage as (...a: any[]) => any)(...args),
     updateMessageProperties: (...args: any[]) =>
-      mockUpdateMessageProperties(...args),
+      (mockUpdateMessageProperties as (...a: any[]) => any)(...args),
   }),
 );
 
@@ -57,12 +57,12 @@ jest.mock(
 
 const mockIsErrorLogType = jest.fn(() => false);
 jest.mock("@/types/utils/typeCheckingUtils", () => ({
-  isErrorLogType: (...args: any[]) => mockIsErrorLogType(...args),
+  isErrorLogType: (...args: any[]) => (mockIsErrorLogType as (...a: any[]) => any)(...args),
 }));
 
 const mockIsOutputType = jest.fn(() => false);
 jest.mock("@/utils/reactflowUtils", () => ({
-  isOutputType: (...args: any[]) => mockIsOutputType(...args),
+  isOutputType: (...args: any[]) => (mockIsOutputType as (...a: any[]) => any)(...args),
 }));
 
 jest.mock("@/utils/utils", () => ({
@@ -327,7 +327,7 @@ describe("processEndVertexEvent", () => {
     mockIsOutputType.mockReturnValue(true);
     mockFlowStoreState.buildStartTime = Date.now() - 500;
     mockFlowStoreState.nodes = [{ id: "node-1", data: { type: "ChatOutput" } }];
-    mockFindLastBotMessage.mockReturnValue({
+    (mockFindLastBotMessage as jest.Mock).mockReturnValue({
       message: { id: "msg-1", properties: {} },
       queryKey: ["messages"],
     });

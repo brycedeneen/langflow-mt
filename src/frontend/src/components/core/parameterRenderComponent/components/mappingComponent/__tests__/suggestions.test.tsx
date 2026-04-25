@@ -118,6 +118,8 @@ describe("MappingComponent suggestions integration", () => {
         handleOnNewValue={jest.fn()}
         nodeId="n1"
         disabled={false}
+        id="n1"
+        editNode={false}
       />,
       { wrapper },
     );
@@ -136,6 +138,8 @@ describe("MappingComponent suggestions integration", () => {
         handleOnNewValue={jest.fn()}
         nodeId="n1"
         disabled={false}
+        id="n1"
+        editNode={false}
       />,
       { wrapper },
     );
