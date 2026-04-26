@@ -75,18 +75,25 @@ def test_check_existing_variables_before_asking():
     assert "list_user_variables" in SYSTEM_PROMPT_TEMPLATE
 
 
-def test_adp_credentials_treated_as_user_scoped_variables():
-    # ADP creds are user/org-scoped, not per-flow. The playbook must
-    # name the canonical variable names so the assistant uses them
-    # consistently across flows.
+def test_adp_credentials_are_per_flow_not_shared_variables():
+    # ADP creds are PER-FLOW autosecrets, not shared user Variables.
+    # The playbook must direct the assistant to write the actual values
+    # straight into the ADP Auth fields (paste-equivalent), NOT call
+    # create_secret_variable for them.
     text = SYSTEM_PROMPT_TEMPLATE.lower()
-    assert "adp_client_id" in text
-    assert "adp_client_secret" in text
-    # adp_client_cert (not _certificate) — the canonical variable name uses
-    # the abbreviated form to match the typical user-side naming.
-    assert "adp_client_cert" in text
-    assert "adp_client_certificate" not in text
-    assert "adp_client_key" in text
+    # The four ADP credential field names must still be named so the
+    # assistant knows which fields it's wiring.
+    assert "client_id" in text
+    assert "client_secret" in text
+    assert "client_certificate" in text
+    assert "client_key" in text
+    # The playbook must explicitly call out per-flow scoping for ADP.
+    assert "per-flow" in text or "per flow" in text
+    # And explicitly negate the create_secret_variable / user-Variable
+    # pattern for ADP fields, since the general rule above the ADP block
+    # mandates that pattern for other secret fields.
+    assert "do not call `create_secret_variable`" in text or \
+           "do not call create_secret_variable" in text
 
 
 def test_check_required_fields_before_finishing():

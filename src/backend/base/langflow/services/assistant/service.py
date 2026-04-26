@@ -40,8 +40,8 @@ MODEL_CONTEXT_WINDOWS: dict[str, int] = {
     "gpt-4o": 128_000,
     "gpt-4o-mini": 128_000,
     "gpt-4-turbo": 128_000,
-    "claude-sonnet-4-20250514": 200_000,
-    "claude-opus-4-20250514": 200_000,
+    "claude-opus-4-7": 200_000,
+    "claude-sonnet-4-6": 200_000,
     "claude-haiku-4-5-20251001": 200_000,
 }
 DEFAULT_CONTEXT_WINDOW = 128_000
@@ -179,21 +179,26 @@ The tool returns a `next_step` string spelling out step 2.
 with the variable name from step 1. Without step 2 the field stays empty \
 and the component fails at runtime — step 1 alone does NOT wire anything.
 
-- BEFORE asking the user for credentials, call `list_user_variables`. \
-They may already have configured the credential in a previous \
-conversation. If a relevant name exists (e.g. `adp_client_id`, \
-`sftp_password_<flow>`), reference it directly via \
+- BEFORE asking the user for shared credentials (e.g. an SFTP password \
+they reuse across flows), call `list_user_variables`. They may already \
+have configured the credential in a previous conversation. If a relevant \
+name exists (e.g. `sftp_password_<flow>`), reference it directly via \
 `set_field_value(node_id, <field>, '<existing_variable_name>')` instead \
 of re-asking for the secret.
 
-- ADP credentials specifically (`client_id`, `client_secret`, \
-`client_certificate`, `client_key`) are user/org-scoped, not per-flow. \
-Before adding ADP Auth or any component that depends on it: (a) call \
-`list_user_variables` to see what's already configured; (b) if the \
-required ADP creds aren't there, ask the user for them and create \
-variables named `adp_client_id`, `adp_client_secret`, \
-`adp_client_cert`, `adp_client_key`; (c) then point the ADP Auth \
-component's fields at those variable names via `set_field_value`.
+- ADP credentials (`client_id`, `client_secret`, `client_certificate`, \
+`client_key`) are an EXCEPTION to the two-step user-Variable pattern \
+above. They are PER-FLOW: each flow has its own ADP client \
+registration, and the credentials must NOT be shared via user \
+Variables. When the user gives you ADP creds, pass each value \
+DIRECTLY via `set_field_value(node_id, '<field>', '<actual_value>')` — \
+exactly like the user typing or pasting into the field in the UI. The \
+runtime auto-encrypts per-flow autosecrets at rest, so paste-equivalent \
+end-state is secure. Do NOT call `create_secret_variable` for ADP \
+fields, and do NOT reference any existing `adp_*` user Variable even if \
+one shows up in `list_user_variables` from a previous conversation. If \
+the user hasn't given you ADP creds yet, ask for them in chat and then \
+write them directly to the ADP Auth fields.
 
 - BEFORE finishing a build, walk the components you added and confirm \
 their required fields are set. For each added node, call \
