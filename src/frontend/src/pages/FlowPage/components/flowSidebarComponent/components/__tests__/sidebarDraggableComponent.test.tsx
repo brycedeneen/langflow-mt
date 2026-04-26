@@ -86,7 +86,7 @@ jest.mock("@/components/common/genericIconComponent", () => ({
     name: string;
     className?: string;
   }) => (
-    <span data-testid={`forwarded-icon-${name}`} className={className}>
+    <span data-testid={`icon-${name}`} className={className}>
       {name}
     </span>
   ),
@@ -286,7 +286,7 @@ describe("SidebarDraggableComponent", () => {
       expect(
         screen.getByTestId(/testsectiontest component/i),
       ).toBeInTheDocument();
-      expect(screen.getByTestId("forwarded-icon-TestIcon")).toBeInTheDocument();
+      expect(screen.getByTestId("icon-TestIcon")).toBeInTheDocument();
       expect(screen.getByText("Test Component")).toBeInTheDocument();
     });
 
@@ -299,7 +299,7 @@ describe("SidebarDraggableComponent", () => {
     it("should display component icon", () => {
       render(<SidebarDraggableComponent {...defaultProps} />);
 
-      expect(screen.getByTestId("forwarded-icon-TestIcon")).toBeInTheDocument();
+      expect(screen.getByTestId("icon-TestIcon")).toBeInTheDocument();
     });
 
     it("should have correct test id format", () => {
@@ -314,7 +314,7 @@ describe("SidebarDraggableComponent", () => {
       render(<SidebarDraggableComponent {...defaultProps} />);
 
       expect(
-        screen.getByTestId("forwarded-icon-GripVertical"),
+        screen.getByTestId("icon-GripVertical"),
       ).toBeInTheDocument();
     });
 
@@ -324,7 +324,7 @@ describe("SidebarDraggableComponent", () => {
       expect(
         screen.getByTestId("add-component-button-test-component"),
       ).toBeInTheDocument();
-      expect(screen.getByTestId("forwarded-icon-Plus")).toBeInTheDocument();
+      expect(screen.getByTestId("icon-Plus")).toBeInTheDocument();
     });
   });
 
@@ -649,7 +649,7 @@ describe("SidebarDraggableComponent", () => {
       render(<SidebarDraggableComponent {...propsWithDifferentIcon} />);
 
       expect(
-        screen.getByTestId("forwarded-icon-CustomIcon"),
+        screen.getByTestId("icon-CustomIcon"),
       ).toBeInTheDocument();
     });
 
@@ -685,13 +685,13 @@ describe("SidebarDraggableComponent", () => {
     it("should contain all expected child elements", () => {
       render(<SidebarDraggableComponent {...defaultProps} />);
 
-      expect(screen.getByTestId("forwarded-icon-TestIcon")).toBeInTheDocument();
+      expect(screen.getByTestId("icon-TestIcon")).toBeInTheDocument();
       expect(screen.getByText("Test Component")).toBeInTheDocument();
       expect(
         screen.getByTestId("add-component-button-test-component"),
       ).toBeInTheDocument();
       expect(
-        screen.getByTestId("forwarded-icon-GripVertical"),
+        screen.getByTestId("icon-GripVertical"),
       ).toBeInTheDocument();
       expect(screen.getByTestId("select-content")).toBeInTheDocument();
     });
