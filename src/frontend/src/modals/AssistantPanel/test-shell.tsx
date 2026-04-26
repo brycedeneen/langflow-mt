@@ -63,7 +63,7 @@ export function TestShell({ flowId, onSend }: Props) {
           <FlowPipelineView onSend={onSend} />
         </div>
         <div className="flex w-1/2 flex-col">
-          <MessageList messages={messages} />
+          <MessageList messages={messages} flowId={flowId} />
           <Composer onSend={onSend} />
         </div>
       </div>

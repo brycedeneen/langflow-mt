@@ -14,7 +14,7 @@ from fastapi import HTTPException, status
 from lfx.log.logger import logger
 from pydantic import BaseModel, ValidationInfo, field_serializer, field_validator
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import ForeignKey, Text, UniqueConstraint, Uuid, text
+from sqlalchemy import Boolean, ForeignKey, Text, UniqueConstraint, Uuid, text
 from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
 from langflow.schema.data import Data
@@ -224,6 +224,10 @@ class Flow(FlowBase, table=True):  # type: ignore[call-arg]
     fs_path: str | None = Field(default=None, nullable=True)
     folder: Optional["Folder"] = Relationship(back_populates="flows")
     tags: list["Tag"] = Relationship(back_populates="flows", link_model=FlowTag)
+    ps_request_active: bool = Field(
+        default=False,
+        sa_column=Column(Boolean, nullable=False, server_default=text("false")),
+    )
 
     def to_data(self):
         serialized = self.model_dump()

@@ -6,6 +6,13 @@ export type AssistantMessageType = {
   content: string | null;
   tool_calls?: Array<{ id: string; name: string; args: Record<string, any> }>;
   tool_call_id?: string;
+  /**
+   * For tool-role messages: the human-readable tool name, populated by the
+   * SSE stream when ``tool_call`` / ``tool_result`` events arrive. Lets
+   * downstream consumers (e.g. the suggestion-card renderer) branch on
+   * ``tool_name`` without rebuilding a tool_call_id → name lookup.
+   */
+  tool_name?: string;
   tool_result?: Record<string, any>;
   user_id?: string | null;
   created_at?: string;
@@ -26,7 +33,26 @@ type AssistantStoreState = {
   setMessages: (messages: AssistantMessageType[]) => void;
   addMessage: (message: AssistantMessageType) => void;
   appendToLastAssistant: (text: string) => void;
+  /**
+   * Patch an existing tool-role message identified by ``tool_call_id``. Used
+   * by the SSE stream when a ``tool_result`` event arrives so the placeholder
+   * "Calling …" message gets the tool name + result merged in. We do an
+   * identity-stable patch (last-match wins) instead of replacing the array
+   * wholesale so consumers using ``useShallow`` don't churn unnecessarily.
+   */
+  updateToolMessage: (
+    toolCallId: string,
+    patch: Partial<AssistantMessageType>,
+  ) => void;
   clearMessages: () => void;
+  /**
+   * Set of tool_call_ids whose ``suggest_professional_services`` cards the
+   * user has dismissed in the current session. Lives in-memory only — when
+   * the panel reloads the conversation we re-show suggestions, matching the
+   * "transient inline nudge" UX rather than persistent banners.
+   */
+  dismissedSuggestionIds: Set<string>;
+  dismissSuggestion: (toolCallId: string) => void;
   isStreaming: boolean;
   setIsStreaming: (streaming: boolean) => void;
   settingsConfigured: boolean;
@@ -66,7 +92,28 @@ const useAssistantStore = create<AssistantStoreState>((set, get) => ({
     }
     set({ messages });
   },
+  updateToolMessage: (toolCallId, patch) => {
+    const messages = [...get().messages];
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (
+        messages[i].role === "tool" &&
+        messages[i].tool_call_id === toolCallId
+      ) {
+        messages[i] = { ...messages[i], ...patch };
+        break;
+      }
+    }
+    set({ messages });
+  },
   clearMessages: () => set({ messages: [] }),
+  dismissedSuggestionIds: new Set<string>(),
+  dismissSuggestion: (toolCallId) =>
+    set({
+      dismissedSuggestionIds: new Set([
+        ...get().dismissedSuggestionIds,
+        toolCallId,
+      ]),
+    }),
 
   isStreaming: false,
   setIsStreaming: (streaming) => set({ isStreaming: streaming }),

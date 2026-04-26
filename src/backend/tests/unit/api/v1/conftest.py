@@ -2,19 +2,60 @@
 from __future__ import annotations
 
 import uuid
+from decimal import Decimal
 from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
 from fastapi import status
 from httpx import AsyncClient
+from sqlmodel import select
 
 from langflow.services.auth.utils import get_password_hash
 from langflow.services.database.models.flow.model import Flow
 from langflow.services.database.models.membership.model import Membership, MembershipRole
 from langflow.services.database.models.organization.model import Organization
+from langflow.services.database.models.professional_services_settings.model import (
+    ProfessionalServicesSettings,
+)
 from langflow.services.database.models.user.model import User
 from langflow.services.deps import get_auth_service, session_scope
+
+
+@pytest.fixture(autouse=True)
+async def ps_settings_singleton(client: AsyncClient):  # noqa: ARG001
+    """Ensure the ``professional_services_settings`` id=1 singleton exists.
+
+    Production seeds id=1 via alembic; under ``SQLModel.metadata.create_all``
+    (used by the test fixture) data inserts are skipped, so any test that
+    touches the pro-service-quotes endpoints must bootstrap the row. Yields
+    the row id (always 1) so tests can also overwrite rates without
+    re-querying.
+
+    Depends on ``client`` so we run **after** the test app's per-test sqlite
+    engine is initialized (otherwise the row is inserted into a torn-down DB).
+    Marked ``autouse=True`` so PS-endpoint tests don't have to repeat it on
+    every signature; the bootstrap is idempotent for non-PS tests in this
+    directory (a single insert; no teardown).
+    """
+    async with session_scope() as session:
+        existing = (
+            await session.exec(
+                select(ProfessionalServicesSettings).where(
+                    ProfessionalServicesSettings.id == 1
+                )
+            )
+        ).one_or_none()
+        if existing is None:
+            session.add(
+                ProfessionalServicesSettings(
+                    id=1,
+                    default_hourly_rate_low=Decimal("200.00"),
+                    default_hourly_rate_high=Decimal("200.00"),
+                )
+            )
+            await session.commit()
+    yield 1
 
 
 @pytest.fixture

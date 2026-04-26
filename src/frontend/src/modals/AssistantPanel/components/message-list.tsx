@@ -6,9 +6,18 @@ import Message from "./message";
 
 interface MessageListProps {
   messages: AssistantMessageType[];
+  /**
+   * Current flow id, threaded through to ``Message`` so the
+   * ``suggest_professional_services`` tool result can render
+   * ``PSSuggestionCardConnected`` (which needs the flow id to call the
+   * preview-quote API). Optional so legacy callers that don't yet pass it
+   * still type-check; without it the suggestion card falls back to
+   * ``ToolCallCard``.
+   */
+  flowId?: string;
 }
 
-export default function MessageList({ messages }: MessageListProps) {
+export default function MessageList({ messages, flowId }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const showToolCalls = useAssistantStore((s) => s.showToolCalls);
 
@@ -64,6 +73,7 @@ export default function MessageList({ messages }: MessageListProps) {
           resolvedToolName={
             msg.tool_call_id ? toolNameById[msg.tool_call_id] : undefined
           }
+          flowId={flowId}
         />
       ))}
       {!showToolCalls && hiddenCount > 0 && (

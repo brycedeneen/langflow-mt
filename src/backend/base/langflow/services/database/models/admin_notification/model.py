@@ -13,6 +13,7 @@ class NotificationCategory(str, Enum):
     USAGE_THRESHOLD = "usage_threshold"
     ALERT_RULE = "alert_rule"
     SYSTEM = "system"
+    PROFESSIONAL_SERVICES_REQUEST = "professional_services_request"
 
 
 class NotificationSeverity(str, Enum):
@@ -23,6 +24,7 @@ class NotificationSeverity(str, Enum):
 
 class NotificationAudience(str, Enum):
     SUPER_ADMIN = "super_admin"
+    PLATFORM_ADMIN = "platform_admin"
 
 
 class AdminNotification(SQLModel, table=True):
@@ -31,6 +33,12 @@ class AdminNotification(SQLModel, table=True):
         Index(
             "ix_admin_notification_audience_read_created",
             "audience",
+            "read_at",
+            "created_at",
+        ),
+        Index(
+            "ix_admin_notification_user_read_created",
+            "audience_user_id",
             "read_at",
             "created_at",
         ),
@@ -56,6 +64,10 @@ class AdminNotification(SQLModel, table=True):
     audience: NotificationAudience = Field(
         default=NotificationAudience.SUPER_ADMIN,
         sa_column=Column(String(length=32), nullable=False),
+    )
+    audience_user_id: UUID | None = Field(
+        default=None,
+        sa_column=Column(ForeignKey("user.id", ondelete="SET NULL"), nullable=True),
     )
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),

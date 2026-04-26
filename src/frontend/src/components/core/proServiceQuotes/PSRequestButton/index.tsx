@@ -1,0 +1,89 @@
+import { useState } from "react";
+import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Button } from "@/components/ui/button";
+import { usePreviewQuote } from "@/controllers/API/queries/pro-service-quotes/use-preview-quote";
+import type { PreviewResponse } from "@/types/pro-service-quote";
+import { PreviewProposalModal } from "../PreviewProposalModal";
+
+type Props = {
+  flowId: string;
+  /**
+   * Whether the current viewer is allowed to request PS for this flow
+   * (Owner, Org Admin, or Platform Admin per the backend permissions
+   * module). When false the component renders nothing — no disabled-button
+   * placeholder, no tooltip, just absent — so non-eligible viewers don't
+   * see surface they can't act on.
+   */
+  canRequest: boolean;
+  /**
+   * Mirror of ``flow.ps_request_active``. When true the button is
+   * disabled with a tooltip explaining there's already an open request.
+   */
+  psRequestActive: boolean;
+};
+
+/**
+ * Header CTA that previews and (via the modal) submits a Pro-Service Quote
+ * for the current flow. Does its own preview-then-open dance so the modal
+ * always has a populated estimate when it appears.
+ */
+export function PSRequestButton({ flowId, canRequest, psRequestActive }: Props) {
+  const [open, setOpen] = useState(false);
+  const [preview, setPreview] = useState<PreviewResponse | null>(null);
+  const previewMutation = usePreviewQuote(flowId);
+
+  if (!canRequest) return null;
+
+  const handleClick = () => {
+    if (psRequestActive || previewMutation.isPending) return;
+    previewMutation.mutate(undefined, {
+      onSuccess: (data) => {
+        setPreview(data);
+        setOpen(true);
+      },
+    });
+  };
+
+  const button = (
+    <Button
+      variant="outline"
+      size="sm"
+      disabled={psRequestActive}
+      loading={previewMutation.isPending}
+      onClick={handleClick}
+      data-testid="ps-request-button"
+    >
+      <ForwardedIconComponent name="HandCoins" className="h-4 w-4" />
+      Request PS
+    </Button>
+  );
+
+  return (
+    <>
+      {psRequestActive ? (
+        <ShadTooltip
+          content="You already have an open Pro-Service request for this flow."
+          side="bottom"
+        >
+          {/*
+            Wrap in a span so the tooltip target stays interactive even when
+            the inner button is disabled — disabled buttons swallow pointer
+            events and Radix loses the trigger.
+          */}
+          <span tabIndex={0}>{button}</span>
+        </ShadTooltip>
+      ) : (
+        button
+      )}
+      <PreviewProposalModal
+        open={open}
+        flowId={flowId}
+        preview={preview}
+        onClose={() => setOpen(false)}
+      />
+    </>
+  );
+}
+
+export default PSRequestButton;

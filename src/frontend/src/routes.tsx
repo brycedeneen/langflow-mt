@@ -30,6 +30,8 @@ import HomePage from "./pages/MainPage/pages/homePage";
 import KnowledgePage from "./pages/MainPage/pages/knowledgePage";
 import SourceChunksPage from "./pages/MainPage/pages/knowledgePage/sourceChunksPage/SourceChunksPage";
 import CollectionPage from "./pages/MainPage/pages/main-page";
+import ProServiceQuoteDetailPage from "./pages/MainPage/pages/proServiceQuoteDetailPage";
+import ProServiceQuotesPage from "./pages/MainPage/pages/proServiceQuotesPage";
 import SettingsPage from "./pages/SettingsPage";
 import ApiKeysPage from "./pages/SettingsPage/pages/ApiKeysPage";
 import GeneralPage from "./pages/SettingsPage/pages/GeneralPage";
@@ -38,6 +40,7 @@ import MCPServersPage from "./pages/SettingsPage/pages/MCPServersPage";
 import ModelProvidersPage from "./pages/SettingsPage/pages/ModelProvidersPage";
 import AssistantSettingsPage from "./pages/SettingsPage/pages/AssistantSettingsPage";
 import MetadataPage from "./pages/SettingsPage/pages/MetadataPage";
+import ProfessionalServicesPage from "./pages/SettingsPage/pages/ProfessionalServicesPage";
 import MessagesPage from "./pages/SettingsPage/pages/messagesPage";
 import { ProtectedSuperuserRoute } from "./components/authorization/authSuperuserGuard";
 import ShortcutsPage from "./pages/SettingsPage/pages/ShortcutsPage";
@@ -127,6 +130,14 @@ const router = createBrowserRouter(
                     </Route>
                   )}
                   <Route
+                    path="pro-service-quotes"
+                    element={<ProServiceQuotesPage />}
+                  />
+                  <Route
+                    path="pro-service-quotes/:id"
+                    element={<ProServiceQuoteDetailPage />}
+                  />
+                  <Route
                     path="flows/"
                     element={<HomePage key="flows" type="flows" />}
                   />
@@ -193,6 +204,14 @@ const router = createBrowserRouter(
                     element={
                       <ProtectedSuperuserRoute>
                         <MetadataPage />
+                      </ProtectedSuperuserRoute>
+                    }
+                  />
+                  <Route
+                    path="professional-services"
+                    element={
+                      <ProtectedSuperuserRoute>
+                        <ProfessionalServicesPage />
                       </ProtectedSuperuserRoute>
                     }
                   />

@@ -106,11 +106,20 @@ export function useAssistantStream(flowId: string) {
                     role: "tool",
                     content: `Calling ${event.tool_name ?? "tool"}...`,
                     tool_call_id: event.tool_call_id,
+                    tool_name: event.tool_name,
                   });
                   break;
 
                 case "tool_result":
-                  // Tool result received — could update the tool message
+                  // Patch the placeholder tool message with the result so the
+                  // renderer can branch on tool_name (e.g. show
+                  // PSSuggestionCard for ``suggest_professional_services``).
+                  if (event.tool_call_id) {
+                    assistantStore.updateToolMessage(event.tool_call_id, {
+                      tool_name: event.tool_name,
+                      tool_result: event.result,
+                    });
+                  }
                   break;
 
                 case "flow_patch":

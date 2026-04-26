@@ -23,6 +23,7 @@ from langflow.api.v1 import (
     models_router,
     monitor_router,
     openai_responses_router,
+    pro_service_quotes_router,
     projects_router,
     starter_projects_router,
     store_router,
@@ -85,6 +86,7 @@ router_v1.include_router(deployment_router)
 router_v1.include_router(flows_cost_router)
 router_v1.include_router(usage_dashboard_router)
 router_v1.include_router(audit_logs_router)
+router_v1.include_router(pro_service_quotes_router)
 
 
 # Agentic flow execution - lazy import to avoid circular dependency

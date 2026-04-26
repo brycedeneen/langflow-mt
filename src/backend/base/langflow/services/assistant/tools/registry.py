@@ -244,6 +244,26 @@ INSPECTION_TOOLS = [
         ),
         "parameters": {"type": "object", "properties": {}, "required": []},
     },
+    {
+        "name": "suggest_professional_services",
+        "description": (
+            "Surface a Professional Services suggestion card to the user. Use when the "
+            "user explicitly asks for human help, says they're stuck, or hits the same "
+            "error twice. Provide a one-sentence reason. Calling this tool returns the "
+            "suggestion to the user — do NOT keep iterating on the problem afterward."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string",
+                    "description": "One-sentence reason for surfacing the suggestion (under 240 chars).",
+                    "maxLength": 240,
+                },
+            },
+            "required": ["reason"],
+        },
+    },
 ]
 
 

@@ -107,6 +107,19 @@ export default function SettingsPage(): JSX.Element {
     });
   }
 
+  if (userData?.is_superuser) {
+    sidebarNavItems.push({
+      title: "Professional Services",
+      href: "/settings/professional-services",
+      icon: (
+        <ForwardedIconComponent
+          name="HandCoins"
+          className="w-4 shrink-0 justify-start stroke-[1.5]"
+        />
+      ),
+    });
+  }
+
   if (isAdmin) {
     sidebarNavItems.push({
       title: "User Admin",

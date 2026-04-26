@@ -16,6 +16,8 @@ class ComponentMetadata(AgentMetadataMixin, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     component_name: str = Field(max_length=128, unique=True, index=True)
+    integration_minutes_low: int | None = Field(default=None, nullable=True)
+    integration_minutes_high: int | None = Field(default=None, nullable=True)
 
 
 class ComponentMetadataRead(BaseModel):
