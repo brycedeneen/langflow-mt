@@ -96,6 +96,14 @@ async def _seed_flow(*, organization_id: UUID, user_id: UUID) -> UUID:
 
 
 async def _set_settings_webhook(url: str | None, secret: str | None) -> None:
+    """Store the webhook URL/secret on the settings singleton.
+
+    The secret column holds Fernet ciphertext in production (Task 15); we
+    encrypt here so the webhook service's ``decrypt_api_key`` round-trip
+    succeeds and the HMAC signature uses the right plaintext.
+    """
+    from langflow.services.auth.utils import encrypt_api_key
+
     async with session_scope() as session:
         row = (
             await session.exec(
@@ -105,7 +113,9 @@ async def _set_settings_webhook(url: str | None, secret: str | None) -> None:
             )
         ).one()
         row.webhook_url = url
-        row.webhook_secret_encrypted = secret
+        row.webhook_secret_encrypted = (
+            encrypt_api_key(secret) if secret is not None else None
+        )
         session.add(row)
         await session.commit()
 

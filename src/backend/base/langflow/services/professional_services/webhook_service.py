@@ -38,12 +38,15 @@ _HTTP_TIMEOUT = httpx.Timeout(10.0)
 def _decrypt_secret(enc: str) -> str:
     """Return the webhook secret in plaintext.
 
-    TODO Phase C.3: wire the encryption helper that the admin-settings PUT
-    handler uses on write. For v1 the column stores plaintext (the field is
-    named ``webhook_secret_encrypted`` to reserve room for the upgrade
-    without a column rename).
+    Wired in Phase C.3 (Task 15) to the same ``encrypt_api_key`` helper the
+    admin-settings PUT handler uses on write. The helper is a general Fernet
+    string utility despite the legacy name; the column was always named
+    ``webhook_secret_encrypted`` to reserve room for this upgrade without a
+    column rename.
     """
-    return enc
+    from langflow.services.auth.utils import decrypt_api_key
+
+    return decrypt_api_key(enc)
 
 
 def build_webhook_payload(
