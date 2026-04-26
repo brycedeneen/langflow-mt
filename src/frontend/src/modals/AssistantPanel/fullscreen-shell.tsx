@@ -81,7 +81,7 @@ export function FullscreenShell({ flowId, onSend }: Props) {
           <SettingsRequired />
         ) : (
           <>
-            <MessageList messages={messages} />
+            <MessageList messages={messages} flowId={flowId} />
             <Composer onSend={onSend} />
           </>
         )}

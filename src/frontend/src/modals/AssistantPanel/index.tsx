@@ -135,7 +135,7 @@ export default function AssistantPanel({ flowId }: AssistantPanelProps) {
         <SettingsRequired />
       ) : (
         <>
-          <MessageList messages={messages} />
+          <MessageList messages={messages} flowId={flowId} />
           <Composer onSend={sendMessage} />
         </>
       )}
