@@ -75,21 +75,31 @@ const useHandleOnNewValue = ({
 
   const debouncedMutateRef = useRef<any>(null);
 
+  // Read `node` from a ref so the handler always sees the latest template at
+  // call time. Previously the handler captured `node` in a useCallback closure;
+  // sibling-field memo skips (areInputPropsEqual ignores `handleOnNewValue`)
+  // meant a sibling could keep firing an OLD closure whose template predated
+  // edits to *other* fields, and applyTemplateChange would then revert those
+  // other fields when the sibling updated. See ADP Auth paste-then-blank repro.
+  const nodeRef = useRef(node);
+  nodeRef.current = node;
+
   const handleOnNewValue: handleOnNewValueType = useCallback(
     async (changes, options?) => {
-      // Debounced tracking
       track("Component Edited", { nodeId });
 
       if (nodeId.toLowerCase().includes("astra") && name === "database_name") {
         track("Database Selected", { nodeId, databaseName: changes.value });
       }
 
-      if (!node.template) {
+      const currentNode = nodeRef.current;
+
+      if (!currentNode.template) {
         setErrorData({ title: "Template not found in the component" });
         return;
       }
 
-      const parameter = node.template[name];
+      const parameter = currentNode.template[name];
 
       if (!parameter) {
         setErrorData({ title: "Parameter not found in the template" });
@@ -102,7 +112,7 @@ const useHandleOnNewValue = ({
 
       if (!options?.skipSnapshot) takeSnapshot();
 
-      const newNode = applyTemplateChange(node, name, changes);
+      const newNode = applyTemplateChange(currentNode, name, changes);
 
       const shouldUpdate = newNode.template[name].real_time_refresh;
 
@@ -145,7 +155,6 @@ const useHandleOnNewValue = ({
       updateNodeState(newNode);
     },
     [
-      node,
       nodeId,
       name,
       takeSnapshot,

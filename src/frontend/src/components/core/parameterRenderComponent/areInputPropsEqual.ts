@@ -2,11 +2,11 @@
  * Default-shallow-equal comparator for `memo()` of ParameterRenderComponent
  * leaves, with two keys deliberately ignored:
  *
- *   - `handleOnNewValue`: closure whose ref instability does not reflect any
- *     observable behavior change. Re-issued every render because
- *     `useHandleOnNewValue`'s `useCallback` deps include `node`. Stabilizing
- *     it at the hook level would require a ref-pattern refactor that is out
- *     of scope for the current change.
+ *   - `handleOnNewValue`: stabilized at the hook level — `useHandleOnNewValue`
+ *     reads the live `node` from a ref, so the handler is reference-stable
+ *     across renders AND always sees the latest template. Skipping this key
+ *     here is now both safe and necessary (without the skip, sibling fields
+ *     would over-render).
  *   - `nodeClass`: the top-level node reference is necessarily new every
  *     keystroke because structural sharing produces a new outer object.
  *     Leaves read only keystroke-invariant fields off it (`flow`,

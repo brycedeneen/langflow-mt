@@ -31,6 +31,7 @@ import { INCOMPLETE_LOOP_ERROR_ALERT } from "@/constants/alerts_constants";
 import { customDownloadNodeJson } from "@/customization/utils/custom-download-json";
 import { customDownloadFlow } from "@/customization/utils/custom-reactFlowUtils";
 import useFlowStore from "@/stores/flowStore";
+import { isAutosecretMarker } from "@/utils/autosecret";
 import getFieldTitle from "../CustomNodes/utils/get-field-title";
 import {
   INPUT_TYPES,
@@ -2483,12 +2484,14 @@ export function updateGlobalVariables(
 ) {
   if (node && node.template) {
     Object.keys(node.template).forEach((field) => {
+      const fieldValue = node!.template[field].value;
       if (
         globalVariablesEntries &&
         node!.template[field].load_from_db &&
         !globalVariablesEntries.includes(
-          (node!.template[field].value as string | undefined) ?? "",
-        )
+          (fieldValue as string | undefined) ?? "",
+        ) &&
+        !isAutosecretMarker(fieldValue)
       ) {
         node!.template[field].value = "";
         node!.template[field].load_from_db = false;
