@@ -47,15 +47,17 @@ export function PSRequestButton({ flowId, canRequest, psRequestActive }: Props) 
 
   const button = (
     <Button
-      variant="outline"
-      size="sm"
+      variant="ghost"
+      size="md"
+      className="!px-2 !font-normal !gap-1.5"
       disabled={psRequestActive}
       loading={previewMutation.isPending}
       onClick={handleClick}
+      ignoreTitleCase
       data-testid="ps-request-button"
     >
       <HandCoins className="h-4 w-4" />
-      Request PS
+      <span className="font-normal text-mmd">Request PS</span>
     </Button>
   );
 

@@ -187,7 +187,7 @@ Surfaced while executing `docs/superpowers/plans/2026-04-22-tailwind-maximizatio
 
 ### TextShimmer — load-bearing loading indicator
 
-- [ ] **`src/components/ui/TextShimmer.tsx` has 5 production call sites** (`modals/IOModal/components/flow-running-squeleton.tsx`, `modals/IOModal/components/chatView/chatMessage/components/content-view.tsx`, `components/core/playgroundComponent/chat-view/chat-messages/components/flow-running-squeleton.tsx`, `components/core/playgroundComponent/chat-view/chat-messages/components/error-message.tsx`, `pages/FlowPage/components/flowBuildingComponent/index.tsx`). Plan suggested "replace with plain `<span>`" but the shimmer is the loading-state cue during flow building — removing it degrades UX. Needs a CSS-only shimmer (gradient + animate via Tailwind `animate-[shimmer_2s_linear_infinite]` keyframes) rather than a blind strip. Includes updating the existing `jest.mock` in `flowBuildingComponent/__tests__/index.test.tsx`.
+- [x] **RESOLVED (2026-04-25): TextShimmer is already CSS-only.** Verified at `src/components/ui/TextShimmer.tsx` — uses a `bg-clip-text` masked gradient + the `text-shimmer` keyframe defined at `src/style/index.css:250`. No `framer-motion` import. The 5 call sites (`modals/IOModal/components/flow-running-squeleton.tsx`, `modals/IOModal/components/chatView/chatMessage/components/content-view.tsx`, `components/core/playgroundComponent/chat-view/chat-messages/components/flow-running-squeleton.tsx`, `components/core/playgroundComponent/chat-view/chat-messages/components/error-message.tsx`, `pages/FlowPage/components/flowBuildingComponent/index.tsx`) are unchanged in shape. The followup doc was stale; this item never required work.
 
 ### animated-close (AnimatedConditional) — blocked by simple-sidebar
 
@@ -243,7 +243,7 @@ Carried forward from the plan's post-plan section. Record so they don't get lost
 
 ### 7a — Full `framer-motion` removal
 
-- [ ] **framer-motion import count is currently 19** (was 22; Phase 2 removed 3 decorative consumers). Full removal from `package.json` requires handling the remaining consumers: `TextShimmer` (5 loading-state call sites), `AnimatedConditional` (3 call sites including the deferred `simple-sidebar.tsx`), `BorderTrail` (2 call sites), plus the rest of `src/**/*.tsx` imports. See the Phase 2 deferrals section above for per-component strategies. Once all consumers are migrated, `npm uninstall framer-motion` and confirm `grep -rn "framer-motion" src` returns zero.
+- [ ] **framer-motion import count is currently 14** (was 19; TextShimmer turned out to already be CSS-only — see resolution above). Full removal from `package.json` requires handling the remaining 14 consumers under `src/frontend/src/**/*.tsx`: `AnimatedConditional` (3 call sites including the deferred `simple-sidebar.tsx`), `BorderTrail` (2 call sites), `disclosure`, `checkmark`, `xmark`, `animatedNumbers`, `chat-input` (IOModal + playground), `content-view`, `error-message`, `ContentBlockDisplay`, `InspectionPanel`, `UpdateAllComponents`, `flowBuildingComponent`. See the Phase 2 deferrals section above for per-component strategies. Once all consumers are migrated, `npm uninstall framer-motion` and confirm `grep -rn "framer-motion" src` returns zero.
 
 ### 7b — Inline `shadTooltipComponent` wrapper
 
@@ -261,7 +261,6 @@ Carried forward from the plan's post-plan section. Record so they don't get lost
 
 - [ ] **The semantic color tokens still take up most of the `@theme` block** (99 of the remaining 125 `--color-*` tokens after Phase 6). Phase 7e goal: where a semantic token is effectively an alias for a single `destructive` / `muted` / `accent` role, use the role directly instead of a dedicated named token. Requires (a) reading each semantic token's actual usage pattern, (b) confirming that consolidating doesn't break a subtle visual distinction, (c) migrating call sites. High effort, moderate payoff — do this last.
 
-<<<<<<< HEAD
 ## 2026-04-26 — Variable-table uniqueness constraint
 
 Surfaced while debugging the ADP Assist credential routing bug. The Assist's `create_secret_variable` tool repeatedly inserted same-name rows for one user/org because the schema doesn't prevent it; we cleaned up the accumulated dups via `scripts/cleanup_duplicate_variables.sql` but the regrowth is still possible.
@@ -272,8 +271,7 @@ Surfaced while debugging the ADP Assist credential routing bug. The Assist's `cr
     3. Drop `scripts/cleanup_duplicate_variables.sql` once the constraint exists (or keep it as a one-shot legacy fixer — no harm either way).
     4. Verify multi-tenant isolation: the constraint must be scoped to `(user_id, organization_id)` so two tenants can both have an `adp_client_id` without colliding.
   Holding off because this needs (a) an alembic migration touching live data, (b) a service-layer behavior change in `create_variable`, and (c) test coverage for the upsert semantics — bigger blast radius than this debugging session warranted.
-=======
+
 ## 2026-04-26 — Tailwind Phase 7d follow-up: consolidate dialog-with-no-close
 
 - [ ] **`ui/dialog-with-no-close.tsx` is a near-copy of `ui/dialog.tsx` minus the close button.** Used by 2 surfaces (`modals/baseModal/index.tsx`, `CustomNodes/GenericNode/components/ListSelectionComponent/index.tsx`). Consolidate by adding a `closable?: boolean` (default `true`) prop on `ui/dialog`'s `DialogContent`. When `closable={false}`, skip rendering the ✕ button. Then migrate the 2 callers to `ui/dialog` and delete `dialog-with-no-close.tsx`. Skipped during Phase 7d audit because the divergent fork was technically thin but the consolidation requires touching the much-used `ui/dialog`.
->>>>>>> tailwind/phase-7
