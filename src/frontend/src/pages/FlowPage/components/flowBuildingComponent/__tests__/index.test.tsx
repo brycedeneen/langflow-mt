@@ -1,24 +1,7 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
-import { useEffect } from "react";
+import { act, render, screen } from "@testing-library/react";
 import FlowBuildingComponent from "../index";
 
 // Mock dependencies
-jest.mock("framer-motion", () => {
-  const React = require("react");
-  return {
-    AnimatePresence: ({ children }: any) => <div>{children}</div>,
-    motion: {
-      div: React.forwardRef(
-        ({ children, className, ...props }: any, ref: any) => (
-          <div ref={ref} className={className} {...props}>
-            {children}
-          </div>
-        ),
-      ),
-    },
-  };
-});
-
 jest.mock("react-markdown", () => ({
   __esModule: true,
   default: ({ children }: any) => <div>{children}</div>,

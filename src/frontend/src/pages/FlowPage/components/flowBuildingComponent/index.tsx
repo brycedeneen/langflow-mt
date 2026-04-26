@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -28,6 +27,11 @@ export default function FlowBuildingComponent() {
     (state) => state.pastBuildFlowParams,
   );
   const buildFlow = useFlowStore((state) => state.buildFlow);
+  const {
+    shouldRender: shouldRenderError,
+    isVisible: isErrorVisible,
+    handleExitTransitionEnd: handleErrorTransitionEnd,
+  } = useDelayedUnmount(!!buildInfo?.error);
   const statusBuilding = useMemo(
     () =>
       Object.entries(flowBuildStatus)
@@ -213,14 +217,17 @@ export default function FlowBuildingComponent() {
                 )}
               </div>
             </div>
-            <AnimatePresence>
-              {buildInfo?.error && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
+            {shouldRenderError && (
+              <div
+                className={cn(
+                  "grid overflow-hidden transition-[grid-template-rows,opacity] duration-200 ease-in-out",
+                  isErrorVisible
+                    ? "grid-rows-[1fr] opacity-100"
+                    : "grid-rows-[0fr] opacity-0",
+                )}
+                onTransitionEnd={handleErrorTransitionEnd}
+              >
+                <div className="min-h-0 overflow-hidden">
                   <div className="my-1.5 align-text-top truncate-doubleline">
                     <Markdown
                       remarkPlugins={[remarkGfm]}
@@ -247,9 +254,9 @@ export default function FlowBuildingComponent() {
                       {buildInfo?.error?.join("\n")}
                     </Markdown>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
