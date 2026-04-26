@@ -622,7 +622,11 @@ async def read_public_flow(
     flow_id: UUID,
 ):
     """Read a public flow — no auth required; access_type == PUBLIC is the ACL."""
-    flow = (await session.exec(select(Flow).where(Flow.id == flow_id))).first()
+    flow = (
+        await session.exec(
+            select(Flow).options(selectinload(Flow.tags)).where(Flow.id == flow_id)
+        )
+    ).first()
     if flow is None:
         raise HTTPException(status_code=404, detail="Flow not found")
     if flow.access_type is not AccessTypeEnum.PUBLIC:
