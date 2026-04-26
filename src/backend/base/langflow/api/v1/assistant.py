@@ -28,6 +28,13 @@ from langflow.services.database.models.variable.model import Variable
 
 router = APIRouter(prefix="/assistant", tags=["Assistant"])
 
+# Strong references for fire-and-forget background tasks.
+# CPython garbage-collects tasks that lack a strong reference, which can
+# cancel them mid-flight before persistence completes. We hold a strong
+# reference here and discard via add_done_callback to avoid memory growth.
+# See: https://docs.python.org/3/library/asyncio-task.html#asyncio.create_task
+_BACKGROUND_TASKS: set[asyncio.Task] = set()
+
 # ---------------------------------------------------------------------------
 # Request / response schemas
 # ---------------------------------------------------------------------------
@@ -474,7 +481,13 @@ async def send_message(
             # session_scope requires the ASGI greenlet context which isn't
             # available inside sse_starlette's generator. We schedule it as a
             # separate asyncio task so it runs in the main event-loop context.
-            asyncio.create_task(_persist_assistant_turn(
+            #
+            # IMPORTANT: hold a strong reference to the task in a module-level
+            # set; otherwise CPython can garbage-collect the task before it
+            # completes and silently drop the persisted assistant turn. The
+            # done-callback discards the reference once the task finishes so
+            # the set doesn't grow without bound.
+            persist_task = asyncio.create_task(_persist_assistant_turn(
                 conversation_id=conversation_id,
                 user_id=user_id,
                 user_content=user_content,
@@ -485,6 +498,8 @@ async def send_message(
                 flow_id=flow_id,
                 final_flow_data=persist_data["final_flow_data"],
             ))
+            _BACKGROUND_TASKS.add(persist_task)
+            persist_task.add_done_callback(_BACKGROUND_TASKS.discard)
 
     return EventSourceResponse(event_generator())
 
