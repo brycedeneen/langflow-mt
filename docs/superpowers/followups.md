@@ -274,4 +274,11 @@ Surfaced while debugging the ADP Assist credential routing bug. The Assist's `cr
 
 ## 2026-04-26 — Tailwind Phase 7d follow-up: consolidate dialog-with-no-close
 
-- [ ] **`ui/dialog-with-no-close.tsx` is a near-copy of `ui/dialog.tsx` minus the close button.** Used by 2 surfaces (`modals/baseModal/index.tsx`, `CustomNodes/GenericNode/components/ListSelectionComponent/index.tsx`). Consolidate by adding a `closable?: boolean` (default `true`) prop on `ui/dialog`'s `DialogContent`. When `closable={false}`, skip rendering the ✕ button. Then migrate the 2 callers to `ui/dialog` and delete `dialog-with-no-close.tsx`. Skipped during Phase 7d audit because the divergent fork was technically thin but the consolidation requires touching the much-used `ui/dialog`.
+- [x] **RESOLVED (2026-04-26):** `ui/dialog-with-no-close.tsx` consolidated into `ui/dialog.tsx` via a `hideCloseButton?: boolean` prop (default `false`). 2 callers migrated; orphaned `contentShow`/`contentHide`/`overlayShow`/`overlayHide` keyframes + `--animate-*` theme tokens deleted. See `docs/superpowers/specs/2026-04-26-dialog-no-close-consolidation-design.md` and plan `docs/superpowers/plans/2026-04-26-dialog-no-close-consolidation.md`.
+
+## 2026-04-26 — Dialog a11y labels for hideCloseButton callers
+
+Surfaced during code review of the dialog-with-no-close consolidation. Both migrated surfaces now fall back to canonical `DialogContent`'s auto-injected VisuallyHidden `DialogTitle="Dialog"` because they don't supply their own. Strict improvement over the variant (which had no a11y label at all), but the fallback is generic.
+
+- [ ] **Give `ListSelectionComponent` a meaningful screen-reader name.** `src/frontend/src/CustomNodes/GenericNode/components/ListSelectionComponent/index.tsx` renders `<DialogHeader>` without a `<DialogTitle>`. Wrap the existing `nodeClass.display_name` (or `headerSearchPlaceholder` when there's no nodeClass) in a `VisuallyHidden`+`DialogTitle` so the dialog announces "Tools" / "Select Slack channel" / etc., not just "Dialog".
+- [ ] **`BaseModal type="modal"` callers without `BaseModal.Header`.** `BaseModal.Header` already wraps its child in `<DialogTitle>` (so `BaseModal.Header`-using callers are fine). For modal-type callers that supply only `BaseModal.Content`, the auto-inject "Dialog" fallback shows. Currently the only `type="modal"` consumers (`timeoutErrorComponent`, `fetchErrorComponent`) pass headers, so this is latent — flag if a new `type="modal"` caller skips the header.
