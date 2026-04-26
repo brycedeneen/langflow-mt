@@ -1174,6 +1174,28 @@ async def custom_component(
     return CustomComponentResponse(data=built_frontend_node, type=type_)
 
 
+async def _resolve_canonical_component_code(component_type: str) -> str | None:
+    """Return canonical Python source for a registered component type, or None.
+
+    Reads from the cached all_types_dict populated at startup. The first call
+    after server boot may briefly block while the cache is built; subsequent
+    calls hit the cached dict.
+
+    Used to gate POST /custom_component/update against arbitrary code
+    compilation when LANGFLOW_ALLOW_CUSTOM_COMPONENTS is off and the caller
+    is not a platform admin.
+    """
+    from lfx.interface.components import get_and_cache_all_types_dict
+
+    all_types = await get_and_cache_all_types_dict(get_settings_service())
+    for components in all_types.values():
+        component_data = components.get(component_type)
+        if component_data is None:
+            continue
+        return component_data.get("template", {}).get("code", {}).get("value")
+    return None
+
+
 @router.post("/custom_component/update", status_code=HTTPStatus.OK, include_in_schema=False)
 async def custom_component_update(
     code_request: UpdateCustomComponentRequest,
@@ -1185,12 +1207,46 @@ async def custom_component_update(
     database), updates the component's build configuration, and validates outputs. Returns the updated component node as
     a JSON-serializable dictionary.
 
+    Security: when ``LANGFLOW_ALLOW_CUSTOM_COMPONENTS`` is disabled and the caller is not a
+    platform admin, the user-supplied ``code`` is replaced with the canonical source for
+    ``template._type`` from the in-memory component registry. This prevents arbitrary code
+    compilation by authenticated tenants on multi-tenant deploys, mirroring the
+    CVE-2026-33873 mitigation in ``validate_component_code``.
+
     Raises:
-        HTTPException: If an error occurs during component building or updating.
+        HTTPException: If an error occurs during component building or updating, or if
+            the gate is closed and ``template._type`` is missing (400) or unknown (403).
         SerializationError: If serialization of the updated component node fails.
     """
+    allow_custom, is_platform_admin = resolve_component_gate_flags(user)
+    gate_open = allow_custom or is_platform_admin
+
+    if gate_open:
+        code = code_request.code
+    else:
+        component_type = code_request.template.get("_type") if isinstance(code_request.template, dict) else None
+        if not component_type:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Component type identifier ('template._type') is required "
+                    "when LANGFLOW_ALLOW_CUSTOM_COMPONENTS is disabled."
+                ),
+            )
+        canonical_code = await _resolve_canonical_component_code(component_type)
+        if canonical_code is None:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    f"Custom component type '{component_type}' is not registered; "
+                    "cannot update without LANGFLOW_ALLOW_CUSTOM_COMPONENTS or "
+                    "platform-admin privileges."
+                ),
+            )
+        code = canonical_code
+
     try:
-        component = Component(_code=code_request.code)
+        component = Component(_code=code)
         component_node, cc_instance = build_custom_component_template(
             component,
             user_id=user.id,
@@ -1224,7 +1280,7 @@ async def custom_component_update(
             field_name=code_request.field,
         )
         if "code" not in updated_build_config or not updated_build_config.get("code", {}).get("value"):
-            updated_build_config = add_code_field_to_build_config(updated_build_config, code_request.code)
+            updated_build_config = add_code_field_to_build_config(updated_build_config, code)
         component_node["template"] = updated_build_config
 
         if isinstance(cc_instance, Component):

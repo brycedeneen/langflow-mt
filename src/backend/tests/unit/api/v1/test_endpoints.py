@@ -34,7 +34,12 @@ async def test_get_config_basic(client: AsyncClient, logged_in_headers: dict):
     assert "max_file_size_upload" in result, "The dictionary must contain a key called 'max_file_size_upload'"
 
 
-async def test_update_component_outputs(client: AsyncClient, logged_in_headers: dict):
+async def test_update_component_outputs(client: AsyncClient, logged_in_headers_super_user: dict):
+    # Uses ``logged_in_headers_super_user`` (platform admin) because the
+    # /custom_component/update gate landed in 2026-04-26 forbids non-admins
+    # from compiling arbitrary user code. This test exercises the dynamic
+    # outputs path which depends on real compilation, so it must run as an
+    # account with the platform-admin override.
     path = Path(__file__).parent.parent.parent.parent / "data" / "dynamic_output_component.py"
 
     code = await path.read_text(encoding="utf-8")
@@ -46,7 +51,9 @@ async def test_update_component_outputs(client: AsyncClient, logged_in_headers: 
         field_value=True,
         template={},
     )
-    response = await client.post("api/v1/custom_component/update", json=request.model_dump(), headers=logged_in_headers)
+    response = await client.post(
+        "api/v1/custom_component/update", json=request.model_dump(), headers=logged_in_headers_super_user
+    )
     result = response.json()
 
     assert response.status_code == status.HTTP_200_OK
@@ -54,7 +61,7 @@ async def test_update_component_outputs(client: AsyncClient, logged_in_headers: 
     assert "tool_output" in output_names
 
 
-async def test_update_component_model_name_options(client: AsyncClient, logged_in_headers: dict):
+async def test_update_component_model_name_options(client: AsyncClient, logged_in_headers_super_user: dict):
     """Test that model options are updated when the model field changes."""
     component = AgentComponent()
     component_node, _cc_instance = build_custom_component_template(
@@ -81,8 +88,11 @@ async def test_update_component_model_name_options(client: AsyncClient, logged_i
         template=template,
     )
 
-    # Make the request to update the component
-    response = await client.post("api/v1/custom_component/update", json=request.model_dump(), headers=logged_in_headers)
+    # Make the request to update the component (platform-admin override; see
+    # sibling ``test_update_component_outputs`` for rationale).
+    response = await client.post(
+        "api/v1/custom_component/update", json=request.model_dump(), headers=logged_in_headers_super_user
+    )
     result = response.json()
 
     # Verify the response
@@ -123,7 +133,9 @@ class TestMetadataComponent(Component):
 """
 
     request = CustomComponentRequest(code=component_code)
-    response = await client.post("api/v1/custom_component", json=request.model_dump(), headers=logged_in_headers_super_user)
+    response = await client.post(
+        "api/v1/custom_component", json=request.model_dump(), headers=logged_in_headers_super_user
+    )
     result = response.json()
 
     assert response.status_code == status.HTTP_200_OK
@@ -169,10 +181,14 @@ class ConsistencyTestComponent(Component):
     # Make two identical requests
     request = CustomComponentRequest(code=component_code)
 
-    response1 = await client.post("api/v1/custom_component", json=request.model_dump(), headers=logged_in_headers_super_user)
+    response1 = await client.post(
+        "api/v1/custom_component", json=request.model_dump(), headers=logged_in_headers_super_user
+    )
     # result1 = response1.json()
 
-    response2 = await client.post("api/v1/custom_component", json=request.model_dump(), headers=logged_in_headers_super_user)
+    response2 = await client.post(
+        "api/v1/custom_component", json=request.model_dump(), headers=logged_in_headers_super_user
+    )
     # result2 = response2.json()
 
     # Both requests should succeed
@@ -291,9 +307,7 @@ async def test_get_config_authenticated_returns_full_config(client: AsyncClient,
     assert "feature_flags" in result, "Authenticated response must contain 'feature_flags'"
 
 
-async def test_custom_component_build_requires_superuser(
-    client: AsyncClient, logged_in_headers: dict
-):
+async def test_custom_component_build_requires_superuser(client: AsyncClient, logged_in_headers: dict):
     """Non-superuser users get 403 from POST /custom_component."""
     path = Path(__file__).parent.parent.parent.parent / "data" / "dynamic_output_component.py"
     code = await path.read_text(encoding="utf-8")
