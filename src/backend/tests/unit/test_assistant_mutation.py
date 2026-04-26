@@ -162,10 +162,11 @@ def test_connect_edge_missing_target():
 # ---------------------------------------------------------------------------
 
 
-def test_set_field_value():
+@pytest.mark.asyncio
+async def test_set_field_value():
     data = _fresh_prompt()
     tools = FlowMutationTools(data)
-    result = tools.set_field_value("Prompt-abc12", "template", "Goodbye {name}")
+    result = await tools.set_field_value("Prompt-abc12", "template", "Goodbye {name}")
 
     assert result["updated_node_id"] == "Prompt-abc12"
     assert len(result["applied_patch"]["updated_nodes"]) == 1
@@ -175,11 +176,12 @@ def test_set_field_value():
     assert tmpl["value"] == "Goodbye {name}"
 
 
-def test_set_field_value_unknown_field_raises():
+@pytest.mark.asyncio
+async def test_set_field_value_unknown_field_raises():
     data = _fresh_prompt()
     tools = FlowMutationTools(data)
     with pytest.raises(ValueError, match="not found on node"):
-        tools.set_field_value("Prompt-abc12", "new_field", "new_value")
+        await tools.set_field_value("Prompt-abc12", "new_field", "new_value")
 
     # Ensure the template wasn't mutated.
     tmpl = data["nodes"][0]["data"]["node"]["template"]
@@ -191,11 +193,12 @@ def test_set_field_value_unknown_field_raises():
 # ---------------------------------------------------------------------------
 
 
-def test_set_field_value_missing_node():
+@pytest.mark.asyncio
+async def test_set_field_value_missing_node():
     data = _fresh_prompt()
     tools = FlowMutationTools(data)
     with pytest.raises(ValueError, match="Node not found"):
-        tools.set_field_value("nonexistent", "template", "value")
+        await tools.set_field_value("nonexistent", "template", "value")
 
 
 # ---------------------------------------------------------------------------

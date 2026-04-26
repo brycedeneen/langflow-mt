@@ -82,7 +82,10 @@ def test_adp_credentials_treated_as_user_scoped_variables():
     text = SYSTEM_PROMPT_TEMPLATE.lower()
     assert "adp_client_id" in text
     assert "adp_client_secret" in text
-    assert "adp_client_certificate" in text
+    # adp_client_cert (not _certificate) — the canonical variable name uses
+    # the abbreviated form to match the typical user-side naming.
+    assert "adp_client_cert" in text
+    assert "adp_client_certificate" not in text
     assert "adp_client_key" in text
 
 

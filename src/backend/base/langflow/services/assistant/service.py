@@ -192,7 +192,7 @@ Before adding ADP Auth or any component that depends on it: (a) call \
 `list_user_variables` to see what's already configured; (b) if the \
 required ADP creds aren't there, ask the user for them and create \
 variables named `adp_client_id`, `adp_client_secret`, \
-`adp_client_certificate`, `adp_client_key`; (c) then point the ADP Auth \
+`adp_client_cert`, `adp_client_key`; (c) then point the ADP Auth \
 component's fields at those variable names via `set_field_value`.
 
 - BEFORE finishing a build, walk the components you added and confirm \

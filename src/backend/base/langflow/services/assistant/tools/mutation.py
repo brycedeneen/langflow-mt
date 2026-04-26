@@ -298,7 +298,7 @@ class FlowMutationTools:
         patch["added_edges"].append(edge)
         return {"edge_id": edge_id, "applied_patch": patch}
 
-    def set_field_value(
+    async def set_field_value(
         self,
         node_id: str,
         field_name: str,
@@ -306,8 +306,15 @@ class FlowMutationTools:
     ) -> dict[str, Any]:
         """Set (or create) a template field on a node.
 
+        For ``auto_promote`` fields (SecretStrInput / TextFileSecretInput), a
+        non-empty ``value`` must be the name of an existing user-managed
+        Variable. Otherwise the flow-save autopromotion ladder treats the
+        value as plaintext and stores the literal string in Vault — which
+        renders as "Stored — type to replace" in the UI and produces broken
+        runtime payloads (e.g. `[SSL] PEM lib` for cert/key fields).
+
         Raises:
-            ValueError: If the node does not exist.
+            ValueError: If the node or field does not exist.
         """
         node = self._find_node(node_id)
         if node is None:
@@ -319,11 +326,63 @@ class FlowMutationTools:
             available = [k for k in template if not k.startswith("_") and k != "code"]
             msg = f"Field '{field_name}' not found on node {node_id}. Available fields: {available}"
             raise ValueError(msg)
-        template[field_name]["value"] = value
+
+        field = template[field_name]
+        if field.get("auto_promote") is True and value not in (None, "") and self.user_id is not None:
+            error = await self._validate_auto_promote_value(value)
+            if error is not None:
+                return error
+
+        field["value"] = value
 
         patch = _empty_patch()
         patch["updated_nodes"].append(node)
         return {"updated_node_id": node_id, "applied_patch": patch}
+
+    async def _validate_auto_promote_value(self, value: Any) -> dict[str, Any] | None:
+        """Verify ``value`` references an existing user-managed Variable.
+
+        Returns ``None`` when the value is valid (passthrough), or an error
+        dict with ``available_user_variables`` so the model can self-correct
+        in one retry without a separate ``list_user_variables`` round-trip.
+        """
+        if not isinstance(value, str):
+            return {
+                "error": (
+                    "auto_promote secret fields require a variable name (string). "
+                    "Call create_secret_variable first, then pass the variable name here."
+                ),
+            }
+        try:
+            service = get_variable_service()
+            async with session_scope() as session:
+                exists = await service.has_user_managed_variable(
+                    name=value, user_id=self.user_id, session=session,
+                )
+                if exists:
+                    return None
+                names = await service.list_variables(
+                    user_id=self.user_id,
+                    session=session,
+                    organization_id=self.org_id,
+                )
+        except Exception as e:  # noqa: BLE001
+            return {"error": f"failed to validate variable name: {e}"}
+        available = sorted(
+            n for n in names
+            if n and not n.startswith("__autosecret")
+        )
+        return {
+            "error": (
+                f"'{value}' is not a known user variable. auto_promote secret "
+                "fields require an existing variable name; passing an unknown "
+                "string causes the runtime to store it as ciphertext, which "
+                "fails at execution time. Either call create_secret_variable "
+                "first to create the variable, or use one of the available "
+                "names below."
+            ),
+            "available_user_variables": available,
+        }
 
     def remove_component(self, node_id: str) -> dict[str, Any]:
         """Remove a node and all its connected edges.
