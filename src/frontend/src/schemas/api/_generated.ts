@@ -924,6 +924,7 @@ export const NotificationCategory = z.enum([
   "usage_threshold",
   "alert_rule",
   "system",
+  "professional_services_request",
 ]);
 export const NotificationSeverity = z.enum(["info", "warning", "critical"]);
 export const NotificationRead = z

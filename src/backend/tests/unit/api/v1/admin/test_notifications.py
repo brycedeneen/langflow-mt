@@ -31,11 +31,13 @@ async def _seed_notification(**over) -> AdminNotification:
 
 
 @pytest.mark.asyncio
-async def test_list_notifications_requires_platform_admin(
+async def test_list_notifications_open_to_authenticated_users(
     client: AsyncClient, logged_in_headers: dict
 ):
+    """Regular users may call the bell endpoint; they only see rows targeted
+    at them (visibility is enforced by the SQL clause, not by a 403)."""
     resp = await client.get("api/v1/admin/notifications", headers=logged_in_headers)
-    assert resp.status_code == status.HTTP_403_FORBIDDEN
+    assert resp.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.asyncio
