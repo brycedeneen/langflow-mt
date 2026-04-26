@@ -135,7 +135,7 @@ class MessageTable(MessageBase, table=True):  # type: ignore[call-arg]
     __tablename__ = "message"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    flow_id: UUID | None = Field(default=None)
+    flow_id: UUID | None = Field(default=None, index=True, foreign_key="flow.id")
     organization_id: UUID | None = Field(default=None, index=True, foreign_key="organization.id", nullable=False)
 
     files: list[str] = Field(sa_column=Column(JSON))
