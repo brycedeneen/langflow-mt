@@ -17,14 +17,10 @@ Test stack:
 from __future__ import annotations
 
 import uuid
-from typing import Sequence
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import pytest
-from sqlalchemy.ext.asyncio import create_async_engine
-from sqlmodel import SQLModel, func, select
-from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel.pool import StaticPool
 
 # IMPORTANT: this import is the whole point of Task 1 — it MUST fail at
 # collection time until Task 2 introduces ``cascade_delete_flows`` and the
@@ -37,7 +33,13 @@ from langflow.services.database.models.message.model import MessageTable
 from langflow.services.database.models.traces.model import SpanTable, TraceTable
 from langflow.services.database.models.transactions.model import TransactionTable
 from langflow.services.database.models.vertex_builds.model import VertexBuildTable
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlmodel import SQLModel, func, select
+from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlmodel.pool import StaticPool
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 # --------------------------------------------------------------------------- #
 # Fixtures                                                                    #
@@ -168,8 +170,7 @@ async def test_empty_input_is_noop(async_session: AsyncSession, mocker):
 
 
 async def test_single_flow_delegates_through_shim(async_session: AsyncSession):
-    """``cascade_delete_flow(s, id)`` must produce the same observable result
-    as ``cascade_delete_flows(s, [id])``.
+    """``cascade_delete_flow(s, id)`` must match ``cascade_delete_flows(s, [id])``.
 
     We verify behavioral equivalence by running each path against an isolated
     flow + children set and asserting both paths leave zero rows behind for
@@ -227,8 +228,7 @@ async def test_batch_deletes_in_correct_order(async_session: AsyncSession):
 
 
 async def test_batch_with_partial_traces(async_session: AsyncSession):
-    """Only some flows have traces; spans for those traces must be deleted and
-    traceless flows still cleaned up."""
+    """Spans for traced flows are deleted; traceless flows still get cleaned up."""
     f_with_trace_1 = await _make_flow(async_session, name="t1")
     f_with_trace_2 = await _make_flow(async_session, name="t2")
     f_no_trace = await _make_flow(async_session, name="nt")
@@ -256,7 +256,7 @@ async def test_batch_with_partial_traces(async_session: AsyncSession):
 # --------------------------------------------------------------------------- #
 
 
-async def test_chunking_at_batch_boundary(mocker):
+async def test_chunking_at_batch_boundary():
     """501 ids must be processed in 2 chunks.
 
     The expected batch size is 500 (configurable in the helper). The helper is
@@ -321,9 +321,12 @@ async def test_chunking_at_batch_boundary(mocker):
 
 
 async def test_chunking_preserves_dependency_order():
-    """Within a chunk, span DELETE strictly precedes trace DELETE; across
+    """Span DELETE precedes trace DELETE within and across chunks.
+
+    Within a chunk, span DELETE strictly precedes trace DELETE; across
     chunks, each chunk completes its own dependency order before the next
-    chunk starts."""
+    chunk starts.
+    """
     flow_ids = [uuid4() for _ in range(501)]
 
     class _FakeResult:
@@ -377,7 +380,7 @@ async def test_chunking_preserves_dependency_order():
     )
 
     # Within each chunk, span DELETE precedes trace DELETE.
-    for chunk_idx, (sd, td) in enumerate(zip(span_delete_idxs, trace_delete_idxs)):
+    for chunk_idx, (sd, td) in enumerate(zip(span_delete_idxs, trace_delete_idxs, strict=False)):
         assert sd < td, (
             f"Chunk #{chunk_idx}: span DELETE at index {sd} must precede trace "
             f"DELETE at index {td}."
@@ -395,9 +398,12 @@ async def test_chunking_preserves_dependency_order():
 
 
 async def test_partial_failure_rolls_back_whole_batch(async_session: AsyncSession, mocker):
-    """If a child DELETE raises mid-cascade, the flow rows must remain and the
+    """A mid-cascade failure must roll back the whole batch and propagate.
+
+    If a child DELETE raises mid-cascade, the flow rows must remain and the
     error must propagate (wrapped in ``RuntimeError`` per the existing helper
-    contract)."""
+    contract).
+    """
     f1 = await _make_flow(async_session, name="rb1")
     f2 = await _make_flow(async_session, name="rb2")
     await _attach_children(async_session, f1.id, with_trace=True)
@@ -445,8 +451,7 @@ async def test_partial_failure_rolls_back_whole_batch(async_session: AsyncSessio
 
 
 async def test_unrelated_flows_untouched(async_session: AsyncSession):
-    """Flow A is in scope, flow B is not; deleting A leaves B + B's children
-    fully intact."""
+    """Deleting flow A leaves out-of-scope flow B and its children intact."""
     flow_in_scope = await _make_flow(async_session, name="in-scope")
     flow_out_of_scope = await _make_flow(async_session, name="out-of-scope")
     await _attach_children(async_session, flow_in_scope.id, with_trace=True)

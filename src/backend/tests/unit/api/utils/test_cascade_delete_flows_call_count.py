@@ -24,12 +24,13 @@ test-local in this repo.
 from __future__ import annotations
 
 import uuid
-from typing import Sequence
+from typing import TYPE_CHECKING
 
 import pytest
-
 from langflow.api.utils import cascade_delete_flow, cascade_delete_flows
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 # --------------------------------------------------------------------------- #
 # Recording fake session                                                      #
@@ -96,7 +97,7 @@ _CALLS_PER_CHUNK_NO_TRACES = 7
 
 
 @pytest.mark.parametrize("n_flows", [1, 10, 50, 100])
-async def test_call_count_loop_vs_batched(n_flows: int, capsys: pytest.CaptureFixture) -> None:
+async def test_call_count_loop_vs_batched(n_flows: int) -> None:
     """Synthetic substitute for the wall-clock perf capture in the plan.
 
     Counts ``session.exec`` invocations for both the legacy per-flow loop
@@ -132,8 +133,4 @@ async def test_call_count_loop_vs_batched(n_flows: int, capsys: pytest.CaptureFi
     )
 
     # Surfaced via -s for the markdown notes capture.
-    speedup = loop_call_count / batched_call_count
-    print(
-        f"\nn_flows={n_flows}: loop={loop_call_count} "
-        f"batched={batched_call_count} speedup={speedup:.1f}x"
-    )
+    loop_call_count / batched_call_count
