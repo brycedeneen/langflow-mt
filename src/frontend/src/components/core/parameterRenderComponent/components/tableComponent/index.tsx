@@ -1,4 +1,4 @@
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   DEFAULT_TABLE_ALERT_MSG,
@@ -15,8 +15,16 @@ import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the 
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the grid
 import { AgGridReact, type AgGridReactProps } from "ag-grid-react";
 import cloneDeep from "lodash";
-import { type ElementRef, forwardRef, memo, useRef, useState } from "react";
+import {
+  type ElementRef,
+  forwardRef,
+  memo,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
+import { ensureAgGridRegistered } from "@/utils/ag-grid-init";
 import TableOptions from "./components/TableOptions";
 import resetGrid from "./utils/reset-grid-columns";
 
@@ -275,6 +283,16 @@ const TableComponent = forwardRef<
     const dark = useDarkStore((state) => state.dark);
     const initialColumnDefs = useRef(colDef);
     const [columnStateChange, setColumnStateChange] = useState(false);
+    const [agGridReady, setAgGridReady] = useState(false);
+    useEffect(() => {
+      let cancelled = false;
+      ensureAgGridRegistered().then(() => {
+        if (!cancelled) setAgGridReady(true);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }, []);
     // Only use visible columns for the store reference
     const storeReference = columnDefsProp
       .filter((col) => !col.hide)
@@ -392,6 +410,20 @@ const TableComponent = forwardRef<
               {NO_COLUMN_DEFINITION_ALERT_DESCRIPTION}
             </AlertDescription>
           </Alert>
+        </div>
+      );
+    }
+
+    if (!agGridReady) {
+      return (
+        <div
+          className={cn(
+            dark ? "ag-theme-quartz-dark" : "ag-theme-quartz",
+            "ag-theme-shadcn flex h-full flex-col items-center justify-center",
+            "relative",
+          )}
+        >
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       );
     }

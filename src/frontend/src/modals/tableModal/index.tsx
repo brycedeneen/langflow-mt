@@ -1,10 +1,11 @@
 import type { AgGridReact } from "ag-grid-react";
-import { type ForwardedRef, forwardRef } from "react";
+import { type ForwardedRef, forwardRef, useEffect } from "react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import TableComponent, {
   type TableComponentProps,
 } from "@/components/core/parameterRenderComponent/components/tableComponent";
 import type { TableOptionsTypeAPI } from "@/types/api";
+import { ensureAgGridRegistered } from "@/utils/ag-grid-init";
 import BaseModal from "../baseModal";
 
 interface TableModalProps extends TableComponentProps {
@@ -37,6 +38,10 @@ const TableModal = forwardRef<AgGridReact, TableModalProps>(
     }: TableModalProps,
     ref: ForwardedRef<AgGridReact>,
   ) => {
+    useEffect(() => {
+      if (open) ensureAgGridRegistered();
+    }, [open]);
+
     const handleSetOpen = (newOpen: boolean) => {
       if (!newOpen && onCancel) {
         onCancel();
