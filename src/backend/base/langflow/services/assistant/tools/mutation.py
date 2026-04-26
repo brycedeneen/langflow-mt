@@ -351,13 +351,18 @@ class FlowMutationTools:
     def _looks_like_variable_reference(value: str) -> bool:
         """Heuristic: is ``value`` shaped like a user-Variable name?
 
-        Variable names are short identifier-style tokens (letters, digits,
-        underscores, hyphens). Multi-line content, long strings, and
-        strings with characters outside that set are clearly not variable
-        references — they're actual secret content (PEMs, JSON,
-        passwords with punctuation, etc.) and should flow through to the
-        autopromotion ladder so the runtime encrypts them at rest, the
-        same path a manual paste in the UI takes.
+        User Variable names in this codebase are Python-identifier-style:
+        ``adp_client_id``, ``ANTHROPIC_API_KEY``, ``assistant.api_key``,
+        ``sftp_password_xyz``. They start with a letter or underscore and
+        contain only letters, digits, underscores, and (rarely) dots.
+
+        Critically they do NOT contain hyphens — which is what makes
+        UUIDs (a common shape for real client_id / client_secret /
+        token values, e.g. ``15de1637-327a-4f19-8b66-4c0e05756cae``)
+        cleanly separable. Hyphenated values, multi-line content, and
+        strings with punctuation flow through unblocked to the
+        autopromotion ladder, which encrypts them at rest exactly like
+        a manual UI paste.
         """
         if not value or len(value) > 64:
             return False
@@ -366,7 +371,14 @@ class FlowMutationTools:
         stripped = value.strip()
         if not stripped:
             return False
-        return all(c.isalnum() or c in "_-" for c in stripped)
+        # Must start with a letter or underscore (Python-identifier rule).
+        # UUIDs and hex IDs that start with a digit are excluded by this.
+        if not (stripped[0].isalpha() or stripped[0] == "_"):
+            return False
+        # Allow letters, digits, underscores, and dots ("assistant.api_key").
+        # Hyphens are NOT allowed — they're the discriminator that lets
+        # UUID-shaped real secret values pass through.
+        return all(c.isalnum() or c in "_." for c in stripped)
 
     async def _validate_auto_promote_value(self, value: Any) -> dict[str, Any] | None:
         """Reject only "looks-like-a-variable-name-but-isn't" writes.
@@ -402,10 +414,10 @@ class FlowMutationTools:
                 )
         except Exception as e:  # noqa: BLE001
             return {"error": f"failed to validate variable name: {e}"}
-        available = sorted(
+        available = sorted({
             n for n in names
             if n and not n.startswith("__autosecret")
-        )
+        })
         return {
             "error": (
                 f"'{value}' looks like a variable name but no user Variable "

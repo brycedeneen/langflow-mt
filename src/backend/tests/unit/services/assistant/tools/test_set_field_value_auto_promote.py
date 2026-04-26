@@ -257,6 +257,122 @@ async def test_pem_content_passes_through_unblocked(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_uuid_passes_through_unblocked(monkeypatch):
+    """ADP client_id / client_secret values are UUIDs (36 chars,
+    alphanumerics + hyphens). Hyphens are the discriminator that
+    keeps these from being mistaken for Python-identifier-style
+    Variable names — they must flow through to autopromotion."""
+    called = {"hit": False}
+
+    class _Boom:
+        async def has_user_managed_variable(self, **_):
+            called["hit"] = True
+            return False
+
+    @asynccontextmanager
+    async def fake_session_scope():
+        yield object()
+
+    monkeypatch.setattr(
+        "langflow.services.assistant.tools.mutation.get_variable_service",
+        lambda: _Boom(),
+    )
+    monkeypatch.setattr(
+        "langflow.services.assistant.tools.mutation.session_scope",
+        fake_session_scope,
+    )
+
+    flow = _flow_with_auto_promote_field(field_name="client_id")
+    tools = FlowMutationTools(flow, user_id=uuid4(), org_id=uuid4())
+
+    uuid_val = "15de1637-327a-4f19-8b66-4c0e05756cae"
+    result = await tools.set_field_value("ADPAuth-abc12", "client_id", uuid_val)
+
+    assert "error" not in result
+    # UUIDs contain hyphens → not identifier-shaped → no DB lookup at all.
+    assert called["hit"] is False
+    field = flow["nodes"][0]["data"]["node"]["template"]["client_id"]
+    assert field["value"] == uuid_val
+
+
+@pytest.mark.asyncio
+async def test_uuid_starting_with_digit_passes_through(monkeypatch):
+    """A UUID that starts with a digit (e.g. '281bbf8a-...') is also
+    excluded because variable-name candidates must start with a
+    letter or underscore."""
+    called = {"hit": False}
+
+    class _Boom:
+        async def has_user_managed_variable(self, **_):
+            called["hit"] = True
+            return False
+
+    @asynccontextmanager
+    async def fake_session_scope():
+        yield object()
+
+    monkeypatch.setattr(
+        "langflow.services.assistant.tools.mutation.get_variable_service",
+        lambda: _Boom(),
+    )
+    monkeypatch.setattr(
+        "langflow.services.assistant.tools.mutation.session_scope",
+        fake_session_scope,
+    )
+
+    flow = _flow_with_auto_promote_field(field_name="client_secret")
+    tools = FlowMutationTools(flow, user_id=uuid4(), org_id=uuid4())
+
+    uuid_val = "281bbf8a-929b-4625-924e-f7c754483514"
+    result = await tools.set_field_value("ADPAuth-abc12", "client_secret", uuid_val)
+
+    assert "error" not in result
+    assert called["hit"] is False
+
+
+@pytest.mark.asyncio
+async def test_dotted_variable_name_validates_normally(monkeypatch):
+    """Dotted variable names like 'assistant.api_key' are real shapes
+    in this codebase — they should be treated as variable references."""
+    _patch_variable_service(monkeypatch, known={"assistant.api_key"})
+    flow = _flow_with_auto_promote_field()
+    tools = FlowMutationTools(flow, user_id=uuid4(), org_id=uuid4())
+
+    result = await tools.set_field_value(
+        "ADPAuth-abc12", "client_certificate", "assistant.api_key",
+    )
+    assert "error" not in result
+    field = flow["nodes"][0]["data"]["node"]["template"]["client_certificate"]
+    assert field["value"] == "assistant.api_key"
+
+
+@pytest.mark.asyncio
+async def test_available_variables_deduplicated(monkeypatch):
+    """The user's variable table can hold multiple Variables with the
+    same name (each previous botched run created another). The error
+    response must dedup so the model isn't fed noise."""
+    _patch_variable_service(
+        monkeypatch,
+        known={"adp_client_id"},
+        all_names=[
+            "adp_client_id",
+            "adp_client_id",
+            "adp_client_id",
+            "adp_client_secret",
+            "adp_client_secret",
+            None,
+        ],
+    )
+    flow = _flow_with_auto_promote_field()
+    tools = FlowMutationTools(flow, user_id=uuid4(), org_id=uuid4())
+
+    result = await tools.set_field_value("ADPAuth-abc12", "client_certificate", "nope")
+
+    assert "error" in result
+    assert result["available_user_variables"] == ["adp_client_id", "adp_client_secret"]
+
+
+@pytest.mark.asyncio
 async def test_long_secret_passes_through_unblocked(monkeypatch):
     """Strings over 64 chars or with non-identifier characters are
     clearly not variable references — they're paste content."""
