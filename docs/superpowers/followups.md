@@ -171,7 +171,7 @@ Surfaced while executing `docs/superpowers/plans/2026-04-22-tailwind-maximizatio
 
 ### Chakra number-input replacement
 
-- [ ] **`@chakra-ui/number-input` is still consumed.** Call sites: `src/components/core/parameterRenderComponent/components/floatComponent/index.tsx:7` and `.../intComponent/index.tsx:7`. Removing the dep requires replacing the `<NumberInput>` primitive with either a plain `<input type="number">` + Tailwind styling, or a Radix-based equivalent. Plan Phase 1 opted to delete only the fully-unused Chakra dep (`@chakra-ui/system`) and leave this one until the two call sites can be migrated.
+- [x] **RESOLVED (2026-04-26 by `820ae77865`):** `@chakra-ui/number-input` replaced with stock `<input type="number">`; both call sites (`floatComponent`, `intComponent`) migrated; chakra dep fully gone from `package.json`. Original context: removing the dep required replacing the `<NumberInput>` primitive with either a plain `<input type="number">` + Tailwind styling, or a Radix-based equivalent. Plan Phase 1 opted to delete only the fully-unused Chakra dep (`@chakra-ui/system`) and leave this one until the two call sites could be migrated — that migration shipped under commit `820ae77865`.
 
 ### simple-sidebar ↔ sidebar consolidation blocker
 
@@ -191,11 +191,11 @@ Surfaced while executing `docs/superpowers/plans/2026-04-22-tailwind-maximizatio
 
 ### animated-close (AnimatedConditional) — blocked by simple-sidebar
 
-- [ ] **`src/components/ui/animated-close.tsx` exports `AnimatedConditional`, consumed by `ui/simple-sidebar.tsx`, playground `chat-header.tsx`, and `flow-page-sliding-container.tsx`.** Because Phase 1 deferred `simple-sidebar.tsx` removal (it has unique resize/drag features vs. `ui/sidebar`), we can't fully delete `animated-close` without also rewriting `simple-sidebar`. The component animates `width: 0 → auto`, which CSS can't do with a single `transition-[width]` — needs a `grid-template-columns: 0fr → 1fr` trick (Tailwind arbitrary) or a JS width-measurement helper. Bundle this with the simple-sidebar resolution.
+- [x] **RESOLVED (2026-04-26 by `ea5f6108d9`):** `animated-close.tsx` deleted as part of the simple-sidebar→resizable-sidebar rename + cleanup commit. The `AnimatedConditional` consumers were migrated alongside the rename. Original context: the component animated `width: 0 → auto`, which CSS can't do with a single `transition-[width]` — required a `grid-template-columns: 0fr → 1fr` trick or JS width-measurement helper. The simple-sidebar→resizable-sidebar work supplied the migration; `animated-close.tsx` is gone.
 
 ### border-trail — animates along border path
 
-- [ ] **`src/components/core/border-trail.tsx` uses framer-motion to animate `offsetDistance` along a rounded-rect `offsetPath`** (2 production consumers: `chatComponents/ContentBlockDisplay.tsx` and `pages/FlowPage/components/flowBuildingComponent/index.tsx`, plus `jest.mock` in the flowBuilding test). Pure CSS has no direct offset-path animation support; replacement options are (a) drop the effect entirely, (b) SVG-path alternative, (c) custom CSS keyframes mimicking the gradient around the border. All three need a design decision on whether the trail is decorative or status-bearing. Deferred.
+- [x] **RESOLVED (2026-04-26 by `8e7b84f7f8`):** `border-trail` decorative framer-motion wrapper dropped. The effect was decorative, not status-bearing, and was removed cleanly (option (a) from the original deferral). Both production consumers (`ContentBlockDisplay`, `flowBuildingComponent`) updated; jest mock removed alongside.
 
 ### dot-background — not framer-motion, still a wrapper
 
@@ -243,7 +243,7 @@ Carried forward from the plan's post-plan section. Record so they don't get lost
 
 ### 7a — Full `framer-motion` removal
 
-- [ ] **framer-motion import count is currently 14** (was 19; TextShimmer turned out to already be CSS-only — see resolution above). Full removal from `package.json` requires handling the remaining 14 consumers under `src/frontend/src/**/*.tsx`: `AnimatedConditional` (3 call sites including the deferred `simple-sidebar.tsx`), `BorderTrail` (2 call sites), `disclosure`, `checkmark`, `xmark`, `animatedNumbers`, `chat-input` (IOModal + playground), `content-view`, `error-message`, `ContentBlockDisplay`, `InspectionPanel`, `UpdateAllComponents`, `flowBuildingComponent`. See the Phase 2 deferrals section above for per-component strategies. Once all consumers are migrated, `npm uninstall framer-motion` and confirm `grep -rn "framer-motion" src` returns zero.
+- [x] **RESOLVED (2026-04-26 by this slice):** `framer-motion` fully uninstalled from `src/frontend/package.json`. The 14-consumer count was stale by the time this loop closed — Phase 7a (`83e9b10cf7`), the `chore/framer-motion-removal` merge (`7eb956edb6`), and targeted commits for `BorderTrail` (`8e7b84f7f8`), `TextShimmer` (`0c4ac8db8e`), and `animated-close`/`simple-sidebar` (`ea5f6108d9`) collectively dropped the import count from 19 → 1. The lone holdout (`flowBuildingComponent/index.tsx`) was migrated to the `disclosure.tsx` CSS recipe (`useDelayedUnmount` + `grid-template-rows: 0fr↔1fr`) in this slice. `grep -rn "framer-motion" src` now returns only the historical comments in `useDelayedUnmount.ts:4` and `disclosure.tsx:150`.
 
 ### 7b — Inline `shadTooltipComponent` wrapper
 
