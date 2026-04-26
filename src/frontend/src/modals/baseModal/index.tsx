@@ -11,10 +11,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../components/ui/dialog";
-import {
-  Dialog as Modal,
-  DialogContent as ModalContent,
-} from "../../components/ui/dialog-with-no-close";
 import type { modalHeaderType } from "../../types/components";
 import { cn } from "../../utils/utils";
 import { switchCaseModalSize } from "./helpers/switch-case-size";
@@ -289,15 +285,16 @@ function BaseModal({
   return (
     <>
       {type === "modal" ? (
-        <Modal open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={setOpen}>
           {triggerChild}
-          <ModalContent
+          <DialogContent
+            hideCloseButton
             className={contentClasses}
             style={customHeight || customWidth ? customStyle : undefined}
           >
             {modalContent}
-          </ModalContent>
-        </Modal>
+          </DialogContent>
+        </Dialog>
       ) : type === "full-screen" ? (
         <div className="min-h-full w-full flex-1 overflow-hidden">
           {modalContent}

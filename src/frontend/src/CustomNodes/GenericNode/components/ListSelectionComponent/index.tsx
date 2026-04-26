@@ -4,8 +4,12 @@ import { Plus } from "lucide-react";
 import SearchBarComponent from "@/components/core/parameterRenderComponent/components/searchBarComponent";
 import type { InputProps } from "@/components/core/parameterRenderComponent/types";
 import { Button } from "@/components/ui/button";
-import { DialogFooter, DialogHeader } from "@/components/ui/dialog";
-import { Dialog, DialogContent } from "@/components/ui/dialog-with-no-close";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { cn, testIdCase } from "@/utils/utils";
 import ListItem from "./ListItem";
@@ -173,6 +177,7 @@ const ListSelectionComponent = ({
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent
+        hideCloseButton
         className="flex max-h-[65vh] min-h-[15vh] flex-col overflow-hidden rounded-xl p-0"
         onKeyDown={handleKeyDown}
       >
