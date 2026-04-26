@@ -9,6 +9,7 @@ route handler.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from decimal import Decimal
 from uuid import UUID
 
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -39,11 +40,18 @@ async def submit_quote(
     org: Organization,
     requester_user_id: UUID,
     payload: QuoteSubmitRequest,
+    rate_low_per_hour: Decimal | None,
+    rate_high_per_hour: Decimal | None,
 ) -> ProServiceQuote:
     """Atomically create the quote, set the flag, and write admin bell rows.
 
     Caller is responsible for ``session.commit()``. The ``session.flush()``
     here only ensures ``quote.id`` is populated for the bell metadata.
+
+    ``rate_low_per_hour`` / ``rate_high_per_hour`` are server-resolved at the
+    route handler (org override → settings default) and passed in explicitly;
+    they are deliberately *not* read off the client payload to prevent a
+    malicious or buggy client from snapshotting arbitrary rates.
     """
     if flow.ps_request_active:
         raise ActiveRequestError()
@@ -56,8 +64,8 @@ async def submit_quote(
         status=ProServiceQuoteStatus.OPEN,
         estimated_minutes_low=payload.minutes_low,
         estimated_minutes_high=payload.minutes_high,
-        rate_low_per_hour=payload.rate_low_per_hour,
-        rate_high_per_hour=payload.rate_high_per_hour,
+        rate_low_per_hour=rate_low_per_hour,
+        rate_high_per_hour=rate_high_per_hour,
         headline_summary=payload.headline_summary,
         narrative=payload.narrative,
         conversation_summary=payload.conversation_summary,

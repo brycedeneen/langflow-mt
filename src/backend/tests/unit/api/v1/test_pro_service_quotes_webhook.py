@@ -28,8 +28,6 @@ from langflow.services.deps import session_scope
 _PAYLOAD: dict[str, Any] = {
     "minutes_low": 30,
     "minutes_high": 90,
-    "rate_low_per_hour": "200.00",
-    "rate_high_per_hour": "200.00",
     "headline_summary": "Build Slack notifier",
     "narrative": "Send build events to Slack",
     "conversation_summary": None,

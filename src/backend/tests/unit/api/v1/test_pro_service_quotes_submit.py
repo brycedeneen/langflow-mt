@@ -9,6 +9,7 @@ Phase C.2 (Task 11). Exercises:
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
@@ -33,8 +34,6 @@ from langflow.services.deps import session_scope
 _VALID_PAYLOAD: dict[str, Any] = {
     "minutes_low": 30,
     "minutes_high": 90,
-    "rate_low_per_hour": "200.00",
-    "rate_high_per_hour": "200.00",
     "headline_summary": "Build Slack notifier",
     "narrative": "Send build events to Slack",
     "conversation_summary": None,
@@ -178,3 +177,51 @@ async def test_submit_404_when_flow_missing(
         json=_VALID_PAYLOAD,
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_submit_ignores_client_rates_and_uses_server_resolved(
+    client: AsyncClient,
+    ps_settings_singleton,  # noqa: ARG001  — seeds default 200.00/200.00
+    org_viewer_user,
+    org_viewer_headers,
+    non_personal_org,
+):
+    """Regression: a malicious/buggy client cannot dictate the persisted rates.
+
+    The seeded settings singleton defaults to 200.00/200.00. Even if the
+    payload tries to inject 999999.99 (Pydantic should silently drop unknown
+    fields, but we send them anyway as a bytes-on-the-wire test), the
+    persisted row must reflect the server-resolved band.
+    """
+    flow_id = await _seed_flow(
+        organization_id=non_personal_org,
+        user_id=UUID(org_viewer_user["id"]),
+    )
+
+    poisoned_payload: dict[str, Any] = {
+        **_VALID_PAYLOAD,
+        # Client tries to lie about the rate band:
+        "rate_low_per_hour": "999999.99",
+        "rate_high_per_hour": "999999.99",
+    }
+
+    response = await client.post(
+        f"api/v1/flows/{flow_id}/pro-service-quotes",
+        headers=org_viewer_headers,
+        json=poisoned_payload,
+    )
+    assert response.status_code == status.HTTP_201_CREATED, response.text
+
+    body = response.json()
+    # Wire response reflects server-resolved (seeded) rates, not the client's.
+    assert Decimal(body["rate_low_per_hour"]) == Decimal("200.00")
+    assert Decimal(body["rate_high_per_hour"]) == Decimal("200.00")
+
+    # And the persisted row matches.
+    quote_id = UUID(body["id"])
+    async with session_scope() as session:
+        quote = await session.get(ProServiceQuote, quote_id)
+        assert quote is not None
+        assert quote.rate_low_per_hour == Decimal("200.00")
+        assert quote.rate_high_per_hour == Decimal("200.00")

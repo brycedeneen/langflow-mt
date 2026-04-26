@@ -34,8 +34,6 @@ class PreviewResponse(BaseModel):
 class QuoteSubmitRequest(BaseModel):
     minutes_low: int
     minutes_high: int
-    rate_low_per_hour: Decimal | None
-    rate_high_per_hour: Decimal | None
     headline_summary: str = Field(max_length=240)
     narrative: str
     conversation_summary: str | None

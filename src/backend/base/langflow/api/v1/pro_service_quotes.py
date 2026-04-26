@@ -320,6 +320,12 @@ async def submit_quote_endpoint(
     if not can_submit(flow_owner_id=flow.user_id, principal=principal):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="forbidden")
 
+    # Server-resolve rates at submit time. We deliberately do NOT trust any
+    # rate fields from the client payload; the persisted snapshot must match
+    # the org override (or settings default) at the moment of submission.
+    settings_row = await read_settings_singleton_async(session)
+    rate_band = resolve_rate_band(org, settings_row)
+
     try:
         quote = await submit_quote(
             session=session,
@@ -327,6 +333,8 @@ async def submit_quote_endpoint(
             org=org,
             requester_user_id=user.id,
             payload=payload,
+            rate_low_per_hour=rate_band.low,
+            rate_high_per_hour=rate_band.high,
         )
     except ActiveRequestError as exc:
         raise HTTPException(
@@ -338,7 +346,6 @@ async def submit_quote_endpoint(
     await session.refresh(quote)
     await session.refresh(flow)
     requester = await session.get(User, quote.requester_user_id)
-    settings_row = await read_settings_singleton_async(session)
     result = quote_to_read(quote, org, flow, requester)
 
     # Best-effort async webhook delivery. Failure is silent (logged at WARNING).
