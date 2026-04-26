@@ -306,12 +306,20 @@ class FlowMutationTools:
     ) -> dict[str, Any]:
         """Set (or create) a template field on a node.
 
-        For ``auto_promote`` fields (SecretStrInput / TextFileSecretInput), a
-        non-empty ``value`` must be the name of an existing user-managed
-        Variable. Otherwise the flow-save autopromotion ladder treats the
-        value as plaintext and stores the literal string in Vault — which
-        renders as "Stored — type to replace" in the UI and produces broken
-        runtime payloads (e.g. `[SSL] PEM lib` for cert/key fields).
+        For ``auto_promote`` fields (SecretStrInput / TextFileSecretInput),
+        the value is treated like a manual UI paste: actual content (PEMs,
+        long secrets, anything multi-line or with non-identifier chars)
+        flows through to the flow-save autopromotion ladder which encrypts
+        it at rest — equivalent to typing or pasting in the UI.
+
+        The one case we reject is a *short, identifier-shaped* string that
+        doesn't match an existing user-managed Variable. That shape is
+        almost always a model hallucinating a variable reference (e.g.
+        ``adp_client_certificate`` when the real name is
+        ``adp_client_cert``), and silently promoting it as plaintext
+        stores the literal name as the "secret" — producing
+        "Stored — type to replace" in the UI and `[SSL] PEM lib` at
+        runtime for cert/key fields.
 
         Raises:
             ValueError: If the node or field does not exist.
@@ -339,20 +347,46 @@ class FlowMutationTools:
         patch["updated_nodes"].append(node)
         return {"updated_node_id": node_id, "applied_patch": patch}
 
-    async def _validate_auto_promote_value(self, value: Any) -> dict[str, Any] | None:
-        """Verify ``value`` references an existing user-managed Variable.
+    @staticmethod
+    def _looks_like_variable_reference(value: str) -> bool:
+        """Heuristic: is ``value`` shaped like a user-Variable name?
 
-        Returns ``None`` when the value is valid (passthrough), or an error
-        dict with ``available_user_variables`` so the model can self-correct
-        in one retry without a separate ``list_user_variables`` round-trip.
+        Variable names are short identifier-style tokens (letters, digits,
+        underscores, hyphens). Multi-line content, long strings, and
+        strings with characters outside that set are clearly not variable
+        references — they're actual secret content (PEMs, JSON,
+        passwords with punctuation, etc.) and should flow through to the
+        autopromotion ladder so the runtime encrypts them at rest, the
+        same path a manual paste in the UI takes.
+        """
+        if not value or len(value) > 64:
+            return False
+        if "\n" in value or "\r" in value:
+            return False
+        stripped = value.strip()
+        if not stripped:
+            return False
+        return all(c.isalnum() or c in "_-" for c in stripped)
+
+    async def _validate_auto_promote_value(self, value: Any) -> dict[str, Any] | None:
+        """Reject only "looks-like-a-variable-name-but-isn't" writes.
+
+        Returns ``None`` when the value is allowed (either it matches an
+        existing user Variable, or it's clearly raw secret content that
+        should be auto-promoted to encrypted storage). Returns an error
+        dict with ``available_user_variables`` when the value is shaped
+        like a variable name but doesn't match any — so the model can
+        self-correct in one retry.
         """
         if not isinstance(value, str):
-            return {
-                "error": (
-                    "auto_promote secret fields require a variable name (string). "
-                    "Call create_secret_variable first, then pass the variable name here."
-                ),
-            }
+            # Non-string values aren't valid variable refs; let them through
+            # to the assignment so existing call sites (e.g. numeric/bool
+            # auto_promote fields, if any are added later) continue to work.
+            return None
+        if not self._looks_like_variable_reference(value):
+            # Actual secret content — paste-equivalent path. Auto-promotion
+            # at flow save time will encrypt it via the secret store.
+            return None
         try:
             service = get_variable_service()
             async with session_scope() as session:
@@ -374,12 +408,12 @@ class FlowMutationTools:
         )
         return {
             "error": (
-                f"'{value}' is not a known user variable. auto_promote secret "
-                "fields require an existing variable name; passing an unknown "
-                "string causes the runtime to store it as ciphertext, which "
-                "fails at execution time. Either call create_secret_variable "
-                "first to create the variable, or use one of the available "
-                "names below."
+                f"'{value}' looks like a variable name but no user Variable "
+                "with that name exists. Either call create_secret_variable "
+                f"first to create '{value}', use one of the available names "
+                "below, or — if you meant to write the actual secret content "
+                "directly — pass the real value (a PEM, a long secret, etc.) "
+                "and it will be encrypted at rest just like a manual paste."
             ),
             "available_user_variables": available,
         }

@@ -215,6 +215,82 @@ async def test_non_auto_promote_field_skips_validation(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_pem_content_passes_through_unblocked(monkeypatch):
+    """Multi-line PEM content is paste-equivalent — it must flow through
+    to the autopromotion ladder for encryption at rest, NOT be rejected
+    as an unknown variable name."""
+    called = {"hit": False}
+
+    class _Boom:
+        async def has_user_managed_variable(self, **_):
+            called["hit"] = True
+            return False
+
+    @asynccontextmanager
+    async def fake_session_scope():
+        yield object()
+
+    monkeypatch.setattr(
+        "langflow.services.assistant.tools.mutation.get_variable_service",
+        lambda: _Boom(),
+    )
+    monkeypatch.setattr(
+        "langflow.services.assistant.tools.mutation.session_scope",
+        fake_session_scope,
+    )
+
+    pem = (
+        "-----BEGIN CERTIFICATE-----\n"
+        "MIIDazCCAlOgAwIBAgIUL7l9...truncated...\n"
+        "-----END CERTIFICATE-----\n"
+    )
+    flow = _flow_with_auto_promote_field()
+    tools = FlowMutationTools(flow, user_id=uuid4(), org_id=uuid4())
+
+    result = await tools.set_field_value("ADPAuth-abc12", "client_certificate", pem)
+    assert "error" not in result
+    # Multi-line content is obviously not a variable name; we shouldn't
+    # have hit the variable-service at all.
+    assert called["hit"] is False
+    field = flow["nodes"][0]["data"]["node"]["template"]["client_certificate"]
+    assert field["value"] == pem
+
+
+@pytest.mark.asyncio
+async def test_long_secret_passes_through_unblocked(monkeypatch):
+    """Strings over 64 chars or with non-identifier characters are
+    clearly not variable references — they're paste content."""
+    called = {"hit": False}
+
+    class _Boom:
+        async def has_user_managed_variable(self, **_):
+            called["hit"] = True
+            return False
+
+    @asynccontextmanager
+    async def fake_session_scope():
+        yield object()
+
+    monkeypatch.setattr(
+        "langflow.services.assistant.tools.mutation.get_variable_service",
+        lambda: _Boom(),
+    )
+    monkeypatch.setattr(
+        "langflow.services.assistant.tools.mutation.session_scope",
+        fake_session_scope,
+    )
+
+    flow = _flow_with_auto_promote_field()
+    tools = FlowMutationTools(flow, user_id=uuid4(), org_id=uuid4())
+
+    # Base64-shaped API key with non-identifier chars
+    api_key = "sk-proj-AbCd1234+/=ZyXw9876.qwerty_uiop:asdf"
+    result = await tools.set_field_value("ADPAuth-abc12", "client_certificate", api_key)
+    assert "error" not in result
+    assert called["hit"] is False
+
+
+@pytest.mark.asyncio
 async def test_missing_user_context_skips_validation(monkeypatch):
     """Without user_id we can't look up variables; fall back to the dumb
     write so non-multi-tenant code paths still work. (Mirrors how
