@@ -292,6 +292,14 @@ async def get_current_active_superuser(user: User = Depends(get_current_user)) -
     return result
 
 
+# Module-level Fernet cache keyed by the raw secret-key value. Building Fernet
+# (and the b64-padded key) on every call is measurable on hot paths
+# (api-key listing, secret resolution). Keying on the secret value means a
+# rotated SECRET_KEY misses naturally and rebuilds; CPython dict reads/writes
+# are atomic under the GIL, so callers either see the old entry or the new one.
+_FERNET_CACHE: dict[str, Fernet] = {}
+
+
 def get_fernet(settings_service: SettingsService) -> Fernet:
     """Get a Fernet instance for encryption/decryption.
 
@@ -301,9 +309,12 @@ def get_fernet(settings_service: SettingsService) -> Fernet:
     Returns:
         Fernet instance for encryption/decryption
     """
-    import random
-
     secret_key: str = settings_service.auth_settings.SECRET_KEY.get_secret_value()
+    cached = _FERNET_CACHE.get(secret_key)
+    if cached is not None:
+        return cached
+
+    import random
 
     # Replicate the original _ensure_valid_key logic from AuthService
     MINIMUM_KEY_LENGTH = 32  # noqa: N806
@@ -318,7 +329,9 @@ def get_fernet(settings_service: SettingsService) -> Fernet:
         padded_key = secret_key + "=" * padding_needed
         key = padded_key.encode()
 
-    return Fernet(key)
+    fernet = Fernet(key)
+    _FERNET_CACHE[secret_key] = fernet
+    return fernet
 
 
 def encrypt_api_key(api_key: str, settings_service: SettingsService | None = None) -> str:  # noqa: ARG001
