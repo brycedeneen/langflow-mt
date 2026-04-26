@@ -4,7 +4,7 @@ import NodeInputInfo from "@/CustomNodes/GenericNode/components/NodeInputInfo";
 import useHandleOnNewValue from "@/CustomNodes/hooks/use-handle-new-value";
 import useHandleNodeClass from "@/CustomNodes/hooks/use-handle-node-class";
 import { AssistantButton } from "@/components/common/assistant";
-import IconComponent from "@/components/common/genericIconComponent";
+import { Info, Plus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DEFAULT_TOOLSET_PLACEHOLDER,
@@ -141,8 +141,7 @@ export default function InspectionPanelField({
                 <Tooltip delayDuration={500}>
                   <TooltipTrigger asChild>
                     <div className="cursor-help">
-                      <IconComponent
-                        name="Info"
+                      <Info
                         strokeWidth={ICON_STROKE_WIDTH}
                         className="relative ml-1 h-3 w-3 text-placeholder"
                       />
@@ -165,8 +164,7 @@ export default function InspectionPanelField({
                       onClick={handleToggleVisibility}
                       data-testid={"promote-" + name}
                     >
-                      <IconComponent
-                        name="Plus"
+                      <Plus
                         strokeWidth={ICON_STROKE_WIDTH}
                         className="h-3 w-3"
                       />

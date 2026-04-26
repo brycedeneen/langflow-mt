@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Coins } from "lucide-react";
 import IconComponent from "@/components/common/genericIconComponent";
 import useFlowStore from "@/stores/flowStore";
 import { cn } from "@/utils/utils";
@@ -103,7 +104,7 @@ export function SpanNode({
       {/* Token count (if applicable) */}
       {tokenStr && (
         <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-          <IconComponent name="Coins" className="h-3 w-3" />
+          <Coins className="h-3 w-3" />
           {tokenStr}
         </span>
       )}

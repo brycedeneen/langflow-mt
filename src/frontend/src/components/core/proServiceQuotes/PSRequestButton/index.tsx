@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { HandCoins } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { usePreviewQuote } from "@/controllers/API/queries/pro-service-quotes/use-preview-quote";
@@ -54,7 +54,7 @@ export function PSRequestButton({ flowId, canRequest, psRequestActive }: Props) 
       onClick={handleClick}
       data-testid="ps-request-button"
     >
-      <ForwardedIconComponent name="HandCoins" className="h-4 w-4" />
+      <HandCoins className="h-4 w-4" />
       Request PS
     </Button>
   );

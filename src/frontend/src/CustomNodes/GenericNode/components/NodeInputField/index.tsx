@@ -12,7 +12,7 @@ import {
 import { LANGFLOW_AGENTIC_EXPERIENCE } from "@/customization/feature-flags";
 import useAuthStore from "@/stores/authStore";
 import { cn } from "@/utils/utils";
-import { default as IconComponent } from "../../../../components/common/genericIconComponent";
+import { Info } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -180,8 +180,7 @@ export default function NodeInputField({
               <Tooltip delayDuration={500}>
                 <TooltipTrigger asChild>
                   <div className="cursor-help">
-                    <IconComponent
-                      name="Info"
+                    <Info
                       strokeWidth={ICON_STROKE_WIDTH}
                       className="ml-1 h-3 w-3 text-placeholder"
                     />

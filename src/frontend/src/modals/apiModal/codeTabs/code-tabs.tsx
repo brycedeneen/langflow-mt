@@ -5,6 +5,7 @@ import {
   oneLight,
 } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import { useShallow } from "zustand/react/shallow";
+import { Check, Copy } from "lucide-react";
 import IconComponent from "@/components/common/genericIconComponent";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs-button";
@@ -240,15 +241,9 @@ export default function APITabsComponent() {
                           className="!hover:bg-foreground group absolute right-4 top-2 z-10 select-none"
                         >
                           {copiedStep === `step${index + 1}` ? (
-                            <IconComponent
-                              name="Check"
-                              className="h-5 w-5 text-muted-foreground"
-                            />
+                            <Check className="h-5 w-5 text-muted-foreground" />
                           ) : (
-                            <IconComponent
-                              name="Copy"
-                              className="!h-5 !w-5 text-muted-foreground"
-                            />
+                            <Copy className="!h-5 !w-5 text-muted-foreground" />
                           )}
                         </Button>
                         <SyntaxHighlighter
@@ -279,15 +274,9 @@ export default function APITabsComponent() {
                       className="!hover:bg-foreground group absolute right-4 top-2 z-10 select-none"
                     >
                       {isCopied ? (
-                        <IconComponent
-                          name="Check"
-                          className="h-5 w-5 text-muted-foreground"
-                        />
+                        <Check className="h-5 w-5 text-muted-foreground" />
                       ) : (
-                        <IconComponent
-                          name="Copy"
-                          className="!h-5 !w-5 text-muted-foreground"
-                        />
+                        <Copy className="!h-5 !w-5 text-muted-foreground" />
                       )}
                     </Button>
                     <SyntaxHighlighter

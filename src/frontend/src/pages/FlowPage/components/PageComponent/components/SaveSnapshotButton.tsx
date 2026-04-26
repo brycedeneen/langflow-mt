@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Check, Loader2 } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { usePostCreateSnapshot } from "@/controllers/API/queries/flow-version";
 import useAlertStore from "@/stores/alertStore";
@@ -66,15 +66,14 @@ export default function SaveSnapshotButton({
           >
             {isSavingDisplay || isCreating ? (
               <>
-                <ForwardedIconComponent
-                  name="Loader2"
+                <Loader2
                   className="h-3.5 w-3.5 animate-spin"
                 />
                 Saving…
               </>
             ) : savedSuccess ? (
               <>
-                <ForwardedIconComponent name="Check" className="h-3.5 w-3.5" />
+                <Check className="h-3.5 w-3.5" />
                 Saved
               </>
             ) : (

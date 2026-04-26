@@ -6,6 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { Ellipsis, Pencil, Trash2 } from "lucide-react";
 import IconComponent from "@/components/common/genericIconComponent";
 import type { TemplateRead } from "@/types/template";
 
@@ -43,7 +44,7 @@ export default function TemplateCardAdminMenu({
             aria-label="Template actions"
             onClick={(e) => e.stopPropagation()}
           >
-            <IconComponent name="Ellipsis" className="h-4 w-4" />
+            <Ellipsis className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">
@@ -53,7 +54,7 @@ export default function TemplateCardAdminMenu({
               onEdit();
             }}
           >
-            <IconComponent name="Pencil" className="mr-2 h-4 w-4" />
+            <Pencil className="mr-2 h-4 w-4" />
             Edit template
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -76,7 +77,7 @@ export default function TemplateCardAdminMenu({
               onDelete();
             }}
           >
-            <IconComponent name="Trash2" className="mr-2 h-4 w-4" />
+            <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>

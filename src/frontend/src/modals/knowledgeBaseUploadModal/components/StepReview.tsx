@@ -1,3 +1,4 @@
+import { AlertCircle, ChevronDown, ChevronLeft, ChevronRight, Cpu, FileQuestion, FileStack, Layers, Loader2 } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import type { ModelOption } from "@/components/core/parameterRenderComponent/components/modelInputComponent";
 import { Button } from "@/components/ui/button";
@@ -48,8 +49,7 @@ export function StepReview({
       {/* Chunk Preview Header */}
       <div className="flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
-          <ForwardedIconComponent
-            name="Layers"
+          <Layers
             className="h-4 w-4 text-muted-foreground"
           />
           <span className="text-sm font-medium">Chunk Preview</span>
@@ -66,8 +66,7 @@ export function StepReview({
                   <span className="truncate">
                     {files[selectedPreviewFileIndex]?.name ?? files[0]?.name}
                   </span>
-                  <ForwardedIconComponent
-                    name="ChevronDown"
+                  <ChevronDown
                     className="ml-1 h-3 w-3 shrink-0"
                   />
                 </Button>
@@ -97,8 +96,7 @@ export function StepReview({
             disabled={chunkPreviews.length === 0 || currentChunkIndex === 0}
             onClick={() => onCurrentChunkIndexChange(currentChunkIndex - 1)}
           >
-            <ForwardedIconComponent
-              name="ChevronLeft"
+            <ChevronLeft
               className={cn(
                 "h-4 w-4",
                 chunkPreviews.length === 0 || currentChunkIndex === 0
@@ -117,8 +115,7 @@ export function StepReview({
             }
             onClick={() => onCurrentChunkIndexChange(currentChunkIndex + 1)}
           >
-            <ForwardedIconComponent
-              name="ChevronRight"
+            <ChevronRight
               className={cn(
                 "h-4 w-4",
                 chunkPreviews.length === 0 ||
@@ -134,8 +131,7 @@ export function StepReview({
       <div className="flex-1 min-h-0 flex flex-col">
         {files.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center h-full">
-            <ForwardedIconComponent
-              name="FileQuestion"
+            <FileQuestion
               className="mb-2 h-8 w-8 text-muted-foreground"
             />
             <p className="text-sm text-muted-foreground">
@@ -144,8 +140,7 @@ export function StepReview({
           </div>
         ) : isGeneratingPreview ? (
           <div className="flex flex-col items-center justify-center p-8 h-full">
-            <ForwardedIconComponent
-              name="Loader2"
+            <Loader2
               className="mb-2 h-8 w-8 animate-spin text-muted-foreground"
             />
             <p className="text-sm text-muted-foreground">
@@ -160,8 +155,7 @@ export function StepReview({
           />
         ) : (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-            <ForwardedIconComponent
-              name="AlertCircle"
+            <AlertCircle
               className="mb-2 h-8 w-8 text-muted-foreground"
             />
             <p className="text-sm text-muted-foreground">
@@ -173,8 +167,7 @@ export function StepReview({
 
       {/* Summary Section */}
       <div className="flex items-center gap-2 shrink-0">
-        <ForwardedIconComponent
-          name="FileStack"
+        <FileStack
           className="h-4 w-4 text-muted-foreground"
         />
         <span className="text-sm font-medium">Summary</span>
@@ -204,7 +197,7 @@ export function StepReview({
         />
         <div className="flex items-center justify-between py-1.5">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <ForwardedIconComponent name="Cpu" className="h-4 w-4" />
+            <Cpu className="h-4 w-4" />
             <span>Embedding Model</span>
           </div>
           <div className="flex items-center gap-1.5">

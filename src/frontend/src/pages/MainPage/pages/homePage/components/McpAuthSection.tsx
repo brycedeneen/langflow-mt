@@ -1,3 +1,4 @@
+import { AlertTriangle, Fingerprint } from "lucide-react";
 import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -25,10 +26,7 @@ export const McpAuthSection = ({
       <span className=" font-medium">Auth:</span>
       {!hasAuthentication ? (
         <span className="text-accent-amber-foreground flex gap-2 text-mmd items-center">
-          <ForwardedIconComponent
-            name="AlertTriangle"
-            className="h-4 w-4 shrink-0"
-          />
+          <AlertTriangle className="h-4 w-4 shrink-0" />
           None (public)
         </span>
       ) : composerUrlData?.error_message ? (
@@ -104,7 +102,7 @@ export const McpAuthSection = ({
       className="!text-mmd !font-normal"
       onClick={() => setAuthModalOpen(true)}
     >
-      <ForwardedIconComponent name="Fingerprint" className="h-4 w-4 shrink-0" />
+      <Fingerprint className="h-4 w-4 shrink-0" />
       {hasAuthentication ? "Edit Auth" : "Add Auth"}
     </Button>
   </div>

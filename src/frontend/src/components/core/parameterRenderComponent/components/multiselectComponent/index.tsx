@@ -2,6 +2,7 @@ import Fuse from "fuse.js";
 import { memo, useEffect, useRef, useState } from "react";
 import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { cn } from "../../../../../utils/utils";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { default as ForwardedIconComponent } from "../../../../common/genericIconComponent";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../ui/tooltip";
 import { Button } from "../../../../ui/button";
@@ -128,8 +129,7 @@ function MultiselectComponent({
             ? treatedValue.join(", ")
             : "Choose an option..."}
         </span>
-        <ForwardedIconComponent
-          name="ChevronsUpDown"
+        <ChevronsUpDown
           className="ml-2 h-4 w-4 shrink-0 opacity-50"
         />
       </Button>
@@ -180,8 +180,7 @@ function MultiselectComponent({
                     <span className="text-muted-foreground">Text:&nbsp;</span>
                   )}
                   <span className="truncate">{option}</span>
-                  <ForwardedIconComponent
-                    name="Check"
+                  <Check
                     className={cn(
                       "ml-auto h-4 w-4 shrink-0 text-primary",
                       treatedValue.includes(option) ? "opacity-100" : "opacity-0",

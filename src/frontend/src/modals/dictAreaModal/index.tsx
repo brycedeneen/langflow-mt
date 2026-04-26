@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { JsonEditor as VanillaJsonEditor } from "vanilla-jsoneditor";
 import useAlertStore from "@/stores/alertStore";
-import IconComponent from "../../components/common/genericIconComponent";
+import { BookMarked } from "lucide-react";
 import JsonEditor from "../../components/core/jsonEditor";
 import BaseModal from "../baseModal";
 
@@ -93,8 +93,7 @@ export default function DictAreaModal({
       <span className="pr-2">
         {onChange ? "Edit Dictionary" : "View Dictionary"}
       </span>
-      <IconComponent
-        name="BookMarked"
+      <BookMarked
         className="h-6 w-6 pl-1 text-primary"
         aria-hidden="true"
       />

@@ -5,6 +5,7 @@ import type {
 } from "ag-grid-community";
 import type { AgGridReact } from "ag-grid-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { EllipsisVertical, Plus, Trash2 } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import CardsWrapComponent from "@/components/core/cardsWrapComponent";
@@ -224,7 +225,7 @@ const FilesTab = ({
                 handleRename={handleOpenRename}
               >
                 <Button variant="ghost" size="iconMd">
-                  <ForwardedIconComponent name="EllipsisVertical" />
+                  <EllipsisVertical />
                 </Button>
               </FilesContextMenuComponent>
             )}
@@ -278,8 +279,7 @@ const FilesTab = ({
             id="upload-file-btn"
             data-testid="upload-file-btn"
           >
-            <ForwardedIconComponent
-              name="Plus"
+            <Plus
               aria-hidden="true"
               className="h-4 w-4"
             />
@@ -329,7 +329,7 @@ const FilesTab = ({
                   loading={isDeleting}
                   data-testid="bulk-delete-btn"
                 >
-                  <ForwardedIconComponent name="Trash2" className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4" />
                   <span className="hidden whitespace-nowrap md:inline">
                     Delete ({quantitySelected})
                   </span>

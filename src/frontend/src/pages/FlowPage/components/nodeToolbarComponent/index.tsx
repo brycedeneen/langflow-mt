@@ -13,7 +13,7 @@ import { usePostRetrieveVertexOrder } from "@/controllers/API/queries/vertex";
 import { customOpenNewTab } from "@/customization/utils/custom-open-new-tab";
 import useAddFlow from "@/hooks/flows/use-add-flow";
 import type { APIClassType } from "@/types/api";
-import IconComponent from "../../../../components/common/genericIconComponent";
+import { Delete, Hammer, MoreHorizontal, Trash2 } from "lucide-react";
 import {
   Select,
   SelectContentWithoutPortal,
@@ -585,8 +585,7 @@ const NodeToolbarComponent = memo(
                       handleSelectChange("toolMode");
                     }}
                   >
-                    <IconComponent
-                      name="Hammer"
+                    <Hammer
                       className={cn(
                         "h-4 w-4 transition-all",
                         toolMode ? "text-primary" : "",
@@ -665,8 +664,7 @@ const NodeToolbarComponent = memo(
                         size="node-toolbar"
                         asChild
                       >
-                        <IconComponent
-                          name="MoreHorizontal"
+                        <MoreHorizontal
                           className="h-4 w-4"
                         />
                       </Button>
@@ -827,18 +825,16 @@ const NodeToolbarComponent = memo(
                   className="focus:bg-destructive/[.20]"
                 >
                   <div className="font-red flex text-status-red">
-                    <IconComponent
-                      name="Trash2"
+                    <Trash2
                       className="relative top-0.5 mr-2 h-4 w-4"
                     />{" "}
                     <span className="">Delete</span>{" "}
                     <span
                       className={`absolute right-2 top-2 flex items-center justify-center rounded-sm px-1 py-[0.2]`}
                     >
-                      <IconComponent
-                        name="Delete"
+                      <Delete
                         className="h-4 w-4 stroke-2 text-destructive"
-                      ></IconComponent>
+                      />
                     </span>
                   </div>
                 </SelectItem>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { ArrowLeft, ExternalLink, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -83,8 +83,7 @@ export const ProServiceQuoteDetailPage = () => {
         className="flex h-full items-center justify-center text-muted-foreground"
         data-testid="ps-quote-detail-loading"
       >
-        <ForwardedIconComponent
-          name="Loader2"
+        <Loader2
           className="mr-2 h-4 w-4 animate-spin"
         />
         Loading quote…
@@ -125,7 +124,7 @@ export const ProServiceQuoteDetailPage = () => {
             className="mb-4 flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-primary"
             data-testid="ps-quote-detail-back"
           >
-            <ForwardedIconComponent name="ArrowLeft" className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4" />
             Back to list
           </button>
 
@@ -206,8 +205,7 @@ export const ProServiceQuoteDetailPage = () => {
                   className="inline-flex items-center gap-1 text-sm text-primary underline"
                   data-testid="ps-detail-open-flow"
                 >
-                  <ForwardedIconComponent
-                    name="ExternalLink"
+                  <ExternalLink
                     className="h-4 w-4"
                   />
                   Open flow

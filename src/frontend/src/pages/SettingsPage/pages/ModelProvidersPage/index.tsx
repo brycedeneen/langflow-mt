@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Brain } from "lucide-react";
 import ModelProvidersContent from "@/modals/modelProviderModal/components/ModelProvidersContent";
 
 export default function ModelProvidersPage() {
@@ -11,8 +11,7 @@ export default function ModelProvidersPage() {
             data-testid="settings_menu_header"
           >
             Model Providers
-            <ForwardedIconComponent
-              name="Brain"
+            <Brain
               className="ml-2 h-5 w-5 text-primary"
             />
           </h2>

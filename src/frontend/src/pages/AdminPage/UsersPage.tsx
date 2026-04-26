@@ -10,9 +10,7 @@ import {
   useUpdateUser,
 } from "@/controllers/API/queries/auth";
 import CustomLoader from "@/customization/components/custom-loader";
-import IconComponent, {
-  ForwardedIconComponent,
-} from "../../components/common/genericIconComponent";
+import { Pencil, Search, Trash2, Users as UsersIcon, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/ui/tooltip";
 import { Button } from "../../components/ui/button";
 import { CheckBoxDiv } from "../../components/ui/checkbox";
@@ -317,8 +315,7 @@ export default function UsersPage() {
                 data-testid="settings_menu_header"
               >
                 User Admin
-                <ForwardedIconComponent
-                  name="Users"
+                <UsersIcon
                   className="ml-2 h-5 w-5 text-primary"
                 />
               </h2>
@@ -357,12 +354,11 @@ export default function UsersPage() {
                     setFilterUserList(userList.current);
                   }}
                 >
-                  <IconComponent name="X" className="w-6 text-foreground" />
+                  <X className="w-6 text-foreground" />
                 </div>
               ) : (
                 <div>
-                  <IconComponent
-                    name="Search"
+                  <Search
                     className="w-6 text-foreground"
                   />
                 </div>
@@ -591,8 +587,7 @@ export default function UsersPage() {
                               >
                                 <Tooltip delayDuration={500}>
                                   <TooltipTrigger asChild>
-                                    <IconComponent
-                                      name="Pencil"
+                                    <Pencil
                                       className="h-4 w-4 cursor-pointer"
                                     />
                                   </TooltipTrigger>
@@ -628,8 +623,7 @@ export default function UsersPage() {
                                   </span>
                                 </ConfirmationModal.Content>
                                 <ConfirmationModal.Trigger>
-                                  <IconComponent
-                                    name="Trash2"
+                                  <Trash2
                                     className="ml-2 h-4 w-4 cursor-pointer"
                                   />
                                 </ConfirmationModal.Trigger>

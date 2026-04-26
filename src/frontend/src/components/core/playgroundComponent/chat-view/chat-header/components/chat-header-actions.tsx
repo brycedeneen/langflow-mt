@@ -1,5 +1,5 @@
 import React from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Expand, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ChatHeaderActionsProps {
@@ -34,8 +34,7 @@ export function ChatHeaderActions({
           title="Enter fullscreen"
           aria-label="Enter fullscreen"
         >
-          <ForwardedIconComponent
-            name="Expand"
+          <Expand
             className="h-4 w-4"
             aria-hidden="true"
           />
@@ -51,8 +50,7 @@ export function ChatHeaderActions({
           aria-label="Close and go back to flow"
           data-testid="playground-close-button"
         >
-          <ForwardedIconComponent
-            name="X"
+          <X
             className="h-4 w-4"
             aria-hidden="true"
           />

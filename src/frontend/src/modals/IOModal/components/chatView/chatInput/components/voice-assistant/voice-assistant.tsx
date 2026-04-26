@@ -18,6 +18,7 @@ import { useMessagesStore } from "@/stores/messagesStore";
 import { useUtilityStore } from "@/stores/utilityStore";
 import { useVoiceStore } from "@/stores/voiceStore";
 import { cn } from "@/utils/utils";
+import { Key, Settings, X } from "lucide-react";
 import IconComponent from "../../../../../../../components/common/genericIconComponent";
 import SettingsVoiceModal from "./components/audio-settings/audio-settings-dialog";
 import { checkProvider } from "./helpers/check-provider";
@@ -448,8 +449,7 @@ export function VoiceAssistant({
               {hasOpenAIAPIKey ? (
                 <>
                   <Button data-testid="voice-assistant-settings-icon" unstyled>
-                    <IconComponent
-                      name="Settings"
+                    <Settings
                       strokeWidth={ICON_STROKE_WIDTH}
                       className={cn(
                         "relative top-[2px] h-4 w-4 text-muted-foreground hover:text-foreground",
@@ -465,8 +465,7 @@ export function VoiceAssistant({
                     data-testid="voice-assistant-settings-icon-without-openai"
                     className="h-8 w-8"
                   >
-                    <IconComponent
-                      name="Key"
+                    <Key
                       strokeWidth={ICON_STROKE_WIDTH}
                       className={cn("h-4 w-4 text-accent-amber-foreground")}
                     />
@@ -481,8 +480,7 @@ export function VoiceAssistant({
             onClick={handleCloseAudioInput}
             data-testid="voice-assistant-close-button"
           >
-            <IconComponent
-              name="X"
+            <X
               strokeWidth={ICON_STROKE_WIDTH}
               className="h-4 w-4 text-muted-foreground hover:text-foreground"
             />

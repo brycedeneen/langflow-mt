@@ -1,5 +1,5 @@
 import { OPENAI_VOICES } from "@/constants/constants";
-import IconComponent from "../../../../../../../../../../components/common/genericIconComponent";
+import { Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../../../../../../../components/ui/tooltip";
 import {
   Select,
@@ -31,8 +31,7 @@ const VoiceSelect = ({
         <Tooltip delayDuration={500}>
           <TooltipTrigger asChild>
             <div>
-              <IconComponent
-                name="Info"
+              <Info
                 strokeWidth={2}
                 className="relative -top-[3px] left-1 h-[14px] w-[14px] text-placeholder"
               />

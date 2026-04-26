@@ -1,6 +1,6 @@
 import BaseModal from "../../../modals/baseModal";
 import type { fetchErrorComponentType } from "../../../types/components";
-import IconComponent from "../genericIconComponent";
+import { Unplug } from "lucide-react";
 
 export default function FetchErrorComponent({
   message,
@@ -21,10 +21,9 @@ export default function FetchErrorComponent({
       >
         <BaseModal.Content>
           <div role="status" className="m-auto flex flex-col items-center">
-            <IconComponent
+            <Unplug
               className={`h-16 w-16`}
-              name="Unplug"
-            ></IconComponent>
+            />
             <br></br>
             <span className="text-lg text-primary">{message}</span>
             <span className="text-lg text-primary">{description}</span>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import IconComponent from "@/components/common/genericIconComponent";
+import { Activity, Calendar, Clock, Coins, DollarSign, Hash } from "lucide-react";
 import {
   AccordionContent,
   AccordionItem,
@@ -84,8 +84,7 @@ export function TraceAccordionItem({
         <div className="flex w-full items-center justify-between pr-4">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <IconComponent
-                name="Activity"
+              <Activity
                 className="h-4 w-4 text-muted-foreground"
               />
               <span className="text-sm font-medium">{traceName}</span>
@@ -97,28 +96,28 @@ export function TraceAccordionItem({
               {traceStatus}
             </Badge>
             <Badge variant="outline" size="sm" className="font-mono text-xs">
-              <IconComponent name="Hash" className="mr-1 h-3 w-3" />
+              <Hash className="mr-1 h-3 w-3" />
               {sessionId}
             </Badge>
           </div>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
-              <IconComponent name="Calendar" className="h-3 w-3" />
+              <Calendar className="h-3 w-3" />
               {formatSmartTimestamp(traceStartTime)}
             </span>
             <span className="flex items-center gap-1">
-              <IconComponent name="Clock" className="h-3 w-3" />
+              <Clock className="h-3 w-3" />
               {formatTotalLatency(totalLatencyMs)}
             </span>
             {totalTokens > 0 && (
               <span className="flex items-center gap-1">
-                <IconComponent name="Coins" className="h-3 w-3" />
+                <Coins className="h-3 w-3" />
                 {totalTokens.toLocaleString()} tokens
               </span>
             )}
             {totalCost > 0 && (
               <span className="flex items-center gap-1">
-                <IconComponent name="DollarSign" className="h-3 w-3" />
+                <DollarSign className="h-3 w-3" />
                 {formatCost(totalCost)}
               </span>
             )}

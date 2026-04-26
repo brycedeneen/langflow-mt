@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Plus } from "lucide-react";
 import SearchBarComponent from "@/components/core/parameterRenderComponent/components/searchBarComponent";
 import type { InputProps } from "@/components/core/parameterRenderComponent/types";
 import { Button } from "@/components/ui/button";
@@ -255,7 +256,7 @@ const ListSelectionComponent = ({
               unstyled
               onClick={onAddButtonClick}
             >
-              <ForwardedIconComponent name="Plus" className="h-4 w-4" />
+              <Plus className="h-4 w-4" />
               <span>{addButtonText}</span>
             </Button>
           )}

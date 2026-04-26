@@ -1,3 +1,4 @@
+import { ChevronDown, FileText, Folder, Info, LayoutGrid, Settings2, Upload } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import ModelInputComponent, {
   type ModelOption,
@@ -179,8 +180,7 @@ export function StepConfiguration({
             <Separator className="my-4" />
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2">
-                <ForwardedIconComponent
-                  name="LayoutGrid"
+                <LayoutGrid
                   className="h-4 w-4 text-muted-foreground"
                 />
                 <span className="text-sm font-medium">
@@ -207,14 +207,12 @@ export function StepConfiguration({
                         )}
                       >
                         <span className="flex items-center gap-2">
-                          <ForwardedIconComponent
-                            name="Upload"
+                          <Upload
                             className="h-4 w-4"
                           />
                           Add Sources
                         </span>
-                        <ForwardedIconComponent
-                          name="ChevronDown"
+                        <ChevronDown
                           className="h-4 w-4"
                         />
                       </Button>
@@ -225,8 +223,7 @@ export function StepConfiguration({
                           document.getElementById("file-input")?.click()
                         }
                       >
-                        <ForwardedIconComponent
-                          name="FileText"
+                        <FileText
                           className="mr-2 h-4 w-4"
                         />
                         Upload Files
@@ -236,8 +233,7 @@ export function StepConfiguration({
                           document.getElementById("folder-input")?.click()
                         }
                       >
-                        <ForwardedIconComponent
-                          name="Folder"
+                        <Folder
                           className="mr-2 h-4 w-4"
                         />
                         Upload Folder
@@ -258,8 +254,7 @@ export function StepConfiguration({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span className="cursor-help">
-                            <ForwardedIconComponent
-                              name="Info"
+                            <Info
                               className="h-3.5 w-3.5 text-muted-foreground"
                             />
                           </span>
@@ -293,8 +288,7 @@ export function StepConfiguration({
             <Separator className="my-4" />
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2">
-                <ForwardedIconComponent
-                  name="Settings2"
+                <Settings2
                   className="h-4 w-4 text-muted-foreground"
                 />
                 <span className="text-sm font-medium">Chunking Settings</span>
@@ -312,8 +306,7 @@ export function StepConfiguration({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span className="cursor-help">
-                            <ForwardedIconComponent
-                              name="Info"
+                            <Info
                               className="h-3.5 w-3.5 text-muted-foreground"
                             />
                           </span>
@@ -349,8 +342,7 @@ export function StepConfiguration({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span className="cursor-help">
-                            <ForwardedIconComponent
-                              name="Info"
+                            <Info
                               className="h-3.5 w-3.5 text-muted-foreground"
                             />
                           </span>
@@ -386,8 +378,7 @@ export function StepConfiguration({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <span className="cursor-help">
-                          <ForwardedIconComponent
-                            name="Info"
+                          <Info
                             className="h-3.5 w-3.5 text-muted-foreground"
                           />
                         </span>

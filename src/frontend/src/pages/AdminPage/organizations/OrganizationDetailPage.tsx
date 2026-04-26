@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetOrganization } from "@/controllers/API/queries/admin";
-import IconComponent from "../../../components/common/genericIconComponent";
+import { Building2, ChevronLeft, Loader2 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import {
   Tabs,
@@ -36,9 +36,9 @@ export default function OrganizationDetailPage() {
               size="icon"
               onClick={() => navigate("/settings/organizations")}
             >
-              <IconComponent name="ChevronLeft" className="w-5" />
+              <ChevronLeft className="w-5" />
             </Button>
-            <IconComponent name="Building2" className="w-5" />
+            <Building2 className="w-5" />
             {isLoading ? "Loading…" : isError ? "Organization" : org?.name}
           </h2>
         </div>
@@ -46,7 +46,7 @@ export default function OrganizationDetailPage() {
 
       {isLoading ? (
         <div className="flex h-full w-full items-center justify-center">
-          <IconComponent name="Loader2" className="h-8 w-8 animate-spin" />
+          <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       ) : isError || !org ? (
         <div className="m-4 text-sm text-muted-foreground">

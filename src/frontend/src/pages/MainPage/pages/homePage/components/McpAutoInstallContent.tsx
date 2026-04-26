@@ -1,3 +1,4 @@
+import { AlertTriangle } from "lucide-react";
 import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -29,8 +30,7 @@ export const McpAutoInstallContent = ({
     {!isLocalConnection && (
       <div className="mb-2 rounded-md bg-accent-amber px-3 py-2 text-sm text-accent-amber-foreground">
         <div className="flex items-center gap-3">
-          <ForwardedIconComponent
-            name="AlertTriangle"
+          <AlertTriangle
             className="h-4 w-4 shrink-0"
           />
           <span>

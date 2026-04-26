@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Bot } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { openFlowInFullscreenAssist } from "@/utils/assist-entry";
 import { cn } from "@/utils/utils";
@@ -26,7 +26,7 @@ export function AdpAssistButton({ flowId, builtWithAssist }: Props) {
             builtWithAssist && "text-primary",
           )}
         >
-          <ForwardedIconComponent name="Bot" className="h-4 w-4" />
+          <Bot className="h-4 w-4" />
         </button>
       </TooltipTrigger>
       <TooltipContent

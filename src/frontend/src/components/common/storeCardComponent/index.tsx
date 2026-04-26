@@ -17,6 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../ui/card";
+import { DownloadCloud, Heart, Lock, ToyBrick } from "lucide-react";
 import IconComponent from "../genericIconComponent";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
 import useDataEffect from "./hooks/use-data-effect";
@@ -145,7 +146,7 @@ export default function StoreCardComponent({
                     <Tooltip delayDuration={500}>
                       <TooltipTrigger asChild>
                         <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <IconComponent name="Lock" className="h-4 w-4" />
+                          <Lock className="h-4 w-4" />
                         </span>
                       </TooltipTrigger>
                       <TooltipContent
@@ -161,7 +162,7 @@ export default function StoreCardComponent({
                     <Tooltip delayDuration={500}>
                       <TooltipTrigger asChild>
                         <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <IconComponent name="ToyBrick" className="h-4 w-4" />
+                          <ToyBrick className="h-4 w-4" />
                           <span data-testid={`total-${data.name}`}>
                             {data?.metadata?.total ?? 0}
                           </span>
@@ -179,7 +180,7 @@ export default function StoreCardComponent({
                   <Tooltip delayDuration={500}>
                     <TooltipTrigger asChild>
                       <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <IconComponent name="Heart" className={cn("h-4 w-4")} />
+                        <Heart className={cn("h-4 w-4")} />
                         <span data-testid={`likes-${data.name}`}>
                           {likesCount ?? 0}
                         </span>
@@ -196,7 +197,7 @@ export default function StoreCardComponent({
                   <Tooltip delayDuration={500}>
                     <TooltipTrigger asChild>
                       <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <IconComponent name="DownloadCloud" className="h-4 w-4" />
+                        <DownloadCloud className="h-4 w-4" />
                         <span data-testid={`downloads-${data.name}`}>
                           {downloadsCount ?? 0}
                         </span>
@@ -260,8 +261,7 @@ export default function StoreCardComponent({
                       }}
                       data-testid={`like-${data.name}`}
                     >
-                      <IconComponent
-                        name="Heart"
+                      <Heart
                         className={cn(
                           "h-5 w-5",
                           likedByUser

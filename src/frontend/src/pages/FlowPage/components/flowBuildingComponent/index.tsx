@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { normalizeTimeString } from "@/CustomNodes/GenericNode/components/NodeStatus/utils/format-run-time";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { CircleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TextShimmer } from "@/components/ui/TextShimmer";
 import { BuildStatus } from "@/constants/enums";
@@ -153,8 +153,7 @@ export default function FlowBuildingComponent() {
                   "Flow built successfully"
                 ) : (
                   <div className="flex items-center gap-2">
-                    <ForwardedIconComponent
-                      name="CircleAlert"
+                    <CircleAlert
                       className="h-5 w-5"
                     />
                     Flow build failed

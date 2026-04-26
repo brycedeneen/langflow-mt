@@ -3,7 +3,7 @@ import AlertDropdown from "@/alerts/alertDropDown";
 import LangflowLogo from "@/assets/LangflowLogo.svg?react";
 import AdminNotificationBell from "@/components/core/adminNotificationBell";
 import { AssistantButton } from "@/components/common/assistant";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Bell } from "lucide-react";
 import ModelProviderCount from "@/components/common/modelProviderCountComponent";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -108,8 +108,7 @@ export default function AppHeader(): JSX.Element {
                 >
                   <div className="hit-area-hover group relative items-center rounded-md px-2 py-2 text-muted-foreground">
                     <span className={getNotificationBadge()} />
-                    <ForwardedIconComponent
-                      name="Bell"
+                    <Bell
                       className={`side-bar-button-size h-4 w-4 ${
                         activeState === "notifications"
                           ? "text-primary"

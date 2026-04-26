@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import IconComponent from "@/components/common/genericIconComponent";
+import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGetUnreadNotificationsCount } from "@/controllers/API/queries/admin/use-get-unread-notifications-count";
 
@@ -18,7 +18,7 @@ export default function AdminNotificationBell() {
         onClick={() => navigate("/settings/notifications")}
         aria-label="Notifications"
       >
-        <IconComponent name="Bell" className="h-5 w-5" />
+        <Bell className="h-5 w-5" />
       </Button>
       {unread > 0 && (
         <span

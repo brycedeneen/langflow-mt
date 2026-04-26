@@ -1,5 +1,5 @@
 import { useState } from "react";
-import IconComponent from "@/components/common/genericIconComponent";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -123,11 +123,11 @@ export default function AdminAuditLogsPage() {
 
           <div className="flex items-center gap-2">
             <Button disabled={page <= 1} onClick={() => setPage(page - 1)} variant="outline">
-              <IconComponent name="ChevronLeft" className="h-4 w-4" /> Prev
+              <ChevronLeft className="h-4 w-4" /> Prev
             </Button>
             <div className="text-sm">Page {page} of {totalPages}</div>
             <Button disabled={page >= totalPages} onClick={() => setPage(page + 1)} variant="outline">
-              Next <IconComponent name="ChevronRight" className="h-4 w-4" />
+              Next <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </>

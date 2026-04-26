@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { ArrowUpRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
 import { ENABLE_NEW_SIDEBAR } from "@/customization/feature-flags";
@@ -31,8 +31,7 @@ const SidebarMenuButtons = ({
           data-testid="sidebar-add-mcp-server-button"
           className="flex items-center w-full h-full gap-3 hover:bg-muted"
         >
-          <ForwardedIconComponent
-            name="Plus"
+          <Plus
             className="h-4 w-4 text-muted-foreground"
           />
           <span className="group-data-[state=open]/collapsible:font-semibold">
@@ -50,8 +49,7 @@ const SidebarMenuButtons = ({
           data-testid="sidebar-manage-servers-button"
           className="flex items-center w-full h-full gap-3 hover:bg-muted"
         >
-          <ForwardedIconComponent
-            name="ArrowUpRight"
+          <ArrowUpRight
             className="h-4 w-4 text-muted-foreground"
           />
           <span className="group-data-[state=open]/collapsible:font-semibold">
@@ -80,8 +78,7 @@ const SidebarMenuButtons = ({
         data-testid="sidebar-custom-component-button"
         className="flex items-center w-full h-full gap-3 hover:bg-muted"
       >
-        <ForwardedIconComponent
-          name="Plus"
+        <Plus
           className="h-4 w-4 text-muted-foreground"
         />
         <span className="group-data-[state=open]/collapsible:font-semibold">

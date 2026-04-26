@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useState } from "react";
 import useAlertStore from "@/stores/alertStore";
 import type { FileType } from "@/types/file_management";
-import { ForwardedIconComponent } from "../../components/common/genericIconComponent";
+import { File } from "lucide-react";
 import BaseModal from "../baseModal";
 import DragFilesComponent from "./components/dragFilesComponent";
 import RecentFilesComponent from "./components/recentFilesComponent";
@@ -77,7 +77,7 @@ export default function FileManagerModal({
         <BaseModal.Header description={null}>
           <span className="flex items-center gap-2 font-medium">
             <div className="rounded-md bg-muted p-1.5">
-              <ForwardedIconComponent name="File" className="h-5 w-5" />
+              <File className="h-5 w-5" />
             </div>
             My Files
           </span>

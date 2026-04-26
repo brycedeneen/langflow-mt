@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Bot } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import useAssistantStore from "@/stores/assistantStore";
 
@@ -17,7 +17,7 @@ export default function AssistantToggleButton() {
             (panelOpen ? "text-primary" : "text-muted-foreground")
           }
         >
-          <ForwardedIconComponent name="Bot" className="h-4 w-4" />
+          <Bot className="h-4 w-4" />
           <span className="font-normal text-mmd">Assistant</span>
         </button>
       </TooltipTrigger>

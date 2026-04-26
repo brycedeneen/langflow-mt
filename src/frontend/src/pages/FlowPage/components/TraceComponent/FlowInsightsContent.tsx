@@ -1,7 +1,7 @@
 import type { CellClickedEvent } from "ag-grid-community";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import IconComponent from "@/components/common/genericIconComponent";
+import { AlertCircle, Download, Layers, RefreshCcw, Search } from "lucide-react";
 import PaginatorComponent from "@/components/common/paginatorComponent";
 import TableComponent from "@/components/core/parameterRenderComponent/components/tableComponent";
 import {
@@ -177,10 +177,7 @@ export function FlowInsightsContent({
       return (
         <div className="flex h-full w-full items-center justify-center rounded-md border">
           <Alert variant="default" className="w-fit">
-            <IconComponent
-              name="AlertCircle"
-              className="h-5 w-5 text-primary"
-            />
+            <AlertCircle className="h-5 w-5 text-primary" />
             <AlertTitle>{DEFAULT_TABLE_ALERT_TITLE}</AlertTitle>
             <AlertDescription>{DEFAULT_TABLE_ALERT_MSG}</AlertDescription>
           </Alert>
@@ -249,17 +246,14 @@ export function FlowInsightsContent({
               onClick={() => setGroupBySession((prev) => !prev)}
               aria-pressed={groupBySession}
             >
-              <IconComponent name="Layers" className="h-4 w-4" />
+              <Layers className="h-4 w-4" />
               Group by Session
             </Button>
           </div>
 
           <div className="flex min-w-0 flex-nowrap items-center gap-2">
             <div className="relative w-[220px] min-w-[180px]">
-              <IconComponent
-                name="Search"
-                className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-              />
+              <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
@@ -292,7 +286,7 @@ export function FlowInsightsContent({
               onClick={() => refetch()}
               aria-label="Reload"
             >
-              <IconComponent name="RefreshCcw" className="h-4 w-4" />
+              <RefreshCcw className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
@@ -302,7 +296,7 @@ export function FlowInsightsContent({
               }
               aria-label="Download"
             >
-              <IconComponent name="Download" className="h-4 w-4" />
+              <Download className="h-4 w-4" />
             </Button>
           </div>
         </div>

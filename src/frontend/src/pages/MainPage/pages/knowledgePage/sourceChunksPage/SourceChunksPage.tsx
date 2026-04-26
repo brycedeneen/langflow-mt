@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { ArrowLeft, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, PanelLeftOpen, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Loading from "@/components/ui/loading";
@@ -111,8 +111,7 @@ export const SourceChunksPage = () => {
             <div className="h-7 w-10 transition-all group-data-[open=true]/sidebar-wrapper:md:w-0 lg:hidden">
               <div className="relative left-0 opacity-100 transition-all group-data-[open=true]/sidebar-wrapper:md:opacity-0">
                 <SidebarTrigger>
-                  <ForwardedIconComponent
-                    name="PanelLeftOpen"
+                  <PanelLeftOpen
                     aria-hidden="true"
                   />
                 </SidebarTrigger>
@@ -124,7 +123,7 @@ export const SourceChunksPage = () => {
               onClick={handleBack}
               className="mr-2 h-8 w-8"
             >
-              <ForwardedIconComponent name="ArrowLeft" className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4" />
             </Button>
             <span style={{ textTransform: "none" }}>{sourceId}</span>
           </div>
@@ -133,8 +132,7 @@ export const SourceChunksPage = () => {
         <div className="flex shrink-0 items-center pb-4">
           <div className="xl:container">
             <div className="relative w-full xl:w-5/12">
-              <ForwardedIconComponent
-                name="Search"
+              <Search
                 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
               />
               <Input
@@ -227,8 +225,7 @@ export const SourceChunksPage = () => {
                           }}
                           disabled={currentPage === 1}
                         >
-                          <ForwardedIconComponent
-                            name="ChevronsLeft"
+                          <ChevronsLeft
                             className="h-4 w-4"
                           />
                         </Button>
@@ -243,8 +240,7 @@ export const SourceChunksPage = () => {
                           }}
                           disabled={currentPage === 1}
                         >
-                          <ForwardedIconComponent
-                            name="ChevronLeft"
+                          <ChevronLeft
                             className="h-4 w-4"
                           />
                         </Button>
@@ -278,8 +274,7 @@ export const SourceChunksPage = () => {
                           }}
                           disabled={currentPage === totalPages}
                         >
-                          <ForwardedIconComponent
-                            name="ChevronRight"
+                          <ChevronRight
                             className="h-4 w-4"
                           />
                         </Button>
@@ -293,8 +288,7 @@ export const SourceChunksPage = () => {
                           }}
                           disabled={currentPage === totalPages}
                         >
-                          <ForwardedIconComponent
-                            name="ChevronsRight"
+                          <ChevronsRight
                             className="h-4 w-4"
                           />
                         </Button>

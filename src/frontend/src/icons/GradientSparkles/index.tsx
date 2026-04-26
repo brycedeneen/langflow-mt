@@ -1,6 +1,5 @@
-import { Code } from "lucide-react";
+import { Code, Combine, Save, Ungroup } from "lucide-react";
 import { forwardRef } from "react";
-import ForwardedIconComponent from "../../components/common/genericIconComponent";
 
 export const GradientInfinity = forwardRef<
   SVGSVGElement,
@@ -27,8 +26,7 @@ export const GradientSave = forwardRef<
 >((props, ref) => {
   return (
     <>
-      <ForwardedIconComponent
-        name="Save"
+      <Save
         stroke="url(#x-gradient)"
         ref={ref}
         {...props}
@@ -48,8 +46,7 @@ export const GradientGroup = (props) => {
           </linearGradient>
         </defs>
       </svg>
-      <ForwardedIconComponent
-        name="Combine"
+      <Combine
         stroke={`${props.disabled ? "#64748B" : "url(#grad3)"}`}
         {...props}
       />
@@ -71,8 +68,7 @@ export const GradientUngroup = forwardRef<
           </linearGradient>
         </defs>
       </svg>
-      <ForwardedIconComponent
-        name="Ungroup"
+      <Ungroup
         stroke="url(#grad4)"
         ref={ref}
         {...props}

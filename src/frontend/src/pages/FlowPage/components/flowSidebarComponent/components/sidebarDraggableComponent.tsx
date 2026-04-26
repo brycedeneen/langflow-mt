@@ -1,7 +1,6 @@
 import { type DragEventHandler, forwardRef, useRef, useState } from "react";
-import IconComponent, {
-  ForwardedIconComponent,
-} from "@/components/common/genericIconComponent";
+import { Download, GripVertical, Plus, Trash2 } from "lucide-react";
+import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { convertTestName } from "@/components/common/storeCardComponent/utils/convert-test-name";
 import { Badge } from "@/components/ui/badge";
@@ -215,15 +214,13 @@ export const SidebarDraggableComponent = forwardRef(
                       className="text-primary"
                       onClick={() => addComponent(apiClass, itemName)}
                     >
-                      <ForwardedIconComponent
-                        name="Plus"
+                      <Plus
                         className="h-4 w-4 shrink-0 transition-all group-hover/draggable:opacity-100 group-focus/draggable:opacity-100 sm:opacity-0"
                       />
                     </Button>
                   )}
                   <div ref={popoverRef}>
-                    <ForwardedIconComponent
-                      name="GripVertical"
+                    <GripVertical
                       className="h-4 w-4 shrink-0 text-muted-foreground group-hover/draggable:text-primary"
                     />
                     <SelectTrigger tabIndex={-1}></SelectTrigger>
@@ -239,8 +236,7 @@ export const SidebarDraggableComponent = forwardRef(
                     >
                       <SelectItem value={"download"}>
                         <div className="flex">
-                          <IconComponent
-                            name="Download"
+                          <Download
                             className="relative top-0.5 mr-2 h-4 w-4"
                           />{" "}
                           Download{" "}
@@ -252,8 +248,7 @@ export const SidebarDraggableComponent = forwardRef(
                           data-testid="draggable-component-menu-delete"
                         >
                           <div className="flex">
-                            <IconComponent
-                              name="Trash2"
+                            <Trash2
                               className="relative top-0.5 mr-2 h-4 w-4"
                             />{" "}
                             Delete{" "}

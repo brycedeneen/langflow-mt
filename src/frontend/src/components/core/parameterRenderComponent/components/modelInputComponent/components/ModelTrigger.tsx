@@ -1,4 +1,5 @@
 import { RefObject } from "react";
+import { Brain } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { Button } from "@/components/ui/button";
 import { PopoverTrigger } from "@/components/ui/popover";
@@ -55,7 +56,7 @@ const ModelTrigger = ({
         className="w-full"
         onClick={onOpenManageProviders}
       >
-        <ForwardedIconComponent name="Brain" className="h-4 w-4" />
+        <Brain className="h-4 w-4" />
         <div className="text-[13px]">{placeholder}</div>
       </Button>
     );

@@ -3,7 +3,7 @@ import { CustomBanner } from "@/customization/components/custom-banner";
 import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
 import { Button } from "../../ui/button";
 import { Separator } from "../../ui/separator";
-import ForwardedIconComponent from "../genericIconComponent";
+import { ChevronLeft } from "lucide-react";
 
 export default function PageLayout({
   title,
@@ -38,10 +38,7 @@ export default function PageLayout({
                     }}
                     data-testid="back_page_button"
                   >
-                    <ForwardedIconComponent
-                      name="ChevronLeft"
-                      className="flex cursor-pointer"
-                    />
+                    <ChevronLeft className="flex cursor-pointer" />
                   </Button>
                 )}
                 <h2

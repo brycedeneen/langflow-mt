@@ -1,5 +1,6 @@
 import { memo, ReactNode } from "react";
 import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
+import { Key } from "lucide-react";
 import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs-button";
@@ -56,8 +57,7 @@ const MemoizedApiKeyButton = memo(
       loading={isGeneratingApiKey}
       onClick={generateApiKey}
     >
-      <ForwardedIconComponent
-        name="Key"
+      <Key
         className="h-4 w-4"
         aria-hidden="true"
       />

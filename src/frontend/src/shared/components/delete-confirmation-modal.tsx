@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Trash2 } from "lucide-react";
 import {
   useDeleteGlobalVariables,
   useGetGlobalVariables,
@@ -63,8 +63,7 @@ const GeneralDeleteConfirmationModal = ({
           }}
           className="pr-1"
         >
-          <ForwardedIconComponent
-            name="Trash2"
+          <Trash2
             className={cn(
               "h-4 w-4 text-primary opacity-0 hover:text-status-red group-hover:opacity-100",
             )}

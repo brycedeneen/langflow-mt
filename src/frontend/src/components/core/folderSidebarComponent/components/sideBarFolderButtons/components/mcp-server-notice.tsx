@@ -1,5 +1,5 @@
 import MCPLangflow from "@/assets/MCPLangflow.png";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
 
@@ -16,7 +16,7 @@ export const MCPServerNotice = ({
         className="absolute right-4 top-4 text-muted-foreground hover:text-foreground"
         onClick={handleDismissDialog}
       >
-        <ForwardedIconComponent name="X" className="h-5 w-5" />
+        <X className="h-5 w-5" />
       </Button>
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">

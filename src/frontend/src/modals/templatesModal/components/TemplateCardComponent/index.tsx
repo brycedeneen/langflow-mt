@@ -24,9 +24,8 @@ import useAuthStore from "@/stores/authStore";
 import useAlertStore from "@/stores/alertStore";
 import { swatchColors } from "@/utils/styleUtils";
 import { cn, getNumberFromString } from "@/utils/utils";
-import IconComponent, {
-  ForwardedIconComponent,
-} from "../../../../components/common/genericIconComponent";
+import { ArrowRight } from "lucide-react";
+import IconComponent from "../../../../components/common/genericIconComponent";
 import TagChip from "@/components/common/TagChip";
 import type { TemplateCardComponentProps } from "../../../../types/templates/types";
 import type { TemplateRead } from "@/types/template";
@@ -235,8 +234,7 @@ export default function TemplateCardComponent({
               {example.name}
             </h3>
             {!isArchived && (
-              <ForwardedIconComponent
-                name="ArrowRight"
+              <ArrowRight
                 className="mr-3 h-5 w-5 shrink-0 translate-x-0 opacity-0 transition-all duration-300 group-hover:translate-x-3 group-hover:opacity-100 group-focus-visible:translate-x-3 group-focus-visible:opacity-100"
               />
             )}

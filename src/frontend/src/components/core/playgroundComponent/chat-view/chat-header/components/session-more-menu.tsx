@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { MoreVertical, Scroll, SquarePen, Trash2, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Select,
@@ -108,8 +108,7 @@ export function SessionMoreMenu({
             }}
             data-testid={dataTestid}
           >
-            <ForwardedIconComponent
-              name="MoreVertical"
+            <MoreVertical
               className="h-4 w-4"
               aria-hidden="true"
             />
@@ -138,8 +137,7 @@ export function SessionMoreMenu({
               data-testid="rename-session-option"
             >
               <div className="flex items-center">
-                <ForwardedIconComponent
-                  name="SquarePen"
+                <SquarePen
                   className="mr-2 h-4 w-4"
                 />
                 Rename
@@ -153,8 +151,7 @@ export function SessionMoreMenu({
               data-testid="message-logs-option"
             >
               <div className="flex items-center">
-                <ForwardedIconComponent
-                  name="Scroll"
+                <Scroll
                   className="mr-2 h-4 w-4"
                 />
                 Message logs
@@ -168,7 +165,7 @@ export function SessionMoreMenu({
               data-testid="clear-chat-option"
             >
               <div className="flex items-center text-status-red hover:text-status-red">
-                <ForwardedIconComponent name="X" className="mr-2 h-4 w-4" />
+                <X className="mr-2 h-4 w-4" />
                 Clear chat
               </div>
             </SelectItem>
@@ -180,8 +177,7 @@ export function SessionMoreMenu({
               data-testid="delete-session-option"
             >
               <div className="flex items-center text-status-red hover:text-status-red">
-                <ForwardedIconComponent
-                  name="Trash2"
+                <Trash2
                   className="mr-2 h-4 w-4"
                 />
                 {isDefaultSession ? "Clear session" : "Delete session"}

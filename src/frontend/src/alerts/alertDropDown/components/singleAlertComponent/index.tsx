@@ -2,7 +2,7 @@ import { useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { CustomLink } from "@/customization/components/custom-link";
-import IconComponent from "../../../../components/common/genericIconComponent";
+import { CheckCircle2, Info, X, XCircle } from "lucide-react";
 import type { SingleAlertComponentType } from "../../../../types/alerts";
 
 export default function SingleAlert({
@@ -18,7 +18,7 @@ export default function SingleAlert({
       key={dropItem.id}
     >
       <div className="shrink-0">
-        <IconComponent name="XCircle" className="h-5 w-5 text-status-red" />
+        <XCircle className="h-5 w-5 text-status-red" />
       </div>
       <div className="ml-3">
         <h3 className="text-sm font-medium text-error-foreground word-break-break-word">
@@ -76,7 +76,7 @@ export default function SingleAlert({
             className="inline-flex rounded-md p-1.5 text-status-red"
           >
             <span className="sr-only">Dismiss</span>
-            <IconComponent name="X" className="h-4 w-4 text-error-foreground" />
+            <X className="h-4 w-4 text-error-foreground" />
           </button>
         </div>
       </div>
@@ -87,7 +87,7 @@ export default function SingleAlert({
       key={dropItem.id}
     >
       <div className="shrink-0 cursor-help">
-        <IconComponent name="Info" className="h-5 w-5 text-status-blue" />
+        <Info className="h-5 w-5 text-status-blue" />
       </div>
       <div className="ml-3 flex-1 md:flex md:justify-between">
         <p className="text-sm font-medium text-info-foreground">
@@ -119,7 +119,7 @@ export default function SingleAlert({
             className="inline-flex rounded-md p-1.5 text-info-foreground"
           >
             <span className="sr-only">Dismiss</span>
-            <IconComponent name="X" className="h-4 w-4 text-info-foreground" />
+            <X className="h-4 w-4 text-info-foreground" />
           </button>
         </div>
       </div>
@@ -130,8 +130,7 @@ export default function SingleAlert({
       key={dropItem.id}
     >
       <div className="shrink-0">
-        <IconComponent
-          name="CheckCircle2"
+        <CheckCircle2
           className="h-5 w-5 text-status-green"
         />
       </div>
@@ -153,10 +152,7 @@ export default function SingleAlert({
             className="inline-flex rounded-md p-1.5 text-status-green"
           >
             <span className="sr-only">Dismiss</span>
-            <IconComponent
-              name="X"
-              className="h-4 w-4 text-success-foreground"
-            />
+            <X className="h-4 w-4 text-success-foreground" />
           </button>
         </div>
       </div>

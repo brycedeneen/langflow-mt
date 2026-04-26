@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { ListRestart, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -47,7 +47,7 @@ export function ChatSessionsDropdown({
           aria-label="Chat sessions"
           data-testid="session-selector-trigger"
         >
-          <ForwardedIconComponent name="ListRestart" className="h-4 w-4" />
+          <ListRestart className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56 p-0">
@@ -82,7 +82,7 @@ export function ChatSessionsDropdown({
                     setOpen(false);
                   }}
                 >
-                  <ForwardedIconComponent name="Plus" className="h-4 w-4" />
+                  <Plus className="h-4 w-4" />
                   New Session
                 </DropdownMenuItem>
               </DropdownMenuGroup>
@@ -97,7 +97,7 @@ export function ChatSessionsDropdown({
                 setOpen(false);
               }}
             >
-              <ForwardedIconComponent name="Plus" className="h-4 w-4" />
+              <Plus className="h-4 w-4" />
               New Session
             </DropdownMenuItem>
           </div>

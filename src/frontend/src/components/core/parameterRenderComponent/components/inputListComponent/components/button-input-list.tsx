@@ -1,4 +1,4 @@
-import IconComponent from "@/components/common/genericIconComponent";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
@@ -44,8 +44,7 @@ export const ButtonInputList = ({
             data-testid={getTestId("plus", index, editNode, componentName)}
             disabled={disabled}
           >
-            <IconComponent
-              name="Plus"
+            <Plus
               className={cn(
                 "icon-size justify-self-center text-muted-foreground",
                 !disabled && "hover:cursor-pointer hover:text-foreground",

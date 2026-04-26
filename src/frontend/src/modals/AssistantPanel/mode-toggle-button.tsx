@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Maximize2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import useAssistantStore from "@/stores/assistantStore";
 
@@ -17,7 +17,7 @@ export function ModeToggleButton() {
           onClick={() => setLayoutMode("fullscreen")}
           className="inline-flex h-7 w-7 items-center justify-center rounded hover:bg-muted"
         >
-          <ForwardedIconComponent name="Maximize2" className="h-4 w-4" />
+          <Maximize2 className="h-4 w-4" />
         </button>
       </TooltipTrigger>
       <TooltipContent

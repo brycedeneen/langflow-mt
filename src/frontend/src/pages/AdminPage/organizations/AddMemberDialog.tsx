@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "../../../components/ui/dialog";
 import { Input } from "../../../components/ui/input";
-import IconComponent from "../../../components/common/genericIconComponent";
+import { Loader2 } from "lucide-react";
 
 interface AddMemberDialogProps {
   orgId: string;
@@ -70,7 +70,7 @@ export default function AddMemberDialog({
         <div className="max-h-64 overflow-y-auto rounded-md border bg-background custom-scroll">
           {isLoading ? (
             <div className="flex items-center justify-center p-4">
-              <IconComponent name="Loader2" className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
             </div>
           ) : candidates.length === 0 ? (
             <p className="p-4 text-sm text-muted-foreground">

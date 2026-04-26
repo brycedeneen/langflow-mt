@@ -1,5 +1,6 @@
 import { debounce } from "lodash";
 import { useCallback, useEffect, useState } from "react";
+import { Download, PanelLeftOpen, Plus, Search, Trash2 } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -108,8 +109,7 @@ const HeaderComponent = ({
         <div className="h-7 w-10 transition-all group-data-[open=true]/sidebar-wrapper:md:w-0 lg:hidden">
           <div className="relative left-0 opacity-100 transition-all group-data-[open=true]/sidebar-wrapper:md:opacity-0">
             <SidebarTrigger>
-              <ForwardedIconComponent
-                name="PanelLeftOpen"
+              <PanelLeftOpen
                 aria-hidden="true"
                 className=""
               />
@@ -150,8 +150,7 @@ const HeaderComponent = ({
             <div className="flex justify-between">
               <div className="flex w-full xl:w-5/12">
                 <div className="relative mr-2 w-full">
-                  <ForwardedIconComponent
-                    name="Search"
+                  <Search
                     aria-hidden="true"
                     className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
                   />
@@ -218,7 +217,7 @@ const HeaderComponent = ({
                     loading={isDownloading}
                     tabIndex={hasSelection ? 0 : -1}
                   >
-                    <ForwardedIconComponent name="Download" />
+                    <Download />
                   </Button>
                   <DeleteConfirmationModal
                     asChild
@@ -238,7 +237,7 @@ const HeaderComponent = ({
                       loading={isDeleting}
                       tabIndex={hasSelection ? 0 : -1}
                     >
-                      <ForwardedIconComponent name="Trash2" />
+                      <Trash2 />
                       Delete
                     </Button>
                   </DeleteConfirmationModal>
@@ -253,8 +252,7 @@ const HeaderComponent = ({
                       id="new-project-btn"
                       data-testid="new-project-btn"
                     >
-                      <ForwardedIconComponent
-                        name="Plus"
+                      <Plus
                         aria-hidden="true"
                         className="h-4 w-4"
                       />

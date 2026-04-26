@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Wrench } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import type { AssistantMessageType } from "@/stores/assistantStore";
 
@@ -26,7 +27,7 @@ export default function ToolCallCard({ message, resolvedToolName }: ToolCallCard
           name={expanded ? "ChevronDown" : "ChevronRight"}
           className="h-3 w-3 shrink-0"
         />
-        <ForwardedIconComponent name="Wrench" className="h-3 w-3 shrink-0" />
+        <Wrench className="h-3 w-3 shrink-0" />
         <span className="truncate">{toolName}</span>
       </button>
       {expanded && (

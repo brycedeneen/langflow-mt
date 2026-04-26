@@ -5,7 +5,7 @@ import { getBaseUrl } from "@/customization/utils/urls";
 import { createFileUpload } from "@/helpers/create-file-upload";
 import useFileSizeValidator from "@/shared/hooks/use-file-size-validator";
 import useAlertStore from "@/stores/alertStore";
-import IconComponent from "../../../../../components/common/genericIconComponent";
+import { ArrowUpToLine, SunIcon } from "lucide-react";
 import { Button } from "../../../../../components/ui/button";
 import { ALLOWED_IMAGE_INPUT_EXTENSIONS } from "../../../../../constants/constants";
 import useFlowsManagerStore from "../../../../../stores/flowsManagerStore";
@@ -147,7 +147,7 @@ export default function IOFileInput({ field, updateValue }: IOFileInputProps) {
 
         {isDragging ? (
           <>
-            <IconComponent name="ArrowUpToLine" className="h-5 w-5 stroke-1" />
+            <ArrowUpToLine className="h-5 w-5 stroke-1" />
             "Drop your file here"
           </>
         ) : image ? (
@@ -157,7 +157,7 @@ export default function IOFileInput({ field, updateValue }: IOFileInputProps) {
           />
         ) : (
           <>
-            <IconComponent name="SunIcon" className="h-8 w-8 stroke-1" />
+            <SunIcon className="h-8 w-8 stroke-1" />
           </>
         )}
       </div>

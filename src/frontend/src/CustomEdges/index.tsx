@@ -5,7 +5,7 @@ import {
   Position,
 } from "@xyflow/react";
 import { memo } from "react";
-import IconComponent from "@/components/common/genericIconComponent";
+import { Trash2 } from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -118,7 +118,7 @@ export const DefaultEdge = memo(function DefaultEdge({
             }}
             data-testid="context-menu-item-destructive"
           >
-            <IconComponent name="Trash2" className="size-3.5 text-inherit" />
+            <Trash2 className="size-3.5 text-inherit" />
             <span className="text-xs">Delete</span>
           </ContextMenuItem>
         </ContextMenuContent>

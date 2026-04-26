@@ -1,6 +1,7 @@
 import { ComponentPropsWithoutRef } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { ChevronsUpDown } from "lucide-react";
 import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
 import CodeTabsComponent from "@/components/core/codeTabsComponent";
 import {
@@ -143,9 +144,8 @@ function ErrorAccordion({
                   An error occurred
                 </span>
               </div>
-              <ForwardedIconComponent
+              <ChevronsUpDown
                 className="h-4 w-4 text-muted-foreground"
-                name="ChevronsUpDown"
               />
             </div>
           </div>

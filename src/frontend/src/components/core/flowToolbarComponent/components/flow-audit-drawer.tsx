@@ -1,5 +1,5 @@
 import { useState } from "react";
-import IconComponent from "@/components/common/genericIconComponent";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AuditLogListItem } from "@/controllers/API/queries/admin/use-get-audit-logs";
 import { useGetFlowAuditLogs } from "@/controllers/API/queries/flows/use-get-flow-audit-logs";
@@ -74,7 +74,7 @@ function FlowAuditDrawerContent({
       <div className="flex items-center justify-between p-4 border-b">
         <h2 className="font-semibold">Flow history</h2>
         <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
-          <IconComponent name="X" className="h-4 w-4" />
+          <X className="h-4 w-4" />
         </Button>
       </div>
       <div className="flex-1 overflow-auto text-sm">

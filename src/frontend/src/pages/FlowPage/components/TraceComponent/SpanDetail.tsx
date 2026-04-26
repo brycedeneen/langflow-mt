@@ -1,3 +1,4 @@
+import { AlertCircle, MousePointer } from "lucide-react";
 import IconComponent from "@/components/common/genericIconComponent";
 import SimplifiedCodeTabComponent from "@/components/core/codeTabsComponent";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +25,7 @@ export function SpanDetail({ span }: SpanDetailProps) {
         data-testid="span-detail-empty"
       >
         <div className="text-center">
-          <IconComponent name="MousePointer" className="mx-auto mb-2 h-8 w-8" />
+          <MousePointer className="mx-auto mb-2 h-8 w-8" />
           <p className="text-sm">Select a span to view details</p>
         </div>
       </div>
@@ -75,7 +76,7 @@ export function SpanDetail({ span }: SpanDetailProps) {
         {span.error && (
           <div className="mb-4 rounded-md border border-error-foreground/20 bg-error-background/50 p-3">
             <div className="flex items-center gap-2 text-sm font-medium text-error-foreground">
-              <IconComponent name="AlertCircle" className="h-4 w-4" />
+              <AlertCircle className="h-4 w-4" />
               Error
             </div>
             <p className="mt-1 text-sm text-error-foreground/90">

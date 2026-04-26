@@ -1,6 +1,6 @@
 import { memo, useEffect, useRef, useState } from "react";
 import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { ChevronRight, Maximize } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Disclosure,
@@ -577,8 +577,7 @@ function AccordionPromptComponent({
               tabIndex={0}
               className="flex h-4 w-4 cursor-pointer items-center justify-center"
             >
-              <ForwardedIconComponent
-                name="ChevronRight"
+              <ChevronRight
                 className={cn(
                   "h-4 w-4 text-muted-foreground transition-transform duration-200",
                   isOpen && "rotate-90",
@@ -640,8 +639,7 @@ function AccordionPromptComponent({
                         : "button_open_prompt_modal"
                     }
                   >
-                    <ForwardedIconComponent
-                      name="Maximize"
+                    <Maximize
                       className="h-3.5 w-3.5"
                     />
                   </Button>

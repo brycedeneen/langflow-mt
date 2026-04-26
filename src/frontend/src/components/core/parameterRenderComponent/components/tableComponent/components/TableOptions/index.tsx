@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import IconComponent from "@/components/common/genericIconComponent";
+import { Copy, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import type { TableOptionsTypeAPI } from "@/types/api";
@@ -45,8 +45,7 @@ export default function TableOptions({
                   onClick={addRow}
                   tabIndex={tabIndex}
                 >
-                  <IconComponent
-                    name="Plus"
+                  <Plus
                     className={cn("h-5 w-5 text-primary transition-all")}
                   />
                 </Button>
@@ -72,8 +71,7 @@ export default function TableOptions({
                   disabled={!hasSelection}
                   tabIndex={tabIndex}
                 >
-                  <IconComponent
-                    name="Copy"
+                  <Copy
                     className={cn(
                       "h-5 w-5 transition-all",
                       hasSelection
@@ -108,8 +106,7 @@ export default function TableOptions({
                   disabled={!hasSelection}
                   tabIndex={tabIndex}
                 >
-                  <IconComponent
-                    name="Trash2"
+                  <Trash2
                     className={cn(
                       "h-5 w-5 transition-all",
                       !hasSelection
@@ -145,8 +142,7 @@ export default function TableOptions({
                 disabled={!stateChange}
                 tabIndex={tabIndex}
               >
-                <IconComponent
-                  name="RotateCcw"
+                <RotateCcw
                   strokeWidth={2}
                   className={cn(
                     "h-5 w-5 transition-all",

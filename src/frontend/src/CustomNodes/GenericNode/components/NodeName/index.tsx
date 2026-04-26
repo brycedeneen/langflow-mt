@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { FlaskConical } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import useFlowStore from "@/stores/flowStore";
@@ -117,8 +117,7 @@ export default function NodeName({
           <Tooltip delayDuration={500}>
             <TooltipTrigger asChild>
               <div className="flex h-4 w-4 items-center justify-center rounded-sm border border-accent-purple-foreground p-0.5">
-                <ForwardedIconComponent
-                  name="FlaskConical"
+                <FlaskConical
                   className="text-accent-purple-foreground"
                 />
               </div>

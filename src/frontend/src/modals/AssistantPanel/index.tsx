@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   deleteConversation,
@@ -119,7 +119,7 @@ export default function AssistantPanel({ flowId }: AssistantPanelProps) {
       <PanelHeader onClear={handleClear} onClose={handleClose} />
       {stale && (
         <div className="flex items-center gap-2 border-b bg-yellow-50 px-4 py-2 text-xs text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
-          <ForwardedIconComponent name="AlertTriangle" className="h-4 w-4 shrink-0" />
+          <AlertTriangle className="h-4 w-4 shrink-0" />
           <span className="flex-1">New messages from a teammate</span>
           <Button
             variant="ghost"

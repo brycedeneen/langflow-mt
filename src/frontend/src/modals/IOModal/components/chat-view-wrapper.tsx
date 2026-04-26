@@ -2,7 +2,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/utils/utils";
-import IconComponent from "../../../components/common/genericIconComponent";
+import { PanelLeftOpen, Plus } from "lucide-react";
 import type { ChatViewWrapperProps } from "../types/chat-view-wrapper";
 import ChatView from "./chatView/components/chat-view";
 
@@ -43,8 +43,7 @@ export const ChatViewWrapper = ({
               onClick={() => setSidebarOpen(true)}
               className="h-8 w-8"
             >
-              <IconComponent
-                name="PanelLeftOpen"
+              <PanelLeftOpen
                 className="h-[18px] w-[18px] text-ring"
               />
             </Button>
@@ -81,8 +80,7 @@ export const ChatViewWrapper = ({
                   setSelectedViewField(undefined);
                 }}
               >
-                <IconComponent
-                  name="Plus"
+                <Plus
                   className="!h-[18px] !w-[18px] text-ring"
                 />
               </Button>

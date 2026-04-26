@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Play } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ResizableSidebarTrigger } from "@/components/ui/resizable-sidebar";
 import { PLAYGROUND_BUTTON_NAME } from "@/constants/constants";
@@ -16,7 +16,7 @@ const DisabledButton = () => (
     className="relative inline-flex h-8 w-[7.2rem] items-center justify-start gap-1.5 rounded px-2 text-sm font-normal cursor-not-allowed text-muted-foreground"
     data-testid="playground-btn-flow"
   >
-    <ForwardedIconComponent name="Play" className="h-4 w-4" />
+    <Play className="h-4 w-4" />
     <ButtonLabel />
   </div>
 );

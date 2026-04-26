@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Store } from "lucide-react";
 import { SidebarMenuButton } from "@/components/ui/sidebar";
 
 export const CustomStoreButton = () => {
@@ -12,7 +12,7 @@ export const CustomStoreButton = () => {
             window.open("/store", "_blank");
           }}
         >
-          <ForwardedIconComponent name="Store" className="h-4 w-4" />
+          <Store className="h-4 w-4" />
           Store
         </SidebarMenuButton>
       </div>

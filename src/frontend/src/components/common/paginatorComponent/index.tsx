@@ -5,7 +5,7 @@ import {
   PAGINATION_SIZE,
 } from "@/constants/constants";
 import type { PaginatorComponentType } from "../../../types/components";
-import IconComponent from "../../common/genericIconComponent";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../../ui/button";
 import {
   Select,
@@ -90,7 +90,7 @@ export default function PaginatorComponent({
             size={"iconMd"}
           >
             <span className="sr-only">Go to previous page</span>
-            <IconComponent name="ChevronLeft" className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
             disabled={disableLastPage}
@@ -101,7 +101,7 @@ export default function PaginatorComponent({
             size={"iconMd"}
           >
             <span className="sr-only">Go to next page</span>
-            <IconComponent name="ChevronRight" className="h-4 w-4" />
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>

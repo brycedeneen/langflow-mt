@@ -15,9 +15,8 @@ import {
 } from "../../../../../constants/alerts_constants";
 import useAlertStore from "../../../../../stores/alertStore";
 import useFlowsManagerStore from "../../../../../stores/flowsManagerStore";
-import IconComponent, {
-  ForwardedIconComponent,
-} from "../../../../common/genericIconComponent";
+import { Plus } from "lucide-react";
+import IconComponent from "../../../../common/genericIconComponent";
 import { Button } from "../../../../ui/button";
 import { getPlaceholder } from "../../helpers/get-placeholder-disabled";
 import type { FileComponentType, InputProps } from "../../types";
@@ -286,8 +285,7 @@ function InputFileComponent({
                         {disabled ? (
                           getPlaceholder(disabled, placeholder)
                         ) : selectedFiles.length !== 0 ? (
-                          <ForwardedIconComponent
-                            name="Plus"
+                          <Plus
                             className="icon-size"
                             strokeWidth={ICON_STROKE_WIDTH}
                           />

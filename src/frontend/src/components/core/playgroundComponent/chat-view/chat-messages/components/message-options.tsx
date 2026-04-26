@@ -1,4 +1,5 @@
 import { type ButtonHTMLAttributes, useState } from "react";
+import { Pen } from "lucide-react";
 import IconComponent from "@/components/common/genericIconComponent";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -43,7 +44,7 @@ export function EditMessageButton({
                 onClick={onEdit}
                 className="h-8 w-8"
               >
-                <IconComponent name="Pen" className="h-4 w-4" />
+                <Pen className="h-4 w-4" />
               </Button>
             </div>
           </TooltipTrigger>

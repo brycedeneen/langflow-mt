@@ -21,6 +21,7 @@ import type { InputFieldType, VertexBuildTypeAPI } from "@/types/api";
 import type { NodeDataType } from "@/types/flow";
 import { formatTokenCount } from "@/utils/format-token-count";
 import { findLastNode } from "@/utils/reactflowUtils";
+import { Coins } from "lucide-react";
 import { classNames, cn } from "@/utils/utils";
 import IconComponent from "../../../../components/common/genericIconComponent";
 import BuildStatusDisplay from "./components/build-status-display";
@@ -413,8 +414,7 @@ export default function NodeStatus({
                           className="flex items-center gap-1"
                           data-testid={`node-token-count-${display_name.toLowerCase()}`}
                         >
-                          <IconComponent
-                            name="Coins"
+                          <Coins
                             className="h-3 w-3 text-muted-foreground"
                             strokeWidth={ICON_STROKE_WIDTH}
                           />

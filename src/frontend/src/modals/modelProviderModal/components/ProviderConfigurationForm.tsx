@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Check, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import MultiselectComponent from "@/components/core/parameterRenderComponent/components/multiselectComponent";
 import { Button } from "@/components/ui/button";
@@ -220,8 +220,7 @@ const ProviderConfigurationForm = ({
                               <Tooltip delayDuration={500}>
                                 <TooltipTrigger asChild>
                                   <div>
-                                    <ForwardedIconComponent
-                                      name="X"
+                                    <X
                                       className="h-4 w-4 text-destructive cursor-default"
                                     />
                                   </div>
@@ -237,8 +236,7 @@ const ProviderConfigurationForm = ({
                               </Tooltip>
                             ) : (
                               <div>
-                                <ForwardedIconComponent
-                                  name="X"
+                                <X
                                   className="h-4 w-4 text-destructive cursor-default"
                                 />
                               </div>
@@ -249,8 +247,7 @@ const ProviderConfigurationForm = ({
                           (validationState === "valid" ||
                             (isConfigured && !hasNewValue)) && (
                             <span className="absolute right-8 top-1/2 -translate-y-1/2 text-accent-emerald-foreground pointer-events-none">
-                              <ForwardedIconComponent
-                                name="Check"
+                              <Check
                                 className="h-4 w-4"
                               />
                             </span>
@@ -308,8 +305,7 @@ const ProviderConfigurationForm = ({
                           <Tooltip delayDuration={500}>
                             <TooltipTrigger asChild>
                               <div>
-                                <ForwardedIconComponent
-                                  name="X"
+                                <X
                                   className="h-4 w-4 text-destructive cursor-default"
                                 />
                               </div>
@@ -325,8 +321,7 @@ const ProviderConfigurationForm = ({
                           </Tooltip>
                         ) : (
                           <div>
-                            <ForwardedIconComponent
-                              name="X"
+                            <X
                               className="h-4 w-4 text-destructive cursor-default"
                             />
                           </div>
@@ -334,8 +329,7 @@ const ProviderConfigurationForm = ({
                       ) : !isLoading &&
                         (validationState === "valid" ||
                           (isConfigured && !hasNewValue && !isEditing)) ? (
-                        <ForwardedIconComponent
-                          name="Check"
+                        <Check
                           className="h-4 w-4 text-accent-emerald-foreground pointer-events-none"
                         />
                       ) : undefined

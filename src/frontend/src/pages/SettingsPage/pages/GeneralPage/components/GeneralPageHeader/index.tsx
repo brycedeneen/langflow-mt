@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "../../../../../../components/common/genericIconComponent";
+import { SlidersHorizontal } from "lucide-react";
 
 const GeneralPageHeaderComponent = () => {
   return (
@@ -10,8 +10,7 @@ const GeneralPageHeaderComponent = () => {
             data-testid="settings_menu_header"
           >
             General
-            <ForwardedIconComponent
-              name="SlidersHorizontal"
+            <SlidersHorizontal
               className="ml-2 h-5 w-5 text-primary"
             />
           </h2>

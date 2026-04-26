@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { Ellipsis } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import TagChip from "@/components/common/TagChip";
@@ -239,8 +240,7 @@ const ListComponent = ({
                 data-testid="home-dropdown-menu"
                 className="group"
               >
-                <ForwardedIconComponent
-                  name="Ellipsis"
+                <Ellipsis
                   aria-hidden="true"
                   className="h-5 w-5 text-muted-foreground group-hover:text-foreground"
                 />

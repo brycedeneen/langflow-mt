@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { X } from "lucide-react";
 import IconComponent from "@/components/common/genericIconComponent";
 import { Button } from "@/components/ui/button";
 import { useGetUserData, useUpdateUser } from "@/controllers/API/queries/auth";
@@ -72,7 +73,7 @@ export const GetStartedProgress = ({
           className="text-muted-foreground hover:text-foreground"
           data-testid="close_get_started_dialog"
         >
-          <IconComponent name="X" className="h-4 w-4" />
+          <X className="h-4 w-4" />
         </button>
       </div>
 

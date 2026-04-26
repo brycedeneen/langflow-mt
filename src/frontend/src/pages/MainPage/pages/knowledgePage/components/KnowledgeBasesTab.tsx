@@ -3,7 +3,7 @@ import type { AgGridReact } from "ag-grid-react";
 import { useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Plus, Trash2 } from "lucide-react";
 import TableComponent from "@/components/core/parameterRenderComponent/components/tableComponent";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -218,7 +218,7 @@ const KnowledgeBasesTab = ({
             className="flex items-center gap-2 font-semibold"
             onClick={() => actions.setIsBulkDeleteModalOpen(true)}
           >
-            <ForwardedIconComponent name="Trash2" className="h-4 w-4" />
+            <Trash2 className="h-4 w-4" />
             Delete ({quantitySelected})
           </Button>
         ) : (
@@ -226,7 +226,7 @@ const KnowledgeBasesTab = ({
             className="flex items-center gap-2 font-semibold"
             onClick={() => setIsUploadModalOpen(true)}
           >
-            <ForwardedIconComponent name="Plus" className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
             Add Knowledge
           </Button>
         )}

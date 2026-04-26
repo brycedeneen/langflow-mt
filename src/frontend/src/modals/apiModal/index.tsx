@@ -16,7 +16,7 @@ import "ace-builds/src-noconflict/theme-twilight";
 import { cloneDeep } from "lodash";
 import { type ChangeEvent, type ReactNode, useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import IconComponent from "../../components/common/genericIconComponent";
+import { Code2, SlidersHorizontal } from "lucide-react";
 import { useTweaksStore } from "../../stores/tweaksStore";
 import BaseModal from "../baseModal";
 import APITabsComponent from "./codeTabs/code-tabs";
@@ -122,8 +122,7 @@ export default function ApiModal({
             </span>
           }
         >
-          <IconComponent
-            name="Code2"
+          <Code2
             className="h-6 w-6 text-foreground"
             aria-hidden="true"
           />
@@ -137,8 +136,7 @@ export default function ApiModal({
                 onClick={() => setOpenTweaks(true)}
                 data-testid="tweaks-button"
               >
-                <IconComponent
-                  name="SlidersHorizontal"
+                <SlidersHorizontal
                   className="h-3.5 w-3.5"
                 />
                 <span>Input Schema ({Object.keys(tweaks)?.length}) </span>
@@ -163,7 +161,7 @@ export default function ApiModal({
         size="medium-small-tall"
       >
         <BaseModal.Header>
-          <IconComponent name="SlidersHorizontal" className="text-f h-6 w-6" />
+          <SlidersHorizontal className="text-f h-6 w-6" />
           <span className="pl-2">Input Schema</span>
         </BaseModal.Header>
         <BaseModal.Content overflowHidden className="flex flex-col gap-4">

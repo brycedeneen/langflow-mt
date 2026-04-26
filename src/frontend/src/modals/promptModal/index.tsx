@@ -1,7 +1,7 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { usePostValidatePrompt } from "@/controllers/API/queries/nodes/use-post-validate-prompt";
-import IconComponent from "../../components/common/genericIconComponent";
+import { Braces, TerminalSquare } from "lucide-react";
 import SanitizedHTMLWrapper from "../../components/common/sanitizedHTMLWrapper";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/ui/tooltip";
 import { Badge } from "../../components/ui/badge";
@@ -233,8 +233,7 @@ export default function PromptModal({
       <BaseModal.Header>
         <div className="flex w-full items-start gap-3">
           <div className="flex">
-            <IconComponent
-              name="TerminalSquare"
+            <TerminalSquare
               className="h-6 w-6 pr-1 text-primary"
               aria-hidden="true"
             />
@@ -287,8 +286,7 @@ export default function PromptModal({
                 className="max-h-20 overflow-y-auto custom-scroll"
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <IconComponent
-                    name="Braces"
+                  <Braces
                     className="flex h-4 w-4 text-primary"
                   />
                   <span className="text-md font-semibold text-primary">

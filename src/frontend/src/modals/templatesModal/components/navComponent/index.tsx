@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Ellipsis, Pencil, Plus, Trash2 } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { convertTestName } from "@/components/common/storeCardComponent/utils/convert-test-name";
 import { Button } from "@/components/ui/button";
@@ -224,8 +225,7 @@ export function Nav({
                                 )}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <ForwardedIconComponent
-                                  name="Ellipsis"
+                                <Ellipsis
                                   className="h-3.5 w-3.5"
                                 />
                               </button>
@@ -238,8 +238,7 @@ export function Nav({
                                   setEditOpen(true);
                                 }}
                               >
-                                <ForwardedIconComponent
-                                  name="Pencil"
+                                <Pencil
                                   className="mr-2 h-4 w-4"
                                 />
                                 Edit
@@ -252,8 +251,7 @@ export function Nav({
                                   setDeleteDialogOpen(true);
                                 }}
                               >
-                                <ForwardedIconComponent
-                                  name="Trash2"
+                                <Trash2
                                   className="mr-2 h-4 w-4"
                                 />
                                 Delete
@@ -281,8 +279,7 @@ export function Nav({
                           data-testid="side_nav_new_category"
                           tooltip="New category"
                         >
-                          <ForwardedIconComponent
-                            name="Plus"
+                          <Plus
                             className="h-4 w-4 stroke-2 text-muted-foreground"
                           />
                           <span className="text-muted-foreground">

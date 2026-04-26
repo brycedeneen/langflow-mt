@@ -1,7 +1,7 @@
 import { cloneDeep } from "lodash";
 import { memo, useCallback, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import IconComponent from "@/components/common/genericIconComponent";
+import { MoreHorizontal } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Popover,
@@ -165,8 +165,7 @@ const NoteToolbarComponent = memo(function NoteToolbarComponent({
                   data-testid="more-options-modal"
                   className="relative -ml-px inline-flex h-8 w-[2rem] items-center rounded-r-md bg-background text-foreground shadow-md transition-all duration-500 ease-in-out hover:bg-muted focus:z-10"
                 >
-                  <IconComponent
-                    name="MoreHorizontal"
+                  <MoreHorizontal
                     className="relative left-2 h-4 w-4"
                   />
                 </div>

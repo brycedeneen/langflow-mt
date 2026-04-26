@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { ListFilter, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 
@@ -18,10 +18,7 @@ export function SidebarFilterComponent({
       className={`mb-0.5 flex w-full items-center overflow-hidden justify-between rounded border p-2 text-sm text-foreground`}
     >
       <div className="flex flex-1 items-center gap-1.5 overflow-hidden">
-        <ForwardedIconComponent
-          name="ListFilter"
-          className={`h-4 w-4 shrink-0 stroke-2`}
-        />
+        <ListFilter className="h-4 w-4 shrink-0 stroke-2" />
         <div className="flex flex-1 overflow-hidden">
           {name}
           {plural}:{" "}
@@ -38,11 +35,7 @@ export function SidebarFilterComponent({
             onClick={resetFilters}
             data-testid="sidebar-filter-reset"
           >
-            <ForwardedIconComponent
-              name="X"
-              className="h-4 w-4 stroke-2"
-              aria-hidden="true"
-            />
+            <X className="h-4 w-4 stroke-2" aria-hidden="true" />
           </Button>
         </TooltipTrigger>
         <TooltipContent

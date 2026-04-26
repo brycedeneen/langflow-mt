@@ -1,7 +1,6 @@
 import { PopoverAnchor } from "@radix-ui/react-popover";
-import { X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import {
   Tooltip,
   TooltipContent,
@@ -120,18 +119,10 @@ const SelectionIndicator = ({ isSelected }: { isSelected: boolean }) => (
     )}
   >
     <div className="absolute opacity-100 transition-all group-hover:opacity-0">
-      <ForwardedIconComponent
-        name="Check"
-        className="mr-2 h-4 w-4 text-primary"
-        aria-hidden="true"
-      />
+      <Check className="mr-2 h-4 w-4 text-primary" aria-hidden="true" />
     </div>
     <div className="absolute opacity-0 transition-all group-hover:opacity-100">
-      <ForwardedIconComponent
-        name="X"
-        className="mr-2 h-4 w-4 text-status-red"
-        aria-hidden="true"
-      />
+      <X className="mr-2 h-4 w-4 text-status-red" aria-hidden="true" />
     </div>
   </div>
 );

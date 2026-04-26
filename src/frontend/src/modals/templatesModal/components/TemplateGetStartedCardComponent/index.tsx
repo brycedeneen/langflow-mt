@@ -1,3 +1,4 @@
+import { ArrowRight } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { convertTestName } from "@/components/common/storeCardComponent/utils/convert-test-name";
 import { cn } from "@/utils/utils";
@@ -79,8 +80,7 @@ export default function TemplateGetStartedCardComponent({
           >
             {flow.name}
           </h3>
-          <ForwardedIconComponent
-            name="ArrowRight"
+          <ArrowRight
             className="mr-3 h-5 w-5 shrink-0 translate-x-0 opacity-0 transition-all duration-300 group-hover:translate-x-3 group-hover:opacity-100 group-focus-visible:translate-x-3 group-focus-visible:opacity-100"
           />
         </div>

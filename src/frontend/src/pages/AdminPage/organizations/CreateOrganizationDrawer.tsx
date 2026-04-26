@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateOrganization } from "@/controllers/API/queries/admin";
 import useAlertStore from "@/stores/alertStore";
-import IconComponent from "../../../components/common/genericIconComponent";
+import { ChevronLeft } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 
@@ -70,7 +70,7 @@ export default function CreateOrganizationDrawer() {
               size="icon"
               onClick={() => navigate("/settings/organizations")}
             >
-              <IconComponent name="ChevronLeft" className="w-5" />
+              <ChevronLeft className="w-5" />
             </Button>
             New Organization
           </h2>

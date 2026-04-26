@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import {
   CommandGroup,
@@ -53,8 +54,7 @@ const ModelList = ({
                 />
                 <div className="truncate text-[13px]">{data.name}</div>
                 <div className="pl-2 ml-auto">
-                  <ForwardedIconComponent
-                    name="Check"
+                  <Check
                     className={cn(
                       "h-4 w-4 shrink-0 text-primary",
                       selectedModel?.name === data.name

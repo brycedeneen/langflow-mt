@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import { cn } from "../../../utils/utils";
-import IconComponent from "../../common/genericIconComponent";
+import { ArrowUpToLine } from "lucide-react";
 
 export default function CardsWrapComponent({
   onFileDrop,
@@ -80,7 +80,7 @@ export default function CardsWrapComponent({
     >
       {isDragging ? (
         <>
-          <IconComponent name="ArrowUpToLine" className="h-12 w-12 stroke-1" />
+          <ArrowUpToLine className="h-12 w-12 stroke-1" />
           {dragMessage ? dragMessage : "Drop your file here"}
         </>
       ) : (

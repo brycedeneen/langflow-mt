@@ -1,5 +1,5 @@
 import { useState } from "react";
-import IconComponent from "@/components/common/genericIconComponent";
+import { Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -156,8 +156,7 @@ export default function OrganizationThresholdsTab({ orgId }: { orgId: string }) 
             {isPending ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center">
-                  <IconComponent
-                    name="Loader2"
+                  <Loader2
                     className="mx-auto h-5 w-5 animate-spin"
                   />
                 </TableCell>
@@ -218,7 +217,7 @@ export default function OrganizationThresholdsTab({ orgId }: { orgId: string }) 
                       data-testid={`threshold-delete-${t.id}`}
                       aria-label="Delete threshold"
                     >
-                      <IconComponent name="Trash2" className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>

@@ -1,6 +1,6 @@
 import type { AgGridReact } from "ag-grid-react";
 import { useCallback, useRef, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Columns } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TableModal from "@/modals/tableModal";
 import type { ColumnField } from "@/types/utils/functions";
@@ -176,7 +176,7 @@ export function ColumnConfig({
     >
       <Button variant="outline" className="w-full justify-center">
         <span className="flex items-center gap-2">
-          <ForwardedIconComponent name="Columns" className="h-4 w-4" />
+          <Columns className="h-4 w-4" />
           Open Table
         </span>
       </Button>

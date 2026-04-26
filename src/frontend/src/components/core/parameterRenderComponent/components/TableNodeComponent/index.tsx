@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import TableModal from "@/modals/tableModal";
 import { isMarkdownTable } from "@/utils/markdownUtils";
 import { FormatColumns, generateBackendColumnsFromValue } from "@/utils/utils";
+import { Info } from "lucide-react";
 import { ForwardedIconComponent } from "../../../../common/genericIconComponent";
 import { Button } from "../../../../ui/button";
 import type { InputProps, TableComponentType } from "../../types";
@@ -94,7 +95,7 @@ function TableNodeComponent({
             <Tooltip delayDuration={500}>
               <TooltipTrigger asChild>
                 <div>
-                  <ForwardedIconComponent name="Info" className="h-4 w-4" />
+                  <Info className="h-4 w-4" />
                 </div>
               </TooltipTrigger>
               <TooltipContent

@@ -1,4 +1,4 @@
-import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
+import { Key, Store } from "lucide-react";
 
 export const CustomStoreSidebar = (
   hasApiKey: boolean = false,
@@ -11,8 +11,7 @@ export const CustomStoreSidebar = (
       title: "Amplify API Keys",
       href: "/settings/api-keys",
       icon: (
-        <ForwardedIconComponent
-          name="Key"
+        <Key
           className="w-4 shrink-0 justify-start stroke-[1.5]"
         />
       ),
@@ -24,8 +23,7 @@ export const CustomStoreSidebar = (
       title: "Langflow Store",
       href: "/settings/store",
       icon: (
-        <ForwardedIconComponent
-          name="Store"
+        <Store
           className="w-4 shrink-0 justify-start stroke-[1.5]"
         />
       ),

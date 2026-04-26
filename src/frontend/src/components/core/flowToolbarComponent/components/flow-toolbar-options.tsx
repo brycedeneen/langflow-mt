@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Tag } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import TagPicker from "@/components/common/TagPicker";
 import { PSRequestButton } from "@/components/core/proServiceQuotes/PSRequestButton";
@@ -57,7 +57,7 @@ function FlowTagsButton() {
               data-testid="flow-tags-btn"
               className="relative inline-flex h-8 items-center justify-center gap-1.5 rounded px-2 text-sm font-normal text-muted-foreground hover:bg-muted"
             >
-              <ForwardedIconComponent name="Tag" className="h-4 w-4" />
+              <Tag className="h-4 w-4" />
               <span className="font-normal text-mmd">Tags</span>
             </button>
           </PopoverTrigger>

@@ -1,4 +1,4 @@
-import IconComponent from "@/components/common/genericIconComponent";
+import { Upload } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 
@@ -13,7 +13,7 @@ export const UploadFolderButton = ({ onClick, disabled }) => (
         data-testid="upload-project-button"
         disabled={disabled}
       >
-        <IconComponent name="Upload" className="h-4 w-4" />
+        <Upload className="h-4 w-4" />
       </Button>
     </TooltipTrigger>
     <TooltipContent

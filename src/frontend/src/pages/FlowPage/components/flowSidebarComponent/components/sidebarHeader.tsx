@@ -1,6 +1,6 @@
 import { memo } from "react";
 
-import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
+import { PanelLeftClose, SlidersHorizontal } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/utils/utils";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ export const SidebarHeaderComponent = memo(function SidebarHeaderComponent({
         <Disclosure open={showConfig} onOpenChange={setShowConfig}>
           <div className="flex w-full items-center gap-2">
             <SidebarTrigger className="text-muted-foreground">
-              <ForwardedIconComponent name="PanelLeftClose" />
+              <PanelLeftClose />
             </SidebarTrigger>
             <h3 className="flex-1 cursor-default text-sm font-semibold">
               Components
@@ -53,8 +53,7 @@ export const SidebarHeaderComponent = memo(function SidebarHeaderComponent({
                       size="iconMd"
                       data-testid="sidebar-options-trigger"
                     >
-                      <ForwardedIconComponent
-                        name="SlidersHorizontal"
+                      <SlidersHorizontal
                         className="h-4 w-4"
                       />
                     </Button>

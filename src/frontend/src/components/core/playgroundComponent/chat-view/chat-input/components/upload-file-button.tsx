@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Image } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 
@@ -42,7 +42,7 @@ const UploadFileButton = ({
             onClick={handleClick}
             unstyled
           >
-            <ForwardedIconComponent className="h-[18px] w-[18px]" name="Image" />
+            <Image className="h-[18px] w-[18px]" />
           </Button>
         </div>
       </TooltipTrigger>

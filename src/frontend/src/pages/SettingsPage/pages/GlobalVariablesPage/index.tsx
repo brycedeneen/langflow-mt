@@ -16,9 +16,7 @@ import {
 } from "@/controllers/API/queries/variables";
 import type { APIClassType } from "@/types/api";
 import type { GlobalVariable } from "@/types/global_variables";
-import IconComponent, {
-  ForwardedIconComponent,
-} from "../../../../components/common/genericIconComponent";
+import { Globe, Plus } from "lucide-react";
 import { Badge } from "../../../../components/ui/badge";
 import { Button } from "../../../../components/ui/button";
 import useAlertStore from "../../../../stores/alertStore";
@@ -186,8 +184,7 @@ export default function GlobalVariablesPage() {
             data-testid="settings_menu_header"
           >
             Global Variables
-            <ForwardedIconComponent
-              name="Globe"
+            <Globe
               className="ml-2 h-5 w-5 text-primary"
             />
           </h2>
@@ -198,7 +195,7 @@ export default function GlobalVariablesPage() {
         <div className="flex shrink-0 items-center gap-2">
           <GlobalVariableModal asChild>
             <Button data-testid="api-key-button-store" variant="primary">
-              <IconComponent name="Plus" className="w-4" />
+              <Plus className="w-4" />
               Add New
             </Button>
           </GlobalVariableModal>

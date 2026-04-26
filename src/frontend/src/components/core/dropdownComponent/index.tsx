@@ -22,6 +22,7 @@ import {
   formatName,
   groupByFamily,
 } from "../../../utils/utils";
+import { Check, Circle, Plus, RefreshCcw } from "lucide-react";
 import { default as ForwardedIconComponent } from "../../common/genericIconComponent";
 import {
   Tooltip,
@@ -524,8 +525,7 @@ export default function Dropdown({
                                 })}
                               >
                                 {i > 0 && (
-                                  <ForwardedIconComponent
-                                    name="Circle"
+                                  <Circle
                                     className="mx-1 h-1 w-1 shrink-0 overflow-visible fill-muted-foreground"
                                   />
                                 )}
@@ -542,8 +542,7 @@ export default function Dropdown({
                             !filteredMetadata || filteredMetadata.length === 0,
                         })}
                       >
-                        <ForwardedIconComponent
-                          name="Check"
+                        <Check
                           className={cn(
                             "h-4 w-4 shrink-0 text-primary",
                             value === option ? "opacity-100" : "opacity-0",
@@ -589,7 +588,7 @@ export default function Dropdown({
             }}
           >
             <div className="flex items-center gap-2 pl-1 text-[13px] font-semibold">
-              <ForwardedIconComponent name="Plus" className="h-3 w-3 " />
+              <Plus className="h-3 w-3 " />
               {sourceOptions?.fields?.data?.node?.display_name}
             </div>
             {sourceOptions?.fields?.data?.node?.icon && (
@@ -611,8 +610,7 @@ export default function Dropdown({
               data-testid={`refresh-dropdown-list-${name}`}
             >
               <div className="flex items-center gap-2 pl-1 text-[13px] font-semibold">
-                <ForwardedIconComponent
-                  name="RefreshCcw"
+                <RefreshCcw
                   className={cn("h-3 w-3")}
                 />
                 Refresh list
@@ -681,8 +679,7 @@ export default function Dropdown({
                 }}
               >
                 <div className="flex items-center gap-2 pl-1">
-                  <ForwardedIconComponent
-                    name="RefreshCcw"
+                  <RefreshCcw
                     className={cn("refresh-icon h-3 w-3 text-primary")}
                   />
                   Refresh list

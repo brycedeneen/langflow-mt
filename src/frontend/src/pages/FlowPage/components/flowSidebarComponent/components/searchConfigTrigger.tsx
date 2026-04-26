@@ -1,4 +1,4 @@
-import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
+import { Settings2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 
@@ -23,7 +23,7 @@ export const SearchConfigTrigger = ({
             className="hover:text-primary text-muted-foreground"
             style={{ padding: "0px" }}
           >
-            <ForwardedIconComponent name="Settings2" className="h-4 w-4" />
+            <Settings2 className="h-4 w-4" />
           </Button>
         </TooltipTrigger>
         <TooltipContent

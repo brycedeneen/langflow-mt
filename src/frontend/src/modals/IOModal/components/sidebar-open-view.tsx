@@ -3,7 +3,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Button } from "@/components/ui/button";
 import useFlowStore from "@/stores/flowStore";
 import { useVoiceStore } from "@/stores/voiceStore";
-import IconComponent from "../../../components/common/genericIconComponent";
+import { MessagesSquare, Plus } from "lucide-react";
 import type { SidebarOpenViewProps } from "../types/sidebar-open-view";
 import SessionSelector from "./IOFieldView/components/session-selector";
 
@@ -33,8 +33,7 @@ export const SidebarOpenView = ({
         <div className="flex flex-col gap-2 pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <IconComponent
-                name="MessagesSquare"
+              <MessagesSquare
                 className="h-[18px] w-[18px] text-ring"
               />
               <div className="text-mmd font-normal">Chat</div>
@@ -53,8 +52,7 @@ export const SidebarOpenView = ({
                       setNewChatOnPlayground(true);
                     }}
                   >
-                    <IconComponent
-                      name="Plus"
+                    <Plus
                       className="h-[18px] w-[18px] text-ring"
                     />
                   </Button>

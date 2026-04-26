@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "../../../../../../components/common/genericIconComponent";
+import { MessagesSquare } from "lucide-react";
 
 const HeaderMessagesComponent = () => {
   return (
@@ -10,8 +10,7 @@ const HeaderMessagesComponent = () => {
             data-testid="settings_menu_header"
           >
             Messages
-            <ForwardedIconComponent
-              name="MessagesSquare"
+            <MessagesSquare
               className="ml-2 h-5 w-5 text-primary"
             />
           </h2>

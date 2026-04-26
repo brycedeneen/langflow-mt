@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Plus } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -63,10 +63,7 @@ export function ChatSidebar({
                 className="flex h-8 w-8 items-center justify-center !p-0 hover:bg-secondary-hover"
                 onClick={onNewChat}
               >
-                <ForwardedIconComponent
-                  name="Plus"
-                  className="h-[18px] w-[18px] text-ring"
-                />
+                <Plus className="h-[18px] w-[18px] text-ring" />
               </Button>
             </TooltipTrigger>
             <TooltipContent

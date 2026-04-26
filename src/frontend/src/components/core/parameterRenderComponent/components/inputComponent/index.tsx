@@ -1,6 +1,7 @@
 import * as Form from "@radix-ui/react-form";
 import { memo, useEffect, useRef, useState } from "react";
 import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
+import { Eye, EyeOff } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { Input } from "@/components/ui/input";
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
@@ -236,13 +237,11 @@ function InputComponent({
           }}
         >
           {pwdVisible ? (
-            <ForwardedIconComponent
-              name="Eye"
+            <Eye
               className="relative top-[1px] h-5 w-5 text-placeholder-foreground hover:text-foreground"
             />
           ) : (
-            <ForwardedIconComponent
-              name="EyeOff"
+            <EyeOff
               className="relative top-[1px] h-5 w-5 text-placeholder-foreground hover:text-foreground"
             />
           )}

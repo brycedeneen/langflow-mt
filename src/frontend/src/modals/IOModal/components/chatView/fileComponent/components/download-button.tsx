@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "../../../../../../components/common/genericIconComponent";
+import { DownloadCloud } from "lucide-react";
 import { Button } from "../../../../../../components/ui/button";
 
 export default function DownloadButton({
@@ -18,8 +18,7 @@ export default function DownloadButton({
           className="bg-transparent px-2 py-1 text-ring"
           onClick={handleDownload}
         >
-          <ForwardedIconComponent
-            name="DownloadCloud"
+          <DownloadCloud
             className="h-5 w-5 bg-transparent text-current hover:scale-110"
           />
         </Button>

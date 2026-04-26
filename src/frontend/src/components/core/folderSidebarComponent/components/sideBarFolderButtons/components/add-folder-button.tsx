@@ -1,4 +1,4 @@
-import IconComponent from "@/components/common/genericIconComponent";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -27,7 +27,7 @@ export const AddFolderButton = ({
         disabled={disabled}
         loading={loading}
       >
-        <IconComponent name="Plus" className="h-4 w-4" />
+        <Plus className="h-4 w-4" />
       </Button>
     </TooltipTrigger>
     <TooltipContent

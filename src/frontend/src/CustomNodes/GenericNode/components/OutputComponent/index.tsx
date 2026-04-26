@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -92,8 +92,7 @@ export default function OutputComponent({
             >
               <div className="flex items-center gap-1 truncate rounded-md px-2 py-1 text-sm font-medium group-hover:bg-primary/10">
                 {name}
-                <ForwardedIconComponent
-                  name="ChevronDown"
+                <ChevronDown
                   className="h-4 w-4 text-muted-foreground"
                 />
               </div>

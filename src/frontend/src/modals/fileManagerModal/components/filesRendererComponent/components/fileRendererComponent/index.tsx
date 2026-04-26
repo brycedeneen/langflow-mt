@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { EllipsisVertical, X } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -191,10 +192,7 @@ export default function FileRendererComponent({
                 handleRemove?.(file.path);
               }}
             >
-              <ForwardedIconComponent
-                name="X"
-                className="h-5 w-5 shrink-0 text-muted-foreground"
-              />
+              <X className="h-5 w-5 shrink-0 text-muted-foreground" />
             </Button>
           ) : file.progress === undefined ? (
             <FilesContextMenuComponent
@@ -211,10 +209,7 @@ export default function FileRendererComponent({
                   e.stopPropagation();
                 }}
               >
-                <ForwardedIconComponent
-                  name="EllipsisVertical"
-                  className="h-5 w-5 shrink-0"
-                />
+                <EllipsisVertical className="h-5 w-5 shrink-0" />
               </Button>
             </FilesContextMenuComponent>
           ) : (
