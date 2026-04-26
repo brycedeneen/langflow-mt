@@ -3,7 +3,7 @@
  *
  * Covers design at docs/superpowers/specs/2026-04-22-allow-custom-components-gate-design.md.
  */
-import { render, renderHook } from "@testing-library/react";
+import { fireEvent, render, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
@@ -224,36 +224,39 @@ describe("CodeAreaModal readonly gating — toolbar-modals (Task 10)", () => {
     );
   };
 
-  it("passes readonly=true when the guard returns false (tenant, flag off)", () => {
+  it("passes readonly=true when the guard returns false (tenant, flag off)", async () => {
     mockAuthState = { userData: { is_platform_admin: false } };
     mockConfigData = { allow_custom_components: false };
 
     renderToolbarModals();
 
-    expect(codeAreaModalPropSpy).toHaveBeenCalled();
+    // CodeAreaModal is React.lazy()-loaded; wait for the Suspense boundary to
+    // resolve through the jest module mock before asserting on the spy.
+    await waitFor(() => expect(codeAreaModalPropSpy).toHaveBeenCalled());
     const lastCall =
       codeAreaModalPropSpy.mock.calls[codeAreaModalPropSpy.mock.calls.length - 1][0];
     expect(lastCall.readonly).toBe(true);
   });
 
-  it("passes readonly=false for a platform admin", () => {
+  it("passes readonly=false for a platform admin", async () => {
     mockAuthState = { userData: { is_platform_admin: true } };
     mockConfigData = { allow_custom_components: false };
 
     renderToolbarModals();
 
-    expect(codeAreaModalPropSpy).toHaveBeenCalled();
+    await waitFor(() => expect(codeAreaModalPropSpy).toHaveBeenCalled());
     const lastCall =
       codeAreaModalPropSpy.mock.calls[codeAreaModalPropSpy.mock.calls.length - 1][0];
     expect(lastCall.readonly).toBe(false);
   });
 
-  it("passes readonly=false when the fleet flag is on", () => {
+  it("passes readonly=false when the fleet flag is on", async () => {
     mockAuthState = { userData: { is_platform_admin: false } };
     mockConfigData = { allow_custom_components: true };
 
     renderToolbarModals();
 
+    await waitFor(() => expect(codeAreaModalPropSpy).toHaveBeenCalled());
     const lastCall =
       codeAreaModalPropSpy.mock.calls[codeAreaModalPropSpy.mock.calls.length - 1][0];
     expect(lastCall.readonly).toBe(false);
@@ -291,25 +294,30 @@ describe("CodeAreaModal readonly gating — codeAreaComponent (Task 10)", () => 
     );
   };
 
-  it("passes readonly=true when the guard returns false (tenant, flag off)", () => {
+  it("passes readonly=true when the guard returns false (tenant, flag off)", async () => {
     mockAuthState = { userData: { is_platform_admin: false } };
     mockConfigData = { allow_custom_components: false };
 
-    renderCodeAreaComponent();
+    const { getByTestId } = renderCodeAreaComponent();
 
-    expect(codeAreaModalPropSpy).toHaveBeenCalled();
+    // CodeAreaModal is now React.lazy()-loaded and only mounts after the user
+    // clicks the trigger. Click the wrapper button (test-id matches the inner
+    // span's id) to mount the modal, then wait for Suspense to resolve.
+    fireEvent.click(getByTestId("code-area-1").closest("button")!);
+    await waitFor(() => expect(codeAreaModalPropSpy).toHaveBeenCalled());
     const lastCall =
       codeAreaModalPropSpy.mock.calls[codeAreaModalPropSpy.mock.calls.length - 1][0];
     expect(lastCall.readonly).toBe(true);
   });
 
-  it("passes readonly=false for a platform admin", () => {
+  it("passes readonly=false for a platform admin", async () => {
     mockAuthState = { userData: { is_platform_admin: true } };
     mockConfigData = { allow_custom_components: false };
 
-    renderCodeAreaComponent();
+    const { getByTestId } = renderCodeAreaComponent();
 
-    expect(codeAreaModalPropSpy).toHaveBeenCalled();
+    fireEvent.click(getByTestId("code-area-1").closest("button")!);
+    await waitFor(() => expect(codeAreaModalPropSpy).toHaveBeenCalled());
     const lastCall =
       codeAreaModalPropSpy.mock.calls[codeAreaModalPropSpy.mock.calls.length - 1][0];
     expect(lastCall.readonly).toBe(false);

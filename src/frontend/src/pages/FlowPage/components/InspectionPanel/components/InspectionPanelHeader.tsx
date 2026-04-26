@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import useHandleOnNewValue from "@/CustomNodes/hooks/use-handle-new-value";
 import useHandleNodeClass from "@/CustomNodes/hooks/use-handle-node-class";
@@ -8,8 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
 import { customOpenNewTab } from "@/customization/utils/custom-open-new-tab";
-import CodeAreaModal from "@/modals/codeAreaModal";
 import useAlertStore from "@/stores/alertStore";
+
+// Lazy-load CodeAreaModal — pulls in react-ace + ace-builds (~85KB minified).
+// Defer the chunk until the user opens the inspection-panel code editor.
+const CodeAreaModal = lazy(() => import("@/modals/codeAreaModal"));
 import useAuthStore from "@/stores/authStore";
 import { useShortcutsStore } from "@/stores/shortcuts";
 import type { NodeDataType } from "@/types/flow";
@@ -222,25 +225,27 @@ export default function InspectionPanelHeader({
 
         {hasCode && openCodeModal && isSuperuser && (
           <div className="hidden">
-            <CodeAreaModal
-              setValue={handleSetValue}
-              open={openCodeModal}
-              setOpen={setOpenCodeModal}
-              dynamic={true}
-              setNodeClass={(apiClassType, type) => {
-                handleNodeClass(apiClassType, type);
-              }}
-              nodeClass={data.node}
-              value={
-                typeof data.node?.template?.code?.value === "string"
-                  ? data.node?.template?.code?.value
-                  : ""
-              }
-              componentId={data.id}
-              readonly={!customAllowed}
-            >
-              <></>
-            </CodeAreaModal>
+            <Suspense fallback={null}>
+              <CodeAreaModal
+                setValue={handleSetValue}
+                open={openCodeModal}
+                setOpen={setOpenCodeModal}
+                dynamic={true}
+                setNodeClass={(apiClassType, type) => {
+                  handleNodeClass(apiClassType, type);
+                }}
+                nodeClass={data.node}
+                value={
+                  typeof data.node?.template?.code?.value === "string"
+                    ? data.node?.template?.code?.value
+                    : ""
+                }
+                componentId={data.id}
+                readonly={!customAllowed}
+              >
+                <></>
+              </CodeAreaModal>
+            </Suspense>
           </div>
         )}
         {descriptionElement}
