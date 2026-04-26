@@ -260,3 +260,7 @@ Carried forward from the plan's post-plan section. Record so they don't get lost
 ### 7e — Semantic palette lean-out
 
 - [ ] **The semantic color tokens still take up most of the `@theme` block** (99 of the remaining 125 `--color-*` tokens after Phase 6). Phase 7e goal: where a semantic token is effectively an alias for a single `destructive` / `muted` / `accent` role, use the role directly instead of a dedicated named token. Requires (a) reading each semantic token's actual usage pattern, (b) confirming that consolidating doesn't break a subtle visual distinction, (c) migrating call sites. High effort, moderate payoff — do this last.
+
+## 2026-04-26 — Tailwind Phase 7d follow-up: consolidate dialog-with-no-close
+
+- [ ] **`ui/dialog-with-no-close.tsx` is a near-copy of `ui/dialog.tsx` minus the close button.** Used by 2 surfaces (`modals/baseModal/index.tsx`, `CustomNodes/GenericNode/components/ListSelectionComponent/index.tsx`). Consolidate by adding a `closable?: boolean` (default `true`) prop on `ui/dialog`'s `DialogContent`. When `closable={false}`, skip rendering the ✕ button. Then migrate the 2 callers to `ui/dialog` and delete `dialog-with-no-close.tsx`. Skipped during Phase 7d audit because the divergent fork was technically thin but the consolidation requires touching the much-used `ui/dialog`.

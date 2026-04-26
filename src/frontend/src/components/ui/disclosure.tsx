@@ -1,3 +1,7 @@
+// Headless disclosure primitive (Disclosure/Trigger/Content) with grid-fr-based
+// open/close animation. ~4 callers in the flow sidebar + accordion prompt.
+// Provides a small state-management context with ARIA + keyboard handling.
+// Kept per Phase 7d audit.
 "use client";
 import * as React from "react";
 import {
