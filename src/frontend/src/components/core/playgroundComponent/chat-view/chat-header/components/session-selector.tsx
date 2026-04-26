@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUpdateSessionName } from "@/controllers/API/queries/messages/use-rename-session";
 import { useVoiceStore } from "@/stores/voiceStore";
 import { cn } from "@/utils/utils";
@@ -126,13 +126,22 @@ export function SessionSelector({
               />
             </div>
           ) : (
-            <ShadTooltip styleClasses="z-50" content={session}>
-              <div className="relative w-full overflow-hidden">
-                <span className="w-full truncate bg-transparent text-mmd">
-                  {isDefaultSession ? "Default Session" : session}
-                </span>
-              </div>
-            </ShadTooltip>
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <div className="relative w-full overflow-hidden">
+                  <span className="w-full truncate bg-transparent text-mmd">
+                    {isDefaultSession ? "Default Session" : session}
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent
+                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground z-50"
+                avoidCollisions={false}
+                sticky="always"
+              >
+                {session}
+              </TooltipContent>
+            </Tooltip>
           )}
         </div>
 

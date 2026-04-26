@@ -92,21 +92,37 @@ jest.mock("@/components/common/genericIconComponent", () => ({
   ),
 }));
 
-jest.mock("@/components/common/shadTooltipComponent", () => ({
-  __esModule: true,
-  default: ({
-    children,
-    content,
-    styleClasses,
-  }: {
-    children: React.ReactNode;
-    content?: string;
-    styleClasses?: string;
-  }) => (
-    <div data-testid="tooltip" data-content={content} className={styleClasses}>
-      {children}
-    </div>
+jest.mock("@/components/ui/tooltip", () => ({
+  Tooltip: ({ children }: { children: React.ReactNode }) => {
+    const React = require("react");
+    const childArr = React.Children.toArray(children);
+    let contentText = "";
+    let side = "";
+    for (const child of childArr) {
+      const c = child as any;
+      if (c?.type?._isTooltipContent) {
+        if (typeof c.props.children === "string") contentText = c.props.children;
+        if (c.props.side) side = c.props.side;
+      }
+    }
+    const attrs: Record<string, string> = {};
+    if (contentText) attrs["data-content"] = contentText;
+    if (side) attrs["data-side"] = side;
+    return (
+      <div data-testid="tooltip" {...attrs}>
+        {children}
+      </div>
+    );
+  },
+  TooltipTrigger: Object.assign(
+    ({ children }: { children: React.ReactNode; asChild?: boolean }) => <>{children}</>,
+    { _isTooltipTrigger: true },
   ),
+  TooltipContent: Object.assign(
+    (_props: { children: React.ReactNode; side?: string }) => null,
+    { _isTooltipContent: true },
+  ),
+  TooltipProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 // Store the onValueChange function so we can call it in tests
@@ -390,9 +406,12 @@ describe("SidebarDraggableComponent", () => {
     it("should show no tooltip content when not disabled", () => {
       render(<SidebarDraggableComponent {...defaultProps} />);
 
-      expect(screen.getAllByTestId("tooltip")[0]).not.toHaveAttribute(
-        "data-content",
-      );
+      // When not disabled, there is no outer disabled-tooltip wrapper;
+      // no tooltip should carry a disabled-tooltip message (disabledTooltip prop is not set).
+      const tooltips = screen.getAllByTestId("tooltip");
+      // The inner display-name tooltip may carry data-content with the display name,
+      // but none should carry a disabled message since disabled=false.
+      expect(tooltips.some((t) => t.getAttribute("data-content") === "This component is disabled")).toBe(false);
     });
   });
 
@@ -658,8 +677,8 @@ describe("SidebarDraggableComponent", () => {
       );
       const draggableDiv = screen.getByTestId(/testsectiontest component/i);
 
+      expect(select).toContainElement(draggableContainer);
       expect(select).toContainElement(tooltips[0]);
-      expect(tooltips[0]).toContainElement(draggableContainer);
       expect(draggableContainer).toContainElement(draggableDiv);
     });
 

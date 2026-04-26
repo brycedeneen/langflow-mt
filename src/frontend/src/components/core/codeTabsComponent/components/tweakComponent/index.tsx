@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Accordion,
   AccordionContent,
@@ -41,9 +41,19 @@ export function TweakComponent({
     >
       <AccordionItem value={node.data.id} className="border-b">
         <AccordionTrigger className="ml-3 cursor-pointer">
-          <ShadTooltip side="top" styleClasses="z-50" content={node.data.id}>
-            <div className="text-primary">{node.data.node?.display_name}</div>
-          </ShadTooltip>
+          <Tooltip delayDuration={500}>
+            <TooltipTrigger asChild>
+              <div className="text-primary">{node.data.node?.display_name}</div>
+            </TooltipTrigger>
+            <TooltipContent
+              className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground z-50"
+              side="top"
+              avoidCollisions={false}
+              sticky="always"
+            >
+              {node.data.id}
+            </TooltipContent>
+          </Tooltip>
         </AccordionTrigger>
         <AccordionContent>
           <div className="AccordionContent flex flex-col">

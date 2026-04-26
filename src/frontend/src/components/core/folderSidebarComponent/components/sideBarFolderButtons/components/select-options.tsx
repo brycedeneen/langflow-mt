@@ -1,5 +1,5 @@
 import IconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { convertTestName } from "@/components/common/storeCardComponent/utils/convert-test-name";
 import {
   Select,
@@ -39,7 +39,8 @@ export const SelectOptions = ({
         }
         value=""
       >
-        <ShadTooltip content="Options" side="right" styleClasses="z-50">
+        <Tooltip delayDuration={500}>
+        <TooltipTrigger asChild>
           <SelectTrigger
             className="w-fit"
             id={`options-trigger-${item.name}`}
@@ -55,7 +56,16 @@ export const SelectOptions = ({
               )}
             />
           </SelectTrigger>
-        </ShadTooltip>
+        </TooltipTrigger>
+        <TooltipContent
+          className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground z-50"
+          side="right"
+          avoidCollisions={false}
+          sticky="always"
+        >
+          Options
+        </TooltipContent>
+        </Tooltip>
         <SelectContent align="end" alignOffset={-16} position="popper">
           <SelectItem
             id="rename-button"

@@ -27,7 +27,6 @@ import { cn, getNumberFromString } from "@/utils/utils";
 import IconComponent, {
   ForwardedIconComponent,
 } from "../../../../components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
 import TagChip from "@/components/common/TagChip";
 import type { TemplateCardComponentProps } from "../../../../types/templates/types";
 import type { TemplateRead } from "@/types/template";
@@ -265,16 +264,23 @@ export default function TemplateCardComponent({
                   <TagChip key={t.id} tag={t} />
                 ))}
                 {overflow > 0 && (
-                  <ShadTooltip
-                    content={cardTags
-                      .slice(MAX)
-                      .map((t) => t.name)
-                      .join(", ")}
-                  >
-                    <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs text-muted-foreground">
-                      +{overflow}
-                    </span>
-                  </ShadTooltip>
+                  <Tooltip delayDuration={500}>
+                    <TooltipTrigger asChild>
+                      <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs text-muted-foreground">
+                        +{overflow}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                      avoidCollisions={false}
+                      sticky="always"
+                    >
+                      {cardTags
+                        .slice(MAX)
+                        .map((t) => t.name)
+                        .join(", ")}
+                    </TooltipContent>
+                  </Tooltip>
                 )}
               </div>
             );

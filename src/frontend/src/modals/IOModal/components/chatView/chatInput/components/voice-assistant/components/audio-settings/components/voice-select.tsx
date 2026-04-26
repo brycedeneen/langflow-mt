@@ -1,6 +1,6 @@
 import { OPENAI_VOICES } from "@/constants/constants";
 import IconComponent from "../../../../../../../../../../components/common/genericIconComponent";
-import ShadTooltip from "../../../../../../../../../../components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../../../../../../../components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -28,15 +28,24 @@ const VoiceSelect = ({
     <div className="grid w-full items-center gap-2">
       <span className="flex w-full items-center text-sm">
         Voice
-        <ShadTooltip content="You can select ElevenLabs voices if you have an ElevenLabs API key. Otherwise, you can only select OpenAI voices.">
-          <div>
-            <IconComponent
-              name="Info"
-              strokeWidth={2}
-              className="relative -top-[3px] left-1 h-[14px] w-[14px] text-placeholder"
-            />
-          </div>
-        </ShadTooltip>
+        <Tooltip delayDuration={500}>
+          <TooltipTrigger asChild>
+            <div>
+              <IconComponent
+                name="Info"
+                strokeWidth={2}
+                className="relative -top-[3px] left-1 h-[14px] w-[14px] text-placeholder"
+              />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent
+            className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+            avoidCollisions={false}
+            sticky="always"
+          >
+            You can select ElevenLabs voices if you have an ElevenLabs API key. Otherwise, you can only select OpenAI voices.
+          </TooltipContent>
+        </Tooltip>
       </span>
 
       <Select value={voice} onValueChange={handleSetVoice}>

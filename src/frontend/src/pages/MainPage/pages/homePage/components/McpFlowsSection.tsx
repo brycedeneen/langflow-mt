@@ -1,5 +1,5 @@
 import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import ToolsComponent from "@/components/core/parameterRenderComponent/components/ToolsComponent";
 import type { InputFieldType } from "@/types/api";
 import type { ToolFlow } from "../utils/mcpServerUtils";
@@ -15,19 +15,26 @@ export const McpFlowsSection = ({
 }: McpFlowsSectionProps) => (
   <div className="w-full xl:w-2/5">
     <div className="flex flex-row justify-between pt-1">
-      <ShadTooltip
-        content="Flows in this project can be exposed as callable MCP tools."
-        side="right"
-      >
-        <div className="flex items-center text-sm font-medium hover:cursor-help">
-          Flows/Tools
-          <ForwardedIconComponent
-            name="info"
-            className="ml-1.5 h-4 w-4 text-muted-foreground"
-            aria-hidden="true"
-          />
-        </div>
-      </ShadTooltip>
+      <Tooltip delayDuration={500}>
+        <TooltipTrigger asChild>
+          <div className="flex items-center text-sm font-medium hover:cursor-help">
+            Flows/Tools
+            <ForwardedIconComponent
+              name="info"
+              className="ml-1.5 h-4 w-4 text-muted-foreground"
+              aria-hidden="true"
+            />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent
+          className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+          side="right"
+          avoidCollisions={false}
+          sticky="always"
+        >
+          Flows in this project can be exposed as callable MCP tools.
+        </TooltipContent>
+      </Tooltip>
     </div>
     <div className="flex flex-row flex-wrap gap-2 pt-2">
       <ToolsComponent

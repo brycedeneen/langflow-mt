@@ -23,7 +23,11 @@ import {
   groupByFamily,
 } from "../../../utils/utils";
 import { default as ForwardedIconComponent } from "../../common/genericIconComponent";
-import ShadTooltip from "../../common/shadTooltipComponent";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "../../ui/tooltip";
 import { Button } from "../../ui/button";
 import {
   Command,
@@ -452,12 +456,8 @@ export default function Dropdown({
       <CommandGroup defaultChecked={false} className="p-0">
         {filteredOptions?.length > 0 ? (
           filteredOptions?.map((option, index) => (
-            <ShadTooltip
-              key={option}
-              delayDuration={700}
-              styleClasses="whitespace-pre-wrap"
-              content={formatTooltipContent(option, index)}
-            >
+            <Tooltip key={option} delayDuration={700}>
+              <TooltipTrigger asChild>
               <div>
                 <CommandItem
                   value={option}
@@ -554,7 +554,15 @@ export default function Dropdown({
                   </div>
                 </CommandItem>
               </div>
-            </ShadTooltip>
+              </TooltipTrigger>
+              <TooltipContent
+                className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "whitespace-pre-wrap")}
+                avoidCollisions={false}
+                sticky="always"
+              >
+                {formatTooltipContent(option, index)}
+              </TooltipContent>
+            </Tooltip>
           ))
         ) : (
           <CommandItem

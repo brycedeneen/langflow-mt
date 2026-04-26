@@ -1,7 +1,7 @@
 import { NodeToolbar } from "@xyflow/react";
 import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import ShadTooltip from "../../../../components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../components/ui/tooltip";
 import { Button } from "../../../../components/ui/button";
 import { GradientGroup } from "../../../../icons/GradientSparkles";
 import useFlowStore from "../../../../stores/flowStore";
@@ -70,27 +70,37 @@ export default function SelectionMenu({
           }
         >
           {errors.length > 0 ? (
-            <ShadTooltip content={errors[0]} side={"top"}>
-              <Button
-                unstyled
-                className={`${
-                  disable
-                    ? "flex h-full w-full cursor-not-allowed items-center justify-between text-sm text-muted-foreground"
-                    : "flex h-full w-full items-center justify-between text-sm"
-                }`}
-                onClick={onClick}
-                disabled={disable}
-                data-testid="error-group-node"
-              >
-                <GradientGroup
-                  strokeWidth={1.5}
-                  size={22}
-                  className="text-primary"
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <Button
+                  unstyled
+                  className={`${
+                    disable
+                      ? "flex h-full w-full cursor-not-allowed items-center justify-between text-sm text-muted-foreground"
+                      : "flex h-full w-full items-center justify-between text-sm"
+                  }`}
+                  onClick={onClick}
                   disabled={disable}
-                />
-                Group
-              </Button>
-            </ShadTooltip>
+                  data-testid="error-group-node"
+                >
+                  <GradientGroup
+                    strokeWidth={1.5}
+                    size={22}
+                    className="text-primary"
+                    disabled={disable}
+                  />
+                  Group
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent
+                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                side="top"
+                avoidCollisions={false}
+                sticky="always"
+              >
+                {errors[0]}
+              </TooltipContent>
+            </Tooltip>
           ) : (
             <Button
               unstyled

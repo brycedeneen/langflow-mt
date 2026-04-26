@@ -13,7 +13,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import useFlowStore from "@/stores/flowStore";
-import ShadTooltip from "../../../../components/common/shadTooltipComponent";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "../../../../components/ui/tooltip";
 import type { outputComponentType } from "../../../../types/components";
 import { cn } from "../../../../utils/utils";
 
@@ -37,9 +41,16 @@ export default function OutputComponent({
   const displayProxy = (children) => {
     if (proxy) {
       return (
-        <ShadTooltip content={<span>{proxy.nodeDisplayName}</span>}>
-          {children}
-        </ShadTooltip>
+        <Tooltip delayDuration={500}>
+          <TooltipTrigger asChild>{children}</TooltipTrigger>
+          <TooltipContent
+            className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+            avoidCollisions={false}
+            sticky="always"
+          >
+            <span>{proxy.nodeDisplayName}</span>
+          </TooltipContent>
+        </Tooltip>
       );
     } else {
       return children;

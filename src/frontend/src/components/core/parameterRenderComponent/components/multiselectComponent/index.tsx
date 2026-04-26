@@ -3,7 +3,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { cn } from "../../../../../utils/utils";
 import { default as ForwardedIconComponent } from "../../../../common/genericIconComponent";
-import ShadTooltip from "../../../../common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../ui/tooltip";
 import { Button } from "../../../../ui/button";
 import {
   Command,
@@ -167,28 +167,37 @@ function MultiselectComponent({
       <CommandEmpty>No values found.</CommandEmpty>
       <CommandGroup>
         {filteredOptions.map((option, index) => (
-          <ShadTooltip key={option} delayDuration={700} content={option}>
-            <div>
-              <CommandItem
-                value={option}
-                onSelect={handleOptionSelect}
-                className="items-center overflow-hidden truncate"
-                data-testid={`${option}-${id ?? ""}-option`}
-              >
-                {(customValues.includes(option) || searchValue === option) && (
-                  <span className="text-muted-foreground">Text:&nbsp;</span>
-                )}
-                <span className="truncate">{option}</span>
-                <ForwardedIconComponent
-                  name="Check"
-                  className={cn(
-                    "ml-auto h-4 w-4 shrink-0 text-primary",
-                    treatedValue.includes(option) ? "opacity-100" : "opacity-0",
+          <Tooltip key={option} delayDuration={700}>
+            <TooltipTrigger asChild>
+              <div>
+                <CommandItem
+                  value={option}
+                  onSelect={handleOptionSelect}
+                  className="items-center overflow-hidden truncate"
+                  data-testid={`${option}-${id ?? ""}-option`}
+                >
+                  {(customValues.includes(option) || searchValue === option) && (
+                    <span className="text-muted-foreground">Text:&nbsp;</span>
                   )}
-                />
-              </CommandItem>
-            </div>
-          </ShadTooltip>
+                  <span className="truncate">{option}</span>
+                  <ForwardedIconComponent
+                    name="Check"
+                    className={cn(
+                      "ml-auto h-4 w-4 shrink-0 text-primary",
+                      treatedValue.includes(option) ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                </CommandItem>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent
+              className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+              avoidCollisions={false}
+              sticky="always"
+            >
+              {option}
+            </TooltipContent>
+          </Tooltip>
         ))}
       </CommandGroup>
     </CommandList>

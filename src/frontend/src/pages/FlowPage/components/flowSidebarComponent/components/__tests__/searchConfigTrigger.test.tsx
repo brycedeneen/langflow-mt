@@ -10,13 +10,34 @@ jest.mock("@/components/common/genericIconComponent", () => ({
   ),
 }));
 
-jest.mock("@/components/common/shadTooltipComponent", () => ({
-  __esModule: true,
-  default: ({ children, content }: any) => (
-    <div data-testid="tooltip" title={content}>
-      {children}
-    </div>
+jest.mock("@/components/ui/tooltip", () => ({
+  Tooltip: ({ children }: { children: React.ReactNode }) => {
+    const React = require("react");
+    const childArr = React.Children.toArray(children);
+    let titleText = "";
+    for (const child of childArr) {
+      const c = child as any;
+      if (c?.type?._isTooltipContent && typeof c.props.children === "string") {
+        titleText = c.props.children;
+      }
+    }
+    return (
+      <div data-testid="tooltip" title={titleText}>
+        {children}
+      </div>
+    );
+  },
+  TooltipTrigger: Object.assign(
+    ({ children }: { children: React.ReactNode; asChild?: boolean }) => <>{children}</>,
+    { _isTooltipTrigger: true },
   ),
+  TooltipContent: Object.assign(
+    ({ children, side }: { children: React.ReactNode; side?: string }) => (
+      <span data-side={side}>{children}</span>
+    ),
+    { _isTooltipContent: true },
+  ),
+  TooltipProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 jest.mock("@/components/ui/button", () => ({

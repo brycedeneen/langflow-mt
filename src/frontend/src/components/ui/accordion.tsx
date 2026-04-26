@@ -4,7 +4,7 @@ import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import * as React from "react";
 import { cn } from "../../utils/utils";
-import ShadTooltip from "../common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 
 const Accordion = AccordionPrimitive.Root;
 
@@ -38,18 +38,24 @@ const AccordionTrigger = React.forwardRef<
         )}
       >
         {children}
-        <ShadTooltip
-          styleClasses="z-50"
-          content={disabled ? "Empty" : "Open"}
-          side="top"
-        >
-          <ChevronDownIcon
-            className={cn(
-              "h-4 w-4 font-bold transition-transform duration-200",
-              disabled ? "text-muted-foreground" : "text-primary",
-            )}
-          />
-        </ShadTooltip>
+        <Tooltip delayDuration={500}>
+          <TooltipTrigger asChild>
+            <ChevronDownIcon
+              className={cn(
+                "h-4 w-4 font-bold transition-transform duration-200",
+                disabled ? "text-muted-foreground" : "text-primary",
+              )}
+            />
+          </TooltipTrigger>
+          <TooltipContent
+            className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "z-50")}
+            side="top"
+            avoidCollisions={false}
+            sticky="always"
+          >
+            {disabled ? "Empty" : "Open"}
+          </TooltipContent>
+        </Tooltip>
       </div>
     </AccordionPrimitive.Trigger>
   </AccordionPrimitive.Header>

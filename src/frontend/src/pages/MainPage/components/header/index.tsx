@@ -1,7 +1,7 @@
 import { debounce } from "lodash";
 import { useCallback, useEffect, useState } from "react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useDeleteDeleteFlows } from "@/controllers/API/queries/flows/use-delete-delete-flows";
@@ -243,25 +243,35 @@ const HeaderComponent = ({
                     </Button>
                   </DeleteConfirmationModal>
                 </div>
-                <ShadTooltip content="New Flow" side="bottom">
-                  <Button
-                    variant="default"
-                    size="iconMd"
-                    className="z-50 px-2.5 !text-mmd"
-                    onClick={() => setNewProjectModal(true)}
-                    id="new-project-btn"
-                    data-testid="new-project-btn"
+                <Tooltip delayDuration={500}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="default"
+                      size="iconMd"
+                      className="z-50 px-2.5 !text-mmd"
+                      onClick={() => setNewProjectModal(true)}
+                      id="new-project-btn"
+                      data-testid="new-project-btn"
+                    >
+                      <ForwardedIconComponent
+                        name="Plus"
+                        aria-hidden="true"
+                        className="h-4 w-4"
+                      />
+                      <span className="hidden whitespace-nowrap font-semibold md:inline">
+                        New Flow
+                      </span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                    side="bottom"
+                    avoidCollisions={false}
+                    sticky="always"
                   >
-                    <ForwardedIconComponent
-                      name="Plus"
-                      aria-hidden="true"
-                      className="h-4 w-4"
-                    />
-                    <span className="hidden whitespace-nowrap font-semibold md:inline">
-                      New Flow
-                    </span>
-                  </Button>
-                </ShadTooltip>
+                    New Flow
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
           )}

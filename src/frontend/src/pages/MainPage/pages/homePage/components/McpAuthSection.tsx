@@ -1,5 +1,5 @@
 import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import type { AuthSettingsType } from "@/types/mcp";
 import { AUTH_METHODS } from "@/utils/mcpUtils";
@@ -31,41 +31,71 @@ export const McpAuthSection = ({
           />
           None (public)
         </span>
-      ) : (
-        <ShadTooltip
-          content={
-            !composerUrlData?.error_message
-              ? undefined
-              : `MCP Server is not running: ${composerUrlData?.error_message}`
-          }
-        >
-          <span
-            className={cn(
-              "flex gap-2 text-mmd items-center",
-              isLoading
-                ? "text-muted-foreground"
-                : !composerUrlData?.error_message
-                  ? "text-accent-emerald-foreground"
-                  : "text-accent-amber-foreground",
-            )}
-          >
-            <ForwardedIconComponent
-              name={
+      ) : composerUrlData?.error_message ? (
+        <Tooltip delayDuration={500}>
+          <TooltipTrigger asChild>
+            <span
+              className={cn(
+                "flex gap-2 text-mmd items-center",
                 isLoading
-                  ? "Loader2"
+                  ? "text-muted-foreground"
                   : !composerUrlData?.error_message
-                    ? "Check"
-                    : "AlertTriangle"
-              }
-              className={cn("h-4 w-4 shrink-0", isLoading && "animate-spin")}
-            />
-            {isLoading
-              ? "Loading..."
-              : AUTH_METHODS[
-                  currentAuthSettings?.auth_type as keyof typeof AUTH_METHODS
-                ]?.label || currentAuthSettings?.auth_type}
-          </span>
-        </ShadTooltip>
+                    ? "text-accent-emerald-foreground"
+                    : "text-accent-amber-foreground",
+              )}
+            >
+              <ForwardedIconComponent
+                name={
+                  isLoading
+                    ? "Loader2"
+                    : !composerUrlData?.error_message
+                      ? "Check"
+                      : "AlertTriangle"
+                }
+                className={cn("h-4 w-4 shrink-0", isLoading && "animate-spin")}
+              />
+              {isLoading
+                ? "Loading..."
+                : AUTH_METHODS[
+                    currentAuthSettings?.auth_type as keyof typeof AUTH_METHODS
+                  ]?.label || currentAuthSettings?.auth_type}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent
+            className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+            avoidCollisions={false}
+            sticky="always"
+          >
+            {`MCP Server is not running: ${composerUrlData?.error_message}`}
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        <span
+          className={cn(
+            "flex gap-2 text-mmd items-center",
+            isLoading
+              ? "text-muted-foreground"
+              : !composerUrlData?.error_message
+                ? "text-accent-emerald-foreground"
+                : "text-accent-amber-foreground",
+          )}
+        >
+          <ForwardedIconComponent
+            name={
+              isLoading
+                ? "Loader2"
+                : !composerUrlData?.error_message
+                  ? "Check"
+                  : "AlertTriangle"
+            }
+            className={cn("h-4 w-4 shrink-0", isLoading && "animate-spin")}
+          />
+          {isLoading
+            ? "Loading..."
+            : AUTH_METHODS[
+                currentAuthSettings?.auth_type as keyof typeof AUTH_METHODS
+              ]?.label || currentAuthSettings?.auth_type}
+        </span>
       )}
     </span>
     <Button

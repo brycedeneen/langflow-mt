@@ -1,7 +1,7 @@
 import { DialogClose } from "@radix-ui/react-dialog";
 import React, { useEffect, useState } from "react";
 import GenericIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "../../components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/ui/tooltip";
 import { Button } from "../../components/ui/button";
 import type {
   ConfirmationModalType,
@@ -19,9 +19,19 @@ const Trigger = ({
   side,
 }: TriggerProps): JSX.Element => {
   return tooltipContent ? (
-    <ShadTooltip side={side} content={tooltipContent}>
-      <div className="h-full w-full">{children}</div>
-    </ShadTooltip>
+    <Tooltip delayDuration={500}>
+      <TooltipTrigger asChild>
+        <div className="h-full w-full">{children}</div>
+      </TooltipTrigger>
+      <TooltipContent
+        className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+        side={side}
+        avoidCollisions={false}
+        sticky="always"
+      >
+        {tooltipContent}
+      </TooltipContent>
+    </Tooltip>
   ) : (
     <div className="h-full w-full">{children}</div>
   );

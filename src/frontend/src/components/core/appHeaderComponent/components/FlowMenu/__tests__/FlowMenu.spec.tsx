@@ -8,9 +8,13 @@ jest.mock("@/components/common/genericIconComponent", () => ({
   __esModule: true,
   default: ({ name }) => <span data-testid="icon">{name}</span>,
 }));
-jest.mock("@/components/common/shadTooltipComponent", () => ({
-  __esModule: true,
-  default: ({ children }) => <div>{children}</div>,
+jest.mock("@/components/ui/tooltip", () => ({
+  Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  TooltipTrigger: ({ children }: { children: React.ReactNode; asChild?: boolean }) => <>{children}</>,
+  TooltipContent: ({ children, side }: { children: React.ReactNode; side?: string }) => (
+    <span data-testid="tooltip" data-side={side}>{children}</span>
+  ),
+  TooltipProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 jest.mock("@/components/core/flowSettingsComponent", () => ({
   __esModule: true,

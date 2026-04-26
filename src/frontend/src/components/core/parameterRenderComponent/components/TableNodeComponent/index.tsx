@@ -6,7 +6,7 @@ import type { AgGridReact } from "ag-grid-react";
 import { cloneDeep } from "lodash";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import TableModal from "@/modals/tableModal";
 import { isMarkdownTable } from "@/utils/markdownUtils";
 import { FormatColumns, generateBackendColumnsFromValue } from "@/utils/utils";
@@ -91,11 +91,20 @@ function TableNodeComponent({
         headerComponent: () => (
           <div className="flex items-center gap-1">
             <div>{col.headerName}</div>
-            <ShadTooltip content={col.context?.info}>
-              <div>
-                <ForwardedIconComponent name="Info" className="h-4 w-4" />
-              </div>
-            </ShadTooltip>
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <div>
+                  <ForwardedIconComponent name="Info" className="h-4 w-4" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent
+                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                avoidCollisions={false}
+                sticky="always"
+              >
+                {col.context?.info}
+              </TooltipContent>
+            </Tooltip>
           </div>
         ),
       };

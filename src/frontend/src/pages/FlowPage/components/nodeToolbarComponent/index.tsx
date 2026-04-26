@@ -5,7 +5,7 @@ import { useShallow } from "zustand/react/shallow";
 import { mutateTemplate } from "@/CustomNodes/helpers/mutate-template";
 import useHandleOnNewValue from "@/CustomNodes/hooks/use-handle-new-value";
 import useHandleNodeClass from "@/CustomNodes/hooks/use-handle-node-class";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import ToggleShadComponent from "@/components/core/parameterRenderComponent/components/toggleShadComponent";
 import { Button } from "@/components/ui/button";
 import { usePostTemplateValue } from "@/controllers/API/queries/nodes/use-post-template-value";
@@ -563,59 +563,64 @@ const NodeToolbarComponent = memo(
             />
           )}
           {hasToolMode && (
-            <ShadTooltip
-              content={
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <Button
+                  asChild
+                  className={cn(
+                    "node-toolbar-buttons h-[2rem]",
+                    toolMode && "text-primary",
+                  )}
+                  variant="ghost"
+                  size="node-toolbar"
+                  data-testid="tool-mode-button"
+                >
+                  <div
+                    className="flex items-center gap-2"
+                    role="button"
+                    tabIndex={0}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      takeSnapshot();
+                      handleSelectChange("toolMode");
+                    }}
+                  >
+                    <IconComponent
+                      name="Hammer"
+                      className={cn(
+                        "h-4 w-4 transition-all",
+                        toolMode ? "text-primary" : "",
+                      )}
+                    />
+                    <span className="text-mmd font-medium">Tool Mode</span>
+                    <ToggleShadComponent
+                      value={toolMode}
+                      editNode={false}
+                      handleOnNewValue={() => {
+                        takeSnapshot();
+                        handleSelectChange("toolMode");
+                      }}
+                      disabled={false}
+                      size="medium"
+                      showToogle={false}
+                      id="tool-mode-toggle"
+                    />
+                  </div>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent
+                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                side="top"
+                avoidCollisions={false}
+                sticky="always"
+              >
                 <ShortcutDisplay
                   {...shortcuts.find(
                     ({ name }) => name.toLowerCase() === "tool mode",
                   )!}
                 />
-              }
-              side="top"
-            >
-              <Button
-                asChild
-                className={cn(
-                  "node-toolbar-buttons h-[2rem]",
-                  toolMode && "text-primary",
-                )}
-                variant="ghost"
-                size="node-toolbar"
-                data-testid="tool-mode-button"
-              >
-                <div
-                  className="flex items-center gap-2"
-                  role="button"
-                  tabIndex={0}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    takeSnapshot();
-                    handleSelectChange("toolMode");
-                  }}
-                >
-                  <IconComponent
-                    name="Hammer"
-                    className={cn(
-                      "h-4 w-4 transition-all",
-                      toolMode ? "text-primary" : "",
-                    )}
-                  />
-                  <span className="text-mmd font-medium">Tool Mode</span>
-                  <ToggleShadComponent
-                    value={toolMode}
-                    editNode={false}
-                    handleOnNewValue={() => {
-                      takeSnapshot();
-                      handleSelectChange("toolMode");
-                    }}
-                    disabled={false}
-                    size="medium"
-                    showToogle={false}
-                    id="tool-mode-toggle"
-                  />
-                </div>
-              </Button>
-            </ShadTooltip>
+              </TooltipContent>
+            </Tooltip>
           )}
         </>
       ),
@@ -650,22 +655,32 @@ const NodeToolbarComponent = memo(
               open={dropdownOpen}
             >
               <SelectTrigger className="w-auto">
-                <ShadTooltip content="Show More" side="top">
-                  <div data-testid="more-options-modal">
-                    <Button
-                      className="node-toolbar-buttons h-[2rem] w-[2rem]"
-                      variant="ghost"
-                      onClick={handleButtonClick}
-                      size="node-toolbar"
-                      asChild
-                    >
-                      <IconComponent
-                        name="MoreHorizontal"
-                        className="h-4 w-4"
-                      />
-                    </Button>
-                  </div>
-                </ShadTooltip>
+                <Tooltip delayDuration={500}>
+                  <TooltipTrigger asChild>
+                    <div data-testid="more-options-modal">
+                      <Button
+                        className="node-toolbar-buttons h-[2rem] w-[2rem]"
+                        variant="ghost"
+                        onClick={handleButtonClick}
+                        size="node-toolbar"
+                        asChild
+                      >
+                        <IconComponent
+                          name="MoreHorizontal"
+                          className="h-4 w-4"
+                        />
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                    side="top"
+                    avoidCollisions={false}
+                    sticky="always"
+                  >
+                    Show More
+                  </TooltipContent>
+                </Tooltip>
               </SelectTrigger>
               <SelectContentWithoutPortal
                 className={"relative top-1 w-56 bg-background"}

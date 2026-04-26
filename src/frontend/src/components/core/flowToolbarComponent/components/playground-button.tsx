@@ -1,5 +1,5 @@
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ResizableSidebarTrigger } from "@/components/ui/resizable-sidebar";
 import { PLAYGROUND_BUTTON_NAME } from "@/constants/constants";
 
@@ -27,11 +27,20 @@ const PlaygroundButton = ({ hasIO }: PlaygroundButtonProps) => {
       <ButtonLabel />
     </ResizableSidebarTrigger>
   ) : (
-    <ShadTooltip content="Add a Chat Input or Chat Output to use the playground">
-      <div>
-        <DisabledButton />
-      </div>
-    </ShadTooltip>
+    <Tooltip delayDuration={500}>
+      <TooltipTrigger asChild>
+        <div>
+          <DisabledButton />
+        </div>
+      </TooltipTrigger>
+      <TooltipContent
+        className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+        avoidCollisions={false}
+        sticky="always"
+      >
+        Add a Chat Input or Chat Output to use the playground
+      </TooltipContent>
+    </Tooltip>
   );
 };
 

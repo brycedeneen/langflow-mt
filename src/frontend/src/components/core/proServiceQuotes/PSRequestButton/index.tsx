@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { usePreviewQuote } from "@/controllers/API/queries/pro-service-quotes/use-preview-quote";
 import type { PreviewResponse } from "@/types/pro-service-quote";
@@ -62,17 +62,24 @@ export function PSRequestButton({ flowId, canRequest, psRequestActive }: Props) 
   return (
     <>
       {psRequestActive ? (
-        <ShadTooltip
-          content="You already have an open Pro-Service request for this flow."
-          side="bottom"
-        >
-          {/*
-            Wrap in a span so the tooltip target stays interactive even when
-            the inner button is disabled — disabled buttons swallow pointer
-            events and Radix loses the trigger.
-          */}
-          <span tabIndex={0}>{button}</span>
-        </ShadTooltip>
+        <Tooltip delayDuration={500}>
+          <TooltipTrigger asChild>
+            {/*
+              Wrap in a span so the tooltip target stays interactive even when
+              the inner button is disabled — disabled buttons swallow pointer
+              events and Radix loses the trigger.
+            */}
+            <span tabIndex={0}>{button}</span>
+          </TooltipTrigger>
+          <TooltipContent
+            className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+            side="bottom"
+            avoidCollisions={false}
+            sticky="always"
+          >
+            You already have an open Pro-Service request for this flow.
+          </TooltipContent>
+        </Tooltip>
       ) : (
         button
       )}

@@ -6,7 +6,7 @@ import type {
 import type { AgGridReact } from "ag-grid-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import CardsWrapComponent from "@/components/core/cardsWrapComponent";
 import TableComponent from "@/components/core/parameterRenderComponent/components/tableComponent";
 import { Button } from "@/components/ui/button";
@@ -268,25 +268,35 @@ const FilesTab = ({
 
   const UploadButtonComponent = useMemo(() => {
     return (
-      <ShadTooltip content="Upload File" side="bottom">
-        <Button
-          className="!px-3 md:!px-4 md:!pl-3.5"
-          onClick={async () => {
-            await handleUpload();
-          }}
-          id="upload-file-btn"
-          data-testid="upload-file-btn"
+      <Tooltip delayDuration={500}>
+        <TooltipTrigger asChild>
+          <Button
+            className="!px-3 md:!px-4 md:!pl-3.5"
+            onClick={async () => {
+              await handleUpload();
+            }}
+            id="upload-file-btn"
+            data-testid="upload-file-btn"
+          >
+            <ForwardedIconComponent
+              name="Plus"
+              aria-hidden="true"
+              className="h-4 w-4"
+            />
+            <span className="hidden whitespace-nowrap font-semibold md:inline">
+              Upload Files
+            </span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent
+          className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+          side="bottom"
+          avoidCollisions={false}
+          sticky="always"
         >
-          <ForwardedIconComponent
-            name="Plus"
-            aria-hidden="true"
-            className="h-4 w-4"
-          />
-          <span className="hidden whitespace-nowrap font-semibold md:inline">
-            Upload Files
-          </span>
-        </Button>
-      </ShadTooltip>
+          Upload File
+        </TooltipContent>
+      </Tooltip>
     );
   }, []);
 

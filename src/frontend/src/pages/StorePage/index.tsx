@@ -8,7 +8,7 @@ import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
 import { useUtilityStore } from "@/stores/utilityStore";
 import IconComponent from "../../components/common/genericIconComponent";
 import PageLayout from "../../components/common/pageLayout";
-import ShadTooltip from "../../components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/ui/tooltip";
 import { SkeletonCardComponent } from "../../components/common/skeletonCardComponent";
 import { TagsSelector } from "../../components/common/tagsSelectorComponent";
 import { Badge } from "../../components/ui/badge";
@@ -249,11 +249,20 @@ export default function StorePage(): JSX.Element {
               >
                 Components
               </button>
-              <ShadTooltip content="Coming Soon">
-                <button className="cursor-not-allowed p-3 text-muted-foreground">
-                  Bundles
-                </button>
-              </ShadTooltip>
+              <Tooltip delayDuration={500}>
+                <TooltipTrigger asChild>
+                  <button className="cursor-not-allowed p-3 text-muted-foreground">
+                    Bundles
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                  avoidCollisions={false}
+                  sticky="always"
+                >
+                  Coming Soon
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
 

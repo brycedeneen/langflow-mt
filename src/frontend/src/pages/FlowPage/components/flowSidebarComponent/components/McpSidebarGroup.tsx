@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
   SidebarGroup,
@@ -130,40 +130,49 @@ const McpSidebarGroup = ({
             mcpComponents &&
             hasMcpServers &&
             mcpComponents.map((mcpComponent, idx) => (
-              <ShadTooltip
-                content={mcpComponent.display_name || mcpComponent.name}
-                side="right"
+              <Tooltip
                 key={mcpComponent.mcpServerName ?? mcpComponent.display_name}
+                delayDuration={500}
               >
-                <SidebarDraggableComponent
-                  sectionName={"mcp"}
-                  apiClass={mcpComponent}
-                  icon={mcpComponent.icon ?? "Mcp"}
-                  onDragStart={(event) =>
-                    onDragStart(event, {
-                      type: removeCountFromString("MCP"),
-                      node: mcpComponent,
-                    })
-                  }
-                  color={nodeColors["agents"]}
-                  itemName={"MCP"}
-                  error={!!mcpComponent.error}
-                  display_name={
-                    mcpComponent.mcpServerName ?? mcpComponent.display_name
-                  }
-                  official={mcpComponent.official === false ? false : true}
-                  beta={mcpComponent.beta ?? false}
-                  legacy={mcpComponent.legacy ?? false}
-                  onDelete={() => {
-                    setServerToDelete(
-                      mcpComponent.mcpServerName ?? mcpComponent.display_name,
-                    );
-                    setDeleteModalOpen(true);
-                  }}
-                  disabled={false}
-                  disabledTooltip={""}
-                />
-              </ShadTooltip>
+                <TooltipTrigger asChild>
+                  <SidebarDraggableComponent
+                    sectionName={"mcp"}
+                    apiClass={mcpComponent}
+                    icon={mcpComponent.icon ?? "Mcp"}
+                    onDragStart={(event) =>
+                      onDragStart(event, {
+                        type: removeCountFromString("MCP"),
+                        node: mcpComponent,
+                      })
+                    }
+                    color={nodeColors["agents"]}
+                    itemName={"MCP"}
+                    error={!!mcpComponent.error}
+                    display_name={
+                      mcpComponent.mcpServerName ?? mcpComponent.display_name
+                    }
+                    official={mcpComponent.official === false ? false : true}
+                    beta={mcpComponent.beta ?? false}
+                    legacy={mcpComponent.legacy ?? false}
+                    onDelete={() => {
+                      setServerToDelete(
+                        mcpComponent.mcpServerName ?? mcpComponent.display_name,
+                      );
+                      setDeleteModalOpen(true);
+                    }}
+                    disabled={false}
+                    disabledTooltip={""}
+                  />
+                </TooltipTrigger>
+                <TooltipContent
+                  className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                  side="right"
+                  avoidCollisions={false}
+                  sticky="always"
+                >
+                  {mcpComponent.display_name || mcpComponent.name}
+                </TooltipContent>
+              </Tooltip>
             ))}
           <DeleteConfirmationModal
             open={deleteModalOpen}

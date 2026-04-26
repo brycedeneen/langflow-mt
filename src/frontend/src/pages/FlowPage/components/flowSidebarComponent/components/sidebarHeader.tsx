@@ -1,7 +1,8 @@
 import { memo } from "react";
 
 import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/utils/utils";
 import { Button } from "@/components/ui/button";
 import {
   Disclosure,
@@ -45,18 +46,27 @@ export const SidebarHeaderComponent = memo(function SidebarHeaderComponent({
             </h3>
             <DisclosureTrigger>
               <div>
-                <ShadTooltip content="Component settings" styleClasses="z-50">
-                  <Button
-                    variant={showConfig ? "ghostActive" : "ghost"}
-                    size="iconMd"
-                    data-testid="sidebar-options-trigger"
+                <Tooltip delayDuration={500}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={showConfig ? "ghostActive" : "ghost"}
+                      size="iconMd"
+                      data-testid="sidebar-options-trigger"
+                    >
+                      <ForwardedIconComponent
+                        name="SlidersHorizontal"
+                        className="h-4 w-4"
+                      />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "z-50")}
+                    avoidCollisions={false}
+                    sticky="always"
                   >
-                    <ForwardedIconComponent
-                      name="SlidersHorizontal"
-                      className="h-4 w-4"
-                    />
-                  </Button>
-                </ShadTooltip>
+                    Component settings
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </DisclosureTrigger>
           </div>

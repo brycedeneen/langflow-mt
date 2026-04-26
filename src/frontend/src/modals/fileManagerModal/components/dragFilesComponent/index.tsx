@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { createFileUpload } from "@/helpers/create-file-upload";
 import useUploadFile from "@/hooks/files/use-upload-file";
 import useAlertStore from "@/stores/alertStore";
@@ -275,15 +275,24 @@ export default function DragFilesComponent({
           <span className="flex items-center gap-1">
             <span>{types.slice(0, 3).join(", ")}</span>
             {types.length > 3 && (
-              <ShadTooltip content={types.slice(3).toSorted().join(", ")}>
-                <span
-                  className="text-muted-foreground flex items-center gap-1"
-                  data-testid="info-types"
+              <Tooltip delayDuration={500}>
+                <TooltipTrigger asChild>
+                  <span
+                    className="text-muted-foreground flex items-center gap-1"
+                    data-testid="info-types"
+                  >
+                    +{types.length - 3} more
+                    <ForwardedIconComponent name="info" className="w-3 h-3" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                  avoidCollisions={false}
+                  sticky="always"
                 >
-                  +{types.length - 3} more
-                  <ForwardedIconComponent name="info" className="w-3 h-3" />
-                </span>
-              </ShadTooltip>
+                  {types.slice(3).toSorted().join(", ")}
+                </TooltipContent>
+              </Tooltip>
             )}
           </span>
           <span className="font-semibold">

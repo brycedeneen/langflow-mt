@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useStickToBottomContext } from "use-stick-to-bottom";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { ICON_STROKE_WIDTH, SAVE_API_KEY_ALERT } from "@/constants/constants";
 import { useGetMessagesPollingMutation } from "@/controllers/API/queries/messages/use-get-messages-polling";
@@ -391,18 +391,24 @@ export function VoiceAssistant({
             hasOpenAIAPIKey ? "gap-3" : "gap-2",
           )}
         >
-          <ShadTooltip
-            content={isRecording ? "Mute" : "Unmute"}
-            delayDuration={500}
-          >
-            <Button unstyled onClick={handleToggleRecording}>
-              <IconComponent
-                name={isRecording ? "Mic" : "MicOff"}
-                strokeWidth={ICON_STROKE_WIDTH}
-                className="h-4 w-4 text-placeholder-foreground"
-              />
-            </Button>
-          </ShadTooltip>
+          <Tooltip delayDuration={500}>
+            <TooltipTrigger asChild>
+              <Button unstyled onClick={handleToggleRecording}>
+                <IconComponent
+                  name={isRecording ? "Mic" : "MicOff"}
+                  strokeWidth={ICON_STROKE_WIDTH}
+                  className="h-4 w-4 text-placeholder-foreground"
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+              avoidCollisions={false}
+              sticky="always"
+            >
+              {isRecording ? "Mute" : "Unmute"}
+            </TooltipContent>
+          </Tooltip>
 
           <div
             ref={waveformRef}

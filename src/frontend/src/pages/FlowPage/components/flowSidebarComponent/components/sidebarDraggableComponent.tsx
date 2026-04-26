@@ -2,7 +2,7 @@ import { type DragEventHandler, forwardRef, useRef, useState } from "react";
 import IconComponent, {
   ForwardedIconComponent,
 } from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { convertTestName } from "@/components/common/storeCardComponent/utils/convert-test-name";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -117,148 +117,172 @@ export const SidebarDraggableComponent = forwardRef(
         open={open}
         key={itemName}
       >
-        <ShadTooltip
-          content={disabled ? disabledTooltip : null}
-          styleClasses="z-50"
-        >
-          <div
-            onPointerDown={handlePointerDown}
-            onContextMenuCapture={(e) => {
-              e.preventDefault();
-              setOpen(true);
-            }}
-            key={itemName}
-            data-tooltip-id={itemName}
-            tabIndex={0}
-            onKeyDown={handleKeyDown}
-            className="rounded-md outline-hidden ring-ring focus-visible:ring-1"
-            data-testid={`${sectionName.toLowerCase()}_${display_name.toLowerCase()}_draggable`}
-          >
+        {(() => {
+          const innerContent = (
             <div
-              data-testid={sectionName + display_name}
-              id={sectionName + display_name}
-              className={cn(
-                "group/draggable flex cursor-grab items-center gap-2 rounded-md bg-muted p-1 px-2 hover:bg-secondary-hover/75",
-                error && "cursor-not-allowed select-none",
-                disabled
-                  ? "pointer-events-none bg-accent text-placeholder-foreground h-8"
-                  : "bg-muted text-foreground",
-              )}
-              draggable={!error}
-              style={{
-                borderLeftColor: color,
+              onPointerDown={handlePointerDown}
+              onContextMenuCapture={(e) => {
+                e.preventDefault();
+                setOpen(true);
               }}
-              onDragStart={onDragStart}
-              onDoubleClick={() => {
-                if (!disabled) {
-                  addComponent(apiClass, itemName);
-                }
-              }}
-              onDragEnd={() => {
-                if (
-                  document.getElementsByClassName("cursor-grabbing").length > 0
-                ) {
-                  document.body.removeChild(
-                    document.getElementsByClassName("cursor-grabbing")[0],
-                  );
-                }
-              }}
+              key={itemName}
+              data-tooltip-id={itemName}
+              tabIndex={0}
+              onKeyDown={handleKeyDown}
+              className="rounded-md outline-hidden ring-ring focus-visible:ring-1"
+              data-testid={`${sectionName.toLowerCase()}_${display_name.toLowerCase()}_draggable`}
             >
-              <ForwardedIconComponent
-                name={icon}
-                className="h-[18px] w-[18px] shrink-0"
-              />
-              <div className="flex flex-1 items-center overflow-hidden">
-                <ShadTooltip content={display_name} styleClasses="z-50">
-                  <span
-                    data-testid="display-name"
-                    className="truncate text-sm font-normal"
-                  >
-                    {display_name}
-                  </span>
-                </ShadTooltip>
-                {beta && (
-                  <Badge
-                    variant="purpleStatic"
-                    size="xq"
-                    className="ml-1.5 shrink-0"
-                  >
-                    Beta
-                  </Badge>
+              <div
+                data-testid={sectionName + display_name}
+                id={sectionName + display_name}
+                className={cn(
+                  "group/draggable flex cursor-grab items-center gap-2 rounded-md bg-muted p-1 px-2 hover:bg-secondary-hover/75",
+                  error && "cursor-not-allowed select-none",
+                  disabled
+                    ? "pointer-events-none bg-accent text-placeholder-foreground h-8"
+                    : "bg-muted text-foreground",
                 )}
-                {legacy && (
-                  <Badge
-                    variant="secondaryStatic"
-                    size="xq"
-                    className="ml-1.5 shrink-0"
-                  >
-                    Legacy
-                  </Badge>
-                )}
-              </div>
-              <div className="flex shrink-0 items-center gap-1">
-                {!disabled && (
-                  <Button
-                    data-testid={`add-component-button-${convertTestName(
-                      display_name,
-                    )}`}
-                    variant="ghost"
-                    size="icon"
-                    tabIndex={-1}
-                    className="text-primary"
-                    onClick={() => addComponent(apiClass, itemName)}
-                  >
-                    <ForwardedIconComponent
-                      name="Plus"
-                      className="h-4 w-4 shrink-0 transition-all group-hover/draggable:opacity-100 group-focus/draggable:opacity-100 sm:opacity-0"
-                    />
-                  </Button>
-                )}
-                <div ref={popoverRef}>
-                  <ForwardedIconComponent
-                    name="GripVertical"
-                    className="h-4 w-4 shrink-0 text-muted-foreground group-hover/draggable:text-primary"
-                  />
-                  <SelectTrigger tabIndex={-1}></SelectTrigger>
-                  <SelectContent
-                    position="popper"
-                    side="bottom"
-                    sideOffset={-25}
-                    style={{
-                      position: "absolute",
-                      left: cursorPos.x,
-                      top: cursorPos.y,
-                    }}
-                  >
-                    <SelectItem value={"download"}>
-                      <div className="flex">
-                        <IconComponent
-                          name="Download"
-                          className="relative top-0.5 mr-2 h-4 w-4"
-                        />{" "}
-                        Download{" "}
-                      </div>{" "}
-                    </SelectItem>
-                    {(!official || onDelete) && (
-                      <SelectItem
-                        value={"delete"}
-                        data-testid="draggable-component-menu-delete"
+                draggable={!error}
+                style={{
+                  borderLeftColor: color,
+                }}
+                onDragStart={onDragStart}
+                onDoubleClick={() => {
+                  if (!disabled) {
+                    addComponent(apiClass, itemName);
+                  }
+                }}
+                onDragEnd={() => {
+                  if (
+                    document.getElementsByClassName("cursor-grabbing").length > 0
+                  ) {
+                    document.body.removeChild(
+                      document.getElementsByClassName("cursor-grabbing")[0],
+                    );
+                  }
+                }}
+              >
+                <ForwardedIconComponent
+                  name={icon}
+                  className="h-[18px] w-[18px] shrink-0"
+                />
+                <div className="flex flex-1 items-center overflow-hidden">
+                  <Tooltip delayDuration={500}>
+                    <TooltipTrigger asChild>
+                      <span
+                        data-testid="display-name"
+                        className="truncate text-sm font-normal"
                       >
+                        {display_name}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "z-50")}
+                      avoidCollisions={false}
+                      sticky="always"
+                    >
+                      {display_name}
+                    </TooltipContent>
+                  </Tooltip>
+                  {beta && (
+                    <Badge
+                      variant="purpleStatic"
+                      size="xq"
+                      className="ml-1.5 shrink-0"
+                    >
+                      Beta
+                    </Badge>
+                  )}
+                  {legacy && (
+                    <Badge
+                      variant="secondaryStatic"
+                      size="xq"
+                      className="ml-1.5 shrink-0"
+                    >
+                      Legacy
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  {!disabled && (
+                    <Button
+                      data-testid={`add-component-button-${convertTestName(
+                        display_name,
+                      )}`}
+                      variant="ghost"
+                      size="icon"
+                      tabIndex={-1}
+                      className="text-primary"
+                      onClick={() => addComponent(apiClass, itemName)}
+                    >
+                      <ForwardedIconComponent
+                        name="Plus"
+                        className="h-4 w-4 shrink-0 transition-all group-hover/draggable:opacity-100 group-focus/draggable:opacity-100 sm:opacity-0"
+                      />
+                    </Button>
+                  )}
+                  <div ref={popoverRef}>
+                    <ForwardedIconComponent
+                      name="GripVertical"
+                      className="h-4 w-4 shrink-0 text-muted-foreground group-hover/draggable:text-primary"
+                    />
+                    <SelectTrigger tabIndex={-1}></SelectTrigger>
+                    <SelectContent
+                      position="popper"
+                      side="bottom"
+                      sideOffset={-25}
+                      style={{
+                        position: "absolute",
+                        left: cursorPos.x,
+                        top: cursorPos.y,
+                      }}
+                    >
+                      <SelectItem value={"download"}>
                         <div className="flex">
                           <IconComponent
-                            name="Trash2"
+                            name="Download"
                             className="relative top-0.5 mr-2 h-4 w-4"
                           />{" "}
-                          Delete{" "}
+                          Download{" "}
                         </div>{" "}
                       </SelectItem>
-                    )}
-                  </SelectContent>
+                      {(!official || onDelete) && (
+                        <SelectItem
+                          value={"delete"}
+                          data-testid="draggable-component-menu-delete"
+                        >
+                          <div className="flex">
+                            <IconComponent
+                              name="Trash2"
+                              className="relative top-0.5 mr-2 h-4 w-4"
+                            />{" "}
+                            Delete{" "}
+                          </div>{" "}
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </ShadTooltip>
+          );
+
+          if (disabled && disabledTooltip) {
+            return (
+              <Tooltip delayDuration={500}>
+                <TooltipTrigger asChild>{innerContent}</TooltipTrigger>
+                <TooltipContent
+                  className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "z-50")}
+                  avoidCollisions={false}
+                  sticky="always"
+                >
+                  {disabledTooltip}
+                </TooltipContent>
+              </Tooltip>
+            );
+          }
+          return innerContent;
+        })()}
       </Select>
     );
   },

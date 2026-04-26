@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import useFlowStore from "@/stores/flowStore";
 import { useVoiceStore } from "@/stores/voiceStore";
@@ -39,26 +39,35 @@ export const SidebarOpenView = ({
               />
               <div className="text-mmd font-normal">Chat</div>
             </div>
-            <ShadTooltip styleClasses="z-50" content="New Chat">
-              <div>
-                <Button
-                  data-testid="new-chat"
-                  variant="ghost"
-                  className="flex h-8 w-8 items-center justify-center !p-0 hover:bg-secondary-hover"
-                  onClick={(_) => {
-                    setvisibleSession(undefined);
-                    setSelectedViewField(undefined);
-                    setNewSessionCloseVoiceAssistant(true);
-                    setNewChatOnPlayground(true);
-                  }}
-                >
-                  <IconComponent
-                    name="Plus"
-                    className="h-[18px] w-[18px] text-ring"
-                  />
-                </Button>
-              </div>
-            </ShadTooltip>
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <div>
+                  <Button
+                    data-testid="new-chat"
+                    variant="ghost"
+                    className="flex h-8 w-8 items-center justify-center !p-0 hover:bg-secondary-hover"
+                    onClick={(_) => {
+                      setvisibleSession(undefined);
+                      setSelectedViewField(undefined);
+                      setNewSessionCloseVoiceAssistant(true);
+                      setNewChatOnPlayground(true);
+                    }}
+                  >
+                    <IconComponent
+                      name="Plus"
+                      className="h-[18px] w-[18px] text-ring"
+                    />
+                  </Button>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent
+                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground z-50"
+                avoidCollisions={false}
+                sticky="always"
+              >
+                New Chat
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
         <div className="flex flex-col">

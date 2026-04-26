@@ -1,7 +1,7 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import IconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -167,27 +167,36 @@ export default function SessionSelector({
               </button>
             </div>
           ) : (
-            <ShadTooltip styleClasses="z-50" content={session}>
-              <div className="relative w-full overflow-hidden">
-                <span className="w-full truncate">
-                  {session === currentFlowId ? "Default Session" : session}
-                </span>
-                <div
-                  className={cn(
-                    "pointer-events-none absolute left-0 right-0 top-0 h-full whitespace-nowrap",
-                  )}
-                >
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <div className="relative w-full overflow-hidden">
+                  <span className="w-full truncate">
+                    {session === currentFlowId ? "Default Session" : session}
+                  </span>
                   <div
                     className={cn(
-                      "h-full w-full group-hover:truncate-secondary-hover",
-                      isVisible
-                        ? "truncate-secondary-hover"
-                        : "truncate-muted dark:truncate-canvas",
+                      "pointer-events-none absolute left-0 right-0 top-0 h-full whitespace-nowrap",
                     )}
-                  ></div>
+                  >
+                    <div
+                      className={cn(
+                        "h-full w-full group-hover:truncate-secondary-hover",
+                        isVisible
+                          ? "truncate-secondary-hover"
+                          : "truncate-muted dark:truncate-canvas",
+                      )}
+                    ></div>
+                  </div>
                 </div>
-              </div>
-            </ShadTooltip>
+              </TooltipTrigger>
+              <TooltipContent
+                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground z-50"
+                avoidCollisions={false}
+                sticky="always"
+              >
+                {session}
+              </TooltipContent>
+            </Tooltip>
           )}
         </div>
         <Select
@@ -196,23 +205,33 @@ export default function SessionSelector({
           open={menuOpen}
           onOpenChange={onMenuOpenChange}
         >
-          <ShadTooltip styleClasses="z-50" side="right" content="Options">
-            <SelectTrigger
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-              onFocusCapture={() => {
-                inputRef.current?.focus();
-              }}
-              data-confirm="true"
-              className={cn(
-                "h-8 w-fit border-none bg-transparent p-2 focus:ring-0",
-                isVisible ? "visible" : "invisible group-hover:visible",
-              )}
+          <Tooltip delayDuration={500}>
+            <TooltipTrigger asChild>
+              <SelectTrigger
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+                onFocusCapture={() => {
+                  inputRef.current?.focus();
+                }}
+                data-confirm="true"
+                className={cn(
+                  "h-8 w-fit border-none bg-transparent p-2 focus:ring-0",
+                  isVisible ? "visible" : "invisible group-hover:visible",
+                )}
+              >
+                <IconComponent name="MoreHorizontal" className="h-4 w-4" />
+              </SelectTrigger>
+            </TooltipTrigger>
+            <TooltipContent
+              className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground z-50"
+              side="right"
+              avoidCollisions={false}
+              sticky="always"
             >
-              <IconComponent name="MoreHorizontal" className="h-4 w-4" />
-            </SelectTrigger>
-          </ShadTooltip>
+              Options
+            </TooltipContent>
+          </Tooltip>
           <SelectContent side="right" align="start" className="p-0">
             <SelectItem
               value="rename"

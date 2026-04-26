@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import TagChip from "@/components/common/TagChip";
 import useDragStart from "@/components/core/cardComponent/hooks/use-on-drag-start";
 import { Button } from "@/components/ui/button";
@@ -202,16 +202,23 @@ const ListComponent = ({
                     <TagChip key={t.id} tag={t} />
                   ))}
                   {overflow > 0 && (
-                    <ShadTooltip
-                      content={rowTags
-                        .slice(MAX)
-                        .map((t) => t.name)
-                        .join(", ")}
-                    >
-                      <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs text-muted-foreground">
-                        +{overflow}
-                      </span>
-                    </ShadTooltip>
+                    <Tooltip delayDuration={500}>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs text-muted-foreground">
+                          +{overflow}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                        avoidCollisions={false}
+                        sticky="always"
+                      >
+                        {rowTags
+                          .slice(MAX)
+                          .map((t) => t.name)
+                          .join(", ")}
+                      </TooltipContent>
+                    </Tooltip>
                   )}
                 </div>
               );

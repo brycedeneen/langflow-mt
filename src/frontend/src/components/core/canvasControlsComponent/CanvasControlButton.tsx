@@ -1,6 +1,6 @@
 import { ControlButton } from "@xyflow/react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/utils/utils";
 
 type CanvasControlButtonProps = {
@@ -30,20 +30,30 @@ export const CanvasControlButton = ({
       disabled={disabled}
       title={testId?.replace(/_/g, " ")}
     >
-      <ShadTooltip content={tooltipText} side="right">
-        <div
-          className={cn(
-            "rounded p-2.5 text-muted-foreground group-hover:text-primary",
-            backgroundClasses,
-          )}
+      <Tooltip delayDuration={500}>
+        <TooltipTrigger asChild>
+          <div
+            className={cn(
+              "rounded p-2.5 text-muted-foreground group-hover:text-primary",
+              backgroundClasses,
+            )}
+          >
+            <ForwardedIconComponent
+              name={iconName}
+              aria-hidden="true"
+              className={cn("scale-150 h-8 w-8", iconClasses)}
+            />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent
+          className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+          side="right"
+          avoidCollisions={false}
+          sticky="always"
         >
-          <ForwardedIconComponent
-            name={iconName}
-            aria-hidden="true"
-            className={cn("scale-150 h-8 w-8", iconClasses)}
-          />
-        </div>
-      </ShadTooltip>
+          {tooltipText}
+        </TooltipContent>
+      </Tooltip>
     </ControlButton>
   );
 };

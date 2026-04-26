@@ -6,7 +6,7 @@ import React, {
 } from "react";
 import { useHref } from "react-router-dom";
 import IconComponent from "@/components/common/genericIconComponent";
-import ShadTooltipComponent from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -176,41 +176,45 @@ export default function PublishDropdown({
             >
               <div className="flex w-full items-center justify-between">
                 <div className="flex items-center">
-                  <ShadTooltipComponent
-                    styleClasses="truncate"
-                    side="left"
-                    content={
-                      hasIO
+                  <Tooltip delayDuration={500}>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center">
+                        <IconComponent
+                          name="Globe"
+                          className={cn(
+                            `icon-size mr-2`,
+                            !isPublished && "opacity-50",
+                          )}
+                        />
+
+                        {isPublished ? (
+                          <CustomLink
+                            className="flex-1"
+                            to={`/playground/${flowId}`}
+                            target="_blank"
+                          >
+                            <span>Shareable Playground</span>
+                          </CustomLink>
+                        ) : (
+                          <span className={cn(!isPublished && "opacity-50")}>
+                            Shareable Playground
+                          </span>
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground truncate"
+                      side="left"
+                      avoidCollisions={false}
+                      sticky="always"
+                    >
+                      {hasIO
                         ? isPublished
                           ? encodeURI(`${domain}/playground/${flowId}`)
                           : "Activate to share a public version of this Playground"
-                        : "Add a Chat Input or Chat Output to access your flow"
-                    }
-                  >
-                    <div className="flex items-center">
-                      <IconComponent
-                        name="Globe"
-                        className={cn(
-                          `icon-size mr-2`,
-                          !isPublished && "opacity-50",
-                        )}
-                      />
-
-                      {isPublished ? (
-                        <CustomLink
-                          className="flex-1"
-                          to={`/playground/${flowId}`}
-                          target="_blank"
-                        >
-                          <span>Shareable Playground</span>
-                        </CustomLink>
-                      ) : (
-                        <span className={cn(!isPublished && "opacity-50")}>
-                          Shareable Playground
-                        </span>
-                      )}
-                    </div>
-                  </ShadTooltipComponent>
+                        : "Add a Chat Input or Chat Output to access your flow"}
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <Switch
                   data-testid="publish-switch"

@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import useHandleOnNewValue from "@/CustomNodes/hooks/use-handle-new-value";
 import IconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import useFlowStore from "@/stores/flowStore";
 import type { NodeDataType } from "@/types/flow";
 import { scapeJSONParse } from "@/utils/reactflowUtils";
@@ -60,16 +60,8 @@ export default function InspectionPanelEditField({
           </span>
         )}
       </div>
-      <ShadTooltip
-        content={
-          isConnected
-            ? "Cannot change visibility of connected handles"
-            : isOnCanvas
-              ? "Hide"
-              : "Show"
-        }
-        avoidCollisions
-      >
+      <Tooltip delayDuration={500}>
+        <TooltipTrigger asChild>
         <button
           onClick={handleToggleVisibility}
           disabled={isConnected}
@@ -92,7 +84,19 @@ export default function InspectionPanelEditField({
             className="h-3.5 w-3.5"
           />
         </button>
-      </ShadTooltip>
+        </TooltipTrigger>
+        <TooltipContent
+          className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+          avoidCollisions
+          sticky="always"
+        >
+          {isConnected
+            ? "Cannot change visibility of connected handles"
+            : isOnCanvas
+              ? "Hide"
+              : "Show"}
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 }

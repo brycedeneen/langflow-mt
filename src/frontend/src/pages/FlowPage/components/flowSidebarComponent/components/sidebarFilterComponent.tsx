@@ -1,5 +1,5 @@
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 
 export function SidebarFilterComponent({
@@ -30,24 +30,30 @@ export function SidebarFilterComponent({
           </div>
         </div>
       </div>
-      <ShadTooltip
-        side="right"
-        styleClasses="max-w-full"
-        content="Remove filter"
-      >
-        <Button
-          unstyled
-          className="shrink-0"
-          onClick={resetFilters}
-          data-testid="sidebar-filter-reset"
+      <Tooltip delayDuration={500}>
+        <TooltipTrigger asChild>
+          <Button
+            unstyled
+            className="shrink-0"
+            onClick={resetFilters}
+            data-testid="sidebar-filter-reset"
+          >
+            <ForwardedIconComponent
+              name="X"
+              className="h-4 w-4 stroke-2"
+              aria-hidden="true"
+            />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent
+          className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground max-w-full"
+          side="right"
+          avoidCollisions={false}
+          sticky="always"
         >
-          <ForwardedIconComponent
-            name="X"
-            className="h-4 w-4 stroke-2"
-            aria-hidden="true"
-          />
-        </Button>
-      </ShadTooltip>
+          Remove filter
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 }

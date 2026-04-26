@@ -1,6 +1,6 @@
 import IconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
 import { cn } from "@/utils/utils";
 import { getButtonClassName } from "../helpers/get-class-name";
@@ -23,7 +23,8 @@ export const ButtonInputList = ({
 }) => {
   return (
     <>
-      <ShadTooltip content={listAddLabel} side="top" align="center">
+      <Tooltip delayDuration={500}>
+        <TooltipTrigger asChild>
         <div
           onClick={addNewInput}
           className={cn(
@@ -54,7 +55,16 @@ export const ButtonInputList = ({
             />
           </Button>
         </div>
-      </ShadTooltip>
+        </TooltipTrigger>
+        <TooltipContent
+          className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+          side="top"
+          avoidCollisions={false}
+          sticky="always"
+        >
+          {listAddLabel}
+        </TooltipContent>
+      </Tooltip>
     </>
   );
 };

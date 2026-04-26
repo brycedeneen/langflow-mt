@@ -1,6 +1,6 @@
 import { ALL_LANGUAGES } from "@/constants/constants";
 import IconComponent from "../../../../../../../../../../components/common/genericIconComponent";
-import ShadTooltip from "../../../../../../../../../../components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../../../../../../../components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -23,15 +23,24 @@ const LanguageSelect = ({
     <div className="grid w-full items-center gap-2">
       <span className="flex w-full items-center text-sm">
         Preferred Language
-        <ShadTooltip content="Select the language for speech recognition">
-          <div>
-            <IconComponent
-              name="Info"
-              strokeWidth={2}
-              className="relative -top-[3px] left-1 h-[14px] w-[14px] text-placeholder"
-            />
-          </div>
-        </ShadTooltip>
+        <Tooltip delayDuration={500}>
+          <TooltipTrigger asChild>
+            <div>
+              <IconComponent
+                name="Info"
+                strokeWidth={2}
+                className="relative -top-[3px] left-1 h-[14px] w-[14px] text-placeholder"
+              />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent
+            className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+            avoidCollisions={false}
+            sticky="always"
+          >
+            Select the language for speech recognition
+          </TooltipContent>
+        </Tooltip>
       </span>
 
       <Select value={language} onValueChange={handleSetLanguage}>

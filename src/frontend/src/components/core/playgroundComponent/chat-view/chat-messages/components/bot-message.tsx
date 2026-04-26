@@ -3,7 +3,11 @@ import LangflowLogo from "@/assets/LangflowLogo.svg?react";
 import IconComponent, {
   ForwardedIconComponent,
 } from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ContentBlockDisplay } from "@/components/core/chatComponents/ContentBlockDisplay";
 import { useUpdateMessage } from "@/controllers/API/queries/messages";
 import { CustomMarkdownField } from "@/customization/components/custom-markdown-field";
@@ -204,28 +208,34 @@ export const BotMessage = memo(
                         <span className="text-muted-foreground">
                           Finished in
                         </span>
-                        <ShadTooltip
-                          content={tokenTooltipContent}
-                          styleClasses="border rounded-xl p-2 bg-zinc-700"
-                          side="bottom"
-                        >
-                          <span className="flex cursor-help items-center gap-1 font-mono text-xs text-accent-emerald-foreground">
-                            {formattedTokenCount && (
-                              <span
-                                className="flex items-center gap-1"
-                                data-testid="chat-message-token-usage"
-                              >
-                                <ForwardedIconComponent
-                                  name="Coins"
-                                  className="h-3 w-3 text-muted-foreground"
-                                />
-                                <span>{formattedTokenCount}</span>
-                                <span className="text-muted-foreground">|</span>
-                              </span>
-                            )}
-                            <span>{formatSeconds(displayTime)}</span>
-                          </span>
-                        </ShadTooltip>
+                        <Tooltip delayDuration={500}>
+                          <TooltipTrigger asChild>
+                            <span className="flex cursor-help items-center gap-1 font-mono text-xs text-accent-emerald-foreground">
+                              {formattedTokenCount && (
+                                <span
+                                  className="flex items-center gap-1"
+                                  data-testid="chat-message-token-usage"
+                                >
+                                  <ForwardedIconComponent
+                                    name="Coins"
+                                    className="h-3 w-3 text-muted-foreground"
+                                  />
+                                  <span>{formattedTokenCount}</span>
+                                  <span className="text-muted-foreground">|</span>
+                                </span>
+                              )}
+                              <span>{formatSeconds(displayTime)}</span>
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "border rounded-xl p-2 bg-zinc-700")}
+                            side="bottom"
+                            avoidCollisions={false}
+                            sticky="always"
+                          >
+                            {tokenTooltipContent}
+                          </TooltipContent>
+                        </Tooltip>
                       </>
                     ) : null}
                   </span>

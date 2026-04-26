@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -111,26 +111,51 @@ export default function MCPServersPage() {
                     >
                       {server.name}
                     </span>
-                    <ShadTooltip content={server.error}>
+                    {server.error ? (
+                      <Tooltip delayDuration={500}>
+                        <TooltipTrigger asChild>
+                          <span
+                            className={cn(
+                              "cursor-default select-none !text-mmd text-muted-foreground",
+                              server.error && "text-accent-red-foreground",
+                            )}
+                          >
+                            {server.toolsCount === null
+                              ? server.error
+                                ? server.error.startsWith("Timeout")
+                                  ? "Timeout"
+                                  : "Error"
+                                : "Loading..."
+                              : !server.toolsCount
+                                ? "No tools found"
+                                : `${server.toolsCount} tool${
+                                    server.toolsCount === 1 ? "" : "s"
+                                  }`}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                          avoidCollisions={false}
+                          sticky="always"
+                        >
+                          {server.error}
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
                       <span
                         className={cn(
                           "cursor-default select-none !text-mmd text-muted-foreground",
-                          server.error && "text-accent-red-foreground",
                         )}
                       >
                         {server.toolsCount === null
-                          ? server.error
-                            ? server.error.startsWith("Timeout")
-                              ? "Timeout"
-                              : "Error"
-                            : "Loading..."
+                          ? "Loading..."
                           : !server.toolsCount
                             ? "No tools found"
                             : `${server.toolsCount} tool${
                                 server.toolsCount === 1 ? "" : "s"
                               }`}
                       </span>
-                    </ShadTooltip>
+                    )}
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -93,11 +93,8 @@ export function SessionMoreMenu({
         open={open}
         onOpenChange={setOpen}
       >
-        <ShadTooltip
-          styleClasses="z-50"
-          side={tooltipSide}
-          content={tooltipContent}
-        >
+        <Tooltip delayDuration={500}>
+        <TooltipTrigger asChild>
           <SelectTrigger
             className={cn(
               "h-8 w-8 border-none bg-transparent p-2 rounded transition-colors text-muted-foreground hover:bg-accent hover:text-foreground focus:ring-0",
@@ -117,7 +114,16 @@ export function SessionMoreMenu({
               aria-hidden="true"
             />
           </SelectTrigger>
-        </ShadTooltip>
+        </TooltipTrigger>
+        <TooltipContent
+          className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground z-50"
+          side={tooltipSide}
+          avoidCollisions={false}
+          sticky="always"
+        >
+          {tooltipContent}
+        </TooltipContent>
+        </Tooltip>
         <SelectContent
           side={side}
           align={align}

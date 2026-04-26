@@ -1,5 +1,5 @@
 import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import type { MCPTransport } from "@/controllers/API/queries/mcp/use-patch-install-mcp";
 import { toSpaceCase } from "@/utils/stringManipulation";
@@ -41,18 +41,81 @@ export const McpAutoInstallContent = ({
         </div>
       </div>
     )}
-    {autoInstallers.map((installer) => (
-      <ShadTooltip
-        key={installer.name}
-        content={
-          !installedMCPData?.find((client) => client.name === installer.name)
-            ?.available
-            ? `Install ${toSpaceCase(installer.name)} to enable auto-install.`
-            : ""
-        }
-        side="left"
-      >
-        <div className="w-full flex">
+    {autoInstallers.map((installer) => {
+      const tooltipContent = !installedMCPData?.find(
+        (client) => client.name === installer.name,
+      )?.available
+        ? `Install ${toSpaceCase(installer.name)} to enable auto-install.`
+        : "";
+      return tooltipContent ? (
+        <Tooltip key={installer.name} delayDuration={500}>
+          <TooltipTrigger asChild>
+          <div className="w-full flex">
+            <Button
+            variant="ghost"
+            className="group flex flex-1 items-center justify-between disabled:text-foreground disabled:opacity-50"
+            disabled={
+              loadingMCP.includes(installer.name) ||
+              !isLocalConnection ||
+              !installedMCPData?.find(
+                (client) => client.name === installer.name,
+              )?.available
+            }
+            onClick={() =>
+              installClient(
+                installer.name,
+                installer.title,
+                installer.transport,
+              )
+            }
+          >
+            <div className="flex items-center gap-4 text-sm font-medium">
+              <ForwardedIconComponent
+                name={installer.icon}
+                className={cn("h-5 w-5")}
+                aria-hidden="true"
+              />
+              {installer.title}
+            </div>
+            <div className="relative h-4 w-4">
+              <ForwardedIconComponent
+                name={
+                  installedClients?.includes(installer.name)
+                    ? "Check"
+                    : loadingMCP.includes(installer.name)
+                      ? "Loader2"
+                      : "Plus"
+                }
+                className={cn(
+                  "h-4 w-4 absolute top-0 left-0 opacity-100",
+                  loadingMCP.includes(installer.name) && "animate-spin",
+                  installedClients?.includes(installer.name) &&
+                    "group-hover:opacity-0",
+                )}
+              />
+              {installedClients?.includes(installer.name) && (
+                <ForwardedIconComponent
+                  name={"RefreshCw"}
+                  className={cn(
+                    "h-4 w-4 absolute top-0 left-0 opacity-0 group-hover:opacity-100",
+                  )}
+                />
+              )}
+            </div>
+            </Button>
+          </div>
+          </TooltipTrigger>
+          <TooltipContent
+            className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+            side="left"
+            avoidCollisions={false}
+            sticky="always"
+          >
+            {tooltipContent}
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        <div key={installer.name} className="w-full flex">
           <Button
             variant="ghost"
             className="group flex flex-1 items-center justify-between disabled:text-foreground disabled:opacity-50"
@@ -106,7 +169,7 @@ export const McpAutoInstallContent = ({
             </div>
           </Button>
         </div>
-      </ShadTooltip>
-    ))}
+      );
+    })}
   </div>
 );

@@ -13,7 +13,7 @@ import CustomLoader from "@/customization/components/custom-loader";
 import IconComponent, {
   ForwardedIconComponent,
 } from "../../components/common/genericIconComponent";
-import ShadTooltip from "../../components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/ui/tooltip";
 import { Button } from "../../components/ui/button";
 import { CheckBoxDiv } from "../../components/ui/checkbox";
 import { Input } from "../../components/ui/input";
@@ -409,29 +409,56 @@ export default function UsersPage() {
                       {filterUserList.map((user: UserInputType, index) => (
                         <TableRow key={user.id}>
                           <TableCell className="truncate py-2 font-medium">
-                            <ShadTooltip content={user.id}>
-                              <span className="cursor-default">{user.id}</span>
-                            </ShadTooltip>
+                            <Tooltip delayDuration={500}>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-default">{user.id}</span>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                                avoidCollisions={false}
+                                sticky="always"
+                              >
+                                {user.id}
+                              </TooltipContent>
+                            </Tooltip>
                           </TableCell>
                           <TableCell className="truncate py-2">
-                            <ShadTooltip content={user.username}>
-                              <button
-                                className="cursor-pointer text-left hover:underline"
-                                onClick={() =>
-                                  navigate(`/settings/users/${user.id}`)
-                                }
+                            <Tooltip delayDuration={500}>
+                              <TooltipTrigger asChild>
+                                <button
+                                  className="cursor-pointer text-left hover:underline"
+                                  onClick={() =>
+                                    navigate(`/settings/users/${user.id}`)
+                                  }
+                                >
+                                  {user.username}
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                                avoidCollisions={false}
+                                sticky="always"
                               >
                                 {user.username}
-                              </button>
-                            </ShadTooltip>
+                              </TooltipContent>
+                            </Tooltip>
                           </TableCell>
                           <TableCell className="relative left-1 truncate py-2 text-align-last-left">
                             {user.id === userData?.id ? (
-                              <ShadTooltip content="You cannot deactivate your own account">
-                                <div className="flex w-fit cursor-not-allowed opacity-50">
-                                  <CheckBoxDiv checked={user.is_active} />
-                                </div>
-                              </ShadTooltip>
+                              <Tooltip delayDuration={500}>
+                                <TooltipTrigger asChild>
+                                  <div className="flex w-fit cursor-not-allowed opacity-50">
+                                    <CheckBoxDiv checked={user.is_active} />
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent
+                                  className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                                  avoidCollisions={false}
+                                  sticky="always"
+                                >
+                                  You cannot deactivate your own account
+                                </TooltipContent>
+                              </Tooltip>
                             ) : (
                               <ConfirmationModal
                                 size="x-small"
@@ -562,12 +589,22 @@ export default function UsersPage() {
                                   handleEditUser(user.id, editUser);
                                 }}
                               >
-                                <ShadTooltip content="Edit" side="top">
-                                  <IconComponent
-                                    name="Pencil"
-                                    className="h-4 w-4 cursor-pointer"
-                                  />
-                                </ShadTooltip>
+                                <Tooltip delayDuration={500}>
+                                  <TooltipTrigger asChild>
+                                    <IconComponent
+                                      name="Pencil"
+                                      className="h-4 w-4 cursor-pointer"
+                                    />
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                                    side="top"
+                                    avoidCollisions={false}
+                                    sticky="always"
+                                  >
+                                    Edit
+                                  </TooltipContent>
+                                </Tooltip>
                               </UserManagementModal>
 
                               <ConfirmationModal

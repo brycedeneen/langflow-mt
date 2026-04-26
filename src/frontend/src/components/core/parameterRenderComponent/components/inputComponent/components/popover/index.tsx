@@ -2,7 +2,11 @@ import { PopoverAnchor } from "@radix-ui/react-popover";
 import { X } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import {
   Command,
@@ -83,16 +87,26 @@ const CommandItemContent = ({
   <div className="group flex w-full items-center justify-between">
     <div className="flex items-center justify-between">
       <SelectionIndicator isSelected={isSelected} />
-      <ShadTooltip content={option} side="left">
-        <div
-          className={cn("w-full truncate pr-2", nodeStyle && "max-w-52")}
-          style={{
-            maxWidth: commandWidth,
-          }}
+      <Tooltip delayDuration={500}>
+        <TooltipTrigger asChild>
+          <div
+            className={cn("w-full truncate pr-2", nodeStyle && "max-w-52")}
+            style={{
+              maxWidth: commandWidth,
+            }}
+          >
+            <span>{option}</span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent
+          className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+          side="left"
+          avoidCollisions={false}
+          sticky="always"
         >
-          <span>{option}</span>
-        </div>
-      </ShadTooltip>
+          {option}
+        </TooltipContent>
+      </Tooltip>
     </div>
     {optionButton && optionButton(option)}
   </div>
@@ -263,26 +277,36 @@ const CustomInputPopover = ({
               ))}
             </div>
           ) : !disabled && selectedOption?.length > 0 ? (
-            <ShadTooltip content={selectedOption} side="left">
-              <div
-                style={{
-                  maxWidth: commandWidth,
-                }}
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <div
+                  style={{
+                    maxWidth: commandWidth,
+                  }}
+                >
+                  <OptionBadge
+                    option={selectedOption}
+                    onRemove={(e) => handleRemoveOption(selectedOption, e)}
+                    variant={nodeStyle ? "emerald" : "secondary"}
+                    className={cn(
+                      editNode && "text-xs",
+                      nodeStyle
+                        ? "max-w-56 rounded-[3px] px-1 font-mono"
+                        : "bg-muted",
+                      hasRefreshButton && "max-w-48",
+                    )}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent
+                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                side="left"
+                avoidCollisions={false}
+                sticky="always"
               >
-                <OptionBadge
-                  option={selectedOption}
-                  onRemove={(e) => handleRemoveOption(selectedOption, e)}
-                  variant={nodeStyle ? "emerald" : "secondary"}
-                  className={cn(
-                    editNode && "text-xs",
-                    nodeStyle
-                      ? "max-w-56 rounded-[3px] px-1 font-mono"
-                      : "bg-muted",
-                    hasRefreshButton && "max-w-48",
-                  )}
-                />
-              </div>
-            </ShadTooltip>
+                {selectedOption}
+              </TooltipContent>
+            </Tooltip>
           ) : null}
 
           {(!selectedOption?.length && !selectedOptions?.length) || disabled ? (

@@ -2,7 +2,7 @@ import { cloneDeep } from "lodash";
 import { memo, useCallback, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import IconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Popover,
   PopoverContent,
@@ -122,22 +122,31 @@ const NoteToolbarComponent = memo(function NoteToolbarComponent({
       <span className="isolate inline-flex rounded-md shadow-xs">
         {/* Color picker popover */}
         <Popover>
-          <ShadTooltip content="Pick Color">
-            <PopoverTrigger>
-              <div
-                data-testid="color_picker"
-                className="relative inline-flex items-center rounded-l-md bg-background px-2 py-2 text-foreground shadow-md transition-all duration-500 ease-in-out hover:bg-muted focus:z-10"
-              >
+          <Tooltip delayDuration={500}>
+            <TooltipTrigger asChild>
+              <PopoverTrigger>
                 <div
-                  style={{ backgroundColor: resolvedBgColor }}
-                  className={cn(
-                    "h-4 w-4 rounded-full",
-                    hasVisibleBg && "border",
-                  )}
-                />
-              </div>
-            </PopoverTrigger>
-          </ShadTooltip>
+                  data-testid="color_picker"
+                  className="relative inline-flex items-center rounded-l-md bg-background px-2 py-2 text-foreground shadow-md transition-all duration-500 ease-in-out hover:bg-muted focus:z-10"
+                >
+                  <div
+                    style={{ backgroundColor: resolvedBgColor }}
+                    className={cn(
+                      "h-4 w-4 rounded-full",
+                      hasVisibleBg && "border",
+                    )}
+                  />
+                </div>
+              </PopoverTrigger>
+            </TooltipTrigger>
+            <TooltipContent
+              className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+              avoidCollisions={false}
+              sticky="always"
+            >
+              Pick Color
+            </TooltipContent>
+          </Tooltip>
           <PopoverContent side="top" className="w-fit px-2 py-2">
             <ColorPickerButtons
               bgColor={bgColor}
@@ -150,17 +159,27 @@ const NoteToolbarComponent = memo(function NoteToolbarComponent({
         {/* More options dropdown */}
         <Select onValueChange={handleSelectChange} value="">
           <SelectTrigger>
-            <ShadTooltip content="Show More" side="top">
-              <div
-                data-testid="more-options-modal"
-                className="relative -ml-px inline-flex h-8 w-[2rem] items-center rounded-r-md bg-background text-foreground shadow-md transition-all duration-500 ease-in-out hover:bg-muted focus:z-10"
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <div
+                  data-testid="more-options-modal"
+                  className="relative -ml-px inline-flex h-8 w-[2rem] items-center rounded-r-md bg-background text-foreground shadow-md transition-all duration-500 ease-in-out hover:bg-muted focus:z-10"
+                >
+                  <IconComponent
+                    name="MoreHorizontal"
+                    className="relative left-2 h-4 w-4"
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent
+                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                side="top"
+                avoidCollisions={false}
+                sticky="always"
               >
-                <IconComponent
-                  name="MoreHorizontal"
-                  className="relative left-2 h-4 w-4"
-                />
-              </div>
-            </ShadTooltip>
+                Show More
+              </TooltipContent>
+            </Tooltip>
           </SelectTrigger>
           <SelectItems shortcuts={shortcuts} data={data} />
         </Select>

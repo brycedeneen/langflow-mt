@@ -2,7 +2,11 @@ import { memo, useMemo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useShallow } from "zustand/react/shallow";
 import IconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import FlowSettingsComponent from "@/components/core/flowSettingsComponent";
 import { Button } from "@/components/ui/button";
 import {
@@ -153,9 +157,31 @@ export const MenuBar = memo((): JSX.Element => {
           </PopoverTrigger>
           <div className={"ml-5 hidden shrink-0 items-center sm:flex"}>
             {!autoSaving && (
-              <ShadTooltip
-                content={
-                  changesNotSaved
+              <Tooltip delayDuration={500}>
+                <TooltipTrigger asChild>
+                  <div>
+                    <Button
+                      variant="primary"
+                      size="iconMd"
+                      disabled={!changesNotSaved || isBuilding || saveLoading}
+                      className={cn("h-7 w-7 border-border")}
+                      onClick={handleSave}
+                      data-testid="save-flow-button"
+                    >
+                      <IconComponent
+                        name={saveLoading ? "Loader2" : "Save"}
+                        className={cn("h-5 w-5", saveLoading && "animate-spin")}
+                      />
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent
+                  className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "cursor-default z-10")}
+                  side="bottom"
+                  avoidCollisions={false}
+                  sticky="always"
+                >
+                  {changesNotSaved
                     ? saveLoading
                       ? "Saving..."
                       : "Save Changes"
@@ -165,27 +191,9 @@ export const MenuBar = memo((): JSX.Element => {
                             hour: "numeric",
                             minute: "numeric",
                           })
-                        : "Never")
-                }
-                side="bottom"
-                styleClasses="cursor-default z-10"
-              >
-                <div>
-                  <Button
-                    variant="primary"
-                    size="iconMd"
-                    disabled={!changesNotSaved || isBuilding || saveLoading}
-                    className={cn("h-7 w-7 border-border")}
-                    onClick={handleSave}
-                    data-testid="save-flow-button"
-                  >
-                    <IconComponent
-                      name={saveLoading ? "Loader2" : "Save"}
-                      className={cn("h-5 w-5", saveLoading && "animate-spin")}
-                    />
-                  </Button>
-                </div>
-              </ShadTooltip>
+                        : "Never")}
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
         </div>
