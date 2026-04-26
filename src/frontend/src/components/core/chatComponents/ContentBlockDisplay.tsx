@@ -1,5 +1,4 @@
 "use client";
-import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useToolDurations } from "@/components/core/playgroundComponent/chat-view/chat-messages/hooks/use-tool-durations";
@@ -64,14 +63,12 @@ export function ContentBlockDisplay({
 
   return (
     <div className="relative py-3">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{
-          duration: 0.15,
-          ease: "easeOut",
-        }}
-        className={cn("relative rounded-lg bg-transparent", "overflow-hidden")}
+      <div
+        className={cn(
+          "relative rounded-lg bg-transparent",
+          "overflow-hidden",
+          "animate-in fade-in-0 duration-150",
+        )}
       >
         {!hideHeader && (
           <div className="flex items-center justify-between p-4">
@@ -96,14 +93,15 @@ export function ContentBlockDisplay({
               {!playgroundPage && (
                 <DurationDisplay duration={totalDuration} chatId={chatId} />
               )}
-              <motion.div
-                animate={{ rotate: isExpanded ? 180 : 0 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
+              <div
                 onClick={() => setIsExpanded((prev) => !prev)}
-                className="cursor-pointer"
+                className={cn(
+                  "cursor-pointer transition-transform duration-200 ease-in-out",
+                  isExpanded && "rotate-180",
+                )}
               >
                 <ChevronDown className="h-5 w-5" />
-              </motion.div>
+              </div>
             </div>
           </div>
         )}
@@ -168,7 +166,7 @@ export function ContentBlockDisplay({
             </Accordion>
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

@@ -3,14 +3,6 @@ import userEvent from "@testing-library/user-event";
 import type { AllNodeType } from "@/types/flow";
 import InspectionPanel from "../index";
 
-// Mock framer-motion
-jest.mock("framer-motion", () => ({
-  motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
-}));
-
 // Mock @xyflow/react Panel
 jest.mock("@xyflow/react", () => ({
   Panel: ({ children, ...props }: any) => (

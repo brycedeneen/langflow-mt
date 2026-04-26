@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef } from "react";
 import ShortUniqueId from "short-unique-id";
 import {
@@ -229,33 +228,28 @@ export default function ChatInput({
   }
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key="input-wrapper"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-      >
-        <InputWrapper
-          isBuilding={isBuilding}
-          checkSendingOk={checkSendingOk}
-          send={send}
-          noInput={noInput}
-          chatValue={chatValue}
-          inputRef={inputRef}
-          files={files}
-          isDragging={isDragging}
-          handleDeleteFile={handleDeleteFile}
-          fileInputRef={fileInputRef}
-          handleFileChange={handleFileChange}
-          handleButtonClick={handleButtonClick}
-          audioRecordingState={audioRecordingState}
-          onStartRecording={startRecording}
-          onStopRecording={stopRecording}
-          isAudioSupported={isAudioSupported}
-        />
-      </motion.div>
-    </AnimatePresence>
+    <div
+      key="input-wrapper"
+      className="animate-in fade-in-0 duration-200"
+    >
+      <InputWrapper
+        isBuilding={isBuilding}
+        checkSendingOk={checkSendingOk}
+        send={send}
+        noInput={noInput}
+        chatValue={chatValue}
+        inputRef={inputRef}
+        files={files}
+        isDragging={isDragging}
+        handleDeleteFile={handleDeleteFile}
+        fileInputRef={fileInputRef}
+        handleFileChange={handleFileChange}
+        handleButtonClick={handleButtonClick}
+        audioRecordingState={audioRecordingState}
+        onStartRecording={startRecording}
+        onStopRecording={stopRecording}
+        isAudioSupported={isAudioSupported}
+      />
+    </div>
   );
 }

@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { ComponentPropsWithoutRef } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -86,10 +85,8 @@ interface ErrorViewProps {
  */
 function ErrorLoadingState() {
   return (
-    <motion.div
+    <div
       key="loading"
-      initial={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
       className="flex w-full gap-4 rounded-md p-2"
     >
       <div className="relative hidden h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded bg-white text-2xl @[45rem]/chat-panel:!flex border-0">
@@ -105,7 +102,7 @@ function ErrorLoadingState() {
           Flow running...
         </TextShimmer>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -186,33 +183,33 @@ export const ErrorView = ({
 }: ErrorViewProps) => {
   const showLoading = !showError && lastMessage;
 
+  if (showLoading) {
+    return <ErrorLoadingState />;
+  }
+
   return (
-    <AnimatePresence mode="wait">
-      {showLoading ? (
-        <ErrorLoadingState />
-      ) : (
-        blocks.map((block, blockIndex) => (
-          <div
-            key={blockIndex}
-            className="w-full rounded-md border border-border pt-[6px] pr-[6px] pb-[6px] pl-[8px] text-sm text-foreground"
-          >
-            {block.contents.map((content, contentIndex) => {
-              if (content.type === "error") {
-                return (
-                  <ErrorAccordion
-                    key={contentIndex}
-                    content={content}
-                    chat={chat}
-                    closeChat={closeChat}
-                    fitViewNode={fitViewNode}
-                  />
-                );
-              }
-              return null;
-            })}
-          </div>
-        ))
-      )}
-    </AnimatePresence>
+    <>
+      {blocks.map((block, blockIndex) => (
+        <div
+          key={blockIndex}
+          className="w-full rounded-md border border-border pt-[6px] pr-[6px] pb-[6px] pl-[8px] text-sm text-foreground animate-in fade-in-0 duration-300"
+        >
+          {block.contents.map((content, contentIndex) => {
+            if (content.type === "error") {
+              return (
+                <ErrorAccordion
+                  key={contentIndex}
+                  content={content}
+                  chat={chat}
+                  closeChat={closeChat}
+                  fitViewNode={fitViewNode}
+                />
+              );
+            }
+            return null;
+          })}
+        </div>
+      ))}
+    </>
   );
 };
