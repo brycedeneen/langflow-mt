@@ -1039,9 +1039,14 @@ async def create_or_update_component_agent_metadata(
         )
         return
 
+    from langflow.agentic.utils.component_search import build_component_name_resolver
+
+    aliases = await build_component_name_resolver()
+
     inserted = 0
     reseeded = 0
     skipped = 0
+    unresolved = 0
 
     for yaml_file in yaml_files:
         try:
@@ -1061,8 +1066,19 @@ async def create_or_update_component_agent_metadata(
         for entry in entries:
             if not isinstance(entry, dict):
                 continue
-            component_name = entry.get("component_name")
-            if not isinstance(component_name, str) or not component_name.strip():
+            raw_name = entry.get("component_name")
+            if not isinstance(raw_name, str) or not raw_name.strip():
+                continue
+            # Resolve any alias (class name, display name, or registry key) to the
+            # canonical registry key. Skip entries that match no live component —
+            # they would only create orphan rows.
+            component_name = aliases.get(raw_name)
+            if component_name is None:
+                unresolved += 1
+                await logger.awarning(
+                    f"Skipping agent-metadata entry '{raw_name}' in {yaml_file.name}: "
+                    "no matching live component."
+                )
                 continue
             agent_summary = entry.get("agent_summary")
             agent_usage_notes = entry.get("agent_usage_notes")
@@ -1102,7 +1118,8 @@ async def create_or_update_component_agent_metadata(
 
     await logger.ainfo(
         f"Component agent metadata seed: inserted {inserted}, "
-        f"re-seeded {reseeded}, skipped {skipped} (admin-owned)."
+        f"re-seeded {reseeded}, skipped {skipped} (admin-owned), "
+        f"unresolved {unresolved}."
     )
 
 

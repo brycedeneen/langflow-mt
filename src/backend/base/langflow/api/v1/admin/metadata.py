@@ -9,6 +9,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import select
 
+from langflow.agentic.utils.component_search import build_component_name_resolver
 from langflow.services.auth.utils import get_current_active_superuser
 from langflow.services.database.models import (
     ComponentMetadata,
@@ -28,7 +29,7 @@ router = APIRouter(tags=["Admin Metadata"], prefix="/metadata")
 
 
 async def _live_component_index() -> dict[str, dict]:
-    """Return {component_name: {display_name, category, icon}} from the live catalog."""
+    """Return {registry_key: {display_name, category, icon}} from the live catalog."""
     from langflow.agentic.utils.component_search import list_all_components
 
     items = await list_all_components()
@@ -73,8 +74,15 @@ async def list_component_metadata(
     *, session: DbSession
 ) -> list[ComponentMetadataRowRead]:
     live = await _live_component_index()
+    aliases = await build_component_name_resolver()
     meta_rows = (await session.exec(select(ComponentMetadata))).all()
-    meta_by_name = {m.component_name: m for m in meta_rows}
+
+    # Bucket metadata rows by their canonical (live) registry key when resolvable;
+    # truly stale rows keep their stored name and are flagged orphan downstream.
+    meta_by_name: dict[str, ComponentMetadata] = {}
+    for m in meta_rows:
+        canonical = aliases.get(m.component_name)
+        meta_by_name[canonical or m.component_name] = m
 
     all_names = set(live.keys()) | set(meta_by_name.keys())
     return [
@@ -91,17 +99,19 @@ async def list_component_metadata(
 async def get_component_metadata(
     component_name: str, *, session: DbSession
 ) -> ComponentMetadataRowRead:
-    live = (await _live_component_index()).get(component_name)
+    aliases = await build_component_name_resolver()
+    canonical = aliases.get(component_name) or component_name
+    live = (await _live_component_index()).get(canonical)
     meta = (
         await session.exec(
             select(ComponentMetadata).where(
-                ComponentMetadata.component_name == component_name
+                ComponentMetadata.component_name == canonical
             )
         )
     ).one_or_none()
     if live is None and meta is None:
         raise HTTPException(status_code=404, detail="Component not found")
-    return _component_row_read(component_name, live, meta)
+    return _component_row_read(canonical, live, meta)
 
 
 @router.put(
@@ -115,16 +125,18 @@ async def upsert_component_metadata(
     session: DbSession,
     current_user: User = Depends(get_current_active_superuser),
 ) -> ComponentMetadataRead:
+    aliases = await build_component_name_resolver()
+    canonical = aliases.get(component_name) or component_name
     row = (
         await session.exec(
             select(ComponentMetadata).where(
-                ComponentMetadata.component_name == component_name
+                ComponentMetadata.component_name == canonical
             )
         )
     ).one_or_none()
     if row is None:
         row = ComponentMetadata(
-            component_name=component_name,
+            component_name=canonical,
             agent_usage_notes=body.agent_usage_notes,
             agent_summary=body.agent_summary,
             updated_by=current_user.id,
@@ -153,10 +165,12 @@ async def upsert_component_metadata(
 async def delete_component_metadata(
     component_name: str, *, session: DbSession
 ) -> None:
+    aliases = await build_component_name_resolver()
+    canonical = aliases.get(component_name) or component_name
     row = (
         await session.exec(
             select(ComponentMetadata).where(
-                ComponentMetadata.component_name == component_name
+                ComponentMetadata.component_name == canonical
             )
         )
     ).one_or_none()

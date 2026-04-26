@@ -7,6 +7,63 @@ from lfx.log.logger import logger
 from lfx.services.settings.service import SettingsService
 
 
+async def build_component_name_resolver(
+    settings_service: SettingsService | None = None,
+) -> dict[str, str]:
+    """Return a mapping of every known component alias to its canonical registry key.
+
+    The canonical key is the live registry key (the component's ``name`` class
+    attribute, e.g. ``"ADPAPIRequest"``). Three alias forms map to it:
+
+    - the registry key itself (identity),
+    - the ``display_name`` (e.g. ``"ADP API Request"``),
+    - the Python class name extracted from ``metadata.module`` (e.g.
+      ``"ADPAPIRequestComponent"``).
+
+    Used to normalise component-name keys at the DB boundary so that the seed
+    YAMLs (class-name-keyed) and the admin UI / assistant catalog (registry-key)
+    converge on a single canonical form.
+    """
+    if settings_service is None:
+        from langflow.services.deps import get_settings_service
+
+        settings_service = get_settings_service()
+
+    aliases: dict[str, str] = {}
+    try:
+        all_types_dict = await get_and_cache_all_types_dict(settings_service)
+    except Exception as e:  # noqa: BLE001
+        await logger.aerror(f"Error building component name resolver: {e}")
+        return aliases
+
+    for components in all_types_dict.values():
+        for registry_key, component_data in components.items():
+            aliases[registry_key] = registry_key
+            display_name = component_data.get("display_name")
+            if isinstance(display_name, str) and display_name:
+                aliases.setdefault(display_name, registry_key)
+            module_path = (component_data.get("metadata") or {}).get("module")
+            if isinstance(module_path, str) and module_path:
+                class_name = module_path.rsplit(".", 1)[-1]
+                if class_name:
+                    aliases.setdefault(class_name, registry_key)
+    return aliases
+
+
+async def resolve_component_name(
+    name: str,
+    settings_service: SettingsService | None = None,
+) -> str | None:
+    """Resolve any component-name alias to its canonical registry key, or ``None``.
+
+    Returns ``None`` when the input doesn't match any live component (truly
+    stale). Callers should typically use :func:`build_component_name_resolver`
+    when resolving many names; this helper is a convenience for one-off lookups.
+    """
+    aliases = await build_component_name_resolver(settings_service=settings_service)
+    return aliases.get(name)
+
+
 async def list_all_components(
     query: str | None = None,
     component_type: str | None = None,
