@@ -64,7 +64,6 @@ async def _seed_flow(
 @pytest.mark.asyncio
 async def test_submit_persists_and_sets_flag(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001  — autouse-style seed
     org_viewer_user,
     org_viewer_headers,
     non_personal_org,
@@ -102,7 +101,6 @@ async def test_submit_persists_and_sets_flag(
 @pytest.mark.asyncio
 async def test_submit_writes_admin_bell_rows(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_user,
     org_viewer_headers,
     non_personal_org,
@@ -141,7 +139,6 @@ async def test_submit_writes_admin_bell_rows(
 @pytest.mark.asyncio
 async def test_submit_409_when_active(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_user,
     org_viewer_headers,
     non_personal_org,
@@ -167,7 +164,6 @@ async def test_submit_409_when_active(
 @pytest.mark.asyncio
 async def test_submit_404_when_flow_missing(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_headers,
 ):
     bogus = UUID("00000000-0000-0000-0000-000000000000")
@@ -182,7 +178,6 @@ async def test_submit_404_when_flow_missing(
 @pytest.mark.asyncio
 async def test_submit_ignores_client_rates_and_uses_server_resolved(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001  — seeds default 200.00/200.00
     org_viewer_user,
     org_viewer_headers,
     non_personal_org,

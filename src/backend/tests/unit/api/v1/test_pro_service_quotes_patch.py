@@ -70,7 +70,6 @@ async def _seed_quote(
 @pytest.mark.asyncio
 async def test_admin_marks_in_progress(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_user,
     non_personal_org,
     logged_in_headers_super_user,
@@ -115,7 +114,6 @@ async def test_admin_marks_in_progress(
 @pytest.mark.asyncio
 async def test_admin_closes_clears_active_flag(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_user,
     non_personal_org,
     logged_in_headers_super_user,
@@ -148,7 +146,6 @@ async def test_admin_closes_clears_active_flag(
 @pytest.mark.asyncio
 async def test_requester_self_cancels_open(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_user,
     org_viewer_headers,
     non_personal_org,
@@ -193,7 +190,6 @@ async def test_requester_self_cancels_open(
 @pytest.mark.asyncio
 async def test_requester_cannot_mark_in_progress(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_user,
     org_viewer_headers,
     non_personal_org,
@@ -219,7 +215,6 @@ async def test_requester_cannot_mark_in_progress(
 @pytest.mark.asyncio
 async def test_org_member_edits_org_notes(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_user,
     org_viewer_headers,
     non_personal_org,
@@ -247,7 +242,6 @@ async def test_org_member_edits_org_notes(
 @pytest.mark.asyncio
 async def test_org_member_cannot_edit_admin_notes(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_user,
     org_viewer_headers,
     non_personal_org,
@@ -272,7 +266,6 @@ async def test_org_member_cannot_edit_admin_notes(
 @pytest.mark.asyncio
 async def test_admin_closes_open_targeted_bell(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_user,
     non_personal_org,
     logged_in_headers_super_user,
@@ -313,7 +306,6 @@ async def test_admin_closes_open_targeted_bell(
 @pytest.mark.asyncio
 async def test_already_closed_to_in_progress_returns_409(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_user,
     non_personal_org,
     logged_in_headers_super_user,
@@ -341,7 +333,6 @@ async def test_already_closed_to_in_progress_returns_409(
 @pytest.mark.asyncio
 async def test_patch_404_for_other_org(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_headers,
     active_super_user,
 ):

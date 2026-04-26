@@ -113,7 +113,6 @@ async def _set_settings_webhook(url: str | None, secret: str | None) -> None:
 @pytest.mark.asyncio
 async def test_webhook_no_op_when_url_unset(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     capturing_httpx,
     org_viewer_user,
     org_viewer_headers,
@@ -137,7 +136,6 @@ async def test_webhook_no_op_when_url_unset(
 @pytest.mark.asyncio
 async def test_webhook_dispatches_signed_payload(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     capturing_httpx,
     org_viewer_user,
     org_viewer_headers,
@@ -197,7 +195,6 @@ async def test_webhook_dispatches_signed_payload(
 @pytest.mark.asyncio
 async def test_webhook_delivery_failure_swallowed(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     monkeypatch,
     org_viewer_user,
     org_viewer_headers,

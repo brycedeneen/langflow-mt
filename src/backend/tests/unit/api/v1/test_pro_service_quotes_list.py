@@ -79,7 +79,6 @@ async def _seed_other_org() -> UUID:
 @pytest.mark.asyncio
 async def test_org_member_sees_only_own_org_quotes(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_user,
     org_viewer_headers,
     non_personal_org,
@@ -117,7 +116,6 @@ async def test_org_member_sees_only_own_org_quotes(
 @pytest.mark.asyncio
 async def test_super_admin_sees_all_orgs(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_user,
     non_personal_org,
     active_super_user,
@@ -155,7 +153,6 @@ async def test_super_admin_sees_all_orgs(
 @pytest.mark.asyncio
 async def test_detail_404_for_other_org_member(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_headers,
     active_super_user,
 ):
@@ -178,7 +175,6 @@ async def test_detail_404_for_other_org_member(
 @pytest.mark.asyncio
 async def test_status_filter(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_user,
     non_personal_org,
     logged_in_headers_super_user,
@@ -218,7 +214,6 @@ async def test_status_filter(
 @pytest.mark.asyncio
 async def test_detail_returns_denormalized_fields(
     client: AsyncClient,
-    ps_settings_singleton,  # noqa: ARG001
     org_viewer_user,
     org_viewer_headers,
     non_personal_org,

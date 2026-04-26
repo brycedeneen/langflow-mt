@@ -22,8 +22,8 @@ from langflow.services.database.models.user.model import User
 from langflow.services.deps import get_auth_service, session_scope
 
 
-@pytest.fixture
-async def ps_settings_singleton():
+@pytest.fixture(autouse=True)
+async def ps_settings_singleton(client: AsyncClient):  # noqa: ARG001
     """Ensure the ``professional_services_settings`` id=1 singleton exists.
 
     Production seeds id=1 via alembic; under ``SQLModel.metadata.create_all``
@@ -31,6 +31,12 @@ async def ps_settings_singleton():
     touches the pro-service-quotes endpoints must bootstrap the row. Yields
     the row id (always 1) so tests can also overwrite rates without
     re-querying.
+
+    Depends on ``client`` so we run **after** the test app's per-test sqlite
+    engine is initialized (otherwise the row is inserted into a torn-down DB).
+    Marked ``autouse=True`` so PS-endpoint tests don't have to repeat it on
+    every signature; the bootstrap is idempotent for non-PS tests in this
+    directory (a single insert; no teardown).
     """
     async with session_scope() as session:
         existing = (

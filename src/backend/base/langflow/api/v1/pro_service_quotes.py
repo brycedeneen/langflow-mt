@@ -345,8 +345,10 @@ async def submit_quote_endpoint(
     await session.commit()
     await session.refresh(quote)
     await session.refresh(flow)
-    requester = await session.get(User, quote.requester_user_id)
-    result = quote_to_read(quote, org, flow, requester)
+    # Reuse the already-loaded principal/org/flow rather than re-fetching:
+    # the requester of a submission is by definition the calling user, and
+    # `org`/`flow` were resolved as part of the request scope above.
+    result = quote_to_read(quote, org, flow, user)
 
     # Best-effort async webhook delivery. Failure is silent (logged at WARNING).
     # The webhook fires after the DB commit so the in-product quote remains
@@ -357,7 +359,7 @@ async def submit_quote_endpoint(
         settings_row=settings_row,
         quote=quote,
         org=org,
-        requester=requester,
+        requester=user,
         base_url="",
     )
     return result

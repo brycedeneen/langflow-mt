@@ -18,7 +18,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from typing import Any
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import httpx
 
@@ -139,12 +139,3 @@ async def deliver_quote_webhook(
             quote.id,
             exc,
         )
-
-
-def fire_quote_webhook(*, quote_id: UUID, base_url: str) -> None:  # noqa: ARG001
-    """Legacy entry point retained for the route handler — kept as a no-op shim.
-
-    The actual submit handler now invokes ``deliver_quote_webhook`` directly
-    with already-loaded entities so we don't re-query inside the webhook layer.
-    """
-    return None
