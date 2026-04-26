@@ -43,6 +43,12 @@ export type FlowType = {
   public?: boolean;
   access_type?: "PUBLIC" | "PRIVATE" | "PROTECTED";
   mcp_enabled?: boolean;
+  /**
+   * True when the user has an open Pro-Service Quote request for this flow.
+   * Set/cleared by the backend on submit + state transitions; the frontend
+   * uses it to gate the "Request PS" button so a user can't double-submit.
+   */
+  ps_request_active?: boolean;
 };
 
 export type GenericNodeType = Node<NodeDataType, "genericNode">;
