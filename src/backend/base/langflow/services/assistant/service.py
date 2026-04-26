@@ -26,6 +26,7 @@ from langflow.services.assistant.flow_template_context import build_flow_templat
 from langflow.services.assistant.template_prompt import build_available_templates_block
 from langflow.services.assistant.tools.template_metadata import get_template_instructions
 from langflow.services.assistant.tools.template_apply import apply_template
+from langflow.services.assistant.tools.pro_services import suggest_professional_services
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -211,6 +212,14 @@ to ADP under Event Notification subscriptions; include the API key as the \
 - For SFTP filename patterns, prefer `{{datestamp}}` (full date+time, \
 collision-safe) by default. Offer `{{date}}` only if the user explicitly \
 wants one file per day and accepts the overwrite trade-off.
+
+## Professional services escalation
+If the user explicitly asks for human help, says they're stuck on the same \
+problem twice, or expresses frustration with the integration, call the \
+`suggest_professional_services` tool with a one-sentence reason. Ask at most \
+two clarifying questions before suggesting; do not try to solve the problem \
+yourself once professional help is on the table. The goal is to get a quote \
+out the door, not to keep iterating.
 """
 
 # ---------------------------------------------------------------------------
@@ -325,6 +334,11 @@ class AssistantService:
     async def _execute_tool(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
         """Execute a single tool call and return its result dict."""
         try:
+            # Inspection tools historically lived as InspectionTools methods; this
+            # is the first standalone-function inspection tool, so it dispatches
+            # inline before the getattr fallback below.
+            if name == "suggest_professional_services":
+                return {"result": suggest_professional_services(**args)}
             if is_catalog_tool(name):
                 fn = CATALOG_DISPATCH[name]
                 result = await fn(**args)
