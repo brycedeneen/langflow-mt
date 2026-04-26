@@ -496,6 +496,15 @@ const SideBarFoldersButtonsComponent = ({
           <div className="grid w-full items-center gap-2 p-2">
             {/* TODO: Remove this on cleanup */}
             {ENABLE_DATASTAX_LANGFLOW && <CustomStoreButton />}{" "}
+            <SidebarMenuButton
+              onClick={() => _navigate("/pro-service-quotes")}
+              size="md"
+              className="text-sm"
+              data-testid="sidebar-pro-service-quotes-button"
+            >
+              <ForwardedIconComponent name="HandCoins" className="h-4 w-4" />
+              Pro-Service Quotes
+            </SidebarMenuButton>
             {ENABLE_KNOWLEDGE_BASES && (
               <SidebarMenuButton
                 onClick={handleKnowledgeNavigation}

@@ -30,6 +30,8 @@ import HomePage from "./pages/MainPage/pages/homePage";
 import KnowledgePage from "./pages/MainPage/pages/knowledgePage";
 import SourceChunksPage from "./pages/MainPage/pages/knowledgePage/sourceChunksPage/SourceChunksPage";
 import CollectionPage from "./pages/MainPage/pages/main-page";
+import ProServiceQuoteDetailPage from "./pages/MainPage/pages/proServiceQuoteDetailPage";
+import ProServiceQuotesPage from "./pages/MainPage/pages/proServiceQuotesPage";
 import SettingsPage from "./pages/SettingsPage";
 import ApiKeysPage from "./pages/SettingsPage/pages/ApiKeysPage";
 import GeneralPage from "./pages/SettingsPage/pages/GeneralPage";
@@ -126,6 +128,14 @@ const router = createBrowserRouter(
                       )}
                     </Route>
                   )}
+                  <Route
+                    path="pro-service-quotes"
+                    element={<ProServiceQuotesPage />}
+                  />
+                  <Route
+                    path="pro-service-quotes/:id"
+                    element={<ProServiceQuoteDetailPage />}
+                  />
                   <Route
                     path="flows/"
                     element={<HomePage key="flows" type="flows" />}
