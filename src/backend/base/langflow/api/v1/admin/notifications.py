@@ -6,7 +6,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from sqlmodel import select
 
 from langflow.api.utils.core import CurrentActiveUser, DbSession
@@ -90,10 +90,10 @@ async def list_notifications(
         )
         for r in rows
     ]
-    total_stmt = select(AdminNotification).where(visible)
+    total_stmt = select(func.count()).select_from(AdminNotification).where(visible)
     if unread:
         total_stmt = total_stmt.where(AdminNotification.read_at.is_(None))
-    total = len((await session.exec(total_stmt)).all())
+    total = await session.scalar(total_stmt) or 0
     return NotificationListResponse(items=items, total=total)
 
 
@@ -102,14 +102,13 @@ async def unread_count(
     user: CurrentActiveUser,
     session: DbSession,
 ) -> dict[str, int]:
-    rows = (
-        await session.exec(
-            select(AdminNotification)
-            .where(_visible_clause(user))
-            .where(AdminNotification.read_at.is_(None))
-        )
-    ).all()
-    return {"unread": len(rows)}
+    count = await session.scalar(
+        select(func.count())
+        .select_from(AdminNotification)
+        .where(_visible_clause(user))
+        .where(AdminNotification.read_at.is_(None))
+    )
+    return {"unread": count or 0}
 
 
 @router.post("/notifications/{notification_id}/read", status_code=status.HTTP_204_NO_CONTENT)
