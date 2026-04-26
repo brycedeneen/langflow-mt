@@ -200,12 +200,13 @@ class TestCheckKeyFromDb:
 
     @pytest.mark.asyncio
     async def test_valid_key_returns_user(self, mock_session, mock_user, mock_settings_service_db):
-        """Valid API key should return the associated user."""
+        """Valid API key should return the associated user via O(1) hash lookup."""
         api_key_id = uuid4()
         user_id = mock_user.id
 
+        # New path: WHERE api_key_hash == :h returns at most one row of (id, user_id).
         mock_result = MagicMock()
-        mock_result.all.return_value = [(api_key_id, "sk-valid-key", user_id)]
+        mock_result.first.return_value = (api_key_id, user_id)
 
         mock_session.exec = AsyncMock(return_value=mock_result)
 
@@ -220,7 +221,7 @@ class TestCheckKeyFromDb:
     async def test_invalid_key_returns_none(self, mock_session, mock_settings_service_db):
         """Invalid API key should return None."""
         mock_result = MagicMock()
-        mock_result.all.return_value = []  # No keys in DB
+        mock_result.first.return_value = None  # No row matches the hash
         mock_session.exec = AsyncMock(return_value=mock_result)
 
         result = await _check_key_from_db(mock_session, "sk-invalid-key", mock_settings_service_db)
@@ -234,13 +235,13 @@ class TestCheckKeyFromDb:
         user_id = mock_user.id
 
         mock_result = MagicMock()
-        mock_result.all.return_value = [(api_key_id, "sk-valid-key", user_id)]
+        mock_result.first.return_value = (api_key_id, user_id)
         mock_session.exec = AsyncMock(return_value=mock_result)
         mock_session.get = AsyncMock(return_value=mock_user)
 
         await _check_key_from_db(mock_session, "sk-valid-key", mock_settings_service_db)
 
-        # Verify exec was called twice (select + update)
+        # Verify exec was called twice (hash-lookup select + usage update).
         assert mock_session.exec.call_count == 2
 
     @pytest.mark.asyncio
@@ -252,20 +253,20 @@ class TestCheckKeyFromDb:
         user_id = mock_user.id
 
         mock_result = MagicMock()
-        mock_result.all.return_value = [(api_key_id, "sk-valid-key", user_id)]
+        mock_result.first.return_value = (api_key_id, user_id)
         mock_session.exec = AsyncMock(return_value=mock_result)
         mock_session.get = AsyncMock(return_value=mock_user)
 
         await _check_key_from_db(mock_session, "sk-valid-key", mock_settings_service_db)
 
-        # Verify exec was called only once (select, no update)
+        # Verify exec was called only once (hash-lookup select, no update).
         assert mock_session.exec.call_count == 1
 
     @pytest.mark.asyncio
     async def test_empty_key_returns_none(self, mock_session, mock_settings_service_db):
         """Empty API key should return None."""
         mock_result = MagicMock()
-        mock_result.all.return_value = []  # No keys match
+        mock_result.first.return_value = None
         mock_session.exec = AsyncMock(return_value=mock_result)
 
         result = await _check_key_from_db(mock_session, "", mock_settings_service_db)
@@ -486,7 +487,7 @@ class TestCheckKeyIntegration:
         user_id = mock_user.id
 
         mock_result = MagicMock()
-        mock_result.all.return_value = [(api_key_id, "sk-valid-key", user_id)]
+        mock_result.first.return_value = (api_key_id, user_id)
         mock_session.exec = AsyncMock(return_value=mock_result)
         mock_session.get = AsyncMock(return_value=mock_user)
 
@@ -534,17 +535,12 @@ class TestCheckKeyIntegration:
         """Full flow test: env mode with invalid key falls back to db."""
         monkeypatch.setenv("LANGFLOW_API_KEY", "sk-correct-key")
 
-        # Setup mock for db fallback
+        # Setup mock for db fallback — hash lookup returns the row.
         api_key_id = uuid4()
         user_id = mock_user.id
 
-        monkeypatch.setattr(
-            "langflow.services.database.models.api_key.crud.auth_utils.decrypt_api_key",
-            lambda v, _settings_service=None: "sk-wrong-key" if v == "sk-wrong-key" else v,
-        )
-
         mock_result = MagicMock()
-        mock_result.all.return_value = [(api_key_id, "sk-wrong-key", user_id)]
+        mock_result.first.return_value = (api_key_id, user_id)
         mock_session.exec = AsyncMock(return_value=mock_result)
         mock_session.get = AsyncMock(return_value=mock_user)
 
@@ -569,9 +565,9 @@ class TestCheckKeyIntegration:
         """Full flow test: env mode with invalid key that's also not in db returns None."""
         monkeypatch.setenv("LANGFLOW_API_KEY", "sk-correct-key")
 
-        # Setup mock for db - key not found
+        # Setup mock for db - key not found (hash returns no row)
         mock_result = MagicMock()
-        mock_result.all.return_value = []
+        mock_result.first.return_value = None
         mock_session.exec = AsyncMock(return_value=mock_result)
 
         mock_settings = MagicMock()

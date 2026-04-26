@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import base64
+import hashlib
+import hmac
 from typing import TYPE_CHECKING, Annotated, Final
 
 from cryptography.fernet import Fernet
@@ -319,6 +321,25 @@ def get_fernet(settings_service: SettingsService) -> Fernet:
         key = padded_key.encode()
 
     return Fernet(key)
+
+
+def compute_api_key_hash(raw_api_key: str, settings_service: SettingsService) -> str:
+    """Compute a deterministic HMAC-SHA256 hex digest of a raw API key.
+
+    The keying secret is the configured ``SECRET_KEY``. The same raw key always
+    produces the same digest, enabling O(1) lookup of stored API keys without
+    decrypting the ciphertext on the auth path. The hash is treated as the
+    authoritative match — there is no secondary Fernet verify step.
+
+    Args:
+        raw_api_key: The plaintext API key.
+        settings_service: Settings service used to obtain the keying secret.
+
+    Returns:
+        Hex digest of the HMAC-SHA256 of ``raw_api_key`` keyed by ``SECRET_KEY``.
+    """
+    secret_key: str = settings_service.auth_settings.SECRET_KEY.get_secret_value()
+    return hmac.new(secret_key.encode(), raw_api_key.encode(), hashlib.sha256).hexdigest()
 
 
 def encrypt_api_key(api_key: str, settings_service: SettingsService | None = None) -> str:  # noqa: ARG001
