@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import ShortUniqueId from "short-unique-id";
 import { useStickToBottomContext } from "use-stick-to-bottom";
@@ -217,48 +216,32 @@ export default function ChatInput({
     );
   }
 
-  return (
-    <AnimatePresence mode="wait">
-      {showAudioInput && !newSessionCloseVoiceAssistant ? (
-        <motion.div
-          key="voice-assistant"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <VoiceAssistant
-            flowId={currentFlowId}
-            setShowAudioInput={setShowAudioInput}
-          />
-        </motion.div>
-      ) : (
-        <motion.div
-          key="input-wrapper"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <InputWrapper
-            isBuilding={isBuilding}
-            checkSendingOk={checkSendingOk}
-            send={send}
-            noInput={noInput}
-            chatValue={chatValue}
-            inputRef={inputRef}
-            files={files}
-            isDragging={isDragging}
-            handleDeleteFile={handleDeleteFile}
-            fileInputRef={fileInputRef}
-            handleFileChange={handleFileChange}
-            handleButtonClick={handleButtonClick}
-            setShowAudioInput={setShowAudioInput}
-            currentFlowId={currentFlowId}
-            playgroundPage={playgroundPage}
-          />
-        </motion.div>
-      )}
-    </AnimatePresence>
+  return showAudioInput && !newSessionCloseVoiceAssistant ? (
+    <div key="voice-assistant" className="animate-in fade-in-0 duration-200">
+      <VoiceAssistant
+        flowId={currentFlowId}
+        setShowAudioInput={setShowAudioInput}
+      />
+    </div>
+  ) : (
+    <div key="input-wrapper" className="animate-in fade-in-0 duration-200">
+      <InputWrapper
+        isBuilding={isBuilding}
+        checkSendingOk={checkSendingOk}
+        send={send}
+        noInput={noInput}
+        chatValue={chatValue}
+        inputRef={inputRef}
+        files={files}
+        isDragging={isDragging}
+        handleDeleteFile={handleDeleteFile}
+        fileInputRef={fileInputRef}
+        handleFileChange={handleFileChange}
+        handleButtonClick={handleButtonClick}
+        setShowAudioInput={setShowAudioInput}
+        currentFlowId={currentFlowId}
+        playgroundPage={playgroundPage}
+      />
+    </div>
   );
 }
