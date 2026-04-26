@@ -1,6 +1,6 @@
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import ShadTooltip from "@/components/common/shadTooltipComponent";
-import { SimpleSidebarTrigger } from "@/components/ui/simple-sidebar";
+import { ResizableSidebarTrigger } from "@/components/ui/resizable-sidebar";
 import { PLAYGROUND_BUTTON_NAME } from "@/constants/constants";
 
 interface PlaygroundButtonProps {
@@ -23,9 +23,9 @@ const DisabledButton = () => (
 
 const PlaygroundButton = ({ hasIO }: PlaygroundButtonProps) => {
   return hasIO ? (
-    <SimpleSidebarTrigger>
+    <ResizableSidebarTrigger>
       <ButtonLabel />
-    </SimpleSidebarTrigger>
+    </ResizableSidebarTrigger>
   ) : (
     <ShadTooltip content="Add a Chat Input or Chat Output to use the playground">
       <div>

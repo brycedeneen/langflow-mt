@@ -5,8 +5,7 @@ import { ChatHeader } from "@/components/core/playgroundComponent/chat-view/chat
 import { ChatSidebar } from "@/components/core/playgroundComponent/chat-view/chat-header/components/chat-sidebar";
 import { useSendMessage } from "@/components/core/playgroundComponent/chat-view/hooks/use-send-message";
 import { useGetFlowId } from "@/components/core/playgroundComponent/hooks/use-get-flow-id";
-import { AnimatedConditional } from "@/components/ui/animated-close";
-import { useSimpleSidebar } from "@/components/ui/simple-sidebar";
+import { useResizableSidebar } from "@/components/ui/resizable-sidebar";
 import useFlowStore from "@/stores/flowStore";
 import { useUtilityStore } from "@/stores/utilityStore";
 import type { FilePreviewType } from "@/types/components";
@@ -26,7 +25,7 @@ export function FlowPageSlidingContainerContent({
   setIsFullscreen,
 }: FlowPageSlidingContainerContentProps) {
   const currentFlowId = useGetFlowId();
-  const { setOpen, setWidth } = useSimpleSidebar();
+  const { setOpen, setWidth } = useResizableSidebar();
   const inputs = useFlowStore((state) => state.inputs);
   const nodes = useFlowStore((state) => state.nodes);
   const isBuilding = useFlowStore((state) => state.isBuilding);
@@ -135,7 +134,11 @@ export function FlowPageSlidingContainerContent({
       onDrop={onDrop}
     >
       <div className="flex-1 flex overflow-hidden">
-        <AnimatedConditional isOpen={sidebarOpen} width="236px">
+        <div
+          data-open={sidebarOpen}
+          className="overflow-hidden whitespace-nowrap transition-[width] duration-300 ease-in-out"
+          style={{ width: sidebarOpen ? "236px" : 0 }}
+        >
           <div className="h-full overflow-y-auto border-r border-border w-218 bg-primary-foreground">
             <div className="p-4">
               <ChatSidebar
@@ -149,7 +152,7 @@ export function FlowPageSlidingContainerContent({
               />
             </div>
           </div>
-        </AnimatedConditional>
+        </div>
         <div className="flex-1 flex flex-col overflow-hidden pt-2">
           <ChatHeader
             sessions={sessions}

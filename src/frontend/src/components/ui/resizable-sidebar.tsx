@@ -1,19 +1,17 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Play } from "lucide-react";
 import * as React from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import isWrappedWithClass from "../../pages/FlowPage/components/PageComponent/utils/is-wrapped-with-class";
 import { cn } from "../../utils/utils";
-import { AnimatedConditional } from "./animated-close";
 import { Button } from "./button";
 
-const SIMPLE_SIDEBAR_WIDTH = "400px";
+const RESIZABLE_SIDEBAR_WIDTH = "400px";
 const MIN_SIDEBAR_WIDTH = 200;
 const MAX_SIDEBAR_WIDTH = 800;
 
-type SimpleSidebarContext = {
+type ResizableSidebarContext = {
   open: boolean;
   setOpen: (open: boolean) => void;
   toggleSidebar: () => void;
@@ -24,22 +22,22 @@ type SimpleSidebarContext = {
   fullscreen: boolean;
 };
 
-const SimpleSidebarContext = React.createContext<SimpleSidebarContext | null>(
+const ResizableSidebarContext = React.createContext<ResizableSidebarContext | null>(
   null,
 );
 
-function useSimpleSidebar() {
-  const context = React.useContext(SimpleSidebarContext);
+function useResizableSidebar() {
+  const context = React.useContext(ResizableSidebarContext);
   if (!context) {
     throw new Error(
-      "useSimpleSidebar must be used within a SimpleSidebarProvider.",
+      "useResizableSidebar must be used within a ResizableSidebarProvider.",
     );
   }
 
   return context;
 }
 
-const SimpleSidebarProvider = React.forwardRef<
+const ResizableSidebarProvider = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
     defaultOpen?: boolean;
@@ -61,7 +59,7 @@ const SimpleSidebarProvider = React.forwardRef<
       className,
       style,
       children,
-      width = SIMPLE_SIDEBAR_WIDTH,
+      width = RESIZABLE_SIDEBAR_WIDTH,
       shortcut,
       minWidth = 0.1, // 10% of parent width
       maxWidth = 0.8, // 80% of parent width
@@ -162,7 +160,7 @@ const SimpleSidebarProvider = React.forwardRef<
       };
     }, []);
 
-    const contextValue = React.useMemo<SimpleSidebarContext>(
+    const contextValue = React.useMemo<ResizableSidebarContext>(
       () => ({
         open,
         setOpen,
@@ -214,17 +212,17 @@ const SimpleSidebarProvider = React.forwardRef<
     );
 
     return (
-      <SimpleSidebarContext.Provider value={contextValue}>
+      <ResizableSidebarContext.Provider value={contextValue}>
         <div
           style={
             {
-              "--simple-sidebar-width": `${_width}px`,
-              "--simple-sidebar-parent-width": `${_parentWidth}px`,
+              "--resizable-sidebar-width": `${_width}px`,
+              "--resizable-sidebar-parent-width": `${_parentWidth}px`,
               ...style,
             } as React.CSSProperties
           }
           className={cn(
-            "group/simple-sidebar-wrapper relative flex h-full w-full text-foreground",
+            "group/resizable-sidebar-wrapper relative flex h-full w-full text-foreground",
             className,
           )}
           data-open={open}
@@ -233,19 +231,19 @@ const SimpleSidebarProvider = React.forwardRef<
         >
           {children}
         </div>
-      </SimpleSidebarContext.Provider>
+      </ResizableSidebarContext.Provider>
     );
   },
 );
-SimpleSidebarProvider.displayName = "SimpleSidebarProvider";
+ResizableSidebarProvider.displayName = "ResizableSidebarProvider";
 
-const SimpleSidebarResizeHandle = React.forwardRef<
+const ResizableSidebarResizeHandle = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<"button"> & {
     side?: "left" | "right";
   }
 >(({ side = "right", className, ...props }, ref) => {
-  const { setWidth, width, setIsResizing, isResizing } = useSimpleSidebar();
+  const { setWidth, width, setIsResizing, isResizing } = useResizableSidebar();
   const [dragStartX, setDragStartX] = React.useState(0);
   const [dragStartWidth, setDragStartWidth] = React.useState(0);
 
@@ -334,9 +332,9 @@ const SimpleSidebarResizeHandle = React.forwardRef<
     </button>
   );
 });
-SimpleSidebarResizeHandle.displayName = "SimpleSidebarResizeHandle";
+ResizableSidebarResizeHandle.displayName = "ResizableSidebarResizeHandle";
 
-const SimpleSidebar = React.forwardRef<
+const ResizableSidebar = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
     side?: "left" | "right";
@@ -347,27 +345,22 @@ const SimpleSidebar = React.forwardRef<
     { side = "right", resizable = true, className, children, ...props },
     ref,
   ) => {
-    const { open, isResizing, fullscreen } = useSimpleSidebar();
+    const { open, isResizing, fullscreen } = useResizableSidebar();
 
     // Memoized animation values
     const spacerWidth = React.useMemo(() => {
       if (!open) return 0;
-      return fullscreen ? "100%" : "var(--simple-sidebar-width)";
+      return fullscreen ? "100%" : "var(--resizable-sidebar-width)";
     }, [open, fullscreen]);
 
     const sidebarWidth = React.useMemo(() => {
-      return fullscreen ? "100%" : "var(--simple-sidebar-width)";
+      return fullscreen ? "100%" : "var(--resizable-sidebar-width)";
     }, [fullscreen]);
 
     const xPosition = React.useMemo(() => {
       if (open) return "0%";
       return side === "left" ? "-100%" : "100%";
     }, [open, side]);
-
-    const transitionDuration = React.useMemo(() => {
-      if (fullscreen) return 0;
-      return isResizing ? 0 : 0.3;
-    }, [isResizing, fullscreen]);
 
     return (
       <div
@@ -377,57 +370,57 @@ const SimpleSidebar = React.forwardRef<
         data-side={side}
         data-fullscreen={fullscreen}
       >
-        {/* This is what handles the sidebar gap */}
-        <motion.div
-          className={cn("relative h-full bg-transparent")}
-          animate={{
-            width: spacerWidth,
-          }}
-          transition={{
-            duration: transitionDuration,
-            ease: "easeInOut",
-          }}
+        {/* Spacer: handles the sidebar gap */}
+        <div
+          className={cn(
+            "relative h-full bg-transparent transition-[width] duration-300 ease-in-out",
+            "data-[resizing=true]:transition-none data-[fullscreen=true]:transition-none",
+          )}
+          data-resizing={isResizing}
+          data-fullscreen={fullscreen}
+          style={{ width: spacerWidth }}
         />
-        <motion.div
-          className={cn("absolute inset-y-0 z-50 flex h-full", className)}
-          animate={{
-            width: sidebarWidth,
-            x: xPosition,
-            opacity: open ? 1 : 0,
-          }}
-          transition={{
-            duration: transitionDuration,
-            ease: "easeInOut",
-          }}
+        {/* Sidebar overlay */}
+        <div
+          className={cn(
+            "absolute inset-y-0 z-50 flex h-full transition-[width,transform,opacity] duration-300 ease-in-out",
+            "data-[resizing=true]:transition-none data-[fullscreen=true]:transition-none",
+            className,
+          )}
+          data-resizing={isResizing}
+          data-fullscreen={fullscreen}
           style={{
             ...props.style,
+            width: sidebarWidth,
+            transform: `translateX(${xPosition})`,
+            opacity: open ? 1 : 0,
             left: side === "left" ? 0 : "auto",
             right: side === "right" ? 0 : "auto",
             pointerEvents: open ? "auto" : "none",
           }}
         >
           <div
-            data-simple-sidebar="sidebar"
+            data-resizable-sidebar="sidebar"
             className="flex h-full w-full flex-col bg-background relative"
             style={{ visibility: open ? "visible" : "hidden" }}
           >
             {children}
             {resizable && open && !fullscreen && (
-              <SimpleSidebarResizeHandle side={side} />
+              <ResizableSidebarResizeHandle side={side} />
             )}
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   },
 );
-SimpleSidebar.displayName = "SimpleSidebar";
+ResizableSidebar.displayName = "ResizableSidebar";
 
-const SimpleSidebarTrigger = React.forwardRef<
+const ResizableSidebarTrigger = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<"button">
 >(({ className, onClick, children, ...props }, ref) => {
-  const { toggleSidebar, open } = useSimpleSidebar();
+  const { toggleSidebar, open } = useResizableSidebar();
 
   const handleClick = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -456,31 +449,31 @@ const SimpleSidebarTrigger = React.forwardRef<
     </Button>
   );
 });
-SimpleSidebarTrigger.displayName = "SimpleSidebarTrigger";
+ResizableSidebarTrigger.displayName = "ResizableSidebarTrigger";
 
-const SimpleSidebarHeader = React.forwardRef<
+const ResizableSidebarHeader = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
 >(({ className, ...props }, ref) => {
   return (
     <div
       ref={ref}
-      data-simple-sidebar="header"
+      data-resizable-sidebar="header"
       className={cn("flex flex-col gap-2 p-2", className)}
       {...props}
     />
   );
 });
-SimpleSidebarHeader.displayName = "SimpleSidebarHeader";
+ResizableSidebarHeader.displayName = "ResizableSidebarHeader";
 
-const SimpleSidebarContent = React.forwardRef<
+const ResizableSidebarContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
 >(({ className, ...props }, ref) => {
   return (
     <div
       ref={ref}
-      data-simple-sidebar="content"
+      data-resizable-sidebar="content"
       className={cn(
         "flex min-h-0 flex-1 flex-col gap-2 overflow-auto",
         className,
@@ -489,14 +482,14 @@ const SimpleSidebarContent = React.forwardRef<
     />
   );
 });
-SimpleSidebarContent.displayName = "SimpleSidebarContent";
+ResizableSidebarContent.displayName = "ResizableSidebarContent";
 
 export {
-  SimpleSidebar,
-  SimpleSidebarContent,
-  SimpleSidebarHeader,
-  SimpleSidebarProvider,
-  SimpleSidebarResizeHandle,
-  SimpleSidebarTrigger,
-  useSimpleSidebar,
+  ResizableSidebar,
+  ResizableSidebarContent,
+  ResizableSidebarHeader,
+  ResizableSidebarProvider,
+  ResizableSidebarResizeHandle,
+  ResizableSidebarTrigger,
+  useResizableSidebar,
 };

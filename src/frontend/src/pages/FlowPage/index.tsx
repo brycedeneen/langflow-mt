@@ -3,9 +3,9 @@ import { useBlocker, useParams } from "react-router-dom";
 import { FlowPageSlidingContainerContent } from "@/components/core/playgroundComponent/sliding-container/components/flow-page-sliding-container";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import {
-  SimpleSidebar,
-  SimpleSidebarProvider,
-} from "@/components/ui/simple-sidebar";
+  ResizableSidebar,
+  ResizableSidebarProvider,
+} from "@/components/ui/resizable-sidebar";
 import { useGetFlow } from "@/controllers/API/queries/flows/use-get-flow";
 import { useGetTypes } from "@/controllers/API/queries/flows/use-get-types";
 import { ENABLE_NEW_SIDEBAR } from "@/customization/feature-flags";
@@ -262,7 +262,7 @@ export default function FlowPage({ view }: { view?: boolean }): JSX.Element {
       </div>
       */}
 
-      <SimpleSidebarProvider
+      <ResizableSidebarProvider
         width="326px"
         minWidth={0.15}
         maxWidth={0.6}
@@ -309,18 +309,18 @@ export default function FlowPage({ view }: { view?: boolean }): JSX.Element {
                   </main>
                 </FlowSearchProvider>
               </SidebarProvider>
-              <SimpleSidebar resizable={!isFullscreen} className="h-full">
+              <ResizableSidebar resizable={!isFullscreen} className="h-full">
                 <FlowPageSlidingContainerContent
                   isFullscreen={isFullscreen}
                   setIsFullscreen={setIsFullscreen}
                 />
-              </SimpleSidebar>
+              </ResizableSidebar>
               {id && <AssistantPanel flowId={id} />}
               <ComponentAssistPopover />
             </div>
           )}
         </div>
-      </SimpleSidebarProvider>
+      </ResizableSidebarProvider>
       {blocker.state === "blocked" && (
         <>
           {!isBuilding && currentSavedFlow && (

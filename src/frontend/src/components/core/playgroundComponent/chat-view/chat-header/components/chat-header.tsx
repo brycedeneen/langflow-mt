@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import { AnimatedConditional } from "@/components/ui/animated-close";
 import useAlertStore from "@/stores/alertStore";
 import { cn } from "@/utils/utils";
 import { useRenameSession } from "../hooks/use-rename-session";
@@ -77,31 +76,36 @@ export function ChatHeader({
   });
 
   const moreMenu = (
-    <AnimatedConditional isOpen={isSessionDropdownVisible}>
-      <SessionMoreMenu
-        onRename={handleEditStart}
-        onMessageLogs={onMessageLogs}
-        onClearChat={handleClearChat}
-        onDelete={handleDeleteSessionInternal}
-        showRename={!isDefaultSession && hasMessages}
-        showClearChat={isDefaultSession}
-        showDelete={!isDefaultSession}
-        side="bottom"
-        align="end"
-        sideOffset={4}
-        contentClassName="z-[100] [&>div.p-1]:!h-auto [&>div.p-1]:!min-h-0"
-        isVisible={true}
-        tooltipContent="More options"
-        tooltipSide="left"
-        dataTestid="chat-header-more-menu"
-        open={moreMenuOpen}
-        onOpenChange={(open) => {
-          setMoreMenuOpen(open);
-          // Close sessions dropdown when more menu opens
-          if (open) setSessionsDropdownOpen(false);
-        }}
-      />
-    </AnimatedConditional>
+    <div
+      data-open={isSessionDropdownVisible}
+      className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-in-out data-[open=true]:grid-cols-[1fr] overflow-hidden whitespace-nowrap"
+    >
+      <div className="min-w-0 overflow-hidden">
+        <SessionMoreMenu
+          onRename={handleEditStart}
+          onMessageLogs={onMessageLogs}
+          onClearChat={handleClearChat}
+          onDelete={handleDeleteSessionInternal}
+          showRename={!isDefaultSession && hasMessages}
+          showClearChat={isDefaultSession}
+          showDelete={!isDefaultSession}
+          side="bottom"
+          align="end"
+          sideOffset={4}
+          contentClassName="z-[100] [&>div.p-1]:!h-auto [&>div.p-1]:!min-h-0"
+          isVisible={true}
+          tooltipContent="More options"
+          tooltipSide="left"
+          dataTestid="chat-header-more-menu"
+          open={moreMenuOpen}
+          onOpenChange={(open) => {
+            setMoreMenuOpen(open);
+            // Close sessions dropdown when more menu opens
+            if (open) setSessionsDropdownOpen(false);
+          }}
+        />
+      </div>
+    </div>
   );
 
   return (
@@ -114,20 +118,25 @@ export function ChatHeader({
     >
       {!isFullscreen && (
         <div className="flex items-center gap-2 flex-[2_1_0] min-w-0">
-          <AnimatedConditional isOpen={isSessionDropdownVisible}>
-            <ChatSessionsDropdown
-              sessions={sessions}
-              onNewChat={onNewChat}
-              onSessionSelect={onSessionSelect}
-              currentSessionId={currentSessionId}
-              open={sessionsDropdownOpen}
-              onOpenChange={(open) => {
-                setSessionsDropdownOpen(open);
-                // Close more menu when sessions dropdown opens
-                if (open) setMoreMenuOpen(false);
-              }}
-            />
-          </AnimatedConditional>
+          <div
+            data-open={isSessionDropdownVisible}
+            className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-in-out data-[open=true]:grid-cols-[1fr] overflow-hidden whitespace-nowrap"
+          >
+            <div className="min-w-0 overflow-hidden">
+              <ChatSessionsDropdown
+                sessions={sessions}
+                onNewChat={onNewChat}
+                onSessionSelect={onSessionSelect}
+                currentSessionId={currentSessionId}
+                open={sessionsDropdownOpen}
+                onOpenChange={(open) => {
+                  setSessionsDropdownOpen(open);
+                  // Close more menu when sessions dropdown opens
+                  if (open) setMoreMenuOpen(false);
+                }}
+              />
+            </div>
+          </div>
           <ChatHeaderTitle
             key={currentSessionId ?? "header-title"}
             sessionTitle={sessionTitle}
@@ -153,21 +162,31 @@ export function ChatHeader({
         </div>
       )}
       <div className="relative flex items-center flex-1 justify-end min-h-xxs">
-        <AnimatedConditional isOpen={!isFullscreen}>
-          <ChatHeaderActions
-            isFullscreen={false}
-            onToggleFullscreen={onToggleFullscreen}
-            onClose={onClose}
-            renderPrefix={() => moreMenu}
-          />
-        </AnimatedConditional>
-        <AnimatedConditional isOpen={isFullscreen}>
-          <ChatHeaderActions
-            isFullscreen={true}
-            onToggleFullscreen={onToggleFullscreen}
-            onClose={onClose}
-          />
-        </AnimatedConditional>
+        <div
+          data-open={!isFullscreen}
+          className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-in-out data-[open=true]:grid-cols-[1fr] overflow-hidden whitespace-nowrap"
+        >
+          <div className="min-w-0 overflow-hidden">
+            <ChatHeaderActions
+              isFullscreen={false}
+              onToggleFullscreen={onToggleFullscreen}
+              onClose={onClose}
+              renderPrefix={() => moreMenu}
+            />
+          </div>
+        </div>
+        <div
+          data-open={isFullscreen}
+          className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-in-out data-[open=true]:grid-cols-[1fr] overflow-hidden whitespace-nowrap"
+        >
+          <div className="min-w-0 overflow-hidden">
+            <ChatHeaderActions
+              isFullscreen={true}
+              onToggleFullscreen={onToggleFullscreen}
+              onClose={onClose}
+            />
+          </div>
+        </div>
       </div>
       {currentSessionId && (
         <SessionLogsModal
