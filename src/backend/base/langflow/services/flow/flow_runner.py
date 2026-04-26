@@ -10,7 +10,7 @@ from lfx.log.logger import configure, logger
 from lfx.utils.util import update_settings
 from sqlmodel import delete, select, text
 
-from langflow.api.utils import cascade_delete_flow
+from langflow.api.utils import cascade_delete_flow, cascade_delete_flows
 from langflow.load.utils import replace_tweaks_with_env
 from langflow.processing.process import process_tweaks, run_graph
 from langflow.services.cache.service import AsyncBaseCacheService
@@ -229,8 +229,7 @@ class LangflowRunnerExperimental:
         async with session_scope() as session:
             flows = await session.exec(select(Flow.id).where(Flow.user_id == user_id))
             flow_ids: list[UUID] = [fid for fid in flows.scalars().all() if fid is not None]
-            for flow_id in flow_ids:
-                await cascade_delete_flow(session, flow_id)
+            await cascade_delete_flows(session, flow_ids)
             await session.exec(delete(Variable).where(Variable.user_id == user_id))
             await session.exec(delete(User).where(User.id == user_id))
 
