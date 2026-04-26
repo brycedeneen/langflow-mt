@@ -55,6 +55,8 @@ export const URLs = {
   ADMIN_USAGE_THRESHOLD: `admin/usage/thresholds`,
   ADMIN_ALERT_RULES: `admin/orgs`,
   ADMIN_ALERT_RULE: `admin/alert-rules`,
+  PRO_SERVICE_QUOTES: `pro-service-quotes`,
+  ADMIN_PRO_SERVICE_SETTINGS: `admin/professional-services/settings`,
 } as const;
 
 // IMPORTANT: FOLDERS endpoint now points to 'projects' for backward compatibility
