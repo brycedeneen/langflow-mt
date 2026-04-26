@@ -532,7 +532,20 @@ async def generate_flow_events(
                     )
                 )
                 tasks.append(task)
-            await asyncio.gather(*tasks)
+            # Use return_exceptions=True so a single child failure does not cancel
+            # sibling in-flight builds; surface the first real exception afterwards
+            # to preserve the existing error-event propagation in the outer caller.
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            first_exc: BaseException | None = None
+            for next_vertex_id, result in zip(vertex_build_response.next_vertices_ids, results, strict=False):
+                if isinstance(result, asyncio.CancelledError):
+                    raise result
+                if isinstance(result, BaseException):
+                    await logger.aerror(f"Error building vertex {next_vertex_id}: {result}")
+                    if first_exc is None:
+                        first_exc = result
+            if first_exc is not None:
+                raise first_exc
 
     try:
         ids, vertices_to_run, graph = await build_graph_and_get_order()
@@ -553,7 +566,27 @@ async def generate_flow_events(
         task = asyncio.create_task(build_vertices(vertex_id, graph, event_manager, vertex_timedeltas))
         tasks.append(task)
     try:
-        await asyncio.gather(*tasks)
+        # Use return_exceptions=True so one failing root task does not cancel
+        # sibling in-flight builds. We then surface the first real exception
+        # to keep the existing on_error / re-raise contract intact.
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        first_exc: BaseException | None = None
+        first_exc_vertex_id: str | None = None
+        for vid, result in zip(ids, results, strict=False):
+            if isinstance(result, asyncio.CancelledError):
+                raise result
+            if isinstance(result, BaseException):
+                await logger.aerror(f"Error building vertex {vid}: {result}")
+                if first_exc is None:
+                    first_exc = result
+                    first_exc_vertex_id = vid
+        if first_exc is not None:
+            # Preserve the existing exception path so the except blocks below
+            # still fire on_error and propagate. Update vertex_id (used by the
+            # except handler to look up trace_name) to the actually-failing id.
+            if first_exc_vertex_id is not None:
+                vertex_id = first_exc_vertex_id
+            raise first_exc
     except asyncio.CancelledError:
         background_tasks.add_task(graph.end_all_traces_in_context())
         raise
