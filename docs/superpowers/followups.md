@@ -234,8 +234,8 @@ Phase 4 shipped the dead-rule deletion (Task 4.2) which alone took `applies.css`
 
 ### If someone wants to pick this up
 
-- [ ] **Inline the 51 low-use `@apply` rules** listed in `/tmp/tailwind-max-baseline/applies-usage.txt` (count 1 or 2). Follow the plan's Task 4.3 recipe exactly. Consider batching by surface area (e.g., do all `form-modal-*` rules together, not one at a time, so the chat-modal visual regression footprint stays contained).
-- [ ] **Handle multi-selector keep rules pragmatically.** A few keep rules have 3+ selectors; if only one selector has ≥3 refs and the rest are dead, you could drop the dead selectors while keeping the rule. The Phase 4 trim script (`/tmp/tailwind-max-baseline/trim-applies.py`) punts on this case.
+- [x] **RESOLVED (2026-04-26 by `28c28fd175`):** Phase 4 inline pass shipped (commit message: "applies.css 687→317 lines (-53%)"). The low-use `@apply` rules were inlined per the original Task 4.3 recipe; `applies.css` is now ~317 lines containing keyframes, base styles, and a small set of multi-selector keep rules. The `/tmp/tailwind-max-baseline/` artifacts that drove the original triage are still present but no longer load-bearing.
+- [x] **RESOLVED (2026-04-26 by `28c28fd175`):** Multi-selector keep-rule handling was addressed during the same Phase 4 inline pass. The remaining multi-selector rules in `applies.css` are intentional retained behavior (≥3 refs across selectors).
 
 ## 2026-04-24 — Tailwind Maximization Phase 7+ deferrals (post-plan)
 
@@ -247,15 +247,15 @@ Carried forward from the plan's post-plan section. Record so they don't get lost
 
 ### 7b — Inline `shadTooltipComponent` wrapper
 
-- [ ] **`src/components/common/shadTooltipComponent/` wraps Radix Tooltip primitives** (`Tooltip`, `TooltipTrigger`, `TooltipContent`). Phase 5 established the pattern for wrapper inlining (`accordionComponent`). Same treatment: audit call sites, inline at each, delete the wrapper directory, delete the orphaned `ShadTooltipType` from `types/components/index.ts` if present. Expect many more call sites than the accordion wrapper had.
+- [x] **RESOLVED (2026-04-26 by `dd7bd5c231`):** Phase 7b shipped — `shadTooltipComponent` wrapper inlined at every call site, directory deleted, `ShadTooltipType` removed. `grep -rn "shadTooltipComponent\|ShadTooltip" src/frontend` returns 0 matches in source.
 
 ### 7c — Inline `genericIconComponent` / `renderIconComponent` wrappers
 
-- [ ] **`src/components/common/genericIconComponent/` and `renderIconComponent` abstract Lucide icon rendering.** Migration target: direct use of named Lucide icon imports (`import { ChevronDown } from "lucide-react"`) or `ForwardedIconComponent` where dynamic name resolution is actually needed. Expected call-site count is very high (hundreds); migrate in batches by surface area, not one pass.
+- [x] **RESOLVED (2026-04-26 by `465ad527b2`):** Phase 7c shipped — ~430 static-name `<ForwardedIconComponent name="X" .../>` uses replaced with direct `lucide-react` imports across 200+ JSX files. The wrapper is **intentionally retained** for the ~12 dynamic-name (`name={runtimeVar}`) call sites and a handful of non-lucide names (`GridHorizontal`, `Indicator`, `Mcp`, `Share3`, lowercase `blocks/check/info/mic/pencil/plus/prompts/search/x`); the wrapper exists *for* that pattern. Full deletion would be an anti-pattern. Bundle benefits from tree-shakable lucide imports.
 
 ### 7d — Remaining decorative consolidation
 
-- [ ] **`refreshButton`, `dialog-with-no-close`, `disclosure`** (and adjacent small wrappers under `src/components/common/` and `src/components/ui/`). Plan's Phase 7d batched these as "small wrappers that don't earn their keep". Per-wrapper audit needed to decide inline vs keep; none were investigated during the 2026-04-24 pass.
+- [ ] **`refreshButton`, ~~`dialog-with-no-close`~~, `disclosure`** (and adjacent small wrappers under `src/components/common/` and `src/components/ui/`). Plan's Phase 7d batched these as "small wrappers that don't earn their keep". Per-wrapper audit needed to decide inline vs keep. **`dialog-with-no-close` consolidated into `ui/dialog` via `hideCloseButton` prop on 2026-04-26 (commit `1c02b977c1`); `refreshButton` and `disclosure` still need a per-wrapper audit.**
 
 ### 7e — Semantic palette lean-out
 
