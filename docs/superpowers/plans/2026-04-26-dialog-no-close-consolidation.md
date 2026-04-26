@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Collapse `ui/dialog-with-no-close.tsx` into `ui/dialog.tsx` by adding a `closable?: boolean` prop (default `true`), migrate the 2 callers, and remove the orphaned animation keyframes.
+**Goal:** Collapse `ui/dialog-with-no-close.tsx` into `ui/dialog.tsx` by adding a `hideCloseButton?: boolean` prop (default `false`), migrate the 2 callers, and remove the orphaned animation keyframes.
 
 **Architecture:** Add the prop to canonical `DialogContent`; gate the existing Tooltip+Close block on it. Both call sites already override the canonical's padding/gap defaults, so the visual end-state matches; only the open/close motion changes (clip-path wipe → fade+zoom — adopted by user choice during brainstorming). After both callers migrate, delete the variant file and its 4 dead keyframes + 4 dead `@theme` tokens.
 
@@ -20,10 +20,10 @@
 
 ## File Map
 
-- **Modify** `src/frontend/src/components/ui/dialog.tsx` — add `closable` prop + gate Close block.
-- **Modify** `src/frontend/src/components/ui/__tests__/dialog.test.tsx` — add `closable={false}` test case.
-- **Modify** `src/frontend/src/modals/baseModal/index.tsx` — drop the no-close imports, switch the `type === "modal"` branch to canonical `Dialog`/`DialogContent` with `closable={false}`.
-- **Modify** `src/frontend/src/CustomNodes/GenericNode/components/ListSelectionComponent/index.tsx` — switch the `Dialog`/`DialogContent` import source, add `closable={false}`.
+- **Modify** `src/frontend/src/components/ui/dialog.tsx` — add `hideCloseButton` prop + gate Close block.
+- **Modify** `src/frontend/src/components/ui/__tests__/dialog.test.tsx` — add `hideCloseButton` test case.
+- **Modify** `src/frontend/src/modals/baseModal/index.tsx` — drop the no-close imports, switch the `type === "modal"` branch to canonical `Dialog`/`DialogContent` with `hideCloseButton`.
+- **Modify** `src/frontend/src/CustomNodes/GenericNode/components/ListSelectionComponent/index.tsx` — switch the `Dialog`/`DialogContent` import source, add `hideCloseButton`.
 - **Delete** `src/frontend/src/components/ui/dialog-with-no-close.tsx`.
 - **Modify** `src/frontend/src/style/index.css` — delete keyframes at lines 199–234 and `@theme` tokens at lines 256–259 (line numbers as of HEAD).
 - **Modify** `docs/superpowers/followups.md` — flip the Phase 7d follow-up checkbox to `[x]`.
@@ -60,7 +60,7 @@ Both files must exist (the worktree shares git history with the parent).
 
 ---
 
-## Task 1: Add `closable` prop to `DialogContent` (TDD)
+## Task 1: Add `hideCloseButton` prop to `DialogContent` (TDD)
 
 **Files:**
 - Modify: `src/frontend/src/components/ui/dialog.tsx` (lines 53–134, the `DialogContent` definition)
@@ -71,11 +71,11 @@ Both files must exist (the worktree shares git history with the parent).
 Append to `src/frontend/src/components/ui/__tests__/dialog.test.tsx`, inside the existing `describe("DialogContent", ...)` block:
 
 ```tsx
-  it("should_not_render_close_button_when_closable_is_false", () => {
-    // Arrange — render with closable={false}
+  it("should_not_render_close_button_when_hideCloseButton_is_true", () => {
+    // Arrange — render with hideCloseButton
     renderWithProviders(
       <Dialog open>
-        <DialogContent closable={false}>
+        <DialogContent hideCloseButton>
           <DialogTitle>Test Dialog</DialogTitle>
           <DialogDescription>Test description</DialogDescription>
           <p>Content</p>
@@ -90,7 +90,7 @@ Append to `src/frontend/src/components/ui/__tests__/dialog.test.tsx`, inside the
   });
 
   it("should_render_close_button_by_default", () => {
-    // Arrange — render with default closable behavior (omit prop)
+    // Arrange — render with default close-button behavior (omit prop)
     renderWithProviders(
       <Dialog open>
         <DialogContent>
@@ -111,16 +111,16 @@ Append to `src/frontend/src/components/ui/__tests__/dialog.test.tsx`, inside the
 - [ ] **Step 2: Run the failing test to verify it fails**
 
 ```bash
-cd src/frontend && npx jest src/components/ui/__tests__/dialog.test.tsx -t "closable" --colors
+cd src/frontend && npx jest src/components/ui/__tests__/dialog.test.tsx -t "hideCloseButton" --colors
 ```
 
-Expected: `should_not_render_close_button_when_closable_is_false` **FAILS** (because `closable` prop is not yet supported and the close button still renders). The default-case test passes.
+Expected: `should_not_render_close_button_when_hideCloseButton_is_true` **FAILS** (because `hideCloseButton` prop is not yet supported and the close button still renders). The default-case test passes.
 
-- [ ] **Step 3: Add `closable` prop to `DialogContent`**
+- [ ] **Step 3: Add `hideCloseButton` prop to `DialogContent`**
 
 Edit `src/frontend/src/components/ui/dialog.tsx`. Two surgical edits:
 
-**(a) Add the prop to the type and destructure with default `true`** — replace lines 53–70:
+**(a) Add the prop to the type and destructure with default `false`** — replace lines 53–70:
 
 ```tsx
 const DialogContent = React.forwardRef<
@@ -128,7 +128,7 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
     hideTitle?: boolean;
     closeButtonClassName?: string;
-    closable?: boolean;
+    hideCloseButton?: boolean;
   }
 >(
   (
@@ -137,7 +137,7 @@ const DialogContent = React.forwardRef<
       children,
       hideTitle = false,
       closeButtonClassName,
-      closable = true,
+      hideCloseButton = false,
       onOpenAutoFocus,
       ...props
     },
@@ -145,7 +145,7 @@ const DialogContent = React.forwardRef<
   ) => {
 ```
 
-**(b) Wrap the existing `<Tooltip>...</Tooltip>` block (lines 109–129 in the current file) with `{closable && (...)}`**. Replace:
+**(b) Wrap the existing `<Tooltip>...</Tooltip>` block (lines 109–129 in the current file) with `{!hideCloseButton && (...)}`**. Replace:
 
 ```tsx
           {children}
@@ -177,7 +177,7 @@ With:
 
 ```tsx
           {children}
-          {closable && (
+          {!hideCloseButton && (
             <Tooltip delayDuration={500}>
               <TooltipTrigger asChild>
                 <DialogPrimitive.Close
@@ -203,7 +203,7 @@ With:
         </DialogPrimitive.Content>
 ```
 
-(Indentation: each line of the original Tooltip block gets two extra spaces because it's now nested inside the `{closable && (...)}` JSX expression.)
+(Indentation: each line of the original Tooltip block gets two extra spaces because it's now nested inside the `{!hideCloseButton && (...)}` JSX expression.)
 
 - [ ] **Step 4: Run the test suite for dialog to verify both tests pass**
 
@@ -234,11 +234,11 @@ Then **ask the user** to approve the commit. Once approved:
 ```bash
 git add src/frontend/src/components/ui/dialog.tsx src/frontend/src/components/ui/__tests__/dialog.test.tsx
 git commit -m "$(cat <<'EOF'
-feat(ui): add closable prop to DialogContent
+feat(ui): add hideCloseButton prop to DialogContent
 
-Default `true` preserves behavior for every existing caller. When
-`closable={false}`, the Tooltip-wrapped ✕ close button is not rendered.
-Tests assert both the default and the opt-out cases.
+Default `false` preserves behavior for every existing caller. When
+`hideCloseButton` is set, the Tooltip-wrapped ✕ close button is not
+rendered. Tests assert both the default and the opt-in cases.
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 EOF
@@ -292,7 +292,7 @@ With (note: `Dialog` and `DialogContent` are already imported from `"../../compo
         <Dialog open={open} onOpenChange={setOpen}>
           {triggerChild}
           <DialogContent
-            closable={false}
+            hideCloseButton
             className={contentClasses}
             style={customHeight || customWidth ? customStyle : undefined}
           >
@@ -355,7 +355,7 @@ import {
 } from "@/components/ui/dialog";
 ```
 
-- [ ] **Step 2: Add `closable={false}` to `<DialogContent>`**
+- [ ] **Step 2: Add `hideCloseButton` to `<DialogContent>`**
 
 Replace the existing `<DialogContent>` opening tag (around lines 175–178):
 
@@ -370,7 +370,7 @@ With:
 
 ```tsx
       <DialogContent
-        closable={false}
+        hideCloseButton
         className="flex max-h-[65vh] min-h-[15vh] flex-col overflow-hidden rounded-xl p-0"
         onKeyDown={handleKeyDown}
       >
@@ -442,7 +442,7 @@ git commit -m "$(cat <<'EOF'
 refactor(ui): migrate baseModal + ListSelectionComponent to canonical Dialog
 
 Both surfaces switch from ui/dialog-with-no-close to ui/dialog with
-`closable={false}`. Visual end-state is identical (centered modal, no ✕);
+`hideCloseButton`. Visual end-state is identical (centered modal, no ✕);
 open/close motion changes from clip-path wipe to fade+zoom (the standard
 the rest of the app uses) per the consolidation design.
 
@@ -585,13 +585,13 @@ Expected: **0 matches**. If any match surfaces, stop and investigate before proc
 Find the entry "## 2026-04-26 — Tailwind Phase 7d follow-up: consolidate dialog-with-no-close" and change its single bullet from:
 
 ```markdown
-- [ ] **`ui/dialog-with-no-close.tsx` is a near-copy of `ui/dialog.tsx` minus the close button.** Used by 2 surfaces (`modals/baseModal/index.tsx`, `CustomNodes/GenericNode/components/ListSelectionComponent/index.tsx`). Consolidate by adding a `closable?: boolean` (default `true`) prop on `ui/dialog`'s `DialogContent`. When `closable={false}`, skip rendering the ✕ button. Then migrate the 2 callers to `ui/dialog` and delete `dialog-with-no-close.tsx`. Skipped during Phase 7d audit because the divergent fork was technically thin but the consolidation requires touching the much-used `ui/dialog`.
+- [ ] **`ui/dialog-with-no-close.tsx` is a near-copy of `ui/dialog.tsx` minus the close button.** Used by 2 surfaces (`modals/baseModal/index.tsx`, `CustomNodes/GenericNode/components/ListSelectionComponent/index.tsx`). Consolidate by adding a `hideCloseButton?: boolean` (default `false`) prop on `ui/dialog`'s `DialogContent`. When `hideCloseButton` is true, skip rendering the ✕ button. Then migrate the 2 callers to `ui/dialog` and delete `dialog-with-no-close.tsx`. Skipped during Phase 7d audit because the divergent fork was technically thin but the consolidation requires touching the much-used `ui/dialog`.
 ```
 
 To:
 
 ```markdown
-- [x] **RESOLVED (2026-04-26):** `ui/dialog-with-no-close.tsx` consolidated into `ui/dialog.tsx` via a `closable?: boolean` prop (default `true`). 2 callers migrated; orphaned `contentShow`/`contentHide`/`overlayShow`/`overlayHide` keyframes + `--animate-*` theme tokens deleted. See `docs/superpowers/specs/2026-04-26-dialog-no-close-consolidation-design.md` and plan `docs/superpowers/plans/2026-04-26-dialog-no-close-consolidation.md`.
+- [x] **RESOLVED (2026-04-26):** `ui/dialog-with-no-close.tsx` consolidated into `ui/dialog.tsx` via a `hideCloseButton?: boolean` prop (default `false`). 2 callers migrated; orphaned `contentShow`/`contentHide`/`overlayShow`/`overlayHide` keyframes + `--animate-*` theme tokens deleted. See `docs/superpowers/specs/2026-04-26-dialog-no-close-consolidation-design.md` and plan `docs/superpowers/plans/2026-04-26-dialog-no-close-consolidation.md`.
 ```
 
 - [ ] **Step 6: Run typecheck + dialog tests one more time**
@@ -635,7 +635,7 @@ git commit -m "$(cat <<'EOF'
 chore(ui): delete dialog-with-no-close + dead keyframes
 
 After the 2 callers migrated to canonical `DialogContent` with
-`closable={false}` (prior commit), the variant file is unreferenced
+`hideCloseButton` (prior commit), the variant file is unreferenced
 and its 4 keyframes (`overlayShow`, `overlayHide`, `contentShow`,
 `contentHide`) plus the matching `--animate-*` `@theme` tokens are
 dead. Flip the Phase 7d followup checkbox.
@@ -661,7 +661,7 @@ From the worktree directory:
 git log --oneline platform-multi-tenant..HEAD
 ```
 
-Expected: 3 commits — `feat(ui): add closable prop`, `refactor(ui): migrate ...`, `chore(ui): delete dialog-with-no-close`.
+Expected: 3 commits — `feat(ui): add hideCloseButton prop`, `refactor(ui): migrate ...`, `chore(ui): delete dialog-with-no-close`.
 
 - [ ] **Step 2: Switch to the parent checkout (platform-multi-tenant)**
 
@@ -731,7 +731,7 @@ git branch -d tailwind/dialog-consolidation
 ## Self-Review Checklist (run after writing this plan)
 
 1. **Spec coverage:**
-   - Spec §"Scope > In" item 1 (add `closable` prop) → Task 1. ✓
+   - Spec §"Scope > In" item 1 (add `hideCloseButton` prop) → Task 1. ✓
    - Spec §Scope item 2 (skip rendering when false) → Task 1, Step 3(b). ✓
    - Spec §Scope item 3 (migrate 2 callers) → Tasks 2 and 3. ✓
    - Spec §Scope item 4 (delete variant) → Task 6, Step 1. ✓
@@ -744,4 +744,4 @@ git branch -d tailwind/dialog-consolidation
 
 2. **Placeholder scan:** No "TBD"/"TODO"/"implement later"/"appropriate"/"handle edge cases". All test code shown literally. ✓
 
-3. **Type consistency:** `closable?: boolean` named consistently across Tasks 1, 2, 3. Default `true` stated consistently. Files paths consistent (e.g., `src/frontend/src/components/ui/dialog.tsx` everywhere). ✓
+3. **Type consistency:** `hideCloseButton?: boolean` named consistently across Tasks 1, 2, 3. Default `false` stated consistently. Files paths consistent (e.g., `src/frontend/src/components/ui/dialog.tsx` everywhere). ✓

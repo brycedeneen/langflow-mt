@@ -60,4 +60,40 @@ describe("DialogContent", () => {
     // Assert — custom handler was called
     expect(customHandler).toHaveBeenCalledTimes(1);
   });
+
+  it("should_not_render_close_button_when_hideCloseButton_is_true", () => {
+    // Arrange — render with hideCloseButton
+    renderWithProviders(
+      <Dialog open>
+        <DialogContent hideCloseButton>
+          <DialogTitle>Test Dialog</DialogTitle>
+          <DialogDescription>Test description</DialogDescription>
+          <p>Content</p>
+        </DialogContent>
+      </Dialog>,
+    );
+
+    // Assert — no close button is rendered
+    expect(
+      screen.queryByRole("button", { name: /close/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("should_render_close_button_by_default", () => {
+    // Arrange — render with default close-button behavior (omit prop)
+    renderWithProviders(
+      <Dialog open>
+        <DialogContent>
+          <DialogTitle>Test Dialog</DialogTitle>
+          <DialogDescription>Test description</DialogDescription>
+          <p>Content</p>
+        </DialogContent>
+      </Dialog>,
+    );
+
+    // Assert — close button is present
+    expect(
+      screen.getByRole("button", { name: /close/i }),
+    ).toBeInTheDocument();
+  });
 });

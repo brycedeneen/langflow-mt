@@ -1,7 +1,7 @@
 // No-close-button variant of ui/dialog. Used by baseModal/index.tsx and
 // ListSelectionComponent/index.tsx — surfaces that need a Dialog without
 // the top-right ✕ close affordance. Kept per Phase 7d audit; consolidating
-// with ui/dialog (via a `closable` prop) is tracked as a follow-up.
+// with ui/dialog (via a `hideCloseButton` prop) is tracked as a follow-up.
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import * as React from "react";
 import { cn } from "../../utils/utils";

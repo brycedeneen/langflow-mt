@@ -6,7 +6,7 @@
 
 ## Goal
 
-Collapse `src/frontend/src/components/ui/dialog-with-no-close.tsx` into the canonical `src/frontend/src/components/ui/dialog.tsx` by adding a `closable?: boolean` prop (default `true`) to `DialogContent`. Migrate the 2 callers, delete the variant file, and remove the now-orphaned animation keyframes.
+Collapse `src/frontend/src/components/ui/dialog-with-no-close.tsx` into the canonical `src/frontend/src/components/ui/dialog.tsx` by adding a `hideCloseButton?: boolean` prop (default `false`) to `DialogContent`. Migrate the 2 callers, delete the variant file, and remove the now-orphaned animation keyframes.
 
 ## Why
 
@@ -15,12 +15,12 @@ Collapse `src/frontend/src/components/ui/dialog-with-no-close.tsx` into the cano
 ## Scope
 
 In:
-- Add `closable?: boolean` (default `true`) to `DialogContent` in `ui/dialog.tsx`.
-- Skip rendering the close button (and its Tooltip wrapper) when `closable={false}`.
+- Add `hideCloseButton?: boolean` (default `false`) to `DialogContent` in `ui/dialog.tsx`.
+- Skip rendering the close button (and its Tooltip wrapper) when `hideCloseButton` is true.
 - Migrate `modals/baseModal/index.tsx` and `CustomNodes/GenericNode/components/ListSelectionComponent/index.tsx` to the canonical `ui/dialog`.
 - Delete `ui/dialog-with-no-close.tsx`.
 - Delete the four orphaned keyframes (`overlayShow`, `overlayHide`, `contentShow`, `contentHide`) and their `--animate-*` `@theme` tokens in `src/frontend/src/style/index.css`.
-- Add a unit test asserting `closable={false}` removes the close button.
+- Add a unit test asserting `hideCloseButton` removes the close button.
 - Mark the followup item in `docs/superpowers/followups.md` complete (flip `- [ ]` → `- [x]`; keep the entry for traceability).
 
 Out:
@@ -52,7 +52,7 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
     hideTitle?: boolean;
     closeButtonClassName?: string;
-    closable?: boolean;
+    hideCloseButton?: boolean;
   }
 >(
   (
@@ -61,7 +61,7 @@ const DialogContent = React.forwardRef<
       children,
       hideTitle = false,
       closeButtonClassName,
-      closable = true,
+      hideCloseButton = false,
       onOpenAutoFocus,
       ...props
     },
@@ -74,7 +74,7 @@ const DialogContent = React.forwardRef<
         <DialogPrimitive.Content ...>
           {/* a11y auto-inject */}
           {children}
-          {closable && (
+          {!hideCloseButton && (
             <Tooltip delayDuration={500}>
               <TooltipTrigger asChild>
                 <DialogPrimitive.Close className={cn(/* existing */, closeButtonClassName)}>
@@ -92,17 +92,19 @@ const DialogContent = React.forwardRef<
 );
 ```
 
-Default `true` preserves behavior for every existing caller; only the 2 migrated surfaces opt out.
+Default `false` preserves behavior for every existing caller; only the 2 migrated surfaces opt in to hide the ✕.
+
+> **Naming note:** Originally drafted as `closable?: boolean` (default `true`). Renamed to `hideCloseButton?: boolean` (default `false`) during code review to mirror the existing `hideTitle?: boolean` polarity on the same component, and because Esc/overlay-click still close the dialog when this prop is set — only the ✕ button is hidden, so `closable={false}` was imprecise.
 
 ### Caller migration
 
 **`src/frontend/src/modals/baseModal/index.tsx`**
 
-Drop the `Dialog as Modal, DialogContent as ModalContent` import block (`from "../../components/ui/dialog-with-no-close"`). In the `type === "modal"` branch, replace `<Modal>` / `<ModalContent>` with `<Dialog>` / `<DialogContent closable={false}>` (using the existing canonical import that's already in the file). Keep the existing `contentClasses` className — it provides `flex flex-col flex-1 overflow-hidden max-h-[98dvh]` plus `minWidth`/`height` from `switchCaseModalSize`, all of which override canonical defaults.
+Drop the `Dialog as Modal, DialogContent as ModalContent` import block (`from "../../components/ui/dialog-with-no-close"`). In the `type === "modal"` branch, replace `<Modal>` / `<ModalContent>` with `<Dialog>` / `<DialogContent hideCloseButton>` (using the existing canonical import that's already in the file). Keep the existing `contentClasses` className — it provides `flex flex-col flex-1 overflow-hidden max-h-[98dvh]` plus `minWidth`/`height` from `switchCaseModalSize`, all of which override canonical defaults.
 
 **`src/frontend/src/CustomNodes/GenericNode/components/ListSelectionComponent/index.tsx`**
 
-The file already imports `DialogFooter, DialogHeader` from `@/components/ui/dialog` (line 7). Change `import { Dialog, DialogContent } from "@/components/ui/dialog-with-no-close"` to import them from `@/components/ui/dialog`. Add `closable={false}` to the `<DialogContent>` element. Existing className `flex max-h-[65vh] min-h-[15vh] flex-col overflow-hidden rounded-xl p-0` continues to override canonical defaults (`p-0` wins over `p-6`).
+The file already imports `DialogFooter, DialogHeader` from `@/components/ui/dialog` (line 7). Change `import { Dialog, DialogContent } from "@/components/ui/dialog-with-no-close"` to import them from `@/components/ui/dialog`. Add `hideCloseButton` to the `<DialogContent>` element. Existing className `flex max-h-[65vh] min-h-[15vh] flex-col overflow-hidden rounded-xl p-0` continues to override canonical defaults (`p-0` wins over `p-6`).
 
 ### Cleanup
 
@@ -117,7 +119,7 @@ Verified pre-spec: those keyframes and tokens have **zero** consumers elsewhere 
 
 ### Test impact
 
-- Add one new case to `src/frontend/src/components/ui/__tests__/dialog.test.tsx`: `<DialogContent closable={false}>` renders no close button (assert `screen.queryByRole("button", { name: /close/i })` is null). Default behavior already covered by existing tests; ensure they continue to pass.
+- Add one new case to `src/frontend/src/components/ui/__tests__/dialog.test.tsx`: `<DialogContent hideCloseButton>` renders no close button (assert `screen.queryByRole("button", { name: /close/i })` is null). Default behavior already covered by existing tests; ensure they continue to pass.
 - `npm run check-types` (typecheck) on the frontend.
 - `npm test -- dialog` to run dialog test suite.
 - `npx jest src/components/ui` for adjacent component tests (sanity).

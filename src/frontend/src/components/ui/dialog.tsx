@@ -55,6 +55,7 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
     hideTitle?: boolean;
     closeButtonClassName?: string;
+    hideCloseButton?: boolean;
   }
 >(
   (
@@ -63,6 +64,7 @@ const DialogContent = React.forwardRef<
       children,
       hideTitle = false,
       closeButtonClassName,
+      hideCloseButton = false,
       onOpenAutoFocus,
       ...props
     },
@@ -106,27 +108,29 @@ const DialogContent = React.forwardRef<
             </VisuallyHidden>
           )}
           {children}
-          <Tooltip delayDuration={500}>
-            <TooltipTrigger asChild>
-              <DialogPrimitive.Close
-                className={cn(
-                  "absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-sm ring-offset-background transition-opacity hover:bg-secondary-hover hover:text-accent-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground",
-                  closeButtonClassName,
-                )}
+          {!hideCloseButton && (
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <DialogPrimitive.Close
+                  className={cn(
+                    "absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-sm ring-offset-background transition-opacity hover:bg-secondary-hover hover:text-accent-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground",
+                    closeButtonClassName,
+                  )}
+                >
+                  <Cross2Icon className="h-[18px] w-[18px]" />
+                  <span className="sr-only">Close</span>
+                </DialogPrimitive.Close>
+              </TooltipTrigger>
+              <TooltipContent
+                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground z-50"
+                side="bottom"
+                avoidCollisions={true}
+                sticky="always"
               >
-                <Cross2Icon className="h-[18px] w-[18px]" />
-                <span className="sr-only">Close</span>
-              </DialogPrimitive.Close>
-            </TooltipTrigger>
-            <TooltipContent
-              className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground z-50"
-              side="bottom"
-              avoidCollisions={true}
-              sticky="always"
-            >
-              Close
-            </TooltipContent>
-          </Tooltip>
+                Close
+              </TooltipContent>
+            </Tooltip>
+          )}
         </DialogPrimitive.Content>
       </DialogPortal>
     );
