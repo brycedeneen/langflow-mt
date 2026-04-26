@@ -1,11 +1,10 @@
-import {
-  motion,
-  type SpringOptions,
-  useSpring,
-  useTransform,
-} from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/utils/utils";
+
+type SpringOptions = {
+  duration?: number;
+  bounce?: number;
+};
 
 type AnimatedNumberProps = {
   value: number;
@@ -20,19 +19,39 @@ export function AnimatedNumber({
   className,
   springOptions,
 }: AnimatedNumberProps) {
-  const spring = useSpring(value, springOptions);
-  const display = useTransform(spring, (current) =>
-    Math.round(current).toLocaleString(),
-  );
+  const [display, setDisplay] = useState(value);
+  const currentRef = useRef(value);
+  const rafRef = useRef<number | null>(null);
+  const duration = springOptions?.duration ?? 300;
 
   useEffect(() => {
-    spring.set(value);
-  }, [spring, value]);
+    const from = currentRef.current;
+    const to = value;
+    if (from === to) return;
+    let startTime: number | null = null;
+    const tick = (now: number) => {
+      if (startTime === null) startTime = now;
+      const elapsed = now - startTime;
+      const t = Math.min(1, elapsed / duration);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - t, 3);
+      const current = from + (to - from) * eased;
+      currentRef.current = current;
+      setDisplay(current);
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      }
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, [value, duration]);
 
   return (
-    <motion.span className={cn("tabular-nums", className)}>
-      {humanizedValue ?? display}
-    </motion.span>
+    <span className={cn("tabular-nums", className)}>
+      {humanizedValue ?? Math.round(display).toLocaleString()}
+    </span>
   );
 }
 
