@@ -762,13 +762,17 @@ async def upsert_flow(
     await assert_org_role(current_user, current_org.id, MembershipRole.MEMBER, session=session)
 
     try:
-        existing_flow = await _read_flow(session, flow_id, current_org.id)
+        # Single SELECT (not org-scoped) so we can distinguish three cases without a second round-trip:
+        #   - row in this org -> update
+        #   - row in another org -> 404 (no existence leak)
+        #   - no row anywhere -> create
+        stmt = select(Flow).options(selectinload(Flow.tags)).where(Flow.id == flow_id)
+        any_flow = (await session.exec(stmt)).first()
 
-        if existing_flow is not None:
-            # Also catch the case where the flow exists in another org — 404 to avoid existence leak.
+        if any_flow is not None and any_flow.organization_id == current_org.id:
             flow_read = await _update_existing_flow(
                 session=session,
-                existing_flow=existing_flow,
+                existing_flow=any_flow,
                 flow=flow,
                 current_user=current_user,
                 organization_id=current_org.id,
@@ -776,9 +780,8 @@ async def upsert_flow(
             )
             status_code = 200
         else:
-            # Differentiate "does not exist anywhere" (CREATE) from "exists in another org" (404).
-            any_flow = (await session.exec(select(Flow.id).where(Flow.id == flow_id))).first()
             if any_flow is not None:
+                # Exists in another org — 404 to avoid existence leak.
                 raise HTTPException(status_code=404, detail="Flow not found")
             flow_read = await _new_flow(
                 session=session,
