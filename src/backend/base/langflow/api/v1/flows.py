@@ -6,7 +6,7 @@ import re
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path as StdlibPath
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID, uuid4
 
 import orjson
@@ -20,6 +20,10 @@ from fastapi_pagination.ext.sqlmodel import apaginate
 from lfx.log import logger
 from lfx.services.secret_store import get_secret_store
 from lfx.utils.flow_validation import CustomComponentNotAllowedError, validate_flow_components
+from pydantic import BaseModel
+from sqlalchemy import delete as sa_delete
+from sqlalchemy import func
+from sqlalchemy.orm import selectinload
 from sqlmodel import and_, col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -47,6 +51,8 @@ from langflow.services.database.models.flow.model import (
     FlowRead,
     FlowUpdate,
 )
+from langflow.services.database.models.tag.model import FlowTag, Tag
+from langflow.services.database.models.tag.schema import TagRead
 from langflow.services.database.models.flow.utils import generate_webhook_api_key, get_webhook_component_in_flow
 
 # TODO: Full-version import/export is planned as a follow-up feature. When implemented,
@@ -69,6 +75,15 @@ from langflow.utils.compression import compress_response
 
 # build router
 router = APIRouter(prefix="/flows", tags=["Flows"])
+
+
+class _FlowTagAssignBody(BaseModel):
+    tag_ids: list[UUID]
+
+
+class _FlowWithTagsRead(BaseModel):
+    id: UUID
+    tags: list[TagRead]
 
 
 def _get_safe_flow_path(fs_path: str, user_id: UUID, storage_service: StorageService) -> Path:
@@ -367,6 +382,9 @@ async def _new_flow(
         # Persist and refresh
         await session.flush()
         await session.refresh(db_flow)
+        # Explicitly materialize the tags collection so FlowRead can serialize it
+        # without triggering a lazy-load in async context (MissingGreenlet).
+        await session.refresh(db_flow, attribute_names=["tags"])
         await _save_flow_to_fs(db_flow, user_id, storage_service)
 
         # Convert to FlowRead while session is still active
@@ -464,6 +482,8 @@ async def read_flows(
     folder_id: UUID | None = None,
     params: Annotated[Params, Depends()],
     header_flows: bool = False,
+    tag_id: Annotated[list[UUID] | None, Query()] = None,
+    tag_match: Annotated[Literal["any", "all"], Query()] = "any",
 ):
     """Retrieve a list of flows with pagination support.
 
@@ -503,13 +523,37 @@ async def read_flows(
 
         # Absolute org scoping — org_id is non-nullable on flow after the
         # multi_tenant_foundation backfill, so no legacy NULL leg is needed.
-        stmt = select(Flow).where(Flow.organization_id == current_org.id)
+        # selectinload(Flow.tags) eager-loads tags so FlowRead/FlowHeader can
+        # serialize them without triggering a lazy load in async context.
+        stmt = (
+            select(Flow)
+            .options(selectinload(Flow.tags))
+            .where(Flow.organization_id == current_org.id)
+        )
 
         if remove_example_flows:
             stmt = stmt.where(Flow.folder_id != starter_folder_id)
 
         if components_only:
             stmt = stmt.where(Flow.is_component == True)  # noqa: E712
+
+        if tag_id:
+            if tag_match == "all":
+                n = len(set(tag_id))
+                subq = (
+                    select(FlowTag.flow_id)
+                    .where(col(FlowTag.tag_id).in_(tag_id))
+                    .group_by(FlowTag.flow_id)
+                    .having(func.count(func.distinct(FlowTag.tag_id)) == n)
+                    .scalar_subquery()
+                )
+                stmt = stmt.where(col(Flow.id).in_(subq))
+            else:
+                stmt = (
+                    stmt.join(FlowTag, FlowTag.flow_id == Flow.id)
+                    .where(col(FlowTag.tag_id).in_(tag_id))
+                    .distinct()
+                )
 
         if get_all:
             flows = (await session.exec(stmt)).all()
@@ -547,7 +591,11 @@ async def _read_flow(
     organization_id: UUID,
 ):
     """Read a flow, scoped to the caller's organization."""
-    stmt = select(Flow).where(Flow.id == flow_id, Flow.organization_id == organization_id)
+    stmt = (
+        select(Flow)
+        .options(selectinload(Flow.tags))
+        .where(Flow.id == flow_id, Flow.organization_id == organization_id)
+    )
     return (await session.exec(stmt)).first()
 
 
@@ -665,6 +713,8 @@ async def update_flow(
         session.add(db_flow)
         await session.flush()
         await session.refresh(db_flow)
+        # Ensure tags is materialized for FlowRead serialization in async context.
+        await session.refresh(db_flow, attribute_names=["tags"])
         await _save_flow_to_fs(db_flow, current_user.id, storage_service)
 
         # Convert to FlowRead while session is still active to avoid detached instance errors
@@ -846,6 +896,8 @@ async def _update_existing_flow(
     session.add(existing_flow)
     await session.flush()
     await session.refresh(existing_flow)
+    # Ensure tags is materialized for FlowRead serialization in async context.
+    await session.refresh(existing_flow, attribute_names=["tags"])
     await _save_flow_to_fs(existing_flow, user_id, storage_service)
 
     return FlowRead.model_validate(existing_flow, from_attributes=True)
@@ -882,6 +934,48 @@ async def generate_or_reset_webhook_api_key(
     })
 
     return {"api_key": key}
+
+
+@router.put("/{flow_id}/tags", response_model=_FlowWithTagsRead)
+async def assign_flow_tags(
+    *,
+    session: DbSession,
+    flow_id: UUID,
+    body: _FlowTagAssignBody,
+    current_user: CurrentActiveUser,
+    current_org: CurrentOrg,
+) -> _FlowWithTagsRead:
+    """Replace the full set of tags associated with a flow (PUT-replaces-set)."""
+    flow = await _read_flow(
+        session=session,
+        flow_id=flow_id,
+        user_id=current_user.id,
+        organization_id=current_org.id,
+    )
+    if flow is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flow not found")
+
+    tag_ids = list(body.tag_ids)
+    if tag_ids:
+        found = (await session.exec(select(Tag).where(col(Tag.id).in_(tag_ids)))).all()
+        if len(found) != len(set(tag_ids)):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="one or more tag_ids do not exist",
+            )
+        tags_by_id = {t.id: t for t in found}
+    else:
+        tags_by_id = {}
+
+    await session.exec(sa_delete(FlowTag).where(FlowTag.flow_id == flow_id))
+    for tid in tag_ids:
+        session.add(FlowTag(flow_id=flow_id, tag_id=tid))
+    await session.commit()
+
+    return _FlowWithTagsRead(
+        id=flow.id,
+        tags=[TagRead.model_validate(tags_by_id[tid]) for tid in tag_ids],
+    )
 
 
 @router.delete("/{flow_id}", status_code=200)
@@ -934,6 +1028,8 @@ async def create_flows(
     await session.flush()
     for db_flow in db_flows:
         await session.refresh(db_flow)
+        # Ensure tags is materialized for FlowRead serialization in async context.
+        await session.refresh(db_flow, attribute_names=["tags"])
 
     return [FlowRead.model_validate(db_flow, from_attributes=True) for db_flow in db_flows]
 
@@ -1133,7 +1229,13 @@ async def read_basic_examples(
             return []
 
         # Get all flows in the starter folder
-        all_starter_folder_flows = (await session.exec(select(Flow).where(Flow.folder_id == starter_folder.id))).all()
+        all_starter_folder_flows = (
+            await session.exec(
+                select(Flow)
+                .options(selectinload(Flow.tags))
+                .where(Flow.folder_id == starter_folder.id)
+            )
+        ).all()
 
         flow_reads = [FlowRead.model_validate(flow, from_attributes=True) for flow in all_starter_folder_flows]
         all_starter_folder_flows_response = compress_response(flow_reads)

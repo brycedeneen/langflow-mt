@@ -21,6 +21,7 @@ from .jobs import Job
 from .membership import Membership, MembershipRole
 from .message import MessageTable
 from .organization import Organization
+from .tag import FlowTag, Tag, TagColor, TemplateTag
 from .template import Template
 from .traces.model import SpanTable, TraceTable
 from .transactions import TransactionTable
@@ -48,6 +49,7 @@ __all__ = [
     "Flow",
     "FlowRun",
     "FlowRunLog",
+    "FlowTag",
     "LogLevel",
     "FlowVersion",
     "Folder",
@@ -59,8 +61,11 @@ __all__ = [
     "SSOConfig",
     "SSOUserProfile",
     "SpanTable",
+    "Tag",
+    "TagColor",
     "Template",
     "TemplateCategory",
+    "TemplateTag",
     "TraceTable",
     "TransactionTable",
     "User",

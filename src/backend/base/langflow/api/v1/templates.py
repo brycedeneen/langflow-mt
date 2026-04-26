@@ -12,6 +12,9 @@ from typing import TYPE_CHECKING, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from pydantic import BaseModel
+from sqlalchemy import delete as sa_delete
+from sqlalchemy import func
 from sqlalchemy.orm import selectinload
 from sqlmodel import col, select
 
@@ -25,6 +28,8 @@ from langflow.services.auth.utils import (
 from langflow.services.database.models.category.model import Category, TemplateCategory
 from langflow.services.database.models.flow.model import Flow
 from langflow.services.database.models.membership.model import Membership
+from langflow.services.database.models.tag.model import Tag, TemplateTag
+from langflow.services.database.models.tag.schema import TagRead
 from langflow.services.database.models.template.model import (
     Template,
     TemplateCreate,
@@ -41,6 +46,15 @@ if TYPE_CHECKING:
     from langflow.services.database.models.user.model import User
 
 router = APIRouter(tags=["Templates"], prefix="/templates")
+
+
+class _TemplateTagAssignBody(BaseModel):
+    tag_ids: list[UUID]
+
+
+class _TemplateWithTagsRead(BaseModel):
+    id: UUID
+    tags: list[TagRead]
 
 
 def _is_password_input(field_cfg: dict) -> bool:
@@ -150,6 +164,11 @@ async def list_templates(
     scope: Literal["platform", "org", "all"] = Query(default="all", description="Filter by template scope"),
     created_by_me: bool = Query(default=False, description="Return only templates created by the current user"),
     include_archived: bool = Query(default=False, description="Include archived templates"),
+    tag_id: list[UUID] | None = Query(default=None, description="Filter by tag_id (repeatable; OR semantics)"),
+    tag_match: Literal["any", "all"] = Query(
+        default="any",
+        description="Combinator for tag_id: 'any' (OR, default) or 'all' (AND).",
+    ),
 ) -> list[TemplateRead]:
     # Guard: only platform admins (or own-rows requests) may browse archived templates
     if include_archived and not getattr(current_user, "is_platform_admin", False) and not created_by_me:
@@ -159,7 +178,7 @@ async def list_templates(
                    "Add ?created_by_me=true to list only your own archived templates.",
         )
 
-    stmt = select(Template).where(Template.deleted_at.is_(None)).options(selectinload(Template.categories))
+    stmt = select(Template).where(Template.deleted_at.is_(None)).options(selectinload(Template.categories), selectinload(Template.tags))
 
     if not include_archived:
         stmt = stmt.where(Template.archived_at.is_(None))
@@ -177,6 +196,25 @@ async def list_templates(
             .join(Category, Category.id == TemplateCategory.category_id)
             .where(Category.name.ilike(category))
         )
+
+    if tag_id:
+        if tag_match == "all":
+            n = len(set(tag_id))
+            subq = (
+                select(TemplateTag.template_id)
+                .where(col(TemplateTag.tag_id).in_(tag_id))
+                .group_by(TemplateTag.template_id)
+                .having(func.count(func.distinct(TemplateTag.tag_id)) == n)
+                .scalar_subquery()
+            )
+            stmt = stmt.where(col(Template.id).in_(subq))
+        else:
+            stmt = (
+                stmt
+                .join(TemplateTag, TemplateTag.template_id == Template.id)
+                .where(col(TemplateTag.tag_id).in_(tag_id))
+                .distinct()
+            )
 
     # Tenant scoping: platform admins see all rows; everyone else sees
     # platform-scoped templates + org-scoped templates for their own orgs.
@@ -216,7 +254,7 @@ async def get_template(
             select(Template)
             .where(Template.id == template_id)
             .where(Template.deleted_at.is_(None))
-            .options(selectinload(Template.categories))
+            .options(selectinload(Template.categories), selectinload(Template.tags))
         )
     ).one_or_none()
     if row is None:
@@ -333,7 +371,7 @@ async def create_template(
     await session.exec(
         select(Template)
         .where(Template.id == row.id)
-        .options(selectinload(Template.categories))
+        .options(selectinload(Template.categories), selectinload(Template.tags))
     )
     await session.refresh(row)
     # Re-fetch with categories eager-loaded
@@ -341,7 +379,7 @@ async def create_template(
         await session.exec(
             select(Template)
             .where(Template.id == row.id)
-            .options(selectinload(Template.categories))
+            .options(selectinload(Template.categories), selectinload(Template.tags))
         )
     ).one()
     return TemplateReadDetail.model_validate(row, from_attributes=True)
@@ -428,10 +466,54 @@ async def update_template(
         await session.exec(
             select(Template)
             .where(Template.id == row.id)
-            .options(selectinload(Template.categories))
+            .options(selectinload(Template.categories), selectinload(Template.tags))
         )
     ).one()
     return TemplateReadDetail.model_validate(row, from_attributes=True)
+
+
+@router.put("/{template_id}/tags", response_model=_TemplateWithTagsRead)
+async def assign_template_tags(
+    template_id: UUID,
+    body: _TemplateTagAssignBody,
+    *,
+    session: DbSession,
+    current_user: "User" = Depends(get_current_active_user),
+) -> _TemplateWithTagsRead:
+    """Replace the full set of tags associated with a template (PUT-replaces-set)."""
+    row = (
+        await session.exec(
+            select(Template)
+            .where(Template.id == template_id)
+            .where(Template.deleted_at.is_(None))
+        )
+    ).one_or_none()
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Template not found")
+    if not user_can_edit_template(current_user, row):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+
+    tag_ids = list(body.tag_ids)
+    if tag_ids:
+        found = (await session.exec(select(Tag).where(col(Tag.id).in_(tag_ids)))).all()
+        if len(found) != len(set(tag_ids)):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="one or more tag_ids do not exist",
+            )
+        tags_by_id = {t.id: t for t in found}
+    else:
+        tags_by_id = {}
+
+    await session.exec(sa_delete(TemplateTag).where(TemplateTag.template_id == template_id))
+    for tid in tag_ids:
+        session.add(TemplateTag(template_id=template_id, tag_id=tid))
+    await session.commit()
+
+    return _TemplateWithTagsRead(
+        id=row.id,
+        tags=[TagRead.model_validate(tags_by_id[tid]) for tid in tag_ids],
+    )
 
 
 @router.patch("/{template_id}", response_model=TemplateReadDetail)
@@ -510,7 +592,7 @@ async def patch_template(
         await session.exec(
             select(Template)
             .where(Template.id == row.id)
-            .options(selectinload(Template.categories))
+            .options(selectinload(Template.categories), selectinload(Template.tags))
         )
     ).one()
     return TemplateReadDetail.model_validate(row, from_attributes=True)
@@ -528,7 +610,7 @@ async def archive_template(
             select(Template)
             .where(Template.id == template_id)
             .where(Template.deleted_at.is_(None))
-            .options(selectinload(Template.categories))
+            .options(selectinload(Template.categories), selectinload(Template.tags))
         )
     ).one_or_none()
     if row is None:
@@ -543,7 +625,7 @@ async def archive_template(
             await session.exec(
                 select(Template)
                 .where(Template.id == template_id)
-                .options(selectinload(Template.categories))
+                .options(selectinload(Template.categories), selectinload(Template.tags))
             )
         ).one()
     return TemplateRead.model_validate(row, from_attributes=True)
@@ -561,7 +643,7 @@ async def unarchive_template(
             select(Template)
             .where(Template.id == template_id)
             .where(Template.deleted_at.is_(None))
-            .options(selectinload(Template.categories))
+            .options(selectinload(Template.categories), selectinload(Template.tags))
         )
     ).one_or_none()
     if row is None:
@@ -576,7 +658,7 @@ async def unarchive_template(
             await session.exec(
                 select(Template)
                 .where(Template.id == template_id)
-                .options(selectinload(Template.categories))
+                .options(selectinload(Template.categories), selectinload(Template.tags))
             )
         ).one()
     return TemplateRead.model_validate(row, from_attributes=True)

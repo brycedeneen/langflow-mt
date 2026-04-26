@@ -19,8 +19,12 @@ from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
 from langflow.schema.data import Data
 
+from langflow.services.database.models.tag.model import FlowTag
+from langflow.services.database.models.tag.schema import TagRead
+
 if TYPE_CHECKING:
     from langflow.services.database.models.folder.model import Folder
+    from langflow.services.database.models.tag.model import Tag
     from langflow.services.database.models.user.model import User
 
 HEX_COLOR_LENGTH = 7
@@ -62,7 +66,6 @@ class FlowBase(SQLModel):
         ),
     )
     endpoint_name: str | None = Field(default=None, nullable=True, index=True)
-    tags: list[str] | None = None
     locked: bool | None = Field(default=False, nullable=True)
     mcp_enabled: bool | None = Field(default=False, nullable=True, description="Can be exposed in the MCP server")
     action_name: str | None = Field(
@@ -216,11 +219,11 @@ class Flow(FlowBase, table=True):  # type: ignore[call-arg]
     organization_id: UUID | None = Field(default=None, index=True, foreign_key="organization.id", nullable=False)
     user: "User" = Relationship(back_populates="flows")
     icon: str | None = Field(default=None, nullable=True)
-    tags: list[str] | None = Field(sa_column=Column(JSON), default=[])
     locked: bool | None = Field(default=False, nullable=True)
     folder_id: UUID | None = Field(default=None, foreign_key="folder.id", nullable=True, index=True)
     fs_path: str | None = Field(default=None, nullable=True)
     folder: Optional["Folder"] = Relationship(back_populates="flows")
+    tags: list["Tag"] = Relationship(back_populates="flows", link_model=FlowTag)
 
     def to_data(self):
         serialized = self.model_dump()
@@ -253,7 +256,10 @@ class FlowRead(FlowBase):
     user_id: UUID | None = Field()
     organization_id: UUID | None = Field(default=None)
     folder_id: UUID | None = Field()
-    tags: list[str] | None = Field(None, description="The tags of the flow")
+    tags: list[TagRead] = Field(
+        default_factory=list,
+        description="Tags assigned to this flow via flow_tag",
+    )
 
 
 class FlowHeader(BaseModel):
@@ -270,7 +276,10 @@ class FlowHeader(BaseModel):
     description: str | None = Field(None, description="A description of the flow")
     data: dict | None = Field(None, description="The data of the component, if is_component is True")
     access_type: AccessTypeEnum | None = Field(None, description="The access type of the flow")
-    tags: list[str] | None = Field(None, description="The tags of the flow")
+    tags: list[TagRead] = Field(
+        default_factory=list,
+        description="Tags assigned to this flow via flow_tag",
+    )
     mcp_enabled: bool | None = Field(None, description="Flag indicating whether the flow is exposed in the MCP server")
     action_name: str | None = Field(None, description="The name of the action associated with the flow")
     action_description: str | None = Field(None, description="The description of the action associated with the flow")

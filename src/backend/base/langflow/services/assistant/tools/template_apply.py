@@ -16,10 +16,17 @@ from langflow.services.deps import session_scope
 async def apply_template(
     target_flow_id: str,
     template_id: str,
+    *,
+    actor_org_id: UUID,
 ) -> dict[str, Any]:
     """Replace a blank flow's data with a template's data. Sets the target's
     ``based_on_template_id`` so subsequent assistant messages carry the
     template's ``agent_usage_notes`` in the system prompt.
+
+    ``actor_org_id`` is required and enforces org isolation: the target flow
+    must belong to the same organisation as the caller (spec A.5). If the
+    target exists but belongs to a different org, the query intentionally
+    returns the same "not found" error to avoid existence leaks.
 
     Returns: {"applied_patch": {"added_nodes": [...], "added_edges": [...],
               "updated_nodes": [], "removed_ids": []}, "template_name": str}
@@ -33,7 +40,13 @@ async def apply_template(
         return {"error": "Invalid id format."}
 
     async with session_scope() as session:
-        target = (await session.exec(select(Flow).where(Flow.id == target_uuid))).one_or_none()
+        target = (
+            await session.exec(
+                select(Flow)
+                .where(Flow.id == target_uuid)
+                .where(Flow.organization_id == actor_org_id)
+            )
+        ).one_or_none()
         if target is None:
             return {"error": "Target flow not found."}
 

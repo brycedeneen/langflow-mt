@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import ShadTooltip from "@/components/common/shadTooltipComponent";
+import TagChip from "@/components/common/TagChip";
 import useDragStart from "@/components/core/cardComponent/hooks/use-on-drag-start";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -17,6 +19,7 @@ import ExportModal from "@/modals/exportModal";
 import FlowSettingsModal from "@/modals/flowSettingsModal";
 import useAlertStore from "@/stores/alertStore";
 import type { FlowType } from "@/types/flow";
+import { coerceTagList } from "@/types/tag/runtime-validate";
 import { downloadFlow } from "@/utils/reactflowUtils";
 import { swatchColors } from "@/utils/styleUtils";
 import { cn, getNumberFromString } from "@/utils/utils";
@@ -31,11 +34,15 @@ const ListComponent = ({
   selected,
   setSelected,
   shiftPressed,
+  selectedTagIds: _selectedTagIds,
 }: {
   flowData: FlowType;
   selected: boolean;
   setSelected: (selected: boolean) => void;
   shiftPressed: boolean;
+  // flow.tags is populated by FlowRead (0b5d4aae7c), consumed by HomePage
+  // for client-side filtering; chips render per-row below.
+  selectedTagIds?: string[];
 }) => {
   const navigate = useCustomNavigate();
   const [openDelete, setOpenDelete] = useState(false);
@@ -175,6 +182,40 @@ const ListComponent = ({
                 </span>
               </div>
             </div>
+            {/* Tag chips — wrapped in truthy-length check so cards without
+                tags don't render an empty row. */}
+            {/* TODO: Server-side Flow/Template read shapes don't yet expose tags — see types/tag/runtime-validate.ts. */}
+            {(() => {
+              const rowTags = coerceTagList(
+                (flowData as { tags?: unknown }).tags,
+              );
+              if (rowTags.length === 0) return null;
+              const MAX = 2;
+              const visible = rowTags.slice(0, MAX);
+              const overflow = Math.max(0, rowTags.length - MAX);
+              return (
+                <div
+                  className="mt-1 flex flex-wrap gap-1"
+                  data-testid={`flow-tags-${flowData.id}`}
+                >
+                  {visible.map((t) => (
+                    <TagChip key={t.id} tag={t} />
+                  ))}
+                  {overflow > 0 && (
+                    <ShadTooltip
+                      content={rowTags
+                        .slice(MAX)
+                        .map((t) => t.name)
+                        .join(", ")}
+                    >
+                      <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs text-muted-foreground">
+                        +{overflow}
+                      </span>
+                    </ShadTooltip>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
 

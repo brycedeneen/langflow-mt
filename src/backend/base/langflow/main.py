@@ -527,6 +527,12 @@ def create_app():
     # Discover and register additional routers from plugins (langflow.plugins entry-point)
     load_plugin_routes(app)
 
+    from langflow.services.assistant.guards import CrossOrgAccessError
+
+    @app.exception_handler(CrossOrgAccessError)
+    async def _cross_org_access_handler(_request: Request, _exc: CrossOrgAccessError) -> JSONResponse:
+        return JSONResponse(status_code=404, content={"detail": "not found"})
+
     @app.exception_handler(Exception)
     async def exception_handler(_request: Request, exc: Exception):
         if isinstance(exc, HTTPException):

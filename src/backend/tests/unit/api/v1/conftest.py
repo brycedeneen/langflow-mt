@@ -127,6 +127,88 @@ async def tenant_and_admin(client: AsyncClient):  # noqa: ARG001
 
 
 @pytest.fixture
+async def two_org_fixture(client: AsyncClient):
+    """Create two orgs with one member each.
+
+    Returns (actor_user_dict, actor_org, other_user_dict, other_org) where
+    *_user_dict contains ``id``, ``username``, and ``headers`` (pre-authenticated).
+    Cleans up all created rows after the test.
+    """
+    slug = uuid4().hex[:8]
+    actor_password = "actorpassword"
+    other_password = "otherpassword"
+
+    async with session_scope() as session:
+        actor_org = Organization(name=f"actor-org-{slug}", slug=f"actor-org-{slug}", is_personal=False)
+        other_org = Organization(name=f"other-org-{slug}", slug=f"other-org-{slug}", is_personal=False)
+        session.add_all([actor_org, other_org])
+        await session.flush()
+
+        actor = User(
+            username=f"actor-{slug}",
+            password=get_password_hash(actor_password),
+            is_active=True,
+        )
+        other = User(
+            username=f"other-{slug}",
+            password=get_password_hash(other_password),
+            is_active=True,
+        )
+        session.add_all([actor, other])
+        await session.flush()
+
+        session.add_all([
+            Membership(user_id=actor.id, organization_id=actor_org.id, role=MembershipRole.MEMBER),
+            Membership(user_id=other.id, organization_id=other_org.id, role=MembershipRole.MEMBER),
+        ])
+        await session.commit()
+        for obj in (actor_org, other_org, actor, other):
+            await session.refresh(obj)
+
+        ids = {
+            "actor_id": actor.id,
+            "actor_username": actor.username,
+            "other_id": other.id,
+            "other_username": other.username,
+            "actor_org_id": actor_org.id,
+            "other_org_id": other_org.id,
+        }
+
+    # Authenticate both users
+    resp = await client.post("api/v1/login", data={"username": ids["actor_username"], "password": actor_password})
+    assert resp.status_code == status.HTTP_200_OK, f"actor login failed: {resp.text}"
+    actor_headers = {"Authorization": f"Bearer {resp.json()['access_token']}"}
+
+    resp = await client.post("api/v1/login", data={"username": ids["other_username"], "password": other_password})
+    assert resp.status_code == status.HTTP_200_OK, f"other login failed: {resp.text}"
+    other_headers = {"Authorization": f"Bearer {resp.json()['access_token']}"}
+
+    actor_dict = {"id": ids["actor_id"], "username": ids["actor_username"], "headers": actor_headers}
+    other_dict = {"id": ids["other_id"], "username": ids["other_username"], "headers": other_headers}
+
+    yield actor_dict, ids["actor_org_id"], other_dict, ids["other_org_id"]
+
+    async with session_scope() as session:
+        from sqlalchemy import delete as sa_delete
+
+        await session.exec(
+            sa_delete(Membership).where(
+                Membership.user_id.in_([ids["actor_id"], ids["other_id"]]),
+            ),
+        )
+        for model, pk in [
+            (User, ids["actor_id"]),
+            (User, ids["other_id"]),
+            (Organization, ids["actor_org_id"]),
+            (Organization, ids["other_org_id"]),
+        ]:
+            row = await session.get(model, pk)
+            if row is not None:
+                await session.delete(row)
+        await session.commit()
+
+
+@pytest.fixture
 async def non_personal_org():
     """Create an Organization distinct from any user's auto-provisioned personal org.
 

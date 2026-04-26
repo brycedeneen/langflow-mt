@@ -1,5 +1,7 @@
 import Fuse from "fuse.js";
 import { useEffect, useMemo, useRef, useState } from "react";
+import TagFilterChips from "@/components/common/TagFilterChips";
+import { useListTags } from "@/controllers/API/queries/tags";
 import { useListTemplates } from "@/controllers/API/queries/templates/use-list-templates";
 import type { ListTemplatesParams } from "@/controllers/API/queries/templates/use-list-templates";
 import type { FlowType } from "@/types/flow";
@@ -33,9 +35,11 @@ function adaptTemplateToFlowLike(template: TemplateRead): FlowType {
 function buildParams(
   currentTab: string,
   includeArchived: boolean,
+  selectedTagIds: string[],
 ): ListTemplatesParams | undefined {
   const base: ListTemplatesParams = {};
   if (includeArchived) base.include_archived = true;
+  if (selectedTagIds.length > 0) base.tag_id = selectedTagIds;
 
   if (currentTab === "all-templates") {
     return Object.keys(base).length ? base : undefined;
@@ -61,9 +65,20 @@ export default function TemplateContentComponent({
   const showArchivedToggleVisible = isAdmin || currentTab === "saved";
   const [showArchived, setShowArchived] = useState(false);
 
+  // Tag filter state — threaded into useListTemplates via the ?tag_id= query
+  // param. The chip row shows the full tag vocabulary from useListTags() so
+  // users can pick any defined tag, even after a filter narrows the grid.
+  const { data: allTags = [] } = useListTags();
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+
   const params = useMemo(
-    () => buildParams(currentTab, showArchivedToggleVisible && showArchived),
-    [currentTab, showArchived, showArchivedToggleVisible],
+    () =>
+      buildParams(
+        currentTab,
+        showArchivedToggleVisible && showArchived,
+        selectedTagIds,
+      ),
+    [currentTab, showArchived, showArchivedToggleVisible, selectedTagIds],
   );
 
   const { data: templateData = [], isPending } = useListTemplates(params);
@@ -163,6 +178,16 @@ export default function TemplateContentComponent({
             Show archived
           </Label>
         </div>
+      )}
+
+      {/* Tag filter row — renders nothing when no tags exist in the workspace. */}
+      {allTags.length > 0 && (
+        <TagFilterChips
+          availableTags={allTags}
+          selected={selectedTagIds}
+          onChange={setSelectedTagIds}
+          className="mx-3"
+        />
       )}
 
       <div

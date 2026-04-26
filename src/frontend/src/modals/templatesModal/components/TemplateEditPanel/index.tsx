@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import TagPicker from "@/components/common/TagPicker";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useAssignTemplateTags } from "@/controllers/API/queries/tags";
 import { useUpdateTemplate } from "@/controllers/API/queries/templates/use-update-template";
 import useAlertStore from "@/stores/alertStore";
 import IconPickerField from "@/modals/SaveAsTemplateModal/IconPickerField";
@@ -33,8 +35,14 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
   );
   const [agentSummary, setAgentSummary] = useState(template.agent_summary ?? "");
   const [agentUsageNotes, setAgentUsageNotes] = useState(template.agent_usage_notes ?? "");
+  // template.tags is now populated by TemplateRead (see 0b5d4aae7c).
+  // Mirror the pattern used for selectedCategoryIds.
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(
+    template.tags?.map((t) => t.id) ?? [],
+  );
 
   const { mutate: updateTemplate, isPending } = useUpdateTemplate();
+  const assignTemplateTags = useAssignTemplateTags();
   const setSuccessData = useAlertStore((s) => s.setSuccessData);
   const setErrorData = useAlertStore((s) => s.setErrorData);
 
@@ -48,6 +56,7 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
       setSelectedCategoryIds(template.categories.map((c) => c.id));
       setAgentSummary(template.agent_summary ?? "");
       setAgentUsageNotes(template.agent_usage_notes ?? "");
+      setSelectedTagIds(template.tags?.map((t) => t.id) ?? []);
     }
   }, [open, template]);
 
@@ -68,8 +77,24 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
       },
       {
         onSuccess: () => {
-          setSuccessData({ title: `Template "${name}" updated` });
-          onOpenChange(false);
+          const finish = () => {
+            setSuccessData({ title: `Template "${name}" updated` });
+            onOpenChange(false);
+          };
+          // The edit panel now shows the user the current tag state before saving,
+          // so an empty picker means "clear all tags" — let the server know.
+          assignTemplateTags.mutate(
+            { templateId: template.id, tagIds: selectedTagIds },
+            {
+              onSuccess: finish,
+              onError: () => {
+                setErrorData({
+                  title: "Template updated, but tag assignment failed",
+                });
+                onOpenChange(false);
+              },
+            },
+          );
         },
         onError: (err: unknown) => {
           const msg =
@@ -157,6 +182,16 @@ export default function TemplateEditPanel({ template, open, onOpenChange }: Prop
               onChange={(e) => setAgentUsageNotes(e.target.value)}
               placeholder="Guidance the assistant injects when a user works with a flow created from this template."
               className="resize-y"
+            />
+          </div>
+
+          {/* Tags */}
+          <div className="flex flex-col gap-1.5">
+            <Label>Tags</Label>
+            <TagPicker
+              selectedIds={selectedTagIds}
+              onChange={setSelectedTagIds}
+              disabled={isPending}
             />
           </div>
         </div>

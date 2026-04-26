@@ -16,8 +16,11 @@ from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
     from langflow.services.database.models.category.model import Category
+    from langflow.services.database.models.tag.model import Tag
 
 from langflow.services.database.models.category.model import CategoryRead, TemplateCategory
+from langflow.services.database.models.tag.model import TemplateTag
+from langflow.services.database.models.tag.schema import TagRead
 
 
 def _utc_now() -> datetime:
@@ -112,6 +115,7 @@ class Template(SQLModel, table=True):
     categories: list["Category"] = Relationship(
         back_populates="templates", link_model=TemplateCategory
     )
+    tags: list["Tag"] = Relationship(back_populates="templates", link_model=TemplateTag)
 
 
 # ---------------------------- Pydantic schemas ----------------------------
@@ -127,6 +131,10 @@ class TemplateRead(BaseModel):
     gradient: str | None
     archived_at: datetime | None
     categories: list[CategoryRead]
+    tags: list[TagRead] = PydanticField(
+        default_factory=list,
+        description="Tags assigned to this template via template_tag",
+    )
     created_at: datetime
     updated_at: datetime
     agent_summary: str | None = None

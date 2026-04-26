@@ -17,6 +17,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from langflow.api.utils import CurrentActiveUser, DbSession
 from langflow.api.utils.core import CurrentOrg
+from langflow.services.assistant.guards import CrossOrgAccessError
 from langflow.services.assistant.providers.anthropic_provider import AnthropicProviderClient
 from langflow.services.assistant.providers.openai_provider import OpenAIProviderClient
 from langflow.services.assistant.service import AssistantService
@@ -89,12 +90,17 @@ ASSISTANT_ENCRYPTED_VAR_NAMES = frozenset({"assistant.api_key"})
 async def _get_flow_with_org_check(
     session, flow_id: UUID, org_id: UUID
 ) -> Flow:
-    """Load a flow and verify it belongs to the given org."""
+    """Load a flow and verify it belongs to the given org.
+
+    Cross-org access raises :class:`CrossOrgAccessError`, which the app-level
+    handler converts to HTTP 404 ``{"detail": "not found"}`` — this avoids
+    leaking existence of foreign-org flows via a 403/404 split.
+    """
     flow = await session.get(Flow, flow_id)
     if flow is None:
         raise HTTPException(status_code=404, detail="Flow not found")
     if flow.organization_id != org_id:
-        raise HTTPException(status_code=403, detail="Flow does not belong to your organization")
+        raise CrossOrgAccessError("flow")
     return flow
 
 

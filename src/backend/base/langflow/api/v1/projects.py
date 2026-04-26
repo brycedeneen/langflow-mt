@@ -254,7 +254,7 @@ async def read_project(
         project = (
             await session.exec(
                 select(Folder)
-                .options(selectinload(Folder.flows))
+                .options(selectinload(Folder.flows).selectinload(Flow.tags))
                 .where(
                     Folder.id == project_id,
                     Folder.organization_id == current_org.id,
@@ -272,7 +272,7 @@ async def read_project(
     try:
         # Check if pagination is explicitly requested by the user (both page and size provided)
         if page is not None and size is not None:
-            stmt = select(Flow).where(Flow.folder_id == project_id)
+            stmt = select(Flow).options(selectinload(Flow.tags)).where(Flow.folder_id == project_id)
 
             if Flow.updated_at is not None:
                 stmt = stmt.order_by(Flow.updated_at.desc())  # type: ignore[attr-defined]
@@ -627,7 +627,9 @@ async def download_file(
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
 
-        flows_query = select(Flow).where(Flow.folder_id == project_id)
+        flows_query = (
+            select(Flow).options(selectinload(Flow.tags)).where(Flow.folder_id == project_id)
+        )
         flows_result = await session.exec(flows_query)
         flows = [FlowRead.model_validate(flow, from_attributes=True) for flow in flows_result.all()]
 

@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import PaginatorComponent from "@/components/common/paginatorComponent";
+import TagFilterChips from "@/components/common/TagFilterChips";
 import CardsWrapComponent from "@/components/core/cardsWrapComponent";
 import { IS_MAC } from "@/constants/constants";
 import { useGetFolderQuery } from "@/controllers/API/queries/folders/use-get-folder";
+import { useListTags } from "@/controllers/API/queries/tags";
 import { CustomBanner } from "@/customization/components/custom-banner";
 import { CustomMcpServerTab } from "@/customization/components/custom-McpServerTab";
 import {
@@ -66,8 +68,33 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
     search,
   });
 
+  // Tag filter state — local to this page. We filter the folder response's
+  // flow list client-side by intersecting each flow's `tags[].id` with
+  // `selectedTagIds`. `flow.tags` is populated by FlowRead (0b5d4aae7c).
+  const { data: allTags = [] } = useListTags();
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+
+  const allFlowItems: FlowType[] = folderData?.flows?.items ?? [];
+  const visibleFlowItems =
+    selectedTagIds.length === 0
+      ? allFlowItems
+      : allFlowItems.filter((f) =>
+          f.tags?.some((t) => selectedTagIds.includes(t.id)),
+        );
+
+  // Tags actually present on flows in the current folder response. We pass
+  // this (rather than `allTags`) to the filter chip row so users don't see
+  // chips they cannot possibly toggle against. If a selected id is no longer
+  // in `tagsInUse` (last tagged flow deleted), we intentionally keep it in
+  // `selectedTagIds` so re-tagging a flow restores the user's filter state.
+  const tagsInUse = useMemo(() => {
+    const inUse = new Set<string>();
+    allFlowItems.forEach((f) => f.tags?.forEach((t) => inUse.add(t.id)));
+    return allTags.filter((t) => inUse.has(t.id));
+  }, [allFlowItems, allTags]);
+
   const data = {
-    flows: folderData?.flows?.items ?? [],
+    flows: visibleFlowItems,
     name: folderData?.folder?.name ?? "",
     description: folderData?.folder?.description ?? "",
     parent_id: folderData?.folder?.parent_id ?? "",
@@ -132,6 +159,7 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(
     null,
   );
+
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
 
@@ -273,6 +301,18 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
                 <EmptyFolder setOpenModal={setNewProjectModal} />
               ) : (
                 <div className="flex h-full flex-col">
+                  {/* Tag filter row — renders tags actually in use by flows
+                      in the current folder response. Selection filters the
+                      list client-side via `visibleFlowItems` above. */}
+                  {(flowType === "flows" || flowType === "components") &&
+                    tagsInUse.length > 0 && (
+                      <TagFilterChips
+                        availableTags={tagsInUse}
+                        selected={selectedTagIds}
+                        onChange={setSelectedTagIds}
+                        className="mt-2 px-1"
+                      />
+                    )}
                   {isLoading ? (
                     view === "grid" ? (
                       <div className="mt-4 grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
@@ -301,6 +341,7 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
                               setSelectedFlow(selected, flow.id, index)
                             }
                             shiftPressed={isShiftPressed || isCtrlPressed}
+                            selectedTagIds={selectedTagIds}
                           />
                         ))}
                       </div>
@@ -315,6 +356,7 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
                               setSelectedFlow(selected, flow.id, index)
                             }
                             shiftPressed={isShiftPressed || isCtrlPressed}
+                            selectedTagIds={selectedTagIds}
                           />
                         ))}
                       </div>

@@ -26,6 +26,7 @@ from langflow.api.v1 import (
     projects_router,
     starter_projects_router,
     store_router,
+    tags_router,
     templates_router,
     traces_router,
     users_router,
@@ -71,6 +72,7 @@ router_v1.include_router(admin_router)
 router_v1.include_router(starter_projects_router)
 router_v1.include_router(categories_router)
 router_v1.include_router(memberships_router)
+router_v1.include_router(tags_router)
 router_v1.include_router(templates_router)
 router_v1.include_router(knowledge_bases_router)
 router_v1.include_router(mcp_router)

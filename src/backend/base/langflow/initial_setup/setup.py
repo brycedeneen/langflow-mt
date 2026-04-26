@@ -632,7 +632,6 @@ def get_project_data(project):
     project_icon = demojize(project_icon) if project_icon and purely_emoji(project_icon) else project_icon
     project_icon_bg_color = project.get("icon_bg_color")
     project_gradient = project.get("gradient")
-    project_tags = project.get("tags")
     return (
         project_name,
         project_description,
@@ -642,7 +641,6 @@ def get_project_data(project):
         project_icon,
         project_icon_bg_color,
         project_gradient,
-        project_tags,
     )
 
 
@@ -768,7 +766,6 @@ async def create_or_update_agentic_flows(session: AsyncSession, user_id: UUID) -
                 flow_icon,
                 flow_icon_bg_color,
                 flow_gradient,
-                flow_tags,
             ) = get_project_data(flow_data)
 
             # Extract flow_id and endpoint_name from JSON
@@ -804,7 +801,6 @@ async def create_or_update_agentic_flows(session: AsyncSession, user_id: UUID) -
                         updated_at=updated_at_datetime,
                         folder_id=assistant_folder.id,
                         gradient=flow_gradient,
-                        tags=flow_tags,
                         endpoint_name=flow_endpoint_name,  # Set endpoint_name from JSON
                     )
                     db_flow = Flow.model_validate(new_project, from_attributes=True)

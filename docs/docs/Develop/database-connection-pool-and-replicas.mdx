@@ -1,0 +1,169 @@
+---
+title: Database connection pool and read replicas
+slug: /database-connection-pool-and-replicas
+---
+
+This guide covers operational tuning of the Langflow PostgreSQL connection pool and the supported patterns for routing read traffic to replicas. It complements [Database guide for enterprise administrators](/enterprise-database-guide), which covers high-availability topology, replication, and failover.
+
+Read this if you are:
+
+- Sizing the connection pool for a production deployment.
+- Placing Langflow behind PgBouncer, pgpool-II, RDS Proxy, or a similar connection proxy.
+- Deciding how to use read replicas with Langflow.
+- Diagnosing `QueuePool limit ... overflow reached` or connection-starvation errors.
+
+## How Langflow uses the database
+
+Langflow uses a single async SQLAlchemy engine for all database traffic. The engine is built once at startup with the async `psycopg` driver for PostgreSQL and `aiosqlite` for SQLite. All API request handlers, Alembic migrations at startup, and arq workers share this engine through an `async_sessionmaker` factory.
+
+Two session factories are exposed:
+
+- `session_scope()` — read/write; commits on success, rolls back on exception.
+- `session_scope_readonly()` — issues queries without auto-commit, but **uses the same engine and pool** as the writer. There is no separate read endpoint today.
+
+Alembic uses a short-lived engine configured with `NullPool` for migrations, so startup does not consume a long-lived connection slot.
+
+## Pool configuration
+
+The pool is controlled by a single dict-valued setting, `LANGFLOW_DB_CONNECTION_SETTINGS`. Individual legacy env vars (`LANGFLOW_POOL_SIZE`, `LANGFLOW_MAX_OVERFLOW`) still work but are deprecated and will log a warning.
+
+### Defaults
+
+| Key | Default | Purpose |
+|-----|---------|---------|
+| `pool_size` | 20 | Number of persistent connections kept open. |
+| `max_overflow` | 30 | Extra connections allowed above `pool_size` when demand spikes. |
+| `pool_timeout` | 30 | Seconds a coroutine will wait for a connection before raising `TimeoutError`. |
+| `pool_pre_ping` | `true` | Issues a `SELECT 1` before handing out a pooled connection; catches stale connections killed by the server or a proxy. |
+| `pool_recycle` | 1800 | Seconds before a pooled connection is closed and replaced. Prevents dead connections from cloud load balancers or firewalls with idle-timeout policies. |
+| `echo` | `false` | SQL statement logging. Enable only for debugging; overwhelming at production load. |
+
+### Setting pool values
+
+Set the full dict when you need to change any field:
+
+```bash
+LANGFLOW_DB_CONNECTION_SETTINGS='{
+  "pool_size": 40,
+  "max_overflow": 60,
+  "pool_timeout": 20,
+  "pool_pre_ping": true,
+  "pool_recycle": 1800
+}'
+```
+
+When setting the dict via an env var, pass valid JSON (not Python `True`/`False`). The dict is parsed by Pydantic on startup; invalid JSON aborts boot.
+
+### Sizing the pool
+
+The practical upper bound is the PostgreSQL `max_connections` setting minus the headroom reserved for administration and other clients. A safe target per Langflow instance is:
+
+```
+pool_size + max_overflow  ≤  (max_connections - admin_reserve) / instances
+```
+
+where `instances` counts every process that uses the engine (API replicas + worker replicas, each process holds its own pool).
+
+For managed Postgres (RDS, Cloud SQL), `max_connections` is typically 100 for small tiers and scales with instance class. If you are running a dozen API pods and a dozen worker pods against a single primary, the stock defaults (20 + 30 = 50) will exhaust connection budget fast. Options, in order of preference:
+
+1. **Lower the per-process pool.** Set `pool_size=5, max_overflow=10` and let the proxy (next section) multiplex.
+2. **Add a connection proxy** (PgBouncer or RDS Proxy) in transaction mode.
+3. **Scale the primary up** to a bigger instance class with more connections.
+
+SQLite does not benefit from large pools. For SQLite deployments, reduce `pool_size` and `max_overflow` to 1-5 — WAL mode serializes writes and extra connections just contend for the lock.
+
+## Connection proxies (PgBouncer, RDS Proxy, pgpool-II)
+
+Langflow is compatible with transaction-mode PgBouncer and RDS Proxy, with one caveat: prepared statements must be disabled. The async `psycopg` driver caches prepared statements per server session by default. In transaction mode, each transaction may land on a different server session, invalidating the cache.
+
+### PgBouncer
+
+Langflow's Alembic migration runner already sets `prepare_threshold = None` to disable server-side prepared statements for migrations. For the **runtime engine**, set the same flag via `LANGFLOW_DB_DRIVER_CONNECTION_SETTINGS`:
+
+```bash
+LANGFLOW_DB_DRIVER_CONNECTION_SETTINGS='{"prepare_threshold": null}'
+```
+
+Recommended PgBouncer config:
+
+```
+[databases]
+langflow = host=<primary-host> port=5432 dbname=langflow
+
+[pgbouncer]
+pool_mode = transaction
+max_client_conn = 500
+default_pool_size = 25
+reserve_pool_size = 5
+server_idle_timeout = 600
+```
+
+Point `LANGFLOW_DATABASE_URL` at PgBouncer:
+
+```
+postgresql://langflow:<password>@pgbouncer:6432/langflow?sslmode=require
+```
+
+When PgBouncer handles pooling, Langflow's own pool can be small. `pool_size=5, max_overflow=10` per process is a good starting point.
+
+### RDS Proxy
+
+Use the same `prepare_threshold = null` setting. RDS Proxy handles pool mode internally; you do not need to configure a pool mode on the Langflow side beyond disabling prepared statements. IAM authentication or connection-rotation features of RDS Proxy are orthogonal to Langflow — set them in your database URL exactly as you would for a direct primary connection.
+
+### pgpool-II
+
+`pgpool-II` supports load balancing and can forward `SELECT`s to replicas automatically. Because Langflow does not expose a read-only endpoint to clients, pgpool's `statement_level_load_balance = on` is the relevant mode — it inspects each statement. In Langflow's typical workload (mostly reads, occasional writes), this routes most traffic to replicas without any app-level change. Keep prepared statements disabled.
+
+## Read replicas
+
+Langflow's engine does not route reads and writes to different hosts in code today. All traffic uses a single `LANGFLOW_DATABASE_URL`. There are three supported ways to benefit from replicas:
+
+### Pattern 1: Proxy-level load balancing (recommended)
+
+Front the cluster with pgpool-II or HAProxy. Configure `statement_level_load_balance` (pgpool) or a backend pool per role (HAProxy) so reads drop onto replicas and writes go to the primary. Langflow sends every query through a single URL and the proxy decides.
+
+Trade-offs:
+
+- Works today with zero code changes.
+- Replica lag may cause read-after-write inconsistency for the same request. Most Langflow reads tolerate small lag (seconds), but flows that update then immediately read (e.g. save-then-render) need sticky-to-primary behavior. pgpool honors this automatically inside a transaction.
+
+### Pattern 2: Primary-only (simpler)
+
+For small deployments, point `LANGFLOW_DATABASE_URL` at the primary and skip replicas entirely. If you have fewer than ~50 concurrent users and a moderately sized primary, this outperforms a naive replica setup because you avoid lag entirely. Use replicas only for DR / failover, not for query offload.
+
+### Pattern 3: App-level routing (future work)
+
+In-app routing — a separate `LANGFLOW_DATABASE_READ_URL` read-only engine — is not wired today. `session_scope_readonly()` already distinguishes read-only call sites, which is the main prerequisite. If your workload requires bounded-staleness reads with explicit primary fallback, file an issue. Do not implement this with a manual workaround (e.g. raw session manipulation) — it will break subtly under lag and deadlocks.
+
+## Verification
+
+After changing pool settings, confirm they applied.
+
+### Inspect the running pool
+
+Enable Prometheus metrics (`LANGFLOW_PROMETHEUS_ENABLED=true`) and scrape the `/metrics` endpoint. Relevant gauges: `sqlalchemy_pool_size`, `sqlalchemy_pool_checked_in`, `sqlalchemy_pool_checked_out`. Sustained `checked_out ≈ pool_size + max_overflow` means the pool is saturated — time to raise limits or add a proxy.
+
+### Check effective settings at startup
+
+At `INFO` log level, Langflow prints the resolved database URL (with credentials redacted) and the engine arguments. Look for `pool_size=`, `max_overflow=`, `pool_recycle=` in the startup logs. If a deprecated legacy env var overrode your dict, a warning will appear in the same block.
+
+### Probe connection churn
+
+Run `SELECT count(*) FROM pg_stat_activity WHERE application_name LIKE 'langflow%'` on the primary. The count should stabilize at roughly `pool_size × instances`, climbing toward `(pool_size + max_overflow) × instances` under load and returning to `pool_size × instances` as traffic drains. Persistent climbing past that ceiling indicates connection leaks — open a bug report with reproduction details.
+
+## Troubleshooting
+
+| Symptom | Likely cause | Action |
+|---------|--------------|--------|
+| `QueuePool limit ... overflow reached` | Pool too small for concurrent traffic, or slow queries holding connections. | Raise `max_overflow`, or add PgBouncer in transaction mode. If some queries are slow, profile before scaling the pool. |
+| `FATAL: sorry, too many clients already` | Sum of all pools exceeds PostgreSQL `max_connections`. | Add a connection proxy. Lower per-process pool. Raise `max_connections` on the primary. |
+| Intermittent `ssl_error` or `connection closed` after idle | Idle-timeout policy on the proxy or load balancer killing long-lived connections. | Shorten `pool_recycle` below the upstream idle timeout (e.g. 300 seconds if the load balancer kills at 600 seconds). `pool_pre_ping=true` will also catch these. |
+| `prepared statement ... already exists` | PgBouncer/RDS Proxy transaction-mode invalidating prepared-statement cache. | Set `LANGFLOW_DB_DRIVER_CONNECTION_SETTINGS='{"prepare_threshold": null}'`. |
+| Migrations block at startup under multi-instance deploy | Two instances racing for the migration advisory lock. | Use `LANGFLOW_MIGRATION_LOCK_NAMESPACE` to give every cluster a deterministic lock key, or run migrations as a one-shot Job that precedes the deployment. |
+| Read-heavy dashboards saturate the primary | No replica offload. | Add pgpool-II or HAProxy in front of the cluster (Pattern 1 above). |
+
+## See also
+
+- [Database guide for enterprise administrators](/enterprise-database-guide) — HA topology and replication setup.
+- [Best practices for Langflow on Kubernetes](/deployment-prod-best-practices) — pod sizing and replica count.
+- [Configure a custom database](/configuration-custom-database) — database URL and schema options.

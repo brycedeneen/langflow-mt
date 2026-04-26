@@ -14,6 +14,7 @@ export type ListTemplatesParams = {
   scope?: "platform" | "org" | "all";
   created_by_me?: boolean;
   include_archived?: boolean;
+  tag_id?: string[];
 };
 
 export function useListTemplates(params?: ListTemplatesParams) {
@@ -25,6 +26,11 @@ export function useListTemplates(params?: ListTemplatesParams) {
     if (params?.created_by_me) searchParams.set("created_by_me", "true");
     if (params?.include_archived)
       searchParams.set("include_archived", "true");
+    if (params?.tag_id && params.tag_id.length > 0) {
+      for (const id of params.tag_id) {
+        searchParams.append("tag_id", id);
+      }
+    }
     const qs = searchParams.toString();
     const url = qs ? `${getURL("TEMPLATES")}?${qs}` : getURL("TEMPLATES");
     return (await validatedQueryFn(
