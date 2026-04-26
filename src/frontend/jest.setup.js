@@ -106,6 +106,36 @@ jest.mock("@/components/common/genericIconComponent", () => ({
   default: () => null,
 }));
 
+// Stub every lucide-react icon export with a <span data-testid="icon-{Name}" />
+// so tests written for the previous genericIconComponent mock pattern continue
+// to find icons via getByTestId("icon-X"). Phase 7c migrated ~430 static-name
+// icon sites from <ForwardedIconComponent name="X"/> to direct lucide imports;
+// this mock keeps existing test-id assertions working without per-test changes.
+jest.mock("lucide-react", () => {
+  const React = require("react");
+  const actual = jest.requireActual("lucide-react");
+  const mocks = {};
+  for (const key of Object.keys(actual)) {
+    const value = actual[key];
+    // Lucide icon exports are forwardRef objects; stub them with a span that
+    // preserves data-testid. Non-icon exports (createLucideIcon, types) pass through.
+    if (/^[A-Z]/.test(key) && (typeof value === "object" || typeof value === "function")) {
+      mocks[key] = function StubIcon(props) {
+        const { className, ...rest } = props || {};
+        return React.createElement("span", {
+          "data-testid": `icon-${key}`,
+          className,
+          ...rest,
+        });
+      };
+      mocks[key].displayName = `MockedLucide(${key})`;
+    } else {
+      mocks[key] = value;
+    }
+  }
+  return mocks;
+});
+
 // Stub custom icon that uses JSX file to avoid transform issues in Jest
 jest.mock("@/icons/BotMessageSquare", () => ({
   __esModule: true,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Check } from "lucide-react";
 import { useThinkingDurationStore } from "../hooks/use-thinking-duration";
 import { formatTime } from "../utils/format";
 
@@ -41,8 +41,7 @@ export default function ThinkingMessage({
     <div className="w-full py-2 word-break-break-word">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         {!isThinking && (
-          <ForwardedIconComponent
-            name="Check"
+          <Check
             className="h-4 w-4 text-accent-emerald-foreground"
           />
         )}

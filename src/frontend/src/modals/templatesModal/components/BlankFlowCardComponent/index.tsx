@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Plus } from "lucide-react";
 import { cn } from "@/utils/utils";
 
 type Props = {
@@ -26,7 +26,7 @@ export function BlankFlowCardComponent({ selected, onSelect }: Props) {
         aria-hidden
       />
       <div className="flex h-9 w-9 items-center justify-center rounded-md bg-muted">
-        <ForwardedIconComponent name="Plus" className="h-5 w-5" />
+        <Plus className="h-5 w-5" />
       </div>
       <div className="flex w-full flex-col gap-1">
         <div className="text-sm font-semibold">Blank Flow</div>

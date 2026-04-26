@@ -5,8 +5,9 @@ import React, {
   useState,
 } from "react";
 import { useHref } from "react-router-dom";
+import { ChevronDown, Code2, Download, ExternalLink, FileText, Globe, History } from "lucide-react";
 import IconComponent from "@/components/common/genericIconComponent";
-import ShadTooltipComponent from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -105,7 +106,7 @@ export default function PublishDropdown({
             data-testid="publish-button"
           >
             More
-            <IconComponent name="ChevronDown" className="!h-5 !w-5" />
+            <ChevronDown className="!h-5 !w-5" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -120,14 +121,14 @@ export default function PublishDropdown({
             onClick={() => setOpenApiModal(true)}
             data-testid="api-access-item"
           >
-            <IconComponent name="Code2" className={`icon-size mr-2`} />
+            <Code2 className={`icon-size mr-2`} />
             <span>API access</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             className="deploy-dropdown-item group"
             onClick={() => setOpenExportModal(true)}
           >
-            <IconComponent name="Download" className={`icon-size mr-2`} />
+            <Download className={`icon-size mr-2`} />
             <span>Export</span>
           </DropdownMenuItem>
           {isSuperuser && (
@@ -135,7 +136,7 @@ export default function PublishDropdown({
               className="deploy-dropdown-item group"
               onClick={() => setSaveTemplateOpen(true)}
             >
-              <IconComponent name="FileText" className={`icon-size mr-2`} />
+              <FileText className={`icon-size mr-2`} />
               <span>Save as Template</span>
             </DropdownMenuItem>
           )}
@@ -151,8 +152,7 @@ export default function PublishDropdown({
             >
               <IconComponent name="Mcp" className={`icon-size mr-2`} />
               <span>MCP Server</span>
-              <IconComponent
-                name="ExternalLink"
+              <ExternalLink
                 className={`icon-size ml-auto hidden group-hover:block`}
               />
             </DropdownMenuItem>
@@ -163,7 +163,7 @@ export default function PublishDropdown({
               onClick={() => setOpenAuditDrawer(true)}
               data-testid="flow-history-item"
             >
-              <IconComponent name="History" className="icon-size mr-2" />
+              <History className="icon-size mr-2" />
               <span>Flow history</span>
             </DropdownMenuItem>
           )}
@@ -176,41 +176,44 @@ export default function PublishDropdown({
             >
               <div className="flex w-full items-center justify-between">
                 <div className="flex items-center">
-                  <ShadTooltipComponent
-                    styleClasses="truncate"
-                    side="left"
-                    content={
-                      hasIO
+                  <Tooltip delayDuration={500}>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center">
+                        <Globe
+                          className={cn(
+                            `icon-size mr-2`,
+                            !isPublished && "opacity-50",
+                          )}
+                        />
+
+                        {isPublished ? (
+                          <CustomLink
+                            className="flex-1"
+                            to={`/playground/${flowId}`}
+                            target="_blank"
+                          >
+                            <span>Shareable Playground</span>
+                          </CustomLink>
+                        ) : (
+                          <span className={cn(!isPublished && "opacity-50")}>
+                            Shareable Playground
+                          </span>
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground truncate"
+                      side="left"
+                      avoidCollisions={false}
+                      sticky="always"
+                    >
+                      {hasIO
                         ? isPublished
                           ? encodeURI(`${domain}/playground/${flowId}`)
                           : "Activate to share a public version of this Playground"
-                        : "Add a Chat Input or Chat Output to access your flow"
-                    }
-                  >
-                    <div className="flex items-center">
-                      <IconComponent
-                        name="Globe"
-                        className={cn(
-                          `icon-size mr-2`,
-                          !isPublished && "opacity-50",
-                        )}
-                      />
-
-                      {isPublished ? (
-                        <CustomLink
-                          className="flex-1"
-                          to={`/playground/${flowId}`}
-                          target="_blank"
-                        >
-                          <span>Shareable Playground</span>
-                        </CustomLink>
-                      ) : (
-                        <span className={cn(!isPublished && "opacity-50")}>
-                          Shareable Playground
-                        </span>
-                      )}
-                    </div>
-                  </ShadTooltipComponent>
+                        : "Add a Chat Input or Chat Output to access your flow"}
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <Switch
                   data-testid="publish-switch"

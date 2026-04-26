@@ -4,7 +4,7 @@ import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/a
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
 import DictAreaModal from "../../../../../modals/dictAreaModal";
 import { classNames, cn, toTitleCase } from "../../../../../utils/utils";
-import ForwardedIconComponent from "../../../../common/genericIconComponent";
+import { Code } from "lucide-react";
 import { Button } from "../../../../ui/button";
 import type { InputProps } from "../../types";
 
@@ -56,9 +56,8 @@ function DictComponent({
               )}
               data-testid={editNode ? `edit_${id}` : `${id}`}
             >
-              <ForwardedIconComponent
+              <Code
                 strokeWidth={ICON_STROKE_WIDTH}
-                name="Code"
                 className="h-4 w-4"
               />
               {placeholderName}

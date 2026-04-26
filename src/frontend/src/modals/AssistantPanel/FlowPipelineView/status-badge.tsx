@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Check, Loader2, X } from "lucide-react";
 
 export type TestStatus = "not_tested" | "testing" | "passed" | "failed";
 
@@ -19,7 +19,7 @@ export function StatusBadge({ status, errorMessage }: Props) {
   if (status === "testing") {
     return (
       <span className="flex items-center gap-1 text-xs text-amber-600">
-        <ForwardedIconComponent name="Loader2" className="h-3 w-3 animate-spin" />
+        <Loader2 className="h-3 w-3 animate-spin" />
         Testing…
       </span>
     );
@@ -27,7 +27,7 @@ export function StatusBadge({ status, errorMessage }: Props) {
   if (status === "passed") {
     return (
       <span className="flex items-center gap-1 text-xs text-emerald-600">
-        <ForwardedIconComponent name="Check" className="h-3 w-3" />
+        <Check className="h-3 w-3" />
         Passed
       </span>
     );
@@ -39,7 +39,7 @@ export function StatusBadge({ status, errorMessage }: Props) {
       className="flex items-center gap-1 text-xs text-red-600"
       title={errorMessage}
     >
-      <ForwardedIconComponent name="X" className="h-3 w-3 shrink-0" />
+      <X className="h-3 w-3 shrink-0" />
       <span className="truncate">{label}</span>
     </span>
   );

@@ -45,11 +45,11 @@ jest.mock("@/components/ui/button", () => ({
   ),
 }));
 
-// Mock ShadTooltip
-jest.mock("@/components/common/shadTooltipComponent", () => ({
-  __esModule: true,
-  default: ({ children, content, side }: any) => (
-    <div data-testid="tooltip" data-content={content} data-side={side}>
+jest.mock("@/components/ui/tooltip", () => ({
+  Tooltip: ({ children }: any) => <>{children}</>,
+  TooltipTrigger: ({ children }: any) => <>{children}</>,
+  TooltipContent: ({ children, side }: any) => (
+    <div data-testid="tooltip" data-content={children} data-side={side}>
       {children}
     </div>
   ),

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useGetDownloadFileMutation } from "@/controllers/API/queries/files";
 import { getBaseUrl } from "@/customization/utils/urls";
-import { ForwardedIconComponent } from "../../../../../../components/common/genericIconComponent";
+import { File } from "lucide-react";
 import type { fileCardPropsType } from "../../../../../../types/components";
 import formatFileName from "../utils/format-file-name";
 import getClasses from "../utils/get-classes";
@@ -65,7 +65,7 @@ export default function FileCard({
         onMouseLeave={handleMouseLeave}
       >
         <div className="ml-3 flex h-full w-full items-center gap-2 text-sm">
-          <ForwardedIconComponent name="File" className="h-8 w-8" />
+          <File className="h-8 w-8" />
           <div className="flex flex-col">
             <span className="font-bold">{formatFileName(fileName, 20)}</span>
             <span>File</span>

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import useFlowStore from "@/stores/flowStore";
 import { checkChatInput, checkWebhookInput } from "@/utils/reactflowUtils";
 import { removeCountFromString } from "@/utils/utils";
@@ -55,11 +55,8 @@ const SidebarItemsList = ({
             );
           }
           return (
-            <ShadTooltip
-              content={currentItem.display_name}
-              side="right"
-              key={SBItemName}
-            >
+            <Tooltip key={SBItemName} delayDuration={500}>
+              <TooltipTrigger asChild>
               <SidebarDraggableComponent
                 sectionName={item.name}
                 apiClass={currentItem}
@@ -80,7 +77,16 @@ const SidebarItemsList = ({
                 disabled={false}
                 disabledTooltip={""}
               />
-            </ShadTooltip>
+              </TooltipTrigger>
+              <TooltipContent
+                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                side="right"
+                avoidCollisions={false}
+                sticky="always"
+              >
+                {currentItem.display_name}
+              </TooltipContent>
+            </Tooltip>
           );
         })}
     </div>
@@ -107,11 +113,8 @@ const UniqueInputsDraggableComponent = ({
   }, [chatInputAdded, webhookInputAdded]);
 
   return (
-    <ShadTooltip
-      content={currentItem.display_name}
-      side="right"
-      key={SBItemName}
-    >
+    <Tooltip key={SBItemName} delayDuration={500}>
+      <TooltipTrigger asChild>
       <SidebarDraggableComponent
         sectionName={item.name}
         apiClass={currentItem}
@@ -132,6 +135,15 @@ const UniqueInputsDraggableComponent = ({
         disabled={disableItem(SBItemName, uniqueInputsComponents)}
         disabledTooltip={getDisabledTooltip(SBItemName, uniqueInputsComponents)}
       />
-    </ShadTooltip>
+      </TooltipTrigger>
+      <TooltipContent
+        className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+        side="right"
+        avoidCollisions={false}
+        sticky="always"
+      >
+        {currentItem.display_name}
+      </TooltipContent>
+    </Tooltip>
   );
 };

@@ -24,10 +24,8 @@ import useAuthStore from "@/stores/authStore";
 import useAlertStore from "@/stores/alertStore";
 import { swatchColors } from "@/utils/styleUtils";
 import { cn, getNumberFromString } from "@/utils/utils";
-import IconComponent, {
-  ForwardedIconComponent,
-} from "../../../../components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { ArrowRight } from "lucide-react";
+import IconComponent from "../../../../components/common/genericIconComponent";
 import TagChip from "@/components/common/TagChip";
 import type { TemplateCardComponentProps } from "../../../../types/templates/types";
 import type { TemplateRead } from "@/types/template";
@@ -236,8 +234,7 @@ export default function TemplateCardComponent({
               {example.name}
             </h3>
             {!isArchived && (
-              <ForwardedIconComponent
-                name="ArrowRight"
+              <ArrowRight
                 className="mr-3 h-5 w-5 shrink-0 translate-x-0 opacity-0 transition-all duration-300 group-hover:translate-x-3 group-hover:opacity-100 group-focus-visible:translate-x-3 group-focus-visible:opacity-100"
               />
             )}
@@ -265,16 +262,23 @@ export default function TemplateCardComponent({
                   <TagChip key={t.id} tag={t} />
                 ))}
                 {overflow > 0 && (
-                  <ShadTooltip
-                    content={cardTags
-                      .slice(MAX)
-                      .map((t) => t.name)
-                      .join(", ")}
-                  >
-                    <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs text-muted-foreground">
-                      +{overflow}
-                    </span>
-                  </ShadTooltip>
+                  <Tooltip delayDuration={500}>
+                    <TooltipTrigger asChild>
+                      <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs text-muted-foreground">
+                        +{overflow}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                      avoidCollisions={false}
+                      sticky="always"
+                    >
+                      {cardTags
+                        .slice(MAX)
+                        .map((t) => t.name)
+                        .join(", ")}
+                    </TooltipContent>
+                  </Tooltip>
                 )}
               </div>
             );

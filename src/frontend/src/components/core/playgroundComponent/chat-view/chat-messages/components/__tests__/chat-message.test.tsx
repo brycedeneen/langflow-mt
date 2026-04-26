@@ -186,7 +186,9 @@ describe("ChatMessage Component", () => {
 
     render(<ChatMessage {...propsWithFiles} />);
     // Should render UserMessage with file preview (non-image files show File icon)
-    expect(screen.getByTestId("forwarded-icon")).toBeInTheDocument();
+    // Production now uses direct lucide imports (Phase 7c); the file preview shows
+    // a File icon stubbed to data-testid="icon-File" by the global lucide mock.
+    expect(screen.getByTestId("icon-File")).toBeInTheDocument();
   });
 
   it("renders bot message when no text and no files", () => {

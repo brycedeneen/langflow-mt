@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -13,7 +13,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import useFlowStore from "@/stores/flowStore";
-import ShadTooltip from "../../../../components/common/shadTooltipComponent";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "../../../../components/ui/tooltip";
 import type { outputComponentType } from "../../../../types/components";
 import { cn } from "../../../../utils/utils";
 
@@ -37,9 +41,16 @@ export default function OutputComponent({
   const displayProxy = (children) => {
     if (proxy) {
       return (
-        <ShadTooltip content={<span>{proxy.nodeDisplayName}</span>}>
-          {children}
-        </ShadTooltip>
+        <Tooltip delayDuration={500}>
+          <TooltipTrigger asChild>{children}</TooltipTrigger>
+          <TooltipContent
+            className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+            avoidCollisions={false}
+            sticky="always"
+          >
+            <span>{proxy.nodeDisplayName}</span>
+          </TooltipContent>
+        </Tooltip>
       );
     } else {
       return children;
@@ -81,8 +92,7 @@ export default function OutputComponent({
             >
               <div className="flex items-center gap-1 truncate rounded-md px-2 py-1 text-sm font-medium group-hover:bg-primary/10">
                 {name}
-                <ForwardedIconComponent
-                  name="ChevronDown"
+                <ChevronDown
                   className="h-4 w-4 text-muted-foreground"
                 />
               </div>

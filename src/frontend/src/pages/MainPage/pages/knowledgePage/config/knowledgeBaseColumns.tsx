@@ -1,4 +1,5 @@
 import type { ColDef } from "ag-grid-community";
+import { EllipsisVertical, Layers, RefreshCw, Square, Trash2 } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import LoadingTextComponent from "@/components/common/loadingTextComponent";
 import { Button } from "@/components/ui/button";
@@ -182,8 +183,7 @@ export const createKnowledgeBaseColumns = (
                 size="icon"
                 onClick={(e) => e.stopPropagation()}
               >
-                <ForwardedIconComponent
-                  name="EllipsisVertical"
+                <EllipsisVertical
                   className="h-4 w-4 text-primary"
                 />
               </Button>
@@ -196,8 +196,7 @@ export const createKnowledgeBaseColumns = (
                   callbacks?.onAddSources?.(params.data);
                 }}
               >
-                <ForwardedIconComponent
-                  name="RefreshCw"
+                <RefreshCw
                   className="mr-2 h-4 w-4"
                 />
                 Update Knowledge
@@ -208,8 +207,7 @@ export const createKnowledgeBaseColumns = (
                   callbacks?.onViewChunks?.(params.data);
                 }}
               >
-                <ForwardedIconComponent
-                  name="Layers"
+                <Layers
                   className="mr-2 h-4 w-4"
                 />
                 View Chunks
@@ -223,8 +221,7 @@ export const createKnowledgeBaseColumns = (
                   }}
                   className="text-destructive focus:text-destructive"
                 >
-                  <ForwardedIconComponent
-                    name="Square"
+                  <Square
                     className="mr-2 h-4 w-4"
                   />
                   Stop Ingestion
@@ -237,8 +234,7 @@ export const createKnowledgeBaseColumns = (
                   }}
                   className="text-destructive focus:text-destructive"
                 >
-                  <ForwardedIconComponent
-                    name="Trash2"
+                  <Trash2
                     className="mr-2 h-4 w-4"
                   />
                   Delete

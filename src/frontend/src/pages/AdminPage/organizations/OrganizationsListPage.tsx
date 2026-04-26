@@ -2,9 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGetOrganizations } from "@/controllers/API/queries/admin";
 import type { OrgSummary } from "@/controllers/API/queries/admin";
-import IconComponent, {
-  ForwardedIconComponent,
-} from "../../../components/common/genericIconComponent";
+import { Building2, Loader2, Search, X } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import {
@@ -33,8 +31,7 @@ export default function OrganizationsListPage() {
             data-testid="settings_menu_header"
           >
             Org Admin
-            <ForwardedIconComponent
-              name="Building2"
+            <Building2
               className="ml-2 h-5 w-5 text-primary"
             />
           </h2>
@@ -60,11 +57,11 @@ export default function OrganizationsListPage() {
           />
           {search.length > 0 ? (
             <div className="cursor-pointer" onClick={() => setSearch("")}>
-              <IconComponent name="X" className="w-6 text-foreground" />
+              <X className="w-6 text-foreground" />
             </div>
           ) : (
             <div>
-              <IconComponent name="Search" className="w-6 text-foreground" />
+              <Search className="w-6 text-foreground" />
             </div>
           )}
         </div>
@@ -72,7 +69,7 @@ export default function OrganizationsListPage() {
 
       {isLoading ? (
         <div className="flex h-full w-full items-center justify-center">
-          <IconComponent name="Loader2" className="h-8 w-8 animate-spin" />
+          <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       ) : orgs.length === 0 ? (
         <div className="m-4 flex items-center justify-between text-sm">

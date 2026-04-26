@@ -6,7 +6,7 @@ import { useListTemplates } from "@/controllers/API/queries/templates/use-list-t
 import type { ListTemplatesParams } from "@/controllers/API/queries/templates/use-list-templates";
 import type { FlowType } from "@/types/flow";
 import type { TemplateRead } from "@/types/template";
-import { ForwardedIconComponent } from "../../../../components/common/genericIconComponent";
+import { Search } from "lucide-react";
 import { Input } from "../../../../components/ui/input";
 import { Switch } from "../../../../components/ui/switch";
 import { Label } from "../../../../components/ui/label";
@@ -150,8 +150,7 @@ export default function TemplateContentComponent({
   return (
     <div className="flex flex-1 flex-col gap-6 overflow-hidden">
       <div className="relative mx-3 flex-1 grow-0 py-px">
-        <ForwardedIconComponent
-          name="Search"
+        <Search
           className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
         />
         <Input

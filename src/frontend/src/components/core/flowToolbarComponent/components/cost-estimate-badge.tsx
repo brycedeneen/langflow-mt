@@ -1,5 +1,5 @@
 import { useState } from "react";
-import IconComponent from "@/components/common/genericIconComponent";
+import { DollarSign } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -40,7 +40,7 @@ export default function CostEstimateBadge() {
           className={`rounded px-2 py-1 text-sm ${pillClass}`}
           data-testid="cost-estimate-badge"
         >
-          <IconComponent name="DollarSign" className="inline h-4 w-4 mr-1" />
+          <DollarSign className="inline h-4 w-4 mr-1" />
           {label}
         </button>
       </PopoverTrigger>

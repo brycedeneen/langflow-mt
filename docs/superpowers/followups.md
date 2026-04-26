@@ -261,6 +261,7 @@ Carried forward from the plan's post-plan section. Record so they don't get lost
 
 - [ ] **The semantic color tokens still take up most of the `@theme` block** (99 of the remaining 125 `--color-*` tokens after Phase 6). Phase 7e goal: where a semantic token is effectively an alias for a single `destructive` / `muted` / `accent` role, use the role directly instead of a dedicated named token. Requires (a) reading each semantic token's actual usage pattern, (b) confirming that consolidating doesn't break a subtle visual distinction, (c) migrating call sites. High effort, moderate payoff — do this last.
 
+<<<<<<< HEAD
 ## 2026-04-26 — Variable-table uniqueness constraint
 
 Surfaced while debugging the ADP Assist credential routing bug. The Assist's `create_secret_variable` tool repeatedly inserted same-name rows for one user/org because the schema doesn't prevent it; we cleaned up the accumulated dups via `scripts/cleanup_duplicate_variables.sql` but the regrowth is still possible.
@@ -271,3 +272,8 @@ Surfaced while debugging the ADP Assist credential routing bug. The Assist's `cr
     3. Drop `scripts/cleanup_duplicate_variables.sql` once the constraint exists (or keep it as a one-shot legacy fixer — no harm either way).
     4. Verify multi-tenant isolation: the constraint must be scoped to `(user_id, organization_id)` so two tenants can both have an `adp_client_id` without colliding.
   Holding off because this needs (a) an alembic migration touching live data, (b) a service-layer behavior change in `create_variable`, and (c) test coverage for the upsert semantics — bigger blast radius than this debugging session warranted.
+=======
+## 2026-04-26 — Tailwind Phase 7d follow-up: consolidate dialog-with-no-close
+
+- [ ] **`ui/dialog-with-no-close.tsx` is a near-copy of `ui/dialog.tsx` minus the close button.** Used by 2 surfaces (`modals/baseModal/index.tsx`, `CustomNodes/GenericNode/components/ListSelectionComponent/index.tsx`). Consolidate by adding a `closable?: boolean` (default `true`) prop on `ui/dialog`'s `DialogContent`. When `closable={false}`, skip rendering the ✕ button. Then migrate the 2 callers to `ui/dialog` and delete `dialog-with-no-close.tsx`. Skipped during Phase 7d audit because the divergent fork was technically thin but the consolidation requires touching the much-used `ui/dialog`.
+>>>>>>> tailwind/phase-7

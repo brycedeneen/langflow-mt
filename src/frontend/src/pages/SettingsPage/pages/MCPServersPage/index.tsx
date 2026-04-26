@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { Ellipsis, Plus, SquarePen, Trash2 } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -80,7 +81,7 @@ export default function MCPServersPage() {
             onClick={() => setAddOpen(true)}
             data-testid="add-mcp-server-button-page"
           >
-            <ForwardedIconComponent name="Plus" className="w-4" />
+            <Plus className="w-4" />
             <span>Add MCP Server</span>
           </Button>
           <AddMcpServerModal open={addOpen} setOpen={setAddOpen} />
@@ -111,26 +112,51 @@ export default function MCPServersPage() {
                     >
                       {server.name}
                     </span>
-                    <ShadTooltip content={server.error}>
+                    {server.error ? (
+                      <Tooltip delayDuration={500}>
+                        <TooltipTrigger asChild>
+                          <span
+                            className={cn(
+                              "cursor-default select-none !text-mmd text-muted-foreground",
+                              server.error && "text-accent-red-foreground",
+                            )}
+                          >
+                            {server.toolsCount === null
+                              ? server.error
+                                ? server.error.startsWith("Timeout")
+                                  ? "Timeout"
+                                  : "Error"
+                                : "Loading..."
+                              : !server.toolsCount
+                                ? "No tools found"
+                                : `${server.toolsCount} tool${
+                                    server.toolsCount === 1 ? "" : "s"
+                                  }`}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                          avoidCollisions={false}
+                          sticky="always"
+                        >
+                          {server.error}
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
                       <span
                         className={cn(
                           "cursor-default select-none !text-mmd text-muted-foreground",
-                          server.error && "text-accent-red-foreground",
                         )}
                       >
                         {server.toolsCount === null
-                          ? server.error
-                            ? server.error.startsWith("Timeout")
-                              ? "Timeout"
-                              : "Error"
-                            : "Loading..."
+                          ? "Loading..."
                           : !server.toolsCount
                             ? "No tools found"
                             : `${server.toolsCount} tool${
                                 server.toolsCount === 1 ? "" : "s"
                               }`}
                       </span>
-                    </ShadTooltip>
+                    )}
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -140,28 +166,19 @@ export default function MCPServersPage() {
                         data-testid={`mcp-server-menu-button-${server.name}`}
                         className="text-muted-foreground hover:bg-accent"
                       >
-                        <ForwardedIconComponent
-                          name="Ellipsis"
-                          className="h-5 w-5"
-                        />
+                        <Ellipsis className="h-5 w-5" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => handleEdit(server.name)}>
-                        <ForwardedIconComponent
-                          name="SquarePen"
-                          className="mr-2 h-4 w-4"
-                        />
+                        <SquarePen className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => openDeleteModal(server)}
                         className="text-destructive"
                       >
-                        <ForwardedIconComponent
-                          name="Trash2"
-                          className="mr-2 h-4 w-4"
-                        />
+                        <Trash2 className="mr-2 h-4 w-4" />
                         Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>

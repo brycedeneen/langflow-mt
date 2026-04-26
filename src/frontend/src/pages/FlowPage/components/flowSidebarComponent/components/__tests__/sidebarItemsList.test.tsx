@@ -2,13 +2,39 @@ import { render, screen } from "@testing-library/react";
 import SidebarItemsList from "../sidebarItemsList";
 
 // Mock external dependencies
-jest.mock("@/components/common/shadTooltipComponent", () => ({
-  __esModule: true,
-  default: ({ children, content, side }: any) => (
-    <div data-testid="tooltip" data-content={content} data-side={side}>
-      {children}
-    </div>
+jest.mock("@/components/ui/tooltip", () => ({
+  Tooltip: ({ children }: { children: React.ReactNode }) => {
+    const React = require("react");
+    const childArr = React.Children.toArray(children);
+    let contentText = "";
+    let side = "";
+    for (const child of childArr) {
+      const c = child as any;
+      if (c?.type?._isTooltipContent) {
+        if (typeof c.props.children === "string") contentText = c.props.children;
+        if (c.props.side) side = c.props.side;
+      }
+    }
+    const attrs: Record<string, string> = {};
+    if (contentText) attrs["data-content"] = contentText;
+    if (side) attrs["data-side"] = side;
+    return (
+      <div data-testid="tooltip" {...attrs}>
+        {children}
+      </div>
+    );
+  },
+  TooltipTrigger: Object.assign(
+    ({ children }: { children: React.ReactNode; asChild?: boolean }) => <>{children}</>,
+    { _isTooltipTrigger: true },
   ),
+  TooltipContent: Object.assign(
+    ({ children, side }: { children: React.ReactNode; side?: string }) => (
+      <span data-side={side}>{children}</span>
+    ),
+    { _isTooltipContent: true },
+  ),
+  TooltipProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 jest.mock("@/stores/flowStore", () => ({

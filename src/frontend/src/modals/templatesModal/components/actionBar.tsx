@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type Props = {
@@ -45,7 +45,7 @@ export function ActionBar({
         data-testid="template-modal-build-with-assist"
         className="px-4"
       >
-        <ForwardedIconComponent name="Bot" className="mr-2 h-4 w-4" />
+        <Bot className="mr-2 h-4 w-4" />
         Build with ADP Assist
       </Button>
     </div>

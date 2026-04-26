@@ -1,8 +1,8 @@
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/utils/utils";
-import IconComponent from "../../../components/common/genericIconComponent";
+import { PanelLeftOpen, Plus } from "lucide-react";
 import type { ChatViewWrapperProps } from "../types/chat-view-wrapper";
 import ChatView from "./chatView/components/chat-view";
 
@@ -43,8 +43,7 @@ export const ChatViewWrapper = ({
               onClick={() => setSidebarOpen(true)}
               className="h-8 w-8"
             >
-              <IconComponent
-                name="PanelLeftOpen"
+              <PanelLeftOpen
                 className="h-[18px] w-[18px] text-ring"
               />
             </Button>
@@ -70,22 +69,31 @@ export const ChatViewWrapper = ({
             playgroundPage ? "right-2 top-4" : "absolute right-12 top-2 h-8",
           )}
         >
-          <ShadTooltip side="bottom" styleClasses="z-50" content="New Chat">
-            <Button
-              className="mr-2 h-[32px] w-[32px] hover:bg-secondary-hover"
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setvisibleSession(undefined);
-                setSelectedViewField(undefined);
-              }}
+          <Tooltip delayDuration={500}>
+            <TooltipTrigger asChild>
+              <Button
+                className="mr-2 h-[32px] w-[32px] hover:bg-secondary-hover"
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setvisibleSession(undefined);
+                  setSelectedViewField(undefined);
+                }}
+              >
+                <Plus
+                  className="!h-[18px] !w-[18px] text-ring"
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "z-50")}
+              side="bottom"
+              avoidCollisions={false}
+              sticky="always"
             >
-              <IconComponent
-                name="Plus"
-                className="!h-[18px] !w-[18px] text-ring"
-              />
-            </Button>
-          </ShadTooltip>
+              New Chat
+            </TooltipContent>
+          </Tooltip>
           {!playgroundPage && <Separator orientation="vertical" />}
         </div>
       </div>

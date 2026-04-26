@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { HandCoins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type Props = {
@@ -28,8 +28,7 @@ export function PSSuggestionCard({ reason, onRequest, onDismiss }: Props) {
       aria-label="Professional Services suggestion"
     >
       <div className="flex items-start gap-3">
-        <ForwardedIconComponent
-          name="HandCoins"
+        <HandCoins
           className="mt-0.5 h-5 w-5 text-[#ED1C2E]"
         />
         <div className="flex-1">

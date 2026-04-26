@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Bot, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
 
@@ -7,8 +7,7 @@ export default function SettingsRequired() {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
-      <ForwardedIconComponent
-        name="Bot"
+      <Bot
         className="h-12 w-12 text-muted-foreground"
       />
       <div>
@@ -23,7 +22,7 @@ export default function SettingsRequired() {
         size="sm"
         onClick={() => navigate("/settings/assistant")}
       >
-        <ForwardedIconComponent name="Settings" className="mr-2 h-4 w-4" />
+        <Settings className="mr-2 h-4 w-4" />
         Configure Assistant
       </Button>
     </div>

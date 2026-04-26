@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Plus } from "lucide-react";
 import GlobalVariableModal from "@/components/core/GlobalVariableModal/GlobalVariableModal";
 import { CommandItem } from "@/components/ui/command";
 import { cn } from "@/utils/utils";
@@ -8,8 +8,7 @@ const GeneralGlobalVariableModal = () => {
     <>
       <GlobalVariableModal disabled={false}>
         <CommandItem value="doNotFilter-addNewVariable">
-          <ForwardedIconComponent
-            name="Plus"
+          <Plus
             className={cn("mr-2 h-4 w-4 text-primary")}
             aria-hidden="true"
           />

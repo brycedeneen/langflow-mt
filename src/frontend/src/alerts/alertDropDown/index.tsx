@@ -1,6 +1,6 @@
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { forwardRef, useEffect, useState } from "react";
-import IconComponent from "../../components/common/genericIconComponent";
+import { Trash2 } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -59,7 +59,7 @@ const AlertDropdown = forwardRef<HTMLDivElement, AlertDropdownType>(
                   setTimeout(clearNotificationList, 100);
                 }}
               >
-                <IconComponent name="Trash2" className="h-4 w-4" />
+                <Trash2 className="h-4 w-4" />
               </button>
               <button
                 className="text-foreground opacity-70 hover:opacity-100"

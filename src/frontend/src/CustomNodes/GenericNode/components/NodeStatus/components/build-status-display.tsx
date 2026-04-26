@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Coins } from "lucide-react";
 import {
   RUN_TIMESTAMP_PREFIX,
   STATUS_BUILD,
@@ -36,14 +36,14 @@ const TokenUsageDisplay = ({ tokenUsage }: { tokenUsage: UsageType }) => {
       <div className="flex items-center">
         <div className="text-xxs">Input tokens:</div>
         <div className="ml-auto flex items-center gap-1 font-mono text-xs">
-          <ForwardedIconComponent name="Coins" className="h-3 w-3" />
+          <Coins className="h-3 w-3" />
           {formatTokenCount(tokenUsage.input_tokens)}
         </div>
       </div>
       <div className="flex items-center">
         <div className="text-xxs">Output tokens:</div>
         <div className="ml-auto flex items-center gap-1 font-mono text-xs">
-          <ForwardedIconComponent name="Coins" className="h-3 w-3 text-xs" />
+          <Coins className="h-3 w-3 text-xs" />
           {formatTokenCount(tokenUsage.output_tokens)}
         </div>
       </div>

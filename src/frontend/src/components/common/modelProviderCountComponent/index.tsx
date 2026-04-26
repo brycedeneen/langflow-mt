@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useGetEnabledModels } from "@/controllers/API/queries/models/use-get-enabled-models";
 import ModelProviderModal from "@/modals/modelProviderModal";
 import { cn } from "@/utils/utils";
-import ForwardedIconComponent from "../genericIconComponent";
+import { BrainCog } from "lucide-react";
 
 export const ModelProviderCount = () => {
   const [open, setOpen] = useState(false);
@@ -28,7 +28,7 @@ export const ModelProviderCount = () => {
         onClick={() => setOpen((cur) => !cur)}
         data-testid="model-provider-count-button"
       >
-        <ForwardedIconComponent name="BrainCog" className="w-5 h-5" />
+        <BrainCog className="w-5 h-5" />
         <div className="text-sm">Models</div>
         <Badge
           variant="secondaryStatic"

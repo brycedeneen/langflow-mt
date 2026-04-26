@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Sparkles } from "lucide-react";
 import useComponentAssistStore from "@/stores/componentAssistStore";
 import useFlowStore from "@/stores/flowStore";
 
@@ -197,7 +197,7 @@ export default function ComponentAssistPopover() {
       {/* Input */}
       <div className="border-t border-border p-2">
         <div className="flex items-center gap-2 rounded border border-border bg-muted/50 px-2 py-1">
-          <ForwardedIconComponent name="Sparkles" className="h-4 w-4 text-adp-red" />
+          <Sparkles className="h-4 w-4 text-adp-red" />
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
+import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { MCPTransport } from "@/controllers/API/queries/mcp/use-patch-install-mcp";
 import { ENABLE_MCP_COMPOSER } from "@/customization/feature-flags";
@@ -126,8 +126,7 @@ const McpServerTab = ({ folderName }: { folderName: string }) => {
             {hasOAuthError ? (
               <div className="p-4 bg-accent-red-subtle border border-accent-red-border rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <ForwardedIconComponent
-                    name="AlertTriangle"
+                  <AlertTriangle
                     className="h-4 w-4 text-accent-red-foreground"
                   />
                   <span className="font-medium text-accent-red-foreground">

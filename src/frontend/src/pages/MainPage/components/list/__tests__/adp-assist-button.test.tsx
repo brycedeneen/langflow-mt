@@ -17,11 +17,12 @@ jest.mock("@/components/common/genericIconComponent", () => ({
   default: () => null,
 }));
 
-// ShadTooltip wraps its children in a Radix Tooltip which needs a provider.
-// Mock it to just render children directly so the button stays testable.
-jest.mock("@/components/common/shadTooltipComponent", () => ({
-  __esModule: true,
-  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+// Tooltip components wrap children in Radix primitives which need a provider.
+// Mock them to just render children directly so the button stays testable.
+jest.mock("@/components/ui/tooltip", () => ({
+  Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  TooltipTrigger: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  TooltipContent: ({ children }: { children: React.ReactNode }) => null,
 }));
 
 describe("AdpAssistButton", () => {

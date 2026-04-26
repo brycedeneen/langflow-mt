@@ -9,7 +9,7 @@ import {
 } from "../../../constants/constants";
 import { useDarkStore } from "../../../stores/darkStore";
 import type { VertexBuildTypeAPI } from "../../../types/api";
-import ForwardedIconComponent from "../../common/genericIconComponent";
+import { Table } from "lucide-react";
 import Loading from "../../ui/loading";
 import TableComponent from "../parameterRenderComponent/components/tableComponent";
 import { convertCSVToData } from "./helpers/convert-data-function";
@@ -36,7 +36,7 @@ function CsvOutputComponent({
     return (
       <div className="align-center flex h-full w-full flex-col items-center justify-center gap-5">
         <div className="align-center flex w-full justify-center gap-2">
-          <ForwardedIconComponent name="Table" />
+          <Table />
           {CSVViewErrorTitle}
         </div>
         <div className="align-center flex w-full justify-center">
@@ -87,7 +87,7 @@ function CsvOutputComponent({
       {status === "nodata" && (
         <div className="align-center flex h-full w-full flex-col items-center justify-center gap-5">
           <div className="align-center flex w-full justify-center gap-2">
-            <ForwardedIconComponent name="Table" />
+            <Table />
             {CSVViewErrorTitle}
           </div>
           <div className="align-center flex w-full justify-center">
@@ -100,7 +100,7 @@ function CsvOutputComponent({
       {status === "error" && (
         <div className="align-center flex h-full w-full flex-col items-center justify-center gap-5">
           <div className="align-center flex w-full justify-center gap-2">
-            <ForwardedIconComponent name="Table" />
+            <Table />
             {CSVViewErrorTitle}
           </div>
           <div className="align-center flex w-full justify-center">

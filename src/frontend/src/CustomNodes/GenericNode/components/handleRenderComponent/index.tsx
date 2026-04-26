@@ -4,7 +4,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useDarkStore } from "@/stores/darkStore";
 import useFlowStore from "@/stores/flowStore";
 import { nodeColorsName } from "@/utils/styleUtils";
-import ShadTooltip from "../../../../components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   isValidConnection,
   scapedJSONStringfy,
@@ -394,23 +394,12 @@ const HandleRenderComponent = memo(function HandleRenderComponent({
 
   return (
     <div>
-      <ShadTooltip
+      <Tooltip
         open={openTooltip && !isLocked}
-        setOpen={setOpenTooltip}
-        styleClasses={cn("max-h-[25vh] max-w-[30vw] overflow-auto custom-scroll nowheel bottom-2")}
+        onOpenChange={setOpenTooltip}
         delayDuration={1000}
-        content={
-          <HandleTooltipComponent
-            isInput={left}
-            tooltipTitle={tooltipTitle}
-            isConnecting={!!filterPresent && !ownHandle}
-            isCompatible={openHandle}
-            isSameNode={sameNode && !ownHandle}
-            left={left}
-          />
-        }
-        side={left ? "left" : "right"}
       >
+        <TooltipTrigger asChild>
         <Handle
           type={left ? "target" : "source"}
           position={left ? Position.Left : Position.Right}
@@ -449,7 +438,23 @@ const HandleRenderComponent = memo(function HandleRenderComponent({
             nodeId={nodeId}
           />
         </Handle>
-      </ShadTooltip>
+        </TooltipTrigger>
+        <TooltipContent
+          className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "max-h-[25vh] max-w-[30vw] overflow-auto custom-scroll nowheel bottom-2")}
+          side={left ? "left" : "right"}
+          avoidCollisions={false}
+          sticky="always"
+        >
+          <HandleTooltipComponent
+            isInput={left}
+            tooltipTitle={tooltipTitle}
+            isConnecting={!!filterPresent && !ownHandle}
+            isCompatible={openHandle}
+            isSameNode={sameNode && !ownHandle}
+            left={left}
+          />
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 });

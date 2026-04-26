@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tag } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import TagPicker from "@/components/common/TagPicker";
 import { PSRequestButton } from "@/components/core/proServiceQuotes/PSRequestButton";
 import {
@@ -49,18 +49,27 @@ function FlowTagsButton() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <ShadTooltip content="Tags">
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            data-testid="flow-tags-btn"
-            className="relative inline-flex h-8 items-center justify-center gap-1.5 rounded px-2 text-sm font-normal text-muted-foreground hover:bg-muted"
-          >
-            <ForwardedIconComponent name="Tag" className="h-4 w-4" />
-            <span className="font-normal text-mmd">Tags</span>
-          </button>
-        </PopoverTrigger>
-      </ShadTooltip>
+      <Tooltip delayDuration={500}>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              data-testid="flow-tags-btn"
+              className="relative inline-flex h-8 items-center justify-center gap-1.5 rounded px-2 text-sm font-normal text-muted-foreground hover:bg-muted"
+            >
+              <Tag className="h-4 w-4" />
+              <span className="font-normal text-mmd">Tags</span>
+            </button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent
+          className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+          avoidCollisions={false}
+          sticky="always"
+        >
+          Tags
+        </TooltipContent>
+      </Tooltip>
       <PopoverContent align="end" className="w-80">
         <div className="flex flex-col gap-2">
           <div className="text-sm font-medium">Flow tags</div>

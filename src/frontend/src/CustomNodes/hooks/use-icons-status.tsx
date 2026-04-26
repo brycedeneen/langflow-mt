@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "../../components/common/genericIconComponent";
+import { CircleAlert, CircleOff } from "lucide-react";
 import { BuildStatus } from "../../constants/enums";
 
 const useIconStatus = (buildStatus: BuildStatus | undefined) => {
@@ -14,8 +14,7 @@ const useIconStatus = (buildStatus: BuildStatus | undefined) => {
       {
         condition: conditionError,
         icon: (
-          <ForwardedIconComponent
-            name="CircleAlert"
+          <CircleAlert
             className="h-4 w-4 text-destructive"
           />
         ),
@@ -23,8 +22,7 @@ const useIconStatus = (buildStatus: BuildStatus | undefined) => {
       {
         condition: conditionInactive,
         icon: (
-          <ForwardedIconComponent
-            name="CircleOff"
+          <CircleOff
             className="h-4 w-4 text-muted-foreground"
           />
         ),

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import JsonOutputViewComponent from "@/components/core/jsonOutputComponent/json-output-view";
 import { MAX_TEXT_LENGTH } from "@/constants/constants";
 import type { LogsLogType, OutputLogType } from "@/types/api";
-import ForwardedIconComponent from "../../../../../../components/common/genericIconComponent";
+import { AlertCircle } from "lucide-react";
 import DataOutputComponent from "../../../../../../components/core/dataOutputComponent";
 import {
   Alert,
@@ -197,8 +197,7 @@ const SwitchOutputView: React.FC<SwitchOutputViewProps> = ({
       <Case condition={resultType === "stream" && !isToolOutput}>
         <div className="flex h-full w-full items-center justify-center align-middle">
           <Alert variant={"default"} className="w-fit">
-            <ForwardedIconComponent
-              name="AlertCircle"
+            <AlertCircle
               className="h-5 w-5 text-primary"
             />
             <AlertTitle>{"Streaming is not supported"}</AlertTitle>

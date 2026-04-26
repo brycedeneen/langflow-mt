@@ -1,4 +1,5 @@
 import { type ReactNode, useState } from "react";
+import { CopyPlus, Download, SquarePen } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import {
   DropdownMenu,
@@ -75,8 +76,7 @@ export default function FilesContextMenuComponent({
             className="cursor-pointer"
             data-testid="btn-rename-file"
           >
-            <ForwardedIconComponent
-              name="SquarePen"
+            <SquarePen
               aria-hidden="true"
               className="mr-2 h-4 w-4"
             />
@@ -90,8 +90,7 @@ export default function FilesContextMenuComponent({
             className="cursor-pointer"
             data-testid="btn-download-json"
           >
-            <ForwardedIconComponent
-              name="Download"
+            <Download
               aria-hidden="true"
               className="mr-2 h-4 w-4"
             />
@@ -106,8 +105,7 @@ export default function FilesContextMenuComponent({
               className="cursor-pointer"
               data-testid="btn-duplicate-flow"
             >
-              <ForwardedIconComponent
-                name="CopyPlus"
+              <CopyPlus
                 aria-hidden="true"
                 className="mr-2 h-4 w-4"
               />

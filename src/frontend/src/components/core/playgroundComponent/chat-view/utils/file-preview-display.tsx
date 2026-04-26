@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
+import { File, X } from "lucide-react";
 import Loading from "@/components/ui/loading";
 import { cn } from "@/utils/utils";
 import {
@@ -103,7 +103,7 @@ export default function FilePreviewDisplay({
             }}
           />
         ) : (
-          <ForwardedIconComponent name="File" className="h-6 w-6" />
+          <File className="h-6 w-6" />
         )}
 
         {showDelete && onDelete && (
@@ -113,7 +113,7 @@ export default function FilePreviewDisplay({
             type="button"
             aria-label="Delete file"
           >
-            <ForwardedIconComponent name="X" className="h-3 w-3" />
+            <X className="h-3 w-3" />
           </button>
         )}
       </div>
@@ -144,7 +144,7 @@ export default function FilePreviewDisplay({
         />
       ) : (
         <div className="flex flex-col items-center gap-1">
-          <ForwardedIconComponent name="File" className="h-6 w-6" />
+          <File className="h-6 w-6" />
           <span className="text-xs text-muted-foreground">
             {formatFileName(fileInfo.name, 10)}
           </span>
@@ -158,7 +158,7 @@ export default function FilePreviewDisplay({
           type="button"
           aria-label="Delete file"
         >
-          <ForwardedIconComponent name="X" className="h-3 w-3" />
+          <X className="h-3 w-3" />
         </button>
       )}
     </div>

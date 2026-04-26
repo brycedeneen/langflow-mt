@@ -2,7 +2,7 @@ import { forwardRef, type ReactNode, useEffect, useState } from "react";
 import { track } from "@/customization/utils/analytics";
 import useFlowStore from "@/stores/flowStore";
 import type { FlowType } from "@/types/flow";
-import IconComponent from "../../components/common/genericIconComponent";
+import { Download } from "lucide-react";
 import EditFlowSettings from "../../components/core/editFlowSettingsComponent";
 import { Checkbox } from "../../components/ui/checkbox";
 import { API_WARNING_NOTICE_ALERT } from "../../constants/alerts_constants";
@@ -103,8 +103,7 @@ const ExportModal = forwardRef(
         <BaseModal.Trigger asChild>{props.children ?? <></>}</BaseModal.Trigger>
         <BaseModal.Header description={EXPORT_DIALOG_SUBTITLE}>
           <span className="pr-2">Export</span>
-          <IconComponent
-            name="Download"
+          <Download
             className="h-6 w-6 pl-1 text-foreground"
             aria-hidden="true"
           />

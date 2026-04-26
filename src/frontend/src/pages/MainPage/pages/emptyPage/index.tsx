@@ -1,5 +1,5 @@
 import LangflowLogo from "@/assets/LangflowLogo.svg?react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Plus } from "lucide-react";
 import CardsWrapComponent from "@/components/core/cardsWrapComponent";
 import { Button } from "@/components/ui/button";
 import { useFolderStore } from "@/stores/foldersStore";
@@ -41,8 +41,7 @@ export const EmptyPage = ({ setOpenModal }: EmptyPageProps) => {
               id="new-project-btn"
               data-testid="new_project_btn_empty_page"
             >
-              <ForwardedIconComponent
-                name="Plus"
+              <Plus
                 aria-hidden="true"
                 className="h-4 w-4"
               />

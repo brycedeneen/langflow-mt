@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { KnowledgeBaseInfo } from "@/controllers/API/queries/knowledge-bases/use-get-knowledge-bases";
@@ -23,7 +23,7 @@ const KnowledgeBaseDrawer = ({
       <div className="flex items-center justify-between pt-4 px-4">
         <h3 className="font-semibold">{knowledgeBase.name}</h3>
         <Button variant="ghost" size="iconSm" onClick={onClose}>
-          <ForwardedIconComponent name="X" className="h-4 w-4" />
+          <X className="h-4 w-4" />
         </Button>
       </div>
 

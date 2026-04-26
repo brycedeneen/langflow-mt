@@ -12,6 +12,7 @@ import { getURL } from "@/controllers/API/helpers/constants";
 import type { InputProps, TextAreaComponentType } from "../../types";
 import CopyFieldAreaComponent from "../copyFieldAreaComponent";
 import TextAreaComponent from "../textAreaComponent";
+import { AlertTriangle } from "lucide-react";
 import IconComponent from "../../../../common/genericIconComponent";
 import {
   Dialog,
@@ -220,8 +221,7 @@ function WebhookApiKeyField({ flowId }: { flowId: string }) {
           </div>
           <div className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm text-warning-foreground">
             <div className="flex items-start gap-2">
-              <IconComponent
-                name="AlertTriangle"
+              <AlertTriangle
                 className="mt-0.5 h-4 w-4 shrink-0 text-warning"
               />
               <span>

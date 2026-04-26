@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "../../../../../../components/common/genericIconComponent";
+import { Key, Plus } from "lucide-react";
 import { Button } from "../../../../../../components/ui/button";
 import { API_PAGE_PARAGRAPH } from "../../../../../../constants/constants";
 import SecretKeyModal from "../../../../../../modals/secretKeyModal";
@@ -24,8 +24,7 @@ const ApiKeyHeaderComponent = ({
             data-testid="settings_menu_header"
           >
             Amplify API Keys
-            <ForwardedIconComponent
-              name="Key"
+            <Key
               className="ml-2 h-5 w-5 text-primary"
             />
           </h2>
@@ -38,7 +37,7 @@ const ApiKeyHeaderComponent = ({
             onCloseModal={fetchApiKeys}
           >
             <Button data-testid="api-key-button-store" variant="primary">
-              <ForwardedIconComponent name="Plus" className="w-4" />
+              <Plus className="w-4" />
               Add New
             </Button>
           </SecretKeyModal>

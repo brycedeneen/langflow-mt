@@ -1,6 +1,6 @@
 import { PopoverAnchor } from "@radix-ui/react-popover";
 import { useEffect, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Check, X } from "lucide-react";
 import {
   Command,
   CommandGroup,
@@ -153,15 +153,13 @@ const CustomInputPopoverObject = ({
                         )}
                       >
                         <div className="absolute opacity-100 transition-all group-hover:opacity-0">
-                          <ForwardedIconComponent
-                            name="Check"
+                          <Check
                             className="mr-2 h-4 w-4 text-primary"
                             aria-hidden="true"
                           />
                         </div>
                         <div className="absolute opacity-0 transition-all group-hover:opacity-100">
-                          <ForwardedIconComponent
-                            name="X"
+                          <X
                             className="mr-2 h-4 w-4 text-status-red"
                             aria-hidden="true"
                           />

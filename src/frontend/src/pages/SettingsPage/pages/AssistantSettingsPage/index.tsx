@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -81,8 +81,7 @@ export default function AssistantSettingsPage() {
   if (initialLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <ForwardedIconComponent
-          name="Loader2"
+        <Loader2
           className="h-6 w-6 animate-spin text-muted-foreground"
         />
       </div>
@@ -147,12 +146,11 @@ export default function AssistantSettingsPage() {
 
         <Button onClick={handleSave} disabled={loading} className="w-fit">
           {loading ? (
-            <ForwardedIconComponent
-              name="Loader2"
+            <Loader2
               className="mr-2 h-4 w-4 animate-spin"
             />
           ) : (
-            <ForwardedIconComponent name="Save" className="mr-2 h-4 w-4" />
+            <Save className="mr-2 h-4 w-4" />
           )}
           Save Settings
         </Button>

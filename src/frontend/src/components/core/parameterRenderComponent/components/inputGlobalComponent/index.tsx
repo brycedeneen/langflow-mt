@@ -4,7 +4,7 @@ import { useGetGlobalVariables } from "@/controllers/API/queries/variables";
 import GeneralDeleteConfirmationModal from "@/shared/components/delete-confirmation-modal";
 import { looksLikeVariableName } from "../../../../../utils/reactflowUtils";
 import { cn } from "../../../../../utils/utils";
-import ForwardedIconComponent from "../../../../common/genericIconComponent";
+import { Plus } from "lucide-react";
 import { CommandItem } from "../../../../ui/command";
 import GlobalVariableModal from "../../../GlobalVariableModal/GlobalVariableModal";
 import { getPlaceholder } from "../../helpers/get-placeholder-disabled";
@@ -118,8 +118,7 @@ function InputGlobalComponent({
   const renderAddVariableButton = () => (
     <GlobalVariableModal referenceField={display_name} disabled={disabled}>
       <CommandItem value="doNotFilter-addNewVariable">
-        <ForwardedIconComponent
-          name="Plus"
+        <Plus
           className={cn("mr-2 h-4 w-4 text-primary")}
           aria-hidden="true"
         />

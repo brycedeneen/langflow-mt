@@ -4,8 +4,8 @@ import NodeInputInfo from "@/CustomNodes/GenericNode/components/NodeInputInfo";
 import useHandleOnNewValue from "@/CustomNodes/hooks/use-handle-new-value";
 import useHandleNodeClass from "@/CustomNodes/hooks/use-handle-node-class";
 import { AssistantButton } from "@/components/common/assistant";
-import IconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Info, Plus } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DEFAULT_TOOLSET_PLACEHOLDER,
   FLEX_VIEW_TYPES,
@@ -103,17 +103,26 @@ export default function InspectionPanelField({
         <div className="flex w-full items-center justify-between text-sm">
           <div className="flex w-full items-center truncate">
             {proxy ? (
-              <ShadTooltip content={<span>{proxy.id}</span>}>
-                <span>
-                  {getCustomParameterTitle({
-                    title,
-                    nodeId: data.id,
-                    isFlexView,
-                    required,
-                    inspectionPanel: true,
-                  })}
-                </span>
-              </ShadTooltip>
+              <Tooltip delayDuration={500}>
+                <TooltipTrigger asChild>
+                  <span>
+                    {getCustomParameterTitle({
+                      title,
+                      nodeId: data.id,
+                      isFlexView,
+                      required,
+                      inspectionPanel: true,
+                    })}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                  avoidCollisions={false}
+                  sticky="always"
+                >
+                  <span>{proxy.id}</span>
+                </TooltipContent>
+              </Tooltip>
             ) : (
               <div className="flex gap-2">
                 <span className="text-sm font-medium">
@@ -129,30 +138,46 @@ export default function InspectionPanelField({
             )}
             <div className="flex items-center">
               {info !== "" && (
-                <ShadTooltip content={<NodeInputInfo info={info} />}>
-                  <div className="cursor-help">
-                    <IconComponent
-                      name="Info"
-                      strokeWidth={ICON_STROKE_WIDTH}
-                      className="relative ml-1 h-3 w-3 text-placeholder"
-                    />
-                  </div>
-                </ShadTooltip>
+                <Tooltip delayDuration={500}>
+                  <TooltipTrigger asChild>
+                    <div className="cursor-help">
+                      <Info
+                        strokeWidth={ICON_STROKE_WIDTH}
+                        className="relative ml-1 h-3 w-3 text-placeholder"
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                    avoidCollisions={false}
+                    sticky="always"
+                  >
+                    <NodeInputInfo info={info} />
+                  </TooltipContent>
+                </Tooltip>
               )}
               {showAdvanced && (
-                <ShadTooltip content="Add to canvas">
-                  <button
-                    className="ml-1 cursor-pointer text-placeholder hover:text-foreground"
-                    onClick={handleToggleVisibility}
-                    data-testid={"promote-" + name}
+                <Tooltip delayDuration={500}>
+                  <TooltipTrigger asChild>
+                    <button
+                      className="ml-1 cursor-pointer text-placeholder hover:text-foreground"
+                      onClick={handleToggleVisibility}
+                      data-testid={"promote-" + name}
+                    >
+                      <Plus
+                        strokeWidth={ICON_STROKE_WIDTH}
+                        className="h-3 w-3"
+                      />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                    avoidCollisions={false}
+                    sticky="always"
                   >
-                    <IconComponent
-                      name="Plus"
-                      strokeWidth={ICON_STROKE_WIDTH}
-                      className="h-3 w-3"
-                    />
-                  </button>
-                </ShadTooltip>
+                    Add to canvas
+                  </TooltipContent>
+                </Tooltip>
               )}
             </div>
             {LANGFLOW_AGENTIC_EXPERIENCE &&

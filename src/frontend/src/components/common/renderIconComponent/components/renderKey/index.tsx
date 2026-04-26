@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { ArrowBigUp, Command, OptionIcon } from "lucide-react";
 import { IS_MAC } from "@/constants/constants";
 import { cn } from "@/utils/utils";
 
@@ -13,8 +13,7 @@ export default function RenderKey({
   return (
     <div>
       {check === "shift" ? (
-        <ForwardedIconComponent
-          name="ArrowBigUp"
+        <ArrowBigUp
           className={cn(tableRender ? "h-5 w-5" : "h-4 w-4")}
         />
       ) : check === "ctrl" && IS_MAC ? (
@@ -22,13 +21,11 @@ export default function RenderKey({
       ) : check === "mod" && !IS_MAC ? (
         <span>Ctrl</span>
       ) : check === "alt" && IS_MAC ? (
-        <ForwardedIconComponent
-          name="OptionIcon"
+        <OptionIcon
           className={cn(tableRender ? "h-4 w-4" : "h-3 w-3")}
         />
       ) : (check === "mod" && IS_MAC) || check === "cmd" ? (
-        <ForwardedIconComponent
-          name="Command"
+        <Command
           className={cn(tableRender ? "h-4 w-4" : "h-3 w-3")}
         />
       ) : (

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import RenderKey from "@/components/common/renderIconComponent/components/renderKey";
-import ForwardedIconComponent from "../../../../../components/common/genericIconComponent";
+import { Keyboard } from "lucide-react";
 import { Button } from "../../../../../components/ui/button";
 import BaseModal from "../../../../../modals/baseModal";
 import useAlertStore from "../../../../../stores/alertStore";
@@ -164,8 +164,7 @@ export default function EditShortcutButton({
     <BaseModal open={open} setOpen={setOpen} size="x-small" disable={disable}>
       <BaseModal.Header description={"Recording your keyboard"}>
         <span className="pr-2"> Key Combination </span>
-        <ForwardedIconComponent
-          name="Keyboard"
+        <Keyboard
           className="h-6 w-6 pl-1 text-primary"
           aria-hidden="true"
         />

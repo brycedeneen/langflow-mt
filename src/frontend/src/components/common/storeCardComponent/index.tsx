@@ -17,8 +17,9 @@ import {
   CardHeader,
   CardTitle,
 } from "../../ui/card";
+import { DownloadCloud, Heart, Lock, ToyBrick } from "lucide-react";
 import IconComponent from "../genericIconComponent";
-import ShadTooltip from "../shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
 import useDataEffect from "./hooks/use-data-effect";
 import useInstallComponent from "./hooks/use-handle-install";
 import { convertTestName } from "./utils/convert-test-name";
@@ -128,43 +129,88 @@ export default function StoreCardComponent({
                   name={data.is_component ? "ToyBrick" : "Group"}
                 />
 
-                <ShadTooltip content={data.name}>
-                  <div className="w-full truncate pr-3">{data.name}</div>
-                </ShadTooltip>
+                <Tooltip delayDuration={500}>
+                  <TooltipTrigger asChild>
+                    <div className="w-full truncate pr-3">{data.name}</div>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                    avoidCollisions={false}
+                    sticky="always"
+                  >
+                    {data.name}
+                  </TooltipContent>
+                </Tooltip>
                 <div className="flex items-center gap-3">
                   {data.private && (
-                    <ShadTooltip content="Private">
-                      <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <IconComponent name="Lock" className="h-4 w-4" />
-                      </span>
-                    </ShadTooltip>
+                    <Tooltip delayDuration={500}>
+                      <TooltipTrigger asChild>
+                        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Lock className="h-4 w-4" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                        avoidCollisions={false}
+                        sticky="always"
+                      >
+                        Private
+                      </TooltipContent>
+                    </Tooltip>
                   )}
                   {!data.is_component && (
-                    <ShadTooltip content="Components">
+                    <Tooltip delayDuration={500}>
+                      <TooltipTrigger asChild>
+                        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <ToyBrick className="h-4 w-4" />
+                          <span data-testid={`total-${data.name}`}>
+                            {data?.metadata?.total ?? 0}
+                          </span>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                        avoidCollisions={false}
+                        sticky="always"
+                      >
+                        Components
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                  <Tooltip delayDuration={500}>
+                    <TooltipTrigger asChild>
                       <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <IconComponent name="ToyBrick" className="h-4 w-4" />
-                        <span data-testid={`total-${data.name}`}>
-                          {data?.metadata?.total ?? 0}
+                        <Heart className={cn("h-4 w-4")} />
+                        <span data-testid={`likes-${data.name}`}>
+                          {likesCount ?? 0}
                         </span>
                       </span>
-                    </ShadTooltip>
-                  )}
-                  <ShadTooltip content="Likes">
-                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <IconComponent name="Heart" className={cn("h-4 w-4")} />
-                      <span data-testid={`likes-${data.name}`}>
-                        {likesCount ?? 0}
+                    </TooltipTrigger>
+                    <TooltipContent
+                      className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                      avoidCollisions={false}
+                      sticky="always"
+                    >
+                      Likes
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip delayDuration={500}>
+                    <TooltipTrigger asChild>
+                      <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <DownloadCloud className="h-4 w-4" />
+                        <span data-testid={`downloads-${data.name}`}>
+                          {downloadsCount ?? 0}
+                        </span>
                       </span>
-                    </span>
-                  </ShadTooltip>
-                  <ShadTooltip content="Downloads">
-                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <IconComponent name="DownloadCloud" className="h-4 w-4" />
-                      <span data-testid={`downloads-${data.name}`}>
-                        {downloadsCount ?? 0}
-                      </span>
-                    </span>
-                  </ShadTooltip>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                      avoidCollisions={false}
+                      sticky="always"
+                    >
+                      Downloads
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </CardTitle>
             </div>
@@ -197,70 +243,79 @@ export default function StoreCardComponent({
           <div className="z-50 flex w-full items-center justify-between gap-2">
             <div className="flex w-full flex-wrap items-end justify-end gap-2">
               <div className="flex gap-0.5">
-                <ShadTooltip
-                  content={authorized ? "Like" : "Please review your API key."}
-                >
-                  <Button
-                    disabled={isPending}
-                    variant="ghost"
-                    size="icon"
-                    className={
-                      "whitespace-nowrap" +
-                      (!authorized ? " cursor-not-allowed" : "")
-                    }
-                    onClick={() => {
-                      if (!authorized) {
-                        return;
+                <Tooltip delayDuration={500}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      disabled={isPending}
+                      variant="ghost"
+                      size="icon"
+                      className={
+                        "whitespace-nowrap" +
+                        (!authorized ? " cursor-not-allowed" : "")
                       }
-                      handleLikeWMutate();
-                    }}
-                    data-testid={`like-${data.name}`}
+                      onClick={() => {
+                        if (!authorized) {
+                          return;
+                        }
+                        handleLikeWMutate();
+                      }}
+                      data-testid={`like-${data.name}`}
+                    >
+                      <Heart
+                        className={cn(
+                          "h-5 w-5",
+                          likedByUser
+                            ? "fill-destructive stroke-destructive"
+                            : "",
+                          !authorized ? "text-ring" : "",
+                        )}
+                      />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                    avoidCollisions={false}
+                    sticky="always"
                   >
-                    <IconComponent
-                      name="Heart"
-                      className={cn(
-                        "h-5 w-5",
-                        likedByUser
-                          ? "fill-destructive stroke-destructive"
-                          : "",
-                        !authorized ? "text-ring" : "",
-                      )}
-                    />
-                  </Button>
-                </ShadTooltip>
-                <ShadTooltip
-                  content={
-                    authorized
-                      ? "Install Locally"
-                      : "Please review your API key."
-                  }
-                >
-                  <Button
-                    disabled={loading}
-                    variant="ghost"
-                    size="icon"
-                    className={
-                      "whitespace-nowrap" +
-                      (!authorized ? " cursor-not-allowed" : "") +
-                      (!loading ? " p-0.5" : "")
-                    }
-                    onClick={() => {
-                      if (loading || !authorized) {
-                        return;
+                    {authorized ? "Like" : "Please review your API key."}
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip delayDuration={500}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      disabled={loading}
+                      variant="ghost"
+                      size="icon"
+                      className={
+                        "whitespace-nowrap" +
+                        (!authorized ? " cursor-not-allowed" : "") +
+                        (!loading ? " p-0.5" : "")
                       }
-                      handleInstall();
-                    }}
-                    data-testid={`install-${data.name}`}
+                      onClick={() => {
+                        if (loading || !authorized) {
+                          return;
+                        }
+                        handleInstall();
+                      }}
+                      data-testid={`install-${data.name}`}
+                    >
+                      <IconComponent
+                        name={loading ? "Loader2" : "Plus"}
+                        className={cn(
+                          loading ? "h-5 w-5 animate-spin" : "h-5 w-5",
+                          !authorized ? "text-ring" : "",
+                        )}
+                      />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                    avoidCollisions={false}
+                    sticky="always"
                   >
-                    <IconComponent
-                      name={loading ? "Loader2" : "Plus"}
-                      className={cn(
-                        loading ? "h-5 w-5 animate-spin" : "h-5 w-5",
-                        !authorized ? "text-ring" : "",
-                      )}
-                    />
-                  </Button>
-                </ShadTooltip>
+                    {authorized ? "Install Locally" : "Please review your API key."}
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
           </div>

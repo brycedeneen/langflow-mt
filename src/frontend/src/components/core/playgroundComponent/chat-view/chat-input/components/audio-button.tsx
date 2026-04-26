@@ -1,5 +1,5 @@
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils/utils";
 import type { AudioRecordingState } from "../hooks/use-audio-recording";
@@ -40,33 +40,43 @@ const AudioButton = ({
   };
 
   return (
-    <ShadTooltip styleClasses="z-50" side="top" content={getTooltipContent()}>
-      <div>
-        <Button
-          disabled={isDisabled}
-          className={cn(
-            "h-7 w-7 px-0 flex items-center justify-center transition-all duration-200",
-            isDisabled && "cursor-not-allowed opacity-50",
-            isRecording &&
-              "text-destructive hover:text-destructive animate-pulse duration-1000",
-            !isRecording &&
-              !isDisabled &&
-              "text-muted-foreground hover:text-primary",
-          )}
-          onClick={handleClick}
-          unstyled
-          data-testid="audio-button"
-        >
-          <ForwardedIconComponent
+    <Tooltip delayDuration={500}>
+      <TooltipTrigger asChild>
+        <div>
+          <Button
+            disabled={isDisabled}
             className={cn(
-              "h-[18px] w-[18px]",
-              isRecording && "text-destructive",
+              "h-7 w-7 px-0 flex items-center justify-center transition-all duration-200",
+              isDisabled && "cursor-not-allowed opacity-50",
+              isRecording &&
+                "text-destructive hover:text-destructive animate-pulse duration-1000",
+              !isRecording &&
+                !isDisabled &&
+                "text-muted-foreground hover:text-primary",
             )}
-            name={isRecording ? "MicOff" : "Mic"}
-          />
-        </Button>
-      </div>
-    </ShadTooltip>
+            onClick={handleClick}
+            unstyled
+            data-testid="audio-button"
+          >
+            <ForwardedIconComponent
+              className={cn(
+                "h-[18px] w-[18px]",
+                isRecording && "text-destructive",
+              )}
+              name={isRecording ? "MicOff" : "Mic"}
+            />
+          </Button>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent
+        className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "z-50")}
+        side="top"
+        avoidCollisions={false}
+        sticky="always"
+      >
+        {getTooltipContent()}
+      </TooltipContent>
+    </Tooltip>
   );
 };
 

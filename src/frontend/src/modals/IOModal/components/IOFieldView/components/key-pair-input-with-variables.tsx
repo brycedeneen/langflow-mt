@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 import { useEffect, useState } from "react";
-import IconComponent from "../../../../../components/common/genericIconComponent";
+import { Plus, X } from "lucide-react";
 import InputComponent from "../../../../../components/core/parameterRenderComponent/components/inputComponent";
 import { Input } from "../../../../../components/ui/input";
 import { useGetGlobalVariables } from "../../../../../controllers/API/queries/variables";
@@ -166,8 +166,7 @@ const IOKeyPairInputWithVariables = ({
                 onClick={handleAddRow}
                 data-testid={testId ? `${testId}-plus-btn-0` : undefined}
               >
-                <IconComponent
-                  name="Plus"
+                <Plus
                   className={"h-4 w-4 hover:text-accent-foreground"}
                 />
               </button>
@@ -177,8 +176,7 @@ const IOKeyPairInputWithVariables = ({
                 onClick={() => handleDeleteRow(item)}
                 data-testid={testId ? `${testId}-minus-btn-${idx}` : undefined}
               >
-                <IconComponent
-                  name="X"
+                <X
                   className="h-4 w-4 hover:text-status-red"
                 />
               </button>

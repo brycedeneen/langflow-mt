@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Monitor, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import useTheme from "@/customization/hooks/use-custom-theme";
 
@@ -60,7 +60,7 @@ export const ThemeButtons = () => {
         data-testid="menu_light_button"
         id="menu_light_button"
       >
-        <ForwardedIconComponent strokeWidth={2} name="Sun" className="w-4" />
+        <Sun strokeWidth={2} className="w-4" />
       </Button>
 
       {/* Dark Theme Button */}
@@ -75,7 +75,7 @@ export const ThemeButtons = () => {
         data-testid="menu_dark_button"
         id="menu_dark_button"
       >
-        <ForwardedIconComponent strokeWidth={2} name="Moon" className="w-4" />
+        <Moon strokeWidth={2} className="w-4" />
       </Button>
 
       {/* System Theme Button */}
@@ -90,8 +90,7 @@ export const ThemeButtons = () => {
         data-testid="menu_system_button"
         id="menu_system_button"
       >
-        <ForwardedIconComponent
-          name="Monitor"
+        <Monitor
           className="w-4"
           strokeWidth={2}
         />

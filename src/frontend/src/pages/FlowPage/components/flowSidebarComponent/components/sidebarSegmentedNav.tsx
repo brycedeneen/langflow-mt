@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarMenu,
@@ -96,66 +96,76 @@ const SidebarSegmentedNav = () => {
           <div key={item.id}>
             {item.id === "add_note" && <Separator className="w-full" />}
             <SidebarMenuItem className="px-1 pt-1">
-              <ShadTooltip content={item.tooltip} side="right">
-                <SidebarMenuButton
-                  size="md"
-                  onClick={(e) => {
-                    if (item.id === "add_note") {
-                      e.stopPropagation();
-                      handleAddNote();
-                      return;
-                    }
+              <Tooltip delayDuration={500}>
+                <TooltipTrigger asChild>
+                  <SidebarMenuButton
+                    size="md"
+                    onClick={(e) => {
+                      if (item.id === "add_note") {
+                        e.stopPropagation();
+                        handleAddNote();
+                        return;
+                      }
 
-                    if (item.id === "traces") {
-                      setPlaygroundOpen(false);
-                      setPlaygroundFullscreen(false);
-                    }
-
-                    if (isAddNoteActive) {
-                      setIsAddNoteActive(false);
-                    }
-
-                    setSearch?.("");
-                    if (activeSection === item.id && open) {
                       if (item.id === "traces") {
-                        setActiveSection("components");
+                        setPlaygroundOpen(false);
+                        setPlaygroundFullscreen(false);
+                      }
+
+                      if (isAddNoteActive) {
+                        setIsAddNoteActive(false);
+                      }
+
+                      setSearch?.("");
+                      if (activeSection === item.id && open) {
+                        if (item.id === "traces") {
+                          setActiveSection("components");
+                        } else {
+                          toggleSidebar();
+                        }
                       } else {
-                        toggleSidebar();
+                        setActiveSection(item.id);
+                        if (!open) {
+                          toggleSidebar();
+                        }
+                        if (item.id === "search") {
+                          setTimeout(() => focusSearch(), 100);
+                        }
                       }
-                    } else {
-                      setActiveSection(item.id);
-                      if (!open) {
-                        toggleSidebar();
-                      }
-                      if (item.id === "search") {
-                        setTimeout(() => focusSearch(), 100);
-                      }
-                    }
-                  }}
-                  isActive={
-                    item.id === "add_note"
-                      ? isAddNoteActive
-                      : activeSection === item.id
-                  }
-                  className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-md p-0 transition-all duration-200",
-                    (
+                    }}
+                    isActive={
                       item.id === "add_note"
                         ? isAddNoteActive
                         : activeSection === item.id
-                    )
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                  )}
-                  data-testid={`sidebar-nav-${item.id}`}
+                    }
+                    className={cn(
+                      "flex h-8 w-8 items-center justify-center rounded-md p-0 transition-all duration-200",
+                      (
+                        item.id === "add_note"
+                          ? isAddNoteActive
+                          : activeSection === item.id
+                      )
+                        ? "bg-accent text-accent-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                    )}
+                    data-testid={`sidebar-nav-${item.id}`}
+                  >
+                    <ForwardedIconComponent
+                      name={item.icon}
+                      className="h-5 w-5"
+                    />
+                    <span className="sr-only">{item.label}</span>
+                  </SidebarMenuButton>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                  side="right"
+                  avoidCollisions={false}
+                  sticky="always"
                 >
-                  <ForwardedIconComponent
-                    name={item.icon}
-                    className="h-5 w-5"
-                  />
-                  <span className="sr-only">{item.label}</span>
-                </SidebarMenuButton>
-              </ShadTooltip>
+                  {item.tooltip}
+                </TooltipContent>
+              </Tooltip>
             </SidebarMenuItem>
           </div>
         ))}

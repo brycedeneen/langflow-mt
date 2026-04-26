@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils/utils";
 
@@ -28,8 +28,7 @@ const DisconnectWarning = ({
   >
     <div className="flex flex-col gap-3 h-full">
       <div className="text-destructive flex items-center gap-1 text-md">
-        <ForwardedIconComponent
-          name="Circle"
+        <Circle
           className="text-destructive w-3 h-3 fill-destructive mr-2 animate-pulse"
         />
         Warning

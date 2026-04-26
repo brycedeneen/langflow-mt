@@ -1,4 +1,5 @@
 import { memo, useCallback } from "react";
+import { ChevronRight } from "lucide-react";
 import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
 import {
   Disclosure,
@@ -71,8 +72,7 @@ export const CategoryDisclosure = memo(function CategoryDisclosure({
               <span className="flex-1 group-aria-expanded/collapsible:font-semibold">
                 {item.display_name}
               </span>
-              <ForwardedIconComponent
-                name="ChevronRight"
+              <ChevronRight
                 className="h-4 w-4 text-muted-foreground transition-all group-aria-expanded/collapsible:rotate-90"
               />
             </div>

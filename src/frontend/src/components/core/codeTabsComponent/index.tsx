@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { tomorrow } from "react-syntax-highlighter/dist/cjs/styles/prism";
-import IconComponent from "../../common/genericIconComponent";
+import { Check, Copy } from "lucide-react";
 import { Button } from "../../ui/button";
 
 type SimplifiedCodeTabProps = {
@@ -44,9 +44,9 @@ export default function SimplifiedCodeTabComponent({
           onClick={copyToClipboard}
         >
           {isCopied ? (
-            <IconComponent name="Check" className="h-4 w-4" />
+            <Check className="h-4 w-4" />
           ) : (
-            <IconComponent name="Copy" className="h-4 w-4" />
+            <Copy className="h-4 w-4" />
           )}
         </Button>
       </div>

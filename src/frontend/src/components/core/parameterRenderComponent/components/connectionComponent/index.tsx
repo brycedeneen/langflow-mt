@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef, useState } from "react";
 import ListSelectionComponent from "@/CustomNodes/GenericNode/components/ListSelectionComponent";
 import { mutateTemplate } from "@/CustomNodes/helpers/mutate-template";
+import { ChevronsUpDown } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { Button } from "@/components/ui/button";
 import { usePostTemplateValue } from "@/controllers/API/queries/nodes/use-post-template-value";
@@ -189,8 +190,7 @@ const ConnectionComponent = ({
             <span className="ml-2 truncate">
               {selectedItem[0]?.name || placeholder}
             </span>
-            <ForwardedIconComponent
-              name="ChevronsUpDown"
+            <ChevronsUpDown
               className="ml-auto h-5 w-5"
             />
           </div>

@@ -1,6 +1,11 @@
 import { useMemo, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Plus } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/utils/utils";
 import { Button } from "@/components/ui/button";
 import useFlowStore from "@/stores/flowStore";
 import { useGetFlowId } from "../../../hooks/use-get-flow-id";
@@ -50,23 +55,26 @@ export function ChatSidebar({
           <div className="px-2 text-xs font-semibold leading-4 text-muted-foreground">
             Sessions
           </div>
-          <ShadTooltip
-            styleClasses="z-50"
-            content="New Chat"
-            side={isShareablePlayground ? "bottom" : "top"}
-          >
-            <Button
-              data-testid="new-chat"
-              variant="ghost"
-              className="flex h-8 w-8 items-center justify-center !p-0 hover:bg-secondary-hover"
-              onClick={onNewChat}
+          <Tooltip delayDuration={500}>
+            <TooltipTrigger asChild>
+              <Button
+                data-testid="new-chat"
+                variant="ghost"
+                className="flex h-8 w-8 items-center justify-center !p-0 hover:bg-secondary-hover"
+                onClick={onNewChat}
+              >
+                <Plus className="h-[18px] w-[18px] text-ring" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "z-50")}
+              side={isShareablePlayground ? "bottom" : "top"}
+              avoidCollisions={false}
+              sticky="always"
             >
-              <ForwardedIconComponent
-                name="Plus"
-                className="h-[18px] w-[18px] text-ring"
-              />
-            </Button>
-          </ShadTooltip>
+              New Chat
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
       {sessions.length === 0 ? (

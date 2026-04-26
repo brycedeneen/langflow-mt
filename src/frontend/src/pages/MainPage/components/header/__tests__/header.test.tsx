@@ -59,12 +59,11 @@ jest.mock("@/components/common/genericIconComponent", () => ({
   ),
 }));
 
-jest.mock("@/components/common/shadTooltipComponent", () => ({
-  __esModule: true,
-  default: ({ children, content }: TooltipProps) => (
-    <div data-testid="tooltip" data-content={content}>
-      {children}
-    </div>
+jest.mock("@/components/ui/tooltip", () => ({
+  Tooltip: ({ children }: any) => <>{children}</>,
+  TooltipTrigger: ({ children }: any) => <>{children}</>,
+  TooltipContent: ({ children }: any) => (
+    <div data-testid="tooltip">{children}</div>
   ),
 }));
 

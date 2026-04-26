@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Bot, Trash2, Wrench, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import useAssistantStore from "@/stores/assistantStore";
 import { ModeToggleButton } from "../mode-toggle-button";
@@ -21,8 +21,7 @@ export default function PanelHeader({ onClear, onClose }: PanelHeaderProps) {
   return (
     <div className="flex items-center justify-between border-b px-4 py-3">
       <div className="flex items-center gap-2">
-        <ForwardedIconComponent
-          name="Bot"
+        <Bot
           className="h-5 w-5 text-primary"
         />
         <h3 className="text-sm font-semibold">Flow Assistant</h3>
@@ -36,7 +35,7 @@ export default function PanelHeader({ onClear, onClose }: PanelHeaderProps) {
           title={showToolCalls ? "Hide tool calls" : "Show tool calls"}
           aria-pressed={showToolCalls}
         >
-          <ForwardedIconComponent name="Wrench" className="h-4 w-4" />
+          <Wrench className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
@@ -45,7 +44,7 @@ export default function PanelHeader({ onClear, onClose }: PanelHeaderProps) {
           className="h-7 w-7"
           title="Clear conversation"
         >
-          <ForwardedIconComponent name="Trash2" className="h-4 w-4" />
+          <Trash2 className="h-4 w-4" />
         </Button>
         <ModeToggleButton />
         <Button
@@ -55,7 +54,7 @@ export default function PanelHeader({ onClear, onClose }: PanelHeaderProps) {
           className="h-7 w-7"
           title="Close assistant"
         >
-          <ForwardedIconComponent name="X" className="h-4 w-4" />
+          <X className="h-4 w-4" />
         </Button>
       </div>
     </div>

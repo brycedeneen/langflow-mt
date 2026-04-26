@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import IconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import InputComponent from "@/components/core/parameterRenderComponent/components/inputComponent";
 import { getPlaceholder } from "@/components/core/parameterRenderComponent/helpers/get-placeholder-disabled";
 import { Button } from "@/components/ui/button";
@@ -276,15 +280,23 @@ const SettingsVoiceModal = ({
                   <span className="flex items-center text-sm">
                     OpenAI API Key
                     <span className="ml-1 text-destructive">*</span>
-                    <ShadTooltip content="OpenAI API key is required to use the voice assistant.">
-                      <div>
-                        <IconComponent
-                          name="Info"
-                          strokeWidth={2}
-                          className="relative -top-[3px] left-1 h-[14px] w-[14px] text-placeholder"
-                        />
-                      </div>
-                    </ShadTooltip>
+                    <Tooltip delayDuration={500}>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <Info
+                            strokeWidth={2}
+                            className="relative -top-[3px] left-1 h-[14px] w-[14px] text-placeholder"
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                        avoidCollisions={false}
+                        sticky="always"
+                      >
+                        OpenAI API key is required to use the voice assistant.
+                      </TooltipContent>
+                    </Tooltip>
                   </span>
 
                   {showAddOpenAIKeyButton && (
@@ -365,15 +377,23 @@ const SettingsVoiceModal = ({
                     <div className="grid w-full items-center gap-2">
                       <span className="flex items-center text-sm">
                         ElevenLabs API Key
-                        <ShadTooltip content="If you have an ElevenLabs API key, you can select ElevenLabs voices.">
-                          <div>
-                            <IconComponent
-                              name="Info"
-                              strokeWidth={2}
-                              className="relative -top-[3px] left-1 h-[14px] w-[14px] text-placeholder"
-                            />
-                          </div>
-                        </ShadTooltip>
+                        <Tooltip delayDuration={500}>
+                          <TooltipTrigger asChild>
+                            <div>
+                              <Info
+                                strokeWidth={2}
+                                className="relative -top-[3px] left-1 h-[14px] w-[14px] text-placeholder"
+                              />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                            avoidCollisions={false}
+                            sticky="always"
+                          >
+                            If you have an ElevenLabs API key, you can select ElevenLabs voices.
+                          </TooltipContent>
+                        </Tooltip>
                       </span>
 
                       <InputComponent

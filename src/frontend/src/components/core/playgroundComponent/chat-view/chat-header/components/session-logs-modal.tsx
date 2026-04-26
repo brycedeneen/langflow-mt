@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { ScrollText } from "lucide-react";
 import BaseModal from "@/modals/baseModal";
 import SessionView from "@/modals/IOModal/components/session-view";
 
@@ -21,7 +21,7 @@ export const SessionLogsModal = ({
         <BaseModal.Header description="Inspect and edit all messages of the session.">
           <div className="flex h-fit w-32 items-center">
             <span className="pr-2">Session logs</span>
-            <ForwardedIconComponent name="ScrollText" className="h-4 w-4" />
+            <ScrollText className="h-4 w-4" />
           </div>
         </BaseModal.Header>
         <div className="pt-4 h-full">

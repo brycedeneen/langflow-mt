@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -63,8 +63,7 @@ export default function RestoreVersionButton({
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
             <div className="mx-4 flex w-full max-w-md flex-col gap-4 rounded-xl border bg-background p-6 shadow-lg">
               <div className="flex items-center gap-2">
-                <ForwardedIconComponent
-                  name="RotateCcw"
+                <RotateCcw
                   className="h-5 w-5 text-primary"
                 />
                 <span className="text-lg font-semibold">Restore Version</span>

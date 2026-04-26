@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { PanelLeftOpen } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import type { KnowledgeBaseInfo } from "@/controllers/API/queries/knowledge-bases/use-get-knowledge-bases";
 import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
@@ -104,8 +104,7 @@ export const KnowledgePage = () => {
                 <div className="h-7 w-10 transition-all group-data-[open=true]/sidebar-wrapper:md:w-0 lg:hidden">
                   <div className="relative left-0 opacity-100 transition-all group-data-[open=true]/sidebar-wrapper:md:opacity-0">
                     <SidebarTrigger>
-                      <ForwardedIconComponent
-                        name="PanelLeftOpen"
+                      <PanelLeftOpen
                         aria-hidden="true"
                       />
                     </SidebarTrigger>

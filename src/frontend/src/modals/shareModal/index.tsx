@@ -2,6 +2,7 @@ import { cloneDeep } from "lodash";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import useSaveFlow from "@/hooks/flows/use-save-flow";
 import { useUtilityStore } from "@/stores/utilityStore";
+import { Download } from "lucide-react";
 import IconComponent from "../../components/common/genericIconComponent";
 import { TagsSelector } from "../../components/common/tagsSelectorComponent";
 import EditFlowSettings from "../../components/core/editFlowSettingsComponent";
@@ -277,7 +278,7 @@ export default function ShareModal({
                     // (setOpen || internalSetOpen)(false);
                   }}
                 >
-                  <IconComponent name="Download" className="h-4 w-4" />
+                  <Download className="h-4 w-4" />
                   Export
                 </Button>
               </ExportModal>
@@ -292,7 +293,7 @@ export default function ShareModal({
                   handleExportComponent();
                 }}
               >
-                <IconComponent name="Download" className="h-4 w-4" />
+                <Download className="h-4 w-4" />
                 Export
               </Button>
             )}

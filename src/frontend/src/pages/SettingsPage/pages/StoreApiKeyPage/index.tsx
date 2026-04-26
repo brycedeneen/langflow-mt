@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import { useParams } from "react-router-dom";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Store } from "lucide-react";
 import { CONTROL_PATCH_USER_STATE } from "@/constants/constants";
 import { AuthContext } from "@/contexts/authContext";
 import { usePostAddApiKey } from "@/controllers/API/queries/api-keys";
@@ -66,10 +66,7 @@ const StoreApiKeyPage = () => {
             data-testid="settings_menu_header"
           >
             Langflow Store
-            <ForwardedIconComponent
-              name="Store"
-              className="ml-2 h-5 w-5 text-primary"
-            />
+            <Store className="ml-2 h-5 w-5 text-primary" />
           </h2>
           <p className="text-sm text-muted-foreground">
             Manage access to the Langflow Store.

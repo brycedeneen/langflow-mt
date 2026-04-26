@@ -1,7 +1,7 @@
 import { useIsFetching, useIsMutating } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { File, HandCoins, Library } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -502,7 +502,7 @@ const SideBarFoldersButtonsComponent = ({
               className="text-sm"
               data-testid="sidebar-pro-service-quotes-button"
             >
-              <ForwardedIconComponent name="HandCoins" className="h-4 w-4" />
+              <HandCoins className="h-4 w-4" />
               Pro-Service Quotes
             </SidebarMenuButton>
             {ENABLE_KNOWLEDGE_BASES && (
@@ -511,7 +511,7 @@ const SideBarFoldersButtonsComponent = ({
                 size="md"
                 className="text-sm"
               >
-                <ForwardedIconComponent name="Library" className="h-4 w-4" />
+                <Library className="h-4 w-4" />
                 Knowledge
               </SidebarMenuButton>
             )}
@@ -520,7 +520,7 @@ const SideBarFoldersButtonsComponent = ({
               size="md"
               className="text-sm"
             >
-              <ForwardedIconComponent name="File" className="h-4 w-4" />
+              <File className="h-4 w-4" />
               My Files
             </SidebarMenuButton>
           </div>

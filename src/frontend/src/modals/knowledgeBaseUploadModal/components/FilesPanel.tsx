@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { FileStack, FileText, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatFileSize } from "../utils";
 
@@ -13,7 +13,7 @@ export function FilesPanel({ files, onRemoveFile }: FilesPanelProps) {
       {/* Sticky header */}
       <div className="flex items-center gap-2 text-base font-semibold p-3 pb-1">
         <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted">
-          <ForwardedIconComponent name="FileStack" className="h-4 w-4" />
+          <FileStack className="h-4 w-4" />
         </div>
         Sources
         {files.length > 0 && (
@@ -32,8 +32,7 @@ export function FilesPanel({ files, onRemoveFile }: FilesPanelProps) {
               className="group flex items-center justify-between rounded-md px-2 py-1.5 hover:bg-muted"
             >
               <div className="flex items-center gap-2 truncate">
-                <ForwardedIconComponent
-                  name="FileText"
+                <FileText
                   className="h-4 w-4 shrink-0 text-muted-foreground"
                 />
                 <span className="truncate text-sm">{file.name}</span>
@@ -44,7 +43,7 @@ export function FilesPanel({ files, onRemoveFile }: FilesPanelProps) {
                 className="h-6 w-6 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
                 onClick={() => onRemoveFile(index)}
               >
-                <ForwardedIconComponent name="X" className="h-3 w-3" />
+                <X className="h-3 w-3" />
               </Button>
             </div>
           ))}

@@ -22,8 +22,13 @@ import {
   formatName,
   groupByFamily,
 } from "../../../utils/utils";
+import { Check, Circle, Plus, RefreshCcw } from "lucide-react";
 import { default as ForwardedIconComponent } from "../../common/genericIconComponent";
-import ShadTooltip from "../../common/shadTooltipComponent";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "../../ui/tooltip";
 import { Button } from "../../ui/button";
 import {
   Command,
@@ -452,12 +457,8 @@ export default function Dropdown({
       <CommandGroup defaultChecked={false} className="p-0">
         {filteredOptions?.length > 0 ? (
           filteredOptions?.map((option, index) => (
-            <ShadTooltip
-              key={option}
-              delayDuration={700}
-              styleClasses="whitespace-pre-wrap"
-              content={formatTooltipContent(option, index)}
-            >
+            <Tooltip key={option} delayDuration={700}>
+              <TooltipTrigger asChild>
               <div>
                 <CommandItem
                   value={option}
@@ -524,8 +525,7 @@ export default function Dropdown({
                                 })}
                               >
                                 {i > 0 && (
-                                  <ForwardedIconComponent
-                                    name="Circle"
+                                  <Circle
                                     className="mx-1 h-1 w-1 shrink-0 overflow-visible fill-muted-foreground"
                                   />
                                 )}
@@ -542,8 +542,7 @@ export default function Dropdown({
                             !filteredMetadata || filteredMetadata.length === 0,
                         })}
                       >
-                        <ForwardedIconComponent
-                          name="Check"
+                        <Check
                           className={cn(
                             "h-4 w-4 shrink-0 text-primary",
                             value === option ? "opacity-100" : "opacity-0",
@@ -554,7 +553,15 @@ export default function Dropdown({
                   </div>
                 </CommandItem>
               </div>
-            </ShadTooltip>
+              </TooltipTrigger>
+              <TooltipContent
+                className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "whitespace-pre-wrap")}
+                avoidCollisions={false}
+                sticky="always"
+              >
+                {formatTooltipContent(option, index)}
+              </TooltipContent>
+            </Tooltip>
           ))
         ) : (
           <CommandItem
@@ -581,7 +588,7 @@ export default function Dropdown({
             }}
           >
             <div className="flex items-center gap-2 pl-1 text-[13px] font-semibold">
-              <ForwardedIconComponent name="Plus" className="h-3 w-3 " />
+              <Plus className="h-3 w-3 " />
               {sourceOptions?.fields?.data?.node?.display_name}
             </div>
             {sourceOptions?.fields?.data?.node?.icon && (
@@ -603,8 +610,7 @@ export default function Dropdown({
               data-testid={`refresh-dropdown-list-${name}`}
             >
               <div className="flex items-center gap-2 pl-1 text-[13px] font-semibold">
-                <ForwardedIconComponent
-                  name="RefreshCcw"
+                <RefreshCcw
                   className={cn("h-3 w-3")}
                 />
                 Refresh list
@@ -673,8 +679,7 @@ export default function Dropdown({
                 }}
               >
                 <div className="flex items-center gap-2 pl-1">
-                  <ForwardedIconComponent
-                    name="RefreshCcw"
+                  <RefreshCcw
                     className={cn("refresh-icon h-3 w-3 text-primary")}
                   />
                   Refresh list

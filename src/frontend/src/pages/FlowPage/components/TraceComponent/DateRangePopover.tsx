@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import IconComponent from "@/components/common/genericIconComponent";
+import { AlertTriangle, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -53,7 +53,7 @@ export function DateRangePopover({
           className="h-8 gap-2 px-2 text-muted-foreground"
           aria-label="Date range"
         >
-          <IconComponent name="Calendar" className="h-4 w-4" />
+          <Calendar className="h-4 w-4" />
           <span className="inline-flex items-center gap-1 text-xs text-foreground">
             {rangeLabel}
             {hasInvalidRange ? (
@@ -61,8 +61,7 @@ export function DateRangePopover({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span className="inline-flex h-4 w-4 items-center justify-center">
-                      <IconComponent
-                        name="AlertTriangle"
+                      <AlertTriangle
                         className="h-3 w-3 text-status-red"
                         aria-label="Invalid date range"
                       />

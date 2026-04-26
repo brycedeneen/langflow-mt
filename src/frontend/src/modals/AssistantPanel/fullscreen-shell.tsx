@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Bot, FlaskConical, PanelLeft, Wrench, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import useAssistantStore from "@/stores/assistantStore";
 import Composer from "./components/composer";
@@ -28,7 +28,7 @@ export function FullscreenShell({ flowId, onSend }: Props) {
     <div className="fixed top-[48px] bottom-0 right-0 left-0 md:left-[17.5rem] z-50 flex flex-col bg-background">
       <header className="flex h-14 items-center justify-between border-b px-4">
         <div className="flex items-center gap-2">
-          <ForwardedIconComponent name="Bot" className="h-5 w-5" />
+          <Bot className="h-5 w-5" />
           <span className="text-lg font-semibold">ADP Assist</span>
         </div>
         <div className="flex items-center gap-2">
@@ -40,7 +40,7 @@ export function FullscreenShell({ flowId, onSend }: Props) {
             aria-pressed={showToolCalls}
             data-testid="adp-assist-toggle-tool-calls-btn"
           >
-            <ForwardedIconComponent name="Wrench" className="mr-1 h-4 w-4" />
+            <Wrench className="mr-1 h-4 w-4" />
             {showToolCalls ? "Hide tools" : "Show tools"}
           </Button>
           <Button
@@ -49,7 +49,7 @@ export function FullscreenShell({ flowId, onSend }: Props) {
             onClick={() => setLayoutMode("test")}
             data-testid="adp-assist-test-btn"
           >
-            <ForwardedIconComponent name="FlaskConical" className="mr-1 h-4 w-4" />
+            <FlaskConical className="mr-1 h-4 w-4" />
             Test
           </Button>
           <Button
@@ -58,7 +58,7 @@ export function FullscreenShell({ flowId, onSend }: Props) {
             onClick={() => setLayoutMode("panel")}
             data-testid="adp-assist-view-canvas-btn"
           >
-            <ForwardedIconComponent name="PanelLeft" className="mr-1 h-4 w-4" />
+            <PanelLeft className="mr-1 h-4 w-4" />
             View Canvas
           </Button>
           <Button
@@ -71,7 +71,7 @@ export function FullscreenShell({ flowId, onSend }: Props) {
             aria-label="Close ADP Assist"
             data-testid="adp-assist-close-btn"
           >
-            <ForwardedIconComponent name="X" className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </Button>
         </div>
       </header>

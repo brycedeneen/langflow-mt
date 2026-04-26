@@ -63,12 +63,14 @@ jest.mock("../../components/common/genericIconComponent", () => ({
   ),
 }));
 
-// Mock the ShadTooltip component
-jest.mock("@/components/common/shadTooltipComponent", () => {
-  return function MockShadTooltip({ children, content }: any) {
-    return <div title={content}>{children}</div>;
-  };
-});
+// Mock the Tooltip components
+jest.mock("@/components/ui/tooltip", () => ({
+  Tooltip: ({ children }: any) => <>{children}</>,
+  TooltipTrigger: ({ children }: any) => <>{children}</>,
+  TooltipContent: ({ children, content }: any) => (
+    <div title={content}>{children}</div>
+  ),
+}));
 
 // Mock the Button component
 jest.mock("../../components/ui/button", () => ({

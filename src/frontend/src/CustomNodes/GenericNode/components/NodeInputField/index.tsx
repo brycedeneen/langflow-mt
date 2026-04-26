@@ -12,8 +12,12 @@ import {
 import { LANGFLOW_AGENTIC_EXPERIENCE } from "@/customization/feature-flags";
 import useAuthStore from "@/stores/authStore";
 import { cn } from "@/utils/utils";
-import { default as IconComponent } from "../../../../components/common/genericIconComponent";
-import ShadTooltip from "../../../../components/common/shadTooltipComponent";
+import { Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "../../../../components/ui/tooltip";
 import {
   DEFAULT_TOOLSET_PLACEHOLDER,
   FLEX_VIEW_TYPES,
@@ -143,8 +147,8 @@ export default function NodeInputField({
         <div className="flex w-full items-center justify-between text-sm">
           <div className="flex w-full items-center truncate">
             {proxy ? (
-              <ShadTooltip content={<span>{proxy.id}</span>}>
-                {
+              <Tooltip delayDuration={500}>
+                <TooltipTrigger asChild>
                   <span>
                     {getCustomParameterTitle({
                       title,
@@ -153,8 +157,15 @@ export default function NodeInputField({
                       required,
                     })}
                   </span>
-                }
-              </ShadTooltip>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                  avoidCollisions={false}
+                  sticky="always"
+                >
+                  <span>{proxy.id}</span>
+                </TooltipContent>
+              </Tooltip>
             ) : (
               <span className="text-sm font-medium">
                 {getCustomParameterTitle({
@@ -166,15 +177,23 @@ export default function NodeInputField({
               </span>
             )}
             {info !== "" && (
-              <ShadTooltip content={<NodeInputInfo info={info} />}>
-                <div className="cursor-help">
-                  <IconComponent
-                    name="Info"
-                    strokeWidth={ICON_STROKE_WIDTH}
-                    className="ml-1 h-3 w-3 text-placeholder"
-                  />
-                </div>
-              </ShadTooltip>
+              <Tooltip delayDuration={500}>
+                <TooltipTrigger asChild>
+                  <div className="cursor-help">
+                    <Info
+                      strokeWidth={ICON_STROKE_WIDTH}
+                      className="ml-1 h-3 w-3 text-placeholder"
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                  avoidCollisions={false}
+                  sticky="always"
+                >
+                  <NodeInputInfo info={info} />
+                </TooltipContent>
+              </Tooltip>
             )}
             {LANGFLOW_AGENTIC_EXPERIENCE &&
               data.node?.template[name]?.ai_enabled && (

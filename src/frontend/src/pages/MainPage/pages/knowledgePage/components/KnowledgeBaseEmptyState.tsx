@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import KnowledgeBaseUploadModal from "@/modals/knowledgeBaseUploadModal/KnowledgeBaseUploadModal";
 import useAlertStore from "@/stores/alertStore";
@@ -28,7 +28,7 @@ const KnowledgeBaseEmptyState = ({
           className="flex items-center gap-2 font-semibold"
           onClick={() => setIsUploadModalOpen(true)}
         >
-          <ForwardedIconComponent name="Plus" className="h-4 w-4" />
+          <Plus className="h-4 w-4" />
           Add Knowledge
         </Button>
       </div>

@@ -1,3 +1,6 @@
+// Styled refresh button used across parameter-render components (~14 callers).
+// Provides a Button + RefreshCcw icon with the wiggle-on-loading animation
+// and consistent disabled/hover styling. Earns its keep — kept per Phase 7d audit.
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
 import { cn } from "../../utils/utils";
 import IconComponent from "../common/genericIconComponent";

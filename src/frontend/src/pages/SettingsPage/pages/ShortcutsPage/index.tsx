@@ -1,7 +1,7 @@
 import type { ColDef } from "ag-grid-community";
 import { useEffect, useState } from "react";
 import { toCamelCase } from "@/utils/utils";
-import ForwardedIconComponent from "../../../../components/common/genericIconComponent";
+import { Keyboard, RotateCcw } from "lucide-react";
 import TableComponent from "../../../../components/core/parameterRenderComponent/components/tableComponent";
 import { Button } from "../../../../components/ui/button";
 import { defaultShortcuts } from "../../../../constants/constants";
@@ -64,8 +64,7 @@ export default function ShortcutsPage() {
             data-testid="settings_menu_header"
           >
             Shortcuts
-            <ForwardedIconComponent
-              name="Keyboard"
+            <Keyboard
               className="ml-2 h-5 w-5 text-primary"
             />
           </h2>
@@ -94,7 +93,7 @@ export default function ShortcutsPage() {
                 className="flex gap-2"
                 onClick={handleRestore}
               >
-                <ForwardedIconComponent name="RotateCcw" className="w-4" />
+                <RotateCcw className="w-4" />
                 Restore
               </Button>
             </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { AlertTriangle, Fingerprint } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -151,8 +151,7 @@ const AuthModal = ({
     >
       <BaseModal.Content className="h-full " overflowHidden>
         <div className="flex items-center w-full p-4 gap-2 text-sm font-medium">
-          <ForwardedIconComponent
-            name="Fingerprint"
+          <Fingerprint
             className="h-4 w-4 shrink-0"
           />
           Configure MCP Server Authentication
@@ -174,8 +173,7 @@ const AuthModal = ({
                     {option.label}
                     {option.id === "none" && authType === "none" && (
                       <span className="text-accent-amber-foreground flex gap-1.5 text-xs items-center">
-                        <ForwardedIconComponent
-                          name="AlertTriangle"
+                        <AlertTriangle
                           className="h-3.5 w-3.5 shrink-0"
                         />
                         Public endpoint - no auth. Use only in dev or trusted
@@ -418,8 +416,7 @@ const AuthModal = ({
         className="p-4 border-t"
       >
         <div className="flex items-center text-accent-amber-foreground gap-2 text-sm pr-2">
-          <ForwardedIconComponent
-            name="AlertTriangle"
+          <AlertTriangle
             className="h-4 w-4 shrink-0 text-accent-amber-foreground"
           />
           <span className="text-mmd text-muted-foreground">

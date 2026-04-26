@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import IconComponent from "@/components/common/genericIconComponent";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGetAdminNotifications } from "@/controllers/API/queries/admin/use-get-admin-notifications";
 import { useMarkAllNotificationsRead } from "@/controllers/API/queries/admin/use-mark-all-notifications-read";
@@ -134,7 +134,7 @@ export default function AdminNotificationsPage() {
                       markRead.mutate({ id: n.id });
                     }}
                   >
-                    <IconComponent name="Check" className="h-4 w-4" />
+                    <Check className="h-4 w-4" />
                   </Button>
                 )}
               </div>

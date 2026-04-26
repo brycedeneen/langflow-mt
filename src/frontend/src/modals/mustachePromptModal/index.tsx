@@ -1,9 +1,9 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { usePostValidatePrompt } from "@/controllers/API/queries/nodes/use-post-validate-prompt";
-import IconComponent from "../../components/common/genericIconComponent";
+import { Braces, TerminalSquare } from "lucide-react";
 import SanitizedHTMLWrapper from "../../components/common/sanitizedHTMLWrapper";
-import ShadTooltip from "../../components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/ui/tooltip";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Textarea } from "../../components/ui/textarea";
@@ -212,8 +212,7 @@ export default function MustachePromptModal({
       <BaseModal.Header description={MUSTACHE_PROMPT_DIALOG_SUBTITLE}>
         <div className="flex w-full items-start gap-3">
           <div className="flex">
-            <IconComponent
-              name="TerminalSquare"
+            <TerminalSquare
               className="h-6 w-6 pr-1 text-primary"
               aria-hidden="true"
             />
@@ -266,8 +265,7 @@ export default function MustachePromptModal({
                 className="max-h-20 overflow-y-auto custom-scroll"
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <IconComponent
-                    name="Braces"
+                  <Braces
                     className="flex h-4 w-4 text-primary"
                   />
                   <span className="text-md font-semibold text-primary">
@@ -275,26 +273,31 @@ export default function MustachePromptModal({
                   </span>
 
                   {Array.from(wordsHighlight).map((word, index) => (
-                    <ShadTooltip
-                      key={word}
-                      content={word.replace(/[{}]/g, "")}
-                      asChild={false}
-                    >
-                      <Badge
-                        key={word}
-                        variant="gray"
-                        size="md"
-                        className="max-w-[40vw] cursor-default truncate p-1 text-sm"
+                    <Tooltip key={word} delayDuration={500}>
+                      <TooltipTrigger>
+                        <Badge
+                          key={word}
+                          variant="gray"
+                          size="md"
+                          className="max-w-[40vw] cursor-default truncate p-1 text-sm"
+                        >
+                          <div className="relative bottom-[1px]">
+                            <span id={"badge" + index.toString()}>
+                              {word.replace(/[{}]/g, "").length > 59
+                                ? word.replace(/[{}]/g, "").slice(0, 56) + "..."
+                                : word.replace(/[{}]/g, "")}
+                            </span>
+                          </div>
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                        avoidCollisions={false}
+                        sticky="always"
                       >
-                        <div className="relative bottom-[1px]">
-                          <span id={"badge" + index.toString()}>
-                            {word.replace(/[{}]/g, "").length > 59
-                              ? word.replace(/[{}]/g, "").slice(0, 56) + "..."
-                              : word.replace(/[{}]/g, "")}
-                          </span>
-                        </div>
-                      </Badge>
-                    </ShadTooltip>
+                        {word.replace(/[{}]/g, "")}
+                      </TooltipContent>
+                    </Tooltip>
                   ))}
                 </div>
               </div>

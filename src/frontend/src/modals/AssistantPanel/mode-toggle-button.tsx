@@ -1,5 +1,5 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Maximize2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import useAssistantStore from "@/stores/assistantStore";
 
 /** Toggle between panel and fullscreen layout modes. Only rendered in panel mode. */
@@ -10,14 +10,23 @@ export function ModeToggleButton() {
   if (layoutMode !== "panel") return null;
 
   return (
-    <ShadTooltip content="Enter full-screen ADP Assist">
-      <button
-        aria-label="Enter full-screen ADP Assist"
-        onClick={() => setLayoutMode("fullscreen")}
-        className="inline-flex h-7 w-7 items-center justify-center rounded hover:bg-muted"
+    <Tooltip delayDuration={500}>
+      <TooltipTrigger asChild>
+        <button
+          aria-label="Enter full-screen ADP Assist"
+          onClick={() => setLayoutMode("fullscreen")}
+          className="inline-flex h-7 w-7 items-center justify-center rounded hover:bg-muted"
+        >
+          <Maximize2 className="h-4 w-4" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent
+        className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+        avoidCollisions={false}
+        sticky="always"
       >
-        <ForwardedIconComponent name="Maximize2" className="h-4 w-4" />
-      </button>
-    </ShadTooltip>
+        Enter full-screen ADP Assist
+      </TooltipContent>
+    </Tooltip>
   );
 }

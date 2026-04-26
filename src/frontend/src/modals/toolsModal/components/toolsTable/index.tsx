@@ -4,7 +4,7 @@ import { cloneDeep } from "lodash";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { handleOnNewValueType } from "@/CustomNodes/hooks/use-handle-new-value";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import TableComponent from "@/components/core/parameterRenderComponent/components/tableComponent";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -458,15 +458,24 @@ export default function ToolsTable({
                         <label className="flex text-sm font-medium">
                           {field.display_name}
                           {field.description && (
-                            <ShadTooltip content={field.description}>
-                              <div className="flex items-center text-sm font-medium hover:cursor-help">
-                                <ForwardedIconComponent
-                                  name="info"
-                                  className="ml-1.5 h-4 w-4 text-muted-foreground"
-                                  aria-hidden="true"
-                                />
-                              </div>
-                            </ShadTooltip>
+                            <Tooltip delayDuration={500}>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center text-sm font-medium hover:cursor-help">
+                                  <ForwardedIconComponent
+                                    name="info"
+                                    className="ml-1.5 h-4 w-4 text-muted-foreground"
+                                    aria-hidden="true"
+                                  />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                                avoidCollisions={false}
+                                sticky="always"
+                              >
+                                {field.description}
+                              </TooltipContent>
+                            </Tooltip>
                           )}
                         </label>
                         <Input

@@ -10,10 +10,8 @@ import {
   useUpdateUser,
 } from "@/controllers/API/queries/auth";
 import CustomLoader from "@/customization/components/custom-loader";
-import IconComponent, {
-  ForwardedIconComponent,
-} from "../../components/common/genericIconComponent";
-import ShadTooltip from "../../components/common/shadTooltipComponent";
+import { Pencil, Search, Trash2, Users as UsersIcon, X } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/ui/tooltip";
 import { Button } from "../../components/ui/button";
 import { CheckBoxDiv } from "../../components/ui/checkbox";
 import { Input } from "../../components/ui/input";
@@ -317,8 +315,7 @@ export default function UsersPage() {
                 data-testid="settings_menu_header"
               >
                 User Admin
-                <ForwardedIconComponent
-                  name="Users"
+                <UsersIcon
                   className="ml-2 h-5 w-5 text-primary"
                 />
               </h2>
@@ -357,12 +354,11 @@ export default function UsersPage() {
                     setFilterUserList(userList.current);
                   }}
                 >
-                  <IconComponent name="X" className="w-6 text-foreground" />
+                  <X className="w-6 text-foreground" />
                 </div>
               ) : (
                 <div>
-                  <IconComponent
-                    name="Search"
+                  <Search
                     className="w-6 text-foreground"
                   />
                 </div>
@@ -409,29 +405,56 @@ export default function UsersPage() {
                       {filterUserList.map((user: UserInputType, index) => (
                         <TableRow key={user.id}>
                           <TableCell className="truncate py-2 font-medium">
-                            <ShadTooltip content={user.id}>
-                              <span className="cursor-default">{user.id}</span>
-                            </ShadTooltip>
+                            <Tooltip delayDuration={500}>
+                              <TooltipTrigger asChild>
+                                <span className="cursor-default">{user.id}</span>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                                avoidCollisions={false}
+                                sticky="always"
+                              >
+                                {user.id}
+                              </TooltipContent>
+                            </Tooltip>
                           </TableCell>
                           <TableCell className="truncate py-2">
-                            <ShadTooltip content={user.username}>
-                              <button
-                                className="cursor-pointer text-left hover:underline"
-                                onClick={() =>
-                                  navigate(`/settings/users/${user.id}`)
-                                }
+                            <Tooltip delayDuration={500}>
+                              <TooltipTrigger asChild>
+                                <button
+                                  className="cursor-pointer text-left hover:underline"
+                                  onClick={() =>
+                                    navigate(`/settings/users/${user.id}`)
+                                  }
+                                >
+                                  {user.username}
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                                avoidCollisions={false}
+                                sticky="always"
                               >
                                 {user.username}
-                              </button>
-                            </ShadTooltip>
+                              </TooltipContent>
+                            </Tooltip>
                           </TableCell>
                           <TableCell className="relative left-1 truncate py-2 text-align-last-left">
                             {user.id === userData?.id ? (
-                              <ShadTooltip content="You cannot deactivate your own account">
-                                <div className="flex w-fit cursor-not-allowed opacity-50">
-                                  <CheckBoxDiv checked={user.is_active} />
-                                </div>
-                              </ShadTooltip>
+                              <Tooltip delayDuration={500}>
+                                <TooltipTrigger asChild>
+                                  <div className="flex w-fit cursor-not-allowed opacity-50">
+                                    <CheckBoxDiv checked={user.is_active} />
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent
+                                  className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                                  avoidCollisions={false}
+                                  sticky="always"
+                                >
+                                  You cannot deactivate your own account
+                                </TooltipContent>
+                              </Tooltip>
                             ) : (
                               <ConfirmationModal
                                 size="x-small"
@@ -562,12 +585,21 @@ export default function UsersPage() {
                                   handleEditUser(user.id, editUser);
                                 }}
                               >
-                                <ShadTooltip content="Edit" side="top">
-                                  <IconComponent
-                                    name="Pencil"
-                                    className="h-4 w-4 cursor-pointer"
-                                  />
-                                </ShadTooltip>
+                                <Tooltip delayDuration={500}>
+                                  <TooltipTrigger asChild>
+                                    <Pencil
+                                      className="h-4 w-4 cursor-pointer"
+                                    />
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                                    side="top"
+                                    avoidCollisions={false}
+                                    sticky="always"
+                                  >
+                                    Edit
+                                  </TooltipContent>
+                                </Tooltip>
                               </UserManagementModal>
 
                               <ConfirmationModal
@@ -591,8 +623,7 @@ export default function UsersPage() {
                                   </span>
                                 </ConfirmationModal.Content>
                                 <ConfirmationModal.Trigger>
-                                  <IconComponent
-                                    name="Trash2"
+                                  <Trash2
                                     className="ml-2 h-4 w-4 cursor-pointer"
                                   />
                                 </ConfirmationModal.Trigger>

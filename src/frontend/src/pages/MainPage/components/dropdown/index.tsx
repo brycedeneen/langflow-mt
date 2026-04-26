@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { CopyPlus, Download, SquarePen, Trash2 } from "lucide-react";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import useAlertStore from "@/stores/alertStore";
 import type { FlowType } from "@/types/flow";
@@ -49,8 +49,7 @@ const DropdownComponent = ({
         className="cursor-pointer"
         data-testid="btn-edit-flow"
       >
-        <ForwardedIconComponent
-          name="SquarePen"
+        <SquarePen
           aria-hidden="true"
           className="mr-2 h-4 w-4"
         />
@@ -64,8 +63,7 @@ const DropdownComponent = ({
         className="cursor-pointer"
         data-testid="btn-download-json"
       >
-        <ForwardedIconComponent
-          name="Download"
+        <Download
           aria-hidden="true"
           className="mr-2 h-4 w-4"
         />
@@ -79,8 +77,7 @@ const DropdownComponent = ({
         className="cursor-pointer"
         data-testid="btn-duplicate-flow"
       >
-        <ForwardedIconComponent
-          name="CopyPlus"
+        <CopyPlus
           aria-hidden="true"
           className="mr-2 h-4 w-4"
         />
@@ -94,8 +91,7 @@ const DropdownComponent = ({
         className="cursor-pointer text-destructive"
         data-testid="btn_delete_dropdown_menu"
       >
-        <ForwardedIconComponent
-          name="Trash2"
+        <Trash2
           aria-hidden="true"
           className="mr-2 h-4 w-4"
         />

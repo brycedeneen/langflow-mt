@@ -1,4 +1,5 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { File } from "lucide-react";
+import { X } from "lucide-react";
 import Loading from "@/components/ui/loading";
 import { cn } from "@/utils/utils";
 
@@ -28,7 +29,7 @@ const FilePreview = ({ file, loading, error, onDelete }: FilePreviewProps) => {
           className="h-full w-full rounded-md object-cover"
         />
       ) : (
-        <ForwardedIconComponent name="File" className="h-6 w-6" />
+        <File className="h-6 w-6" />
       )}
 
       <button
@@ -36,7 +37,7 @@ const FilePreview = ({ file, loading, error, onDelete }: FilePreviewProps) => {
         className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
         type="button"
       >
-        <ForwardedIconComponent name="X" className="h-3 w-3" />
+        <X className="h-3 w-3" />
       </button>
     </div>
   );

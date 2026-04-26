@@ -1,5 +1,5 @@
 import { useState } from "react";
-import IconComponent from "@/components/common/genericIconComponent";
+import { Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -225,8 +225,7 @@ export default function OrganizationAlertRulesTab({ orgId }: { orgId: string }) 
             {isPending ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center">
-                  <IconComponent
-                    name="Loader2"
+                  <Loader2
                     className="mx-auto h-5 w-5 animate-spin"
                   />
                 </TableCell>
@@ -276,7 +275,7 @@ export default function OrganizationAlertRulesTab({ orgId }: { orgId: string }) 
                       data-testid={`rule-delete-${r.id}`}
                       aria-label="Delete alert rule"
                     >
-                      <IconComponent name="Trash2" className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>

@@ -1,12 +1,8 @@
+// Headless disclosure primitive (Disclosure/Trigger/Content) with grid-fr-based
+// open/close animation. ~4 callers in the flow sidebar + accordion prompt.
+// Provides a small state-management context with ARIA + keyboard handling.
+// Kept per Phase 7d audit.
 "use client";
-import {
-  AnimatePresence,
-  MotionConfig,
-  motion,
-  type Transition,
-  type Variant,
-  type Variants,
-} from "framer-motion";
 import * as React from "react";
 import {
   createContext,
@@ -21,7 +17,6 @@ import { cn } from "../../utils/utils";
 type DisclosureContextType = {
   open: boolean;
   toggle: () => void;
-  variants?: { expanded: Variant; collapsed: Variant };
 };
 
 const DisclosureContext = createContext<DisclosureContextType | undefined>(
@@ -32,14 +27,12 @@ type DisclosureProviderProps = {
   children: React.ReactNode;
   open: boolean;
   onOpenChange?: (open: boolean) => void;
-  variants?: { expanded: Variant; collapsed: Variant };
 };
 
 const DisclosureProvider = memo(function DisclosureProvider({
   children,
   open: openProp,
   onOpenChange,
-  variants,
 }: DisclosureProviderProps) {
   const toggle = useCallback(() => {
     if (onOpenChange) {
@@ -51,9 +44,8 @@ const DisclosureProvider = memo(function DisclosureProvider({
     () => ({
       open: openProp,
       toggle,
-      variants,
     }),
-    [openProp, toggle, variants],
+    [openProp, toggle],
   );
 
   return (
@@ -76,8 +68,6 @@ type DisclosureProps = {
   onOpenChange?: (open: boolean) => void;
   children: React.ReactNode;
   className?: string;
-  variants?: { expanded: Variant; collapsed: Variant };
-  transition?: Transition;
 };
 
 export const Disclosure = memo(function Disclosure({
@@ -85,24 +75,16 @@ export const Disclosure = memo(function Disclosure({
   onOpenChange,
   children,
   className,
-  transition,
-  variants,
 }: DisclosureProps) {
   const childrenArray = React.Children.toArray(children);
 
   return (
-    <MotionConfig transition={transition}>
-      <div className={className}>
-        <DisclosureProvider
-          open={openProp}
-          onOpenChange={onOpenChange}
-          variants={variants}
-        >
-          {childrenArray[0]}
-          {childrenArray[1]}
-        </DisclosureProvider>
-      </div>
-    </MotionConfig>
+    <div className={className}>
+      <DisclosureProvider open={openProp} onOpenChange={onOpenChange}>
+        {childrenArray[0]}
+        {childrenArray[1]}
+      </DisclosureProvider>
+    </div>
   );
 });
 
@@ -154,17 +136,6 @@ const DisclosureTrigger = memo(function DisclosureTrigger({
   );
 });
 
-const BASE_VARIANTS: Variants = {
-  expanded: {
-    height: "auto",
-    opacity: 1,
-  },
-  collapsed: {
-    height: 0,
-    opacity: 0,
-  },
-};
-
 const DisclosureContent = memo(function DisclosureContent({
   children,
   className,
@@ -172,32 +143,22 @@ const DisclosureContent = memo(function DisclosureContent({
   children: React.ReactNode;
   className?: string;
 }) {
-  const { open, variants } = useDisclosure();
+  const { open } = useDisclosure();
   const uniqueId = useId();
 
-  const combinedVariants = useMemo(
-    () => ({
-      expanded: { ...BASE_VARIANTS.expanded, ...variants?.expanded },
-      collapsed: { ...BASE_VARIANTS.collapsed, ...variants?.collapsed },
-    }),
-    [variants],
-  );
-
+  // Grid-template-rows trick: animates 0fr ↔ 1fr to reveal/hide content at its
+  // natural height. Replaces the previous framer-motion height: auto ↔ 0
+  // animation with pure CSS.
   return (
-    <div className={cn("overflow-hidden", className)}>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            id={uniqueId}
-            initial="collapsed"
-            animate="expanded"
-            exit="collapsed"
-            variants={combinedVariants}
-          >
-            {children}
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div
+      id={uniqueId}
+      data-open={open}
+      className={cn(
+        "grid grid-rows-[0fr] transition-[grid-template-rows,opacity] duration-200 ease-in-out data-[open=true]:grid-rows-[1fr] overflow-hidden opacity-0 data-[open=true]:opacity-100",
+        className,
+      )}
+    >
+      <div className="min-h-0 overflow-hidden">{children}</div>
     </div>
   );
 });

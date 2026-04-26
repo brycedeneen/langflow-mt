@@ -8,7 +8,7 @@ import {
 } from "@/CustomNodes/helpers/parameter-filtering";
 import { sortToolModeFields } from "@/CustomNodes/helpers/sort-tool-mode-field";
 import getFieldTitle from "@/CustomNodes/utils/get-field-title";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Settings2 } from "lucide-react";
 import useFlowStore from "@/stores/flowStore";
 import type { NodeDataType, targetHandleType } from "@/types/flow";
 import { scapeJSONParse } from "@/utils/reactflowUtils";
@@ -129,10 +129,7 @@ export default function InspectionPanelFields({
   if (advancedFields.length === 0) {
     return (
       <div className="flex flex-col gap-2 items-center justify-center p-10 pb-12 text-sm text-muted-foreground">
-        <ForwardedIconComponent
-          name="Settings2"
-          className="text-input w-6 h-6"
-        />
+        <Settings2 className="text-input w-6 h-6" />
         No advanced settings
       </div>
     );

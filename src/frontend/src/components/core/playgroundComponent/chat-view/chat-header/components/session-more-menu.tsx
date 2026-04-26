@@ -1,6 +1,6 @@
 import { useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { MoreVertical, Scroll, SquarePen, Trash2, X } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -93,11 +93,8 @@ export function SessionMoreMenu({
         open={open}
         onOpenChange={setOpen}
       >
-        <ShadTooltip
-          styleClasses="z-50"
-          side={tooltipSide}
-          content={tooltipContent}
-        >
+        <Tooltip delayDuration={500}>
+        <TooltipTrigger asChild>
           <SelectTrigger
             className={cn(
               "h-8 w-8 border-none bg-transparent p-2 rounded transition-colors text-muted-foreground hover:bg-accent hover:text-foreground focus:ring-0",
@@ -111,13 +108,21 @@ export function SessionMoreMenu({
             }}
             data-testid={dataTestid}
           >
-            <ForwardedIconComponent
-              name="MoreVertical"
+            <MoreVertical
               className="h-4 w-4"
               aria-hidden="true"
             />
           </SelectTrigger>
-        </ShadTooltip>
+        </TooltipTrigger>
+        <TooltipContent
+          className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground z-50"
+          side={tooltipSide}
+          avoidCollisions={false}
+          sticky="always"
+        >
+          {tooltipContent}
+        </TooltipContent>
+        </Tooltip>
         <SelectContent
           side={side}
           align={align}
@@ -132,8 +137,7 @@ export function SessionMoreMenu({
               data-testid="rename-session-option"
             >
               <div className="flex items-center">
-                <ForwardedIconComponent
-                  name="SquarePen"
+                <SquarePen
                   className="mr-2 h-4 w-4"
                 />
                 Rename
@@ -147,8 +151,7 @@ export function SessionMoreMenu({
               data-testid="message-logs-option"
             >
               <div className="flex items-center">
-                <ForwardedIconComponent
-                  name="Scroll"
+                <Scroll
                   className="mr-2 h-4 w-4"
                 />
                 Message logs
@@ -162,7 +165,7 @@ export function SessionMoreMenu({
               data-testid="clear-chat-option"
             >
               <div className="flex items-center text-status-red hover:text-status-red">
-                <ForwardedIconComponent name="X" className="mr-2 h-4 w-4" />
+                <X className="mr-2 h-4 w-4" />
                 Clear chat
               </div>
             </SelectItem>
@@ -174,8 +177,7 @@ export function SessionMoreMenu({
               data-testid="delete-session-option"
             >
               <div className="flex items-center text-status-red hover:text-status-red">
-                <ForwardedIconComponent
-                  name="Trash2"
+                <Trash2
                   className="mr-2 h-4 w-4"
                 />
                 {isDefaultSession ? "Clear session" : "Delete session"}

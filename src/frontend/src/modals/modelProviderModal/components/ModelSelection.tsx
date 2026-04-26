@@ -1,3 +1,4 @@
+import { Info } from "lucide-react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { Switch } from "@/components/ui/switch";
 import { useGetEnabledModels } from "@/controllers/API/queries/models/use-get-enabled-models";
@@ -113,8 +114,7 @@ const ModelSelection = ({
     <div data-testid="model-provider-selection" className="flex flex-col gap-6">
       {isOllama && noModelsAvailable ? (
         <div className="flex flex-col items-center justify-center p-8 text-center border border-dashed rounded-lg bg-muted/30">
-          <ForwardedIconComponent
-            name="Info"
+          <Info
             className="w-10 h-10 mb-4 text-muted-foreground"
           />
           <h3 className="mb-2 text-sm font-semibold text-foreground">

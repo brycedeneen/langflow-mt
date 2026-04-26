@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -83,8 +83,7 @@ export default function ProfessionalServicesPage() {
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <ForwardedIconComponent
-          name="Loader2"
+        <Loader2
           className="h-6 w-6 animate-spin text-muted-foreground"
         />
       </div>

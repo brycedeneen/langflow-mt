@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Download, EllipsisVertical, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,16 +59,10 @@ export default function VersionListItem({
                 {isSelected ? (
                   <>
                     <span className="block h-2 w-2 rounded-full bg-[#6366F1] group-hover/trigger:hidden" />
-                    <ForwardedIconComponent
-                      name="EllipsisVertical"
-                      className="hidden h-3.5 w-3.5 text-muted-foreground group-hover/trigger:block"
-                    />
+                    <EllipsisVertical className="hidden h-3.5 w-3.5 text-muted-foreground group-hover/trigger:block" />
                   </>
                 ) : (
-                  <ForwardedIconComponent
-                    name="EllipsisVertical"
-                    className="h-3.5 w-3.5 text-muted-foreground group-hover/histitem:text-primary"
-                  />
+                  <EllipsisVertical className="h-3.5 w-3.5 text-muted-foreground group-hover/histitem:text-primary" />
                 )}
               </button>
             </DropdownMenuTrigger>
@@ -77,20 +71,14 @@ export default function VersionListItem({
                 onClick={() => onExport(entry)}
                 className="cursor-pointer"
               >
-                <ForwardedIconComponent
-                  name="Download"
-                  className="mr-2 h-3.5 w-3.5"
-                />
+                <Download className="mr-2 h-3.5 w-3.5" />
                 Export
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onDeleteClick(entry)}
                 className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
               >
-                <ForwardedIconComponent
-                  name="Trash2"
-                  className="mr-2 h-3.5 w-3.5"
-                />
+                <Trash2 className="mr-2 h-3.5 w-3.5" />
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>

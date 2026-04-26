@@ -7,7 +7,7 @@ import {
 } from "../../../constants/constants";
 import useAlertStore from "../../../stores/alertStore";
 import { Separator } from "../../ui/separator";
-import ForwardedIconComponent from "../genericIconComponent";
+import { ArrowDownToLine, Image, Maximize2, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
 
 export default function ImageViewer({ image }: { image: string }) {
   const viewerRef = useRef(null);
@@ -86,7 +86,7 @@ export default function ImageViewer({ image }: { image: string }) {
   return image === "" ? (
     <div className="align-center flex h-full w-full flex-col justify-center gap-5 rounded-md border border-border bg-muted">
       <div className="align-center flex justify-center gap-2">
-        <ForwardedIconComponent name="Image" />
+        <Image />
         {IMGViewErrorTitle}
       </div>
       <div className="align-center flex justify-center">
@@ -103,8 +103,7 @@ export default function ImageViewer({ image }: { image: string }) {
             id="zoom-in-button"
             className="relative inline-flex w-full items-center justify-center px-3 py-3 text-sm font-semibold transition-all duration-500 ease-in-out hover:bg-hover"
           >
-            <ForwardedIconComponent
-              name="ZoomIn"
+            <ZoomIn
               className={"h-5 w-5 text-secondary-foreground"}
             />
           </button>
@@ -115,8 +114,7 @@ export default function ImageViewer({ image }: { image: string }) {
             id="zoom-out-button"
             className="relative inline-flex w-full items-center justify-center px-3 py-3 text-sm font-semibold transition-all duration-500 ease-in-out hover:bg-hover"
           >
-            <ForwardedIconComponent
-              name="ZoomOut"
+            <ZoomOut
               className={"h-5 w-5 text-secondary-foreground"}
             />
           </button>
@@ -127,8 +125,7 @@ export default function ImageViewer({ image }: { image: string }) {
             id="home-button"
             className="relative inline-flex w-full items-center justify-center px-3 py-3 text-sm font-semibold transition-all duration-500 ease-in-out hover:bg-hover"
           >
-            <ForwardedIconComponent
-              name="RotateCcw"
+            <RotateCcw
               className={"h-5 w-5 text-secondary-foreground"}
             />
           </button>
@@ -139,8 +136,7 @@ export default function ImageViewer({ image }: { image: string }) {
             id="full-page-button"
             className="relative inline-flex w-full items-center justify-center px-3 py-3 text-sm font-semibold transition-all duration-500 ease-in-out hover:bg-hover"
           >
-            <ForwardedIconComponent
-              name="Maximize2"
+            <Maximize2
               className={"h-5 w-5 text-secondary-foreground"}
             />
           </button>
@@ -152,8 +148,7 @@ export default function ImageViewer({ image }: { image: string }) {
             onClick={download}
             className="relative inline-flex w-full items-center justify-center px-3 py-3 text-sm font-semibold transition-all duration-500 ease-in-out hover:bg-hover"
           >
-            <ForwardedIconComponent
-              name="ArrowDownToLine"
+            <ArrowDownToLine
               className={"h-5 w-5 text-secondary-foreground"}
             />
           </button>

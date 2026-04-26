@@ -1,6 +1,6 @@
 import { memo } from "react";
 
-// memo: pure leaf with a single string prop, rendered inside ShadTooltip content
+// memo: pure leaf with a single string prop, rendered inside TooltipContent
 // inside NodeInputField (which re-renders on many flow store updates).
 function NodeInputInfo({ info }: { info: string }) {
   return (

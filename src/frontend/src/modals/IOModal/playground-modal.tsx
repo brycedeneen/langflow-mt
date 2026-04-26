@@ -14,7 +14,7 @@ import { useUtilityStore } from "@/stores/utilityStore";
 import { swatchColors } from "@/utils/styleUtils";
 import LangflowLogoColor from "../../assets/LangflowLogoColor.svg?react";
 import IconComponent from "../../components/common/genericIconComponent";
-import ShadTooltip from "../../components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/ui/tooltip";
 import { Button } from "../../components/ui/button";
 import useAlertStore from "../../stores/alertStore";
 import useFlowStore from "../../stores/flowStore";
@@ -403,22 +403,28 @@ export default function IOModal({
                       </div>
                     )}
                   </div>
-                  <ShadTooltip
-                    styleClasses="z-50"
-                    side="right"
-                    content="Hide sidebar"
-                  >
-                    <Button
-                      variant="ghost"
-                      className="flex h-8 w-8 items-center justify-center !p-0"
-                      onClick={() => setSidebarOpen(!sidebarOpen)}
+                  <Tooltip delayDuration={500}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="flex h-8 w-8 items-center justify-center !p-0"
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                      >
+                        <IconComponent
+                          name={sidebarOpen ? "PanelLeftClose" : "PanelLeftOpen"}
+                          className="h-[18px] w-[18px] text-ring"
+                        />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "z-50")}
+                      side="right"
+                      avoidCollisions={false}
+                      sticky="always"
                     >
-                      <IconComponent
-                        name={sidebarOpen ? "PanelLeftClose" : "PanelLeftOpen"}
-                        className="h-[18px] w-[18px] text-ring"
-                      />
-                    </Button>
-                  </ShadTooltip>
+                      Hide sidebar
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 {sidebarOpen && !sessionsLoading && (
                   <SidebarOpenView
@@ -452,19 +458,25 @@ export default function IOModal({
             </div>
             {!sidebarOpen && showPublishOptions && (
               <div className="absolute bottom-6 left-4 hidden transition-all md:block">
-                <ShadTooltip
-                  styleClasses="z-50"
-                  side="right"
-                  content="Built with Amplify"
-                >
-                  <Button
-                    variant="primary"
-                    className="h-12 w-12 !rounded-xl !p-4 shadow-lg"
-                    onClick={LangflowButtonClick}
+                <Tooltip delayDuration={500}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="primary"
+                      className="h-12 w-12 !rounded-xl !p-4 shadow-lg"
+                      onClick={LangflowButtonClick}
+                    >
+                      <LangflowLogoColor className="h-[18px] w-[18px] scale-150" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "z-50")}
+                    side="right"
+                    avoidCollisions={false}
+                    sticky="always"
                   >
-                    <LangflowLogoColor className="h-[18px] w-[18px] scale-150" />
-                  </Button>
-                </ShadTooltip>
+                    Built with Amplify
+                  </TooltipContent>
+                </Tooltip>
               </div>
             )}
             <div className="flex h-full min-w-96 grow bg-background">

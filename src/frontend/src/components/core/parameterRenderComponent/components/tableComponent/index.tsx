@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   DEFAULT_TABLE_ALERT_MSG,
@@ -374,10 +374,7 @@ const TableComponent = forwardRef<
       return (
         <div className="flex h-full w-full items-center justify-center rounded-md border">
           <Alert variant={"default"} className="w-fit">
-            <ForwardedIconComponent
-              name="AlertCircle"
-              className="h-5 w-5 text-primary"
-            />
+            <AlertCircle className="h-5 w-5 text-primary" />
             <AlertTitle>{alertTitle}</AlertTitle>
             <AlertDescription>{alertDescription}</AlertDescription>
           </Alert>
@@ -389,10 +386,7 @@ const TableComponent = forwardRef<
       return (
         <div className="flex h-full w-full items-center justify-center rounded-md border">
           <Alert variant={"default"} className="w-fit">
-            <ForwardedIconComponent
-              name="AlertCircle"
-              className="h-5 w-5 text-primary"
-            />
+            <AlertCircle className="h-5 w-5 text-primary" />
             <AlertTitle>{NO_COLUMN_DEFINITION_ALERT_TITLE}</AlertTitle>
             <AlertDescription>
               {NO_COLUMN_DEFINITION_ALERT_DESCRIPTION}

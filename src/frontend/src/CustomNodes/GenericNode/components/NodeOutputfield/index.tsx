@@ -14,10 +14,9 @@ import { Badge } from "@/components/ui/badge";
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
 import { useShortcutsStore } from "@/stores/shortcuts";
 import type { targetHandleType } from "@/types/flow";
-import ForwardedIconComponent, {
-  default as IconComponent,
-} from "../../../../components/common/genericIconComponent";
-import ShadTooltip from "../../../../components/common/shadTooltipComponent";
+import { Infinity, Snowflake, TextSearchIcon } from "lucide-react";
+import { default as IconComponent } from "../../../../components/common/genericIconComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../components/ui/tooltip";
 import { Button } from "../../../../components/ui/button";
 import useFlowStore from "../../../../stores/flowStore";
 import { useTypesStore } from "../../../../stores/typesStore";
@@ -49,7 +48,7 @@ const _EyeIcon = memo(
   ),
 );
 const SnowflakeIcon = memo(() => (
-  <IconComponent className="!w-3 !h-3 text-ice" name="Snowflake" />
+  <Snowflake className="!w-3 !h-3 text-ice" />
 ));
 
 const InspectButton = memo(
@@ -83,8 +82,7 @@ const InspectButton = memo(
         unstyled
         onClick={onClick}
       >
-        <IconComponent
-          name="TextSearchIcon"
+        <TextSearchIcon
           strokeWidth={ICON_STROKE_WIDTH}
           className={cn(
             "icon-size",
@@ -390,7 +388,7 @@ function NodeOutputField({
         <div className="flex flex-1">
           {data.node?.outputs![index].allows_loop && (
             <Badge variant="pinkStatic" size="xq" className="mr-2 px-1">
-              <ForwardedIconComponent name="Infinity" className="h-4 w-4" />
+              <Infinity className="h-4 w-4" />
             </Badge>
           )}
         </div>
@@ -422,42 +420,46 @@ function NodeOutputField({
             />
           </span>
 
-          <ShadTooltip
-            content={
-              displayOutputPreview
+          <Tooltip delayDuration={500}>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-2">
+                <OutputModal
+                  open={openOutputModal}
+                  setOpen={setOpenOutputModal}
+                  disabled={disabledInspectButton}
+                  nodeId={flowPoolId}
+                  outputName={internalOutputName}
+                >
+                  <InspectButton
+                    disabled={disabledInspectButton}
+                    displayOutputPreview={displayOutputPreview}
+                    unknownOutput={unknownOutput ?? false}
+                    errorOutput={errorOutput ?? false}
+                    isToolMode={isToolMode}
+                    title={title}
+                    onClick={() => {}}
+                    id={data?.type}
+                  />
+                </OutputModal>
+                {looping && (
+                  <Badge variant="pinkStatic" size="xq" className="px-1">
+                    Looping
+                  </Badge>
+                )}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent
+              className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "z-40")}
+              avoidCollisions={false}
+              sticky="always"
+            >
+              {displayOutputPreview
                 ? unknownOutput || emptyOutput
                   ? "Output can't be displayed"
                   : "Inspect output"
-                : "Please build the component first"
-            }
-            styleClasses="z-40"
-          >
-            <div className="flex items-center gap-2">
-              <OutputModal
-                open={openOutputModal}
-                setOpen={setOpenOutputModal}
-                disabled={disabledInspectButton}
-                nodeId={flowPoolId}
-                outputName={internalOutputName}
-              >
-                <InspectButton
-                  disabled={disabledInspectButton}
-                  displayOutputPreview={displayOutputPreview}
-                  unknownOutput={unknownOutput ?? false}
-                  errorOutput={errorOutput ?? false}
-                  isToolMode={isToolMode}
-                  title={title}
-                  onClick={() => {}}
-                  id={data?.type}
-                />
-              </OutputModal>
-              {looping && (
-                <Badge variant="pinkStatic" size="xq" className="px-1">
-                  Looping
-                </Badge>
-              )}
-            </div>
-          </ShadTooltip>
+                : "Please build the component first"}
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
       {Handle}

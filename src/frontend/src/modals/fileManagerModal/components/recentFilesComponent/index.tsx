@@ -1,6 +1,6 @@
 import Fuse from "fuse.js";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { ChevronRight, Folder, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -262,7 +262,7 @@ export default function RecentFilesComponent({
                 loading={isDeleting}
                 data-testid="bulk-delete-files-modal-btn"
               >
-                <ForwardedIconComponent name="Trash2" />
+                <Trash2 />
                 Delete
               </Button>
             </DeleteConfirmationModal>
@@ -362,13 +362,11 @@ export default function RecentFilesComponent({
                                 className="focus-visible:ring-0"
                               />
                             </div>
-                            <ForwardedIconComponent
-                              name="Folder"
+                            <Folder
                               className="h-4 w-4 text-muted-foreground"
                             />
                             <span className="truncate">{node.name}</span>
-                            <ForwardedIconComponent
-                              name="ChevronRight"
+                            <ChevronRight
                               className={cn(
                                 "ml-auto h-4 w-4 text-muted-foreground transition-transform",
                                 isExpanded ? "rotate-90" : "rotate-0",

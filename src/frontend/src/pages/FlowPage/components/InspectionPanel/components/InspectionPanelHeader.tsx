@@ -3,7 +3,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import useHandleOnNewValue from "@/CustomNodes/hooks/use-handle-new-value";
 import useHandleNodeClass from "@/CustomNodes/hooks/use-handle-node-class";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
@@ -122,52 +122,71 @@ export default function InspectionPanelHeader({
         onMouseLeave={() => setIsHoveringContent(false)}
       >
         <div className="absolute -left-2 top-[18px] w-7 pr-2">
-          <ShadTooltip content={editMode ? "Save" : "Edit"} side="top">
-            <Button
-              unstyled
-              onClick={() => {
-                toggleEditMode();
-              }}
-              className={cn(
-                "nodrag z-50 flex h-5 w-5 ml-1 cursor-pointer items-center justify-center rounded-md",
-                "transform transition-all duration-300 ease-out",
-                editMode ? "bg-accent-emerald" : "bg-zinc-foreground",
-                isHoveringContent ? "opacity-100" : "opacity-0",
-              )}
-              data-testid={
-                editMode
-                  ? "save-name-description-button"
-                  : "edit-name-description-button"
-              }
-            >
-              <ForwardedIconComponent
-                name={editMode ? "Check" : "PencilLine"}
-                strokeWidth={ICON_STROKE_WIDTH}
+          <Tooltip delayDuration={500}>
+            <TooltipTrigger asChild>
+              <Button
+                unstyled
+                onClick={() => {
+                  toggleEditMode();
+                }}
                 className={cn(
-                  editMode
-                    ? "text-accent-emerald-foreground"
-                    : "text-muted-foreground",
-                  "w-4 h-4",
+                  "nodrag z-50 flex h-5 w-5 ml-1 cursor-pointer items-center justify-center rounded-md",
+                  "transform transition-all duration-300 ease-out",
+                  editMode ? "bg-accent-emerald" : "bg-zinc-foreground",
+                  isHoveringContent ? "opacity-100" : "opacity-0",
                 )}
-              />
-            </Button>
-          </ShadTooltip>
+                data-testid={
+                  editMode
+                    ? "save-name-description-button"
+                    : "edit-name-description-button"
+                }
+              >
+                <ForwardedIconComponent
+                  name={editMode ? "Check" : "PencilLine"}
+                  strokeWidth={ICON_STROKE_WIDTH}
+                  className={cn(
+                    editMode
+                      ? "text-accent-emerald-foreground"
+                      : "text-muted-foreground",
+                    "w-4 h-4",
+                  )}
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+              side="top"
+              avoidCollisions={false}
+              sticky="always"
+            >
+              {editMode ? "Save" : "Edit"}
+            </TooltipContent>
+          </Tooltip>
         </div>
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 overflow-hidden">
             <span className="font-semibold truncate" data-testid="panel-name">
               {nameElement}
             </span>
-            <ShadTooltip content="Click to copy full ID">
-              <Badge
-                variant="secondaryStatic"
-                size="sm"
-                className="shrink-0 cursor-pointer rounded-full px-2 text-[10px] font-normal hover:bg-muted-foreground/20"
-                onClick={handleCopyId}
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="secondaryStatic"
+                  size="sm"
+                  className="shrink-0 cursor-pointer rounded-full px-2 text-[10px] font-normal hover:bg-muted-foreground/20"
+                  onClick={handleCopyId}
+                >
+                  ID: {data.id.split("-").pop()}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent
+                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                avoidCollisions={false}
+                sticky="always"
               >
-                ID: {data.id.split("-").pop()}
-              </Badge>
-            </ShadTooltip>
+                Click to copy full ID
+              </TooltipContent>
+            </Tooltip>
           </div>
           <div
             className="flex items-center gap-1"

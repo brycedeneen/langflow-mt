@@ -3,7 +3,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import IconComponent from "@/components/common/genericIconComponent";
 import RolePicker from "@/components/common/rolePicker";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "../../components/ui/button";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -288,17 +288,26 @@ export default function UserManagementModal({
                     Active
                   </Form.Label>
                   {data?.id === userData?.id ? (
-                    <ShadTooltip content="You cannot deactivate your own account">
-                      <span className="inline-block cursor-not-allowed">
-                        <Checkbox
-                          value={isActive}
-                          checked={isActive}
-                          id="is_active"
-                          className="relative top-0.5 pointer-events-none opacity-50"
-                          disabled
-                        />
-                      </span>
-                    </ShadTooltip>
+                    <Tooltip delayDuration={500}>
+                      <TooltipTrigger asChild>
+                        <span className="inline-block cursor-not-allowed">
+                          <Checkbox
+                            value={isActive}
+                            checked={isActive}
+                            id="is_active"
+                            className="relative top-0.5 pointer-events-none opacity-50"
+                            disabled
+                          />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                        avoidCollisions={false}
+                        sticky="always"
+                      >
+                        You cannot deactivate your own account
+                      </TooltipContent>
+                    </Tooltip>
                   ) : (
                     <Form.Control asChild>
                       <Checkbox

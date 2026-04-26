@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Loader2 } from "lucide-react";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import useVersionPreviewStore from "@/stores/versionPreviewStore";
 import { CanvasBadge } from "./CanvasBanner";
@@ -28,8 +28,7 @@ export default function VersionPreviewOverlay() {
       {isPreviewLoading && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="pointer-events-auto flex items-center gap-2 rounded-lg border bg-background px-4 py-2 shadow-lg">
-            <ForwardedIconComponent
-              name="Loader2"
+            <Loader2
               className="h-4 w-4 animate-spin text-muted-foreground"
             />
             <span className="text-sm text-muted-foreground">

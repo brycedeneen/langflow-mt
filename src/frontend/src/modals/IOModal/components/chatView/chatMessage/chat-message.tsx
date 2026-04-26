@@ -10,6 +10,7 @@ import { ENABLE_DATASTAX_LANGFLOW } from "@/customization/feature-flags";
 import useFlowStore from "@/stores/flowStore";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import Robot from "../../../../../assets/robot.png";
+import { MessageSquare, MoreHorizontal, User } from "lucide-react";
 import IconComponent, {
   ForwardedIconComponent,
 } from "../../../../../components/common/genericIconComponent";
@@ -262,7 +263,7 @@ export default function ChatMessage({
                 ) : !ENABLE_DATASTAX_LANGFLOW && !playgroundPage ? (
                   <CustomProfileIcon />
                 ) : playgroundPage ? (
-                  <ForwardedIconComponent name="User" />
+                  <User />
                 ) : (
                   <CustomProfileIcon />
                 )}
@@ -323,8 +324,7 @@ export default function ChatMessage({
                       onClick={(): void => setHidden((prev) => !prev)}
                       className="absolute -left-6 -top-3 cursor-pointer"
                     >
-                      <IconComponent
-                        name="MessageSquare"
+                      <MessageSquare
                         className="h-4 w-4 animate-bounce"
                       />
                     </div>
@@ -349,8 +349,7 @@ export default function ChatMessage({
                         className="flex w-full flex-col"
                       >
                         {chatMessage === "" && isBuilding && lastMessage ? (
-                          <IconComponent
-                            name="MoreHorizontal"
+                          <MoreHorizontal
                             className="h-8 w-8 animate-pulse"
                           />
                         ) : (

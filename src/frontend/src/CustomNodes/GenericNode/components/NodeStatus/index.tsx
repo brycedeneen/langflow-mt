@@ -5,8 +5,8 @@ import { mutateTemplate } from "@/CustomNodes/helpers/mutate-template";
 import useIconStatus from "@/CustomNodes/hooks/use-icons-status";
 import useUpdateValidationStatus from "@/CustomNodes/hooks/use-update-validation-status";
 import useValidationStatusString from "@/CustomNodes/hooks/use-validation-status-string";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
 import { BuildStatus } from "@/constants/enums";
 import { usePostTemplateValue } from "@/controllers/API/queries/nodes/use-post-template-value";
@@ -21,6 +21,7 @@ import type { InputFieldType, VertexBuildTypeAPI } from "@/types/api";
 import type { NodeDataType } from "@/types/flow";
 import { formatTokenCount } from "@/utils/format-token-count";
 import { findLastNode } from "@/utils/reactflowUtils";
+import { Coins } from "lucide-react";
 import { classNames, cn } from "@/utils/utils";
 import IconComponent from "../../../../components/common/genericIconComponent";
 import BuildStatusDisplay from "./components/build-status-display";
@@ -400,138 +401,160 @@ export default function NodeStatus({
       {(showNodeStatus || nodeAuth) && (
         <div className="flex items-center gap-2 self-center">
           {showNodeStatus && (
-            <ShadTooltip
-              styleClasses={cn(
-                "border rounded-xl p-2",
-                !conditionSuccess && "border-destructive bg-error-background",
-              )}
-              content={
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <div className="cursor-help">
+                  {conditionSuccess && validationStatus?.data?.duration ? (
+                    <div
+                      className="flex items-center gap-1 rounded-sm px-1 font-mono text-xs text-accent-emerald-foreground transition-colors hover:bg-accent-emerald"
+                      data-testid={`node_duration_` + display_name.toLowerCase()}
+                    >
+                      {validationStatus?.data?.token_usage && (
+                        <span
+                          className="flex items-center gap-1"
+                          data-testid={`node-token-count-${display_name.toLowerCase()}`}
+                        >
+                          <Coins
+                            className="h-3 w-3 text-muted-foreground"
+                            strokeWidth={ICON_STROKE_WIDTH}
+                          />
+                          <span>
+                            {formatTokenCount(
+                              validationStatus.data.token_usage.total_tokens,
+                            )}
+                          </span>
+                          <span className="text-muted-foreground">|</span>
+                        </span>
+                      )}
+                      <span>
+                        {normalizeTimeString(validationStatus?.data?.duration)}
+                      </span>
+                    </div>
+                  ) : (
+                    <div
+                      data-testid={
+                        `node_status_icon_` +
+                        display_name.toLowerCase() +
+                        `_` +
+                        buildStatus?.toLowerCase()
+                      }
+                      className="flex items-center self-center"
+                    >
+                      {iconStatus}
+                    </div>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent
+                className={cn(
+                  "z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground",
+                  "border rounded-xl p-2",
+                  !conditionSuccess && "border-destructive bg-error-background",
+                )}
+                side="bottom"
+                avoidCollisions={false}
+                sticky="always"
+              >
                 <BuildStatusDisplay
                   buildStatus={buildStatus}
                   validationStatus={validationStatus}
                   validationString={validationString}
                   lastRunTime={lastRunTime}
                 />
-              }
-              side="bottom"
-            >
-              <div className="cursor-help">
-                {conditionSuccess && validationStatus?.data?.duration ? (
-                  <div
-                    className="flex items-center gap-1 rounded-sm px-1 font-mono text-xs text-accent-emerald-foreground transition-colors hover:bg-accent-emerald"
-                    data-testid={`node_duration_` + display_name.toLowerCase()}
-                  >
-                    {validationStatus?.data?.token_usage && (
-                      <span
-                        className="flex items-center gap-1"
-                        data-testid={`node-token-count-${display_name.toLowerCase()}`}
-                      >
-                        <IconComponent
-                          name="Coins"
-                          className="h-3 w-3 text-muted-foreground"
-                          strokeWidth={ICON_STROKE_WIDTH}
-                        />
-                        <span>
-                          {formatTokenCount(
-                            validationStatus.data.token_usage.total_tokens,
-                          )}
-                        </span>
-                        <span className="text-muted-foreground">|</span>
-                      </span>
-                    )}
-                    <span>
-                      {normalizeTimeString(validationStatus?.data?.duration)}
-                    </span>
-                  </div>
-                ) : (
-                  <div
-                    data-testid={
-                      `node_status_icon_` +
-                      display_name.toLowerCase() +
-                      `_` +
-                      buildStatus?.toLowerCase()
-                    }
-                    className="flex items-center self-center"
-                  >
-                    {iconStatus}
-                  </div>
-                )}
-              </div>
-            </ShadTooltip>
+              </TooltipContent>
+            </Tooltip>
           )}
 
           {nodeAuth && showNode && (
-            <ShadTooltip content={nodeAuth.auth_tooltip || "Connect"}>
-              <div>
-                <Button
-                  unstyled
-                  disabled={
-                    (connectionLink === "" &&
-                      (!apiKeyValue || apiKeyValue === "COMPOSIO_API_KEY")) ||
-                    connectionLink === "error"
-                  }
-                  className={getConnectionButtonClasses(
-                    connectionLink,
-                    isAuthenticated,
-                    isPolling,
-                  )}
-                  onClick={handleClickConnect}
-                  data-testid={getDataTestId()}
-                >
-                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <IconComponent
-                      name={
-                        isPolling
-                          ? "Loader2"
-                          : isAuthenticated
-                            ? "Link"
-                            : "AlertTriangle"
-                      }
-                      className={getConnectionIconClasses(
-                        connectionLink,
-                        isAuthenticated,
-                        isPolling,
-                      )}
-                      strokeWidth={ICON_STROKE_WIDTH}
-                    />
-                  </div>
-                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <IconComponent
-                      name={"Unlink"}
-                      className={cn(
-                        "h-2.5 w-2.5 text-accent-amber-foreground opacity-0 transition-opacity",
-                        isAuthenticated && !isPolling
-                          ? "group-hover:opacity-100"
-                          : "",
-                      )}
-                      strokeWidth={ICON_STROKE_WIDTH}
-                    />
-                  </div>
-                </Button>
-              </div>
-            </ShadTooltip>
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <div>
+                  <Button
+                    unstyled
+                    disabled={
+                      (connectionLink === "" &&
+                        (!apiKeyValue || apiKeyValue === "COMPOSIO_API_KEY")) ||
+                      connectionLink === "error"
+                    }
+                    className={getConnectionButtonClasses(
+                      connectionLink,
+                      isAuthenticated,
+                      isPolling,
+                    )}
+                    onClick={handleClickConnect}
+                    data-testid={getDataTestId()}
+                  >
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                      <IconComponent
+                        name={
+                          isPolling
+                            ? "Loader2"
+                            : isAuthenticated
+                              ? "Link"
+                              : "AlertTriangle"
+                        }
+                        className={getConnectionIconClasses(
+                          connectionLink,
+                          isAuthenticated,
+                          isPolling,
+                        )}
+                        strokeWidth={ICON_STROKE_WIDTH}
+                      />
+                    </div>
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                      <IconComponent
+                        name={"Unlink"}
+                        className={cn(
+                          "h-2.5 w-2.5 text-accent-amber-foreground opacity-0 transition-opacity",
+                          isAuthenticated && !isPolling
+                            ? "group-hover:opacity-100"
+                            : "",
+                        )}
+                        strokeWidth={ICON_STROKE_WIDTH}
+                      />
+                    </div>
+                  </Button>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent
+                className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+                avoidCollisions={false}
+                sticky="always"
+              >
+                {nodeAuth.auth_tooltip || "Connect"}
+              </TooltipContent>
+            </Tooltip>
           )}
         </div>
       )}
       {showNode && (
-        <ShadTooltip content={getTooltipContent()}>
-          <div
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            onClick={handleClickRun}
-            className="-m-0.5"
+        <Tooltip delayDuration={500}>
+          <TooltipTrigger asChild>
+            <div
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+              onClick={handleClickRun}
+              className="-m-0.5"
+            >
+              <Button unstyled className="nodrag flex h-6 w-6 cursor-pointer items-center justify-center rounded-sm bg-transparent hover:bg-muted group">
+                <div data-testid={`button_run_` + display_name.toLowerCase()}>
+                  <IconComponent
+                    name={iconName}
+                    className={iconClasses}
+                    strokeWidth={ICON_STROKE_WIDTH}
+                  />
+                </div>
+              </Button>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent
+            className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+            avoidCollisions={false}
+            sticky="always"
           >
-            <Button unstyled className="nodrag flex h-6 w-6 cursor-pointer items-center justify-center rounded-sm bg-transparent hover:bg-muted group">
-              <div data-testid={`button_run_` + display_name.toLowerCase()}>
-                <IconComponent
-                  name={iconName}
-                  className={iconClasses}
-                  strokeWidth={ICON_STROKE_WIDTH}
-                />
-              </div>
-            </Button>
-          </div>
-        </ShadTooltip>
+            {getTooltipContent()}
+          </TooltipContent>
+        </Tooltip>
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { FlaskConical } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import useFlowStore from "@/stores/flowStore";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
@@ -114,14 +114,22 @@ export default function NodeName({
       </div>
       {beta && (
         <div className="shrink-0">
-          <ShadTooltip content="Beta component">
-            <div className="flex h-4 w-4 items-center justify-center rounded-sm border border-accent-purple-foreground p-0.5">
-              <ForwardedIconComponent
-                name="FlaskConical"
-                className="text-accent-purple-foreground"
-              />
-            </div>
-          </ShadTooltip>
+          <Tooltip delayDuration={500}>
+            <TooltipTrigger asChild>
+              <div className="flex h-4 w-4 items-center justify-center rounded-sm border border-accent-purple-foreground p-0.5">
+                <FlaskConical
+                  className="text-accent-purple-foreground"
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent
+              className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+              avoidCollisions={false}
+              sticky="always"
+            >
+              Beta component
+            </TooltipContent>
+          </Tooltip>
         </div>
       )}
     </div>

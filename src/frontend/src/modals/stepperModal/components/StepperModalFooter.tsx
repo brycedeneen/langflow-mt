@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { ExternalLink, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DEFAULT_BACK_LABEL,
@@ -44,8 +44,7 @@ export function StepperModalFooter({
                 className="underline"
               >
                 {helpLabel}
-                <ForwardedIconComponent
-                  name="ExternalLink"
+                <ExternalLink
                   className="ml-1 h-4 w-4"
                 />
               </a>
@@ -73,8 +72,7 @@ export function StepperModalFooter({
             data-testid={submitTestId}
           >
             {isSubmitting && (
-              <ForwardedIconComponent
-                name="Loader2"
+              <Loader2
                 className="mr-2 h-4 w-4 animate-spin"
               />
             )}

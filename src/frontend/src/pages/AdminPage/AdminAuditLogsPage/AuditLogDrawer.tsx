@@ -1,6 +1,6 @@
 import { useGetAuditLog } from "@/controllers/API/queries/admin/use-get-audit-log";
 import { Button } from "@/components/ui/button";
-import IconComponent from "@/components/common/genericIconComponent";
+import { X } from "lucide-react";
 
 type Props = { id: string; onClose: () => void };
 
@@ -12,7 +12,7 @@ export default function AuditLogDrawer({ id, onClose }: Props) {
       <div className="flex items-center justify-between p-4 border-b">
         <h2 className="font-semibold">Audit log entry</h2>
         <Button variant="ghost" size="icon" onClick={onClose}>
-          <IconComponent name="X" className="h-4 w-4" />
+          <X className="h-4 w-4" />
         </Button>
       </div>
       <div className="flex-1 overflow-auto p-4 text-sm">

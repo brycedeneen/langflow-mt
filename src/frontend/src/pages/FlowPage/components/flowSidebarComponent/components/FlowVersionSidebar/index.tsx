@@ -1,4 +1,4 @@
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Loader2 } from "lucide-react";
 import {
   SidebarGroupLabel,
   SidebarMenu,
@@ -85,8 +85,7 @@ export default function FlowVersionSidebarContent({
 
             {isLoading && (
               <div className="flex items-center justify-center py-8">
-                <ForwardedIconComponent
-                  name="Loader2"
+                <Loader2
                   className="h-5 w-5 animate-spin text-muted-foreground"
                 />
               </div>

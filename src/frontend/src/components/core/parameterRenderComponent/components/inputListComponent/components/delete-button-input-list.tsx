@@ -1,4 +1,4 @@
-import IconComponent from "@/components/common/genericIconComponent";
+import { X } from "lucide-react";
 import { ICON_STROKE_WIDTH } from "@/constants/constants";
 import { cn } from "@/utils/utils";
 import { getTestId } from "../helpers/get-test-id";
@@ -29,8 +29,7 @@ export const DeleteButtonInputList = ({
         editNode && "h-4 w-4",
       )}
     >
-      <IconComponent
-        name="X"
+      <X
         className={cn(
           "icon-size justify-self-center text-muted-foreground",
           !disabled &&

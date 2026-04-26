@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
+import { Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs-button";
@@ -200,8 +200,7 @@ export default function GlobalVariableModal({
       disable={disabled}
     >
       <BaseModal.Header description="This variable will be available for use across your flows.">
-        <ForwardedIconComponent
-          name="Globe"
+        <Globe
           className="h-6 w-6 pr-1 text-primary"
           aria-hidden="true"
         />

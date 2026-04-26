@@ -1,6 +1,6 @@
 import type { AxiosError } from "axios";
 import { useShallow } from "zustand/react/shallow";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDeleteKnowledgeBase } from "@/controllers/API/queries/knowledge-bases/use-delete-knowledge-base";
 import type { KnowledgeBaseInfo } from "@/controllers/API/queries/knowledge-bases/use-get-knowledge-bases";
@@ -89,7 +89,7 @@ const KnowledgeBaseSelectionOverlay = ({
               className="px-2.5 !text-mmd"
               data-testid="bulk-delete-kb-btn"
             >
-              <ForwardedIconComponent name="Trash2" />
+              <Trash2 />
               Delete
             </Button>
           </DeleteConfirmationModal>

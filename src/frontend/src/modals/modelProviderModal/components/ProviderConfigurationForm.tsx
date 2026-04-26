@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
-import ShadTooltip from "@/components/common/shadTooltipComponent";
+import { Check, X } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import MultiselectComponent from "@/components/core/parameterRenderComponent/components/multiselectComponent";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ProviderVariable } from "@/constants/providerConstants";
 import useAlertStore from "@/stores/alertStore";
+import { cn } from "@/utils/utils";
 import DisconnectWarning from "./DisconnectWarning";
 import { Provider } from "./types";
 
@@ -215,26 +216,38 @@ const ProviderConfigurationForm = ({
                       <>
                         {validationState === "invalid" && (
                           <span className="absolute w-4 h-4 right-9 top-1/2 -translate-y-1/2 pointer-events-auto">
-                            <ShadTooltip
-                              content={validationError}
-                              side="top"
-                              styleClasses="text-destructive border-destructive"
-                            >
+                            {validationError ? (
+                              <Tooltip delayDuration={500}>
+                                <TooltipTrigger asChild>
+                                  <div>
+                                    <X
+                                      className="h-4 w-4 text-destructive cursor-default"
+                                    />
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent
+                                  className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "text-destructive border-destructive")}
+                                  side="top"
+                                  avoidCollisions={false}
+                                  sticky="always"
+                                >
+                                  {validationError}
+                                </TooltipContent>
+                              </Tooltip>
+                            ) : (
                               <div>
-                                <ForwardedIconComponent
-                                  name="X"
+                                <X
                                   className="h-4 w-4 text-destructive cursor-default"
                                 />
                               </div>
-                            </ShadTooltip>
+                            )}
                           </span>
                         )}
                         {validationState !== "invalid" &&
                           (validationState === "valid" ||
                             (isConfigured && !hasNewValue)) && (
                             <span className="absolute right-8 top-1/2 -translate-y-1/2 text-accent-emerald-foreground pointer-events-none">
-                              <ForwardedIconComponent
-                                name="Check"
+                              <Check
                                 className="h-4 w-4"
                               />
                             </span>
@@ -288,23 +301,35 @@ const ProviderConfigurationForm = ({
                     }}
                     endIcon={
                       !isLoading && validationState === "invalid" ? (
-                        <ShadTooltip
-                          content={validationError}
-                          side="top"
-                          styleClasses="text-destructive border-destructive"
-                        >
+                        validationError ? (
+                          <Tooltip delayDuration={500}>
+                            <TooltipTrigger asChild>
+                              <div>
+                                <X
+                                  className="h-4 w-4 text-destructive cursor-default"
+                                />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              className={cn("z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground", "text-destructive border-destructive")}
+                              side="top"
+                              avoidCollisions={false}
+                              sticky="always"
+                            >
+                              {validationError}
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
                           <div>
-                            <ForwardedIconComponent
-                              name="X"
+                            <X
                               className="h-4 w-4 text-destructive cursor-default"
                             />
                           </div>
-                        </ShadTooltip>
+                        )
                       ) : !isLoading &&
                         (validationState === "valid" ||
                           (isConfigured && !hasNewValue && !isEditing)) ? (
-                        <ForwardedIconComponent
-                          name="Check"
+                        <Check
                           className="h-4 w-4 text-accent-emerald-foreground pointer-events-none"
                         />
                       ) : undefined

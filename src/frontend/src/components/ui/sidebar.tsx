@@ -9,12 +9,16 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import isWrappedWithClass from "../../pages/FlowPage/components/PageComponent/utils/is-wrapped-with-class";
 import { useShortcutsStore } from "../../stores/shortcuts";
 import { cn } from "../../utils/utils";
-import ShadTooltip from "../common/shadTooltipComponent";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./tooltip";
 import { Button } from "./button";
 import { Input } from "./input";
 import { Separator } from "./separator";
 import { Skeleton } from "./skeleton";
-import { TooltipProvider } from "./tooltip";
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_SECTION_COOKIE_NAME = "sidebar:section";
@@ -696,13 +700,20 @@ const SidebarMenuButton = React.forwardRef<
       return button;
     }
 
-    return (
-      <ShadTooltip
-        side="right"
-        content={state == "collapsed" ? tooltip : undefined}
-      >
-        {button}
-      </ShadTooltip>
+    return state == "collapsed" ? (
+      <Tooltip delayDuration={500}>
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipContent
+          className="z-[99] max-w-96 bg-tooltip text-xs text-tooltip-foreground"
+          side="right"
+          avoidCollisions={false}
+          sticky="always"
+        >
+          {tooltip}
+        </TooltipContent>
+      </Tooltip>
+    ) : (
+      button
     );
   },
 );

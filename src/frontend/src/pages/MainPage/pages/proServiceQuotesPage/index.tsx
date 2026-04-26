@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -125,10 +125,7 @@ export const ProServiceQuotesPage = () => {
               className="flex items-center justify-center py-12 text-muted-foreground"
               data-testid="ps-quotes-loading"
             >
-              <ForwardedIconComponent
-                name="Loader2"
-                className="mr-2 h-4 w-4 animate-spin"
-              />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Loading quotes…
             </div>
           ) : isError ? (

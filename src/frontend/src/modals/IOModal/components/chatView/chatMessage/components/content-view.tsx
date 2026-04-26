@@ -1,6 +1,6 @@
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ForwardedIconComponent } from "@/components/common/genericIconComponent";
+import { OctagonAlert } from "lucide-react";
 import { TextShimmer } from "@/components/ui/TextShimmer";
 import { extractLanguage, isCodeBlock } from "@/utils/codeBlockUtils";
 import { cn } from "@/utils/utils";
@@ -50,10 +50,7 @@ export const ErrorView = ({
                     return (
                       <div className="" key={contentIndex}>
                         <div className="mb-2 flex items-center">
-                          <ForwardedIconComponent
-                            className="mr-2 h-[18px] w-[18px] text-destructive"
-                            name="OctagonAlert"
-                          />
+                          <OctagonAlert className="mr-2 h-[18px] w-[18px] text-destructive" />
                           {content.component && (
                             <>
                               <span>

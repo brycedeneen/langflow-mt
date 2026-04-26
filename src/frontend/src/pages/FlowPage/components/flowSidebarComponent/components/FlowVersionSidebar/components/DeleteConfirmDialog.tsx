@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { FlowVersionEntry } from "@/types/flow/version";
 
@@ -22,8 +22,7 @@ export default function DeleteConfirmDialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="mx-4 flex w-full max-w-md flex-col gap-4 rounded-xl border bg-background p-6 shadow-lg">
         <div className="flex items-center gap-2">
-          <ForwardedIconComponent
-            name="Trash2"
+          <Trash2
             className="h-5 w-5 text-destructive"
           />
           <span className="text-lg font-semibold">Delete Version</span>

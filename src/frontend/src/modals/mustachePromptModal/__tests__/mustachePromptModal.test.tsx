@@ -69,16 +69,13 @@ jest.mock("@/components/common/sanitizedHTMLWrapper", () => {
   });
 });
 
-// Mock ShadTooltip
-jest.mock("@/components/common/shadTooltipComponent", () => ({
+// Mock Tooltip components
+jest.mock("@/components/ui/tooltip", () => ({
   __esModule: true,
-  default: ({
-    children,
-    content,
-  }: {
-    children: React.ReactNode;
-    content: string;
-  }) => <div data-tooltip={content}>{children}</div>,
+  Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  TooltipTrigger: ({ children, asChild }: { children: React.ReactNode; asChild?: boolean }) => <>{children}</>,
+  TooltipContent: (_props: { children: React.ReactNode; className?: string }) => null,
+  TooltipProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 // Mock BaseModal

@@ -7,6 +7,7 @@ import {
   ENABLE_LANGFLOW_STORE,
 } from "@/customization/feature-flags";
 import useAuthStore from "@/stores/authStore";
+import { Bot, Brain, Building2, Database, Globe, HandCoins, Keyboard, MessagesSquare, SlidersHorizontal, Users } from "lucide-react";
 import ForwardedIconComponent from "../../components/common/genericIconComponent";
 import PageLayout from "../../components/common/pageLayout";
 export default function SettingsPage(): JSX.Element {
@@ -23,8 +24,7 @@ export default function SettingsPage(): JSX.Element {
     title: "General",
     href: "/settings/general",
     icon: (
-      <ForwardedIconComponent
-        name="SlidersHorizontal"
+      <SlidersHorizontal
         className="w-4 shrink-0 justify-start stroke-[1.5]"
       />
     ),
@@ -45,8 +45,7 @@ export default function SettingsPage(): JSX.Element {
       title: "Global Variables",
       href: "/settings/global-variables",
       icon: (
-        <ForwardedIconComponent
-          name="Globe"
+        <Globe
           className="w-4 shrink-0 justify-start stroke-[1.5]"
         />
       ),
@@ -55,8 +54,7 @@ export default function SettingsPage(): JSX.Element {
       title: "Model Providers",
       href: "/settings/model-providers",
       icon: (
-        <ForwardedIconComponent
-          name="Brain"
+        <Brain
           className="w-4 shrink-0 justify-start stroke-[1.5]"
         />
       ),
@@ -66,8 +64,7 @@ export default function SettingsPage(): JSX.Element {
       title: "Shortcuts",
       href: "/settings/shortcuts",
       icon: (
-        <ForwardedIconComponent
-          name="Keyboard"
+        <Keyboard
           className="w-4 shrink-0 justify-start stroke-[1.5]"
         />
       ),
@@ -76,8 +73,7 @@ export default function SettingsPage(): JSX.Element {
       title: "Messages",
       href: "/settings/messages",
       icon: (
-        <ForwardedIconComponent
-          name="MessagesSquare"
+        <MessagesSquare
           className="w-4 shrink-0 justify-start stroke-[1.5]"
         />
       ),
@@ -86,8 +82,7 @@ export default function SettingsPage(): JSX.Element {
       title: "Flow Assistant",
       href: "/settings/assistant",
       icon: (
-        <ForwardedIconComponent
-          name="Bot"
+        <Bot
           className="w-4 shrink-0 justify-start stroke-[1.5]"
         />
       ),
@@ -99,8 +94,7 @@ export default function SettingsPage(): JSX.Element {
       title: "Component Management",
       href: "/settings/metadata",
       icon: (
-        <ForwardedIconComponent
-          name="Database"
+        <Database
           className="w-4 shrink-0 justify-start stroke-[1.5]"
         />
       ),
@@ -112,8 +106,7 @@ export default function SettingsPage(): JSX.Element {
       title: "Professional Services",
       href: "/settings/professional-services",
       icon: (
-        <ForwardedIconComponent
-          name="HandCoins"
+        <HandCoins
           className="w-4 shrink-0 justify-start stroke-[1.5]"
         />
       ),
@@ -125,8 +118,7 @@ export default function SettingsPage(): JSX.Element {
       title: "User Admin",
       href: "/settings/users",
       icon: (
-        <ForwardedIconComponent
-          name="Users"
+        <Users
           className="w-4 shrink-0 justify-start stroke-[1.5]"
         />
       ),
@@ -138,8 +130,7 @@ export default function SettingsPage(): JSX.Element {
       title: "Org Admin",
       href: "/settings/organizations",
       icon: (
-        <ForwardedIconComponent
-          name="Building2"
+        <Building2
           className="w-4 shrink-0 justify-start stroke-[1.5]"
         />
       ),

@@ -1,5 +1,4 @@
-import { Square } from "lucide-react";
-import ForwardedIconComponent from "@/components/common/genericIconComponent";
+import { ArrowUp, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import useFlowStore from "@/stores/flowStore";
 import type { FilePreviewType } from "@/types/components";
@@ -61,7 +60,7 @@ const ButtonSendWrapper = ({
         {isBuilding ? (
           <Square className="h-3.5 w-3.5" fill="currentColor" />
         ) : (
-          <ForwardedIconComponent name="ArrowUp" className="h-4 w-4" />
+          <ArrowUp className="h-4 w-4" />
         )}
       </div>
     </Button>

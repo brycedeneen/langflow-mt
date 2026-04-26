@@ -6,6 +6,7 @@ import AddMcpServerModal from "@/modals/addMcpServerModal";
 import useAlertStore from "@/stores/alertStore";
 import ListSelectionComponent from "../../../../../CustomNodes/GenericNode/components/ListSelectionComponent";
 import { cn } from "../../../../../utils/utils";
+import { Save } from "lucide-react";
 import { default as ForwardedIconComponent } from "../../../../common/genericIconComponent";
 import { Button } from "../../../../ui/button";
 import type { InputProps } from "../../types";
@@ -185,8 +186,7 @@ function McpComponent({
               onClick={handleSaveButtonClick}
               data-testid="save-mcp-server-button"
             >
-              <ForwardedIconComponent
-                name="Save"
+              <Save
                 className="h-5 w-5 text-muted-foreground"
               />
             </Button>
