@@ -40,6 +40,7 @@ import MCPServersPage from "./pages/SettingsPage/pages/MCPServersPage";
 import ModelProvidersPage from "./pages/SettingsPage/pages/ModelProvidersPage";
 import AssistantSettingsPage from "./pages/SettingsPage/pages/AssistantSettingsPage";
 import MetadataPage from "./pages/SettingsPage/pages/MetadataPage";
+import ProfessionalServicesPage from "./pages/SettingsPage/pages/ProfessionalServicesPage";
 import MessagesPage from "./pages/SettingsPage/pages/messagesPage";
 import { ProtectedSuperuserRoute } from "./components/authorization/authSuperuserGuard";
 import ShortcutsPage from "./pages/SettingsPage/pages/ShortcutsPage";
@@ -203,6 +204,14 @@ const router = createBrowserRouter(
                     element={
                       <ProtectedSuperuserRoute>
                         <MetadataPage />
+                      </ProtectedSuperuserRoute>
+                    }
+                  />
+                  <Route
+                    path="professional-services"
+                    element={
+                      <ProtectedSuperuserRoute>
+                        <ProfessionalServicesPage />
                       </ProtectedSuperuserRoute>
                     }
                   />
