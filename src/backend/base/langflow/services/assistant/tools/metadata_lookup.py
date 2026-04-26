@@ -6,31 +6,58 @@ from uuid import UUID
 
 from sqlmodel import select
 
+from langflow.agentic.utils.component_search import build_component_name_resolver
 from langflow.services.database.models import ComponentMetadata
 from langflow.services.database.models.template.model import Template
 from langflow.services.deps import session_scope
 
 
 async def fetch_component_summaries(names: list[str]) -> dict[str, str | None]:
-    """Return {component_name: agent_summary} for the given names (absent → None)."""
+    """Return {input_name: agent_summary} for the given names (absent → None).
+
+    Inputs may be any alias (registry key, display name, or class name); they
+    are resolved to the canonical registry key before the DB query. The result
+    is keyed by the *input* name so callers can correlate without re-resolving.
+    """
     if not names:
         return {}
+    aliases = await build_component_name_resolver()
+    canonical_by_input: dict[str, str] = {}
+    for name in names:
+        canonical = aliases.get(name)
+        if canonical is not None:
+            canonical_by_input[name] = canonical
+    if not canonical_by_input:
+        return {name: None for name in names}
     async with session_scope() as session:
         rows = (
             await session.exec(
-                select(ComponentMetadata).where(ComponentMetadata.component_name.in_(names))
+                select(ComponentMetadata).where(
+                    ComponentMetadata.component_name.in_(set(canonical_by_input.values()))
+                )
             )
         ).all()
-    return {r.component_name: r.agent_summary for r in rows}
+    summary_by_canonical = {r.component_name: r.agent_summary for r in rows}
+    return {
+        name: summary_by_canonical.get(canonical_by_input[name]) if name in canonical_by_input else None
+        for name in names
+    }
 
 
 async def fetch_component_usage_notes(component_name: str) -> str | None:
-    """Return agent_usage_notes for a single component, or None when absent."""
+    """Return agent_usage_notes for a single component, or None when absent.
+
+    The input may be any alias (registry key, display name, or class name).
+    """
+    aliases = await build_component_name_resolver()
+    canonical = aliases.get(component_name)
+    if canonical is None:
+        return None
     async with session_scope() as session:
         row = (
             await session.exec(
                 select(ComponentMetadata).where(
-                    ComponentMetadata.component_name == component_name
+                    ComponentMetadata.component_name == canonical
                 )
             )
         ).one_or_none()
