@@ -14,7 +14,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         <textarea
           data-testid="textarea"
           className={cn(
-            "nopan nodelete nodrag noflow textarea-primary nowheel",
+            "nopan nodelete nodrag noflow form-input block w-full rounded-md border border-border bg-background px-3 text-left text-sm placeholder:text-muted-foreground hover:border-muted-foreground focus:border-foreground focus:placeholder-transparent focus:ring-0 focus:ring-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 placeholder:disabled:text-muted-foreground nowheel",
             className,
             password ? "password" : "",
           )}

@@ -227,8 +227,8 @@ function InputComponent({
           className={classNames(
             "mb-px mr-3 p-0",
             editNode
-              ? "input-component-true-button"
-              : "input-component-false-button",
+              ? "absolute inset-y-0 right-0 items-center text-muted-foreground pr-2"
+              : "absolute inset-y-0 right-0 items-center text-muted-foreground px-4",
           )}
           onClick={(event) => {
             event.preventDefault();

@@ -210,7 +210,7 @@ function SliderComponent({
         <div className="noflow nowheel nopan nodelete nodrag flex items-center justify-end">
           <div
             className={clsx(
-              "input-slider-text",
+              "absolute right-3 w-14 -translate-y-3.5 cursor-text rounded-sm px-2 py-[1px] text-center hover:ring-[1px] hover:ring-slider-input-border",
               (isGrabbing || isEditing) && ringClassInputClass,
               editNode && "relative left-0.5",
             )}

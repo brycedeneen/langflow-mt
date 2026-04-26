@@ -25,7 +25,7 @@ export function AppWrapperPage() {
           <Outlet />
         </>
       </ErrorBoundary>
-      <div className="app-div">
+      <div className="absolute bottom-5 left-5 flex flex-col-reverse">
         <AlertDisplayArea />
       </div>
     </div>

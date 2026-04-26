@@ -132,7 +132,7 @@ export default function PromptModal({
       sumOfCaracteres = sumOfCaracteres + element.replace(/[{}]/g, "").length;
     });
     return sumOfCaracteres > MAX_WORDS_HIGHLIGHT
-      ? "code-highlight"
+      ? "block w-full overflow-auto border-0 px-3 py-2 text-sm outline-0 word-break-break-word"
       : "code-nohighlight";
   }
 

@@ -317,21 +317,21 @@ export default function ChatMessage({
             )}
             {!chat.isSend ? (
               <div className="form-modal-chat-text-position grow">
-                <div className="form-modal-chat-text">
+                <div className="relative flex w-full flex-col text-start text-sm font-normal text-muted-foreground">
                   {hidden && chat.thought && chat.thought !== "" && (
                     <div
                       onClick={(): void => setHidden((prev) => !prev)}
-                      className="form-modal-chat-icon-div"
+                      className="absolute -left-6 -top-3 cursor-pointer"
                     >
                       <IconComponent
                         name="MessageSquare"
-                        className="form-modal-chat-icon"
+                        className="h-4 w-4 animate-bounce"
                       />
                     </div>
                   )}
                   {chat.thought && chat.thought !== "" && !hidden && (
                     <SanitizedHTMLWrapper
-                      className="form-modal-chat-thought"
+                      className="rounded-md border border-ring/60 h-full w-[95%] cursor-pointer overflow-scroll bg-background px-2 py-2 text-start text-primary scrollbar-hide"
                       content={convert.toHtml(chat.thought ?? "")}
                       onClick={() => setHidden((prev) => !prev)}
                     />

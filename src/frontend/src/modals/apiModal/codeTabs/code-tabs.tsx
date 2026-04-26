@@ -157,7 +157,7 @@ export default function APITabsComponent() {
   const currentTab = tabsList.find((tab) => tab.title === selectedTab);
 
   return (
-    <div className="api-modal-tabs inset-0 m-0 h-full overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden inset-0 m-0">
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         {/* Main language tabs */}
         <div className="flex flex-row justify-start border-b border-border">
@@ -214,7 +214,7 @@ export default function APITabsComponent() {
                 codeData as { steps: { title: string; code: string }[] }
               ).steps;
               return (
-                <div className="api-modal-tabs-content flex h-full flex-col gap-4 overflow-auto">
+                <div className="h-full w-full flex h-full flex-col gap-4 overflow-auto">
                   {steps.map((step, index) => (
                     <div
                       key={index}
@@ -269,7 +269,7 @@ export default function APITabsComponent() {
               );
             } else {
               return (
-                <div className="api-modal-tabs-content overflow-hidden">
+                <div className="h-full w-full overflow-hidden">
                   <div className="relative flex h-full w-full">
                     <Button
                       variant="ghost"

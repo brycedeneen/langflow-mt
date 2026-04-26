@@ -26,8 +26,8 @@ const externalLinkIconClasses = {
     disabled
       ? ""
       : editNode
-        ? "background-fade-input-edit-node"
-        : "background-fade-input",
+        ? "absolute right-[0.9px] h-4 w-7 bg-background"
+        : "absolute right-[0.9px] h-6 w-7 bg-background",
   icon: "icons-parameters-comp absolute right-3 h-4 w-4 shrink-0",
   editNodeTop: "top-[6px]",
   normalTop: "top-2.5",

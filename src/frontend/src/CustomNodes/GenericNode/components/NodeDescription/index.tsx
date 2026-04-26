@@ -200,7 +200,7 @@ export default function NodeDescription({
           data-testid="generic-node-desc"
           ref={overflowRef}
           className={cn(
-            "nodoubleclick generic-node-desc-text h-full cursor-grab text-muted-foreground word-break-break-word",
+            "nodoubleclick w-full text-sm text-muted-foreground h-full cursor-grab text-muted-foreground word-break-break-word",
             description === "" || !description ? "font-light italic" : "",
             stickyNote && "text-base font-medium overflow-auto max-h-full",
             placeholderClassName,

@@ -231,7 +231,9 @@ export default function NodeStatus({
       selected && !isBuilding
         ? " border ring-[0.75px] ring-muted-foreground border-muted-foreground hover:shadow-node"
         : "border ring-[0.5px] hover:shadow-node ring-border";
-    const frozenClass = selected ? "border-ring-frozen" : "border-frozen";
+    const frozenClass = selected
+      ? "border-ring-frozen"
+      : "border shadow-frozen-ring";
     const updateClass =
       isOutdated && !isUserEdited && !dismissAll && isBreakingChange
         ? "border-warning"
@@ -350,7 +352,7 @@ export default function NodeStatus({
     isPolling: boolean,
   ): string => {
     return cn(
-      "nodrag button-run-bg group relative h-4 w-4 p-0.5 rounded-sm border border-accent-amber-foreground transition-colors hover:bg-accent-amber",
+      "nodrag flex h-6 w-6 cursor-pointer items-center justify-center rounded-sm bg-transparent hover:bg-muted group relative h-4 w-4 p-0.5 rounded-sm border border-accent-amber-foreground transition-colors hover:bg-accent-amber",
       connectionLink === "error"
         ? "border-destructive text-destructive"
         : isAuthenticated && !isPolling
@@ -519,7 +521,7 @@ export default function NodeStatus({
             onClick={handleClickRun}
             className="-m-0.5"
           >
-            <Button unstyled className="nodrag button-run-bg group">
+            <Button unstyled className="nodrag flex h-6 w-6 cursor-pointer items-center justify-center rounded-sm bg-transparent hover:bg-muted group">
               <div data-testid={`button_run_` + display_name.toLowerCase()}>
                 <IconComponent
                   name={iconName}

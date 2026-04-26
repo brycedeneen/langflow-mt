@@ -4,6 +4,7 @@ import CardsWrapComponent from "@/components/core/cardsWrapComponent";
 import { Button } from "@/components/ui/button";
 import { useFolderStore } from "@/stores/foldersStore";
 import useFileDrop from "../../hooks/use-on-file-drop";
+import "./gradient-bg.css";
 
 type EmptyPageProps = {
   setOpenModal: (open: boolean) => void;
@@ -19,7 +20,7 @@ export const EmptyPage = ({ setOpenModal }: EmptyPageProps) => {
       onFileDrop={handleFileDrop}
     >
       <div className="m-0 h-full w-full bg-secondary p-0">
-        <div className="text-container">
+        <div className="w-full h-full flex absolute top-0 left-0 justify-center items-center">
           <div className="relative z-20 flex w-full flex-col items-center justify-center gap-2">
             <LangflowLogo className="h-7 w-8" />
             <h3

@@ -104,7 +104,7 @@ export function SessionSelector({
         else toggleVisibility();
       }}
       className={cn(
-        "file-component-accordion-div group cursor-pointer rounded-md text-left text-mmd hover:bg-accent",
+        "flex items-start gap-3 group cursor-pointer rounded-md text-left text-mmd hover:bg-accent",
         isVisible ? "bg-accent font-semibold" : "font-normal",
       )}
     >

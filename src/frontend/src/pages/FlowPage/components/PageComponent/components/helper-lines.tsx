@@ -1,5 +1,6 @@
 import { useViewport } from "@xyflow/react";
 import { HelperLinesState } from "../helpers/helper-lines";
+import "./helper-lines.css";
 
 interface HelperLinesProps {
   helperLines: HelperLinesState;

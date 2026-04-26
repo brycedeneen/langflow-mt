@@ -95,7 +95,7 @@ export const MenuBar = memo((): JSX.Element => {
           data-testid="menu_bar_wrapper"
         >
           <div
-            className="header-menu-bar hidden max-w-40 justify-end truncate md:flex xl:max-w-full"
+            className="flex items-center rounded-md py-1 text-sm font-medium hidden max-w-40 justify-end truncate md:flex xl:max-w-full"
             data-testid="menu_flow_bar"
             id="menu_flow_bar_navigation"
           >

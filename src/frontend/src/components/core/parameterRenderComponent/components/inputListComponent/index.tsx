@@ -159,7 +159,7 @@ function InputListComponent({
           <Button
             unstyled
             onClick={addNewInput}
-            className="btn-add-input-list"
+            className="flex h-6 w-full items-center justify-center rounded-md p-2 text-sm hover:bg-muted"
             data-testid={`input-list-add-more-${editNode ? "edit" : "view"}`}
           >
             <span className="mr-2 text-lg">+</span> {listAddLabel || "Add More"}

@@ -1,0 +1,27 @@
+@reference "../../../style/index.css";
+
+/* Horizontal scroll fade effect. Relocated from applies.css 2026-04-26. */
+
+.fade-container {
+    @apply relative overflow-hidden;
+}
+
+.fade-container::before,
+.fade-container::after {
+    @apply pointer-events-none absolute bottom-0 top-0 bg-gradient-to-r from-background to-transparent;
+    content: "";
+    width: 50px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.fade-container::after {
+    @apply right-0;
+    transform: rotate(180deg);
+}
+
+.fade-container.fade-left::before,
+.fade-container.fade-right::after {
+    opacity: 1;
+}
+

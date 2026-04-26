@@ -397,7 +397,7 @@ const HandleRenderComponent = memo(function HandleRenderComponent({
       <ShadTooltip
         open={openTooltip && !isLocked}
         setOpen={setOpenTooltip}
-        styleClasses={cn("tooltip-fixed-width custom-scroll nowheel bottom-2")}
+        styleClasses={cn("max-h-[25vh] max-w-[30vw] overflow-auto custom-scroll nowheel bottom-2")}
         delayDuration={1000}
         content={
           <HandleTooltipComponent

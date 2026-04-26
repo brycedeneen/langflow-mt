@@ -126,7 +126,7 @@ const ExportModal = forwardRef(
                 setChecked(event);
               }}
             />
-            <label htmlFor="terms" className="export-modal-save-api text-sm">
+            <label htmlFor="terms" className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-sm">
               {SAVE_WITH_API_CHECKBOX}
             </label>
           </div>

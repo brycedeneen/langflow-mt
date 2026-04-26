@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import "./fade-container.css";
 
 export default function HorizontalScrollFadeComponent({
   children,
@@ -56,7 +57,7 @@ export default function HorizontalScrollFadeComponent({
     <div className="flex w-full flex-col gap-2">{children}</div>
   ) : (
     <div ref={fadeContainerRef} className="fade-container flex">
-      <div ref={scrollContainerRef} className="scroll-container flex gap-2">
+      <div ref={scrollContainerRef} className="flex overflow-x-scroll scrollbar-hide flex gap-2">
         {children}
       </div>
     </div>

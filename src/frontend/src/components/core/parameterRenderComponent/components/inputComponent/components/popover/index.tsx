@@ -130,7 +130,7 @@ const getInputClassName = (
   blockAddNewGlobalVariable: boolean = false,
 ) => {
   return cn(
-    "popover-input nodrag w-full truncate px-1 pr-4",
+    "h-fit w-fit flex-1 border-none bg-transparent p-0 shadow-none outline-hidden ring-0 ring-offset-0 placeholder:text-muted-foreground focus:border-foreground focus:outline-hidden focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 nodrag w-full truncate px-1 pr-4",
     editNode && "pl-2 pr-6",
     editNode && disabled && "h-fit w-fit",
     disabled &&

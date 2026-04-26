@@ -641,7 +641,7 @@ const NodeToolbarComponent = memo(
     return (
       <>
         <div className="noflow nopan nodelete nodrag">
-          <div ref={toolbarAnchorRef} className="toolbar-wrapper">
+          <div ref={toolbarAnchorRef} className="flex h-10 items-center gap-1 rounded-xl border border-border bg-background p-1 shadow-xs">
             {renderToolbarButtons}
             <Select
               onValueChange={handleSelectChange}

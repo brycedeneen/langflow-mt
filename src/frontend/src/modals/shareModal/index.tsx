@@ -246,7 +246,7 @@ export default function ShareModal({
                 />
                 <label
                   htmlFor="public"
-                  className="export-modal-save-api text-sm"
+                  className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-sm"
                 >
                   Set {nameComponent} status to public
                 </label>

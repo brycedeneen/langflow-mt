@@ -248,7 +248,7 @@ export const BotMessage = memo(
                 )}
 
                 <div className="form-modal-chat-text-position grow mt-2">
-                  <div className="form-modal-chat-text">
+                  <div className="relative flex w-full flex-col text-start text-sm font-normal text-muted-foreground">
                     <div className="flex w-full flex-col">
                       <div
                         className="flex w-full flex-col dark:text-white"

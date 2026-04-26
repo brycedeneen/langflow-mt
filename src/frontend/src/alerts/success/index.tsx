@@ -34,18 +34,18 @@ export default function SuccessAlert({
           setShow(false);
           removeAlert(id);
         }}
-        className="success-alert noflow nowheel nopan nodelete nodrag"
+        className="mt-6 w-96 rounded-md bg-success-background p-4 shadow-xl noflow nowheel nopan nodelete nodrag"
       >
         <div className="flex">
           <div className="shrink-0">
             <IconComponent
               name="CheckCircle2"
-              className="success-alert-icon"
+              className="h-5 w-5 text-status-green"
               aria-hidden="true"
             />
           </div>
           <div className="ml-3">
-            <p className="success-alert-message line-clamp-3">{title}</p>
+            <p className="text-sm font-medium text-success-foreground word-break-break-word line-clamp-3">{title}</p>
           </div>
         </div>
       </div>
