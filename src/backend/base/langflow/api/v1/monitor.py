@@ -229,10 +229,12 @@ async def update_session_id(
 
         session.add_all(messages)
         await session.flush()
-        message_responses = []
-        for message in messages:
-            await session.refresh(message)
-            message_responses.append(MessageResponse.model_validate(message, from_attributes=True))
+        # No per-row refresh needed: the only mutation is `session_id`, which we just
+        # assigned ourselves, and MessageTable has no server-generated columns
+        # affecting the response (id/timestamp/flow_id are client-side defaults).
+        message_responses = [
+            MessageResponse.model_validate(message, from_attributes=True) for message in messages
+        ]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
