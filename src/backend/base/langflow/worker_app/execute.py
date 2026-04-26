@@ -2,7 +2,9 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import os
+import random
 import socket
+import time
 import traceback
 from datetime import datetime, timezone
 from typing import Any
@@ -32,9 +34,6 @@ from langflow.worker_app.log_sink import RunLogSink
 
 
 WORKER_ID = f"{socket.gethostname()}:{os.getpid()}"
-HEARTBEAT_INTERVAL = 15.0
-CANCEL_POLL_INTERVAL = 2.0
-REQUEUE_DELAY = 5.0
 
 
 _TIER_TO_QUEUE_NAME = {
@@ -42,6 +41,26 @@ _TIER_TO_QUEUE_NAME = {
     "default": "runs:default",
     "low": "runs:low",
 }
+
+
+@contextlib.contextmanager
+def _phase(name: str):
+    """Time a code region and observe into PHASE_DURATION{phase=name}."""
+    from langflow.services.runs.metrics import PHASE_DURATION
+
+    start = time.monotonic()
+    try:
+        yield
+    finally:
+        PHASE_DURATION.labels(phase=name).observe(time.monotonic() - start)
+
+
+def _jittered_backoff(base_seconds: float, ratio: float, *, rng: random.Random | None = None) -> float:
+    """Apply multiplicative jitter to a backoff. ratio=0.1 -> [base, base*1.1]."""
+    if ratio <= 0:
+        return base_seconds
+    r = rng if rng is not None else random
+    return base_seconds * (1.0 + r.uniform(0.0, ratio))
 
 
 @broker_default.task(task_name="execute_run")
@@ -54,10 +73,44 @@ async def execute_run(
     redis: Redis = TaskiqDepends(get_redis),
     graph_runner = TaskiqDepends(get_graph_runner),
 ) -> None:
+    """Process one queued FlowRun. Self-registers with the shutdown drain
+    registry so SIGTERM can wait for in-flight tasks to finish naturally."""
+    from langflow.worker_app.shutdown import register, unregister
+
+    self_task = asyncio.current_task()
+    if self_task is not None:
+        register(self_task)
+    try:
+        await _execute_run_inner(
+            run_id,
+            sessionmaker=sessionmaker,
+            storage=storage,
+            settings=settings,
+            redis=redis,
+            graph_runner=graph_runner,
+        )
+    finally:
+        if self_task is not None:
+            unregister(self_task)
+
+
+async def _execute_run_inner(
+    run_id: str,
+    *,
+    sessionmaker,
+    storage,
+    settings,
+    redis,
+    graph_runner,
+) -> None:
     run_uuid = UUID(run_id)
     session_factory = sessionmaker
 
     logger.info(f"[run={run_id}] worker picked up job (worker_id={WORKER_ID})")
+
+    heartbeat_interval = float(settings.worker_heartbeat_interval_s)
+    cancel_poll_interval = float(settings.worker_cancel_poll_interval_s)
+    requeue_delay = float(settings.worker_requeue_delay_s)
 
     offloader = PayloadOffloader(storage, inline_max_bytes=settings.run_payload_inline_max_bytes)
     concurrency = OrgConcurrency(redis)
@@ -89,31 +142,39 @@ async def execute_run(
         inputs = run.inputs
         inputs_ref = run.inputs_ref
         timeout_s = run.timeout_seconds
+        max_timeout = int(settings.worker_max_run_timeout_seconds)
+        if timeout_s and timeout_s > max_timeout:
+            logger.info(
+                f"[run={run_id}] timeout_seconds={timeout_s} clamped to global ceiling {max_timeout}s"
+            )
+            timeout_s = max_timeout
         session.expunge(flow_captured)
 
     # Load offloaded inputs BEFORE claiming the concurrency slot / RUNNING transition,
     # so a load failure can't strand the row in RUNNING with a leaked slot.
     if inputs_ref:
-        inputs = await offloader.load(inputs_ref)
+        with _phase("payload_offload_load"):
+            inputs = await offloader.load(inputs_ref)
 
     acquired = False
     active_runs_inc = False
     run_row_present = False
     terminal: RunStatus = RunStatus.FAILED
     try:
-        acquired = await concurrency.try_acquire(org_id_captured, limit=org_limit)
+        with _phase("acquire_slot"):
+            acquired = await concurrency.try_acquire(org_id_captured, limit=org_limit)
         if not acquired:
             queue = _TIER_TO_QUEUE_NAME[org_priority_tier]
             logger.info(
                 f"[run={run_id}] org={org_id_captured} at concurrency cap "
-                f"(limit={org_limit}); requeueing to {queue} in {REQUEUE_DELAY}s"
+                f"(limit={org_limit}); requeueing to {queue} in {requeue_delay}s"
             )
             await schedule_delayed_kick(
                 redis=redis,
                 task_name="execute_run",
                 queue_name=queue,
                 args=[run_id],
-                delay_s=REQUEUE_DELAY,
+                delay_s=requeue_delay,
             )
             return
 
@@ -139,13 +200,21 @@ async def execute_run(
         try:
             await _emit_webhook(run_uuid, "run.started")
 
-            sink = RunLogSink(session_factory=session_factory, run_id=run_uuid)
+            sink = RunLogSink(
+                session_factory=session_factory,
+                run_id=run_uuid,
+                flush_interval=float(settings.worker_log_flush_interval_s),
+                max_buffer=int(settings.worker_log_max_buffer),
+                max_total_bytes=int(settings.run_logs_max_bytes),
+            )
             await sink.start()
 
             stop_event = asyncio.Event()
-            hb_task = asyncio.create_task(_heartbeat(session_factory, run_uuid, stop_event))
+            hb_task = asyncio.create_task(_heartbeat(session_factory, run_uuid, stop_event, heartbeat_interval))
             cancel_event = asyncio.Event()
-            cancel_task = asyncio.create_task(_cancel_watcher(redis, run_uuid, cancel_event, stop_event))
+            cancel_task = asyncio.create_task(
+                _cancel_watcher(redis, run_uuid, cancel_event, stop_event, cancel_poll_interval)
+            )
 
             result_payload: Any = None
             error_payload: dict | None = None
@@ -156,9 +225,10 @@ async def execute_run(
                 cancel_waiter = asyncio.create_task(cancel_event.wait())
 
                 try:
-                    done, pending = await asyncio.wait(
-                        {execution, cancel_waiter}, timeout=timeout_s, return_when=asyncio.FIRST_COMPLETED,
-                    )
+                    with _phase("execute_flow"):
+                        done, pending = await asyncio.wait(
+                            {execution, cancel_waiter}, timeout=timeout_s, return_when=asyncio.FIRST_COMPLETED,
+                        )
                 finally:
                     cancel_waiter.cancel()
 
@@ -201,53 +271,56 @@ async def execute_run(
                 await sink.stop()
 
             run_row_present = True
-            async with session_factory() as session:
-                run = await session.get(FlowRun, run_uuid)
-                if run is None:
-                    # Another worker (e.g. retention/reaper) deleted the row mid-flight.
-                    # Skip terminal writeback; outer finally still releases the slot.
-                    logger.warning(
-                        f"[run={run_id}] FlowRun disappeared before terminal writeback; skipping update"
-                    )
-                    run_row_present = False
-                else:
-                    run.status = terminal
-                    run.finished_at = datetime.now(timezone.utc)
-                    if result_payload is not None:
-                        inline, ref = await offloader.store(run_uuid, "result", _jsonable(result_payload))
-                        run.result = inline
-                        run.result_ref = ref
-                    if error_payload is not None:
-                        run.error = error_payload
-                    await session.commit()
+            with _phase("terminal_writeback"):
+                async with session_factory() as session:
+                    run = await session.get(FlowRun, run_uuid)
+                    if run is None:
+                        # Another worker (e.g. retention/reaper) deleted the row mid-flight.
+                        # Skip terminal writeback; outer finally still releases the slot.
+                        logger.warning(
+                            f"[run={run_id}] FlowRun disappeared before terminal writeback; skipping update"
+                        )
+                        run_row_present = False
+                    else:
+                        run.status = terminal
+                        run.finished_at = datetime.now(timezone.utc)
+                        if result_payload is not None:
+                            with _phase("payload_offload_store"):
+                                inline, ref = await offloader.store(run_uuid, "result", _jsonable(result_payload))
+                            run.result = inline
+                            run.result_ref = ref
+                        if error_payload is not None:
+                            run.error = error_payload
+                        await session.commit()
 
-                    from langflow.services.runs.metrics import RUN_DURATION, RUNS_TOTAL
-                    terminal_label = terminal.value if hasattr(terminal, "value") else str(terminal)
-                    flow_label = str(flow_captured.id)
-                    RUNS_TOTAL.labels(status=terminal_label, flow_id=flow_label).inc()
-                    if run.started_at and run.finished_at:
-                        # Normalise both timestamps to UTC-aware before subtracting; SQLite may
-                        # return naive datetimes even when stored as UTC.
-                        started = run.started_at
-                        finished = run.finished_at
-                        if started.tzinfo is None:
-                            started = started.replace(tzinfo=timezone.utc)
-                        if finished.tzinfo is None:
-                            finished = finished.replace(tzinfo=timezone.utc)
-                        duration = (finished - started).total_seconds()
-                        RUN_DURATION.labels(status=terminal_label, flow_id=flow_label).observe(duration)
+                        from langflow.services.runs.metrics import RUN_DURATION, RUNS_TOTAL
+                        terminal_label = terminal.value if hasattr(terminal, "value") else str(terminal)
+                        flow_label = str(flow_captured.id)
+                        RUNS_TOTAL.labels(status=terminal_label, flow_id=flow_label).inc()
+                        if run.started_at and run.finished_at:
+                            # Normalise both timestamps to UTC-aware before subtracting; SQLite may
+                            # return naive datetimes even when stored as UTC.
+                            started = run.started_at
+                            finished = run.finished_at
+                            if started.tzinfo is None:
+                                started = started.replace(tzinfo=timezone.utc)
+                            if finished.tzinfo is None:
+                                finished = finished.replace(tzinfo=timezone.utc)
+                            duration = (finished - started).total_seconds()
+                            RUN_DURATION.labels(status=terminal_label, flow_id=flow_label).observe(duration)
 
-                    # Metering + threshold/alert eval (kill-switch: settings.metering_enabled).
-                    try:
-                        from langflow.services.deps import get_settings_service, get_usage_alert_dispatcher
-                        if get_settings_service().settings.metering_enabled:
-                            from langflow.services.metering import record_run_completion_and_eval
-                            dispatcher = get_usage_alert_dispatcher()
-                            await record_run_completion_and_eval(session, run=run, dispatcher=dispatcher)
-                            await session.commit()
-                    except Exception:  # noqa: BLE001
-                        # Never let metering break run completion. Log and move on.
-                        logger.exception(f"[run={run_uuid}] metering post-commit failed")
+                        # Metering + threshold/alert eval (kill-switch: settings.metering_enabled).
+                        try:
+                            from langflow.services.deps import get_settings_service, get_usage_alert_dispatcher
+                            if get_settings_service().settings.metering_enabled:
+                                from langflow.services.metering import record_run_completion_and_eval
+                                dispatcher = get_usage_alert_dispatcher()
+                                await record_run_completion_and_eval(session, run=run, dispatcher=dispatcher)
+                                await session.commit()
+                        except Exception:  # noqa: BLE001
+                            from langflow.services.runs.metrics import WORKER_METERING_FAILURES_TOTAL
+                            WORKER_METERING_FAILURES_TOTAL.inc()
+                            logger.exception(f"[run={run_uuid}] metering post-commit failed")
         finally:
             if active_runs_inc:
                 ACTIVE_RUNS.labels(organization_id=str(org_id_captured)).dec()
@@ -281,7 +354,8 @@ async def execute_run(
                 run.result_ref = None
                 run.worker_id = None
                 await session.commit()
-                backoff = min(30 * (2 ** (run.attempt - 1)), 1800)
+                base = min(30 * (2 ** (run.attempt - 1)), 1800)
+                backoff = _jittered_backoff(base, float(settings.worker_retry_jitter_ratio))
                 org = await session.get(Organization, run.organization_id)
                 if org is None:
                     return
@@ -295,7 +369,15 @@ async def execute_run(
                 )
                 logger.info(
                     f"[run={run_id}] auto-retry attempt={run.attempt}/{run.max_retries} "
-                    f"requeued to {queue} in {backoff}s"
+                    f"requeued to {queue} in {backoff:.2f}s"
+                )
+            else:
+                from langflow.services.runs.metrics import RUN_RETRY_EXHAUSTED_TOTAL
+                terminal_label = terminal.value if hasattr(terminal, "value") else str(terminal)
+                RUN_RETRY_EXHAUSTED_TOTAL.labels(status=terminal_label).inc()
+                logger.info(
+                    f"[run={run_id}] no retry remaining (auto_retry={run.auto_retry} "
+                    f"attempt={run.attempt}/{run.max_retries}); finalised as {terminal_label}"
                 )
 
 
@@ -366,10 +448,10 @@ class _ActorStub:
         self.id = user_id
 
 
-async def _heartbeat(session_factory, run_id: UUID, stop: asyncio.Event) -> None:
+async def _heartbeat(session_factory, run_id: UUID, stop: asyncio.Event, interval: float = 15.0) -> None:
     while not stop.is_set():
         try:
-            await asyncio.wait_for(stop.wait(), timeout=HEARTBEAT_INTERVAL)
+            await asyncio.wait_for(stop.wait(), timeout=interval)
         except asyncio.TimeoutError:
             pass
         async with session_factory() as s:
@@ -380,13 +462,15 @@ async def _heartbeat(session_factory, run_id: UUID, stop: asyncio.Event) -> None
             await s.commit()
 
 
-async def _cancel_watcher(redis, run_id: UUID, cancel_event: asyncio.Event, stop: asyncio.Event) -> None:
+async def _cancel_watcher(
+    redis, run_id: UUID, cancel_event: asyncio.Event, stop: asyncio.Event, interval: float = 2.0
+) -> None:
     while not stop.is_set():
         if await is_cancel_requested(redis, run_id):
             cancel_event.set()
             return
         try:
-            await asyncio.wait_for(stop.wait(), timeout=CANCEL_POLL_INTERVAL)
+            await asyncio.wait_for(stop.wait(), timeout=interval)
         except asyncio.TimeoutError:
             pass
 

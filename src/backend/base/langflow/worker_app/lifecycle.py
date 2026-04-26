@@ -35,11 +35,21 @@ async def _on_startup(_state: TaskiqState) -> None:
 
 
 async def _on_shutdown(_state: TaskiqState) -> None:
+    from langflow.services.runs.metrics import WORKER_GRACEFUL_SHUTDOWN_DURATION
+    from langflow.worker_app.shutdown import drain
+
+    settings = worker_deps._get("settings")
+    drain_timeout = float(getattr(settings, "worker_shutdown_drain_timeout_s", 30.0)) if settings else 30.0
+    elapsed = await drain(timeout=drain_timeout)
+    WORKER_GRACEFUL_SHUTDOWN_DURATION.observe(elapsed)
+
     redis = worker_deps._get("redis")
     if redis is not None:
         await redis.aclose()
     worker_deps._clear()
-    logger.info(f"Langflow worker shutting down: worker_id={WORKER_ID}")
+    logger.info(
+        f"Langflow worker shutting down: worker_id={WORKER_ID} drain_seconds={elapsed:.2f}"
+    )
 
 
 _registered = False

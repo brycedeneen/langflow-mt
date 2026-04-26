@@ -24,7 +24,6 @@ from langflow.worker_app.delayed_enqueue import schedule_delayed_kick
 from langflow.worker_app.deps import get_db_sessionmaker, get_settings, get_redis
 
 
-_BACKOFF_SCHEDULE_SEC = [10, 30, 120, 600, 1800, 3600]  # 6 attempts max
 # Split timeouts so a tarpit endpoint can't pin the connect/pool phase.
 _HTTP_TIMEOUT = httpx.Timeout(connect=2.0, read=10.0, write=10.0, pool=2.0)
 
@@ -108,6 +107,8 @@ async def deliver_webhook(
     settings=TaskiqDepends(get_settings),
     redis: Redis = TaskiqDepends(get_redis),
 ) -> None:
+    backoff_schedule = list(settings.worker_webhook_backoff_schedule_s)
+
     async with sessionmaker() as session:
         run = await session.get(FlowRun, UUID(run_id))
         if run is None:
@@ -182,7 +183,7 @@ async def deliver_webhook(
         status_label = "retrying"
         should_retry = True
 
-    if should_retry and attempt + 1 >= len(_BACKOFF_SCHEDULE_SEC):
+    if should_retry and attempt + 1 >= len(backoff_schedule):
         status_label = "failed"
         should_retry = False
 
@@ -204,7 +205,7 @@ async def deliver_webhook(
     WEBHOOK_DELIVERY_TOTAL.labels(event=event, status=status_label).inc()
 
     if should_retry:
-        delay = _BACKOFF_SCHEDULE_SEC[attempt]
+        delay = backoff_schedule[attempt]
         await schedule_delayed_kick(
             redis=redis,
             task_name="deliver_webhook",

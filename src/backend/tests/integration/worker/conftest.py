@@ -135,6 +135,17 @@ def worker_ctx(engine_and_factory, redis_service, mock_storage):
     # https://hook.test/endpoint). Skip the SSRF guard's host-resolution step
     # so the mocked URL is never DNS-resolved before respx intercepts.
     settings.webhook_skip_url_validation = True
+    # Worker tunables — fast intervals keep cancel/requeue tests quick.
+    settings.worker_heartbeat_interval_s = 0.05
+    settings.worker_cancel_poll_interval_s = 0.05
+    settings.worker_requeue_delay_s = 0.1
+    settings.worker_log_flush_interval_s = 0.05
+    settings.worker_log_max_buffer = 100
+    settings.worker_max_run_timeout_seconds = 3600
+    settings.worker_retry_jitter_ratio = 0.0  # deterministic in tests
+    settings.worker_webhook_backoff_schedule_s = [10, 30, 120, 600, 1800, 3600]
+    settings.worker_shutdown_drain_timeout_s = 5.0
+    settings.run_logs_max_bytes = 10 * 1024 * 1024
 
     async def deterministic_runner(flow, triggered_by, inputs, actor_id):
         await asyncio.sleep(0.05)

@@ -40,7 +40,14 @@ async def reap_lost_runs(
             # the in-memory state (refresh from DB) before mutating so we don't
             # overwrite SUCCEEDED/FAILED with a bogus worker_lost.
             await session.refresh(row)
-            if row.status != RunStatus.RUNNING or row.heartbeat_at is None or row.heartbeat_at >= cutoff:
+            if row.status != RunStatus.RUNNING or row.heartbeat_at is None:
+                continue
+            # SQLite returns naive datetimes even when stored as UTC; normalise
+            # before comparing against the tz-aware cutoff.
+            heartbeat_at = row.heartbeat_at
+            if heartbeat_at.tzinfo is None:
+                heartbeat_at = heartbeat_at.replace(tzinfo=timezone.utc)
+            if heartbeat_at >= cutoff:
                 continue
             row.status = RunStatus.FAILED
             row.finished_at = now

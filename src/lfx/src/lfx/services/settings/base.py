@@ -422,6 +422,40 @@ class Settings(BaseSettings):
     cost_tracking_enabled: bool = True
     """Kill switch for the cost-computation path in record_run_completion_and_eval."""
 
+    worker_heartbeat_interval_s: float = 15.0
+    """How often the worker stamps `flow_run.heartbeat_at`. Reaper marks runs
+    FAILED after `STALE_AFTER_SECONDS` (60s) without a heartbeat — keep this
+    well under that floor."""
+
+    worker_cancel_poll_interval_s: float = 2.0
+    """How often the worker polls Redis for a cancel signal during execution."""
+
+    worker_requeue_delay_s: float = 5.0
+    """Delay before requeueing a job that hit the org concurrency cap."""
+
+    worker_log_flush_interval_s: float = 0.5
+    """Background flush cadence for `RunLogSink`."""
+
+    worker_log_max_buffer: int = 100
+    """Max in-memory FlowRunLog rows before a forced flush in `RunLogSink`."""
+
+    worker_max_run_timeout_seconds: int = 3600
+    """Hard ceiling on per-run `timeout_seconds`. A run's requested timeout is
+    clamped to this value at execution time so a single tenant can't pin a
+    worker for arbitrary durations."""
+
+    worker_retry_jitter_ratio: float = 0.1
+    """Multiplicative jitter applied to auto-retry backoff. 0.1 means the
+    actual delay is uniform in `[backoff, backoff * 1.1]`. Set to 0 to disable."""
+
+    worker_webhook_backoff_schedule_s: list[int] = [10, 30, 120, 600, 1800, 3600]
+    """Webhook delivery retry schedule (seconds). Length determines max attempts."""
+
+    worker_shutdown_drain_timeout_s: float = 30.0
+    """How long the worker awaits in-flight `execute_run` tasks during graceful
+    shutdown before giving up. Match this to the orchestrator's
+    `terminationGracePeriodSeconds`."""
+
     cost_estimate_llm_input_tokens: int = 800
     cost_estimate_llm_output_tokens: int = 400
     cost_estimate_embed_input_tokens: int = 512

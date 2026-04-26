@@ -45,6 +45,7 @@ def worker_cmd(
     from langflow.worker_app import retention as _ret  # noqa: F401
     from langflow.worker_app import audit_cleanup as _a  # noqa: F401
     from langflow.worker_app import pricing_refresh as _p  # noqa: F401
+    from langflow.worker_app import queue_depth as _qd  # noqa: F401
 
     queues = queue or ["runs:default"]
     if len(queues) > 1:
@@ -80,6 +81,7 @@ def worker_cmd(
         "langflow.worker_app.retention",
         "langflow.worker_app.audit_cleanup",
         "langflow.worker_app.pricing_refresh",
+        "langflow.worker_app.queue_depth",
     ]
     cli_args: list[str] = [broker_spec, *task_modules]
     if concurrency is not None:
