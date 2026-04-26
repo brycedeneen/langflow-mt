@@ -29,6 +29,7 @@ from langflow.api.v1.schemas.pro_service_quote import (
     QuoteListResponse,
     QuoteRead,
     QuoteSubmitRequest,
+    QuoteUpdateRequest,
     quote_to_read,
 )
 from langflow.services.database.models.component_metadata.model import ComponentMetadata
@@ -50,6 +51,10 @@ from langflow.services.professional_services.llm_service import (
 )
 from langflow.services.professional_services.permissions import (
     PrincipalContext,
+    can_close,
+    can_edit_admin_notes,
+    can_edit_org_notes,
+    can_mark_in_progress,
     can_submit,
     can_view_quote,
 )
@@ -60,6 +65,11 @@ from langflow.services.professional_services.settings_service import (
 from langflow.services.professional_services.submit_service import (
     ActiveRequestError,
     submit_quote,
+)
+from langflow.services.professional_services.transitions import (
+    IllegalTransitionError,
+    transition_to_closed,
+    transition_to_in_progress,
 )
 from langflow.services.professional_services.webhook_service import deliver_quote_webhook
 
@@ -449,6 +459,97 @@ async def get_quote(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="quote_not_found"
         )
+
+    org = await session.get(Organization, quote.org_id)
+    flow = await session.get(Flow, quote.flow_id) if quote.flow_id else None
+    requester = await session.get(User, quote.requester_user_id)
+    return quote_to_read(quote, org, flow, requester)
+
+
+@router.patch("/pro-service-quotes/{quote_id}", response_model=QuoteRead)
+async def update_quote(
+    quote_id: UUID,
+    payload: QuoteUpdateRequest,
+    user: CurrentActiveUser,
+    session: DbSession,
+) -> QuoteRead:
+    """Mutate a quote: notes / assignment / state transitions.
+
+    Returns 404 (not 403) for cross-tenant access. Per-field permissions:
+
+    - ``org_notes``: org member or cross-tenant admin
+    - ``admin_notes``: cross-tenant admin only
+    - ``assigned_admin_user_id``: cross-tenant admin only
+    - ``status=in_progress``: cross-tenant admin only, source must be OPEN
+    - ``status=closed``: cross-tenant admin (any non-CLOSED) or requester (OPEN only)
+    """
+    quote = await session.get(ProServiceQuote, quote_id)
+    principals = await _build_principal_for_user(user, session)
+    if quote is None or not any(can_view_quote(quote, p) for p in principals):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="quote_not_found"
+        )
+
+    if payload.org_notes is not None:
+        if not any(can_edit_org_notes(quote, p) for p in principals):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="cannot_edit_org_notes"
+            )
+        quote.org_notes = payload.org_notes
+
+    if payload.admin_notes is not None:
+        if not any(can_edit_admin_notes(quote, p) for p in principals):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="cannot_edit_admin_notes"
+            )
+        quote.admin_notes = payload.admin_notes
+
+    if payload.assigned_admin_user_id is not None:
+        if not any(p.is_admin for p in principals):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="cannot_assign"
+            )
+        quote.assigned_admin_user_id = payload.assigned_admin_user_id
+
+    if payload.status is not None and payload.status != quote.status:
+        try:
+            if payload.status == ProServiceQuoteStatus.IN_PROGRESS:
+                if not any(can_mark_in_progress(quote, p) for p in principals):
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="cannot_mark_in_progress",
+                    )
+                await transition_to_in_progress(
+                    session=session, quote=quote, actor_user_id=user.id
+                )
+            elif payload.status == ProServiceQuoteStatus.CLOSED:
+                if not any(can_close(quote, p) for p in principals):
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN, detail="cannot_close"
+                    )
+                by_requester = (
+                    user.id == quote.requester_user_id
+                    and not any(p.is_admin for p in principals)
+                )
+                await transition_to_closed(
+                    session=session,
+                    quote=quote,
+                    actor_user_id=user.id,
+                    by_requester=by_requester,
+                )
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="unsupported_target_status",
+                )
+        except IllegalTransitionError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+            ) from exc
+
+    session.add(quote)
+    await session.commit()
+    await session.refresh(quote)
 
     org = await session.get(Organization, quote.org_id)
     flow = await session.get(Flow, quote.flow_id) if quote.flow_id else None
