@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Literal, Protocol
 from uuid import UUID
+
+from langflow.services.database.models.admin_notification import NotificationAudience
 
 
 NotificationCategoryValue = Literal[
@@ -23,6 +25,8 @@ class UsageAlertEvent:
     title: str
     body_md: str
     metadata: dict[str, Any]
+    audience: NotificationAudience = field(default=NotificationAudience.SUPER_ADMIN)
+    audience_user_id: UUID | None = field(default=None)
 
 
 class UsageAlertNotifier(Protocol):

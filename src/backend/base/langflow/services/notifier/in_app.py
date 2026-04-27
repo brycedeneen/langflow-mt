@@ -34,7 +34,8 @@ class InAppNotifier(UsageAlertNotifier):
             title=event.title,
             body_md=event.body_md,
             metadata_json=dict(event.metadata),
-            audience=NotificationAudience.SUPER_ADMIN,
+            audience=event.audience,
+            audience_user_id=event.audience_user_id,
         )
         async with self._session_factory() as session:
             session.add(row)
