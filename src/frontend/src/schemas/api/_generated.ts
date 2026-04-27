@@ -40,70 +40,66 @@ type SpanStatus = "unset" | "ok" | "error";
 
 export const X_Acting_Org_Id = z.union([z.string(), z.null()]).optional();
 export const langflow__api__v1__assistant__MessageResponse = z.looseObject({
-  id: z.string(),
-  role: z.string(),
-  content: z.union([z.string(), z.null()]).optional(),
-  tool_calls: z.union([z.unknown(), z.null()]).optional(),
-  tool_call_id: z.union([z.string(), z.null()]).optional(),
-  tool_result: z.union([z.unknown(), z.null()]).optional(),
-  created_at: z.union([z.string(), z.null()]).optional(),
-});
+    id: z.string(),
+    role: z.string(),
+    content: z.union([z.string(), z.null()]).optional(),
+    tool_calls: z.union([z.unknown(), z.null()]).optional(),
+    tool_call_id: z.union([z.string(), z.null()]).optional(),
+    tool_result: z.union([z.unknown(), z.null()]).optional(),
+    created_at: z.union([z.string(), z.null()]).optional(),
+  });
 export const ConversationResponse = z.looseObject({
-  conversation_id: z.union([z.string(), z.null()]).optional(),
-  messages: z.array(langflow__api__v1__assistant__MessageResponse),
-  settings_configured: z.boolean(),
-});
+    conversation_id: z.union([z.string(), z.null()]).optional(),
+    messages: z.array(langflow__api__v1__assistant__MessageResponse),
+    settings_configured: z.boolean(),
+  });
 export const ValidationError = z.looseObject({
-  loc: z.array(z.union([z.string(), z.number()])),
-  msg: z.string(),
-  type: z.string(),
-  input: z.unknown().optional(),
-  ctx: z.looseObject({}).partial().optional(),
-});
-export const HTTPValidationError = z
-  .looseObject({ detail: z.array(ValidationError) })
-  .partial();
+    loc: z.array(z.union([z.string(), z.number()])),
+    msg: z.string(),
+    type: z.string(),
+    input: z.unknown().optional(),
+    ctx: z.looseObject({}).partial().optional(),
+  });
+export const HTTPValidationError = z.looseObject({ detail: z.array(ValidationError) }).partial();
 export const SendMessageRequest = z.looseObject({ content: z.string() });
-export const SettingsResponse = z
-  .looseObject({
+export const SettingsResponse = z.looseObject({
     provider: z.union([z.string(), z.null()]),
     model: z.union([z.string(), z.null()]),
     has_key: z.boolean().default(false),
-  })
-  .partial();
+  }).partial();
 export const AssistantSettingsRequest = z.looseObject({
-  provider: z.string(),
-  model: z.string(),
-  api_key: z.union([z.string(), z.null()]).optional(),
-});
+    provider: z.string(),
+    model: z.string(),
+    api_key: z.union([z.string(), z.null()]).optional(),
+  });
 export const AssistantMessageRead = z.looseObject({
-  id: z.string().uuid(),
-  conversation_id: z.string().uuid(),
-  role: z.string(),
-  content: z.union([z.string(), z.null()]).optional(),
-  created_at: z.union([z.string(), z.null()]).optional(),
-});
+    id: z.string().uuid(),
+    conversation_id: z.string().uuid(),
+    role: z.string(),
+    content: z.union([z.string(), z.null()]).optional(),
+    created_at: z.union([z.string(), z.null()]).optional(),
+  });
 export const NodeSnapshot = z.looseObject({
-  node_id: z.string(),
-  type: z.string(),
-  display_name: z.string(),
-  description: z.union([z.string(), z.null()]).optional(),
-  template: z.looseObject({}).partial().optional(),
-  outputs: z.array(z.looseObject({}).partial()).optional(),
-});
+    node_id: z.string(),
+    type: z.string(),
+    display_name: z.string(),
+    description: z.union([z.string(), z.null()]).optional(),
+    template: z.looseObject({}).partial().optional(),
+    outputs: z.array(z.looseObject({}).partial()).optional(),
+  });
 export const ThreadMessage = z.looseObject({
-  role: z.enum(["user", "assistant"]),
-  content: z.string(),
-  tool_calls: z.array(z.looseObject({}).partial()).optional(),
-});
+    role: z.enum(["user", "assistant"]),
+    content: z.string(),
+    tool_calls: z.array(z.looseObject({}).partial()).optional(),
+  });
 export const ComponentAssistRequest = z.looseObject({
-  flow_id: z.string().uuid(),
-  node_id: z.string(),
-  node_snapshot: NodeSnapshot,
-  neighbor_snapshots: z.array(NodeSnapshot).optional(),
-  thread: z.array(ThreadMessage).optional(),
-  user_message: z.string(),
-});
+    flow_id: z.string().uuid(),
+    node_id: z.string(),
+    node_snapshot: NodeSnapshot,
+    neighbor_snapshots: z.array(NodeSnapshot).optional(),
+    thread: z.array(ThreadMessage).optional(),
+    user_message: z.string(),
+  });
 export const InputValueRequest = z
   .object({
     components: z.union([z.array(z.string()), z.null()]).default([]),
@@ -114,39 +110,28 @@ export const InputValueRequest = z
   })
   .partial();
 export const FlowDataRequest = z.looseObject({
-  nodes: z.array(z.looseObject({}).partial()),
-  edges: z.array(z.looseObject({}).partial()),
-  viewport: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
-export const Body_build_flow_api_v1_build__flow_id__flow_post = z
-  .looseObject({
+    nodes: z.array(z.looseObject({}).partial()),
+    edges: z.array(z.looseObject({}).partial()),
+    viewport: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
+export const Body_build_flow_api_v1_build__flow_id__flow_post = z.looseObject({
     inputs: z.union([InputValueRequest, z.null()]),
     data: z.union([FlowDataRequest, z.null()]),
     files: z.union([z.array(z.string()), z.null()]),
-  })
-  .partial();
-export const CancelFlowResponse = z.looseObject({
-  success: z.boolean(),
-  message: z.string(),
-});
-export const Body_build_public_tmp_api_v1_build_public_tmp__flow_id__flow_post =
-  z
-    .looseObject({
-      inputs: z.union([InputValueRequest, z.null()]),
-      data: z.union([FlowDataRequest, z.null()]),
-      files: z.union([z.array(z.string()), z.null()]),
-    })
-    .partial();
-export const log_builds = z
-  .union([z.boolean(), z.null()])
-  .optional()
-  .default(true);
-export const Tweaks = z.record(
-  z.string(),
-  z.union([z.string(), z.looseObject({}).partial()]),
+  }).partial();
+export const CancelFlowResponse = z.looseObject({ success: z.boolean(), message: z.string() });
+export const Body_build_public_tmp_api_v1_build_public_tmp__flow_id__flow_post = z.looseObject({
+    inputs: z.union([InputValueRequest, z.null()]),
+    data: z.union([FlowDataRequest, z.null()]),
+    files: z.union([z.array(z.string()), z.null()]),
+  }).partial();
+export const log_builds = z.union([z.boolean(), z.null()]).optional().default(true);
+export const Tweaks = z.record(z.string(), 
+  z.union([z.string(), z.looseObject({}).partial()])
 );
-export const SimplifiedAPIRequest = z
-  .looseObject({
+export const SimplifiedAPIRequest = z.looseObject({
     input_value: z.union([z.string(), z.null()]),
     input_type: z
       .union([z.enum(["chat", "text", "any"]), z.null()])
@@ -157,54 +142,41 @@ export const SimplifiedAPIRequest = z
     output_component: z.union([z.string(), z.null()]).default(""),
     tweaks: z.union([Tweaks, z.null()]),
     session_id: z.union([z.string(), z.null()]),
-  })
-  .partial();
-export const Body_simplified_run_flow_api_v1_run__flow_id_or_name__post = z
-  .looseObject({
+  }).partial();
+export const Body_simplified_run_flow_api_v1_run__flow_id_or_name__post = z.looseObject({
     input_request: z.union([SimplifiedAPIRequest, z.null()]),
     context: z.union([z.looseObject({}).partial(), z.null()]),
-  })
-  .partial();
+  }).partial();
 export const user_id = z.union([z.string(), z.string(), z.null()]).optional();
-export const Body_experimental_run_flow_api_v1_run_advanced__flow_id_or_name__post =
-  z
-    .looseObject({
-      inputs: z.union([z.array(InputValueRequest), z.null()]),
-      outputs: z.union([z.array(z.string()), z.null()]),
-      tweaks: z.union([Tweaks, z.null()]),
-      stream: z.boolean().default(false),
-      session_id: z.union([z.string(), z.null()]),
-    })
-    .partial();
-export const lfx__utils__schemas__File = z.looseObject({
-  path: z.string(),
-  name: z.string(),
-  type: z.string(),
-});
+export const Body_experimental_run_flow_api_v1_run_advanced__flow_id_or_name__post = z.looseObject({
+    inputs: z.union([z.array(InputValueRequest), z.null()]),
+    outputs: z.union([z.array(z.string()), z.null()]),
+    tweaks: z.union([Tweaks, z.null()]),
+    stream: z.boolean().default(false),
+    session_id: z.union([z.string(), z.null()]),
+  }).partial();
+export const lfx__utils__schemas__File = z.looseObject({ path: z.string(), name: z.string(), type: z.string() });
 export const ChatOutputResponse = z.looseObject({
-  message: z.union([
-    z.string(),
-    z.array(z.union([z.string(), z.looseObject({}).partial()])),
-  ]),
-  sender: z.union([z.string(), z.null()]).optional().default("Machine"),
-  sender_name: z.union([z.string(), z.null()]).optional().default("AI"),
-  session_id: z.union([z.string(), z.null()]).optional(),
-  stream_url: z.union([z.string(), z.null()]).optional(),
-  component_id: z.union([z.string(), z.null()]).optional(),
-  files: z.array(lfx__utils__schemas__File).optional().default([]),
-  type: z.string(),
-});
-export const lfx__schema__properties__Usage = z
-  .looseObject({
+    message: z.union([
+      z.string(),
+      z.array(z.union([z.string(), z.looseObject({}).partial()])),
+    ]),
+    sender: z.union([z.string(), z.null()]).optional().default("Machine"),
+    sender_name: z.union([z.string(), z.null()]).optional().default("AI"),
+    session_id: z.union([z.string(), z.null()]).optional(),
+    stream_url: z.union([z.string(), z.null()]).optional(),
+    component_id: z.union([z.string(), z.null()]).optional(),
+    files: z.array(lfx__utils__schemas__File).optional().default([]),
+    type: z.string(),
+  });
+export const lfx__schema__properties__Usage = z.looseObject({
     input_tokens: z.union([z.number(), z.null()]),
     output_tokens: z.union([z.number(), z.null()]),
     total_tokens: z.union([z.number(), z.null()]),
     model_name: z.union([z.string(), z.null()]),
     cost_micros: z.union([z.number(), z.null()]),
-  })
-  .partial();
-export const ResultData = z
-  .looseObject({
+  }).partial();
+export const ResultData = z.looseObject({
     results: z.union([z.unknown(), z.null()]),
     artifacts: z.union([z.unknown(), z.null()]),
     outputs: z.union([z.looseObject({}).partial(), z.null()]),
@@ -216,79 +188,77 @@ export const ResultData = z
     component_id: z.union([z.string(), z.null()]),
     used_frozen_result: z.union([z.boolean(), z.null()]).default(false),
     token_usage: z.union([lfx__schema__properties__Usage, z.null()]),
-  })
-  .partial();
-export const RunOutputs = z
-  .looseObject({
+  }).partial();
+export const RunOutputs = z.looseObject({
     inputs: z.looseObject({}).partial(),
     outputs: z.array(z.union([ResultData, z.null()])),
-  })
-  .partial();
-export const RunResponse = z
-  .looseObject({
+  }).partial();
+export const RunResponse = z.looseObject({
     outputs: z.union([z.array(RunOutputs), z.null()]).default([]),
     session_id: z.union([z.string(), z.null()]),
-  })
-  .partial();
+  }).partial();
 export const FeatureFlags = z
   .object({ mvp_components: z.boolean().default(false) })
   .partial();
 export const ConfigResponse = z.looseObject({
-  max_file_size_upload: z.number().int(),
-  event_delivery: z.enum(["polling", "streaming", "direct"]),
-  voice_mode_available: z.boolean(),
-  frontend_timeout: z.number().int(),
-  allow_custom_components: z.boolean().optional().default(false),
-  type: z.string().optional().default("full"),
-  feature_flags: FeatureFlags,
-  serialization_max_items_length: z.number().int(),
-  serialization_max_text_length: z.number().int(),
-  auto_saving: z.boolean(),
-  auto_saving_interval: z.number().int(),
-  health_check_max_retries: z.number().int(),
-  webhook_polling_interval: z.number().int(),
-  public_flow_cleanup_interval: z.number().int(),
-  public_flow_expiration: z.number().int(),
-  webhook_auth_enable: z.boolean(),
-  default_folder_name: z.string(),
-  hide_getting_started_progress: z.boolean(),
-});
+    max_file_size_upload: z.number().int(),
+    event_delivery: z.enum(["polling", "streaming", "direct"]),
+    voice_mode_available: z.boolean(),
+    frontend_timeout: z.number().int(),
+    allow_custom_components: z.boolean().optional().default(false),
+    type: z.string().optional().default("full"),
+    feature_flags: FeatureFlags,
+    serialization_max_items_length: z.number().int(),
+    serialization_max_text_length: z.number().int(),
+    auto_saving: z.boolean(),
+    auto_saving_interval: z.number().int(),
+    health_check_max_retries: z.number().int(),
+    webhook_polling_interval: z.number().int(),
+    public_flow_cleanup_interval: z.number().int(),
+    public_flow_expiration: z.number().int(),
+    webhook_auth_enable: z.boolean(),
+    default_folder_name: z.string(),
+    hide_getting_started_progress: z.boolean(),
+  });
 export const PublicConfigResponse = z.looseObject({
-  max_file_size_upload: z.number().int(),
-  event_delivery: z.enum(["polling", "streaming", "direct"]),
-  voice_mode_available: z.boolean(),
-  frontend_timeout: z.number().int(),
-  allow_custom_components: z.boolean().optional().default(false),
-  type: z.string().optional().default("public"),
-});
+    max_file_size_upload: z.number().int(),
+    event_delivery: z.enum(["polling", "streaming", "direct"]),
+    voice_mode_available: z.boolean(),
+    frontend_timeout: z.number().int(),
+    allow_custom_components: z.boolean().optional().default(false),
+    type: z.string().optional().default("public"),
+  });
 export const AccessTypeEnum = z.enum(["PRIVATE", "PUBLIC"]);
 export const FlowCreate = z.looseObject({
-  name: z.string(),
-  description: z.union([z.string(), z.null()]).optional(),
-  icon: z.union([z.string(), z.null()]).optional(),
-  icon_bg_color: z.union([z.string(), z.null()]).optional(),
-  gradient: z.union([z.string(), z.null()]).optional(),
-  data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-  is_component: z.union([z.boolean(), z.null()]).optional().default(false),
-  updated_at: z.union([z.string(), z.null()]).optional(),
-  webhook: z.union([z.boolean(), z.null()]).optional().default(false),
-  built_with_assist: z.union([z.boolean(), z.null()]).optional().default(false),
-  based_on_template_id: z.union([z.string(), z.null()]).optional(),
-  endpoint_name: z.union([z.string(), z.null()]).optional(),
-  locked: z.union([z.boolean(), z.null()]).optional().default(false),
-  mcp_enabled: z.union([z.boolean(), z.null()]).optional().default(false),
-  action_name: z.union([z.string(), z.null()]).optional(),
-  action_description: z.union([z.string(), z.null()]).optional(),
-  access_type: AccessTypeEnum.optional(),
-  webhook_url: z.union([z.string(), z.null()]).optional(),
-  webhook_secret: z.union([z.string(), z.null()]).optional(),
-  auto_retry: z.boolean().optional().default(false),
-  max_retries: z.number().int().optional().default(3),
-  timeout_seconds: z.number().int().optional().default(600),
-  user_id: z.union([z.string(), z.null()]).optional(),
-  folder_id: z.union([z.string(), z.null()]).optional(),
-  fs_path: z.union([z.string(), z.null()]).optional(),
-});
+    name: z.string(),
+    description: z.union([z.string(), z.null()]).optional(),
+    icon: z.union([z.string(), z.null()]).optional(),
+    icon_bg_color: z.union([z.string(), z.null()]).optional(),
+    gradient: z.union([z.string(), z.null()]).optional(),
+    data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
+    is_component: z.union([z.boolean(), z.null()]).optional().default(false),
+    updated_at: z.union([z.string(), z.null()]).optional(),
+    webhook: z.union([z.boolean(), z.null()]).optional().default(false),
+    built_with_assist: z
+      .union([z.boolean(), z.null()])
+      .optional()
+      .default(false),
+    based_on_template_id: z.union([z.string(), z.null()]).optional(),
+    endpoint_name: z.union([z.string(), z.null()]).optional(),
+    locked: z.union([z.boolean(), z.null()]).optional().default(false),
+    mcp_enabled: z.union([z.boolean(), z.null()]).optional().default(false),
+    action_name: z.union([z.string(), z.null()]).optional(),
+    action_description: z.union([z.string(), z.null()]).optional(),
+    access_type: AccessTypeEnum.optional(),
+    webhook_url: z.union([z.string(), z.null()]).optional(),
+    webhook_secret: z.union([z.string(), z.null()]).optional(),
+    auto_retry: z.boolean().optional().default(false),
+    max_retries: z.number().int().optional().default(3),
+    timeout_seconds: z.number().int().optional().default(600),
+    user_id: z.union([z.string(), z.null()]).optional(),
+    folder_id: z.union([z.string(), z.null()]).optional(),
+    fs_path: z.union([z.string(), z.null()]).optional(),
+  });
 export const TagColor = z.enum([
   "slate",
   "red",
@@ -302,69 +272,69 @@ export const TagColor = z.enum([
   "pink",
 ]);
 export const TagRead = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  color: TagColor,
-  description: z.union([z.string(), z.null()]),
-  created_by: z.union([z.string(), z.null()]),
-  created_at: z.string().datetime({ offset: true }),
-  updated_at: z.string().datetime({ offset: true }),
-});
+    id: z.string().uuid(),
+    name: z.string(),
+    color: TagColor,
+    description: z.union([z.string(), z.null()]),
+    created_by: z.union([z.string(), z.null()]),
+    created_at: z.string().datetime({ offset: true }),
+    updated_at: z.string().datetime({ offset: true }),
+  });
 export const FlowRead = z.looseObject({
-  name: z.string(),
-  description: z.union([z.string(), z.null()]).optional(),
-  icon: z.union([z.string(), z.null()]).optional(),
-  icon_bg_color: z.union([z.string(), z.null()]).optional(),
-  gradient: z.union([z.string(), z.null()]).optional(),
-  data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-  is_component: z.union([z.boolean(), z.null()]).optional().default(false),
-  updated_at: z.union([z.string(), z.null()]).optional(),
-  webhook: z.union([z.boolean(), z.null()]).optional().default(false),
-  built_with_assist: z.union([z.boolean(), z.null()]).optional().default(false),
-  based_on_template_id: z.union([z.string(), z.null()]).optional(),
-  endpoint_name: z.union([z.string(), z.null()]).optional(),
-  locked: z.union([z.boolean(), z.null()]).optional().default(false),
-  mcp_enabled: z.union([z.boolean(), z.null()]).optional().default(false),
-  action_name: z.union([z.string(), z.null()]).optional(),
-  action_description: z.union([z.string(), z.null()]).optional(),
-  access_type: AccessTypeEnum.optional(),
-  webhook_url: z.union([z.string(), z.null()]).optional(),
-  webhook_secret: z.union([z.string(), z.null()]).optional(),
-  auto_retry: z.boolean().optional().default(false),
-  max_retries: z.number().int().optional().default(3),
-  timeout_seconds: z.number().int().optional().default(600),
-  id: z.string().uuid(),
-  user_id: z.union([z.string(), z.null()]),
-  organization_id: z.union([z.string(), z.null()]).optional(),
-  folder_id: z.union([z.string(), z.null()]),
-  tags: z.array(TagRead).optional(),
-});
-export const tag_id = z
-  .union([z.array(z.string().uuid()), z.null()])
-  .optional();
+    name: z.string(),
+    description: z.union([z.string(), z.null()]).optional(),
+    icon: z.union([z.string(), z.null()]).optional(),
+    icon_bg_color: z.union([z.string(), z.null()]).optional(),
+    gradient: z.union([z.string(), z.null()]).optional(),
+    data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
+    is_component: z.union([z.boolean(), z.null()]).optional().default(false),
+    updated_at: z.union([z.string(), z.null()]).optional(),
+    webhook: z.union([z.boolean(), z.null()]).optional().default(false),
+    built_with_assist: z
+      .union([z.boolean(), z.null()])
+      .optional()
+      .default(false),
+    based_on_template_id: z.union([z.string(), z.null()]).optional(),
+    endpoint_name: z.union([z.string(), z.null()]).optional(),
+    locked: z.union([z.boolean(), z.null()]).optional().default(false),
+    mcp_enabled: z.union([z.boolean(), z.null()]).optional().default(false),
+    action_name: z.union([z.string(), z.null()]).optional(),
+    action_description: z.union([z.string(), z.null()]).optional(),
+    access_type: AccessTypeEnum.optional(),
+    webhook_url: z.union([z.string(), z.null()]).optional(),
+    webhook_secret: z.union([z.string(), z.null()]).optional(),
+    auto_retry: z.boolean().optional().default(false),
+    max_retries: z.number().int().optional().default(3),
+    timeout_seconds: z.number().int().optional().default(600),
+    id: z.string().uuid(),
+    user_id: z.union([z.string(), z.null()]),
+    organization_id: z.union([z.string(), z.null()]).optional(),
+    folder_id: z.union([z.string(), z.null()]),
+    tags: z.array(TagRead).optional(),
+  });
+export const tag_id = z.union([z.array(z.string().uuid()), z.null()]).optional();
 export const Page_FlowRead_ = z.looseObject({
-  items: z.array(FlowRead),
-  total: z.number().int().gte(0),
-  page: z.number().int().gte(1),
-  size: z.number().int().gte(1),
-  pages: z.number().int().gte(0),
-});
+    items: z.array(FlowRead),
+    total: z.number().int().gte(0),
+    page: z.number().int().gte(1),
+    size: z.number().int().gte(1),
+    pages: z.number().int().gte(0),
+  });
 export const FlowHeader = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  folder_id: z.union([z.string(), z.null()]).optional(),
-  is_component: z.union([z.boolean(), z.null()]).optional(),
-  endpoint_name: z.union([z.string(), z.null()]).optional(),
-  description: z.union([z.string(), z.null()]).optional(),
-  data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-  access_type: z.union([AccessTypeEnum, z.null()]).optional(),
-  tags: z.array(TagRead).optional(),
-  mcp_enabled: z.union([z.boolean(), z.null()]).optional(),
-  action_name: z.union([z.string(), z.null()]).optional(),
-  action_description: z.union([z.string(), z.null()]).optional(),
-});
-export const FlowUpdate = z
-  .looseObject({
+    id: z.string().uuid(),
+    name: z.string(),
+    folder_id: z.union([z.string(), z.null()]).optional(),
+    is_component: z.union([z.boolean(), z.null()]).optional(),
+    endpoint_name: z.union([z.string(), z.null()]).optional(),
+    description: z.union([z.string(), z.null()]).optional(),
+    data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
+    access_type: z.union([AccessTypeEnum, z.null()]).optional(),
+    tags: z.array(TagRead).optional(),
+    mcp_enabled: z.union([z.boolean(), z.null()]).optional(),
+    action_name: z.union([z.string(), z.null()]).optional(),
+    action_description: z.union([z.string(), z.null()]).optional(),
+  });
+export const FlowUpdate = z.looseObject({
     name: z.union([z.string(), z.null()]),
     description: z.union([z.string(), z.null()]),
     data: z.union([z.looseObject({}).partial(), z.null()]),
@@ -376,19 +346,11 @@ export const FlowUpdate = z
     action_description: z.union([z.string(), z.null()]),
     access_type: z.union([AccessTypeEnum, z.null()]),
     fs_path: z.union([z.string(), z.null()]),
-  })
-  .partial();
-export const _FlowTagAssignBody = z.looseObject({
-  tag_ids: z.array(z.string().uuid()),
-});
-export const _FlowWithTagsRead = z.looseObject({
-  id: z.string().uuid(),
-  tags: z.array(TagRead),
-});
+  }).partial();
+export const _FlowTagAssignBody = z.looseObject({ tag_ids: z.array(z.string().uuid()) });
+export const _FlowWithTagsRead = z.looseObject({ id: z.string().uuid(), tags: z.array(TagRead) });
 export const FlowListCreate = z.looseObject({ flows: z.array(FlowCreate) });
-export const Body_upload_file_api_v1_flows_upload__post = z.looseObject({
-  file: z.string(),
-});
+export const Body_upload_file_api_v1_flows_upload__post = z.looseObject({ file: z.string() });
 export const AuditAction = z.enum([
   "create",
   "update",
@@ -408,84 +370,82 @@ export const AuditTargetType = z.enum([
   "role_assignment",
 ]);
 export const AuditLogRead = z.looseObject({
-  id: z.string().uuid(),
-  occurred_at: z.string().datetime({ offset: true }),
-  actor_user_id: z.union([z.string(), z.null()]),
-  actor_email: z.string(),
-  actor_is_super: z.boolean(),
-  org_id: z.union([z.string(), z.null()]),
-  target_type: AuditTargetType,
-  target_id: z.string().uuid(),
-  action: AuditAction,
-  diff: z.looseObject({}).partial(),
-  diff_hash: z.string(),
-  request_metadata: z.looseObject({}).partial(),
-});
+    id: z.string().uuid(),
+    occurred_at: z.string().datetime({ offset: true }),
+    actor_user_id: z.union([z.string(), z.null()]),
+    actor_email: z.string(),
+    actor_is_super: z.boolean(),
+    org_id: z.union([z.string(), z.null()]),
+    target_type: AuditTargetType,
+    target_id: z.string().uuid(),
+    action: AuditAction,
+    diff: z.looseObject({}).partial(),
+    diff_hash: z.string(),
+    request_metadata: z.looseObject({}).partial(),
+  });
 export const AuditLogListResponse = z.looseObject({
-  items: z.array(AuditLogRead),
-  total: z.number().int(),
-  page: z.number().int(),
-  size: z.number().int(),
-});
+    items: z.array(AuditLogRead),
+    total: z.number().int(),
+    page: z.number().int(),
+    size: z.number().int(),
+  });
 export const FlowVersionRead = z.looseObject({
-  id: z.string().uuid(),
-  flow_id: z.string().uuid(),
-  user_id: z.union([z.string(), z.null()]),
-  version_number: z.number().int().gte(1),
-  description: z.union([z.string(), z.null()]),
-  created_at: z.string(),
-  version_tag: z.string(),
-});
+    id: z.string().uuid(),
+    flow_id: z.string().uuid(),
+    user_id: z.union([z.string(), z.null()]),
+    version_number: z.number().int().gte(1),
+    description: z.union([z.string(), z.null()]),
+    created_at: z.string(),
+    version_tag: z.string(),
+  });
 export const FlowVersionListResponse = z.looseObject({
-  entries: z.array(FlowVersionRead),
-  max_entries: z.number().int().gte(1),
-});
-export const FlowVersionCreate = z
-  .looseObject({ description: z.union([z.string(), z.null()]) })
-  .partial();
-export const create_snapshot_api_v1_flows__flow_id__versions__post_Body =
-  z.union([FlowVersionCreate, z.null()]);
+    entries: z.array(FlowVersionRead),
+    max_entries: z.number().int().gte(1),
+  });
+export const FlowVersionCreate = z.looseObject({ description: z.union([z.string(), z.null()]) }).partial();
+export const create_snapshot_api_v1_flows__flow_id__versions__post_Body = z.union([
+  FlowVersionCreate,
+  z.null(),
+]);
 export const FlowVersionReadWithData = z.looseObject({
-  id: z.string().uuid(),
-  flow_id: z.string().uuid(),
-  user_id: z.union([z.string(), z.null()]),
-  version_number: z.number().int().gte(1),
-  description: z.union([z.string(), z.null()]),
-  created_at: z.string(),
-  data: z.union([z.looseObject({}).partial(), z.null()]),
-  version_tag: z.string(),
-});
+    id: z.string().uuid(),
+    flow_id: z.string().uuid(),
+    user_id: z.union([z.string(), z.null()]),
+    version_number: z.number().int().gte(1),
+    description: z.union([z.string(), z.null()]),
+    created_at: z.string(),
+    data: z.union([z.looseObject({}).partial(), z.null()]),
+    version_tag: z.string(),
+  });
 export const UserCreate = z.looseObject({
-  username: z.string(),
-  password: z.string(),
-  optins: z
-    .union([z.looseObject({}).partial(), z.null()])
-    .optional()
-    .default({
-      github_starred: false,
-      dialog_dismissed: false,
-      discord_clicked: false,
-    }),
-});
+    username: z.string(),
+    password: z.string(),
+    optins: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional()
+      .default({
+        github_starred: false,
+        dialog_dismissed: false,
+        discord_clicked: false,
+      }),
+  });
 export const UserRead = z.looseObject({
-  id: z.string().uuid().optional(),
-  username: z.string(),
-  profile_image: z.union([z.string(), z.null()]),
-  store_api_key: z.union([z.string(), z.null()]),
-  is_active: z.boolean(),
-  is_superuser: z.boolean(),
-  is_platform_admin: z.boolean(),
-  create_at: z.string().datetime({ offset: true }),
-  updated_at: z.string().datetime({ offset: true }),
-  last_login_at: z.union([z.string(), z.null()]),
-  optins: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
-export const UsersResponse = z.looseObject({
-  total_count: z.number().int(),
-  users: z.array(UserRead),
-});
-export const UserUpdate = z
-  .looseObject({
+    id: z.string().uuid().optional(),
+    username: z.string(),
+    profile_image: z.union([z.string(), z.null()]),
+    store_api_key: z.union([z.string(), z.null()]),
+    is_active: z.boolean(),
+    is_superuser: z.boolean(),
+    is_platform_admin: z.boolean(),
+    create_at: z.string().datetime({ offset: true }),
+    updated_at: z.string().datetime({ offset: true }),
+    last_login_at: z.union([z.string(), z.null()]),
+    optins: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
+export const UsersResponse = z.looseObject({ total_count: z.number().int(), users: z.array(UserRead) });
+export const UserUpdate = z.looseObject({
     username: z.union([z.string(), z.null()]),
     profile_image: z.union([z.string(), z.null()]),
     password: z.union([z.string(), z.null()]),
@@ -494,42 +454,32 @@ export const UserUpdate = z
     is_platform_admin: z.union([z.boolean(), z.null()]),
     last_login_at: z.union([z.string(), z.null()]),
     optins: z.union([z.looseObject({}).partial(), z.null()]),
-  })
-  .partial();
-export const Body_upload_file_api_v1_files_upload__flow_id__post =
-  z.looseObject({ file: z.string() });
-export const langflow__api__v1__schemas__UploadFileResponse = z.looseObject({
-  flowId: z.string(),
-  file_path: z.string(),
-});
+  }).partial();
+export const Body_upload_file_api_v1_files_upload__flow_id__post = z.looseObject({ file: z.string() });
+export const langflow__api__v1__schemas__UploadFileResponse = z.looseObject({ flowId: z.string(), file_path: z.string() });
 export const VertexBuildTable = z.looseObject({
-  timestamp: z.string().datetime({ offset: true }).optional(),
-  id: z.string(),
-  data: z.looseObject({}).partial().optional(),
-  artifacts: z.looseObject({}).partial().optional(),
-  params: z.string().optional(),
-  valid: z.boolean(),
-  flow_id: z.string().uuid(),
-  job_id: z.union([z.string(), z.null()]).optional(),
-  organization_id: z.union([z.string(), z.null()]).optional(),
-  build_id: z.union([z.string(), z.null()]).optional(),
-});
-export const VertexBuildMapModel = z.looseObject({
-  vertex_builds: z.record(z.string(), z.array(VertexBuildTable)),
-});
+    timestamp: z.string().datetime({ offset: true }).optional(),
+    id: z.string(),
+    data: z.looseObject({}).partial().optional(),
+    artifacts: z.looseObject({}).partial().optional(),
+    params: z.string().optional(),
+    valid: z.boolean(),
+    flow_id: z.string().uuid(),
+    job_id: z.union([z.string(), z.null()]).optional(),
+    organization_id: z.union([z.string(), z.null()]).optional(),
+    build_id: z.union([z.string(), z.null()]).optional(),
+  });
+export const VertexBuildMapModel = z.looseObject({ vertex_builds: z.record(z.string(), z.array(VertexBuildTable)) });
 export const order_by = z
   .union([z.string(), z.null()])
   .optional()
   .default("timestamp");
-export const Source = z
-  .looseObject({
+export const Source = z.looseObject({
     id: z.union([z.string(), z.null()]),
     display_name: z.union([z.string(), z.null()]),
     source: z.union([z.string(), z.null()]),
-  })
-  .partial();
-export const lfx__schema__properties__Properties = z
-  .looseObject({
+  }).partial();
+export const lfx__schema__properties__Properties = z.looseObject({
     text_color: z.union([z.string(), z.null()]),
     background_color: z.union([z.string(), z.null()]),
     edited: z.boolean().default(false),
@@ -541,41 +491,37 @@ export const lfx__schema__properties__Properties = z
     targets: z.array(z.unknown()).default([]),
     usage: z.union([lfx__schema__properties__Usage, z.null()]),
     build_duration: z.union([z.number(), z.null()]),
-  })
-  .partial();
+  }).partial();
 export const ContentBlock = z.looseObject({
-  title: z.string(),
-  contents: z.array(z.looseObject({}).partial()),
-  allow_markdown: z.boolean().optional().default(true),
-  media_url: z.union([z.array(z.string()), z.null()]).optional(),
-});
+    title: z.string(),
+    contents: z.array(z.looseObject({}).partial()),
+    allow_markdown: z.boolean().optional().default(true),
+    media_url: z.union([z.array(z.string()), z.null()]).optional(),
+  });
 export const lfx__schema__message__MessageResponse = z.looseObject({
-  id: z.union([z.string(), z.string(), z.null()]).optional(),
-  flow_id: z.union([z.string(), z.null()]).optional(),
-  timestamp: z.string().datetime({ offset: true }).optional(),
-  sender: z.string(),
-  sender_name: z.string(),
-  session_id: z.string(),
-  context_id: z.union([z.string(), z.null()]).optional(),
-  text: z.string(),
-  files: z.array(z.string()).optional().default([]),
-  edit: z.boolean(),
-  duration: z.union([z.number(), z.null()]).optional(),
-  properties: z
-    .union([lfx__schema__properties__Properties, z.null()])
-    .optional(),
-  category: z.union([z.string(), z.null()]).optional(),
-  content_blocks: z.union([z.array(ContentBlock), z.null()]).optional(),
-});
-export const Usage_Input = z
-  .looseObject({
+    id: z.union([z.string(), z.string(), z.null()]).optional(),
+    flow_id: z.union([z.string(), z.null()]).optional(),
+    timestamp: z.string().datetime({ offset: true }).optional(),
+    sender: z.string(),
+    sender_name: z.string(),
+    session_id: z.string(),
+    context_id: z.union([z.string(), z.null()]).optional(),
+    text: z.string(),
+    files: z.array(z.string()).optional().default([]),
+    edit: z.boolean(),
+    duration: z.union([z.number(), z.null()]).optional(),
+    properties: z
+      .union([lfx__schema__properties__Properties, z.null()])
+      .optional(),
+    category: z.union([z.string(), z.null()]).optional(),
+    content_blocks: z.union([z.array(ContentBlock), z.null()]).optional(),
+  });
+export const Usage_Input = z.looseObject({
     input_tokens: z.union([z.number(), z.null()]),
     output_tokens: z.union([z.number(), z.null()]),
     total_tokens: z.union([z.number(), z.null()]),
-  })
-  .partial();
-export const Properties_Input = z
-  .looseObject({
+  }).partial();
+export const Properties_Input = z.looseObject({
     text_color: z.union([z.string(), z.null()]),
     background_color: z.union([z.string(), z.null()]),
     edited: z.boolean().default(false),
@@ -587,10 +533,8 @@ export const Properties_Input = z
     targets: z.array(z.unknown()).default([]),
     usage: z.union([Usage_Input, z.null()]),
     build_duration: z.union([z.number(), z.null()]),
-  })
-  .partial();
-export const MessageUpdate = z
-  .looseObject({
+  }).partial();
+export const MessageUpdate = z.looseObject({
     text: z.union([z.string(), z.null()]),
     sender: z.union([z.string(), z.null()]),
     sender_name: z.union([z.string(), z.null()]),
@@ -600,17 +544,13 @@ export const MessageUpdate = z
     edit: z.union([z.boolean(), z.null()]),
     error: z.union([z.boolean(), z.null()]),
     properties: z.union([Properties_Input, z.null()]),
-  })
-  .partial();
-export const langflow__schema__properties__Usage = z
-  .looseObject({
+  }).partial();
+export const langflow__schema__properties__Usage = z.looseObject({
     input_tokens: z.union([z.number(), z.null()]),
     output_tokens: z.union([z.number(), z.null()]),
     total_tokens: z.union([z.number(), z.null()]),
-  })
-  .partial();
-export const langflow__schema__properties__Properties_Output = z
-  .looseObject({
+  }).partial();
+export const langflow__schema__properties__Properties_Output = z.looseObject({
     text_color: z.union([z.string(), z.null()]),
     background_color: z.union([z.string(), z.null()]),
     edited: z.boolean().default(false),
@@ -622,59 +562,61 @@ export const langflow__schema__properties__Properties_Output = z
     targets: z.array(z.unknown()).default([]),
     usage: z.union([langflow__schema__properties__Usage, z.null()]),
     build_duration: z.union([z.number(), z.null()]),
-  })
-  .partial();
+  }).partial();
 export const MessageRead = z.looseObject({
-  timestamp: z.string().datetime({ offset: true }).optional(),
-  sender: z.string(),
-  sender_name: z.string(),
-  session_id: z.string(),
-  context_id: z.union([z.string(), z.null()]).optional(),
-  text: z.string(),
-  files: z.array(z.string()).optional(),
-  error: z.boolean().optional().default(false),
-  edit: z.boolean().optional().default(false),
-  properties: langflow__schema__properties__Properties_Output.optional(),
-  category: z.string().optional().default("message"),
-  content_blocks: z.array(ContentBlock).optional(),
-  id: z.string().uuid(),
-  flow_id: z.union([z.string(), z.null()]),
-});
+    timestamp: z.string().datetime({ offset: true }).optional(),
+    sender: z.string(),
+    sender_name: z.string(),
+    session_id: z.string(),
+    context_id: z.union([z.string(), z.null()]).optional(),
+    text: z.string(),
+    files: z.array(z.string()).optional(),
+    error: z.boolean().optional().default(false),
+    edit: z.boolean().optional().default(false),
+    properties: langflow__schema__properties__Properties_Output.optional(),
+    category: z.string().optional().default("message"),
+    content_blocks: z.array(ContentBlock).optional(),
+    id: z.string().uuid(),
+    flow_id: z.union([z.string(), z.null()]),
+  });
 export const TransactionLogsResponse = z.looseObject({
-  id: z.string().uuid(),
-  timestamp: z.string().datetime({ offset: true }).optional(),
-  vertex_id: z.string(),
-  target_id: z.union([z.string(), z.null()]).optional(),
-  inputs: z.looseObject({}).partial().optional(),
-  outputs: z.looseObject({}).partial().optional(),
-  status: z.string(),
-});
+    id: z.string().uuid(),
+    timestamp: z.string().datetime({ offset: true }).optional(),
+    vertex_id: z.string(),
+    target_id: z.union([z.string(), z.null()]).optional(),
+    inputs: z.looseObject({}).partial().optional(),
+    outputs: z.looseObject({}).partial().optional(),
+    status: z.string(),
+  });
 export const Page_TransactionLogsResponse_ = z.looseObject({
-  items: z.array(TransactionLogsResponse),
-  total: z.number().int().gte(0),
-  page: z.number().int().gte(1),
-  size: z.number().int().gte(1),
-  pages: z.number().int().gte(0),
-});
+    items: z.array(TransactionLogsResponse),
+    total: z.number().int().gte(0),
+    page: z.number().int().gte(1),
+    size: z.number().int().gte(1),
+    pages: z.number().int().gte(0),
+  });
 export const SpanStatus = z.enum(["unset", "ok", "error"]);
 export const status = z.union([SpanStatus, z.null()]).optional();
 export const TraceSummaryRead = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  status: SpanStatus,
-  startTime: z.union([z.string(), z.null()]),
-  totalLatencyMs: z.number().int(),
-  totalTokens: z.number().int(),
-  flowId: z.string().uuid(),
-  sessionId: z.string(),
-  input: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-  output: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
+    id: z.string().uuid(),
+    name: z.string(),
+    status: SpanStatus,
+    startTime: z.union([z.string(), z.null()]),
+    totalLatencyMs: z.number().int(),
+    totalTokens: z.number().int(),
+    totalCostMicros: z.union([z.number(), z.null()]).optional(),
+    flowId: z.string().uuid(),
+    sessionId: z.string(),
+    input: z.union([z.looseObject({}).partial(), z.null()]).optional(),
+    output: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
 export const TraceListResponse = z.looseObject({
-  traces: z.array(TraceSummaryRead),
-  total: z.number().int(),
-  pages: z.number().int(),
-});
+    traces: z.array(TraceSummaryRead),
+    total: z.number().int(),
+    pages: z.number().int(),
+  });
 export const SpanType = z.enum([
   "chain",
   "llm",
@@ -686,300 +628,291 @@ export const SpanType = z.enum([
 ]);
 const SpanReadResponse: z.ZodType<SpanReadResponse> = z.lazy(() =>
   z.looseObject({
+      id: z.string().uuid(),
+      name: z.string(),
+      type: SpanType,
+      status: SpanStatus,
+      startTime: z.union([z.string(), z.null()]),
+      endTime: z.union([z.string(), z.null()]),
+      latencyMs: z.number().int(),
+      inputs: z.union([z.looseObject({}).partial(), z.null()]),
+      outputs: z.union([z.looseObject({}).partial(), z.null()]),
+      error: z.union([z.string(), z.null()]),
+      modelName: z.union([z.string(), z.null()]),
+      tokenUsage: z.union([z.looseObject({}).partial(), z.null()]),
+      children: z.array(SpanReadResponse).optional(),
+    })
+);
+export const TraceRead = z.looseObject({
     id: z.string().uuid(),
     name: z.string(),
-    type: SpanType,
     status: SpanStatus,
     startTime: z.union([z.string(), z.null()]),
     endTime: z.union([z.string(), z.null()]),
-    latencyMs: z.number().int(),
-    inputs: z.union([z.looseObject({}).partial(), z.null()]),
-    outputs: z.union([z.looseObject({}).partial(), z.null()]),
-    error: z.union([z.string(), z.null()]),
-    modelName: z.union([z.string(), z.null()]),
-    tokenUsage: z.union([z.looseObject({}).partial(), z.null()]),
-    children: z.array(SpanReadResponse).optional(),
-  }),
-);
-export const TraceRead = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  status: SpanStatus,
-  startTime: z.union([z.string(), z.null()]),
-  endTime: z.union([z.string(), z.null()]),
-  totalLatencyMs: z.number().int(),
-  totalTokens: z.number().int(),
-  flowId: z.string().uuid(),
-  sessionId: z.string(),
-  input: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-  output: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-  spans: z.array(SpanReadResponse).optional(),
-});
+    totalLatencyMs: z.number().int(),
+    totalTokens: z.number().int(),
+    totalCostMicros: z.union([z.number(), z.null()]).optional(),
+    flowId: z.string().uuid(),
+    sessionId: z.string(),
+    input: z.union([z.looseObject({}).partial(), z.null()]).optional(),
+    output: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+    spans: z.array(SpanReadResponse).optional(),
+  });
 export const FolderCreate = z.looseObject({
-  name: z.string(),
-  description: z.union([z.string(), z.null()]).optional(),
-  auth_settings: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-  components_list: z.union([z.array(z.string().uuid()), z.null()]).optional(),
-  flows_list: z.union([z.array(z.string().uuid()), z.null()]).optional(),
-});
+    name: z.string(),
+    description: z.union([z.string(), z.null()]).optional(),
+    auth_settings: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+    components_list: z.union([z.array(z.string().uuid()), z.null()]).optional(),
+    flows_list: z.union([z.array(z.string().uuid()), z.null()]).optional(),
+  });
 export const FolderRead = z.looseObject({
-  name: z.string(),
-  description: z.union([z.string(), z.null()]).optional(),
-  auth_settings: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-  id: z.string().uuid(),
-  parent_id: z.union([z.string(), z.null()]),
-});
+    name: z.string(),
+    description: z.union([z.string(), z.null()]).optional(),
+    auth_settings: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+    id: z.string().uuid(),
+    parent_id: z.union([z.string(), z.null()]),
+  });
 export const page = z.union([z.number(), z.null()]).optional();
-export const FolderWithPaginatedFlows = z.looseObject({
-  folder: FolderRead,
-  flows: Page_FlowRead_,
-});
+export const FolderWithPaginatedFlows = z.looseObject({ folder: FolderRead, flows: Page_FlowRead_ });
 export const FolderReadWithFlows = z.looseObject({
-  name: z.string(),
-  description: z.union([z.string(), z.null()]).optional(),
-  auth_settings: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-  id: z.string().uuid(),
-  parent_id: z.union([z.string(), z.null()]),
-  flows: z.array(FlowRead).optional().default([]),
-});
-export const FolderUpdate = z
-  .looseObject({
+    name: z.string(),
+    description: z.union([z.string(), z.null()]).optional(),
+    auth_settings: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+    id: z.string().uuid(),
+    parent_id: z.union([z.string(), z.null()]),
+    flows: z.array(FlowRead).optional().default([]),
+  });
+export const FolderUpdate = z.looseObject({
     name: z.union([z.string(), z.null()]),
     description: z.union([z.string(), z.null()]),
     parent_id: z.union([z.string(), z.null()]),
     components: z.array(z.string().uuid()),
     flows: z.array(z.string().uuid()),
     auth_settings: z.union([z.looseObject({}).partial(), z.null()]),
-  })
-  .partial();
-export const Body_upload_file_api_v1_projects_upload__post = z.looseObject({
-  file: z.string(),
-});
+  }).partial();
+export const Body_upload_file_api_v1_projects_upload__post = z.looseObject({ file: z.string() });
 export const OrgSummary = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  slug: z.string(),
-  is_personal: z.boolean(),
-  member_count: z.number().int(),
-  created_at: z.string(),
-  updated_at: z.string(),
-});
-export const OrgListResponse = z.looseObject({
-  items: z.array(OrgSummary),
-  total: z.number().int(),
-});
+    id: z.string().uuid(),
+    name: z.string(),
+    slug: z.string(),
+    is_personal: z.boolean(),
+    member_count: z.number().int(),
+    created_at: z.string(),
+    updated_at: z.string(),
+  });
+export const OrgListResponse = z.looseObject({ items: z.array(OrgSummary), total: z.number().int() });
 export const OrgCreate = z.looseObject({
-  name: z.string().min(1).max(200),
-  slug: z
-    .string()
-    .min(1)
-    .max(200)
-    .regex(/^[a-z0-9][a-z0-9-]*$/),
-});
+    name: z.string().min(1).max(200),
+    slug: z
+      .string()
+      .min(1)
+      .max(200)
+      .regex(/^[a-z0-9][a-z0-9-]*$/),
+  });
 export const MemberRow = z.looseObject({
-  user_id: z.string().uuid(),
-  username: z.string(),
-  role: z.string(),
-  is_active: z.boolean(),
-});
+    user_id: z.string().uuid(),
+    username: z.string(),
+    role: z.string(),
+    is_active: z.boolean(),
+  });
 export const OrgDetail = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  slug: z.string(),
-  is_personal: z.boolean(),
-  created_at: z.string(),
-  updated_at: z.string(),
-  members: z.array(MemberRow),
-});
+    id: z.string().uuid(),
+    name: z.string(),
+    slug: z.string(),
+    is_personal: z.boolean(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    members: z.array(MemberRow),
+  });
 export const OrgDeleteBody = z.looseObject({ confirm_name: z.string() });
-export const OrgDeleteResult = z.looseObject({
-  deleted: z.record(z.string(), z.number().int()),
-});
+export const OrgDeleteResult = z.looseObject({ deleted: z.record(z.string(), z.number().int()) });
 export const MembersResponse = z.looseObject({ items: z.array(MemberRow) });
 export const MemberAdd = z.looseObject({
-  user_id: z.string().uuid(),
-  role: z.string().optional().default("owner"),
-});
+    user_id: z.string().uuid(),
+    role: z.string().optional().default("owner"),
+  });
 export const MemberRolePatch = z.looseObject({ role: z.string() });
 export const UserOrgRow = z.looseObject({
-  organization_id: z.string().uuid(),
-  organization_name: z.string(),
-  role: z.string(),
-});
+    organization_id: z.string().uuid(),
+    organization_name: z.string(),
+    role: z.string(),
+  });
 export const UserRow = z.looseObject({
-  id: z.string().uuid(),
-  username: z.string(),
-  is_platform_admin: z.boolean(),
-  memberships: z.array(UserOrgRow),
-});
+    id: z.string().uuid(),
+    username: z.string(),
+    is_platform_admin: z.boolean(),
+    memberships: z.array(UserOrgRow),
+  });
 export const UserSearchResponse = z.looseObject({ items: z.array(UserRow) });
 export const ComponentMetadataRead = z.looseObject({
-  agent_usage_notes: z.union([z.string(), z.null()]),
-  agent_summary: z.union([z.string(), z.null()]),
-  updated_by: z.union([z.string(), z.null()]),
-  updated_at: z.string().datetime({ offset: true }),
-});
-export const ComponentMetadataRowRead = z.looseObject({
-  component_name: z.string(),
-  display_name: z.union([z.string(), z.null()]),
-  category: z.union([z.string(), z.null()]),
-  icon: z.union([z.string(), z.null()]),
-  is_orphan: z.boolean(),
-  metadata: z.union([ComponentMetadataRead, z.null()]),
-});
-export const ComponentMetadataWrite = z
-  .looseObject({
     agent_usage_notes: z.union([z.string(), z.null()]),
     agent_summary: z.union([z.string(), z.null()]),
-  })
-  .partial();
+    updated_by: z.union([z.string(), z.null()]),
+    updated_at: z.string().datetime({ offset: true }),
+  });
+export const ComponentMetadataRowRead = z.looseObject({
+    component_name: z.string(),
+    display_name: z.union([z.string(), z.null()]),
+    category: z.union([z.string(), z.null()]),
+    icon: z.union([z.string(), z.null()]),
+    is_orphan: z.boolean(),
+    metadata: z.union([ComponentMetadataRead, z.null()]),
+  });
+export const ComponentMetadataWrite = z.looseObject({
+    agent_usage_notes: z.union([z.string(), z.null()]),
+    agent_summary: z.union([z.string(), z.null()]),
+  }).partial();
 export const UserMembership = z.looseObject({
-  organization_id: z.string().uuid(),
-  organization_name: z.string(),
-  is_personal: z.boolean(),
-  role: z.string(),
-  joined_at: z.string().datetime({ offset: true }),
-});
+    organization_id: z.string().uuid(),
+    organization_name: z.string(),
+    is_personal: z.boolean(),
+    role: z.string(),
+    joined_at: z.string().datetime({ offset: true }),
+  });
 export const UserDetail = z.looseObject({
-  id: z.string().uuid(),
-  username: z.string(),
-  is_active: z.boolean(),
-  is_platform_admin: z.boolean(),
-  is_superuser: z.boolean(),
-  create_at: z.union([z.string(), z.null()]).optional(),
-  updated_at: z.union([z.string(), z.null()]).optional(),
-  last_login_at: z.union([z.string(), z.null()]).optional(),
-  memberships: z.array(UserMembership),
-});
-export const PlatformAdminUpdate = z.looseObject({
-  is_platform_admin: z.boolean(),
-});
+    id: z.string().uuid(),
+    username: z.string(),
+    is_active: z.boolean(),
+    is_platform_admin: z.boolean(),
+    is_superuser: z.boolean(),
+    create_at: z.union([z.string(), z.null()]).optional(),
+    updated_at: z.union([z.string(), z.null()]).optional(),
+    last_login_at: z.union([z.string(), z.null()]).optional(),
+    memberships: z.array(UserMembership),
+  });
+export const PlatformAdminUpdate = z.looseObject({ is_platform_admin: z.boolean() });
 export const target_type = z.union([AuditTargetType, z.null()]).optional();
 export const NotificationCategory = z.enum([
   "usage_threshold",
   "alert_rule",
   "system",
   "professional_services_request",
+  "flow_error",
 ]);
-export const NotificationSeverity = z.enum(["info", "warning", "critical"]);
+export const NotificationSeverity = z.enum(["info", "warning", "critical", "error"]);
 export const NotificationRead = z.looseObject({
-  id: z.string().uuid(),
-  org_id: z.union([z.string(), z.null()]),
-  category: NotificationCategory,
-  severity: NotificationSeverity,
-  title: z.string(),
-  body_md: z.string(),
-  metadata: z.looseObject({}).partial(),
-  created_at: z.string().datetime({ offset: true }),
-  read_at: z.union([z.string(), z.null()]),
-});
-export const NotificationListResponse = z.looseObject({
-  items: z.array(NotificationRead),
-  total: z.number().int(),
-});
+    id: z.string().uuid(),
+    org_id: z.union([z.string(), z.null()]),
+    category: NotificationCategory,
+    severity: NotificationSeverity,
+    title: z.string(),
+    body_md: z.string(),
+    metadata: z.looseObject({}).partial(),
+    created_at: z.string().datetime({ offset: true }),
+    read_at: z.union([z.string(), z.null()]),
+  });
+export const NotificationListResponse = z.looseObject({ items: z.array(NotificationRead), total: z.number().int() });
 export const UsageMetric = z.enum(["runs", "run_seconds", "tokens"]);
 export const UsagePeriod = z.enum(["daily", "monthly"]);
 export const ThresholdRead = z.looseObject({
-  id: z.string().uuid(),
-  org_id: z.string().uuid(),
-  metric: UsageMetric,
-  period: UsagePeriod,
-  threshold_value: z.number().int(),
-  is_active: z.boolean(),
-  last_fired_at: z.union([z.string(), z.null()]),
-  cooldown_seconds: z.number().int(),
-});
-export const ThresholdListResponse = z.looseObject({
-  items: z.array(ThresholdRead),
-});
+    id: z.string().uuid(),
+    org_id: z.string().uuid(),
+    metric: UsageMetric,
+    period: UsagePeriod,
+    threshold_value: z.number().int(),
+    is_active: z.boolean(),
+    last_fired_at: z.union([z.string(), z.null()]),
+    cooldown_seconds: z.number().int(),
+  });
+export const ThresholdListResponse = z.looseObject({ items: z.array(ThresholdRead) });
 export const ThresholdCreate = z.looseObject({
-  metric: UsageMetric,
-  period: UsagePeriod,
-  threshold_value: z.number().int(),
-  cooldown_seconds: z.number().int().optional().default(3600),
-});
-export const ThresholdPatch = z
-  .looseObject({
+    metric: UsageMetric,
+    period: UsagePeriod,
+    threshold_value: z.number().int(),
+    cooldown_seconds: z.number().int().optional().default(3600),
+  });
+export const ThresholdPatch = z.looseObject({
     threshold_value: z.union([z.number(), z.null()]),
     is_active: z.union([z.boolean(), z.null()]),
     cooldown_seconds: z.union([z.number(), z.null()]),
-  })
-  .partial();
+  }).partial();
 export const AlertRuleType = z.enum([
   "consecutive_failures",
   "error_rate",
   "sla_duration",
 ]);
 export const RuleRead = z.looseObject({
-  id: z.string().uuid(),
-  org_id: z.string().uuid(),
-  flow_id: z.union([z.string(), z.null()]),
-  rule_type: AlertRuleType,
-  config: z.looseObject({}).partial(),
-  is_active: z.boolean(),
-  last_fired_at: z.union([z.string(), z.null()]),
-  cooldown_seconds: z.number().int(),
-});
+    id: z.string().uuid(),
+    org_id: z.string().uuid(),
+    flow_id: z.union([z.string(), z.null()]),
+    rule_type: AlertRuleType,
+    config: z.looseObject({}).partial(),
+    is_active: z.boolean(),
+    last_fired_at: z.union([z.string(), z.null()]),
+    cooldown_seconds: z.number().int(),
+  });
 export const RuleListResponse = z.looseObject({ items: z.array(RuleRead) });
 export const RuleCreate = z.looseObject({
-  rule_type: AlertRuleType,
-  flow_id: z.union([z.string(), z.null()]).optional(),
-  config: z.looseObject({}).partial(),
-  cooldown_seconds: z.number().int().optional().default(900),
-});
-export const RulePatch = z
-  .looseObject({
+    rule_type: AlertRuleType,
+    flow_id: z.union([z.string(), z.null()]).optional(),
+    config: z.looseObject({}).partial(),
+    cooldown_seconds: z.number().int().optional().default(900),
+  });
+export const RulePatch = z.looseObject({
     config: z.union([z.looseObject({}).partial(), z.null()]),
     is_active: z.union([z.boolean(), z.null()]),
     cooldown_seconds: z.union([z.number(), z.null()]),
-  })
-  .partial();
+  }).partial();
 export const TagWrite = z.looseObject({
-  name: z.string().min(1).max(64),
-  color: TagColor,
-  description: z.union([z.string(), z.null()]).optional(),
-});
-export const ViewPort = z.looseObject({
-  x: z.number(),
-  y: z.number(),
-  zoom: z.number(),
-});
+    name: z.string().min(1).max(64),
+    color: TagColor,
+    description: z.union([z.string(), z.null()]).optional(),
+  });
+export const SettingsRead = z.looseObject({
+    default_hourly_rate_low: z.union([z.string(), z.null()]),
+    default_hourly_rate_high: z.union([z.string(), z.null()]),
+    webhook_url: z.union([z.string(), z.null()]),
+    has_webhook_secret: z.boolean(),
+  });
+export const SettingsWrite = z.looseObject({
+    default_hourly_rate_low: z.union([z.number(), z.string(), z.null()]),
+    default_hourly_rate_high: z.union([z.number(), z.string(), z.null()]),
+    webhook_url: z.union([z.string(), z.null()]),
+    webhook_secret: z.union([z.string(), z.null()]),
+  }).partial();
+export const ViewPort = z.looseObject({ x: z.number(), y: z.number(), zoom: z.number() });
 export const GraphData = z.looseObject({
-  nodes: z.array(z.looseObject({}).partial()),
-  edges: z.array(z.looseObject({}).partial()),
-  viewport: z.union([ViewPort, z.null()]).optional(),
-});
+    nodes: z.array(z.looseObject({}).partial()),
+    edges: z.array(z.looseObject({}).partial()),
+    viewport: z.union([ViewPort, z.null()]).optional(),
+  });
 export const GraphDumpResponse = z.looseObject({
-  data: GraphData,
-  is_component: z.union([z.boolean(), z.null()]).optional(),
-  name: z.union([z.string(), z.null()]).optional(),
-  description: z.union([z.string(), z.null()]).optional(),
-  endpoint_name: z.union([z.string(), z.null()]).optional(),
-});
+    data: GraphData,
+    is_component: z.union([z.boolean(), z.null()]).optional(),
+    name: z.union([z.string(), z.null()]).optional(),
+    description: z.union([z.string(), z.null()]).optional(),
+    endpoint_name: z.union([z.string(), z.null()]).optional(),
+  });
 export const CategoryRead = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  icon: z.string(),
-  color: z.string(),
-  description: z.union([z.string(), z.null()]),
-  created_by: z.union([z.string(), z.null()]),
-  created_at: z.string().datetime({ offset: true }),
-  updated_at: z.string().datetime({ offset: true }),
-});
+    id: z.string().uuid(),
+    name: z.string(),
+    icon: z.string(),
+    color: z.string(),
+    description: z.union([z.string(), z.null()]),
+    created_by: z.union([z.string(), z.null()]),
+    created_at: z.string().datetime({ offset: true }),
+    updated_at: z.string().datetime({ offset: true }),
+  });
 export const CategoryCreate = z.looseObject({
-  name: z.string().min(1).max(64),
-  icon: z.string().min(1).max(64),
-  color: z.string().min(1).max(16),
-  description: z.union([z.string(), z.null()]).optional(),
-});
-export const CategoryUpdate = z
-  .looseObject({
+    name: z.string().min(1).max(64),
+    icon: z.string().min(1).max(64),
+    color: z.string().min(1).max(16),
+    description: z.union([z.string(), z.null()]).optional(),
+  });
+export const CategoryUpdate = z.looseObject({
     name: z.union([z.string(), z.null()]),
     icon: z.union([z.string(), z.null()]),
     color: z.union([z.string(), z.null()]),
     description: z.union([z.string(), z.null()]),
-  })
-  .partial();
+  }).partial();
 export const MembershipRole = z.enum([
   "owner",
   "admin",
@@ -988,73 +921,69 @@ export const MembershipRole = z.enum([
   "viewer",
 ]);
 export const OrganizationSummary = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  slug: z.string(),
-  is_personal: z.boolean(),
-});
+    id: z.string().uuid(),
+    name: z.string(),
+    slug: z.string(),
+    is_personal: z.boolean(),
+  });
 export const MyMembership = z.looseObject({
-  id: z.string().uuid(),
-  role: MembershipRole,
-  is_org_admin: z.boolean(),
-  organization: OrganizationSummary,
-});
+    id: z.string().uuid(),
+    role: MembershipRole,
+    is_org_admin: z.boolean(),
+    organization: OrganizationSummary,
+  });
 export const TemplateRead = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  description: z.union([z.string(), z.null()]),
-  icon: z.union([z.string(), z.null()]),
-  gradient: z.union([z.string(), z.null()]),
-  archived_at: z.union([z.string(), z.null()]),
-  categories: z.array(CategoryRead),
-  tags: z.array(TagRead).optional(),
-  created_at: z.string().datetime({ offset: true }),
-  updated_at: z.string().datetime({ offset: true }),
-  agent_summary: z.union([z.string(), z.null()]).optional(),
-  agent_usage_notes: z.union([z.string(), z.null()]).optional(),
-});
-export const BlankedField = z.looseObject({
-  node_id: z.string(),
-  field_name: z.string(),
-});
+    id: z.string().uuid(),
+    name: z.string(),
+    description: z.union([z.string(), z.null()]),
+    icon: z.union([z.string(), z.null()]),
+    gradient: z.union([z.string(), z.null()]),
+    archived_at: z.union([z.string(), z.null()]),
+    categories: z.array(CategoryRead),
+    tags: z.array(TagRead).optional(),
+    created_at: z.string().datetime({ offset: true }),
+    updated_at: z.string().datetime({ offset: true }),
+    agent_summary: z.union([z.string(), z.null()]).optional(),
+    agent_usage_notes: z.union([z.string(), z.null()]).optional(),
+  });
+export const BlankedField = z.looseObject({ node_id: z.string(), field_name: z.string() });
 export const TemplateCreate = z.looseObject({
-  source_flow_id: z.string().uuid(),
-  name: z.string().max(255),
-  description: z.union([z.string(), z.null()]).optional(),
-  icon: z.union([z.string(), z.null()]).optional(),
-  gradient: z.union([z.string(), z.null()]).optional(),
-  blanked_fields: z.array(BlankedField).optional(),
-  scope: z.enum(["platform", "org"]).optional().default("platform"),
-  org_id: z.union([z.string(), z.null()]).optional(),
-  category_ids: z.array(z.string().uuid()).optional(),
-});
+    source_flow_id: z.string().uuid(),
+    name: z.string().max(255),
+    description: z.union([z.string(), z.null()]).optional(),
+    icon: z.union([z.string(), z.null()]).optional(),
+    gradient: z.union([z.string(), z.null()]).optional(),
+    blanked_fields: z.array(BlankedField).optional(),
+    scope: z.enum(["platform", "org"]).optional().default("platform"),
+    org_id: z.union([z.string(), z.null()]).optional(),
+    category_ids: z.array(z.string().uuid()).optional(),
+  });
 export const TemplateReadDetail = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  description: z.union([z.string(), z.null()]),
-  icon: z.union([z.string(), z.null()]),
-  gradient: z.union([z.string(), z.null()]),
-  archived_at: z.union([z.string(), z.null()]),
-  categories: z.array(CategoryRead),
-  tags: z.array(TagRead).optional(),
-  created_at: z.string().datetime({ offset: true }),
-  updated_at: z.string().datetime({ offset: true }),
-  agent_summary: z.union([z.string(), z.null()]).optional(),
-  agent_usage_notes: z.union([z.string(), z.null()]).optional(),
-  nodes: z.array(z.looseObject({}).partial()),
-  edges: z.array(z.looseObject({}).partial()),
-});
+    id: z.string().uuid(),
+    name: z.string(),
+    description: z.union([z.string(), z.null()]),
+    icon: z.union([z.string(), z.null()]),
+    gradient: z.union([z.string(), z.null()]),
+    archived_at: z.union([z.string(), z.null()]),
+    categories: z.array(CategoryRead),
+    tags: z.array(TagRead).optional(),
+    created_at: z.string().datetime({ offset: true }),
+    updated_at: z.string().datetime({ offset: true }),
+    agent_summary: z.union([z.string(), z.null()]).optional(),
+    agent_usage_notes: z.union([z.string(), z.null()]).optional(),
+    nodes: z.array(z.looseObject({}).partial()),
+    edges: z.array(z.looseObject({}).partial()),
+  });
 export const TemplateUpdate = z.looseObject({
-  source_flow_id: z.string().uuid(),
-  name: z.string().max(255),
-  description: z.union([z.string(), z.null()]).optional(),
-  icon: z.union([z.string(), z.null()]).optional(),
-  gradient: z.union([z.string(), z.null()]).optional(),
-  blanked_fields: z.array(BlankedField).optional(),
-  category_ids: z.union([z.array(z.string().uuid()), z.null()]).optional(),
-});
-export const TemplatePatch = z
-  .looseObject({
+    source_flow_id: z.string().uuid(),
+    name: z.string().max(255),
+    description: z.union([z.string(), z.null()]).optional(),
+    icon: z.union([z.string(), z.null()]).optional(),
+    gradient: z.union([z.string(), z.null()]).optional(),
+    blanked_fields: z.array(BlankedField).optional(),
+    category_ids: z.union([z.array(z.string().uuid()), z.null()]).optional(),
+  });
+export const TemplatePatch = z.looseObject({
     name: z.union([z.string(), z.null()]),
     description: z.union([z.string(), z.null()]),
     icon: z.union([z.string(), z.null()]),
@@ -1062,25 +991,18 @@ export const TemplatePatch = z
     category_ids: z.union([z.array(z.string().uuid()), z.null()]),
     agent_summary: z.union([z.string(), z.null()]),
     agent_usage_notes: z.union([z.string(), z.null()]),
-  })
-  .partial();
-export const _TemplateTagAssignBody = z.looseObject({
-  tag_ids: z.array(z.string().uuid()),
-});
-export const _TemplateWithTagsRead = z.looseObject({
-  id: z.string().uuid(),
-  tags: z.array(TagRead),
-});
+  }).partial();
+export const _TemplateTagAssignBody = z.looseObject({ tag_ids: z.array(z.string().uuid()) });
+export const _TemplateWithTagsRead = z.looseObject({ id: z.string().uuid(), tags: z.array(TagRead) });
 export const MCPSettings = z.looseObject({
-  id: z.string().uuid(),
-  mcp_enabled: z.union([z.boolean(), z.null()]).optional(),
-  action_name: z.union([z.string(), z.null()]).optional(),
-  action_description: z.union([z.string(), z.null()]).optional(),
-  name: z.union([z.string(), z.null()]).optional(),
-  description: z.union([z.string(), z.null()]).optional(),
-});
-export const AuthSettings = z
-  .looseObject({
+    id: z.string().uuid(),
+    mcp_enabled: z.union([z.boolean(), z.null()]).optional(),
+    action_name: z.union([z.string(), z.null()]).optional(),
+    action_description: z.union([z.string(), z.null()]).optional(),
+    name: z.union([z.string(), z.null()]).optional(),
+    description: z.union([z.string(), z.null()]).optional(),
+  });
+export const AuthSettings = z.looseObject({
     auth_type: z.enum(["none", "apikey", "oauth"]).default("none"),
     oauth_host: z.union([z.string(), z.null()]),
     oauth_port: z.union([z.string(), z.null()]),
@@ -1093,32 +1015,33 @@ export const AuthSettings = z
     oauth_token_url: z.union([z.string(), z.null()]),
     oauth_mcp_scope: z.union([z.string(), z.null()]),
     oauth_provider_scope: z.union([z.string(), z.null()]),
-  })
-  .partial();
+  }).partial();
 export const MCPProjectUpdateRequest = z.looseObject({
-  settings: z.array(MCPSettings),
-  auth_settings: z.union([AuthSettings, z.null()]).optional(),
-});
+    settings: z.array(MCPSettings),
+    auth_settings: z.union([AuthSettings, z.null()]).optional(),
+  });
 export const MCPInstallRequest = z.looseObject({
-  client: z.string(),
-  transport: z.union([z.enum(["sse", "streamablehttp"]), z.null()]).optional(),
-});
+    client: z.string(),
+    transport: z
+      .union([z.enum(["sse", "streamablehttp"]), z.null()])
+      .optional(),
+  });
 export const ComposerUrlResponse = z.looseObject({
-  project_id: z.string(),
-  uses_composer: z.boolean(),
-  streamable_http_url: z.union([z.string(), z.null()]).optional(),
-  legacy_sse_url: z.union([z.string(), z.null()]).optional(),
-  error_message: z.union([z.string(), z.null()]).optional(),
-});
+    project_id: z.string(),
+    uses_composer: z.boolean(),
+    streamable_http_url: z.union([z.string(), z.null()]).optional(),
+    legacy_sse_url: z.union([z.string(), z.null()]).optional(),
+    error_message: z.union([z.string(), z.null()]).optional(),
+  });
 export const OpenAIResponsesRequest = z.looseObject({
-  model: z.string(),
-  input: z.string(),
-  stream: z.boolean().optional().default(false),
-  background: z.boolean().optional().default(false),
-  tools: z.union([z.array(z.unknown()), z.null()]).optional(),
-  previous_response_id: z.union([z.string(), z.null()]).optional(),
-  include: z.union([z.array(z.string()), z.null()]).optional(),
-});
+    model: z.string(),
+    input: z.string(),
+    stream: z.boolean().optional().default(false),
+    background: z.boolean().optional().default(false),
+    tools: z.union([z.array(z.unknown()), z.null()]).optional(),
+    previous_response_id: z.union([z.string(), z.null()]).optional(),
+    include: z.union([z.array(z.string()), z.null()]).optional(),
+  });
 export const DeploymentProviderAccountCreateRequest = z.object({
   provider_tenant_id: z.union([z.string(), z.null()]).optional(),
   provider_key: z.string(),
@@ -1126,19 +1049,19 @@ export const DeploymentProviderAccountCreateRequest = z.object({
   api_key: z.string().min(1),
 });
 export const DeploymentProviderAccountGetResponse = z.looseObject({
-  id: z.string().uuid(),
-  provider_tenant_id: z.union([z.string(), z.null()]).optional(),
-  provider_key: z.string(),
-  provider_url: z.string(),
-  created_at: z.union([z.string(), z.null()]).optional(),
-  updated_at: z.union([z.string(), z.null()]).optional(),
-});
+    id: z.string().uuid(),
+    provider_tenant_id: z.union([z.string(), z.null()]).optional(),
+    provider_key: z.string(),
+    provider_url: z.string(),
+    created_at: z.union([z.string(), z.null()]).optional(),
+    updated_at: z.union([z.string(), z.null()]).optional(),
+  });
 export const DeploymentProviderAccountListResponse = z.looseObject({
-  page: z.number().int().gte(1).optional().default(1),
-  size: z.number().int().gte(1).optional().default(20),
-  total: z.number().int().gte(0).optional().default(0),
-  providers: z.array(DeploymentProviderAccountGetResponse),
-});
+    page: z.number().int().gte(1).optional().default(1),
+    size: z.number().int().gte(1).optional().default(20),
+    total: z.number().int().gte(0).optional().default(0),
+    providers: z.array(DeploymentProviderAccountGetResponse),
+  });
 export const DeploymentProviderAccountUpdateRequest = z
   .object({
     provider_tenant_id: z.union([z.string(), z.null()]),
@@ -1149,26 +1072,25 @@ export const DeploymentProviderAccountUpdateRequest = z
   .partial();
 export const DeploymentType = z.literal("agent");
 export const _StrictBaseDeploymentData = z.object({
-  provider_spec: z.union([z.looseObject({}).partial(), z.null()]).optional(),
+  provider_spec: z
+    .union([z.looseObject({}).partial(), z.null()])
+    .optional(),
   name: z.string(),
   description: z.string().optional().default(""),
   type: DeploymentType,
 });
-export const FlowVersionsAttach = z.object({
-  ids: z.array(z.string().uuid()).min(1),
-});
+export const FlowVersionsAttach = z.object({ ids: z.array(z.string().uuid()).min(1) });
 export const EnvVarSource = z.enum(["raw", "variable"]);
-export const EnvVarValueSpec = z.looseObject({
-  value: z.string().min(1),
-  source: EnvVarSource.optional(),
-});
+export const EnvVarValueSpec = z.looseObject({ value: z.string().min(1), source: EnvVarSource.optional() });
 export const _StrictDeploymentConfig = z.object({
   name: z.string().min(1),
   description: z.union([z.string(), z.null()]).optional(),
   environment_variables: z
     .union([z.record(z.string(), EnvVarValueSpec), z.null()])
     .optional(),
-  provider_config: z.union([z.looseObject({}).partial(), z.null()]).optional(),
+  provider_config: z
+    .union([z.looseObject({}).partial(), z.null()])
+    .optional(),
 });
 export const DeploymentConfigCreate = z
   .object({
@@ -1184,78 +1106,88 @@ export const DeploymentCreateRequest = z.object({
   config: z.union([DeploymentConfigCreate, z.null()]).optional(),
 });
 export const DeploymentCreateResponse = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  description: z.union([z.string(), z.null()]).optional(),
-  type: DeploymentType,
-  created_at: z.union([z.string(), z.null()]).optional(),
-  updated_at: z.union([z.string(), z.null()]).optional(),
-  provider_data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
+    id: z.string().uuid(),
+    name: z.string(),
+    description: z.union([z.string(), z.null()]).optional(),
+    type: DeploymentType,
+    created_at: z.union([z.string(), z.null()]).optional(),
+    updated_at: z.union([z.string(), z.null()]).optional(),
+    provider_data: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
 export const deployment_type = z.union([DeploymentType, z.null()]).optional();
-export const flow_version_ids = z
-  .union([z.array(z.string()), z.null()])
-  .optional();
+export const flow_version_ids = z.union([z.array(z.string()), z.null()]).optional();
 export const DeploymentListItem = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  description: z.union([z.string(), z.null()]).optional(),
-  type: DeploymentType,
-  created_at: z.union([z.string(), z.null()]).optional(),
-  updated_at: z.union([z.string(), z.null()]).optional(),
-  provider_data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-  resource_key: z.string(),
-  attached_count: z.number().int().gte(0).optional().default(0),
-});
+    id: z.string().uuid(),
+    name: z.string(),
+    description: z.union([z.string(), z.null()]).optional(),
+    type: DeploymentType,
+    created_at: z.union([z.string(), z.null()]).optional(),
+    updated_at: z.union([z.string(), z.null()]).optional(),
+    provider_data: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+    resource_key: z.string(),
+    attached_count: z.number().int().gte(0).optional().default(0),
+  });
 export const DeploymentListResponse = z.looseObject({
-  page: z.number().int().gte(1).optional().default(1),
-  size: z.number().int().gte(1).optional().default(20),
-  total: z.number().int().gte(0).optional().default(0),
-  deployments: z.array(DeploymentListItem),
-  deployment_type: z.union([DeploymentType, z.null()]).optional(),
-});
-export const DeploymentTypeListResponse = z.looseObject({
-  deployment_types: z.array(DeploymentType),
-});
+    page: z.number().int().gte(1).optional().default(1),
+    size: z.number().int().gte(1).optional().default(20),
+    total: z.number().int().gte(0).optional().default(0),
+    deployments: z.array(DeploymentListItem),
+    deployment_type: z.union([DeploymentType, z.null()]).optional(),
+  });
+export const DeploymentTypeListResponse = z.looseObject({ deployment_types: z.array(DeploymentType) });
 export const ExecutionCreateRequest = z.object({
   provider_id: z.string().uuid(),
   deployment_id: z.string().uuid(),
-  provider_data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
+  provider_data: z
+    .union([z.looseObject({}).partial(), z.null()])
+    .optional(),
 });
 export const ExecutionCreateResponse = z.looseObject({
-  execution_id: z.union([z.string(), z.null()]).optional(),
-  deployment_id: z.string().uuid(),
-  provider_data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
+    execution_id: z.union([z.string(), z.null()]).optional(),
+    deployment_id: z.string().uuid(),
+    provider_data: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
 export const ExecutionStatusResponse = z.looseObject({
-  execution_id: z.union([z.string(), z.null()]).optional(),
-  deployment_id: z.string().uuid(),
-  provider_data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
+    execution_id: z.union([z.string(), z.null()]).optional(),
+    deployment_id: z.string().uuid(),
+    provider_data: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
 export const DeploymentConfigListItem = z.looseObject({
-  id: z.string(),
-  name: z.string(),
-  created_at: z.union([z.string(), z.null()]).optional(),
-  updated_at: z.union([z.string(), z.null()]).optional(),
-  provider_data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
+    id: z.string(),
+    name: z.string(),
+    created_at: z.union([z.string(), z.null()]).optional(),
+    updated_at: z.union([z.string(), z.null()]).optional(),
+    provider_data: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
 export const DeploymentConfigListResponse = z.looseObject({
-  page: z.number().int().gte(1).optional().default(1),
-  size: z.number().int().gte(1).optional().default(20),
-  total: z.number().int().gte(0).optional().default(0),
-  configs: z.array(DeploymentConfigListItem),
-});
+    page: z.number().int().gte(1).optional().default(1),
+    size: z.number().int().gte(1).optional().default(20),
+    total: z.number().int().gte(0).optional().default(0),
+    configs: z.array(DeploymentConfigListItem),
+  });
 export const DeploymentGetResponse = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  description: z.union([z.string(), z.null()]).optional(),
-  type: DeploymentType,
-  created_at: z.union([z.string(), z.null()]).optional(),
-  updated_at: z.union([z.string(), z.null()]).optional(),
-  provider_data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-  resource_key: z.string(),
-  attached_count: z.number().int().gte(0).optional().default(0),
-});
+    id: z.string().uuid(),
+    name: z.string(),
+    description: z.union([z.string(), z.null()]).optional(),
+    type: DeploymentType,
+    created_at: z.union([z.string(), z.null()]).optional(),
+    updated_at: z.union([z.string(), z.null()]).optional(),
+    provider_data: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+    resource_key: z.string(),
+    attached_count: z.number().int().gte(0).optional().default(0),
+  });
 export const _StrictBaseDeploymentDataUpdate = z
   .object({
     name: z.union([z.string(), z.null()]),
@@ -1284,94 +1216,149 @@ export const DeploymentUpdateRequest = z
   })
   .partial();
 export const DeploymentUpdateResponse = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  description: z.union([z.string(), z.null()]).optional(),
-  type: DeploymentType,
-  created_at: z.union([z.string(), z.null()]).optional(),
-  updated_at: z.union([z.string(), z.null()]).optional(),
-  provider_data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
+    id: z.string().uuid(),
+    name: z.string(),
+    description: z.union([z.string(), z.null()]).optional(),
+    type: DeploymentType,
+    created_at: z.union([z.string(), z.null()]).optional(),
+    updated_at: z.union([z.string(), z.null()]).optional(),
+    provider_data: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
 export const DeploymentStatusResponse = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  description: z.union([z.string(), z.null()]).optional(),
-  type: DeploymentType,
-  created_at: z.union([z.string(), z.null()]).optional(),
-  updated_at: z.union([z.string(), z.null()]).optional(),
-  provider_data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
+    id: z.string().uuid(),
+    name: z.string(),
+    description: z.union([z.string(), z.null()]).optional(),
+    type: DeploymentType,
+    created_at: z.union([z.string(), z.null()]).optional(),
+    updated_at: z.union([z.string(), z.null()]).optional(),
+    provider_data: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
 export const DeploymentRedeployResponse = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  description: z.union([z.string(), z.null()]).optional(),
-  type: DeploymentType,
-  created_at: z.union([z.string(), z.null()]).optional(),
-  updated_at: z.union([z.string(), z.null()]).optional(),
-  provider_data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
+    id: z.string().uuid(),
+    name: z.string(),
+    description: z.union([z.string(), z.null()]).optional(),
+    type: DeploymentType,
+    created_at: z.union([z.string(), z.null()]).optional(),
+    updated_at: z.union([z.string(), z.null()]).optional(),
+    provider_data: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
 export const DeploymentDuplicateResponse = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  description: z.union([z.string(), z.null()]).optional(),
-  type: DeploymentType,
-  created_at: z.union([z.string(), z.null()]).optional(),
-  updated_at: z.union([z.string(), z.null()]).optional(),
-  provider_data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
+    id: z.string().uuid(),
+    name: z.string(),
+    description: z.union([z.string(), z.null()]).optional(),
+    type: DeploymentType,
+    created_at: z.union([z.string(), z.null()]).optional(),
+    updated_at: z.union([z.string(), z.null()]).optional(),
+    provider_data: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
 export const EstimateResponse = z.looseObject({
-  estimate: z.looseObject({}).partial(),
-  per_component: z.array(z.looseObject({}).partial()),
-});
+    estimate: z.looseObject({}).partial(),
+    per_component: z.array(z.looseObject({}).partial()),
+  });
 export const UsageKpi = z.looseObject({
-  runs: z.number().int(),
-  run_seconds: z.number().int(),
-  tokens: z.number().int(),
-  cost_cents: z.number().int(),
-  window_days: z.number().int(),
-});
-export const UsageChartSeriesPoint = z.looseObject({
-  date: z.string(),
-  value: z.number().int(),
-});
-export const UsageChartResponse = z.looseObject({
-  metric: z.string(),
-  series: z.array(UsageChartSeriesPoint),
-});
+    runs: z.number().int(),
+    run_seconds: z.number().int(),
+    tokens: z.number().int(),
+    cost_cents: z.number().int(),
+    window_days: z.number().int(),
+  });
+export const UsageChartSeriesPoint = z.looseObject({ date: z.string(), value: z.number().int() });
+export const UsageChartResponse = z.looseObject({ metric: z.string(), series: z.array(UsageChartSeriesPoint) });
 export const PerFlowRow = z.looseObject({
-  flow_id: z.string().uuid(),
-  name: z.string(),
-  runs: z.number().int(),
-  run_seconds: z.number().int(),
-  tokens: z.number().int(),
-  cost_cents: z.number().int(),
-});
-export const PerFlowResponse = z.looseObject({
-  items: z.array(PerFlowRow),
-  total: z.number().int(),
-});
+    flow_id: z.string().uuid(),
+    name: z.string(),
+    runs: z.number().int(),
+    run_seconds: z.number().int(),
+    tokens: z.number().int(),
+    cost_cents: z.number().int(),
+  });
+export const PerFlowResponse = z.looseObject({ items: z.array(PerFlowRow), total: z.number().int() });
+export const ComponentBreakdownItem = z.looseObject({
+    type: z.string(),
+    minutes_low: z.number().int(),
+    minutes_high: z.number().int(),
+  });
+export const PreviewResponse = z.looseObject({
+    minutes_low: z.number().int(),
+    minutes_high: z.number().int(),
+    rate_low_per_hour: z.union([z.string(), z.null()]),
+    rate_high_per_hour: z.union([z.string(), z.null()]),
+    cost_low: z.union([z.string(), z.null()]),
+    cost_high: z.union([z.string(), z.null()]),
+    headline_summary: z.string(),
+    narrative: z.string(),
+    conversation_summary: z.union([z.string(), z.null()]),
+    component_breakdown: z.array(ComponentBreakdownItem),
+  });
+export const QuoteSubmitRequest = z.looseObject({
+    minutes_low: z.number().int(),
+    minutes_high: z.number().int(),
+    headline_summary: z.string().max(240),
+    narrative: z.string(),
+    conversation_summary: z.union([z.string(), z.null()]),
+    org_notes: z.union([z.string(), z.null()]),
+  });
+export const ProServiceQuoteStatus = z.enum(["open", "in_progress", "closed"]);
+export const QuoteRead = z.looseObject({
+    id: z.string().uuid(),
+    org_id: z.string().uuid(),
+    org_name: z.union([z.string(), z.null()]),
+    flow_id: z.union([z.string(), z.null()]),
+    flow_name: z.union([z.string(), z.null()]),
+    requester_user_id: z.string().uuid(),
+    requester_email: z.union([z.string(), z.null()]),
+    status: ProServiceQuoteStatus,
+    assigned_admin_user_id: z.union([z.string(), z.null()]),
+    estimated_minutes_low: z.number().int(),
+    estimated_minutes_high: z.number().int(),
+    rate_low_per_hour: z.union([z.string(), z.null()]),
+    rate_high_per_hour: z.union([z.string(), z.null()]),
+    headline_summary: z.string(),
+    narrative: z.string(),
+    conversation_summary: z.union([z.string(), z.null()]),
+    org_notes: z.union([z.string(), z.null()]),
+    admin_notes: z.union([z.string(), z.null()]),
+    created_at: z.string().datetime({ offset: true }),
+    submitted_at: z.string().datetime({ offset: true }),
+    in_progress_at: z.union([z.string(), z.null()]),
+    closed_at: z.union([z.string(), z.null()]),
+    closed_by_user_id: z.union([z.string(), z.null()]),
+  });
+export const status__2 = z.union([ProServiceQuoteStatus, z.null()]).optional();
+export const QuoteListResponse = z.looseObject({ items: z.array(QuoteRead), total: z.number().int() });
+export const QuoteUpdateRequest = z.looseObject({
+    org_notes: z.union([z.string(), z.null()]),
+    admin_notes: z.union([z.string(), z.null()]),
+    status: z.union([ProServiceQuoteStatus, z.null()]),
+    assigned_admin_user_id: z.union([z.string(), z.null()]),
+  }).partial();
 export const AssistantRequest = z.looseObject({
-  flow_id: z.string(),
-  component_id: z.union([z.string(), z.null()]).optional(),
-  field_name: z.union([z.string(), z.null()]).optional(),
-  input_value: z.union([z.string(), z.null()]).optional(),
-  max_retries: z.union([z.number(), z.null()]).optional(),
-  model_name: z.union([z.string(), z.null()]).optional(),
-  provider: z.union([z.string(), z.null()]).optional(),
-  session_id: z.union([z.string(), z.null()]).optional(),
-});
-export const Body_upload_user_file_api_v2_files__post = z.looseObject({
-  file: z.string(),
-});
+    flow_id: z.string(),
+    component_id: z.union([z.string(), z.null()]).optional(),
+    field_name: z.union([z.string(), z.null()]).optional(),
+    input_value: z.union([z.string(), z.null()]).optional(),
+    max_retries: z.union([z.number(), z.null()]).optional(),
+    model_name: z.union([z.string(), z.null()]).optional(),
+    provider: z.union([z.string(), z.null()]).optional(),
+    session_id: z.union([z.string(), z.null()]).optional(),
+  });
+export const Body_upload_user_file_api_v2_files__post = z.looseObject({ file: z.string() });
 export const langflow__api__schemas__UploadFileResponse = z.looseObject({
-  id: z.string().uuid(),
-  name: z.string(),
-  path: z.string(),
-  size: z.number().int(),
-  provider: z.union([z.string(), z.null()]).optional(),
-});
-export const langflow__services__database__models__file__model__File =
-  z.looseObject({
+    id: z.string().uuid(),
+    name: z.string(),
+    path: z.string(),
+    size: z.number().int(),
+    provider: z.union([z.string(), z.null()]).optional(),
+  });
+export const langflow__services__database__models__file__model__File = z.looseObject({
     id: z.string().uuid().optional(),
     user_id: z.string().uuid(),
     organization_id: z.union([z.string(), z.null()]).optional(),
@@ -1382,28 +1369,26 @@ export const langflow__services__database__models__file__model__File =
     created_at: z.string().datetime({ offset: true }).optional(),
     updated_at: z.string().datetime({ offset: true }).optional(),
   });
-export const Body_upload_user_file_api_v2_files_post = z.looseObject({
-  file: z.string(),
-});
+export const Body_upload_user_file_api_v2_files_post = z.looseObject({ file: z.string() });
 export const action_count = z.union([z.boolean(), z.null()]).optional();
-export const MCPServerConfig = z
-  .looseObject({
+export const MCPServerConfig = z.looseObject({
     command: z.union([z.string(), z.null()]),
     args: z.union([z.array(z.string()), z.null()]),
     env: z.union([z.record(z.string(), z.string()), z.null()]),
     headers: z.union([z.record(z.string(), z.string()), z.null()]),
     url: z.union([z.string(), z.null()]),
-  })
-  .partial();
+  }).partial();
 export const EnqueueRunRequest = z.looseObject({
-  flow_id: z.string().uuid(),
-  inputs: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
+    flow_id: z.string().uuid(),
+    inputs: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
 export const EnqueueRunResponse = z.looseObject({
-  run_id: z.string().uuid(),
-  status: z.string(),
-  queued_at: z.string().datetime({ offset: true }),
-});
+    run_id: z.string().uuid(),
+    status: z.string(),
+    queued_at: z.string().datetime({ offset: true }),
+  });
 export const RunStatus = z.enum([
   "queued",
   "running",
@@ -1411,12 +1396,13 @@ export const RunStatus = z.enum([
   "failed",
   "cancelled",
   "timed_out",
+  "partial_success",
 ]);
 export const status_filter = z.union([RunStatus, z.null()]).optional();
 export const RunsListResponse = z.looseObject({
-  items: z.array(z.looseObject({}).partial()),
-  next_cursor: z.union([z.string(), z.null()]).optional(),
-});
+    items: z.array(z.looseObject({}).partial()),
+    next_cursor: z.union([z.string(), z.null()]).optional(),
+  });
 export const WorkflowExecutionRequest = z.object({
   background: z.boolean().optional().default(false),
   stream: z.boolean().optional().default(false),
@@ -1432,10 +1418,12 @@ export const api_v2_workflows__post__res__200__JobStatus = z.enum([
   "timed_out",
 ]);
 export const api_v2_workflows__post__res__200__ErrorDetail = z.looseObject({
-  error: z.string(),
-  code: z.union([z.string(), z.null()]).optional(),
-  details: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
+    error: z.string(),
+    code: z.union([z.string(), z.null()]).optional(),
+    details: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
 export const api_v2_workflows__get__res__200__JobStatus = z.enum([
   "queued",
   "in_progress",
@@ -1445,11 +1433,13 @@ export const api_v2_workflows__get__res__200__JobStatus = z.enum([
   "timed_out",
 ]);
 export const api_v2_workflows__post__res__200__ComponentOutput = z.looseObject({
-  type: z.string(),
-  status: api_v2_workflows__get__res__200__JobStatus,
-  content: z.union([z.unknown(), z.null()]).optional(),
-  metadata: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
+    type: z.string(),
+    status: api_v2_workflows__get__res__200__JobStatus,
+    content: z.union([z.unknown(), z.null()]).optional(),
+    metadata: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
 export const api_v2_workflows__post__res__200__JobStatus_2 = z.enum([
   "queued",
   "in_progress",
@@ -1459,35 +1449,37 @@ export const api_v2_workflows__post__res__200__JobStatus_2 = z.enum([
   "timed_out",
 ]);
 export const api_v2_workflows__post__res__200__ErrorDetail_2 = z.looseObject({
-  error: z.string(),
-  code: z.union([z.string(), z.null()]).optional(),
-  details: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
+    error: z.string(),
+    code: z.union([z.string(), z.null()]).optional(),
+    details: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
 export const api_v2_workflows__get__res__200__ErrorDetail = z.looseObject({
-  error: z.string(),
-  code: z.union([z.string(), z.null()]).optional(),
-  details: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
+    error: z.string(),
+    code: z.union([z.string(), z.null()]).optional(),
+    details: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
 export const api_v2_workflows__get__res__200__ComponentOutput = z.looseObject({
-  type: z.string(),
-  status: api_v2_workflows__get__res__200__JobStatus,
-  content: z.union([z.unknown(), z.null()]).optional(),
-  metadata: z.union([z.looseObject({}).partial(), z.null()]).optional(),
-});
-export const WorkflowStopRequest = z.looseObject({
-  job_id: z.union([z.string(), z.string()]),
-});
+    type: z.string(),
+    status: api_v2_workflows__get__res__200__JobStatus,
+    content: z.union([z.unknown(), z.null()]).optional(),
+    metadata: z
+      .union([z.looseObject({}).partial(), z.null()])
+      .optional(),
+  });
+export const WorkflowStopRequest = z.looseObject({ job_id: z.union([z.string(), z.string()]) });
 export const WorkflowStopResponse = z.looseObject({
-  job_id: z.union([z.string(), z.string()]),
-  message: z.union([z.string(), z.null()]).optional(),
-});
-export const HealthResponse = z
-  .looseObject({
+    job_id: z.union([z.string(), z.string()]),
+    message: z.union([z.string(), z.null()]).optional(),
+  });
+export const HealthResponse = z.looseObject({
     status: z.string().default("nok"),
     chat: z.string().default("error check the server logs"),
     db: z.string().default("error check the server logs"),
-  })
-  .partial();
+  }).partial();
 export const CodeContent = z.looseObject({}).partial();
 export const ErrorContent = z.looseObject({}).partial();
 export const EventDeliveryType = z.enum(["streaming", "direct", "polling"]);
@@ -1495,3 +1487,4 @@ export const JSONContent = z.looseObject({}).partial();
 export const MediaContent = z.looseObject({}).partial();
 export const TextContent = z.looseObject({}).partial();
 export const ToolContent = z.looseObject({}).partial();
+
