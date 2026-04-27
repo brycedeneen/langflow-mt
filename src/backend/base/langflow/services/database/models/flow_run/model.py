@@ -16,6 +16,7 @@ class RunStatus(str, Enum):
     FAILED = "failed"
     CANCELLED = "cancelled"
     TIMED_OUT = "timed_out"
+    PARTIAL_SUCCESS = "partial_success"
 
 
 class TriggeredBy(str, Enum):
