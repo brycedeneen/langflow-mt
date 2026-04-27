@@ -21,7 +21,6 @@ import pytest
 
 from lfx.custom.custom_component.component import Component
 from lfx.graph import Graph
-from lfx.graph.graph.constants import Finish
 from lfx.io import HandleInput, Output, StrInput
 
 

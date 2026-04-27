@@ -301,7 +301,9 @@ async def _execute_run_inner(
                             run.result = inline
                             run.result_ref = ref
                         if error_payload is not None:
-                            run.error = error_payload
+                            merged = dict(run.error or {})
+                            merged.update(error_payload)
+                            run.error = merged
                         await session.commit()
 
                         from langflow.services.runs.metrics import RUN_DURATION, RUNS_TOTAL

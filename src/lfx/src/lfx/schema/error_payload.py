@@ -19,7 +19,7 @@ class ErrorPayload:
     component_id: str
     component_display_name: str
     flow_id: UUID
-    flow_run_id: UUID
+    flow_run_id: UUID | None
     attempt_number: int
     occurred_at: datetime = field(
         default_factory=lambda: datetime.now(timezone.utc),
@@ -32,7 +32,7 @@ def build_error_payload(
     component_id: str,
     component_display_name: str,
     flow_id: UUID,
-    flow_run_id: UUID,
+    flow_run_id: UUID | None,
     attempt_number: int,
 ) -> ErrorPayload:
     """Construct an ErrorPayload from an exception, truncating the trace."""

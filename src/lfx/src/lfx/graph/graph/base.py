@@ -659,6 +659,7 @@ class Graph:
             run_id = uuid.uuid4()
 
         self._run_id = str(run_id)
+        self._handled_errors = []
 
     async def initialize_run(self) -> None:
         if not self._run_id:
@@ -2594,7 +2595,7 @@ class Graph:
             component_id=vertex_id,
             component_display_name=failing_vertex.display_name,
             flow_id=self.flow_id or uuid.UUID(int=0),
-            flow_run_id=uuid.UUID(self._run_id) if self._run_id else uuid.UUID(int=0),
+            flow_run_id=uuid.UUID(self._run_id) if self._run_id else None,
             attempt_number=attempt_number,
         )
 
@@ -2603,7 +2604,7 @@ class Graph:
 
         # Invoke the ErrorHandler and collect its VertexBuildResult.
         handler_vbr = await self._invoke_error_handler(handler_vertex, handler_component, payload)
-        await self._record_handled_error(payload)  # Task 10 will implement
+        await self._record_handled_error(payload)
         return [handler_vbr] if handler_vbr is not None else []
 
     def _find_error_edge(self, vertex: Vertex) -> CycleEdge | None:
@@ -2804,8 +2805,6 @@ class Graph:
         The in-memory list (_handled_errors) is always updated so the worker
         can detect PARTIAL_SUCCESS even if the DB write fails.
         """
-        import logging
-
         handled_entry = {
             "component_id": payload.component_id,
             "component_display_name": payload.component_display_name,
@@ -2839,6 +2838,6 @@ class Graph:
                 # session_scope auto-commits on exit
         except Exception as exc:  # noqa: BLE001
             # Best-effort persistence — failing to record handled errors must not fail the run.
-            logging.getLogger(__name__).exception(
+            logger.exception(
                 "Failed to record handled error for run %s: %s", self._run_id, exc
             )
