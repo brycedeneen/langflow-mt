@@ -24,7 +24,7 @@ from lfx.schema.content_types import ErrorContent
 from lfx.schema.data import Data
 from lfx.schema.image import Image, get_file_paths, is_image_file
 from lfx.schema.properties import Properties, Source
-from lfx.schema.validators import timestamp_to_str, timestamp_to_str_validator
+from lfx.schema.validators import timestamp_to_str_validator
 from lfx.utils.constants import MESSAGE_SENDER_AI, MESSAGE_SENDER_NAME_AI, MESSAGE_SENDER_NAME_USER, MESSAGE_SENDER_USER
 from lfx.utils.image import create_image_content_dict
 from lfx.utils.mustache_security import safe_mustache_render
@@ -458,8 +458,10 @@ class MessageResponse(DefaultModel):
 
     @field_serializer("timestamp")
     @classmethod
-    def serialize_timestamp(cls, v):
-        return timestamp_to_str(v)
+    def serialize_timestamp(cls, v: datetime) -> str:
+        if v.tzinfo is None:
+            v = v.replace(tzinfo=timezone.utc)
+        return v.isoformat()
 
     @field_serializer("files")
     @classmethod

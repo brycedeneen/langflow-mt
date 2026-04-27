@@ -35,15 +35,15 @@ class MessageBase(SQLModel):
 
     @field_serializer("timestamp")
     def serialize_timestamp(self, value):
+        if isinstance(value, str):
+            try:
+                value = datetime.strptime(value, "%Y-%m-%d %H:%M:%S %Z").replace(tzinfo=timezone.utc)
+            except ValueError:
+                value = datetime.fromisoformat(value)
         if isinstance(value, datetime):
             if value.tzinfo is None:
                 value = value.replace(tzinfo=timezone.utc)
-            return value.strftime("%Y-%m-%d %H:%M:%S %Z")
-
-        if isinstance(value, str):
-            value = datetime.fromisoformat(value).replace(tzinfo=timezone.utc)
-            return value.strftime("%Y-%m-%d %H:%M:%S %Z")
-
+            return value.isoformat()
         return value
 
     @field_validator("files", mode="before")
