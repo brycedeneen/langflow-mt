@@ -47,7 +47,7 @@ describe("SpanDetail", () => {
     expect(screen.getByText("Completion")).toBeInTheDocument();
     expect(screen.getByText("20")).toBeInTheDocument();
     expect(screen.getByText("Estimated Cost")).toBeInTheDocument();
-    expect(screen.getByText("$0.5000")).toBeInTheDocument();
+    expect(screen.getByText("$0.50")).toBeInTheDocument();
 
     const codeBlocks = screen.getAllByTestId("code-tab");
     expect(codeBlocks[0]).toHaveTextContent('"foo": "bar"');

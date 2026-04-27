@@ -84,10 +84,10 @@ export function createFlowTracesColumns({
       },
     },
     {
-      headerName: "Cost",
+      headerName: "Estimated Cost",
       field: "totalCostMicros",
-      flex: 0.5,
-      minWidth: 80,
+      flex: 0.6,
+      minWidth: 130,
       filter: false,
       sortable: false,
       editable: false,

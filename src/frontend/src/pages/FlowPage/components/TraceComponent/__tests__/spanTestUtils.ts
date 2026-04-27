@@ -21,6 +21,7 @@ export const buildSpan = (overrides: Partial<Span> = {}): Span => ({
     completionTokens: 20,
     totalTokens: 30,
     cost: 0.5,
+    costMicros: 500_000,
   },
   children: [],
   ...overrides,

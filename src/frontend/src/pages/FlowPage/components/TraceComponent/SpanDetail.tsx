@@ -132,7 +132,7 @@ export function SpanDetail({ span }: SpanDetailProps) {
           )}
           {hasCost && (
             <MetricCard
-              label="Cost"
+              label="Estimated Cost"
               value={formatUsdFromMicros(span.tokenUsage!.costMicros) ?? "\u2014"}
               icon="DollarSign"
             />
