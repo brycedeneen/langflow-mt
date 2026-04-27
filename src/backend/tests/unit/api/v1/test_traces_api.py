@@ -87,6 +87,7 @@ def _make_trace_summary(**kwargs) -> TraceSummaryRead:
         "session_id": "sess-1",
         "input": None,
         "output": None,
+        "total_cost_micros": None,
     }
     defaults.update(kwargs)
     return TraceSummaryRead(**defaults)
@@ -133,6 +134,20 @@ class TestGetTraces:
         assert body["total"] == 1
         assert body["pages"] == 1
         assert len(body["traces"]) == 1
+
+    def test_get_traces_returns_total_cost_micros(self, client: TestClient):
+        """Cost should be serialized as camelCase ``totalCostMicros`` in the response."""
+        summary = _make_trace_summary(total_cost_micros=12345)
+
+        async def _fetch(*_args, **_kwargs):
+            return TraceListResponse(traces=[summary], total=1, pages=1)
+
+        with patch("langflow.api.v1.traces.fetch_traces", side_effect=_fetch):
+            response = client.get(f"{self._PATH}?flowId={_FAKE_FLOW_ID}")
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["traces"][0]["totalCostMicros"] == 12345
 
     def test_should_return_empty_list_on_timeout(self, client: TestClient):
         async def _fetch(*_args, **_kwargs):
