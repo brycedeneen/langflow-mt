@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from typing import ClassVar
 from uuid import UUID
 
@@ -55,15 +56,21 @@ def _render_template(
     flow_name: str,
     org_name: str,
 ) -> str:
-    return template.format(
-        flow_name=flow_name,
-        org_name=org_name,
-        component_name=payload.component_display_name,
-        error_type=payload.error_type,
-        error_message=payload.error_message,
-        attempt_number=payload.attempt_number,
-        stack_trace=payload.stack_trace,
-    )
+    try:
+        return template.format(
+            flow_name=flow_name,
+            org_name=org_name,
+            component_name=payload.component_display_name,
+            error_type=payload.error_type,
+            error_message=payload.error_message,
+            attempt_number=payload.attempt_number,
+            stack_trace=payload.stack_trace,
+        )
+    except KeyError as exc:
+        # User template references an unknown variable. Don't drop the alert —
+        # surface the misconfiguration in the body and keep the error message visible.
+        logger.warning("ErrorHandler template references unknown variable %s", exc)
+        return f"[Template error: unknown variable {exc}] {payload.error_message}"
 
 
 class ErrorHandler(Component):
@@ -187,16 +194,27 @@ class ErrorHandler(Component):
 
         # Email (Not Implemented) falls through to Bell in v1.
         if self.alert_mode == "Email (Not Implemented)":
-            logger.warning(
-                "ErrorHandler email mode is not implemented; falling through to Bell."
+            warnings.warn(
+                "ErrorHandler email mode is not implemented; falling through to Bell.",
+                UserWarning,
+                stacklevel=2,
             )
 
-        try:
-            specific_id = (
-                UUID(self.bell_specific_user_id) if self.bell_specific_user_id else None
-            )
-        except (ValueError, AttributeError):
-            specific_id = None
+        specific_id: UUID | None = None
+        if self.bell_audience == "Specific user":
+            if not self.bell_specific_user_id:
+                logger.warning(
+                    "ErrorHandler bell_audience='Specific user' but no user_id provided; alert suppressed."
+                )
+                return
+            try:
+                specific_id = UUID(self.bell_specific_user_id)
+            except (ValueError, AttributeError):
+                logger.warning(
+                    "ErrorHandler bell_specific_user_id %r is not a valid UUID; alert suppressed.",
+                    self.bell_specific_user_id,
+                )
+                return
 
         try:
             audience, audience_user_id = _resolve_audience(
