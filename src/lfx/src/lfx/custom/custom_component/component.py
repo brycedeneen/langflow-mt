@@ -576,14 +576,14 @@ class Component(CustomComponent):
         self._outputs_map["error"] = deepcopy(error_output)
 
     def _emit_error_output(self):
-        """Stub — the runtime fires this edge directly; the method is unused.
+        """No-op stub — the error port is wired by the runtime, never called directly.
 
-        The runtime in Task 9 catches the exception before normal output execution
-        and routes it to the error port directly. This stub is a defensive guard
-        against future refactors accidentally calling this method.
+        The runtime in Task 9 catches the component exception before normal output
+        execution and routes the ErrorPayload to the error port. During a successful
+        retry the vertex is rebuilt normally; this method returns None so the `error`
+        output edge does not block execution.
         """
-        msg = "error output is fired by the runtime, not invoked directly"
-        raise NotImplementedError(msg)
+        return None
 
     def map_inputs(self, inputs: list[InputTypes]) -> None:
         """Maps the given inputs to the component.

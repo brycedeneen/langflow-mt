@@ -1470,15 +1470,50 @@ class Graph:
             async def set_cache_func(*args, **kwargs) -> bool:  # noqa: ARG001
                 return True
 
-        vertex_build_result = await self.build_vertex(
-            vertex_id=vertex_id,
-            user_id=user_id,
-            inputs_dict=inputs.model_dump() if inputs and hasattr(inputs, "model_dump") else {},
-            files=files,
-            get_cache=get_cache_func,
-            set_cache=set_cache_func,
-            event_manager=event_manager,
-        )
+        try:
+            vertex_build_result = await self.build_vertex(
+                vertex_id=vertex_id,
+                user_id=user_id,
+                inputs_dict=inputs.model_dump() if inputs and hasattr(inputs, "model_dump") else {},
+                files=files,
+                get_cache=get_cache_func,
+                set_cache=set_cache_func,
+                event_manager=event_manager,
+            )
+        except Exception as exc:
+            # Attempt error-edge routing before re-raising (which would kill the run).
+            handled_results = await self._try_handle_via_error_edge(vertex_id, exc)
+            if handled_results is None:
+                # No error edge or not an ErrorHandler target → preserve today's behavior.
+                raise
+            # Error was handled (retry succeeded or ErrorHandler invoked).
+            # Process each returned VertexBuildResult: queue its successors.
+            last_result = None
+            for vbr in handled_results:
+                next_runnable_vertices = await self.get_next_runnable_vertices(
+                    self.lock, vertex=vbr.vertex, cache=False
+                )
+                if self.stop_vertex and self.stop_vertex in next_runnable_vertices:
+                    next_runnable_vertices = [self.stop_vertex]
+                self.extend_run_queue(next_runnable_vertices)
+                last_result = vbr
+            self.reset_inactivated_vertices()
+            self.reset_activated_vertices()
+            if chat_service is not None:
+                await chat_service.set_cache(str(self.flow_id or self._run_id), self)
+            self._record_snapshot(vertex_id)
+            # Return the last VertexBuildResult if available, otherwise a minimal sentinel.
+            if last_result is not None:
+                return last_result
+            # Exhausted with no handler result — return a minimal build result for the failing vertex.
+            failing_vertex = self.get_vertex(vertex_id)
+            return VertexBuildResult(
+                result_dict=failing_vertex.result,
+                params="",
+                valid=False,
+                artifacts={},
+                vertex=failing_vertex,
+            )
 
         next_runnable_vertices = await self.get_next_runnable_vertices(
             self.lock, vertex=vertex_build_result.vertex, cache=False
@@ -1850,7 +1885,28 @@ class Graph:
                 if has_webhook_component:
                     await self._log_vertex_build_from_exception(vertex_id, result)
 
-                # Cancel all remaining tasks
+                # Attempt error-edge routing before killing the run.
+                handled_results = await self._try_handle_via_error_edge(vertex_id, result)
+                if handled_results is not None:
+                    # Error was handled (retry succeeded or ErrorHandler invoked).
+                    # Process any VertexBuildResults returned by the handler (e.g., the
+                    # retry-succeeded vertex, the ErrorHandler vertex itself).
+                    for vbr in handled_results:
+                        if self.flow_id is not None:
+                            await log_vertex_build(
+                                flow_id=self.flow_id,
+                                vertex_id=vbr.vertex.id,
+                                valid=vbr.valid,
+                                params=vbr.params,
+                                data=vbr.result_dict,
+                                artifacts=vbr.artifacts,
+                                job_id=self._run_id if self._run_id else None,
+                            )
+                            build_results[vbr.vertex.id] = vbr
+                        vertices.append(vbr.vertex)
+                    continue
+
+                # No error edge or routing failed → preserve today's behavior.
                 for t in tasks[i + 1 :]:
                     t.cancel()
                 raise result
@@ -2453,3 +2509,278 @@ class Graph:
         if hasattr(self, "raw_event_metrics"):
             metrics = self.raw_event_metrics({"total_components": len(self.vertices)})
         return RunFinishedEvent(run_id=self._run_id, thread_id=self.flow_id, result=None, raw_event=metrics)
+
+    # -------------------------------------------------------------------------
+    # Task 9: Runtime exception interception + retry loop
+    # -------------------------------------------------------------------------
+
+    async def _try_handle_via_error_edge(
+        self,
+        vertex_id: str,
+        exc: Exception,
+    ) -> list[VertexBuildResult] | None:
+        """Attempt to handle a vertex exception via its connected `error` output port.
+
+        Returns a list of VertexBuildResult objects to add to the executor loop's
+        vertices/build_results (may be empty), or None if the exception is NOT handled
+        and should propagate (today's behavior).
+
+        The list contains:
+        - On retry success: [VertexBuildResult(of the now-recovered failing vertex)]
+        - On exhaustion: [VertexBuildResult(of the handler vertex)] — so its successors
+          (e.g. gave_up sinks) get queued for execution.
+        """
+        from lfx.components.reliability.error_handler import ErrorHandler
+        from lfx.graph.retry import BackoffStrategy, RetryConfig, compute_delay_seconds
+        from lfx.schema.error_payload import build_error_payload
+
+        failing_vertex = self.get_vertex(vertex_id)
+        error_edge = self._find_error_edge(failing_vertex)
+        if error_edge is None:
+            return None  # no error port connected → fall through to raise
+
+        handler_vertex = self.get_vertex(error_edge.target_id)
+        handler_component = handler_vertex.custom_component
+        if not isinstance(handler_component, ErrorHandler):
+            # Connected to something that's not an ErrorHandler → fall through
+            return None
+
+        cfg = self._build_retry_config(handler_component)
+        total_retries = max(0, cfg.max_attempts)
+        last_exc: Exception = exc
+        attempt_number = 1  # The original attempt already happened (it raised `exc`)
+
+        # Retry loop: attempt up to total_retries more times.
+        for retry_idx in range(1, total_retries + 1):
+            delay = compute_delay_seconds(cfg, retry_idx)
+            if delay > 0:
+                await asyncio.sleep(delay)
+            attempt_number = 1 + retry_idx
+            await self._emit_sse_event("vertex.retrying", {
+                "vertex_id": vertex_id,
+                "retry_number": retry_idx,
+                "max_retries": total_retries,
+            })
+            try:
+                failing_vertex._reset()
+                await failing_vertex.build(user_id=self.user_id, fallback_to_env_vars=False)
+                # Retry succeeded — suppress the error branch so the ErrorHandler
+                # does NOT get queued as a successor.
+                self.exclude_branch_conditionally(vertex_id, output_name="error")
+                await self._emit_sse_event("vertex.retry_succeeded", {
+                    "vertex_id": vertex_id,
+                    "succeeded_on_attempt": attempt_number,
+                })
+                params = failing_vertex.built_object_repr()
+                vbr = VertexBuildResult(
+                    result_dict=failing_vertex.result,
+                    params=params,
+                    valid=True,
+                    artifacts=failing_vertex.artifacts,
+                    vertex=failing_vertex,
+                )
+                return [vbr]
+            except Exception as retry_exc:  # noqa: BLE001
+                last_exc = retry_exc
+
+        # All retries exhausted.
+        await self._emit_sse_event("vertex.retry_exhausted", {
+            "vertex_id": vertex_id,
+            "total_attempts": attempt_number,
+        })
+        payload = build_error_payload(
+            last_exc,
+            component_id=vertex_id,
+            component_display_name=failing_vertex.display_name,
+            flow_id=self.flow_id or uuid.UUID(int=0),
+            flow_run_id=uuid.UUID(self._run_id) if self._run_id else uuid.UUID(int=0),
+            attempt_number=attempt_number,
+        )
+
+        # Suppress the failing vertex's normal-output successors.
+        await self._suppress_normal_successors(vertex_id)
+
+        # Invoke the ErrorHandler and collect its VertexBuildResult.
+        handler_vbr = await self._invoke_error_handler(handler_vertex, handler_component, payload)
+        await self._record_handled_error(payload)  # Task 10 will implement
+        return [handler_vbr] if handler_vbr is not None else []
+
+    def _find_error_edge(self, vertex: Vertex) -> CycleEdge | None:
+        """Return the edge whose source_handle.name is 'error' for the given vertex."""
+        for edge in self.edges:
+            if edge.source_id == vertex.id:
+                sh = getattr(edge, "source_handle", None)
+                if sh is not None and getattr(sh, "name", None) == "error":
+                    return edge
+        return None
+
+    def _build_retry_config(self, handler_component: Any) -> "RetryConfig":
+        """Build a RetryConfig from an ErrorHandler component's inputs."""
+        from lfx.graph.retry import BackoffStrategy, RetryConfig
+
+        strategy_map = {
+            "None": BackoffStrategy.NONE,
+            "Fixed delay": BackoffStrategy.FIXED,
+            "Exponential": BackoffStrategy.EXPONENTIAL,
+            "Exponential with jitter": BackoffStrategy.EXPONENTIAL_WITH_JITTER,
+        }
+        return RetryConfig(
+            max_attempts=int(handler_component.max_attempts),
+            strategy=strategy_map.get(
+                getattr(handler_component, "backoff_strategy", "Exponential with jitter"),
+                BackoffStrategy.EXPONENTIAL_WITH_JITTER,
+            ),
+            base_delay_seconds=float(getattr(handler_component, "base_delay_seconds", 1.0)),
+            max_delay_seconds=float(getattr(handler_component, "max_delay_seconds", 60.0)),
+        )
+
+    async def _suppress_normal_successors(self, vertex_id: str) -> None:
+        """Mark the failing vertex's non-error successors as conditionally excluded.
+
+        Reuses the existing exclude_branch_conditionally pattern from ConditionalRouter.
+        Passes output_name="result" to exclude only the `result` branch; the `error`
+        branch (connecting to the ErrorHandler) is NOT excluded here.
+        """
+        self.exclude_branch_conditionally(vertex_id, output_name="result")
+
+    async def _invoke_error_handler(
+        self,
+        handler_vertex: Vertex,
+        handler_component: Any,
+        payload: Any,
+    ) -> VertexBuildResult | None:
+        """Inject the ErrorPayload, dispatch the alert, then build the handler vertex.
+
+        Returns a VertexBuildResult for the handler vertex (so its successors get
+        queued), or None if the build fails (best-effort; alert has already fired).
+        """
+        # Inject the payload directly into the vertex params so that
+        # `_build_each_vertex_in_params_dict` uses the actual payload rather than
+        # trying to resolve the edge from the (failed) flaky vertex.
+        # We update both params and raw_params so the vertex's build path sees
+        # the real value instead of a vertex reference.
+        handler_vertex._reset()
+        handler_vertex.params["error_input"] = payload
+        handler_vertex.raw_params["error_input"] = payload
+        handler_vertex.updated_raw_params = True  # prevent build_params() from overwriting
+
+        # Dispatch the alert (best-effort — component-level errors are swallowed).
+        await self._dispatch_handler_alert(handler_component, payload)
+
+        # Temporarily wire `on_error_exhausted` to return the payload so that
+        # the `gave_up` output fires correctly when the vertex is built.
+        async def _give_up_impl() -> Any:
+            return payload
+
+        original_method = getattr(handler_component, "on_error_exhausted", None)
+        handler_component.on_error_exhausted = _give_up_impl
+
+        try:
+            await handler_vertex.build(user_id=self.user_id, fallback_to_env_vars=False)
+            params = handler_vertex.built_object_repr()
+            return VertexBuildResult(
+                result_dict=handler_vertex.result,
+                params=params,
+                valid=True,
+                artifacts=handler_vertex.artifacts,
+                vertex=handler_vertex,
+            )
+        except Exception:  # noqa: BLE001
+            await logger.aexception(
+                "ErrorHandler vertex build failed; gave_up output may not fire downstream."
+            )
+            return None
+        finally:
+            # Restore original method to keep component state clean.
+            if original_method is not None:
+                handler_component.on_error_exhausted = original_method
+
+    async def _dispatch_handler_alert(self, handler_component: Any, payload: Any) -> None:
+        """Call dispatch_alert on the ErrorHandler, loading flow metadata best-effort."""
+        try:
+            flow_meta = await self._load_flow_metadata()
+            await handler_component.dispatch_alert(
+                payload=payload,
+                notifier=flow_meta.notifier,
+                flow_owner_id=flow_meta.flow_owner_id,
+                org_id=flow_meta.org_id,
+                flow_name=flow_meta.flow_name,
+                org_name=flow_meta.org_name,
+            )
+        except Exception:  # noqa: BLE001
+            await logger.aexception("ErrorHandler alert dispatch failed (suppressed)")
+
+    async def _load_flow_metadata(self) -> Any:
+        """Fetch flow_owner_id / org_id / flow_name / org_name for alert templates.
+
+        Falls back to stub values when flow_id is not set (e.g., in tests).
+        """
+        import dataclasses
+
+        from langflow.services.notifier.protocol import UsageAlertNotifier
+
+        @dataclasses.dataclass
+        class _FlowMeta:
+            flow_owner_id: Any
+            org_id: Any
+            flow_name: str
+            org_name: str
+            notifier: UsageAlertNotifier
+
+        class _NullNotifier:
+            async def notify(self, event: Any) -> None:  # noqa: ARG002
+                pass
+
+        if not self.flow_id:
+            return _FlowMeta(
+                flow_owner_id=None,
+                org_id=None,
+                flow_name="",
+                org_name="",
+                notifier=_NullNotifier(),
+            )
+
+        try:
+            from langflow.services.deps import get_db_service, get_usage_alert_dispatcher
+            from langflow.services.database.models.flow.model import Flow
+            from langflow.services.database.models.organization.model import Organization
+            from lfx.services.deps import session_scope_readonly
+
+            dispatcher = get_usage_alert_dispatcher()
+
+            class _DispatcherNotifier:
+                """Adapts UsageAlertDispatcher to the UsageAlertNotifier protocol."""
+
+                def __init__(self, d: Any) -> None:
+                    self._d = d
+
+                async def notify(self, event: Any) -> None:
+                    await self._d.dispatch(event)
+
+            notifier = _DispatcherNotifier(dispatcher)
+            async with session_scope_readonly() as session:
+                flow = await session.get(Flow, self.flow_id)
+                org = await session.get(Organization, flow.organization_id) if flow else None
+                return _FlowMeta(
+                    flow_owner_id=flow.user_id if flow else None,
+                    org_id=flow.organization_id if flow else None,
+                    flow_name=flow.name if flow else "",
+                    org_name=org.name if org else "",
+                    notifier=notifier,
+                )
+        except Exception:  # noqa: BLE001
+            await logger.aexception("Failed to load flow metadata for ErrorHandler (suppressed)")
+            return _FlowMeta(
+                flow_owner_id=None,
+                org_id=None,
+                flow_name="",
+                org_name="",
+                notifier=_NullNotifier(),
+            )
+
+    async def _emit_sse_event(self, event_name: str, data: dict) -> None:
+        """Emit an SSE event for the current flow run. Wired up in Task 11."""
+        # Stub for now; Task 11 wires this to the actual SSE bus.
+
+    async def _record_handled_error(self, payload: Any) -> None:
+        """Append to FlowRun.error['handled_errors']. Implemented in Task 10."""
