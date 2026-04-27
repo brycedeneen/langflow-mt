@@ -2810,8 +2810,7 @@ class Graph:
                 return
             await emit_run_event(flow_id, event_name, data)
         except Exception as exc:  # noqa: BLE001
-            import logging
-            logging.getLogger(__name__).debug(
+            logger.debug(
                 "SSE event emission failed (event=%s): %s", event_name, exc
             )
 

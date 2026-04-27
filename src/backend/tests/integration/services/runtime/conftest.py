@@ -161,7 +161,8 @@ class _GraphBuildHelper:
     """Thin programmatic graph builder for error-routing integration tests."""
 
     def __init__(self):
-        self._graph = Graph()
+        import uuid
+        self._graph = Graph(flow_id=str(uuid.uuid4()))
         self._component_ids: dict[str, str] = {}  # name → vertex_id
         self._components: dict[str, object] = {}  # name → component object
 
