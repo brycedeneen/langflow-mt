@@ -37,21 +37,22 @@ const ErrorOutputPort = memo(function ErrorOutputPort({
   if (!showNode) {
     // Collapsed node: render a bare handle with no row UI
     return (
-      <Handle
-        type="source"
-        position={Position.Right}
-        id={handleId}
-        data-testid="output-port-error"
-        className="z-50"
-        style={{
-          width: "32px",
-          height: "32px",
-          top: "50%",
-          position: "absolute",
-          background: "transparent",
-          border: "none",
-        }}
-      />
+      <div data-testid="output-port-error" className="contents">
+        <Handle
+          type="source"
+          position={Position.Right}
+          id={handleId}
+          className="z-50"
+          style={{
+            width: "32px",
+            height: "32px",
+            top: "50%",
+            position: "absolute",
+            background: "transparent",
+            border: "none",
+          }}
+        />
+      </div>
     );
   }
 
@@ -105,11 +106,8 @@ const ErrorOutputPort = memo(function ErrorOutputPort({
           className={cn(
             "pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
             "h-2.5 w-2.5 rounded-full",
-            "bg-destructive",
+            "bg-destructive ring-2 ring-destructive/50",
           )}
-          style={{
-            boxShadow: "0 0 0 3px hsl(var(--destructive))",
-          }}
         />
       </Handle>
     </div>
