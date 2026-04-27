@@ -8,13 +8,14 @@ def test_error_handler_declares_expected_inputs():
         "max_attempts",
         "alert_mode",
         "bell_audience",
+        "bell_specific_user_id",
         "alert_title_template",
         "backoff_strategy",
         "base_delay_seconds",
         "max_delay_seconds",
         "alert_body_template",
     }
-    assert expected.issubset(input_names)
+    assert input_names == expected
 
 
 def test_error_handler_has_gave_up_output():

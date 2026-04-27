@@ -37,13 +37,13 @@ class ErrorHandler(Component):
     ErrorHandler bypass the runtime extension and fail the flow run.
     """
 
-    display_name: ClassVar[str] = "Error Handler"
-    description: ClassVar[str] = (
+    display_name = "Error Handler"
+    description = (
         "Retry a failing component with backoff and dispatch an alert when "
         "retries are exhausted."
     )
-    icon: ClassVar[str] = "shield-alert"
-    name: ClassVar[str] = "ErrorHandler"
+    icon = "shield-alert"
+    name = "ErrorHandler"
     error_output_enabled: ClassVar[bool] = False  # explicit: no nested recovery
 
     inputs = [
@@ -76,13 +76,14 @@ class ErrorHandler(Component):
         StrInput(
             name="bell_specific_user_id",
             display_name="Specific user",
-            info="User ID to notify (when audience = Specific user).",
+            info="User ID (UUID format) to notify when bell audience = Specific user.",
             advanced=True,
         ),
         StrInput(
             name="alert_title_template",
             display_name="Alert title",
             value=_DEFAULT_TITLE_TEMPLATE,
+            info="Available variables: {flow_name}, {component_name}, {error_type}, {error_message}, {attempt_number}, {org_name}",
         ),
         DropdownInput(
             name="backoff_strategy",
@@ -108,6 +109,7 @@ class ErrorHandler(Component):
             display_name="Alert body (markdown)",
             value=_DEFAULT_BODY_TEMPLATE,
             advanced=True,
+            info="Markdown. Available variables: {flow_name}, {component_name}, {error_type}, {error_message}, {attempt_number}, {stack_trace}, {org_name}",
         ),
     ]
 
@@ -126,5 +128,5 @@ class ErrorHandler(Component):
         The runtime constructs and passes the ErrorPayload directly via the
         runtime extension; this method is the public output endpoint.
         """
-        # Wired up in Task 8 — for now, return the inbound payload unchanged.
-        return self.error_input  # type: ignore[no-any-return]
+        msg = "ErrorHandler.on_error_exhausted is wired by the runtime; do not invoke directly"
+        raise NotImplementedError(msg)
