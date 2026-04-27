@@ -5,8 +5,14 @@ from typing import Any, Literal, Protocol
 from uuid import UUID
 
 
-NotificationCategoryValue = Literal["usage_threshold", "alert_rule"]
-NotificationSeverityValue = Literal["info", "warning", "critical"]
+NotificationCategoryValue = Literal[
+    "usage_threshold",
+    "alert_rule",
+    "system",
+    "professional_services_request",
+    "flow_error",
+]
+NotificationSeverityValue = Literal["info", "warning", "critical", "error"]
 
 
 @dataclass(frozen=True)

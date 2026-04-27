@@ -14,12 +14,14 @@ class NotificationCategory(str, Enum):
     ALERT_RULE = "alert_rule"
     SYSTEM = "system"
     PROFESSIONAL_SERVICES_REQUEST = "professional_services_request"
+    FLOW_ERROR = "flow_error"
 
 
 class NotificationSeverity(str, Enum):
     INFO = "info"
     WARNING = "warning"
     CRITICAL = "critical"
+    ERROR = "error"
 
 
 class NotificationAudience(str, Enum):
