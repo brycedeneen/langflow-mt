@@ -26,6 +26,7 @@ import useUpdateNodeCode from "../hooks/use-update-node-code";
 import NodeDescription from "./components/NodeDescription";
 import NodeLegacyComponent from "./components/NodeLegacyComponent";
 import NodeName from "./components/NodeName";
+import ErrorOutputPort from "./components/ErrorOutputPort";
 import NodeOutputs from "./components/NodeOutputParameter/NodeOutputs";
 import NodeUpdateComponent from "./components/NodeUpdateComponent";
 import RenderInputParameters from "./components/RenderInputParameters";
@@ -255,17 +256,26 @@ function GenericNode({
     callback: toggleEditNameDescription,
   });
 
-  const { shownOutputs, hiddenOutputs } = useMemo(() => {
+  const { shownOutputs, hiddenOutputs, errorOutput } = useMemo(() => {
     const shownOutputs: typeof data.node.outputs = [];
     const hiddenOutputs: typeof data.node.outputs = [];
+    let errorOutput: OutputFieldType | undefined;
     (data.node?.outputs ?? []).forEach((output) => {
+      // Separate out the ErrorPayload port — rendered independently below
+      if (
+        output.name === "error" &&
+        output.types?.includes("ErrorPayload")
+      ) {
+        errorOutput = output;
+        return;
+      }
       if (output.hidden) {
         hiddenOutputs.push(output);
       } else {
         shownOutputs.push(output);
       }
     });
-    return { shownOutputs, hiddenOutputs };
+    return { shownOutputs, hiddenOutputs, errorOutput };
   }, [data.node?.outputs]);
 
   const [selectedOutput, setSelectedOutput] = useState<OutputFieldType | null>(
@@ -590,6 +600,13 @@ function GenericNode({
                     selectedOutput={selectedOutput}
                     handleSelectOutput={handleSelectOutput}
                   />
+                  {errorOutput && (
+                    <ErrorOutputPort
+                      nodeId={data.id}
+                      dataType={data.type}
+                      showNode={showNode}
+                    />
+                  )}
                 </div>
               </>
             )}
@@ -673,6 +690,13 @@ function GenericNode({
                 selectedOutput={selectedOutput}
                 handleSelectOutput={handleSelectOutput}
               />
+              {errorOutput && (
+                <ErrorOutputPort
+                  nodeId={data.id}
+                  dataType={data.type}
+                  showNode={showNode}
+                />
+              )}
             </>
           </div>
         )}
