@@ -1,9 +1,14 @@
-"""Conftest for graph-layer integration tests.
+"""Conftest for graph-layer runtime integration tests.
 
 These tests build Graph objects programmatically and run them via
 async_start() without needing the full Langflow HTTP stack. We override
-the parent-directory `_start_app` autouse fixture so the `client` fixture
-(which spins up a full app with a database) is NOT needed.
+the parent-directory `_start_app` autouse fixture here (scoped to this
+subdirectory only) so the `client` fixture (which spins up a full app
+with a database) is NOT needed.
+
+Putting the override in this sub-conftest (rather than the parent
+services/conftest.py) ensures other tests in services/ (e.g.,
+test_autosecrets_vault.py) continue to receive the real `_start_app`.
 """
 from __future__ import annotations
 
@@ -23,11 +28,12 @@ from lfx.io import HandleInput, Output, StrInput
 # ---------------------------------------------------------------------------
 # Override the parent conftest's `_start_app` autouse fixture so that these
 # tests do not require a running HTTP client or database.
+# Scoped only to this subdirectory; does not affect services/ siblings.
 # ---------------------------------------------------------------------------
 
 @pytest.fixture(autouse=True)
 def _start_app():
-    """No-op: graph integration tests do not need the full app."""
+    """No-op: graph runtime integration tests do not need the full app."""
 
 
 # ---------------------------------------------------------------------------
@@ -78,6 +84,39 @@ class FlakyComponent(Component):
     _fail_count: int = 0
     invocation_count: int = 0
     dispatch_alert_calls: int = 0  # always 0; here for symmetry with ErrorHandlerWrapper
+
+    def run(self) -> str:
+        self.invocation_count += 1
+        if self.invocation_count <= self._fail_count:
+            raise RuntimeError(f"Intentional failure #{self.invocation_count}")
+        return "ok"
+
+
+class FlakyComponentTextOutput(Component):
+    """Like FlakyComponent but output is named 'text' (not 'result').
+
+    Used to verify that _suppress_normal_successors covers any output name,
+    not just 'result'.
+    """
+
+    display_name = "FlakyComponentTextOutput"
+    name = "FlakyComponentTextOutput"
+    error_output_enabled: ClassVar[bool] = True
+
+    inputs = [
+        StrInput(name="dummy", display_name="Dummy", value="", advanced=True),
+    ]
+    outputs = [
+        Output(
+            display_name="Text",
+            name="text",
+            types=["str"],
+            method="run",
+        ),
+    ]
+
+    _fail_count: int = 0
+    invocation_count: int = 0
 
     def run(self) -> str:
         self.invocation_count += 1
@@ -138,8 +177,20 @@ class _GraphBuildHelper:
     ) -> FlakyComponent:
         comp = FlakyComponent(_id=f"flaky_{name}")
         comp._fail_count = fail_count
-        # error_output_enabled is a ClassVar=True on FlakyComponent, but we
-        # honour the parameter for future flexibility.
+        vid = self._graph.add_component(comp)
+        self._component_ids[name] = vid
+        self._components[name] = comp
+        return comp
+
+    def add_flaky_text_output_component(
+        self,
+        *,
+        name: str,
+        fail_count: int,
+    ) -> FlakyComponentTextOutput:
+        """Add a FlakyComponent variant whose normal output is named 'text'."""
+        comp = FlakyComponentTextOutput(_id=f"flaky_text_{name}")
+        comp._fail_count = fail_count
         vid = self._graph.add_component(comp)
         self._component_ids[name] = vid
         self._components[name] = comp

@@ -2598,7 +2598,7 @@ class Graph:
         )
 
         # Suppress the failing vertex's normal-output successors.
-        await self._suppress_normal_successors(vertex_id)
+        self._suppress_normal_successors(vertex_id)
 
         # Invoke the ErrorHandler and collect its VertexBuildResult.
         handler_vbr = await self._invoke_error_handler(handler_vertex, handler_component, payload)
@@ -2634,14 +2634,19 @@ class Graph:
             max_delay_seconds=float(getattr(handler_component, "max_delay_seconds", 60.0)),
         )
 
-    async def _suppress_normal_successors(self, vertex_id: str) -> None:
-        """Mark the failing vertex's non-error successors as conditionally excluded.
+    def _suppress_normal_successors(self, vertex_id: str) -> None:
+        """Mark the failing vertex's non-error successors as excluded for this run.
 
-        Reuses the existing exclude_branch_conditionally pattern from ConditionalRouter.
-        Passes output_name="result" to exclude only the `result` branch; the `error`
-        branch (connecting to the ErrorHandler) is NOT excluded here.
+        Iterates all outputs except `error` so the suppression covers any output
+        name (`result`, `text`, `message`, etc.).
         """
-        self.exclude_branch_conditionally(vertex_id, output_name="result")
+        vertex = self.get_vertex(vertex_id)
+        for output in vertex.outputs:
+            # Output may be either a dict (raw vertex output) or an Output object;
+            # handle both. Skip the error port.
+            name = output.get("name") if isinstance(output, dict) else getattr(output, "name", None)
+            if name and name != "error":
+                self.exclude_branch_conditionally(vertex_id, output_name=name)
 
     async def _invoke_error_handler(
         self,
@@ -2672,7 +2677,6 @@ class Graph:
         async def _give_up_impl() -> Any:
             return payload
 
-        original_method = getattr(handler_component, "on_error_exhausted", None)
         handler_component.on_error_exhausted = _give_up_impl
 
         try:
@@ -2691,14 +2695,24 @@ class Graph:
             )
             return None
         finally:
-            # Restore original method to keep component state clean.
-            if original_method is not None:
-                handler_component.on_error_exhausted = original_method
+            try:
+                del handler_component.on_error_exhausted
+            except AttributeError:
+                # Method was a class attribute; instance dict didn't actually hold it.
+                pass
+
+    async def _load_flow_metadata_cached(self) -> Any:
+        """Cached wrapper around _load_flow_metadata; one DB read per Graph instance."""
+        cached = getattr(self, "_flow_meta_cache", None)
+        if cached is not None:
+            return cached
+        self._flow_meta_cache = await self._load_flow_metadata()
+        return self._flow_meta_cache
 
     async def _dispatch_handler_alert(self, handler_component: Any, payload: Any) -> None:
         """Call dispatch_alert on the ErrorHandler, loading flow metadata best-effort."""
         try:
-            flow_meta = await self._load_flow_metadata()
+            flow_meta = await self._load_flow_metadata_cached()
             await handler_component.dispatch_alert(
                 payload=payload,
                 notifier=flow_meta.notifier,
@@ -2741,7 +2755,7 @@ class Graph:
             )
 
         try:
-            from langflow.services.deps import get_db_service, get_usage_alert_dispatcher
+            from langflow.services.deps import get_usage_alert_dispatcher
             from langflow.services.database.models.flow.model import Flow
             from langflow.services.database.models.organization.model import Organization
             from lfx.services.deps import session_scope_readonly
