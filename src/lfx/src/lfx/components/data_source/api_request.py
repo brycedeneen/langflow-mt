@@ -53,7 +53,7 @@ class APIRequestComponent(Component):
     name = "APIRequest"
     error_output_enabled: ClassVar[bool] = True
 
-    version: int = 3
+    version: int = 4
     changelog: ClassVar[list[ChangelogEntry]] = [
         ChangelogEntry(
             version=1,
@@ -96,6 +96,19 @@ class APIRequestComponent(Component):
                 "Existing flows are unaffected — the error port is unwired by "
                 "default. Connect it to an Error Handler to retry the request "
                 "with backoff and dispatch alerts on exhaustion."
+            ),
+        ),
+        ChangelogEntry(
+            version=4,
+            changes=(
+                "- Added **Raise on HTTP error (4xx/5xx)** toggle. When enabled, "
+                "the component raises an exception on non-2xx responses instead "
+                "of returning the error body as data."
+            ),
+            notes=(
+                "Off by default — existing flows keep current behavior. Turn on "
+                "to make the component fire its Error output port (and trigger "
+                "any connected Error Handler) on HTTP error responses."
             ),
         ),
     ]
@@ -206,6 +219,16 @@ class APIRequestComponent(Component):
             value=30,
             info="The timeout to use for the request.",
             advanced=True,
+        ),
+        BoolInput(
+            name="raise_on_status",
+            display_name="Raise on HTTP error (4xx/5xx)",
+            value=False,
+            info=(
+                "When enabled, the component raises an exception on non-2xx HTTP "
+                "responses instead of returning the error body as data. Pair with "
+                "the Error output port + Error Handler to retry / alert on failures."
+            ),
         ),
         BoolInput(
             name="follow_redirects",
@@ -437,6 +460,12 @@ class APIRequestComponent(Component):
                 else:
                     request_params["json"] = processed_body
             response = await client.request(**request_params)
+
+            if getattr(self, "raise_on_status", False) and response.status_code >= 400:  # noqa: PLR2004
+                snippet = response.text[:200] + ("..." if len(response.text) > 200 else "")
+                msg = f"HTTP {response.status_code} from {url}: {snippet}"
+                # Plain RuntimeError so the surrounding httpx.HTTPError catch doesn't swallow it.
+                raise RuntimeError(msg)
 
             redirection_history = [
                 {

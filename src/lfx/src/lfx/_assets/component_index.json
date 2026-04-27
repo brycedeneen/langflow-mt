@@ -1738,6 +1738,7 @@
         "ADPAPIRequest": {
           "assist_enabled": true,
           "base_classes": [
+            "ErrorPayload",
             "JSON"
           ],
           "beta": false,
@@ -1746,6 +1747,11 @@
               "changes": "Initial release. Calls ADP REST APIs using an ADPConnection from the ADP Auth component:\n- mTLS + Bearer-token requests with automatic 401 token refresh.\n- Endpoint catalog (Workers, Worker Demographics, Pay Statements, Time Cards, Jobs, Meta) plus an 'Other (custom path)' escape hatch.\n- TableInput-driven JSON request body for non-GET methods.\n- Result Mode toggle (Top 20 single page / All auto-paginated).\n- SSRF allowlist via shared `validate_adp_url` so requests can only target approved ADP hosts.",
               "notes": null,
               "version": 1
+            },
+            {
+              "changes": "- Added **Error** output port for retry / alert wiring through an Error Handler component\n- Added **Raise on HTTP error (4xx/5xx)** toggle. When enabled, the component raises an exception on non-2xx responses instead of returning the error body as data.",
+              "notes": "Both off by default — existing flows keep current behavior. Turn Raise-on-HTTP-error on to make the component fire its Error output port (and trigger any connected Error Handler) on 4xx/5xx responses.",
+              "version": 2
             }
           ],
           "conditional_paths": [],
@@ -1763,13 +1769,14 @@
             "query_params",
             "body",
             "result_mode",
-            "timeout"
+            "timeout",
+            "raise_on_status"
           ],
           "frozen": false,
           "icon": "Globe",
           "legacy": false,
           "metadata": {
-            "code_hash": "a6d7d531f4c7",
+            "code_hash": "17e3dc30c50e",
             "dependencies": {
               "dependencies": [
                 {
@@ -1799,6 +1806,20 @@
               "tool_mode": true,
               "types": [
                 "JSON"
+              ],
+              "value": "__UNDEFINED__"
+            },
+            {
+              "allows_loop": false,
+              "cache": true,
+              "display_name": "Error",
+              "group_outputs": false,
+              "method": "_emit_error_output",
+              "name": "error",
+              "selected": "ErrorPayload",
+              "tool_mode": true,
+              "types": [
+                "ErrorPayload"
               ],
               "value": "__UNDEFINED__"
             }
@@ -1860,7 +1881,7 @@
               "show": true,
               "title_case": false,
               "type": "code",
-              "value": "\"\"\"ADPAPIRequestComponent — authenticated mTLS requests to api.adp.com.\"\"\"\n\nfrom __future__ import annotations\n\nfrom typing import Any, ClassVar\n\nimport httpx\n\nfrom lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url\nfrom lfx.custom.custom_component.changelog import ChangelogEntry\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.io import (\n    DataInput,\n    DropdownInput,\n    HandleInput,\n    IntInput,\n    MessageTextInput,\n    Output,\n    TabInput,\n    TableInput,\n)\nfrom lfx.schema.data import Data\n\n# Endpoint catalog: display name → (path template, requires_id)\n# ``{aoid}`` is substituted with resource_id when present; otherwise the\n# ``requires_id`` flag decides whether to fail or to hit the list endpoint.\nENDPOINT_CATALOG: dict[str, tuple[str, bool]] = {\n    \"Workers\": (\"/hr/v2/workers\", False),\n    \"Worker Demographics\": (\"/hr/v2/worker-demographics\", False),\n    \"Pay Statements\": (\"/payroll/v1/workers/{aoid}/pay-statements\", True),\n    \"Time Cards\": (\"/time/v2/workers/{aoid}/time-cards\", True),\n    \"Jobs\": (\"/hr/v1/jobs\", False),\n    \"Meta\": (\"/core/v1/meta\", False),\n    \"Other (custom path)\": (\"\", False),\n}\n\nMAX_PAGINATION_ITERATIONS = 1000\nPAGE_SIZE_FOR_ALL = 100\nHTTP_UNAUTHORIZED = 401\nHTTP_CLIENT_ERROR_MIN = 400\n\n\nclass ADPAPIRequestComponent(Component):\n    display_name = \"ADP API Request\"\n    description = \"Call ADP REST APIs using an ADPConnection. Authenticated with mTLS + Bearer token.\"\n    icon = \"Globe\"\n    name = \"ADPAPIRequest\"\n    version: int = 1\n    changelog: ClassVar[list[ChangelogEntry]] = [\n        ChangelogEntry(\n            version=1,\n            changes=(\n                \"Initial release. Calls ADP REST APIs using an ADPConnection from the \"\n                \"ADP Auth component:\\n\"\n                \"- mTLS + Bearer-token requests with automatic 401 token refresh.\\n\"\n                \"- Endpoint catalog (Workers, Worker Demographics, Pay Statements, \"\n                \"Time Cards, Jobs, Meta) plus an 'Other (custom path)' escape hatch.\\n\"\n                \"- TableInput-driven JSON request body for non-GET methods.\\n\"\n                \"- Result Mode toggle (Top 20 single page / All auto-paginated).\\n\"\n                \"- SSRF allowlist via shared `validate_adp_url` so requests can only \"\n                \"target approved ADP hosts.\"\n            ),\n        ),\n    ]\n\n    inputs = [\n        HandleInput(\n            name=\"connection\",\n            display_name=\"ADP Connection\",\n            input_types=[\"ADPConnection\"],\n            info=\"Connection produced by an ADP Auth component.\",\n            required=True,\n        ),\n        DropdownInput(\n            name=\"endpoint\",\n            display_name=\"Endpoint\",\n            options=list(ENDPOINT_CATALOG.keys()),\n            value=\"Workers\",\n            info=\"ADP API endpoint to call.\",\n            real_time_refresh=True,\n        ),\n        MessageTextInput(\n            name=\"custom_path\",\n            display_name=\"Custom Path\",\n            info=\"Path (e.g. /hr/v2/workers) when Endpoint is 'Other'.\",\n            show=False,\n        ),\n        # TODO(follow-up): add update_build_config to show/hide custom_path when\n        # endpoint == \"Other (custom path)\". Deferred per\n        # docs/superpowers/plans/2026-04-14-adp-connector.md Task 10.\n        MessageTextInput(\n            name=\"resource_id\",\n            display_name=\"Resource ID (aoid)\",\n            info=\"Leave empty for list endpoints; set to a worker ID for by-ID lookups.\",\n        ),\n        DropdownInput(\n            name=\"method\",\n            display_name=\"HTTP Method\",\n            options=[\"GET\", \"POST\", \"PATCH\", \"PUT\", \"DELETE\"],\n            value=\"GET\",\n            advanced=True,\n        ),\n        DataInput(\n            name=\"query_params\",\n            display_name=\"Query Parameters\",\n            info=\"Extra OData filters (e.g. $filter, $select).\",\n            advanced=True,\n        ),\n        TableInput(\n            name=\"body\",\n            display_name=\"Body\",\n            info=\"Request body for non-GET methods.\",\n            table_schema=[\n                {\"name\": \"key\", \"display_name\": \"Key\", \"type\": \"str\"},\n                {\"name\": \"value\", \"display_name\": \"Value\"},\n            ],\n            value=[],\n            advanced=True,\n        ),\n        TabInput(\n            name=\"result_mode\",\n            display_name=\"Result Mode\",\n            options=[\"Top 20\", \"All\"],\n            value=\"Top 20\",\n            info=\"'Top 20' returns a single page of 20; 'All' auto-paginates.\",\n        ),\n        IntInput(\n            name=\"timeout\",\n            display_name=\"Timeout (seconds)\",\n            value=30,\n            advanced=True,\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"API Response\", name=\"data\", method=\"make_api_request\"),\n    ]\n\n    def _build_json_body(self) -> dict[str, Any] | None:\n        \"\"\"Build JSON body dict from the `body` TableInput value. Returns None for GET.\"\"\"\n        rows = self.body or []\n        if not isinstance(rows, list):\n            return None\n        result: dict[str, Any] = {}\n        for row in rows:\n            if not isinstance(row, dict) or \"key\" not in row or \"value\" not in row:\n                continue\n            result[row[\"key\"]] = row[\"value\"]\n        return result or None\n\n    def _resolve_path(self) -> str:\n        endpoint = self.endpoint\n        if endpoint == \"Other (custom path)\":\n            path = (self.custom_path or \"\").strip()\n            if not path:\n                msg = \"custom_path is required when Endpoint is 'Other (custom path)'\"\n                raise ValueError(msg)\n            if not path.startswith(\"/\"):\n                path = \"/\" + path\n            return path\n\n        template, requires_id = ENDPOINT_CATALOG[endpoint]\n        resource_id = (self.resource_id or \"\").strip()\n\n        if \"{aoid}\" in template:\n            if not resource_id:\n                msg = f\"resource_id is required for endpoint {endpoint!r}\"\n                raise ValueError(msg)\n            return template.replace(\"{aoid}\", resource_id)\n\n        if requires_id and not resource_id:\n            msg = f\"resource_id is required for endpoint {endpoint!r}\"\n            raise ValueError(msg)\n\n        if resource_id:\n            return f\"{template}/{resource_id}\"\n        return template\n\n    def _build_query_params(self) -> dict[str, Any]:\n        if self.query_params is None:\n            return {}\n        data = self.query_params.data or {} if hasattr(self.query_params, \"data\") else self.query_params\n        if not isinstance(data, dict):\n            return {}\n        return dict(data)\n\n    async def _execute_request(\n        self,\n        client: httpx.AsyncClient,\n        *,\n        method: str,\n        url: str,\n        headers: dict[str, str],\n        params: dict[str, Any],\n        json_body: Any,\n        timeout: float,\n    ) -> httpx.Response:\n        return await client.request(\n            method=method,\n            url=url,\n            headers=headers,\n            params=params,\n            json=json_body if method != \"GET\" else None,\n            timeout=timeout,\n        )\n\n    async def make_api_request(self) -> Data:\n        conn: ADPConnection = self.connection\n        path = self._resolve_path()\n        url = conn.api_base_url + path\n        method = (self.method or \"GET\").upper()\n        base_params = self._build_query_params()\n        validate_adp_url(url, field_name=\"api_base_url\")\n        headers = {\"Authorization\": f\"Bearer {conn.access_token}\"}\n        json_body = self._build_json_body() if method != \"GET\" else None\n\n        if self.result_mode == \"Top 20\":\n            params = {**base_params, \"$top\": 20}\n            async with build_mtls_httpx_client(conn, timeout=self.timeout) as client:\n                response = await self._call_with_401_retry(\n                    client, method=method, url=url, headers=headers, params=params, conn=conn, json_body=json_body,\n                )\n                return self._response_to_data(url, response)\n\n        # \"All\" mode — auto-paginate\n        combined: dict[str, Any] = {}\n        collection_key: str | None = None\n        skip = 0\n        iterations = 0\n        final_response: httpx.Response | None = None\n\n        async with build_mtls_httpx_client(conn, timeout=self.timeout) as client:\n            while iterations < MAX_PAGINATION_ITERATIONS:\n                iterations += 1\n                params = {**base_params, \"$top\": PAGE_SIZE_FOR_ALL}\n                if skip:\n                    params[\"$skip\"] = skip\n\n                response = await self._call_with_401_retry(\n                    client, method=method, url=url, headers=headers, params=params, conn=conn, json_body=json_body,\n                )\n                final_response = response\n\n                if response.status_code >= HTTP_CLIENT_ERROR_MIN:\n                    return self._response_to_data(url, response)\n\n                try:\n                    page = response.json()\n                except ValueError:\n                    return self._response_to_data(url, response)\n\n                if collection_key is None:\n                    collection_key = self._detect_collection_key(page)\n                    combined = {collection_key: []} if collection_key else {}\n\n                if not collection_key:\n                    # Not a paginated collection — return single page\n                    return self._response_to_data(url, response)\n\n                items = page.get(collection_key, [])\n                combined[collection_key].extend(items)\n\n                if len(items) < PAGE_SIZE_FOR_ALL:\n                    break\n                skip += PAGE_SIZE_FOR_ALL\n\n        return Data(\n            data={\n                \"source\": url,\n                \"status_code\": final_response.status_code if final_response else 200,\n                \"result\": combined,\n            }\n        )\n\n    async def _call_with_401_retry(\n        self,\n        client: httpx.AsyncClient,\n        *,\n        method: str,\n        url: str,\n        headers: dict[str, str],\n        params: dict[str, Any],\n        conn: ADPConnection,\n        json_body: dict[str, Any] | None = None,\n    ) -> httpx.Response:\n        response = await self._execute_request(\n            client, method=method, url=url, headers=headers, params=params, json_body=json_body, timeout=self.timeout,\n        )\n        if response.status_code == HTTP_UNAUTHORIZED:\n            await fetch_token(conn, force=True)\n            headers[\"Authorization\"] = f\"Bearer {conn.access_token}\"\n            response = await self._execute_request(\n                client,\n                method=method,\n                url=url,\n                headers=headers,\n                params=params,\n                json_body=json_body,\n                timeout=self.timeout,\n            )\n        return response\n\n    @staticmethod\n    def _detect_collection_key(page: Any) -> str | None:\n        \"\"\"ADP list responses wrap items in a top-level key (e.g. 'workers', 'items', 'payStatements').\n\n        Heuristic: first key whose value is a list.\n        \"\"\"\n        if not isinstance(page, dict):\n            return None\n        for k, v in page.items():\n            if isinstance(v, list):\n                return k\n        return None\n\n    def _response_to_data(self, url: str, response: httpx.Response) -> Data:\n        try:\n            body = response.json()\n        except ValueError:\n            body = response.text\n        return Data(data={\"source\": url, \"status_code\": response.status_code, \"result\": body})\n"
+              "value": "\"\"\"ADPAPIRequestComponent — authenticated mTLS requests to api.adp.com.\"\"\"\n\nfrom __future__ import annotations\n\nfrom typing import Any, ClassVar\n\nimport httpx\n\nfrom lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, fetch_token, validate_adp_url\nfrom lfx.custom.custom_component.changelog import ChangelogEntry\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.io import (\n    BoolInput,\n    DataInput,\n    DropdownInput,\n    HandleInput,\n    IntInput,\n    MessageTextInput,\n    Output,\n    TabInput,\n    TableInput,\n)\nfrom lfx.schema.data import Data\n\n# Endpoint catalog: display name → (path template, requires_id)\n# ``{aoid}`` is substituted with resource_id when present; otherwise the\n# ``requires_id`` flag decides whether to fail or to hit the list endpoint.\nENDPOINT_CATALOG: dict[str, tuple[str, bool]] = {\n    \"Workers\": (\"/hr/v2/workers\", False),\n    \"Worker Demographics\": (\"/hr/v2/worker-demographics\", False),\n    \"Pay Statements\": (\"/payroll/v1/workers/{aoid}/pay-statements\", True),\n    \"Time Cards\": (\"/time/v2/workers/{aoid}/time-cards\", True),\n    \"Jobs\": (\"/hr/v1/jobs\", False),\n    \"Meta\": (\"/core/v1/meta\", False),\n    \"Other (custom path)\": (\"\", False),\n}\n\nMAX_PAGINATION_ITERATIONS = 1000\nPAGE_SIZE_FOR_ALL = 100\nHTTP_UNAUTHORIZED = 401\nHTTP_CLIENT_ERROR_MIN = 400\n\n\nclass ADPAPIRequestComponent(Component):\n    display_name = \"ADP API Request\"\n    description = \"Call ADP REST APIs using an ADPConnection. Authenticated with mTLS + Bearer token.\"\n    icon = \"Globe\"\n    name = \"ADPAPIRequest\"\n    error_output_enabled: ClassVar[bool] = True\n    version: int = 2\n    changelog: ClassVar[list[ChangelogEntry]] = [\n        ChangelogEntry(\n            version=1,\n            changes=(\n                \"Initial release. Calls ADP REST APIs using an ADPConnection from the \"\n                \"ADP Auth component:\\n\"\n                \"- mTLS + Bearer-token requests with automatic 401 token refresh.\\n\"\n                \"- Endpoint catalog (Workers, Worker Demographics, Pay Statements, \"\n                \"Time Cards, Jobs, Meta) plus an 'Other (custom path)' escape hatch.\\n\"\n                \"- TableInput-driven JSON request body for non-GET methods.\\n\"\n                \"- Result Mode toggle (Top 20 single page / All auto-paginated).\\n\"\n                \"- SSRF allowlist via shared `validate_adp_url` so requests can only \"\n                \"target approved ADP hosts.\"\n            ),\n        ),\n        ChangelogEntry(\n            version=2,\n            changes=(\n                \"- Added **Error** output port for retry / alert wiring through \"\n                \"an Error Handler component\\n\"\n                \"- Added **Raise on HTTP error (4xx/5xx)** toggle. When enabled, \"\n                \"the component raises an exception on non-2xx responses instead \"\n                \"of returning the error body as data.\"\n            ),\n            notes=(\n                \"Both off by default — existing flows keep current behavior. Turn \"\n                \"Raise-on-HTTP-error on to make the component fire its Error \"\n                \"output port (and trigger any connected Error Handler) on 4xx/5xx \"\n                \"responses.\"\n            ),\n        ),\n    ]\n\n    inputs = [\n        HandleInput(\n            name=\"connection\",\n            display_name=\"ADP Connection\",\n            input_types=[\"ADPConnection\"],\n            info=\"Connection produced by an ADP Auth component.\",\n            required=True,\n        ),\n        DropdownInput(\n            name=\"endpoint\",\n            display_name=\"Endpoint\",\n            options=list(ENDPOINT_CATALOG.keys()),\n            value=\"Workers\",\n            info=\"ADP API endpoint to call.\",\n            real_time_refresh=True,\n        ),\n        MessageTextInput(\n            name=\"custom_path\",\n            display_name=\"Custom Path\",\n            info=\"Path (e.g. /hr/v2/workers) when Endpoint is 'Other'.\",\n            show=False,\n        ),\n        # TODO(follow-up): add update_build_config to show/hide custom_path when\n        # endpoint == \"Other (custom path)\". Deferred per\n        # docs/superpowers/plans/2026-04-14-adp-connector.md Task 10.\n        MessageTextInput(\n            name=\"resource_id\",\n            display_name=\"Resource ID (aoid)\",\n            info=\"Leave empty for list endpoints; set to a worker ID for by-ID lookups.\",\n        ),\n        DropdownInput(\n            name=\"method\",\n            display_name=\"HTTP Method\",\n            options=[\"GET\", \"POST\", \"PATCH\", \"PUT\", \"DELETE\"],\n            value=\"GET\",\n            advanced=True,\n        ),\n        DataInput(\n            name=\"query_params\",\n            display_name=\"Query Parameters\",\n            info=\"Extra OData filters (e.g. $filter, $select).\",\n            advanced=True,\n        ),\n        TableInput(\n            name=\"body\",\n            display_name=\"Body\",\n            info=\"Request body for non-GET methods.\",\n            table_schema=[\n                {\"name\": \"key\", \"display_name\": \"Key\", \"type\": \"str\"},\n                {\"name\": \"value\", \"display_name\": \"Value\"},\n            ],\n            value=[],\n            advanced=True,\n        ),\n        TabInput(\n            name=\"result_mode\",\n            display_name=\"Result Mode\",\n            options=[\"Top 20\", \"All\"],\n            value=\"Top 20\",\n            info=\"'Top 20' returns a single page of 20; 'All' auto-paginates.\",\n        ),\n        IntInput(\n            name=\"timeout\",\n            display_name=\"Timeout (seconds)\",\n            value=30,\n            advanced=True,\n        ),\n        BoolInput(\n            name=\"raise_on_status\",\n            display_name=\"Raise on HTTP error (4xx/5xx)\",\n            value=False,\n            info=(\n                \"When enabled, raises an exception on non-2xx HTTP responses \"\n                \"instead of returning the error body as data. Pair with the \"\n                \"Error output port + Error Handler to retry / alert on failures.\"\n            ),\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"API Response\", name=\"data\", method=\"make_api_request\"),\n    ]\n\n    def _build_json_body(self) -> dict[str, Any] | None:\n        \"\"\"Build JSON body dict from the `body` TableInput value. Returns None for GET.\"\"\"\n        rows = self.body or []\n        if not isinstance(rows, list):\n            return None\n        result: dict[str, Any] = {}\n        for row in rows:\n            if not isinstance(row, dict) or \"key\" not in row or \"value\" not in row:\n                continue\n            result[row[\"key\"]] = row[\"value\"]\n        return result or None\n\n    def _resolve_path(self) -> str:\n        endpoint = self.endpoint\n        if endpoint == \"Other (custom path)\":\n            path = (self.custom_path or \"\").strip()\n            if not path:\n                msg = \"custom_path is required when Endpoint is 'Other (custom path)'\"\n                raise ValueError(msg)\n            if not path.startswith(\"/\"):\n                path = \"/\" + path\n            return path\n\n        template, requires_id = ENDPOINT_CATALOG[endpoint]\n        resource_id = (self.resource_id or \"\").strip()\n\n        if \"{aoid}\" in template:\n            if not resource_id:\n                msg = f\"resource_id is required for endpoint {endpoint!r}\"\n                raise ValueError(msg)\n            return template.replace(\"{aoid}\", resource_id)\n\n        if requires_id and not resource_id:\n            msg = f\"resource_id is required for endpoint {endpoint!r}\"\n            raise ValueError(msg)\n\n        if resource_id:\n            return f\"{template}/{resource_id}\"\n        return template\n\n    def _build_query_params(self) -> dict[str, Any]:\n        if self.query_params is None:\n            return {}\n        data = self.query_params.data or {} if hasattr(self.query_params, \"data\") else self.query_params\n        if not isinstance(data, dict):\n            return {}\n        return dict(data)\n\n    async def _execute_request(\n        self,\n        client: httpx.AsyncClient,\n        *,\n        method: str,\n        url: str,\n        headers: dict[str, str],\n        params: dict[str, Any],\n        json_body: Any,\n        timeout: float,\n    ) -> httpx.Response:\n        return await client.request(\n            method=method,\n            url=url,\n            headers=headers,\n            params=params,\n            json=json_body if method != \"GET\" else None,\n            timeout=timeout,\n        )\n\n    async def make_api_request(self) -> Data:\n        conn: ADPConnection = self.connection\n        path = self._resolve_path()\n        url = conn.api_base_url + path\n        method = (self.method or \"GET\").upper()\n        base_params = self._build_query_params()\n        validate_adp_url(url, field_name=\"api_base_url\")\n        headers = {\"Authorization\": f\"Bearer {conn.access_token}\"}\n        json_body = self._build_json_body() if method != \"GET\" else None\n\n        if self.result_mode == \"Top 20\":\n            params = {**base_params, \"$top\": 20}\n            async with build_mtls_httpx_client(conn, timeout=self.timeout) as client:\n                response = await self._call_with_401_retry(\n                    client, method=method, url=url, headers=headers, params=params, conn=conn, json_body=json_body,\n                )\n                self._maybe_raise_on_status(url, response)\n                return self._response_to_data(url, response)\n\n        # \"All\" mode — auto-paginate\n        combined: dict[str, Any] = {}\n        collection_key: str | None = None\n        skip = 0\n        iterations = 0\n        final_response: httpx.Response | None = None\n\n        async with build_mtls_httpx_client(conn, timeout=self.timeout) as client:\n            while iterations < MAX_PAGINATION_ITERATIONS:\n                iterations += 1\n                params = {**base_params, \"$top\": PAGE_SIZE_FOR_ALL}\n                if skip:\n                    params[\"$skip\"] = skip\n\n                response = await self._call_with_401_retry(\n                    client, method=method, url=url, headers=headers, params=params, conn=conn, json_body=json_body,\n                )\n                final_response = response\n\n                if response.status_code >= HTTP_CLIENT_ERROR_MIN:\n                    self._maybe_raise_on_status(url, response)\n                    return self._response_to_data(url, response)\n\n                try:\n                    page = response.json()\n                except ValueError:\n                    return self._response_to_data(url, response)\n\n                if collection_key is None:\n                    collection_key = self._detect_collection_key(page)\n                    combined = {collection_key: []} if collection_key else {}\n\n                if not collection_key:\n                    # Not a paginated collection — return single page\n                    return self._response_to_data(url, response)\n\n                items = page.get(collection_key, [])\n                combined[collection_key].extend(items)\n\n                if len(items) < PAGE_SIZE_FOR_ALL:\n                    break\n                skip += PAGE_SIZE_FOR_ALL\n\n        return Data(\n            data={\n                \"source\": url,\n                \"status_code\": final_response.status_code if final_response else 200,\n                \"result\": combined,\n            }\n        )\n\n    async def _call_with_401_retry(\n        self,\n        client: httpx.AsyncClient,\n        *,\n        method: str,\n        url: str,\n        headers: dict[str, str],\n        params: dict[str, Any],\n        conn: ADPConnection,\n        json_body: dict[str, Any] | None = None,\n    ) -> httpx.Response:\n        response = await self._execute_request(\n            client, method=method, url=url, headers=headers, params=params, json_body=json_body, timeout=self.timeout,\n        )\n        if response.status_code == HTTP_UNAUTHORIZED:\n            await fetch_token(conn, force=True)\n            headers[\"Authorization\"] = f\"Bearer {conn.access_token}\"\n            response = await self._execute_request(\n                client,\n                method=method,\n                url=url,\n                headers=headers,\n                params=params,\n                json_body=json_body,\n                timeout=self.timeout,\n            )\n        return response\n\n    @staticmethod\n    def _detect_collection_key(page: Any) -> str | None:\n        \"\"\"ADP list responses wrap items in a top-level key (e.g. 'workers', 'items', 'payStatements').\n\n        Heuristic: first key whose value is a list.\n        \"\"\"\n        if not isinstance(page, dict):\n            return None\n        for k, v in page.items():\n            if isinstance(v, list):\n                return k\n        return None\n\n    def _response_to_data(self, url: str, response: httpx.Response) -> Data:\n        try:\n            body = response.json()\n        except ValueError:\n            body = response.text\n        return Data(data={\"source\": url, \"status_code\": response.status_code, \"result\": body})\n\n    def _maybe_raise_on_status(self, url: str, response: httpx.Response) -> None:\n        \"\"\"Raise on 4xx/5xx when the user opted in via the raise_on_status toggle.\"\"\"\n        if not getattr(self, \"raise_on_status\", False):\n            return\n        if response.status_code < HTTP_CLIENT_ERROR_MIN:\n            return\n        snippet = response.text[:200] + (\"...\" if len(response.text) > 200 else \"\")\n        msg = f\"HTTP {response.status_code} from {url}: {snippet}\"\n        raise RuntimeError(msg)\n"
             },
             "connection": {
               "_input_type": "HandleInput",
@@ -1997,6 +2018,26 @@
               "type": "other",
               "value": ""
             },
+            "raise_on_status": {
+              "_input_type": "BoolInput",
+              "advanced": false,
+              "display_name": "Raise on HTTP error (4xx/5xx)",
+              "dynamic": false,
+              "info": "When enabled, raises an exception on non-2xx HTTP responses instead of returning the error body as data. Pair with the Error output port + Error Handler to retry / alert on failures.",
+              "list": false,
+              "list_add_label": "Add More",
+              "name": "raise_on_status",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": true,
+              "type": "bool",
+              "value": false
+            },
             "resource_id": {
               "_input_type": "MessageTextInput",
               "advanced": false,
@@ -2066,7 +2107,7 @@
             }
           },
           "tool_mode": false,
-          "version": 1
+          "version": 2
         },
         "ADPAuth": {
           "assist_enabled": true,
@@ -2435,7 +2476,13 @@
             "Tool"
           ],
           "beta": false,
-          "changelog": [],
+          "changelog": [
+            {
+              "changes": "- Added **Raise on HTTP error (4xx/5xx)** toggle. When enabled, tools built by this component raise an exception on non-2xx responses from ADP instead of returning the error body as data.",
+              "notes": "Off by default — existing flows keep current behavior. Turn on so an upstream Agent (or other consumer) can react to ADP API errors as exceptions rather than silently returning error bodies.",
+              "version": 2
+            }
+          ],
           "conditional_paths": [],
           "custom_fields": {},
           "description": "Exposes ADP HR, payroll, time, and talent tools to a Langflow Agent. Pick which tile groups you want — each contributes 1-15 agent tools.",
@@ -2444,13 +2491,14 @@
           "edited": false,
           "field_order": [
             "connection",
-            "tiles"
+            "tiles",
+            "raise_on_status"
           ],
           "frozen": false,
           "icon": "Users",
           "legacy": false,
           "metadata": {
-            "code_hash": "d42694c795d9",
+            "code_hash": "53bcb07c51f8",
             "dependencies": {
               "dependencies": [
                 {
@@ -2499,7 +2547,7 @@
               "show": true,
               "title_case": false,
               "type": "code",
-              "value": "\"\"\"ADPToolsComponent — single multi-select component exposing ADP tile groups as agent tools.\"\"\"\n\nfrom __future__ import annotations\n\nfrom collections.abc import Callable\nfrom typing import ClassVar\n\nfrom lfx.components.adp._shared import ADPConnection, RequestCache\nfrom lfx.components.adp.adp_applicant_onboarding_tools import build_applicant_onboarding_tools\nfrom lfx.components.adp.adp_benefits_tools import build_benefits_tools\nfrom lfx.components.adp.adp_data_collection_entries_tools import build_data_collection_entries_tools\nfrom lfx.components.adp.adp_deduction_configurations_tools import build_deduction_configurations_tools\nfrom lfx.components.adp.adp_job_applicants_tools import build_job_applicants_tools\nfrom lfx.components.adp.adp_job_requisitions_tools import build_job_requisitions_tools\nfrom lfx.components.adp.adp_pay_data_input_tools import build_pay_data_input_tools\nfrom lfx.components.adp.adp_pay_distributions_tools import build_pay_distributions_tools\nfrom lfx.components.adp.adp_pay_statements_tools import build_pay_statements_tools\nfrom lfx.components.adp.adp_talent_tools import build_talent_tools\nfrom lfx.components.adp.adp_team_time_cards_tools import build_team_time_cards_tools\nfrom lfx.components.adp.adp_time_cards_tools import build_time_cards_tools\nfrom lfx.components.adp.adp_time_off_tools import build_time_off_tools\nfrom lfx.components.adp.adp_us_tax_profiles_tools import build_us_tax_profiles_tools\nfrom lfx.components.adp.adp_work_schedules_tools import build_work_schedules_tools\nfrom lfx.components.adp.adp_worker_assignment_tools import build_worker_assignment_tools\nfrom lfx.components.adp.adp_worker_assignment_v3_tools import build_worker_assignment_v3_tools\nfrom lfx.components.adp.adp_worker_biological_tools import build_worker_biological_tools\nfrom lfx.components.adp.adp_worker_business_communication_tools import build_worker_business_communication_tools\nfrom lfx.components.adp.adp_worker_compensation_tools import build_worker_compensation_tools\nfrom lfx.components.adp.adp_worker_demographic_tools import build_worker_demographic_tools\nfrom lfx.components.adp.adp_worker_deployment_tools import build_worker_deployment_tools\nfrom lfx.components.adp.adp_worker_hr_profiles_tools import build_worker_hr_profiles_tools\nfrom lfx.components.adp.adp_worker_identification_tools import build_worker_identification_tools\nfrom lfx.components.adp.adp_worker_leaves_tools import build_worker_leaves_tools\nfrom lfx.components.adp.adp_worker_lifecycle_tools import build_worker_lifecycle_tools\nfrom lfx.components.adp.adp_worker_payroll_instructions_tools import build_worker_payroll_instructions_tools\nfrom lfx.components.adp.adp_worker_personal_communication_tools import build_worker_personal_communication_tools\nfrom lfx.components.adp.adp_worker_tools import build_worker_tools\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry\nfrom lfx.io import HandleInput, MultiselectInput, Output\n\n\nTILE_BUILDERS: dict[str, Callable[[ADPConnection, RequestCache], list[Tool]]] = {\n    \"Worker\": build_worker_tools,\n    \"Worker Assignment\": build_worker_assignment_tools,\n    \"Worker Assignment v3\": build_worker_assignment_v3_tools,\n    \"Worker HR Profiles\": build_worker_hr_profiles_tools,\n    \"Worker Lifecycle\": build_worker_lifecycle_tools,\n    \"Worker Identification\": build_worker_identification_tools,\n    \"Worker Biological\": build_worker_biological_tools,\n    \"Worker Deployment\": build_worker_deployment_tools,\n    \"Worker Leaves\": build_worker_leaves_tools,\n    \"Worker Payroll Instructions\": build_worker_payroll_instructions_tools,\n    \"Worker Personal Communication\": build_worker_personal_communication_tools,\n    \"Worker Business Communication\": build_worker_business_communication_tools,\n    \"Worker Compensation\": build_worker_compensation_tools,\n    \"Worker Demographic\": build_worker_demographic_tools,\n    \"Pay Data Input\": build_pay_data_input_tools,\n    \"Pay Distributions\": build_pay_distributions_tools,\n    \"Pay Statements\": build_pay_statements_tools,\n    \"US Tax Profiles\": build_us_tax_profiles_tools,\n    \"Deduction Configurations\": build_deduction_configurations_tools,\n    \"Time Cards\": build_time_cards_tools,\n    \"Team Time Cards\": build_team_time_cards_tools,\n    \"Time Off\": build_time_off_tools,\n    \"Work Schedules\": build_work_schedules_tools,\n    \"Talent\": build_talent_tools,\n    \"Job Applicants\": build_job_applicants_tools,\n    \"Job Requisitions\": build_job_requisitions_tools,\n    \"Applicant Onboarding\": build_applicant_onboarding_tools,\n    \"Benefits\": build_benefits_tools,\n    \"Data Collection Entries\": build_data_collection_entries_tools,\n}\n\n\nclass ADPToolsComponent(Component):\n    display_name = \"ADP Tools\"\n    name = \"ADPTools\"\n    description = (\n        \"Exposes ADP HR, payroll, time, and talent tools to a Langflow Agent. \"\n        \"Pick which tile groups you want — each contributes 1-15 agent tools.\"\n    )\n    icon = \"Users\"\n    version: int = 1\n    documentation: str = \"https://docs.langflow.org/component-adp-tools\"\n\n    inputs: ClassVar = [\n        HandleInput(\n            name=\"connection\",\n            display_name=\"ADP Connection\",\n            input_types=[\"ADPConnection\"],\n            info=\"Connection produced by an ADP Auth component.\",\n            required=True,\n        ),\n        MultiselectInput(\n            name=\"tiles\",\n            display_name=\"Tools\",\n            options=list(TILE_BUILDERS.keys()),\n            value=[],\n            info=(\n                \"Select which ADP tool groups to expose to the agent. Each group \"\n                \"adds 1-15 focused agent tools. Leaving this empty exposes nothing.\"\n            ),\n        ),\n    ]\n\n    outputs: ClassVar = [Output(display_name=\"Tools\", name=\"tools\", method=\"build_tools\")]\n\n    async def build_tools(self) -> list[Tool]:\n        selected = list(getattr(self, \"tiles\", []) or [])\n        if not selected:\n            self.status = \"No tile groups selected — agent will receive 0 ADP tools.\"\n            return []\n        cache = RequestCache(ttl_seconds=30, max_entries=128)\n        tools: list[Tool] = []\n        for label in selected:\n            builder = TILE_BUILDERS.get(label)\n            if builder is None:\n                continue  # defensive: stale label from a saved flow\n            tools.extend(builder(self.connection, cache))\n        self.status = f\"Exposing {len(tools)} tool(s) from {len(selected)} tile group(s).\"\n        return tools\n"
+              "value": "\"\"\"ADPToolsComponent — single multi-select component exposing ADP tile groups as agent tools.\"\"\"\n\nfrom __future__ import annotations\n\nfrom collections.abc import Callable\nfrom typing import ClassVar\n\nfrom lfx.components.adp._shared import ADPConnection, RequestCache\nfrom lfx.components.adp.adp_applicant_onboarding_tools import build_applicant_onboarding_tools\nfrom lfx.components.adp.adp_benefits_tools import build_benefits_tools\nfrom lfx.components.adp.adp_data_collection_entries_tools import build_data_collection_entries_tools\nfrom lfx.components.adp.adp_deduction_configurations_tools import build_deduction_configurations_tools\nfrom lfx.components.adp.adp_job_applicants_tools import build_job_applicants_tools\nfrom lfx.components.adp.adp_job_requisitions_tools import build_job_requisitions_tools\nfrom lfx.components.adp.adp_pay_data_input_tools import build_pay_data_input_tools\nfrom lfx.components.adp.adp_pay_distributions_tools import build_pay_distributions_tools\nfrom lfx.components.adp.adp_pay_statements_tools import build_pay_statements_tools\nfrom lfx.components.adp.adp_talent_tools import build_talent_tools\nfrom lfx.components.adp.adp_team_time_cards_tools import build_team_time_cards_tools\nfrom lfx.components.adp.adp_time_cards_tools import build_time_cards_tools\nfrom lfx.components.adp.adp_time_off_tools import build_time_off_tools\nfrom lfx.components.adp.adp_us_tax_profiles_tools import build_us_tax_profiles_tools\nfrom lfx.components.adp.adp_work_schedules_tools import build_work_schedules_tools\nfrom lfx.components.adp.adp_worker_assignment_tools import build_worker_assignment_tools\nfrom lfx.components.adp.adp_worker_assignment_v3_tools import build_worker_assignment_v3_tools\nfrom lfx.components.adp.adp_worker_biological_tools import build_worker_biological_tools\nfrom lfx.components.adp.adp_worker_business_communication_tools import build_worker_business_communication_tools\nfrom lfx.components.adp.adp_worker_compensation_tools import build_worker_compensation_tools\nfrom lfx.components.adp.adp_worker_demographic_tools import build_worker_demographic_tools\nfrom lfx.components.adp.adp_worker_deployment_tools import build_worker_deployment_tools\nfrom lfx.components.adp.adp_worker_hr_profiles_tools import build_worker_hr_profiles_tools\nfrom lfx.components.adp.adp_worker_identification_tools import build_worker_identification_tools\nfrom lfx.components.adp.adp_worker_leaves_tools import build_worker_leaves_tools\nfrom lfx.components.adp.adp_worker_lifecycle_tools import build_worker_lifecycle_tools\nfrom lfx.components.adp.adp_worker_payroll_instructions_tools import build_worker_payroll_instructions_tools\nfrom lfx.components.adp.adp_worker_personal_communication_tools import build_worker_personal_communication_tools\nfrom lfx.components.adp.adp_worker_tools import build_worker_tools\nfrom lfx.custom.custom_component.changelog import ChangelogEntry\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry\nfrom lfx.io import BoolInput, HandleInput, MultiselectInput, Output\n\n\nTILE_BUILDERS: dict[str, Callable[[ADPConnection, RequestCache], list[Tool]]] = {\n    \"Worker\": build_worker_tools,\n    \"Worker Assignment\": build_worker_assignment_tools,\n    \"Worker Assignment v3\": build_worker_assignment_v3_tools,\n    \"Worker HR Profiles\": build_worker_hr_profiles_tools,\n    \"Worker Lifecycle\": build_worker_lifecycle_tools,\n    \"Worker Identification\": build_worker_identification_tools,\n    \"Worker Biological\": build_worker_biological_tools,\n    \"Worker Deployment\": build_worker_deployment_tools,\n    \"Worker Leaves\": build_worker_leaves_tools,\n    \"Worker Payroll Instructions\": build_worker_payroll_instructions_tools,\n    \"Worker Personal Communication\": build_worker_personal_communication_tools,\n    \"Worker Business Communication\": build_worker_business_communication_tools,\n    \"Worker Compensation\": build_worker_compensation_tools,\n    \"Worker Demographic\": build_worker_demographic_tools,\n    \"Pay Data Input\": build_pay_data_input_tools,\n    \"Pay Distributions\": build_pay_distributions_tools,\n    \"Pay Statements\": build_pay_statements_tools,\n    \"US Tax Profiles\": build_us_tax_profiles_tools,\n    \"Deduction Configurations\": build_deduction_configurations_tools,\n    \"Time Cards\": build_time_cards_tools,\n    \"Team Time Cards\": build_team_time_cards_tools,\n    \"Time Off\": build_time_off_tools,\n    \"Work Schedules\": build_work_schedules_tools,\n    \"Talent\": build_talent_tools,\n    \"Job Applicants\": build_job_applicants_tools,\n    \"Job Requisitions\": build_job_requisitions_tools,\n    \"Applicant Onboarding\": build_applicant_onboarding_tools,\n    \"Benefits\": build_benefits_tools,\n    \"Data Collection Entries\": build_data_collection_entries_tools,\n}\n\n\nclass ADPToolsComponent(Component):\n    display_name = \"ADP Tools\"\n    name = \"ADPTools\"\n    description = (\n        \"Exposes ADP HR, payroll, time, and talent tools to a Langflow Agent. \"\n        \"Pick which tile groups you want — each contributes 1-15 agent tools.\"\n    )\n    icon = \"Users\"\n    version: int = 2\n    documentation: str = \"https://docs.langflow.org/component-adp-tools\"\n    changelog: ClassVar[list[ChangelogEntry]] = [\n        ChangelogEntry(\n            version=2,\n            changes=(\n                \"- Added **Raise on HTTP error (4xx/5xx)** toggle. When enabled, \"\n                \"tools built by this component raise an exception on non-2xx \"\n                \"responses from ADP instead of returning the error body as data.\"\n            ),\n            notes=(\n                \"Off by default — existing flows keep current behavior. Turn on \"\n                \"so an upstream Agent (or other consumer) can react to ADP API \"\n                \"errors as exceptions rather than silently returning error bodies.\"\n            ),\n        ),\n    ]\n\n    inputs: ClassVar = [\n        HandleInput(\n            name=\"connection\",\n            display_name=\"ADP Connection\",\n            input_types=[\"ADPConnection\"],\n            info=\"Connection produced by an ADP Auth component.\",\n            required=True,\n        ),\n        MultiselectInput(\n            name=\"tiles\",\n            display_name=\"Tools\",\n            options=list(TILE_BUILDERS.keys()),\n            value=[],\n            info=(\n                \"Select which ADP tool groups to expose to the agent. Each group \"\n                \"adds 1-15 focused agent tools. Leaving this empty exposes nothing.\"\n            ),\n        ),\n        BoolInput(\n            name=\"raise_on_status\",\n            display_name=\"Raise on HTTP error (4xx/5xx)\",\n            value=False,\n            info=(\n                \"When enabled, tools built by this component raise an exception \"\n                \"on non-2xx HTTP responses from ADP instead of returning the \"\n                \"error body as data.\"\n            ),\n        ),\n    ]\n\n    outputs: ClassVar = [Output(display_name=\"Tools\", name=\"tools\", method=\"build_tools\")]\n\n    async def build_tools(self) -> list[Tool]:\n        selected = list(getattr(self, \"tiles\", []) or [])\n        if not selected:\n            self.status = \"No tile groups selected — agent will receive 0 ADP tools.\"\n            return []\n        cache = RequestCache(\n            ttl_seconds=30,\n            max_entries=128,\n            raise_on_status=bool(getattr(self, \"raise_on_status\", False)),\n        )\n        tools: list[Tool] = []\n        for label in selected:\n            builder = TILE_BUILDERS.get(label)\n            if builder is None:\n                continue  # defensive: stale label from a saved flow\n            tools.extend(builder(self.connection, cache))\n        self.status = f\"Exposing {len(tools)} tool(s) from {len(selected)} tile group(s).\"\n        return tools\n"
             },
             "connection": {
               "_input_type": "HandleInput",
@@ -2522,6 +2570,26 @@
               "track_in_telemetry": false,
               "type": "other",
               "value": ""
+            },
+            "raise_on_status": {
+              "_input_type": "BoolInput",
+              "advanced": false,
+              "display_name": "Raise on HTTP error (4xx/5xx)",
+              "dynamic": false,
+              "info": "When enabled, tools built by this component raise an exception on non-2xx HTTP responses from ADP instead of returning the error body as data.",
+              "list": false,
+              "list_add_label": "Add More",
+              "name": "raise_on_status",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": true,
+              "type": "bool",
+              "value": false
             },
             "tiles": {
               "_input_type": "MultiselectInput",
@@ -2578,7 +2646,7 @@
             }
           },
           "tool_mode": false,
-          "version": 1
+          "version": 2
         },
         "ADPTrigger": {
           "assist_enabled": true,
@@ -59261,6 +59329,11 @@
               "changes": "- Added **Error** output port for retry / alert wiring through an Error Handler component",
               "notes": "Existing flows are unaffected — the error port is unwired by default. Connect it to an Error Handler to retry the request with backoff and dispatch alerts on exhaustion.",
               "version": 3
+            },
+            {
+              "changes": "- Added **Raise on HTTP error (4xx/5xx)** toggle. When enabled, the component raises an exception on non-2xx responses instead of returning the error body as data.",
+              "notes": "Off by default — existing flows keep current behavior. Turn on to make the component fire its Error output port (and trigger any connected Error Handler) on HTTP error responses.",
+              "version": 4
             }
           ],
           "conditional_paths": [],
@@ -59280,6 +59353,7 @@
             "headers",
             "bearer_token",
             "timeout",
+            "raise_on_status",
             "follow_redirects",
             "save_to_file",
             "include_httpx_metadata",
@@ -59292,7 +59366,7 @@
           "icon": "Globe",
           "legacy": false,
           "metadata": {
-            "code_hash": "5c2f48c62705",
+            "code_hash": "ff1e6784d4c7",
             "dependencies": {
               "dependencies": [
                 {
@@ -59477,7 +59551,7 @@
               "show": true,
               "title_case": false,
               "type": "code",
-              "value": "import json\nimport re\nimport tempfile\nfrom datetime import datetime, timezone\nfrom pathlib import Path\nfrom typing import Any, ClassVar\nfrom urllib.parse import parse_qsl, urlencode, urlparse, urlunparse\n\nimport aiofiles\nimport aiofiles.os as aiofiles_os\nimport httpx\nimport validators\n\nfrom lfx.base.api_request.mtls import mtls_temp_files\nfrom lfx.base.curl.parse import parse_context\nfrom lfx.custom.custom_component.changelog import ChangelogEntry\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.inputs.inputs import TabInput, TextFileSecretInput\nfrom lfx.io import (\n    BoolInput,\n    DataInput,\n    DropdownInput,\n    IntInput,\n    MessageTextInput,\n    MultilineInput,\n    Output,\n    SecretStrInput,\n    TableInput,\n)\nfrom lfx.schema.data import Data\nfrom lfx.schema.dotdict import dotdict\nfrom lfx.utils.component_utils import set_current_fields, set_field_advanced, set_field_display\nfrom lfx.utils.ssrf_protection import SSRFProtectionError, validate_url_for_ssrf\n\n# Define fields for each mode\nMODE_FIELDS = {\n    \"URL\": [\n        \"url_input\",\n        \"method\",\n    ],\n    \"cURL\": [\"curl_input\"],\n}\n\n# Fields that should always be visible\nDEFAULT_FIELDS = [\"mode\"]\n\n\nclass APIRequestComponent(Component):\n    display_name = \"API Request\"\n    description = \"Make HTTP requests using URL or cURL commands.\"\n    documentation: str = \"https://docs.langflow.org/api-request\"\n    icon = \"Globe\"\n    name = \"APIRequest\"\n    error_output_enabled: ClassVar[bool] = True\n\n    version: int = 3\n    changelog: ClassVar[list[ChangelogEntry]] = [\n        ChangelogEntry(\n            version=1,\n            changes=(\n                \"- Added **Bearer token** authentication option\\n\"\n                \"- Added **mTLS** authentication (client certificate + key)\\n\"\n                \"- Added **form-urlencoded** body support\"\n            ),\n            notes=(\n                \"Existing flows keep their current behavior — the new auth modes \"\n                \"are opt-in under the Authentication field. If you previously \"\n                \"worked around the missing Bearer/mTLS options with custom headers, \"\n                \"you can switch to the native fields.\"\n            ),\n        ),\n        ChangelogEntry(\n            version=2,\n            changes=(\n                \"- mTLS client cert/key fields switched to **paste-or-upload** \"\n                \"(TextFileSecretInput), stored encrypted at rest via a hidden \"\n                \"auto-Variable instead of as files on disk\\n\"\n                \"- Replaced `client_cert_file` / `client_key_file` (FileInput) \"\n                \"with `cert_pem` / `key_pem` (TextFileSecretInput)\"\n            ),\n            notes=(\n                \"If a saved flow used the old `client_cert_file` / `client_key_file` \"\n                \"File inputs, those values are dropped and the mTLS fields appear \"\n                \"empty — re-enter the PEM (paste or upload) to restore the \"\n                \"connection. Paste or upload both the cert and the key in the new \"\n                \"fields; content is stored encrypted in the DB, not on disk.\"\n            ),\n        ),\n        ChangelogEntry(\n            version=3,\n            changes=(\n                \"- Added **Error** output port for retry / alert wiring through \"\n                \"an Error Handler component\"\n            ),\n            notes=(\n                \"Existing flows are unaffected — the error port is unwired by \"\n                \"default. Connect it to an Error Handler to retry the request \"\n                \"with backoff and dispatch alerts on exhaustion.\"\n            ),\n        ),\n    ]\n\n    inputs = [\n        MessageTextInput(\n            name=\"url_input\",\n            display_name=\"URL\",\n            info=\"Enter the URL for the request.\",\n            advanced=False,\n            tool_mode=True,\n        ),\n        MultilineInput(\n            name=\"curl_input\",\n            display_name=\"cURL\",\n            info=(\n                \"Paste a curl command to populate the fields. \"\n                \"This will fill in the dictionary fields for headers and body.\"\n            ),\n            real_time_refresh=True,\n            tool_mode=True,\n            advanced=True,\n            show=False,\n        ),\n        DropdownInput(\n            name=\"method\",\n            display_name=\"Method\",\n            options=[\"GET\", \"POST\", \"PATCH\", \"PUT\", \"DELETE\"],\n            value=\"GET\",\n            info=\"The HTTP method to use.\",\n            real_time_refresh=True,\n        ),\n        TabInput(\n            name=\"mode\",\n            display_name=\"Mode\",\n            options=[\"URL\", \"cURL\"],\n            value=\"URL\",\n            info=\"Enable cURL mode to populate fields from a cURL command.\",\n            real_time_refresh=True,\n        ),\n        DataInput(\n            name=\"query_params\",\n            display_name=\"Query Parameters\",\n            info=\"The query parameters to append to the URL.\",\n            advanced=True,\n        ),\n        TableInput(\n            name=\"body\",\n            display_name=\"Body\",\n            info=\"The body to send with the request as a dictionary (for POST, PATCH, PUT).\",\n            table_schema=[\n                {\n                    \"name\": \"key\",\n                    \"display_name\": \"Key\",\n                    \"type\": \"str\",\n                    \"description\": \"Parameter name\",\n                },\n                {\n                    \"name\": \"value\",\n                    \"display_name\": \"Value\",\n                    \"description\": \"Parameter value\",\n                },\n            ],\n            value=[],\n            input_types=[\"Data\", \"JSON\"],\n            advanced=True,\n            real_time_refresh=True,\n        ),\n        BoolInput(\n            name=\"use_form_urlencoded\",\n            display_name=\"URL Encoded Body\",\n            value=False,\n            info=\"Send body as application/x-www-form-urlencoded instead of JSON.\",\n            advanced=True,\n        ),\n        TableInput(\n            name=\"headers\",\n            display_name=\"Headers\",\n            info=\"The headers to send with the request\",\n            table_schema=[\n                {\n                    \"name\": \"key\",\n                    \"display_name\": \"Header\",\n                    \"type\": \"str\",\n                    \"description\": \"Header name\",\n                },\n                {\n                    \"name\": \"value\",\n                    \"display_name\": \"Value\",\n                    \"type\": \"str\",\n                    \"description\": \"Header value\",\n                },\n            ],\n            value=[{\"key\": \"User-Agent\", \"value\": \"Langflow/1.0\"}],\n            advanced=True,\n            input_types=[\"Data\", \"JSON\"],\n            real_time_refresh=True,\n        ),\n        MessageTextInput(\n            name=\"bearer_token\",\n            display_name=\"Auth Bearer Token\",\n            info=\"Bearer token for Authorization header. Do not include the 'Bearer' prefix.\",\n            advanced=True,\n        ),\n        IntInput(\n            name=\"timeout\",\n            display_name=\"Timeout\",\n            value=30,\n            info=\"The timeout to use for the request.\",\n            advanced=True,\n        ),\n        BoolInput(\n            name=\"follow_redirects\",\n            display_name=\"Follow Redirects\",\n            value=False,\n            info=(\n                \"Whether to follow HTTP redirects. \"\n                \"WARNING: Enabling redirects may allow SSRF bypass attacks where a public URL \"\n                \"redirects to internal resources. Only enable if you trust the target server. \"\n                \"See OWASP SSRF Prevention Cheat Sheet for details.\"\n            ),\n            advanced=True,\n        ),\n        BoolInput(\n            name=\"save_to_file\",\n            display_name=\"Save to File\",\n            value=False,\n            info=\"Save the API response to a temporary file\",\n            advanced=True,\n        ),\n        BoolInput(\n            name=\"include_httpx_metadata\",\n            display_name=\"Include HTTPx Metadata\",\n            value=False,\n            info=(\n                \"Include properties such as headers, status_code, response_headers, \"\n                \"and redirection_history in the output.\"\n            ),\n            advanced=True,\n        ),\n        BoolInput(\n            name=\"enable_mtls\",\n            display_name=\"Enable mTLS\",\n            value=False,\n            info=\"Enable mutual TLS (mTLS) authentication with client certificates.\",\n            advanced=True,\n            real_time_refresh=True,\n        ),\n        TextFileSecretInput(\n            name=\"cert_pem\",\n            display_name=\"Client Certificate (PEM)\",\n            info=(\n                \"Client certificate for mTLS. Paste the PEM contents or upload a .pem/.crt file. \"\n                \"Stored encrypted at rest.\"\n            ),\n            file_types=[\"pem\", \"crt\"],\n            advanced=True,\n            show=False,\n            required=False,\n        ),\n        TextFileSecretInput(\n            name=\"key_pem\",\n            display_name=\"Client Key (PEM)\",\n            info=(\n                \"Client private key for mTLS. Paste the PEM contents or upload a .pem/.key file. \"\n                \"Stored encrypted at rest.\"\n            ),\n            file_types=[\"pem\", \"key\"],\n            advanced=True,\n            show=False,\n            required=False,\n        ),\n        SecretStrInput(\n            name=\"client_key_password\",\n            display_name=\"Client Key Password\",\n            info=\"Password for the client private key (if encrypted).\",\n            advanced=True,\n            show=False,\n            required=False,\n            load_from_db=True,\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"API Response\", name=\"data\", method=\"make_api_request\"),\n    ]\n\n    def _parse_json_value(self, value: Any) -> Any:\n        \"\"\"Parse a value that might be a JSON string.\"\"\"\n        if not isinstance(value, str):\n            return value\n\n        try:\n            parsed = json.loads(value)\n        except json.JSONDecodeError:\n            return value\n        else:\n            return parsed\n\n    def _process_body(self, body: Any) -> dict:\n        \"\"\"Process the body input into a valid dictionary.\"\"\"\n        if body is None:\n            return {}\n        if hasattr(body, \"data\"):\n            body = body.data\n        if isinstance(body, dict):\n            return self._process_dict_body(body)\n        if isinstance(body, str):\n            return self._process_string_body(body)\n        if isinstance(body, list):\n            return self._process_list_body(body)\n        return {}\n\n    def _process_dict_body(self, body: dict) -> dict:\n        \"\"\"Process dictionary body by parsing JSON values.\"\"\"\n        return {k: self._parse_json_value(v) for k, v in body.items()}\n\n    def _process_string_body(self, body: str) -> dict:\n        \"\"\"Process string body by attempting JSON parse.\"\"\"\n        try:\n            return self._process_body(json.loads(body))\n        except json.JSONDecodeError:\n            return {\"data\": body}\n\n    def _process_list_body(self, body: list) -> dict:\n        \"\"\"Process list body by converting to key-value dictionary.\"\"\"\n        processed_dict = {}\n        try:\n            for item in body:\n                # Unwrap Data objects\n                current_item = item\n                if hasattr(item, \"data\"):\n                    unwrapped_data = item.data\n                    # If the unwrapped data is a dict but not key-value format, use it directly\n                    if isinstance(unwrapped_data, dict) and not self._is_valid_key_value_item(unwrapped_data):\n                        return unwrapped_data\n                    current_item = unwrapped_data\n                if not self._is_valid_key_value_item(current_item):\n                    continue\n                key = current_item[\"key\"]\n                value = self._parse_json_value(current_item[\"value\"])\n                processed_dict[key] = value\n        except (KeyError, TypeError, ValueError) as e:\n            self.log(f\"Failed to process body list: {e}\")\n            return {}\n        return processed_dict\n\n    def _is_valid_key_value_item(self, item: Any) -> bool:\n        \"\"\"Check if an item is a valid key-value dictionary.\"\"\"\n        return isinstance(item, dict) and \"key\" in item and \"value\" in item\n\n    def parse_curl(self, curl: str, build_config: dotdict) -> dotdict:\n        \"\"\"Parse a cURL command and update build configuration.\"\"\"\n        try:\n            parsed = parse_context(curl)\n\n            # Update basic configuration\n            url = parsed.url\n            # Normalize URL before setting it\n            url = self._normalize_url(url)\n\n            build_config[\"url_input\"][\"value\"] = url\n            build_config[\"method\"][\"value\"] = parsed.method.upper()\n\n            # Process headers\n            headers_list = [{\"key\": k, \"value\": v} for k, v in parsed.headers.items()]\n            build_config[\"headers\"][\"value\"] = headers_list\n\n            # Process body data\n            if not parsed.data:\n                build_config[\"body\"][\"value\"] = []\n            elif parsed.data:\n                try:\n                    json_data = json.loads(parsed.data)\n                    if isinstance(json_data, dict):\n                        body_list = [\n                            {\"key\": k, \"value\": json.dumps(v) if isinstance(v, dict | list) else str(v)}\n                            for k, v in json_data.items()\n                        ]\n                        build_config[\"body\"][\"value\"] = body_list\n                    else:\n                        build_config[\"body\"][\"value\"] = [{\"key\": \"data\", \"value\": json.dumps(json_data)}]\n                except json.JSONDecodeError:\n                    build_config[\"body\"][\"value\"] = [{\"key\": \"data\", \"value\": parsed.data}]\n\n        except Exception as exc:\n            msg = f\"Error parsing curl: {exc}\"\n            self.log(msg)\n            raise ValueError(msg) from exc\n\n        return build_config\n\n    def _normalize_url(self, url: str) -> str:\n        \"\"\"Normalize URL by adding https:// if no protocol is specified.\"\"\"\n        if not url or not isinstance(url, str):\n            msg = \"URL cannot be empty\"\n            raise ValueError(msg)\n\n        url = url.strip()\n        if url.startswith((\"http://\", \"https://\")):\n            return url\n        return f\"https://{url}\"\n\n    async def make_request(\n        self,\n        client: httpx.AsyncClient,\n        method: str,\n        url: str,\n        headers: dict | None = None,\n        body: Any = None,\n        timeout: int = 5,\n        *,\n        follow_redirects: bool = True,\n        save_to_file: bool = False,\n        include_httpx_metadata: bool = False,\n        use_form_urlencoded: bool = False,\n    ) -> Data:\n        method = method.upper()\n        if method not in {\"GET\", \"POST\", \"PATCH\", \"PUT\", \"DELETE\"}:\n            msg = f\"Unsupported method: {method}\"\n            raise ValueError(msg)\n\n        processed_body = self._process_body(body)\n        redirection_history = []\n\n        try:\n            # Prepare request parameters\n            request_params = {\n                \"method\": method,\n                \"url\": url,\n                \"headers\": headers,\n                \"timeout\": timeout,\n                \"follow_redirects\": follow_redirects,\n            }\n            # Only include body for methods that support it (GET must not have a body per HTTP spec)\n            if method in {\"POST\", \"PATCH\", \"PUT\", \"DELETE\"} and processed_body is not None:\n                if use_form_urlencoded:\n                    request_params[\"data\"] = processed_body\n                else:\n                    request_params[\"json\"] = processed_body\n            response = await client.request(**request_params)\n\n            redirection_history = [\n                {\n                    \"url\": redirect.headers.get(\"Location\", str(redirect.url)),\n                    \"status_code\": redirect.status_code,\n                }\n                for redirect in response.history\n            ]\n\n            is_binary, file_path = await self._response_info(response, with_file_path=save_to_file)\n            response_headers = self._headers_to_dict(response.headers)\n\n            # Base metadata\n            metadata = {\n                \"source\": url,\n                \"status_code\": response.status_code,\n                \"response_headers\": response_headers,\n            }\n\n            if redirection_history:\n                metadata[\"redirection_history\"] = redirection_history\n\n            if save_to_file:\n                mode = \"wb\" if is_binary else \"w\"\n                encoding = response.encoding if mode == \"w\" else None\n                if file_path:\n                    await aiofiles_os.makedirs(file_path.parent, exist_ok=True)\n                    if is_binary:\n                        async with aiofiles.open(file_path, \"wb\") as f:\n                            await f.write(response.content)\n                            await f.flush()\n                    else:\n                        async with aiofiles.open(file_path, \"w\", encoding=encoding) as f:\n                            await f.write(response.text)\n                            await f.flush()\n                    metadata[\"file_path\"] = str(file_path)\n\n                if include_httpx_metadata:\n                    metadata.update({\"headers\": headers})\n                return Data(data=metadata)\n\n            # Handle response content\n            if is_binary:\n                result = response.content\n            else:\n                try:\n                    result = response.json()\n                except json.JSONDecodeError:\n                    self.log(\"Failed to decode JSON response\")\n                    result = response.text.encode(\"utf-8\")\n\n            metadata[\"result\"] = result\n\n            if include_httpx_metadata:\n                metadata.update({\"headers\": headers})\n\n            return Data(data=metadata)\n        except (httpx.HTTPError, httpx.RequestError, httpx.TimeoutException) as exc:\n            self.log(f\"Error making request to {url}\")\n            return Data(\n                data={\n                    \"source\": url,\n                    \"headers\": headers,\n                    \"status_code\": 500,\n                    \"error\": str(exc),\n                    **({\"redirection_history\": redirection_history} if redirection_history else {}),\n                },\n            )\n\n    def add_query_params(self, url: str, params: dict) -> str:\n        \"\"\"Add query parameters to URL efficiently.\"\"\"\n        if not params:\n            return url\n        url_parts = list(urlparse(url))\n        query = dict(parse_qsl(url_parts[4]))\n        query.update(params)\n        url_parts[4] = urlencode(query)\n        return urlunparse(url_parts)\n\n    def _headers_to_dict(self, headers: httpx.Headers) -> dict[str, str]:\n        \"\"\"Convert HTTP headers to a dictionary with lowercased keys.\"\"\"\n        return {k.lower(): v for k, v in headers.items()}\n\n    def _process_headers(self, headers: Any) -> dict:\n        \"\"\"Process the headers input into a valid dictionary.\"\"\"\n        if headers is None:\n            return {}\n        if isinstance(headers, dict):\n            return headers\n        if isinstance(headers, list):\n            return {item[\"key\"]: item[\"value\"] for item in headers if self._is_valid_key_value_item(item)}\n        return {}\n\n    async def make_api_request(self) -> Data:\n        \"\"\"Make HTTP request with optimized parameter handling.\"\"\"\n        method = self.method\n        url = self.url_input.strip() if isinstance(self.url_input, str) else \"\"\n        headers = self.headers or {}\n        body = self.body or {}\n        timeout = self.timeout\n        follow_redirects = self.follow_redirects\n        save_to_file = self.save_to_file\n        include_httpx_metadata = self.include_httpx_metadata\n\n        # Security warning when redirects are enabled\n        if follow_redirects:\n            self.log(\n                \"Security Warning: HTTP redirects are enabled. This may allow SSRF bypass attacks \"\n                \"where a public URL redirects to internal resources (e.g., cloud metadata endpoints). \"\n                \"Only enable this if you trust the target server.\"\n            )\n\n        # if self.mode == \"cURL\" and self.curl_input:\n        #     self._build_config = self.parse_curl(self.curl_input, dotdict())\n        #     # After parsing curl, get the normalized URL\n        #     url = self._build_config[\"url_input\"][\"value\"]\n\n        # Normalize URL before validation\n        url = self._normalize_url(url)\n\n        # Validate URL\n        if not validators.url(url):\n            msg = f\"Invalid URL provided: {url}\"\n            raise ValueError(msg)\n\n        # SSRF Protection: Validate URL to prevent access to internal resources\n        # TODO: In next major version (2.0), remove warn_only=True to enforce blocking\n        try:\n            validate_url_for_ssrf(url, warn_only=True)\n        except SSRFProtectionError as e:\n            # This will only raise if SSRF protection is enabled and warn_only=False\n            msg = f\"SSRF Protection: {e}\"\n            raise ValueError(msg) from e\n\n        # Process query parameters\n        if isinstance(self.query_params, str):\n            query_params = dict(parse_qsl(self.query_params))\n        else:\n            query_params = self.query_params.data if self.query_params else {}\n\n        # Process headers and body\n        headers = self._process_headers(headers)\n\n        # Add Authorization bearer header if token is provided\n        bearer_token = getattr(self, \"bearer_token\", None)\n        if bearer_token and str(bearer_token).strip():\n            headers[\"Authorization\"] = f\"Bearer {str(bearer_token).strip()}\"\n\n        body = self._process_body(body)\n        url = self.add_query_params(url, query_params)\n\n        cert_pem = getattr(self, \"cert_pem\", None) or None\n        key_pem = getattr(self, \"key_pem\", None) or None\n        key_password = getattr(self, \"client_key_password\", None) or None\n\n        if getattr(self, \"enable_mtls\", False):\n            if not (cert_pem and key_pem):\n                msg = (\n                    \"Enable mTLS is on but cert_pem or key_pem is empty. \"\n                    \"Paste the PEM contents or upload a .pem file.\"\n                )\n                raise ValueError(msg)\n            ctx = mtls_temp_files(cert_pem, key_pem, key_password)\n        else:\n            ctx = mtls_temp_files(None, None, None)  # yields None\n\n        async with ctx as cert_tuple:\n            async with httpx.AsyncClient(cert=cert_tuple) as client:\n                result = await self.make_request(\n                    client,\n                    method,\n                    url,\n                    headers,\n                    body,\n                    timeout,\n                    follow_redirects=follow_redirects,\n                    save_to_file=save_to_file,\n                    include_httpx_metadata=include_httpx_metadata,\n                    use_form_urlencoded=self.use_form_urlencoded,\n                )\n        self.status = result\n        return result\n\n    def update_build_config(self, build_config: dotdict, field_value: Any, field_name: str | None = None) -> dotdict:\n        \"\"\"Update the build config based on the selected mode.\"\"\"\n        if field_name == \"enable_mtls\":\n            show_mtls = bool(field_value)\n            set_field_display(build_config, \"cert_pem\", value=show_mtls)\n            set_field_display(build_config, \"key_pem\", value=show_mtls)\n            set_field_display(build_config, \"client_key_password\", value=show_mtls)\n            return build_config\n\n        if field_name != \"mode\":\n            if field_name == \"curl_input\" and self.mode == \"cURL\" and self.curl_input:\n                return self.parse_curl(self.curl_input, build_config)\n            return build_config\n\n        if field_value == \"cURL\":\n            set_field_display(build_config, \"curl_input\", value=True)\n            if build_config[\"curl_input\"][\"value\"]:\n                try:\n                    build_config = self.parse_curl(build_config[\"curl_input\"][\"value\"], build_config)\n                except ValueError as e:\n                    self.log(f\"Failed to parse cURL input: {e}\")\n        else:\n            set_field_display(build_config, \"curl_input\", value=False)\n\n        return set_current_fields(\n            build_config=build_config,\n            action_fields=MODE_FIELDS,\n            selected_action=field_value,\n            default_fields=DEFAULT_FIELDS,\n            func=set_field_advanced,\n            default_value=True,\n        )\n\n    async def _response_info(\n        self, response: httpx.Response, *, with_file_path: bool = False\n    ) -> tuple[bool, Path | None]:\n        \"\"\"Determine the file path and whether the response content is binary.\n\n        Args:\n            response (Response): The HTTP response object.\n            with_file_path (bool): Whether to save the response content to a file.\n\n        Returns:\n            Tuple[bool, Path | None]:\n                A tuple containing a boolean indicating if the content is binary and the full file path (if applicable).\n        \"\"\"\n        content_type = response.headers.get(\"Content-Type\", \"\")\n        is_binary = \"application/octet-stream\" in content_type or \"application/binary\" in content_type\n\n        if not with_file_path:\n            return is_binary, None\n\n        component_temp_dir = Path(tempfile.gettempdir()) / self.__class__.__name__\n\n        # Create directory asynchronously\n        await aiofiles_os.makedirs(component_temp_dir, exist_ok=True)\n\n        filename = None\n        if \"Content-Disposition\" in response.headers:\n            content_disposition = response.headers[\"Content-Disposition\"]\n            filename_match = re.search(r'filename=\"(.+?)\"', content_disposition)\n            if filename_match:\n                extracted_filename = filename_match.group(1)\n                filename = extracted_filename\n\n        # Step 3: Infer file extension or use part of the request URL if no filename\n        if not filename:\n            # Extract the last segment of the URL path\n            url_path = urlparse(str(response.request.url) if response.request else \"\").path\n            base_name = Path(url_path).name  # Get the last segment of the path\n            if not base_name:  # If the path ends with a slash or is empty\n                base_name = \"response\"\n\n            # Infer file extension\n            content_type_to_extension = {\n                \"text/plain\": \".txt\",\n                \"application/json\": \".json\",\n                \"image/jpeg\": \".jpg\",\n                \"image/png\": \".png\",\n                \"application/octet-stream\": \".bin\",\n            }\n            extension = content_type_to_extension.get(content_type, \".bin\" if is_binary else \".txt\")\n            filename = f\"{base_name}{extension}\"\n\n        # Step 4: Define the full file path\n        file_path = component_temp_dir / filename\n\n        # Step 5: Check if file exists asynchronously and handle accordingly\n        try:\n            # Try to create the file exclusively (x mode) to check existence\n            async with aiofiles.open(file_path, \"x\") as _:\n                pass  # File created successfully, we can use this path\n        except FileExistsError:\n            # If file exists, append a timestamp to the filename\n            timestamp = datetime.now(timezone.utc).strftime(\"%Y%m%d%H%M%S%f\")\n            file_path = component_temp_dir / f\"{timestamp}-{filename}\"\n\n        return is_binary, file_path\n"
+              "value": "import json\nimport re\nimport tempfile\nfrom datetime import datetime, timezone\nfrom pathlib import Path\nfrom typing import Any, ClassVar\nfrom urllib.parse import parse_qsl, urlencode, urlparse, urlunparse\n\nimport aiofiles\nimport aiofiles.os as aiofiles_os\nimport httpx\nimport validators\n\nfrom lfx.base.api_request.mtls import mtls_temp_files\nfrom lfx.base.curl.parse import parse_context\nfrom lfx.custom.custom_component.changelog import ChangelogEntry\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.inputs.inputs import TabInput, TextFileSecretInput\nfrom lfx.io import (\n    BoolInput,\n    DataInput,\n    DropdownInput,\n    IntInput,\n    MessageTextInput,\n    MultilineInput,\n    Output,\n    SecretStrInput,\n    TableInput,\n)\nfrom lfx.schema.data import Data\nfrom lfx.schema.dotdict import dotdict\nfrom lfx.utils.component_utils import set_current_fields, set_field_advanced, set_field_display\nfrom lfx.utils.ssrf_protection import SSRFProtectionError, validate_url_for_ssrf\n\n# Define fields for each mode\nMODE_FIELDS = {\n    \"URL\": [\n        \"url_input\",\n        \"method\",\n    ],\n    \"cURL\": [\"curl_input\"],\n}\n\n# Fields that should always be visible\nDEFAULT_FIELDS = [\"mode\"]\n\n\nclass APIRequestComponent(Component):\n    display_name = \"API Request\"\n    description = \"Make HTTP requests using URL or cURL commands.\"\n    documentation: str = \"https://docs.langflow.org/api-request\"\n    icon = \"Globe\"\n    name = \"APIRequest\"\n    error_output_enabled: ClassVar[bool] = True\n\n    version: int = 4\n    changelog: ClassVar[list[ChangelogEntry]] = [\n        ChangelogEntry(\n            version=1,\n            changes=(\n                \"- Added **Bearer token** authentication option\\n\"\n                \"- Added **mTLS** authentication (client certificate + key)\\n\"\n                \"- Added **form-urlencoded** body support\"\n            ),\n            notes=(\n                \"Existing flows keep their current behavior — the new auth modes \"\n                \"are opt-in under the Authentication field. If you previously \"\n                \"worked around the missing Bearer/mTLS options with custom headers, \"\n                \"you can switch to the native fields.\"\n            ),\n        ),\n        ChangelogEntry(\n            version=2,\n            changes=(\n                \"- mTLS client cert/key fields switched to **paste-or-upload** \"\n                \"(TextFileSecretInput), stored encrypted at rest via a hidden \"\n                \"auto-Variable instead of as files on disk\\n\"\n                \"- Replaced `client_cert_file` / `client_key_file` (FileInput) \"\n                \"with `cert_pem` / `key_pem` (TextFileSecretInput)\"\n            ),\n            notes=(\n                \"If a saved flow used the old `client_cert_file` / `client_key_file` \"\n                \"File inputs, those values are dropped and the mTLS fields appear \"\n                \"empty — re-enter the PEM (paste or upload) to restore the \"\n                \"connection. Paste or upload both the cert and the key in the new \"\n                \"fields; content is stored encrypted in the DB, not on disk.\"\n            ),\n        ),\n        ChangelogEntry(\n            version=3,\n            changes=(\n                \"- Added **Error** output port for retry / alert wiring through \"\n                \"an Error Handler component\"\n            ),\n            notes=(\n                \"Existing flows are unaffected — the error port is unwired by \"\n                \"default. Connect it to an Error Handler to retry the request \"\n                \"with backoff and dispatch alerts on exhaustion.\"\n            ),\n        ),\n        ChangelogEntry(\n            version=4,\n            changes=(\n                \"- Added **Raise on HTTP error (4xx/5xx)** toggle. When enabled, \"\n                \"the component raises an exception on non-2xx responses instead \"\n                \"of returning the error body as data.\"\n            ),\n            notes=(\n                \"Off by default — existing flows keep current behavior. Turn on \"\n                \"to make the component fire its Error output port (and trigger \"\n                \"any connected Error Handler) on HTTP error responses.\"\n            ),\n        ),\n    ]\n\n    inputs = [\n        MessageTextInput(\n            name=\"url_input\",\n            display_name=\"URL\",\n            info=\"Enter the URL for the request.\",\n            advanced=False,\n            tool_mode=True,\n        ),\n        MultilineInput(\n            name=\"curl_input\",\n            display_name=\"cURL\",\n            info=(\n                \"Paste a curl command to populate the fields. \"\n                \"This will fill in the dictionary fields for headers and body.\"\n            ),\n            real_time_refresh=True,\n            tool_mode=True,\n            advanced=True,\n            show=False,\n        ),\n        DropdownInput(\n            name=\"method\",\n            display_name=\"Method\",\n            options=[\"GET\", \"POST\", \"PATCH\", \"PUT\", \"DELETE\"],\n            value=\"GET\",\n            info=\"The HTTP method to use.\",\n            real_time_refresh=True,\n        ),\n        TabInput(\n            name=\"mode\",\n            display_name=\"Mode\",\n            options=[\"URL\", \"cURL\"],\n            value=\"URL\",\n            info=\"Enable cURL mode to populate fields from a cURL command.\",\n            real_time_refresh=True,\n        ),\n        DataInput(\n            name=\"query_params\",\n            display_name=\"Query Parameters\",\n            info=\"The query parameters to append to the URL.\",\n            advanced=True,\n        ),\n        TableInput(\n            name=\"body\",\n            display_name=\"Body\",\n            info=\"The body to send with the request as a dictionary (for POST, PATCH, PUT).\",\n            table_schema=[\n                {\n                    \"name\": \"key\",\n                    \"display_name\": \"Key\",\n                    \"type\": \"str\",\n                    \"description\": \"Parameter name\",\n                },\n                {\n                    \"name\": \"value\",\n                    \"display_name\": \"Value\",\n                    \"description\": \"Parameter value\",\n                },\n            ],\n            value=[],\n            input_types=[\"Data\", \"JSON\"],\n            advanced=True,\n            real_time_refresh=True,\n        ),\n        BoolInput(\n            name=\"use_form_urlencoded\",\n            display_name=\"URL Encoded Body\",\n            value=False,\n            info=\"Send body as application/x-www-form-urlencoded instead of JSON.\",\n            advanced=True,\n        ),\n        TableInput(\n            name=\"headers\",\n            display_name=\"Headers\",\n            info=\"The headers to send with the request\",\n            table_schema=[\n                {\n                    \"name\": \"key\",\n                    \"display_name\": \"Header\",\n                    \"type\": \"str\",\n                    \"description\": \"Header name\",\n                },\n                {\n                    \"name\": \"value\",\n                    \"display_name\": \"Value\",\n                    \"type\": \"str\",\n                    \"description\": \"Header value\",\n                },\n            ],\n            value=[{\"key\": \"User-Agent\", \"value\": \"Langflow/1.0\"}],\n            advanced=True,\n            input_types=[\"Data\", \"JSON\"],\n            real_time_refresh=True,\n        ),\n        MessageTextInput(\n            name=\"bearer_token\",\n            display_name=\"Auth Bearer Token\",\n            info=\"Bearer token for Authorization header. Do not include the 'Bearer' prefix.\",\n            advanced=True,\n        ),\n        IntInput(\n            name=\"timeout\",\n            display_name=\"Timeout\",\n            value=30,\n            info=\"The timeout to use for the request.\",\n            advanced=True,\n        ),\n        BoolInput(\n            name=\"raise_on_status\",\n            display_name=\"Raise on HTTP error (4xx/5xx)\",\n            value=False,\n            info=(\n                \"When enabled, the component raises an exception on non-2xx HTTP \"\n                \"responses instead of returning the error body as data. Pair with \"\n                \"the Error output port + Error Handler to retry / alert on failures.\"\n            ),\n        ),\n        BoolInput(\n            name=\"follow_redirects\",\n            display_name=\"Follow Redirects\",\n            value=False,\n            info=(\n                \"Whether to follow HTTP redirects. \"\n                \"WARNING: Enabling redirects may allow SSRF bypass attacks where a public URL \"\n                \"redirects to internal resources. Only enable if you trust the target server. \"\n                \"See OWASP SSRF Prevention Cheat Sheet for details.\"\n            ),\n            advanced=True,\n        ),\n        BoolInput(\n            name=\"save_to_file\",\n            display_name=\"Save to File\",\n            value=False,\n            info=\"Save the API response to a temporary file\",\n            advanced=True,\n        ),\n        BoolInput(\n            name=\"include_httpx_metadata\",\n            display_name=\"Include HTTPx Metadata\",\n            value=False,\n            info=(\n                \"Include properties such as headers, status_code, response_headers, \"\n                \"and redirection_history in the output.\"\n            ),\n            advanced=True,\n        ),\n        BoolInput(\n            name=\"enable_mtls\",\n            display_name=\"Enable mTLS\",\n            value=False,\n            info=\"Enable mutual TLS (mTLS) authentication with client certificates.\",\n            advanced=True,\n            real_time_refresh=True,\n        ),\n        TextFileSecretInput(\n            name=\"cert_pem\",\n            display_name=\"Client Certificate (PEM)\",\n            info=(\n                \"Client certificate for mTLS. Paste the PEM contents or upload a .pem/.crt file. \"\n                \"Stored encrypted at rest.\"\n            ),\n            file_types=[\"pem\", \"crt\"],\n            advanced=True,\n            show=False,\n            required=False,\n        ),\n        TextFileSecretInput(\n            name=\"key_pem\",\n            display_name=\"Client Key (PEM)\",\n            info=(\n                \"Client private key for mTLS. Paste the PEM contents or upload a .pem/.key file. \"\n                \"Stored encrypted at rest.\"\n            ),\n            file_types=[\"pem\", \"key\"],\n            advanced=True,\n            show=False,\n            required=False,\n        ),\n        SecretStrInput(\n            name=\"client_key_password\",\n            display_name=\"Client Key Password\",\n            info=\"Password for the client private key (if encrypted).\",\n            advanced=True,\n            show=False,\n            required=False,\n            load_from_db=True,\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"API Response\", name=\"data\", method=\"make_api_request\"),\n    ]\n\n    def _parse_json_value(self, value: Any) -> Any:\n        \"\"\"Parse a value that might be a JSON string.\"\"\"\n        if not isinstance(value, str):\n            return value\n\n        try:\n            parsed = json.loads(value)\n        except json.JSONDecodeError:\n            return value\n        else:\n            return parsed\n\n    def _process_body(self, body: Any) -> dict:\n        \"\"\"Process the body input into a valid dictionary.\"\"\"\n        if body is None:\n            return {}\n        if hasattr(body, \"data\"):\n            body = body.data\n        if isinstance(body, dict):\n            return self._process_dict_body(body)\n        if isinstance(body, str):\n            return self._process_string_body(body)\n        if isinstance(body, list):\n            return self._process_list_body(body)\n        return {}\n\n    def _process_dict_body(self, body: dict) -> dict:\n        \"\"\"Process dictionary body by parsing JSON values.\"\"\"\n        return {k: self._parse_json_value(v) for k, v in body.items()}\n\n    def _process_string_body(self, body: str) -> dict:\n        \"\"\"Process string body by attempting JSON parse.\"\"\"\n        try:\n            return self._process_body(json.loads(body))\n        except json.JSONDecodeError:\n            return {\"data\": body}\n\n    def _process_list_body(self, body: list) -> dict:\n        \"\"\"Process list body by converting to key-value dictionary.\"\"\"\n        processed_dict = {}\n        try:\n            for item in body:\n                # Unwrap Data objects\n                current_item = item\n                if hasattr(item, \"data\"):\n                    unwrapped_data = item.data\n                    # If the unwrapped data is a dict but not key-value format, use it directly\n                    if isinstance(unwrapped_data, dict) and not self._is_valid_key_value_item(unwrapped_data):\n                        return unwrapped_data\n                    current_item = unwrapped_data\n                if not self._is_valid_key_value_item(current_item):\n                    continue\n                key = current_item[\"key\"]\n                value = self._parse_json_value(current_item[\"value\"])\n                processed_dict[key] = value\n        except (KeyError, TypeError, ValueError) as e:\n            self.log(f\"Failed to process body list: {e}\")\n            return {}\n        return processed_dict\n\n    def _is_valid_key_value_item(self, item: Any) -> bool:\n        \"\"\"Check if an item is a valid key-value dictionary.\"\"\"\n        return isinstance(item, dict) and \"key\" in item and \"value\" in item\n\n    def parse_curl(self, curl: str, build_config: dotdict) -> dotdict:\n        \"\"\"Parse a cURL command and update build configuration.\"\"\"\n        try:\n            parsed = parse_context(curl)\n\n            # Update basic configuration\n            url = parsed.url\n            # Normalize URL before setting it\n            url = self._normalize_url(url)\n\n            build_config[\"url_input\"][\"value\"] = url\n            build_config[\"method\"][\"value\"] = parsed.method.upper()\n\n            # Process headers\n            headers_list = [{\"key\": k, \"value\": v} for k, v in parsed.headers.items()]\n            build_config[\"headers\"][\"value\"] = headers_list\n\n            # Process body data\n            if not parsed.data:\n                build_config[\"body\"][\"value\"] = []\n            elif parsed.data:\n                try:\n                    json_data = json.loads(parsed.data)\n                    if isinstance(json_data, dict):\n                        body_list = [\n                            {\"key\": k, \"value\": json.dumps(v) if isinstance(v, dict | list) else str(v)}\n                            for k, v in json_data.items()\n                        ]\n                        build_config[\"body\"][\"value\"] = body_list\n                    else:\n                        build_config[\"body\"][\"value\"] = [{\"key\": \"data\", \"value\": json.dumps(json_data)}]\n                except json.JSONDecodeError:\n                    build_config[\"body\"][\"value\"] = [{\"key\": \"data\", \"value\": parsed.data}]\n\n        except Exception as exc:\n            msg = f\"Error parsing curl: {exc}\"\n            self.log(msg)\n            raise ValueError(msg) from exc\n\n        return build_config\n\n    def _normalize_url(self, url: str) -> str:\n        \"\"\"Normalize URL by adding https:// if no protocol is specified.\"\"\"\n        if not url or not isinstance(url, str):\n            msg = \"URL cannot be empty\"\n            raise ValueError(msg)\n\n        url = url.strip()\n        if url.startswith((\"http://\", \"https://\")):\n            return url\n        return f\"https://{url}\"\n\n    async def make_request(\n        self,\n        client: httpx.AsyncClient,\n        method: str,\n        url: str,\n        headers: dict | None = None,\n        body: Any = None,\n        timeout: int = 5,\n        *,\n        follow_redirects: bool = True,\n        save_to_file: bool = False,\n        include_httpx_metadata: bool = False,\n        use_form_urlencoded: bool = False,\n    ) -> Data:\n        method = method.upper()\n        if method not in {\"GET\", \"POST\", \"PATCH\", \"PUT\", \"DELETE\"}:\n            msg = f\"Unsupported method: {method}\"\n            raise ValueError(msg)\n\n        processed_body = self._process_body(body)\n        redirection_history = []\n\n        try:\n            # Prepare request parameters\n            request_params = {\n                \"method\": method,\n                \"url\": url,\n                \"headers\": headers,\n                \"timeout\": timeout,\n                \"follow_redirects\": follow_redirects,\n            }\n            # Only include body for methods that support it (GET must not have a body per HTTP spec)\n            if method in {\"POST\", \"PATCH\", \"PUT\", \"DELETE\"} and processed_body is not None:\n                if use_form_urlencoded:\n                    request_params[\"data\"] = processed_body\n                else:\n                    request_params[\"json\"] = processed_body\n            response = await client.request(**request_params)\n\n            if getattr(self, \"raise_on_status\", False) and response.status_code >= 400:  # noqa: PLR2004\n                snippet = response.text[:200] + (\"...\" if len(response.text) > 200 else \"\")\n                msg = f\"HTTP {response.status_code} from {url}: {snippet}\"\n                # Plain RuntimeError so the surrounding httpx.HTTPError catch doesn't swallow it.\n                raise RuntimeError(msg)\n\n            redirection_history = [\n                {\n                    \"url\": redirect.headers.get(\"Location\", str(redirect.url)),\n                    \"status_code\": redirect.status_code,\n                }\n                for redirect in response.history\n            ]\n\n            is_binary, file_path = await self._response_info(response, with_file_path=save_to_file)\n            response_headers = self._headers_to_dict(response.headers)\n\n            # Base metadata\n            metadata = {\n                \"source\": url,\n                \"status_code\": response.status_code,\n                \"response_headers\": response_headers,\n            }\n\n            if redirection_history:\n                metadata[\"redirection_history\"] = redirection_history\n\n            if save_to_file:\n                mode = \"wb\" if is_binary else \"w\"\n                encoding = response.encoding if mode == \"w\" else None\n                if file_path:\n                    await aiofiles_os.makedirs(file_path.parent, exist_ok=True)\n                    if is_binary:\n                        async with aiofiles.open(file_path, \"wb\") as f:\n                            await f.write(response.content)\n                            await f.flush()\n                    else:\n                        async with aiofiles.open(file_path, \"w\", encoding=encoding) as f:\n                            await f.write(response.text)\n                            await f.flush()\n                    metadata[\"file_path\"] = str(file_path)\n\n                if include_httpx_metadata:\n                    metadata.update({\"headers\": headers})\n                return Data(data=metadata)\n\n            # Handle response content\n            if is_binary:\n                result = response.content\n            else:\n                try:\n                    result = response.json()\n                except json.JSONDecodeError:\n                    self.log(\"Failed to decode JSON response\")\n                    result = response.text.encode(\"utf-8\")\n\n            metadata[\"result\"] = result\n\n            if include_httpx_metadata:\n                metadata.update({\"headers\": headers})\n\n            return Data(data=metadata)\n        except (httpx.HTTPError, httpx.RequestError, httpx.TimeoutException) as exc:\n            self.log(f\"Error making request to {url}\")\n            return Data(\n                data={\n                    \"source\": url,\n                    \"headers\": headers,\n                    \"status_code\": 500,\n                    \"error\": str(exc),\n                    **({\"redirection_history\": redirection_history} if redirection_history else {}),\n                },\n            )\n\n    def add_query_params(self, url: str, params: dict) -> str:\n        \"\"\"Add query parameters to URL efficiently.\"\"\"\n        if not params:\n            return url\n        url_parts = list(urlparse(url))\n        query = dict(parse_qsl(url_parts[4]))\n        query.update(params)\n        url_parts[4] = urlencode(query)\n        return urlunparse(url_parts)\n\n    def _headers_to_dict(self, headers: httpx.Headers) -> dict[str, str]:\n        \"\"\"Convert HTTP headers to a dictionary with lowercased keys.\"\"\"\n        return {k.lower(): v for k, v in headers.items()}\n\n    def _process_headers(self, headers: Any) -> dict:\n        \"\"\"Process the headers input into a valid dictionary.\"\"\"\n        if headers is None:\n            return {}\n        if isinstance(headers, dict):\n            return headers\n        if isinstance(headers, list):\n            return {item[\"key\"]: item[\"value\"] for item in headers if self._is_valid_key_value_item(item)}\n        return {}\n\n    async def make_api_request(self) -> Data:\n        \"\"\"Make HTTP request with optimized parameter handling.\"\"\"\n        method = self.method\n        url = self.url_input.strip() if isinstance(self.url_input, str) else \"\"\n        headers = self.headers or {}\n        body = self.body or {}\n        timeout = self.timeout\n        follow_redirects = self.follow_redirects\n        save_to_file = self.save_to_file\n        include_httpx_metadata = self.include_httpx_metadata\n\n        # Security warning when redirects are enabled\n        if follow_redirects:\n            self.log(\n                \"Security Warning: HTTP redirects are enabled. This may allow SSRF bypass attacks \"\n                \"where a public URL redirects to internal resources (e.g., cloud metadata endpoints). \"\n                \"Only enable this if you trust the target server.\"\n            )\n\n        # if self.mode == \"cURL\" and self.curl_input:\n        #     self._build_config = self.parse_curl(self.curl_input, dotdict())\n        #     # After parsing curl, get the normalized URL\n        #     url = self._build_config[\"url_input\"][\"value\"]\n\n        # Normalize URL before validation\n        url = self._normalize_url(url)\n\n        # Validate URL\n        if not validators.url(url):\n            msg = f\"Invalid URL provided: {url}\"\n            raise ValueError(msg)\n\n        # SSRF Protection: Validate URL to prevent access to internal resources\n        # TODO: In next major version (2.0), remove warn_only=True to enforce blocking\n        try:\n            validate_url_for_ssrf(url, warn_only=True)\n        except SSRFProtectionError as e:\n            # This will only raise if SSRF protection is enabled and warn_only=False\n            msg = f\"SSRF Protection: {e}\"\n            raise ValueError(msg) from e\n\n        # Process query parameters\n        if isinstance(self.query_params, str):\n            query_params = dict(parse_qsl(self.query_params))\n        else:\n            query_params = self.query_params.data if self.query_params else {}\n\n        # Process headers and body\n        headers = self._process_headers(headers)\n\n        # Add Authorization bearer header if token is provided\n        bearer_token = getattr(self, \"bearer_token\", None)\n        if bearer_token and str(bearer_token).strip():\n            headers[\"Authorization\"] = f\"Bearer {str(bearer_token).strip()}\"\n\n        body = self._process_body(body)\n        url = self.add_query_params(url, query_params)\n\n        cert_pem = getattr(self, \"cert_pem\", None) or None\n        key_pem = getattr(self, \"key_pem\", None) or None\n        key_password = getattr(self, \"client_key_password\", None) or None\n\n        if getattr(self, \"enable_mtls\", False):\n            if not (cert_pem and key_pem):\n                msg = (\n                    \"Enable mTLS is on but cert_pem or key_pem is empty. \"\n                    \"Paste the PEM contents or upload a .pem file.\"\n                )\n                raise ValueError(msg)\n            ctx = mtls_temp_files(cert_pem, key_pem, key_password)\n        else:\n            ctx = mtls_temp_files(None, None, None)  # yields None\n\n        async with ctx as cert_tuple:\n            async with httpx.AsyncClient(cert=cert_tuple) as client:\n                result = await self.make_request(\n                    client,\n                    method,\n                    url,\n                    headers,\n                    body,\n                    timeout,\n                    follow_redirects=follow_redirects,\n                    save_to_file=save_to_file,\n                    include_httpx_metadata=include_httpx_metadata,\n                    use_form_urlencoded=self.use_form_urlencoded,\n                )\n        self.status = result\n        return result\n\n    def update_build_config(self, build_config: dotdict, field_value: Any, field_name: str | None = None) -> dotdict:\n        \"\"\"Update the build config based on the selected mode.\"\"\"\n        if field_name == \"enable_mtls\":\n            show_mtls = bool(field_value)\n            set_field_display(build_config, \"cert_pem\", value=show_mtls)\n            set_field_display(build_config, \"key_pem\", value=show_mtls)\n            set_field_display(build_config, \"client_key_password\", value=show_mtls)\n            return build_config\n\n        if field_name != \"mode\":\n            if field_name == \"curl_input\" and self.mode == \"cURL\" and self.curl_input:\n                return self.parse_curl(self.curl_input, build_config)\n            return build_config\n\n        if field_value == \"cURL\":\n            set_field_display(build_config, \"curl_input\", value=True)\n            if build_config[\"curl_input\"][\"value\"]:\n                try:\n                    build_config = self.parse_curl(build_config[\"curl_input\"][\"value\"], build_config)\n                except ValueError as e:\n                    self.log(f\"Failed to parse cURL input: {e}\")\n        else:\n            set_field_display(build_config, \"curl_input\", value=False)\n\n        return set_current_fields(\n            build_config=build_config,\n            action_fields=MODE_FIELDS,\n            selected_action=field_value,\n            default_fields=DEFAULT_FIELDS,\n            func=set_field_advanced,\n            default_value=True,\n        )\n\n    async def _response_info(\n        self, response: httpx.Response, *, with_file_path: bool = False\n    ) -> tuple[bool, Path | None]:\n        \"\"\"Determine the file path and whether the response content is binary.\n\n        Args:\n            response (Response): The HTTP response object.\n            with_file_path (bool): Whether to save the response content to a file.\n\n        Returns:\n            Tuple[bool, Path | None]:\n                A tuple containing a boolean indicating if the content is binary and the full file path (if applicable).\n        \"\"\"\n        content_type = response.headers.get(\"Content-Type\", \"\")\n        is_binary = \"application/octet-stream\" in content_type or \"application/binary\" in content_type\n\n        if not with_file_path:\n            return is_binary, None\n\n        component_temp_dir = Path(tempfile.gettempdir()) / self.__class__.__name__\n\n        # Create directory asynchronously\n        await aiofiles_os.makedirs(component_temp_dir, exist_ok=True)\n\n        filename = None\n        if \"Content-Disposition\" in response.headers:\n            content_disposition = response.headers[\"Content-Disposition\"]\n            filename_match = re.search(r'filename=\"(.+?)\"', content_disposition)\n            if filename_match:\n                extracted_filename = filename_match.group(1)\n                filename = extracted_filename\n\n        # Step 3: Infer file extension or use part of the request URL if no filename\n        if not filename:\n            # Extract the last segment of the URL path\n            url_path = urlparse(str(response.request.url) if response.request else \"\").path\n            base_name = Path(url_path).name  # Get the last segment of the path\n            if not base_name:  # If the path ends with a slash or is empty\n                base_name = \"response\"\n\n            # Infer file extension\n            content_type_to_extension = {\n                \"text/plain\": \".txt\",\n                \"application/json\": \".json\",\n                \"image/jpeg\": \".jpg\",\n                \"image/png\": \".png\",\n                \"application/octet-stream\": \".bin\",\n            }\n            extension = content_type_to_extension.get(content_type, \".bin\" if is_binary else \".txt\")\n            filename = f\"{base_name}{extension}\"\n\n        # Step 4: Define the full file path\n        file_path = component_temp_dir / filename\n\n        # Step 5: Check if file exists asynchronously and handle accordingly\n        try:\n            # Try to create the file exclusively (x mode) to check existence\n            async with aiofiles.open(file_path, \"x\") as _:\n                pass  # File created successfully, we can use this path\n        except FileExistsError:\n            # If file exists, append a timestamp to the filename\n            timestamp = datetime.now(timezone.utc).strftime(\"%Y%m%d%H%M%S%f\")\n            file_path = component_temp_dir / f\"{timestamp}-{filename}\"\n\n        return is_binary, file_path\n"
             },
             "curl_input": {
               "_input_type": "MultilineInput",
@@ -59720,6 +59794,26 @@
               "type": "other",
               "value": ""
             },
+            "raise_on_status": {
+              "_input_type": "BoolInput",
+              "advanced": false,
+              "display_name": "Raise on HTTP error (4xx/5xx)",
+              "dynamic": false,
+              "info": "When enabled, the component raises an exception on non-2xx HTTP responses instead of returning the error body as data. Pair with the Error output port + Error Handler to retry / alert on failures.",
+              "list": false,
+              "list_add_label": "Add More",
+              "name": "raise_on_status",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": true,
+              "type": "bool",
+              "value": false
+            },
             "save_to_file": {
               "_input_type": "BoolInput",
               "advanced": true,
@@ -59807,7 +59901,7 @@
             }
           },
           "tool_mode": false,
-          "version": 3
+          "version": 4
         },
         "CSVtoData": {
           "assist_enabled": true,
@@ -68241,414 +68335,6 @@
               "track_in_telemetry": true,
               "type": "str",
               "value": "Hugging Face"
-            }
-          },
-          "tool_mode": false,
-          "version": 0
-        },
-        "DoclingInline": {
-          "assist_enabled": true,
-          "base_classes": [
-            "ErrorPayload",
-            "Table"
-          ],
-          "beta": false,
-          "changelog": [],
-          "conditional_paths": [],
-          "custom_fields": {},
-          "description": "Uses Docling to process input documents running the Docling models locally.",
-          "display_name": "Docling",
-          "documentation": "https://docling-project.github.io/docling/",
-          "edited": false,
-          "field_order": [
-            "path",
-            "file_path",
-            "separator",
-            "silent_errors",
-            "delete_server_file_after_processing",
-            "ignore_unsupported_extensions",
-            "ignore_unspecified_files",
-            "pipeline",
-            "ocr_engine",
-            "do_picture_classification",
-            "pic_desc_llm",
-            "pic_desc_prompt"
-          ],
-          "frozen": false,
-          "icon": "Docling",
-          "legacy": false,
-          "metadata": {
-            "code_hash": "519d12bd6451",
-            "dependencies": {
-              "dependencies": [
-                {
-                  "name": "lfx",
-                  "version": null
-                },
-                {
-                  "name": "docling",
-                  "version": "2.91.0"
-                }
-              ],
-              "total_dependencies": 2
-            },
-            "module": "lfx.components.docling.docling_inline.DoclingInlineComponent"
-          },
-          "minimized": false,
-          "output_types": [],
-          "outputs": [
-            {
-              "allows_loop": false,
-              "cache": true,
-              "display_name": "Files",
-              "group_outputs": false,
-              "method": "load_files",
-              "name": "dataframe",
-              "selected": "Table",
-              "tool_mode": true,
-              "types": [
-                "Table"
-              ],
-              "value": "__UNDEFINED__"
-            },
-            {
-              "allows_loop": false,
-              "cache": true,
-              "display_name": "Error",
-              "group_outputs": false,
-              "method": "_emit_error_output",
-              "name": "error",
-              "selected": "ErrorPayload",
-              "tool_mode": true,
-              "types": [
-                "ErrorPayload"
-              ],
-              "value": "__UNDEFINED__"
-            }
-          ],
-          "pinned": false,
-          "template": {
-            "_type": "Component",
-            "code": {
-              "advanced": true,
-              "dynamic": true,
-              "fileTypes": [],
-              "file_path": "",
-              "info": "",
-              "list": false,
-              "load_from_db": false,
-              "multiline": true,
-              "name": "code",
-              "password": false,
-              "placeholder": "",
-              "required": true,
-              "show": true,
-              "title_case": false,
-              "type": "code",
-              "value": "import queue\nimport threading\nimport time\n\nfrom lfx.base.data import BaseFileComponent\nfrom lfx.base.data.docling_utils import _serialize_pydantic_model, docling_worker\nfrom lfx.inputs import BoolInput, DropdownInput, HandleInput, StrInput\nfrom lfx.schema import Data\n\n\nclass DoclingInlineComponent(BaseFileComponent):\n    display_name = \"Docling\"\n    description = \"Uses Docling to process input documents running the Docling models locally.\"\n    documentation = \"https://docling-project.github.io/docling/\"\n    trace_type = \"tool\"\n    icon = \"Docling\"\n    name = \"DoclingInline\"\n\n    # https://docling-project.github.io/docling/usage/supported_formats/\n    VALID_EXTENSIONS = [\n        \"adoc\",\n        \"asciidoc\",\n        \"asc\",\n        \"bmp\",\n        \"csv\",\n        \"dotx\",\n        \"dotm\",\n        \"docm\",\n        \"docx\",\n        \"htm\",\n        \"html\",\n        \"jpeg\",\n        \"json\",\n        \"md\",\n        \"pdf\",\n        \"png\",\n        \"potx\",\n        \"ppsx\",\n        \"pptm\",\n        \"potm\",\n        \"ppsm\",\n        \"pptx\",\n        \"tiff\",\n        \"txt\",\n        \"xls\",\n        \"xlsx\",\n        \"xhtml\",\n        \"xml\",\n        \"webp\",\n    ]\n\n    inputs = [\n        *BaseFileComponent.get_base_inputs(),\n        DropdownInput(\n            name=\"pipeline\",\n            display_name=\"Pipeline\",\n            info=\"Docling pipeline to use\",\n            options=[\"standard\", \"vlm\"],\n            value=\"standard\",\n        ),\n        DropdownInput(\n            name=\"ocr_engine\",\n            display_name=\"OCR Engine\",\n            info=\"OCR engine to use. None will disable OCR.\",\n            options=[\"None\", \"easyocr\", \"tesserocr\", \"rapidocr\", \"ocrmac\"],\n            value=\"None\",\n        ),\n        BoolInput(\n            name=\"do_picture_classification\",\n            display_name=\"Picture classification\",\n            info=\"If enabled, the Docling pipeline will classify the pictures type.\",\n            value=False,\n        ),\n        HandleInput(\n            name=\"pic_desc_llm\",\n            display_name=\"Picture description LLM\",\n            info=\"If connected, the model to use for running the picture description task.\",\n            input_types=[\"LanguageModel\"],\n            required=False,\n        ),\n        StrInput(\n            name=\"pic_desc_prompt\",\n            display_name=\"Picture description prompt\",\n            value=\"Describe the image in three sentences. Be concise and accurate.\",\n            info=\"The user prompt to use when invoking the model.\",\n            advanced=True,\n        ),\n        # TODO: expose more Docling options\n    ]\n\n    outputs = [\n        *BaseFileComponent.get_base_outputs(),\n    ]\n\n    def _wait_for_result_with_thread_monitoring(\n        self, result_queue: queue.Queue, thread: threading.Thread, timeout: int = 300\n    ):\n        \"\"\"Wait for result from queue while monitoring thread health.\n\n        Handles cases where thread crashes without sending result.\n        \"\"\"\n        start_time = time.time()\n\n        while time.time() - start_time < timeout:\n            # Check if thread is still alive\n            if not thread.is_alive():\n                # Thread finished, try to get any result it might have sent\n                try:\n                    result = result_queue.get_nowait()\n                except queue.Empty:\n                    # Thread finished without sending result\n                    msg = \"Worker thread crashed unexpectedly without producing result.\"\n                    raise RuntimeError(msg) from None\n                else:\n                    self.log(\"Thread completed and result retrieved\")\n                    return result\n\n            # Poll the queue instead of blocking\n            try:\n                result = result_queue.get(timeout=1)\n            except queue.Empty:\n                # No result yet, continue monitoring\n                continue\n            else:\n                self.log(\"Result received from worker thread\")\n                return result\n\n        # Overall timeout reached\n        msg = f\"Thread timed out after {timeout} seconds\"\n        raise TimeoutError(msg)\n\n    def _stop_thread_gracefully(self, thread: threading.Thread, timeout: int = 10):\n        \"\"\"Wait for thread to complete gracefully.\n\n        Note: Python threads cannot be forcefully killed, so we just wait.\n        The thread should respond to shutdown signals via the queue.\n        \"\"\"\n        if not thread.is_alive():\n            return\n\n        self.log(\"Waiting for thread to complete gracefully\")\n        thread.join(timeout=timeout)\n\n        if thread.is_alive():\n            self.log(\"Warning: Thread still alive after timeout\")\n\n    def process_files(self, file_list: list[BaseFileComponent.BaseFile]) -> list[BaseFileComponent.BaseFile]:\n        try:\n            from docling.document_converter import DocumentConverter  # noqa: F401\n        except ImportError as e:\n            msg = (\n                \"Docling is an optional dependency. Install with `uv pip install 'langflow[docling]'` or refer to the \"\n                \"documentation on how to install optional dependencies.\"\n            )\n            raise ImportError(msg) from e\n\n        file_paths = [file.path for file in file_list if file.path]\n\n        if not file_paths:\n            self.log(\"No files to process.\")\n            return file_list\n\n        pic_desc_config: dict | None = None\n        if self.pic_desc_llm is not None:\n            pic_desc_config = _serialize_pydantic_model(self.pic_desc_llm)\n\n        # Use threading instead of multiprocessing for memory sharing\n        # This enables the global DocumentConverter cache to work across runs\n        result_queue: queue.Queue = queue.Queue()\n        thread = threading.Thread(\n            target=docling_worker,\n            kwargs={\n                \"file_paths\": file_paths,\n                \"queue\": result_queue,\n                \"pipeline\": self.pipeline,\n                \"ocr_engine\": self.ocr_engine,\n                \"do_picture_classification\": self.do_picture_classification,\n                \"pic_desc_config\": pic_desc_config,\n                \"pic_desc_prompt\": self.pic_desc_prompt,\n            },\n            daemon=False,  # Allow thread to complete even if main thread exits\n        )\n\n        result = None\n        thread.start()\n\n        try:\n            result = self._wait_for_result_with_thread_monitoring(result_queue, thread, timeout=300)\n        except KeyboardInterrupt:\n            self.log(\"Docling thread cancelled by user\")\n            result = []\n        except Exception as e:\n            self.log(f\"Error during processing: {e}\")\n            raise\n        finally:\n            # Wait for thread to complete gracefully\n            self._stop_thread_gracefully(thread)\n\n        # Enhanced error checking with dependency-specific handling\n        if isinstance(result, dict) and \"error\" in result:\n            error_msg = result[\"error\"]\n\n            # Handle dependency errors specifically\n            if result.get(\"error_type\") == \"dependency_error\":\n                dependency_name = result.get(\"dependency_name\", \"Unknown dependency\")\n                install_command = result.get(\"install_command\", \"Please check documentation\")\n\n                # Create a user-friendly error message\n                user_message = (\n                    f\"Missing OCR dependency: {dependency_name}. \"\n                    f\"{install_command} \"\n                    f\"Alternatively, you can set OCR Engine to 'None' to disable OCR processing.\"\n                )\n                raise ImportError(user_message)\n\n            # Handle other specific errors\n            if error_msg.startswith(\"Docling is not installed\"):\n                raise ImportError(error_msg)\n\n            # Handle graceful shutdown\n            if \"Worker interrupted by SIGINT\" in error_msg or \"shutdown\" in result:\n                self.log(\"Docling process cancelled by user\")\n                result = []\n            else:\n                raise RuntimeError(error_msg)\n\n        processed_data = [Data(data={\"doc\": r[\"document\"], \"file_path\": r[\"file_path\"]}) if r else None for r in result]\n        return self.rollup_data(file_list, processed_data)\n"
-            },
-            "delete_server_file_after_processing": {
-              "_input_type": "BoolInput",
-              "advanced": true,
-              "display_name": "Delete Server File After Processing",
-              "dynamic": false,
-              "info": "If true, the Server File Path will be deleted after processing.",
-              "list": false,
-              "list_add_label": "Add More",
-              "name": "delete_server_file_after_processing",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "bool",
-              "value": true
-            },
-            "do_picture_classification": {
-              "_input_type": "BoolInput",
-              "advanced": false,
-              "display_name": "Picture classification",
-              "dynamic": false,
-              "info": "If enabled, the Docling pipeline will classify the pictures type.",
-              "list": false,
-              "list_add_label": "Add More",
-              "name": "do_picture_classification",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "bool",
-              "value": false
-            },
-            "file_path": {
-              "_input_type": "HandleInput",
-              "advanced": true,
-              "display_name": "Server File Path",
-              "dynamic": false,
-              "info": "Data object with a 'file_path' property pointing to server file or a Message object with a path to the file. Supercedes 'Path' but supports same file types.",
-              "input_types": [
-                "Data",
-                "JSON",
-                "Message"
-              ],
-              "list": true,
-              "list_add_label": "Add More",
-              "name": "file_path",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": false,
-              "type": "other",
-              "value": ""
-            },
-            "ignore_unspecified_files": {
-              "_input_type": "BoolInput",
-              "advanced": true,
-              "display_name": "Ignore Unspecified Files",
-              "dynamic": false,
-              "info": "If true, Data with no 'file_path' property will be ignored.",
-              "list": false,
-              "list_add_label": "Add More",
-              "name": "ignore_unspecified_files",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "bool",
-              "value": false
-            },
-            "ignore_unsupported_extensions": {
-              "_input_type": "BoolInput",
-              "advanced": true,
-              "display_name": "Ignore Unsupported Extensions",
-              "dynamic": false,
-              "info": "If true, files with unsupported extensions will not be processed.",
-              "list": false,
-              "list_add_label": "Add More",
-              "name": "ignore_unsupported_extensions",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "bool",
-              "value": true
-            },
-            "ocr_engine": {
-              "_input_type": "DropdownInput",
-              "advanced": false,
-              "combobox": false,
-              "dialog_inputs": {},
-              "display_name": "OCR Engine",
-              "dynamic": false,
-              "external_options": {},
-              "info": "OCR engine to use. None will disable OCR.",
-              "name": "ocr_engine",
-              "options": [
-                "None",
-                "easyocr",
-                "tesserocr",
-                "rapidocr",
-                "ocrmac"
-              ],
-              "options_metadata": [],
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "toggle": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "str",
-              "value": "None"
-            },
-            "path": {
-              "_input_type": "FileInput",
-              "advanced": false,
-              "display_name": "Files",
-              "dynamic": false,
-              "fileTypes": [
-                "adoc",
-                "asciidoc",
-                "asc",
-                "bmp",
-                "csv",
-                "dotx",
-                "dotm",
-                "docm",
-                "docx",
-                "htm",
-                "html",
-                "jpeg",
-                "json",
-                "md",
-                "pdf",
-                "png",
-                "potx",
-                "ppsx",
-                "pptm",
-                "potm",
-                "ppsm",
-                "pptx",
-                "tiff",
-                "txt",
-                "xls",
-                "xlsx",
-                "xhtml",
-                "xml",
-                "webp",
-                "zip",
-                "tar",
-                "tgz",
-                "bz2",
-                "gz"
-              ],
-              "file_path": "",
-              "info": "Supported file extensions: adoc, asciidoc, asc, bmp, csv, dotx, dotm, docm, docx, htm, html, jpeg, json, md, pdf, png, potx, ppsx, pptm, potm, ppsm, pptx, tiff, txt, xls, xlsx, xhtml, xml, webp; optionally bundled in file extensions: zip, tar, tgz, bz2, gz",
-              "list": true,
-              "list_add_label": "Add More",
-              "name": "path",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "temp_file": false,
-              "title_case": false,
-              "tool_mode": true,
-              "trace_as_metadata": true,
-              "track_in_telemetry": false,
-              "type": "file",
-              "value": []
-            },
-            "pic_desc_llm": {
-              "_input_type": "HandleInput",
-              "advanced": false,
-              "display_name": "Picture description LLM",
-              "dynamic": false,
-              "info": "If connected, the model to use for running the picture description task.",
-              "input_types": [
-                "LanguageModel"
-              ],
-              "list": false,
-              "list_add_label": "Add More",
-              "name": "pic_desc_llm",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": false,
-              "type": "other",
-              "value": ""
-            },
-            "pic_desc_prompt": {
-              "_input_type": "StrInput",
-              "advanced": true,
-              "display_name": "Picture description prompt",
-              "dynamic": false,
-              "info": "The user prompt to use when invoking the model.",
-              "list": false,
-              "list_add_label": "Add More",
-              "load_from_db": false,
-              "name": "pic_desc_prompt",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": false,
-              "type": "str",
-              "value": "Describe the image in three sentences. Be concise and accurate."
-            },
-            "pipeline": {
-              "_input_type": "DropdownInput",
-              "advanced": false,
-              "combobox": false,
-              "dialog_inputs": {},
-              "display_name": "Pipeline",
-              "dynamic": false,
-              "external_options": {},
-              "info": "Docling pipeline to use",
-              "name": "pipeline",
-              "options": [
-                "standard",
-                "vlm"
-              ],
-              "options_metadata": [],
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "toggle": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "str",
-              "value": "standard"
-            },
-            "separator": {
-              "_input_type": "StrInput",
-              "advanced": true,
-              "display_name": "Separator",
-              "dynamic": false,
-              "info": "Specify the separator to use between multiple outputs in Message format.",
-              "list": false,
-              "list_add_label": "Add More",
-              "load_from_db": false,
-              "name": "separator",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": false,
-              "type": "str",
-              "value": "\n\n"
-            },
-            "silent_errors": {
-              "_input_type": "BoolInput",
-              "advanced": true,
-              "display_name": "Silent Errors",
-              "dynamic": false,
-              "info": "If true, errors will not raise an exception.",
-              "list": false,
-              "list_add_label": "Add More",
-              "name": "silent_errors",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "bool",
-              "value": false
             }
           },
           "tool_mode": false,
@@ -123421,9 +123107,9 @@
     ]
   ],
   "metadata": {
-    "num_components": 367,
+    "num_components": 366,
     "num_modules": 99
   },
-  "sha256": "29233836f65bba47be51e68fe891a4fb6d07c43d8bb3b261b597901602c7c5e8",
+  "sha256": "5cc44cfa64f4180516f1a4dc48206ecf49fd64a2c6732472b03fa6e72c947ca5",
   "version": "26.424.1"
 }

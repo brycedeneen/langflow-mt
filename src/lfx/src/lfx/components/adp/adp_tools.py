@@ -35,9 +35,10 @@ from lfx.components.adp.adp_worker_lifecycle_tools import build_worker_lifecycle
 from lfx.components.adp.adp_worker_payroll_instructions_tools import build_worker_payroll_instructions_tools
 from lfx.components.adp.adp_worker_personal_communication_tools import build_worker_personal_communication_tools
 from lfx.components.adp.adp_worker_tools import build_worker_tools
+from lfx.custom.custom_component.changelog import ChangelogEntry
 from lfx.custom.custom_component.component import Component
 from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
-from lfx.io import HandleInput, MultiselectInput, Output
+from lfx.io import BoolInput, HandleInput, MultiselectInput, Output
 
 
 TILE_BUILDERS: dict[str, Callable[[ADPConnection, RequestCache], list[Tool]]] = {
@@ -81,8 +82,23 @@ class ADPToolsComponent(Component):
         "Pick which tile groups you want — each contributes 1-15 agent tools."
     )
     icon = "Users"
-    version: int = 1
+    version: int = 2
     documentation: str = "https://docs.langflow.org/component-adp-tools"
+    changelog: ClassVar[list[ChangelogEntry]] = [
+        ChangelogEntry(
+            version=2,
+            changes=(
+                "- Added **Raise on HTTP error (4xx/5xx)** toggle. When enabled, "
+                "tools built by this component raise an exception on non-2xx "
+                "responses from ADP instead of returning the error body as data."
+            ),
+            notes=(
+                "Off by default — existing flows keep current behavior. Turn on "
+                "so an upstream Agent (or other consumer) can react to ADP API "
+                "errors as exceptions rather than silently returning error bodies."
+            ),
+        ),
+    ]
 
     inputs: ClassVar = [
         HandleInput(
@@ -102,6 +118,16 @@ class ADPToolsComponent(Component):
                 "adds 1-15 focused agent tools. Leaving this empty exposes nothing."
             ),
         ),
+        BoolInput(
+            name="raise_on_status",
+            display_name="Raise on HTTP error (4xx/5xx)",
+            value=False,
+            info=(
+                "When enabled, tools built by this component raise an exception "
+                "on non-2xx HTTP responses from ADP instead of returning the "
+                "error body as data."
+            ),
+        ),
     ]
 
     outputs: ClassVar = [Output(display_name="Tools", name="tools", method="build_tools")]
@@ -111,7 +137,11 @@ class ADPToolsComponent(Component):
         if not selected:
             self.status = "No tile groups selected — agent will receive 0 ADP tools."
             return []
-        cache = RequestCache(ttl_seconds=30, max_entries=128)
+        cache = RequestCache(
+            ttl_seconds=30,
+            max_entries=128,
+            raise_on_status=bool(getattr(self, "raise_on_status", False)),
+        )
         tools: list[Tool] = []
         for label in selected:
             builder = TILE_BUILDERS.get(label)

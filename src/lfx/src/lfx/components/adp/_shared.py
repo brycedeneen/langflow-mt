@@ -156,11 +156,21 @@ class RequestCache:
     Reads only — writes never consult or populate this cache.
     """
 
-    def __init__(self, *, ttl_seconds: float = 30.0, max_entries: int = 128) -> None:
+    def __init__(
+        self,
+        *,
+        ttl_seconds: float = 30.0,
+        max_entries: int = 128,
+        raise_on_status: bool = False,
+    ) -> None:
         self._ttl = ttl_seconds
         self._max = max_entries
         self._entries: OrderedDict[str, _CacheEntry] = OrderedDict()
         self._locks: dict[str, asyncio.Lock] = {}
+        # When True, cached_get_json raises on 4xx/5xx instead of returning
+        # the error body as a dict. Set by ADPToolsComponent based on its
+        # raise_on_status input. Default False preserves legacy behavior.
+        self.raise_on_status = raise_on_status
 
     @staticmethod
     def make_key(method: str, url: str, query: Mapping[str, Any] | None = None) -> str:
@@ -270,6 +280,10 @@ async def cached_get_json(
                 detail = response.json()
             except ValueError:
                 detail = response.text
+            if cache.raise_on_status:
+                snippet_text = detail if isinstance(detail, str) else str(detail)[:200]
+                msg = f"HTTP {response.status_code} from {url}: {snippet_text[:200]}"
+                raise RuntimeError(msg)
             return {"error": detail, "status_code": response.status_code}
 
         try:

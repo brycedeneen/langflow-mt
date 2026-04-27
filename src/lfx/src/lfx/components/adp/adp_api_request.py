@@ -10,6 +10,7 @@ from lfx.components.adp._shared import ADPConnection, build_mtls_httpx_client, f
 from lfx.custom.custom_component.changelog import ChangelogEntry
 from lfx.custom.custom_component.component import Component
 from lfx.io import (
+    BoolInput,
     DataInput,
     DropdownInput,
     HandleInput,
@@ -45,7 +46,8 @@ class ADPAPIRequestComponent(Component):
     description = "Call ADP REST APIs using an ADPConnection. Authenticated with mTLS + Bearer token."
     icon = "Globe"
     name = "ADPAPIRequest"
-    version: int = 1
+    error_output_enabled: ClassVar[bool] = True
+    version: int = 2
     changelog: ClassVar[list[ChangelogEntry]] = [
         ChangelogEntry(
             version=1,
@@ -59,6 +61,22 @@ class ADPAPIRequestComponent(Component):
                 "- Result Mode toggle (Top 20 single page / All auto-paginated).\n"
                 "- SSRF allowlist via shared `validate_adp_url` so requests can only "
                 "target approved ADP hosts."
+            ),
+        ),
+        ChangelogEntry(
+            version=2,
+            changes=(
+                "- Added **Error** output port for retry / alert wiring through "
+                "an Error Handler component\n"
+                "- Added **Raise on HTTP error (4xx/5xx)** toggle. When enabled, "
+                "the component raises an exception on non-2xx responses instead "
+                "of returning the error body as data."
+            ),
+            notes=(
+                "Both off by default — existing flows keep current behavior. Turn "
+                "Raise-on-HTTP-error on to make the component fire its Error "
+                "output port (and trigger any connected Error Handler) on 4xx/5xx "
+                "responses."
             ),
         ),
     ]
@@ -129,6 +147,16 @@ class ADPAPIRequestComponent(Component):
             display_name="Timeout (seconds)",
             value=30,
             advanced=True,
+        ),
+        BoolInput(
+            name="raise_on_status",
+            display_name="Raise on HTTP error (4xx/5xx)",
+            value=False,
+            info=(
+                "When enabled, raises an exception on non-2xx HTTP responses "
+                "instead of returning the error body as data. Pair with the "
+                "Error output port + Error Handler to retry / alert on failures."
+            ),
         ),
     ]
 
@@ -220,6 +248,7 @@ class ADPAPIRequestComponent(Component):
                 response = await self._call_with_401_retry(
                     client, method=method, url=url, headers=headers, params=params, conn=conn, json_body=json_body,
                 )
+                self._maybe_raise_on_status(url, response)
                 return self._response_to_data(url, response)
 
         # "All" mode — auto-paginate
@@ -242,6 +271,7 @@ class ADPAPIRequestComponent(Component):
                 final_response = response
 
                 if response.status_code >= HTTP_CLIENT_ERROR_MIN:
+                    self._maybe_raise_on_status(url, response)
                     return self._response_to_data(url, response)
 
                 try:
@@ -319,3 +349,13 @@ class ADPAPIRequestComponent(Component):
         except ValueError:
             body = response.text
         return Data(data={"source": url, "status_code": response.status_code, "result": body})
+
+    def _maybe_raise_on_status(self, url: str, response: httpx.Response) -> None:
+        """Raise on 4xx/5xx when the user opted in via the raise_on_status toggle."""
+        if not getattr(self, "raise_on_status", False):
+            return
+        if response.status_code < HTTP_CLIENT_ERROR_MIN:
+            return
+        snippet = response.text[:200] + ("..." if len(response.text) > 200 else "")
+        msg = f"HTTP {response.status_code} from {url}: {snippet}"
+        raise RuntimeError(msg)
