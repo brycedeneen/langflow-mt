@@ -2,6 +2,7 @@ import { AlertCircle, MousePointer } from "lucide-react";
 import IconComponent from "@/components/common/genericIconComponent";
 import SimplifiedCodeTabComponent from "@/components/core/codeTabsComponent";
 import { Badge } from "@/components/ui/badge";
+import { formatUsdFromMicros } from "@/utils/format-currency";
 import {
   formatCost,
   formatJsonData,
@@ -35,6 +36,9 @@ export function SpanDetail({ span }: SpanDetailProps) {
   const hasInputs = Object.keys(span?.inputs || {}).length > 0;
   const hasOutputs = Object.keys(span?.outputs || {}).length > 0;
   const hasTokenUsage = span?.tokenUsage && span.tokenUsage.totalTokens > 0;
+  const hasCost =
+    span?.tokenUsage?.costMicros !== undefined &&
+    span?.tokenUsage?.costMicros !== null;
   const isLlmSpan = span?.type === "llm";
 
   const { colorClass, iconName, shouldSpin } = getStatusIconProps(span.status);
@@ -86,7 +90,11 @@ export function SpanDetail({ span }: SpanDetailProps) {
         )}
 
         {/* Metrics row */}
-        <div className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div
+          className={`mb-4 grid grid-cols-2 gap-4 ${
+            hasCost ? "sm:grid-cols-5" : "sm:grid-cols-4"
+          }`}
+        >
           <MetricCard
             label="Latency"
             value={formatTotalLatency(span.latencyMs)}
@@ -122,6 +130,13 @@ export function SpanDetail({ span }: SpanDetailProps) {
                 icon="ArrowDown"
               />
             </>
+          )}
+          {hasCost && (
+            <MetricCard
+              label="Cost"
+              value={formatUsdFromMicros(span.tokenUsage!.costMicros) ?? "\u2014"}
+              icon="DollarSign"
+            />
           )}
         </div>
 

@@ -38,12 +38,13 @@ export function TraceDetailView({ traceId, flowName }: TraceDetailViewProps) {
       inputs: trace.input ?? {},
       outputs: trace.output ?? {},
       tokenUsage:
-        trace.totalTokens > 0
+        trace.totalTokens > 0 || trace.totalCostMicros !== null
           ? {
               promptTokens: 0,
               completionTokens: 0,
               totalTokens: trace.totalTokens,
-              cost: trace.totalCost,
+              cost: 0,
+              costMicros: trace.totalCostMicros,
             }
           : undefined,
       children: trace.spans ?? [],
