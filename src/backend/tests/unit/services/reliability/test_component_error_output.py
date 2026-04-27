@@ -42,3 +42,10 @@ def test_double_injection_is_idempotent():
     component2 = _EnabledComponent()
     assert sum(1 for o in component.outputs if o.name == "error") == 1
     assert sum(1 for o in component2.outputs if o.name == "error") == 1
+
+
+def test_enabled_component_error_in_outputs_map():
+    component = _EnabledComponent()
+    assert "error" in component._outputs_map
+    assert component._outputs_map["error"].types == ["ErrorPayload"]
+    assert component._outputs_map["error"].selected == "ErrorPayload"

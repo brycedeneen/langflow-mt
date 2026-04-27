@@ -569,6 +569,7 @@ class Component(CustomComponent):
             display_name="Error",
             name="error",
             types=["ErrorPayload"],
+            selected="ErrorPayload",
             method="_emit_error_output",
         )
         self.outputs = [*self.outputs, error_output]
