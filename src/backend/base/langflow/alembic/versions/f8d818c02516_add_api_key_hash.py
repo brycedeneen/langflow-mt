@@ -78,9 +78,9 @@ def upgrade() -> None:
     conn = op.get_bind()
     inspector = sa.inspect(conn)
 
-    columns = {col["name"] for col in inspector.get_columns("api_key")}
+    columns = {col["name"] for col in inspector.get_columns("apikey")}
     if "api_key_hash" not in columns:
-        with op.batch_alter_table("api_key", schema=None) as batch_op:
+        with op.batch_alter_table("apikey", schema=None) as batch_op:
             batch_op.add_column(sa.Column("api_key_hash", sa.String(), nullable=True))
 
     # Backfill: compute hash for every existing row.
@@ -93,7 +93,7 @@ def upgrade() -> None:
         )
     else:
         fernet = Fernet(_ensure_valid_key(secret_key))
-        rows = conn.execute(sa.text("SELECT id, api_key FROM api_key WHERE api_key_hash IS NULL")).all()
+        rows = conn.execute(sa.text("SELECT id, api_key FROM apikey WHERE api_key_hash IS NULL")).all()
 
         backfilled = 0
         skipped = 0
@@ -122,7 +122,7 @@ def upgrade() -> None:
 
             digest = _compute_hash(raw, secret_key)
             conn.execute(
-                sa.text("UPDATE api_key SET api_key_hash = :h WHERE id = :id"),
+                sa.text("UPDATE apikey SET api_key_hash = :h WHERE id = :id"),
                 {"h": digest, "id": row.id},
             )
             backfilled += 1
@@ -135,11 +135,11 @@ def upgrade() -> None:
             )
 
     # Create the unique index after backfill so duplicates surface here, not later.
-    indexes = {ix["name"] for ix in inspector.get_indexes("api_key")}
-    if "ix_api_key_api_key_hash" not in indexes:
-        with op.batch_alter_table("api_key", schema=None) as batch_op:
+    indexes = {ix["name"] for ix in inspector.get_indexes("apikey")}
+    if "ix_apikey_api_key_hash" not in indexes:
+        with op.batch_alter_table("apikey", schema=None) as batch_op:
             batch_op.create_index(
-                batch_op.f("ix_api_key_api_key_hash"),
+                batch_op.f("ix_apikey_api_key_hash"),
                 ["api_key_hash"],
                 unique=True,
             )
@@ -149,12 +149,12 @@ def downgrade() -> None:
     conn = op.get_bind()
     inspector = sa.inspect(conn)
 
-    indexes = {ix["name"] for ix in inspector.get_indexes("api_key")}
-    if "ix_api_key_api_key_hash" in indexes:
-        with op.batch_alter_table("api_key", schema=None) as batch_op:
-            batch_op.drop_index(batch_op.f("ix_api_key_api_key_hash"))
+    indexes = {ix["name"] for ix in inspector.get_indexes("apikey")}
+    if "ix_apikey_api_key_hash" in indexes:
+        with op.batch_alter_table("apikey", schema=None) as batch_op:
+            batch_op.drop_index(batch_op.f("ix_apikey_api_key_hash"))
 
-    columns = {col["name"] for col in inspector.get_columns("api_key")}
+    columns = {col["name"] for col in inspector.get_columns("apikey")}
     if "api_key_hash" in columns:
-        with op.batch_alter_table("api_key", schema=None) as batch_op:
+        with op.batch_alter_table("apikey", schema=None) as batch_op:
             batch_op.drop_column("api_key_hash")
