@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Query
 from lfx.log import logger
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -69,7 +70,9 @@ def _version_to_read_full(entry: FlowVersion, *, strip_keys: bool = False) -> Fl
 
 async def _get_org_flow(session: AsyncSession, flow_id: UUID, organization_id: UUID) -> Flow:
     result = await session.exec(
-        select(Flow).where(Flow.id == flow_id, Flow.organization_id == organization_id)
+        select(Flow)
+        .options(selectinload(Flow.tags))
+        .where(Flow.id == flow_id, Flow.organization_id == organization_id)
     )
     flow = result.first()
     if not flow:

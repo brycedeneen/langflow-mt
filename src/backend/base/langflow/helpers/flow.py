@@ -6,7 +6,7 @@ from uuid import UUID
 from fastapi import HTTPException
 from lfx.log.logger import logger
 from pydantic.v1 import BaseModel, Field, create_model
-from sqlalchemy.orm import aliased
+from sqlalchemy.orm import aliased, selectinload
 from sqlmodel import asc, desc, select
 
 from langflow.schema.schema import INPUT_FIELD_NAME
@@ -414,10 +414,14 @@ async def get_flow_by_id_or_endpoint_name(flow_id_or_name: str, user_id: str | U
     async with session_scope() as session:
         try:
             flow_id = UUID(flow_id_or_name)
-            flow = await session.get(Flow, flow_id)
+            flow = await session.get(Flow, flow_id, options=[selectinload(Flow.tags)])
         except ValueError:
             endpoint_name = flow_id_or_name
-            stmt = select(Flow).where(Flow.endpoint_name == endpoint_name)
+            stmt = (
+                select(Flow)
+                .options(selectinload(Flow.tags))
+                .where(Flow.endpoint_name == endpoint_name)
+            )
             if user_id:
                 uuid_user_id = UUID(user_id) if isinstance(user_id, str) else user_id
                 org_id = (
