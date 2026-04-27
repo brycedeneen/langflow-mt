@@ -19,6 +19,7 @@ export interface TokenUsage {
   completionTokens: number;
   totalTokens: number;
   cost: number;
+  costMicros?: number | null;
 }
 
 export interface Span {
@@ -45,7 +46,7 @@ export interface Trace {
   endTime?: string;
   totalLatencyMs: number;
   totalTokens: number;
-  totalCost: number;
+  totalCostMicros: number | null;
   flowId: string;
   sessionId: string;
   input: Record<string, unknown> | null;

@@ -83,7 +83,7 @@ function convertTrace(apiTrace: TraceApiResponse): Trace | null {
     endTime: apiTrace.endTime,
     totalLatencyMs: apiTrace.totalLatencyMs,
     totalTokens: apiTrace.totalTokens,
-    totalCost: apiTrace.totalCost,
+    totalCostMicros: apiTrace.totalCostMicros,
     flowId: apiTrace.flowId,
     sessionId: apiTrace.sessionId,
     input: apiTrace.input,

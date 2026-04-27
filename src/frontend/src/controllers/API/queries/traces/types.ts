@@ -14,7 +14,7 @@ export interface TraceListItem {
   endTime?: string;
   totalLatencyMs: number;
   totalTokens: number;
-  totalCost: number;
+  totalCostMicros: number | null;
   flowId: string;
   sessionId?: string;
   input: Record<string, unknown> | null;
@@ -39,7 +39,7 @@ export interface TraceApiResponse {
   endTime?: string;
   totalLatencyMs: number;
   totalTokens: number;
-  totalCost: number;
+  totalCostMicros: number | null;
   flowId: string;
   sessionId: string;
   input: Record<string, unknown> | null;

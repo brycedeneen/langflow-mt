@@ -59,7 +59,7 @@ describe("TraceDetailView", () => {
       endTime: "2024-01-01T00:00:01Z",
       totalLatencyMs: 1234,
       totalTokens: 0,
-      totalCost: 0,
+      totalCostMicros: null,
       flowId: "flow-1",
       sessionId: "session-1",
       input: { input_value: "hello" },
