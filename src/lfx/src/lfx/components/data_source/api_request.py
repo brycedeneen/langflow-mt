@@ -51,8 +51,9 @@ class APIRequestComponent(Component):
     documentation: str = "https://docs.langflow.org/api-request"
     icon = "Globe"
     name = "APIRequest"
+    error_output_enabled: ClassVar[bool] = True
 
-    version: int = 2
+    version: int = 3
     changelog: ClassVar[list[ChangelogEntry]] = [
         ChangelogEntry(
             version=1,
@@ -83,6 +84,18 @@ class APIRequestComponent(Component):
                 "empty — re-enter the PEM (paste or upload) to restore the "
                 "connection. Paste or upload both the cert and the key in the new "
                 "fields; content is stored encrypted in the DB, not on disk."
+            ),
+        ),
+        ChangelogEntry(
+            version=3,
+            changes=(
+                "- Added **Error** output port for retry / alert wiring through "
+                "an Error Handler component"
+            ),
+            notes=(
+                "Existing flows are unaffected — the error port is unwired by "
+                "default. Connect it to an Error Handler to retry the request "
+                "with backoff and dispatch alerts on exhaustion."
             ),
         ),
     ]
