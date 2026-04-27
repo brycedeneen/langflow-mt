@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+import logging
 from typing import ClassVar
+from uuid import UUID
+
+from langflow.services.database.models.admin_notification import NotificationAudience
+from langflow.services.notifier.protocol import UsageAlertEvent, UsageAlertNotifier
 
 from lfx.custom.custom_component.component import Component
 from lfx.field_typing import ErrorPayload  # noqa: F401  (registered for type validator)
@@ -24,6 +29,41 @@ _DEFAULT_BODY_TEMPLATE = (
     "**Attempt:** {attempt_number}\n\n"
     "```\n{stack_trace}\n```"
 )
+
+logger = logging.getLogger(__name__)
+
+
+def _resolve_audience(
+    bell_audience: str,
+    flow_owner_id: UUID,
+    specific_user_id: UUID | None,
+) -> tuple[NotificationAudience, UUID | None]:
+    if bell_audience == "Flow owner":
+        return NotificationAudience.PLATFORM_ADMIN, flow_owner_id
+    if bell_audience == "Org admins":
+        return NotificationAudience.PLATFORM_ADMIN, None
+    if bell_audience == "Specific user":
+        return NotificationAudience.PLATFORM_ADMIN, specific_user_id
+    msg = f"Unknown bell_audience: {bell_audience!r}"
+    raise ValueError(msg)
+
+
+def _render_template(
+    template: str,
+    payload: ErrorPayload,
+    *,
+    flow_name: str,
+    org_name: str,
+) -> str:
+    return template.format(
+        flow_name=flow_name,
+        org_name=org_name,
+        component_name=payload.component_display_name,
+        error_type=payload.error_type,
+        error_message=payload.error_message,
+        attempt_number=payload.attempt_number,
+        stack_trace=payload.stack_trace,
+    )
 
 
 class ErrorHandler(Component):
@@ -130,3 +170,60 @@ class ErrorHandler(Component):
         """
         msg = "ErrorHandler.on_error_exhausted is wired by the runtime; do not invoke directly"
         raise NotImplementedError(msg)
+
+    async def dispatch_alert(
+        self,
+        *,
+        payload: ErrorPayload,
+        notifier: UsageAlertNotifier,
+        flow_owner_id: UUID,
+        org_id: UUID,
+        flow_name: str,
+        org_name: str,
+    ) -> None:
+        """Dispatch the configured alert. Best-effort — exceptions are logged and swallowed."""
+        if self.alert_mode == "Ignore":
+            return
+
+        # Email (Not Implemented) falls through to Bell in v1.
+        if self.alert_mode == "Email (Not Implemented)":
+            logger.warning(
+                "ErrorHandler email mode is not implemented; falling through to Bell."
+            )
+
+        try:
+            specific_id = (
+                UUID(self.bell_specific_user_id) if self.bell_specific_user_id else None
+            )
+        except (ValueError, AttributeError):
+            specific_id = None
+
+        try:
+            audience, audience_user_id = _resolve_audience(
+                self.bell_audience, flow_owner_id, specific_id
+            )
+            title = _render_template(
+                self.alert_title_template, payload,
+                flow_name=flow_name, org_name=org_name,
+            )
+            body = _render_template(
+                self.alert_body_template, payload,
+                flow_name=flow_name, org_name=org_name,
+            )
+            event = UsageAlertEvent(
+                category="flow_error",
+                severity="error",
+                org_id=org_id,
+                title=title,
+                body_md=body,
+                metadata={
+                    "vertex_id": payload.component_id,
+                    "attempt_number": payload.attempt_number,
+                    "error_type": payload.error_type,
+                },
+                audience=audience,
+                audience_user_id=audience_user_id,
+            )
+            await notifier.notify(event)
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("ErrorHandler alert dispatch failed: %s", exc)

@@ -35,3 +35,167 @@ def test_error_handler_does_not_inject_error_output():
     component = ErrorHandler()
     output_names = {o.name for o in component.outputs}
     assert "error" not in output_names
+
+
+import pytest
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock
+from uuid import uuid4
+
+from lfx.schema.error_payload import ErrorPayload
+
+
+@pytest.mark.asyncio
+async def test_dispatch_alert_bell_flow_owner():
+    from lfx.components.reliability.error_handler import ErrorHandler
+    from langflow.services.database.models.admin_notification import (
+        NotificationAudience,
+    )
+
+    notifier = MagicMock()
+    notifier.notify = AsyncMock()
+    flow_owner_id = uuid4()
+    org_id = uuid4()
+
+    component = ErrorHandler()
+    component.alert_mode = "Bell"
+    component.bell_audience = "Flow owner"
+    component.alert_title_template = "Flow '{flow_name}' failed at {component_name}"
+    component.alert_body_template = "{error_message}"
+
+    payload = ErrorPayload(
+        error_message="boom",
+        error_type="ValueError",
+        stack_trace="...",
+        component_id="vtx-1",
+        component_display_name="HTTP Request",
+        flow_id=uuid4(),
+        flow_run_id=uuid4(),
+        attempt_number=3,
+        occurred_at=datetime.now(timezone.utc),
+    )
+
+    await component.dispatch_alert(
+        payload=payload,
+        notifier=notifier,
+        flow_owner_id=flow_owner_id,
+        org_id=org_id,
+        flow_name="my-flow",
+        org_name="acme",
+    )
+
+    notifier.notify.assert_awaited_once()
+    event = notifier.notify.call_args.args[0]
+    assert event.category == "flow_error"
+    assert event.severity == "error"
+    assert event.org_id == org_id
+    assert event.audience == NotificationAudience.PLATFORM_ADMIN
+    assert event.audience_user_id == flow_owner_id
+    assert event.title == "Flow 'my-flow' failed at HTTP Request"
+    assert "boom" in event.body_md
+
+
+@pytest.mark.asyncio
+async def test_dispatch_alert_ignore_does_not_call_notifier():
+    from lfx.components.reliability.error_handler import ErrorHandler
+
+    notifier = MagicMock()
+    notifier.notify = AsyncMock()
+
+    component = ErrorHandler()
+    component.alert_mode = "Ignore"
+    payload = ErrorPayload(
+        error_message="boom",
+        error_type="ValueError",
+        stack_trace="",
+        component_id="x",
+        component_display_name="x",
+        flow_id=uuid4(),
+        flow_run_id=uuid4(),
+        attempt_number=1,
+    )
+
+    await component.dispatch_alert(
+        payload=payload,
+        notifier=notifier,
+        flow_owner_id=uuid4(),
+        org_id=uuid4(),
+        flow_name="f",
+        org_name="o",
+    )
+
+    notifier.notify.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_dispatch_alert_email_falls_through_to_bell():
+    from lfx.components.reliability.error_handler import ErrorHandler
+
+    notifier = MagicMock()
+    notifier.notify = AsyncMock()
+
+    component = ErrorHandler()
+    component.alert_mode = "Email (Not Implemented)"
+    component.bell_audience = "Org admins"
+    component.alert_title_template = "x"
+    component.alert_body_template = "y"
+    payload = ErrorPayload(
+        error_message="boom",
+        error_type="ValueError",
+        stack_trace="",
+        component_id="x",
+        component_display_name="x",
+        flow_id=uuid4(),
+        flow_run_id=uuid4(),
+        attempt_number=1,
+    )
+
+    await component.dispatch_alert(
+        payload=payload,
+        notifier=notifier,
+        flow_owner_id=uuid4(),
+        org_id=uuid4(),
+        flow_name="f",
+        org_name="o",
+    )
+
+    # Falls through to Bell.
+    notifier.notify.assert_awaited_once()
+    from langflow.services.database.models.admin_notification import NotificationAudience
+    event = notifier.notify.call_args.args[0]
+    assert event.audience == NotificationAudience.PLATFORM_ADMIN
+    assert event.audience_user_id is None  # Org admins = no specific user
+
+
+@pytest.mark.asyncio
+async def test_dispatch_alert_swallows_notifier_exceptions():
+    from lfx.components.reliability.error_handler import ErrorHandler
+
+    notifier = MagicMock()
+    notifier.notify = AsyncMock(side_effect=RuntimeError("DB down"))
+
+    component = ErrorHandler()
+    component.alert_mode = "Bell"
+    component.bell_audience = "Flow owner"
+    component.alert_title_template = "x"
+    component.alert_body_template = "y"
+    payload = ErrorPayload(
+        error_message="boom",
+        error_type="ValueError",
+        stack_trace="",
+        component_id="x",
+        component_display_name="x",
+        flow_id=uuid4(),
+        flow_run_id=uuid4(),
+        attempt_number=1,
+    )
+
+    # Should not re-raise — alert dispatch is best-effort.
+    await component.dispatch_alert(
+        payload=payload,
+        notifier=notifier,
+        flow_owner_id=uuid4(),
+        org_id=uuid4(),
+        flow_name="f",
+        org_name="o",
+    )
