@@ -121,6 +121,10 @@ class Component(CustomComponent):
     version: int = 0
     changelog: ClassVar[list[ChangelogEntry]] = []
 
+    # Set to True in a subclass to automatically append an `error` output port.
+    # See docs/superpowers/specs/2026-04-27-component-error-output-design.md
+    error_output_enabled: ClassVar[bool] = False
+
     def __init_subclass__(cls, **kwargs) -> None:
         super().__init_subclass__(**kwargs)
         validate_changelog(cls)
@@ -186,6 +190,7 @@ class Component(CustomComponent):
         if self.inputs is not None:
             self.map_inputs(self.inputs)
         self.map_outputs()
+        self._maybe_inject_error_output()
 
         # Final setup
         self._set_output_types(list(self._outputs_map.values()))
@@ -547,6 +552,37 @@ class Component(CustomComponent):
             # Deepcopy is required to avoid modifying the original component;
             # allows each instance of each component to modify its own output
             self._outputs_map[output.name] = deepcopy(output)
+
+    def _maybe_inject_error_output(self) -> None:
+        """Append an `error` Output when the component opts in via ClassVar.
+
+        Called during __init__ after map_outputs() so self.outputs and
+        self._outputs_map are both fully populated. Idempotent: skips injection
+        if an output named 'error' already exists.
+        """
+        if not getattr(type(self), "error_output_enabled", False):
+            return
+        if any(o.name == "error" for o in self.outputs):
+            return
+        # Avoid mutating a shared class-level list.
+        error_output = Output(
+            display_name="Error",
+            name="error",
+            types=["ErrorPayload"],
+            method="_emit_error_output",
+        )
+        self.outputs = [*self.outputs, error_output]
+        self._outputs_map["error"] = deepcopy(error_output)
+
+    def _emit_error_output(self):
+        """Stub — the runtime fires this edge directly; the method is unused.
+
+        The runtime in Task 9 catches the exception before normal output execution
+        and routes it to the error port directly. This stub is a defensive guard
+        against future refactors accidentally calling this method.
+        """
+        msg = "error output is fired by the runtime, not invoked directly"
+        raise NotImplementedError(msg)
 
     def map_inputs(self, inputs: list[InputTypes]) -> None:
         """Maps the given inputs to the component.
