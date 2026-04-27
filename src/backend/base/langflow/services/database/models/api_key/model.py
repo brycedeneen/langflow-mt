@@ -28,6 +28,10 @@ class ApiKey(ApiKeyBase, table=True):  # type: ignore[call-arg]
         default=None, sa_column=Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     )
     api_key: str = Field(index=True, unique=True)
+    # HMAC-SHA256 of the raw key (keyed by SECRET_KEY); enables O(1) lookup on
+    # the auth path without decrypting the ciphertext. Nullable only to support
+    # the migration window — backfilled by the alembic migration.
+    api_key_hash: str | None = Field(default=None, index=True, unique=True)
     # User relationship
     # Delete API keys when user is deleted
     user_id: UUIDstr = Field(index=True, foreign_key="user.id")

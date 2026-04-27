@@ -57,6 +57,7 @@ async def create_api_key(
     settings_service = get_settings_service()
 
     stored_api_key = auth_utils.encrypt_api_key(generated_api_key, settings_service=settings_service)
+    api_key_hash = auth_utils.compute_api_key_hash(generated_api_key, settings_service=settings_service)
 
     if organization_id is None:
         from langflow.services.database.models.user.helpers import resolve_user_organization_id
@@ -65,6 +66,7 @@ async def create_api_key(
 
     api_key = ApiKey(
         api_key=stored_api_key,
+        api_key_hash=api_key_hash,
         name=api_key_create.name,
         user_id=user_id,
         organization_id=organization_id,
@@ -110,43 +112,38 @@ async def check_key(session: AsyncSession, api_key: str) -> User | None:
 
 
 async def _check_key_from_db(session: AsyncSession, api_key: str, settings_service) -> User | None:
-    """Validate API key against the database."""
-    query = select(ApiKey.id, ApiKey.api_key, ApiKey.user_id)
-    rows = (await session.exec(query)).all()  # list of tuples (id, api_key, user_id)
+    """Validate API key against the database via O(1) HMAC lookup.
 
-    if not rows:
+    The HMAC-SHA256 of the raw key (keyed by ``SECRET_KEY``) is treated as the
+    authoritative match. There is no secondary Fernet-decrypt verification — the
+    alembic migration that added ``api_key_hash`` backfilled hashes for every
+    pre-existing row (both Fernet ciphertext and legacy plaintext), so any row
+    without a hash either failed to decrypt during backfill (manual remediation)
+    or pre-dates the migration on a database that never ran it.
+    """
+    if not api_key:
         return None
 
-    fernet = auth_utils.get_fernet(settings_service)
+    expected_hash = auth_utils.compute_api_key_hash(api_key, settings_service=settings_service)
 
-    for api_key_id, stored_value, user_id in rows:
-        if stored_value is None:
-            continue
+    query = select(ApiKey.id, ApiKey.user_id).where(ApiKey.api_key_hash == expected_hash)
+    row = (await session.exec(query)).first()
 
-        if stored_value == api_key:
-            matched = True
-        else:
-            try:
-                candidate = auth_utils.decrypt_api_key(
-                    stored_value, settings_service=settings_service, fernet_obj=fernet
-                )
-            except (ValueError, TypeError, InvalidToken):
-                candidate = stored_value
-            matched = candidate == api_key
+    if row is None:
+        return None
 
-        if matched:
-            if settings_service.settings.disable_track_apikey_usage is not True:
-                await session.exec(
-                    update(ApiKey)
-                    .where(ApiKey.id == api_key_id)
-                    .values(
-                        total_uses=ApiKey.total_uses + 1,
-                        last_used_at=datetime.datetime.now(datetime.timezone.utc),
-                    )
-                )
-            return await session.get(User, user_id)
+    api_key_id, user_id = row
 
-    return None
+    if settings_service.settings.disable_track_apikey_usage is not True:
+        await session.exec(
+            update(ApiKey)
+            .where(ApiKey.id == api_key_id)
+            .values(
+                total_uses=ApiKey.total_uses + 1,
+                last_used_at=datetime.datetime.now(datetime.timezone.utc),
+            )
+        )
+    return await session.get(User, user_id)
 
 
 async def _check_key_from_env(session: AsyncSession, api_key: str, settings_service) -> User | None:
