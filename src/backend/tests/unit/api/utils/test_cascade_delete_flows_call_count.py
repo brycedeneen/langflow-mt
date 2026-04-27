@@ -10,8 +10,8 @@ and assert the round-trip count drops from ``O(N)`` to ``O(chunks)``.
 The recording fake returns *no rows* on the trace SELECT (see
 ``_RecordingSession`` below) — that mirrors the typical production case
 where most flows are never traced, so the conditional span DELETE inside
-``_cascade_delete_flow_chunk`` is skipped. Result: a constant 7 statements
-per chunk (4 child DELETEs + trace SELECT + trace DELETE + flow DELETE).
+``_cascade_delete_flow_chunk`` is skipped. Result: a constant 8 statements
+per chunk (5 child DELETEs + trace SELECT + trace DELETE + flow DELETE).
 
 The helper imports here are the same surface ``cascade_delete_flow`` /
 ``cascade_delete_flows`` covered by the behavioral suite next door
@@ -85,15 +85,16 @@ class _RecordingSession:
 
 
 # Per chunk (<= _CASCADE_DELETE_BATCH_SIZE=500 ids) with no traces:
-#   1. DELETE FROM message    WHERE flow_id IN (...)
-#   2. DELETE FROM transaction WHERE flow_id IN (...)
+#   1. DELETE FROM message      WHERE flow_id IN (...)
+#   2. DELETE FROM transaction  WHERE flow_id IN (...)
 #   3. DELETE FROM vertex_build WHERE flow_id IN (...)
-#   4. DELETE FROM flow_version WHERE flow_id IN (...)
-#   5. SELECT trace.id FROM trace WHERE flow_id IN (...)   (returns empty)
-#   6. DELETE FROM trace      WHERE flow_id IN (...)
-#   7. DELETE FROM flow       WHERE id      IN (...)
-# = 7 statements per chunk.
-_CALLS_PER_CHUNK_NO_TRACES = 7
+#   4. DELETE FROM flow_run     WHERE flow_id IN (...)   ← added when FlowRun landed (Task 4)
+#   5. DELETE FROM flow_version WHERE flow_id IN (...)
+#   6. SELECT trace.id FROM trace WHERE flow_id IN (...)   (returns empty)
+#   7. DELETE FROM trace        WHERE flow_id IN (...)
+#   8. DELETE FROM flow         WHERE id      IN (...)
+# = 8 statements per chunk.
+_CALLS_PER_CHUNK_NO_TRACES = 8
 
 
 @pytest.mark.parametrize("n_flows", [1, 10, 50, 100])

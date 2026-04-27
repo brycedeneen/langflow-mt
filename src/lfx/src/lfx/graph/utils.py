@@ -205,6 +205,26 @@ async def emit_vertex_build_event(
         logger.debug(f"SSE emission failed for vertex {vertex_id}: {exc}")
 
 
+async def emit_run_event(flow_id: str | UUID, event_name: str, data: dict) -> None:
+    """Emit a run-scoped SSE event (not tied to a vertex build result).
+
+    Used for retry lifecycle events: vertex.retrying, vertex.retry_succeeded,
+    vertex.retry_exhausted.  Errors are silently swallowed — SSE is best-effort.
+    """
+    try:
+        from langflow.services.event_manager import webhook_event_manager
+
+        flow_id_str = str(flow_id)
+        if not webhook_event_manager.has_listeners(flow_id_str):
+            return
+
+        await webhook_event_manager.emit(flow_id_str, event_name, data)
+    except ImportError:
+        pass  # langflow not available (standalone lfx usage)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug(f"SSE run-event emission failed (event={event_name}): {exc}")
+
+
 async def emit_build_start_event(flow_id: str | UUID, vertex_id: str) -> None:
     """Emit build_start event for webhook real-time feedback.
 

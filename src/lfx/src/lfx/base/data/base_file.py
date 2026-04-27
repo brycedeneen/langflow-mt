@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 from zipfile import ZipFile, is_zipfile
 
 import orjson
@@ -34,6 +34,8 @@ class BaseFileComponent(Component, ABC):
 
     # TODO: May want to subclass for local and remote files
     """
+
+    error_output_enabled: ClassVar[bool] = True
 
     class BaseFile:
         """Internal class to represent a file with additional metadata."""

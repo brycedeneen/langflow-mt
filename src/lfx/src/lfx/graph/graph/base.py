@@ -98,6 +98,7 @@ class Graph:
         self._sorted_vertices_layers: list[list[str]] = []
         self._run_id = ""
         self._session_id = ""
+        self._handled_errors: list[dict] = []  # in-memory list for test introspection
         self._start_time = datetime.now(timezone.utc)
         self.inactivated_vertices: set = set()
         self.activated_vertices: list[str] = []
@@ -658,6 +659,7 @@ class Graph:
             run_id = uuid.uuid4()
 
         self._run_id = str(run_id)
+        self._handled_errors = []
 
     async def initialize_run(self) -> None:
         if not self._run_id:
@@ -2535,6 +2537,15 @@ class Graph:
         from lfx.schema.error_payload import build_error_payload
 
         failing_vertex = self.get_vertex(vertex_id)
+
+        # ── Cycle guard (entry) ───────────────────────────────────────────────
+        # If the FAILING vertex is itself an ErrorHandler, do NOT attempt to
+        # route via an error edge.  Allowing that would create handler-handles-
+        # handler recursion.  The run must surface the failure as-is.
+        if isinstance(failing_vertex.custom_component, ErrorHandler):
+            return None  # fall through → caller re-raises the original exception
+        # ─────────────────────────────────────────────────────────────────────
+
         error_edge = self._find_error_edge(failing_vertex)
         if error_edge is None:
             return None  # no error port connected → fall through to raise
@@ -2593,16 +2604,33 @@ class Graph:
             component_id=vertex_id,
             component_display_name=failing_vertex.display_name,
             flow_id=self.flow_id or uuid.UUID(int=0),
-            flow_run_id=uuid.UUID(self._run_id) if self._run_id else uuid.UUID(int=0),
+            flow_run_id=uuid.UUID(self._run_id) if self._run_id else None,
             attempt_number=attempt_number,
         )
 
         # Suppress the failing vertex's normal-output successors.
         self._suppress_normal_successors(vertex_id)
 
-        # Invoke the ErrorHandler and collect its VertexBuildResult.
-        handler_vbr = await self._invoke_error_handler(handler_vertex, handler_component, payload)
-        await self._record_handled_error(payload)  # Task 10 will implement
+        # ── Cycle guard (invocation) ──────────────────────────────────────────
+        # If the ErrorHandler itself raises during invocation (e.g. its build
+        # raises beyond what _invoke_error_handler's inner try/except catches),
+        # we must NOT treat that as a successful "handled" event.  Catch the
+        # exception, log it, and return None so the caller re-raises the
+        # original component failure.
+        try:
+            handler_vbr = await self._invoke_error_handler(handler_vertex, handler_component, payload)
+        except Exception as handler_exc:  # noqa: BLE001
+            await logger.aexception(
+                "ErrorHandler %s raised during invocation; flow will fail. "
+                "Original error: %s; handler error: %s",
+                handler_vertex.id,
+                exc,
+                handler_exc,
+            )
+            return None  # caller will re-raise the original `exc`
+        # ─────────────────────────────────────────────────────────────────────
+
+        await self._record_handled_error(payload)
         return [handler_vbr] if handler_vbr is not None else []
 
     def _find_error_edge(self, vertex: Vertex) -> CycleEdge | None:
@@ -2793,8 +2821,65 @@ class Graph:
             )
 
     async def _emit_sse_event(self, event_name: str, data: dict) -> None:
-        """Emit an SSE event for the current flow run. Wired up in Task 11."""
-        # Stub for now; Task 11 wires this to the actual SSE bus.
+        """Emit a run-scoped SSE event to the webhook event bus (best-effort).
+
+        Sends retry lifecycle events (vertex.retrying, vertex.retry_succeeded,
+        vertex.retry_exhausted) to the same channel the frontend subscribes to
+        for real-time run updates.  Failures are swallowed so a bus hiccup can
+        never cascade into a flow failure.
+        """
+        try:
+            from lfx.graph.utils import emit_run_event
+
+            flow_id = self.flow_id
+            if flow_id is None:
+                return
+            await emit_run_event(flow_id, event_name, data)
+        except Exception as exc:  # noqa: BLE001
+            logger.debug(
+                "SSE event emission failed (event=%s): %s", event_name, exc
+            )
 
     async def _record_handled_error(self, payload: Any) -> None:
-        """Append to FlowRun.error['handled_errors']. Implemented in Task 10."""
+        """Append payload to FlowRun.error['handled_errors'] and to in-memory list.
+
+        Best-effort: a DB failure here must NOT cascade into a flow run failure.
+        The in-memory list (_handled_errors) is always updated so the worker
+        can detect PARTIAL_SUCCESS even if the DB write fails.
+        """
+        handled_entry = {
+            "component_id": payload.component_id,
+            "component_display_name": payload.component_display_name,
+            "error_type": payload.error_type,
+            "error_message": payload.error_message,
+            "stack_trace": payload.stack_trace,
+            "attempts": payload.attempt_number,
+            "alerted": True,
+            "occurred_at": payload.occurred_at.isoformat(),
+        }
+
+        # Always track in-memory so the worker can detect PARTIAL_SUCCESS.
+        self._handled_errors.append(handled_entry)
+
+        if not self._run_id:
+            return  # No flow_run row to update (test path or unattributed run).
+
+        try:
+            from langflow.services.database.models.flow_run.model import FlowRun
+            from lfx.services.deps import session_scope
+
+            async with session_scope() as session:
+                run = await session.get(FlowRun, payload.flow_run_id)
+                if run is None:
+                    return
+                existing = dict(run.error or {})
+                handled_list = list(existing.get("handled_errors", []))
+                handled_list.append(handled_entry)
+                existing["handled_errors"] = handled_list
+                run.error = existing
+                # session_scope auto-commits on exit
+        except Exception as exc:  # noqa: BLE001
+            # Best-effort persistence — failing to record handled errors must not fail the run.
+            logger.exception(
+                "Failed to record handled error for run %s: %s", self._run_id, exc
+            )

@@ -113,7 +113,9 @@ class TestCugaComponent(ComponentTestBaseWithoutClient):
         assert component.display_name == "Cuga"
         assert component.name == "Cuga"
         assert len(component.inputs) > 0
-        assert len(component.outputs) == 1
+        # CugaComponent defines 1 normal output ("response"); the error-output
+        # feature auto-injects a second error port, so the total must be exactly 2.
+        assert len(component.outputs) == 2
 
     async def test_frontend_node_structure(self, component_class, default_kwargs):
         """Test that frontend node has correct structure with filtered inputs.

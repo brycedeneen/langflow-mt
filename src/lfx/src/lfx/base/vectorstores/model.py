@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from functools import wraps
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from lfx.custom.custom_component.component import Component
 from lfx.field_typing import Text, VectorStore
@@ -39,6 +39,7 @@ def check_cached_vector_store(f):
 
 
 class LCVectorStoreComponent(Component):
+    error_output_enabled: ClassVar[bool] = True
     # Used to ensure a single vector store is built for each run of the flow
     _cached_vector_store: VectorStore | None = None
 

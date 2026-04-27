@@ -223,11 +223,17 @@ export type FlowStoreType = {
     verticesToRun: string[];
   } | null;
   updateBuildStatus: (nodeIdList: string[], status: BuildStatus) => void;
+  updateRetryStatus: (
+    vertexId: string,
+    status: BuildStatus,
+    retryMeta?: { retry_number?: number; max_retries?: number },
+  ) => void;
   revertBuiltStatusFromBuilding: () => void;
   flowBuildStatus: {
     [key: string]: {
       status: BuildStatus;
       timestamp?: string;
+      retryMeta?: { retry_number?: number; max_retries?: number };
     };
   };
   updateFlowPool: (

@@ -66,10 +66,10 @@ class TestFlowToolComponent(ComponentTestBaseWithClient):
     async def test_outputs_configuration(self, component_class, default_kwargs):
         """Test that outputs are properly configured."""
         component = await self.component_setup(component_class, default_kwargs)
-        assert len(component.outputs) == 1
+        output_names = {o.name for o in component.outputs}
+        assert "api_build_tool" in output_names
 
-        output = component.outputs[0]
-        assert output.name == "api_build_tool"
+        output = next(o for o in component.outputs if o.name == "api_build_tool")
         assert output.display_name == "Tool"
         assert output.method == "build_tool"
 

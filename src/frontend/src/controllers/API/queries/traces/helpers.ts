@@ -21,6 +21,7 @@ const VALID_SPAN_STATUSES: ReadonlySet<SpanStatus> = new Set<SpanStatus>([
   "unset",
   "ok",
   "error",
+  "partial_success",
 ]);
 
 export function parseSpanType(value: string): SpanType {

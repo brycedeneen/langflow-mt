@@ -774,6 +774,36 @@ async function onEvent(
     case "build_end":
       useFlowStore.getState().updateBuildStatus([data.id], BuildStatus.BUILT);
       break;
+    case "vertex.retrying": {
+      const { vertex_id, retry_number, max_retries } = data ?? {};
+      if (vertex_id) {
+        useFlowStore
+          .getState()
+          .updateRetryStatus(vertex_id, BuildStatus.RETRYING, {
+            retry_number,
+            max_retries,
+          });
+      }
+      return true;
+    }
+    case "vertex.retry_succeeded": {
+      const { vertex_id } = data ?? {};
+      if (vertex_id) {
+        useFlowStore
+          .getState()
+          .updateRetryStatus(vertex_id, BuildStatus.BUILT);
+      }
+      return true;
+    }
+    case "vertex.retry_exhausted": {
+      const { vertex_id } = data ?? {};
+      if (vertex_id) {
+        useFlowStore
+          .getState()
+          .updateRetryStatus(vertex_id, BuildStatus.RETRY_EXHAUSTED);
+      }
+      return true;
+    }
     default:
       return true;
   }

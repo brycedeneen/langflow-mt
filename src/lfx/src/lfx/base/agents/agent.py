@@ -2,7 +2,7 @@ import os
 import re
 import uuid
 from abc import abstractmethod
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, ClassVar, cast
 
 from langchain_classic.agents import AgentExecutor, BaseMultiActionAgent, BaseSingleActionAgent
 from langchain_classic.agents.agent import RunnableAgent
@@ -47,6 +47,7 @@ DEFAULT_AGENT_NAME = "Agent ({tools_names})"
 
 class LCAgentComponent(Component):
     trace_type = "agent"
+    error_output_enabled: ClassVar[bool] = True
     _base_inputs: list[InputTypes] = [
         MessageInput(
             name="input_value",

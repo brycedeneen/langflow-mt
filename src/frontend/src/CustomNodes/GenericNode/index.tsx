@@ -26,11 +26,13 @@ import useUpdateNodeCode from "../hooks/use-update-node-code";
 import NodeDescription from "./components/NodeDescription";
 import NodeLegacyComponent from "./components/NodeLegacyComponent";
 import NodeName from "./components/NodeName";
+import ErrorOutputPort from "./components/ErrorOutputPort";
 import NodeOutputs from "./components/NodeOutputParameter/NodeOutputs";
 import NodeUpdateComponent from "./components/NodeUpdateComponent";
 import RenderInputParameters from "./components/RenderInputParameters";
 import { NodeIcon } from "./components/nodeIcon";
 import { useBuildStatus } from "./hooks/use-get-build-status";
+import { useRetryState } from "./hooks/use-retry-state";
 
 const MemoizedRenderInputParameters = memo(RenderInputParameters);
 const MemoizedNodeIcon = memo(NodeIcon);
@@ -87,6 +89,7 @@ function GenericNode({
   const setEdges = useFlowStore((state) => state.setEdges);
   const shortcuts = useShortcutsStore((state) => state.shortcuts);
   const buildStatus = useBuildStatus(data, data.id);
+  const retryState = useRetryState(data.id);
   const dismissedNodes = useFlowStore((state) => state.dismissedNodes);
   const addDismissedNodes = useFlowStore((state) => state.addDismissedNodes);
   const removeDismissedNodes = useFlowStore(
@@ -255,17 +258,26 @@ function GenericNode({
     callback: toggleEditNameDescription,
   });
 
-  const { shownOutputs, hiddenOutputs } = useMemo(() => {
+  const { shownOutputs, hiddenOutputs, errorOutput } = useMemo(() => {
     const shownOutputs: typeof data.node.outputs = [];
     const hiddenOutputs: typeof data.node.outputs = [];
+    let errorOutput: OutputFieldType | undefined;
     (data.node?.outputs ?? []).forEach((output) => {
+      // Separate out the ErrorPayload port — rendered independently below
+      if (
+        output.name === "error" &&
+        output.types?.includes("ErrorPayload")
+      ) {
+        errorOutput = output;
+        return;
+      }
       if (output.hidden) {
         hiddenOutputs.push(output);
       } else {
         shownOutputs.push(output);
       }
     });
-    return { shownOutputs, hiddenOutputs };
+    return { shownOutputs, hiddenOutputs, errorOutput };
   }, [data.node?.outputs]);
 
   const [selectedOutput, setSelectedOutput] = useState<OutputFieldType | null>(
@@ -501,6 +513,17 @@ function GenericNode({
           !hasOutputs && "pb-4",
         )}
       >
+        {retryState?.status === "retrying" && (
+          <div
+            data-testid="retry-overlay"
+            className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center rounded-b-xl bg-warning/10 py-1"
+          >
+            <span className="text-[10px] font-medium text-warning-foreground">
+              Retrying attempt {retryState.retry_number} of{" "}
+              {retryState.max_retries}…
+            </span>
+          </div>
+        )}
         {openUpdateModal && (
           <UpdateComponentModal
             open={openUpdateModal}
@@ -590,6 +613,13 @@ function GenericNode({
                     selectedOutput={selectedOutput}
                     handleSelectOutput={handleSelectOutput}
                   />
+                  {errorOutput && (
+                    <ErrorOutputPort
+                      nodeId={data.id}
+                      dataType={data.type}
+                      showNode={showNode}
+                    />
+                  )}
                 </div>
               </>
             )}
@@ -673,6 +703,13 @@ function GenericNode({
                 selectedOutput={selectedOutput}
                 handleSelectOutput={handleSelectOutput}
               />
+              {errorOutput && (
+                <ErrorOutputPort
+                  nodeId={data.id}
+                  dataType={data.type}
+                  showNode={showNode}
+                />
+              )}
             </>
           </div>
         )}

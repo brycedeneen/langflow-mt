@@ -14,6 +14,8 @@ export const BuildStatus = {
   BUILT: "BUILT",
   INACTIVE: "INACTIVE",
   ERROR: "ERROR",
+  RETRYING: "RETRYING",
+  RETRY_EXHAUSTED: "RETRY_EXHAUSTED",
 } as const;
 export type BuildStatus = (typeof BuildStatus)[keyof typeof BuildStatus];
 

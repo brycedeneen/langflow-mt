@@ -21,7 +21,6 @@ import pytest
 
 from lfx.custom.custom_component.component import Component
 from lfx.graph import Graph
-from lfx.graph.graph.constants import Finish
 from lfx.io import HandleInput, Output, StrInput
 
 
@@ -52,7 +51,7 @@ class FlowRunResult:
     """Thin stand-in for a FlowRun DB row, populated by graph_build_helper.run()."""
 
     status: RunStatus
-    error: Exception | None = None
+    error: dict | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -161,10 +160,72 @@ class TextCaptureComponent(Component):
 class _GraphBuildHelper:
     """Thin programmatic graph builder for error-routing integration tests."""
 
-    def __init__(self):
-        self._graph = Graph()
+    def __init__(
+        self,
+        *,
+        flow_owner_id: "uuid.UUID | None" = None,
+        org_id: "uuid.UUID | None" = None,
+    ):
+        import uuid
+        self._graph = Graph(flow_id=str(uuid.uuid4()))
         self._component_ids: dict[str, str] = {}  # name → vertex_id
         self._components: dict[str, object] = {}  # name → component object
+        # IDs used by the capture-mode notifier (default to random UUIDs so
+        # tests that don't care still get valid values).
+        self._flow_owner_id: "uuid.UUID" = flow_owner_id or uuid.uuid4()
+        self._org_id: "uuid.UUID" = org_id or uuid.uuid4()
+        self._captured_events: list = []
+
+    # -- capture-mode notifier -----------------------------------------------
+
+    def install_capture_notifier(self) -> None:
+        """Monkey-patch ``_load_flow_metadata`` on the Graph instance so that
+        alert dispatch uses a capture-only stub notifier instead of hitting the
+        DB.  Call this before ``run()``."""
+        import dataclasses
+        import uuid
+
+        captured = self._captured_events
+        flow_owner_id = self._flow_owner_id
+        org_id = self._org_id
+
+        class _CaptureNotifier:
+            """Appends every UsageAlertEvent to the shared list; no DB write."""
+
+            async def notify(self, event: object) -> None:  # noqa: ANN001
+                captured.append(event)
+
+        @dataclasses.dataclass
+        class _FlowMeta:
+            flow_owner_id: uuid.UUID | None
+            org_id: uuid.UUID | None
+            flow_name: str
+            org_name: str
+            notifier: object
+
+        # Build the stub meta object once so each call gets the same notifier
+        # instance (and therefore the same captured list).
+        stub_meta = _FlowMeta(
+            flow_owner_id=flow_owner_id,
+            org_id=org_id,
+            flow_name="TestFlow",
+            org_name="TestOrg",
+            notifier=_CaptureNotifier(),
+        )
+
+        async def _stubbed_load_flow_metadata() -> _FlowMeta:
+            return stub_meta
+
+        # Directly bind the coroutine function as an instance attribute on
+        # the Graph object (bypasses the class-level method lookup).
+        self._graph._load_flow_metadata = _stubbed_load_flow_metadata  # type: ignore[method-assign]
+        # Clear any existing cached result so our stub is used on first call.
+        self._graph._flow_meta_cache = None  # type: ignore[attr-defined]
+
+    @property
+    def captured_events(self) -> list:
+        """Events captured by the stub notifier after ``install_capture_notifier()``."""
+        return self._captured_events
 
     # -- component factories -------------------------------------------------
 
@@ -201,7 +262,9 @@ class _GraphBuildHelper:
         *,
         max_attempts: int = 3,
         alert_mode: str = "Ignore",
+        bell_audience: str = "Flow owner",
         name: str = "handler",
+        _spy_dispatch: bool = True,
     ) -> "ErrorHandlerWrapper":
         from lfx.components.reliability.error_handler import ErrorHandler
 
@@ -209,13 +272,16 @@ class _GraphBuildHelper:
             _id=f"handler_{name}",
             max_attempts=max_attempts,
             alert_mode=alert_mode,
+            bell_audience=bell_audience,
             backoff_strategy="None",  # no delay in tests
             base_delay_seconds=0.0,
             max_delay_seconds=0.0,
         )
 
         # Wrap with a spy that counts dispatch_alert calls.
-        wrapper = ErrorHandlerWrapper(handler)
+        # Pass _spy_dispatch=False to let the real dispatch_alert run
+        # (needed when testing bell dispatch via the capture notifier).
+        wrapper = ErrorHandlerWrapper(handler, spy_dispatch=_spy_dispatch)
         vid = self._graph.add_component(handler)
         self._component_ids[name] = vid
         self._components[name] = wrapper
@@ -249,38 +315,83 @@ class _GraphBuildHelper:
     # -- runner --------------------------------------------------------------
 
     async def run(self) -> FlowRunResult:
-        """Run the graph and return a FlowRunResult reflecting success/failure."""
+        """Run the graph and return a FlowRunResult reflecting success/failure.
+
+        After execution, checks self._graph._handled_errors to determine whether
+        the run should be SUCCEEDED or PARTIAL_SUCCESS, mirroring the worker-side
+        terminal-status decision in execute.py.
+        """
         try:
             results = [r async for r in self._graph.async_start()]
             last = results[-1] if results else None
-            if isinstance(last, Finish):
-                return FlowRunResult(status=RunStatus.SUCCEEDED)
+            _ = last  # Finish check not needed; absence of exception means success.
+
+            handled = list(self._graph._handled_errors)
+            if handled:
+                error_dict: dict | None = {"handled_errors": handled}
+                return FlowRunResult(status=RunStatus.PARTIAL_SUCCESS, error=error_dict)
             return FlowRunResult(status=RunStatus.SUCCEEDED)
         except Exception as exc:  # noqa: BLE001
-            return FlowRunResult(status=RunStatus.FAILED, error=exc)
+            return FlowRunResult(
+                status=RunStatus.FAILED,
+                error={"type": type(exc).__name__, "message": str(exc)},
+            )
+
+
+    async def run_capturing_events(self) -> list[dict]:
+        """Like .run() but also returns all SSE events emitted during execution.
+
+        Monkey-patches the Graph's _emit_sse_event to capture events into a list
+        in addition to (conceptually) the real bus, then restores the original
+        method whether or not the run raises.
+
+        Returns:
+            List of dicts with keys ``name`` (str) and ``data`` (dict), one
+            entry per _emit_sse_event call made during the run.
+        """
+        captured: list[dict] = []
+        original_emit = self._graph._emit_sse_event
+
+        async def _capture(event_name: str, data: dict) -> None:
+            captured.append({"name": event_name, "data": data})
+            # Also call the original so real bus wiring runs in production.
+            await original_emit(event_name, data)
+
+        self._graph._emit_sse_event = _capture
+        try:
+            await self.run()
+        finally:
+            self._graph._emit_sse_event = original_emit
+        return captured
 
 
 class ErrorHandlerWrapper:
     """Thin spy wrapper around the real ErrorHandler component.
 
     Intercepts dispatch_alert to count calls without needing a notifier.
+    Pass ``spy_dispatch=False`` to let the real dispatch_alert run through
+    (needed when the capture-mode notifier is installed and you want to
+    assert on captured UsageAlertEvents).
     """
 
-    def __init__(self, handler):
+    def __init__(self, handler, *, spy_dispatch: bool = True):
         self._handler = handler
         self.dispatch_alert_calls = 0
-        # Patch dispatch_alert with a spy.
-        import functools
 
-        original = handler.dispatch_alert
+        if spy_dispatch:
+            # Patch dispatch_alert with a spy that blocks real dispatch.
+            import functools
 
-        @functools.wraps(original)
-        async def spy_dispatch_alert(**kwargs):
-            self.dispatch_alert_calls += 1
-            # Don't actually dispatch — we have no notifier in tests.
-            return None
+            original = handler.dispatch_alert
 
-        handler.dispatch_alert = spy_dispatch_alert
+            @functools.wraps(original)
+            async def spy_dispatch_alert(**kwargs):
+                self.dispatch_alert_calls += 1
+                # Don't actually dispatch — we have no notifier in tests.
+                return None
+
+            handler.dispatch_alert = spy_dispatch_alert
+        # else: real dispatch_alert stays in place; count remains 0
 
     @property
     def _id(self):

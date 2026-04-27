@@ -38,6 +38,8 @@ export const getSpanStatusLabel = (status: Span["status"]): string => {
       return "error";
     case "unset":
       return "running";
+    case "partial_success":
+      return "Completed with errors";
     default:
       return status;
   }
@@ -145,6 +147,15 @@ export const getStatusIconProps = (
   const isOk = normalized === "ok";
   const isError = normalized === "error";
   const isUnset = normalized === "unset";
+  const isPartialSuccess = normalized === "partial_success";
+
+  if (isPartialSuccess) {
+    return {
+      colorClass: "text-amber-600",
+      iconName: "AlertTriangle",
+      shouldSpin: false,
+    };
+  }
 
   return {
     colorClass: isError

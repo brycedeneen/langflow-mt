@@ -125,6 +125,26 @@ export function createFlowTracesColumns({
       editable: false,
       cellRenderer: (params: { value: string | null | undefined }) => {
         const status = params.value ?? "unknown";
+
+        if (status === "partial_success") {
+          return (
+            <div className="flex items-center">
+              <span
+                className="inline-flex items-center gap-1 text-xs font-medium text-amber-600"
+                data-testid="status-badge-partial-success"
+                aria-label="Completed with errors"
+              >
+                <IconComponent
+                  name="AlertTriangle"
+                  className="h-3.5 w-3.5 shrink-0"
+                  skipFallback
+                />
+                Completed with errors
+              </span>
+            </div>
+          );
+        }
+
         const { colorClass, iconName, shouldSpin } = getStatusIconProps(status);
 
         return (
