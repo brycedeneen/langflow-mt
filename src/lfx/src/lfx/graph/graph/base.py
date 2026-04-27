@@ -2795,8 +2795,25 @@ class Graph:
             )
 
     async def _emit_sse_event(self, event_name: str, data: dict) -> None:
-        """Emit an SSE event for the current flow run. Wired up in Task 11."""
-        # Stub for now; Task 11 wires this to the actual SSE bus.
+        """Emit a run-scoped SSE event to the webhook event bus (best-effort).
+
+        Sends retry lifecycle events (vertex.retrying, vertex.retry_succeeded,
+        vertex.retry_exhausted) to the same channel the frontend subscribes to
+        for real-time run updates.  Failures are swallowed so a bus hiccup can
+        never cascade into a flow failure.
+        """
+        try:
+            from lfx.graph.utils import emit_run_event
+
+            flow_id = self.flow_id
+            if flow_id is None:
+                return
+            await emit_run_event(flow_id, event_name, data)
+        except Exception as exc:  # noqa: BLE001
+            import logging
+            logging.getLogger(__name__).debug(
+                "SSE event emission failed (event=%s): %s", event_name, exc
+            )
 
     async def _record_handled_error(self, payload: Any) -> None:
         """Append payload to FlowRun.error['handled_errors'] and to in-memory list.

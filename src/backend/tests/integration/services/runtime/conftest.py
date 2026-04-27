@@ -271,6 +271,33 @@ class _GraphBuildHelper:
             )
 
 
+    async def run_capturing_events(self) -> list[dict]:
+        """Like .run() but also returns all SSE events emitted during execution.
+
+        Monkey-patches the Graph's _emit_sse_event to capture events into a list
+        in addition to (conceptually) the real bus, then restores the original
+        method whether or not the run raises.
+
+        Returns:
+            List of dicts with keys ``name`` (str) and ``data`` (dict), one
+            entry per _emit_sse_event call made during the run.
+        """
+        captured: list[dict] = []
+        original_emit = self._graph._emit_sse_event
+
+        async def _capture(event_name: str, data: dict) -> None:
+            captured.append({"name": event_name, "data": data})
+            # Also call the original so real bus wiring runs in production.
+            await original_emit(event_name, data)
+
+        self._graph._emit_sse_event = _capture
+        try:
+            await self.run()
+        finally:
+            self._graph._emit_sse_event = original_emit
+        return captured
+
+
 class ErrorHandlerWrapper:
     """Thin spy wrapper around the real ErrorHandler component.
 
