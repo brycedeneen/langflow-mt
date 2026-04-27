@@ -3,7 +3,6 @@ import useFlowStore from "@/stores/flowStore";
 
 export type RetryState =
   | { status: "retrying"; retry_number: number; max_retries: number }
-  | { status: "retry_succeeded" }
   | { status: "retry_exhausted" }
   | null;
 

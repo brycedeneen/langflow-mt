@@ -1,11 +1,10 @@
 /**
  * Tests for retry visual states on the canvas node.
  *
- * Covers three layers:
+ * Covers two layers:
  *   A) getSpecificClassFromBuildStatus maps RETRYING → amber border+pulse,
  *      RETRY_EXHAUSTED → red border.
  *   B) GenericNode renders the amber overlay text when retryState = retrying.
- *   C) flowStore.updateRetryStatus persists retry metadata correctly.
  */
 
 import { render, screen } from "@testing-library/react";

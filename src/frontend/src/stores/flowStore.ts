@@ -1064,7 +1064,7 @@ const useFlowStore = create<FlowStoreType>((set, get) => ({
     newFlowBuildStatus[vertexId] = {
       ...newFlowBuildStatus[vertexId],
       status,
-      retryMeta: retryMeta ?? newFlowBuildStatus[vertexId]?.retryMeta,
+      retryMeta,
     };
     set({ flowBuildStatus: newFlowBuildStatus });
   },

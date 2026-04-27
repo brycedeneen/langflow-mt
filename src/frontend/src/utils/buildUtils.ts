@@ -629,7 +629,7 @@ export async function processBatchedEvents(
  * @param {(lock: boolean) => void} [callbacks.setLockChat] - Callback to lock/unlock chat.
  * @returns {Promise<boolean>} Promise that resolves to true if the event was handled successfully.
  */
-export async function onEvent(
+async function onEvent(
   type: string,
   data: any,
   buildResults: boolean[],
