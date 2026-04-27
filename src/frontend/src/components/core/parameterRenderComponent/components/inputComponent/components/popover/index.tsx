@@ -302,7 +302,10 @@ const CustomInputPopover = ({
 
           {(!selectedOption?.length && !selectedOptions?.length) || disabled ? (
             <input
-              autoComplete="off"
+              autoComplete={password ? "new-password" : "off"}
+              data-1p-ignore={password ? "true" : undefined}
+              data-lpignore={password ? "true" : undefined}
+              data-bwignore={password ? "true" : undefined}
               onFocus={() => setIsFocused(true)}
               autoFocus={autoFocus}
               id={id}

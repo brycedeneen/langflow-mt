@@ -80,6 +80,10 @@ function InputComponent({
             onBlur={onInputLostFocus}
             autoFocus={autoFocus}
             type={password && !pwdVisible ? "password" : "text"}
+            autoComplete={password ? "new-password" : "off"}
+            data-1p-ignore={password ? "true" : undefined}
+            data-lpignore={password ? "true" : undefined}
+            data-bwignore={password ? "true" : undefined}
             value={value}
             disabled={disabled}
             required={required}
