@@ -98,6 +98,7 @@ class Graph:
         self._sorted_vertices_layers: list[list[str]] = []
         self._run_id = ""
         self._session_id = ""
+        self._handled_errors: list[dict] = []  # in-memory list for test introspection
         self._start_time = datetime.now(timezone.utc)
         self.inactivated_vertices: set = set()
         self.activated_vertices: list[str] = []
@@ -2797,4 +2798,47 @@ class Graph:
         # Stub for now; Task 11 wires this to the actual SSE bus.
 
     async def _record_handled_error(self, payload: Any) -> None:
-        """Append to FlowRun.error['handled_errors']. Implemented in Task 10."""
+        """Append payload to FlowRun.error['handled_errors'] and to in-memory list.
+
+        Best-effort: a DB failure here must NOT cascade into a flow run failure.
+        The in-memory list (_handled_errors) is always updated so the worker
+        can detect PARTIAL_SUCCESS even if the DB write fails.
+        """
+        import logging
+
+        handled_entry = {
+            "component_id": payload.component_id,
+            "component_display_name": payload.component_display_name,
+            "error_type": payload.error_type,
+            "error_message": payload.error_message,
+            "stack_trace": payload.stack_trace,
+            "attempts": payload.attempt_number,
+            "alerted": True,
+            "occurred_at": payload.occurred_at.isoformat(),
+        }
+
+        # Always track in-memory so the worker can detect PARTIAL_SUCCESS.
+        self._handled_errors.append(handled_entry)
+
+        if not self._run_id:
+            return  # No flow_run row to update (test path or unattributed run).
+
+        try:
+            from langflow.services.database.models.flow_run.model import FlowRun
+            from lfx.services.deps import session_scope
+
+            async with session_scope() as session:
+                run = await session.get(FlowRun, payload.flow_run_id)
+                if run is None:
+                    return
+                existing = dict(run.error or {})
+                handled_list = list(existing.get("handled_errors", []))
+                handled_list.append(handled_entry)
+                existing["handled_errors"] = handled_list
+                run.error = existing
+                # session_scope auto-commits on exit
+        except Exception as exc:  # noqa: BLE001
+            # Best-effort persistence — failing to record handled errors must not fail the run.
+            logging.getLogger(__name__).exception(
+                "Failed to record handled error for run %s: %s", self._run_id, exc
+            )

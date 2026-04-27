@@ -282,6 +282,17 @@ async def _execute_run_inner(
                         )
                         run_row_present = False
                     else:
+                        # Promote SUCCEEDED → PARTIAL_SUCCESS when handled errors exist in DB.
+                        # _record_handled_error (graph layer) persists handled_errors[] to
+                        # FlowRun.error before this writeback runs; we re-read the fresh row.
+                        if terminal == RunStatus.SUCCEEDED:
+                            existing_error = run.error or {}
+                            if existing_error.get("handled_errors"):
+                                terminal = RunStatus.PARTIAL_SUCCESS
+                                logger.info(
+                                    f"[run={run_id}] promoted to PARTIAL_SUCCESS "
+                                    f"({len(existing_error['handled_errors'])} handled error(s))"
+                                )
                         run.status = terminal
                         run.finished_at = datetime.now(timezone.utc)
                         if result_payload is not None:
@@ -333,6 +344,7 @@ async def _execute_run_inner(
 
     event_map = {
         RunStatus.SUCCEEDED: "run.succeeded",
+        RunStatus.PARTIAL_SUCCESS: "run.partial_success",
         RunStatus.FAILED: "run.failed",
         RunStatus.CANCELLED: "run.cancelled",
         RunStatus.TIMED_OUT: "run.timed_out",

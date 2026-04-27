@@ -47,6 +47,7 @@ async def test_suppression_covers_non_result_output_name(graph_build_helper):
 
     flow_run = await graph_build_helper.run()
 
-    assert flow_run.status.value == "succeeded"
+    # Task 10: errors that are handled promote the run to partial_success.
+    assert flow_run.status.value == "partial_success"
     assert sink_normal.captured is None  # 'text' output must be suppressed
     assert sink_gave_up.captured is not None  # error path still fires

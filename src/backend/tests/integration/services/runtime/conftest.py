@@ -52,7 +52,7 @@ class FlowRunResult:
     """Thin stand-in for a FlowRun DB row, populated by graph_build_helper.run()."""
 
     status: RunStatus
-    error: Exception | None = None
+    error: dict | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -249,15 +249,27 @@ class _GraphBuildHelper:
     # -- runner --------------------------------------------------------------
 
     async def run(self) -> FlowRunResult:
-        """Run the graph and return a FlowRunResult reflecting success/failure."""
+        """Run the graph and return a FlowRunResult reflecting success/failure.
+
+        After execution, checks self._graph._handled_errors to determine whether
+        the run should be SUCCEEDED or PARTIAL_SUCCESS, mirroring the worker-side
+        terminal-status decision in execute.py.
+        """
         try:
             results = [r async for r in self._graph.async_start()]
             last = results[-1] if results else None
-            if isinstance(last, Finish):
-                return FlowRunResult(status=RunStatus.SUCCEEDED)
+            _ = last  # Finish check not needed; absence of exception means success.
+
+            handled = list(self._graph._handled_errors)
+            if handled:
+                error_dict: dict | None = {"handled_errors": handled}
+                return FlowRunResult(status=RunStatus.PARTIAL_SUCCESS, error=error_dict)
             return FlowRunResult(status=RunStatus.SUCCEEDED)
         except Exception as exc:  # noqa: BLE001
-            return FlowRunResult(status=RunStatus.FAILED, error=exc)
+            return FlowRunResult(
+                status=RunStatus.FAILED,
+                error={"type": type(exc).__name__, "message": str(exc)},
+            )
 
 
 class ErrorHandlerWrapper:

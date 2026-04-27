@@ -113,3 +113,7 @@ def test_cooldown_gates_all_rule_types():
             fired = eval_sla_duration(rule, current_run=current)
 
         assert fired is False
+
+
+def test_partial_success_is_not_failure():
+    assert not is_failure(RunStatus.PARTIAL_SUCCESS)
