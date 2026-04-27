@@ -160,11 +160,72 @@ class TextCaptureComponent(Component):
 class _GraphBuildHelper:
     """Thin programmatic graph builder for error-routing integration tests."""
 
-    def __init__(self):
+    def __init__(
+        self,
+        *,
+        flow_owner_id: "uuid.UUID | None" = None,
+        org_id: "uuid.UUID | None" = None,
+    ):
         import uuid
         self._graph = Graph(flow_id=str(uuid.uuid4()))
         self._component_ids: dict[str, str] = {}  # name → vertex_id
         self._components: dict[str, object] = {}  # name → component object
+        # IDs used by the capture-mode notifier (default to random UUIDs so
+        # tests that don't care still get valid values).
+        self._flow_owner_id: "uuid.UUID" = flow_owner_id or uuid.uuid4()
+        self._org_id: "uuid.UUID" = org_id or uuid.uuid4()
+        self._captured_events: list = []
+
+    # -- capture-mode notifier -----------------------------------------------
+
+    def install_capture_notifier(self) -> None:
+        """Monkey-patch ``_load_flow_metadata`` on the Graph instance so that
+        alert dispatch uses a capture-only stub notifier instead of hitting the
+        DB.  Call this before ``run()``."""
+        import dataclasses
+        import uuid
+
+        captured = self._captured_events
+        flow_owner_id = self._flow_owner_id
+        org_id = self._org_id
+
+        class _CaptureNotifier:
+            """Appends every UsageAlertEvent to the shared list; no DB write."""
+
+            async def notify(self, event: object) -> None:  # noqa: ANN001
+                captured.append(event)
+
+        @dataclasses.dataclass
+        class _FlowMeta:
+            flow_owner_id: uuid.UUID | None
+            org_id: uuid.UUID | None
+            flow_name: str
+            org_name: str
+            notifier: object
+
+        # Build the stub meta object once so each call gets the same notifier
+        # instance (and therefore the same captured list).
+        stub_meta = _FlowMeta(
+            flow_owner_id=flow_owner_id,
+            org_id=org_id,
+            flow_name="TestFlow",
+            org_name="TestOrg",
+            notifier=_CaptureNotifier(),
+        )
+
+        async def _stubbed_load_flow_metadata() -> _FlowMeta:
+            return stub_meta
+
+        # Directly bind the coroutine function as an instance attribute on
+        # the Graph object (bypasses the class-level method lookup).
+        self._graph._load_flow_metadata = _stubbed_load_flow_metadata  # type: ignore[method-assign]
+        # Clear any existing cached result so our stub is used on first call.
+        self._graph._flow_meta_cache = None  # type: ignore[attr-defined]
+
+    @property
+    def captured_events(self) -> list:
+        """Events captured by the stub notifier after ``install_capture_notifier()``."""
+        return self._captured_events
 
     # -- component factories -------------------------------------------------
 
@@ -201,7 +262,9 @@ class _GraphBuildHelper:
         *,
         max_attempts: int = 3,
         alert_mode: str = "Ignore",
+        bell_audience: str = "Flow owner",
         name: str = "handler",
+        _spy_dispatch: bool = True,
     ) -> "ErrorHandlerWrapper":
         from lfx.components.reliability.error_handler import ErrorHandler
 
@@ -209,13 +272,16 @@ class _GraphBuildHelper:
             _id=f"handler_{name}",
             max_attempts=max_attempts,
             alert_mode=alert_mode,
+            bell_audience=bell_audience,
             backoff_strategy="None",  # no delay in tests
             base_delay_seconds=0.0,
             max_delay_seconds=0.0,
         )
 
         # Wrap with a spy that counts dispatch_alert calls.
-        wrapper = ErrorHandlerWrapper(handler)
+        # Pass _spy_dispatch=False to let the real dispatch_alert run
+        # (needed when testing bell dispatch via the capture notifier).
+        wrapper = ErrorHandlerWrapper(handler, spy_dispatch=_spy_dispatch)
         vid = self._graph.add_component(handler)
         self._component_ids[name] = vid
         self._components[name] = wrapper
@@ -303,23 +369,29 @@ class ErrorHandlerWrapper:
     """Thin spy wrapper around the real ErrorHandler component.
 
     Intercepts dispatch_alert to count calls without needing a notifier.
+    Pass ``spy_dispatch=False`` to let the real dispatch_alert run through
+    (needed when the capture-mode notifier is installed and you want to
+    assert on captured UsageAlertEvents).
     """
 
-    def __init__(self, handler):
+    def __init__(self, handler, *, spy_dispatch: bool = True):
         self._handler = handler
         self.dispatch_alert_calls = 0
-        # Patch dispatch_alert with a spy.
-        import functools
 
-        original = handler.dispatch_alert
+        if spy_dispatch:
+            # Patch dispatch_alert with a spy that blocks real dispatch.
+            import functools
 
-        @functools.wraps(original)
-        async def spy_dispatch_alert(**kwargs):
-            self.dispatch_alert_calls += 1
-            # Don't actually dispatch — we have no notifier in tests.
-            return None
+            original = handler.dispatch_alert
 
-        handler.dispatch_alert = spy_dispatch_alert
+            @functools.wraps(original)
+            async def spy_dispatch_alert(**kwargs):
+                self.dispatch_alert_calls += 1
+                # Don't actually dispatch — we have no notifier in tests.
+                return None
+
+            handler.dispatch_alert = spy_dispatch_alert
+        # else: real dispatch_alert stays in place; count remains 0
 
     @property
     def _id(self):
