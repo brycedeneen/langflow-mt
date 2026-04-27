@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from ast import literal_eval
+from collections.abc import Sequence
 from dataclasses import replace
 from datetime import timedelta
 from enum import Enum
@@ -439,31 +440,59 @@ def parse_value(value: Any, input_type: str) -> Any:
     return value
 
 
-async def cascade_delete_flow(session: AsyncSession, flow_id: uuid.UUID) -> None:
+_CASCADE_DELETE_BATCH_SIZE = 500
+
+
+async def cascade_delete_flows(session: AsyncSession, flow_ids: Sequence[uuid.UUID]) -> None:
+    """Cascade-delete a batch of flows in a single sequence of DELETEs.
+
+    Equivalent to calling :func:`cascade_delete_flow` in a loop, but issues one
+    DELETE per child table (with ``flow_id IN :ids``) instead of one DELETE per
+    (flow, table) pair. For ``N`` flows that is ~7 round-trips per chunk of up
+    to ``_CASCADE_DELETE_BATCH_SIZE`` flows, instead of ~7*N total.
+
+    Order, table list, and SQLite-cascade caveats are identical to the
+    historical single-flow helper — see :func:`_cascade_delete_flow_chunk` for
+    the inline rationale on each step.
+    """
+    if not flow_ids:
+        return
+    ids = list(flow_ids)
+    for chunk_start in range(0, len(ids), _CASCADE_DELETE_BATCH_SIZE):
+        chunk = ids[chunk_start : chunk_start + _CASCADE_DELETE_BATCH_SIZE]
+        await _cascade_delete_flow_chunk(session, chunk)
+
+
+async def _cascade_delete_flow_chunk(session: AsyncSession, flow_ids: list[uuid.UUID]) -> None:
     try:
         # TODO: Verify if deleting messages is safe in terms of session id relevance
         # If we delete messages directly, rather than setting flow_id to null,
         # it might cause unexpected behaviors because the session id could still be
         # used elsewhere to search for these messages.
-        await session.exec(delete(MessageTable).where(MessageTable.flow_id == flow_id))
-        await session.exec(delete(TransactionTable).where(TransactionTable.flow_id == flow_id))
-        await session.exec(delete(VertexBuildTable).where(VertexBuildTable.flow_id == flow_id))
+        await session.exec(delete(MessageTable).where(col(MessageTable.flow_id).in_(flow_ids)))
+        await session.exec(delete(TransactionTable).where(col(TransactionTable.flow_id).in_(flow_ids)))
+        await session.exec(delete(VertexBuildTable).where(col(VertexBuildTable.flow_id).in_(flow_ids)))
         # Explicit delete despite FK CASCADE — SQLite doesn't enforce FK cascades
         # by default (requires PRAGMA foreign_keys = ON), and this function follows
         # the existing pattern of explicitly deleting all child records.
-        await session.exec(delete(FlowVersion).where(FlowVersion.flow_id == flow_id))
+        await session.exec(delete(FlowVersion).where(col(FlowVersion.flow_id).in_(flow_ids)))
         # Spans must go before traces because span.trace_id lacked CASCADE in the
         # original migration (3478f0bd6ccb); migration c8a5f32e9b74 retrofits it.
         trace_ids = (
-            await session.exec(select(TraceTable.id).where(TraceTable.flow_id == flow_id))
+            await session.exec(select(TraceTable.id).where(col(TraceTable.flow_id).in_(flow_ids)))
         ).all()
         if trace_ids:
             await session.exec(delete(SpanTable).where(col(SpanTable.trace_id).in_(trace_ids)))
-        await session.exec(delete(TraceTable).where(TraceTable.flow_id == flow_id))
-        await session.exec(delete(Flow).where(Flow.id == flow_id))
+        await session.exec(delete(TraceTable).where(col(TraceTable.flow_id).in_(flow_ids)))
+        await session.exec(delete(Flow).where(col(Flow.id).in_(flow_ids)))
     except Exception as e:
-        msg = f"Unable to cascade delete flow: {flow_id}"
+        msg = f"Unable to cascade delete flows: {flow_ids!r}"
         raise RuntimeError(msg, e) from e
+
+
+async def cascade_delete_flow(session: AsyncSession, flow_id: uuid.UUID) -> None:
+    """Single-flow convenience wrapper. See :func:`cascade_delete_flows`."""
+    await cascade_delete_flows(session, [flow_id])
 
 
 def custom_params(

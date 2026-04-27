@@ -18,7 +18,7 @@ from sqlalchemy import or_, update
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
-from langflow.api.utils import CurrentActiveUser, DbSession, cascade_delete_flow, custom_params, remove_api_keys
+from langflow.api.utils import CurrentActiveUser, DbSession, cascade_delete_flows, custom_params, remove_api_keys
 from langflow.api.utils.authz import assert_org_role
 from langflow.api.utils.core import CurrentOrg
 from langflow.api.utils.mcp.config_utils import validate_mcp_server_for_project
@@ -520,15 +520,14 @@ async def delete_project(
         if project is None:
             raise HTTPException(status_code=404, detail="Project not found")
 
-        flows = (
+        flow_ids = (
             await session.exec(
-                select(Flow).where(
+                select(Flow.id).where(
                     Flow.folder_id == project_id, Flow.organization_id == current_org.id
                 )
             )
         ).all()
-        for flow in flows:
-            await cascade_delete_flow(session, flow.id)
+        await cascade_delete_flows(session, flow_ids)
     except HTTPException:
         raise
     except Exception as e:

@@ -31,6 +31,7 @@ from langflow.api.utils import (
     CurrentActiveUser,
     DbSession,
     cascade_delete_flow,
+    cascade_delete_flows,
     remove_api_keys,
     resolve_component_gate_flags,
     validate_is_component,
@@ -1125,18 +1126,16 @@ async def delete_multiple_flows(
     """
     try:
         await assert_org_role(user, current_org.id, MembershipRole.MEMBER, session=db)
-        flows_to_delete = (
+        flow_ids_in_org = (
             await db.exec(
-                select(Flow)
+                select(Flow.id)
                 .where(col(Flow.id).in_(flow_ids))
                 .where(Flow.organization_id == current_org.id)
             )
         ).all()
-        for flow in flows_to_delete:
-            await cascade_delete_flow(db, flow.id)
-
+        await cascade_delete_flows(db, flow_ids_in_org)
         await db.flush()
-        return {"deleted": len(flows_to_delete)}
+        return {"deleted": len(flow_ids_in_org)}
     except HTTPException:
         raise
     except Exception as exc:
