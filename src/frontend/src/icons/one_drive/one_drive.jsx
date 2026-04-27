@@ -13,8 +13,8 @@ const Icon = (props) => (
       y2="22.852"
       gradientUnits="userSpaceOnUse"
     >
-      <stop offset="0" stop-color="#0571bf" />
-      <stop offset="1" stop-color="#0268ba" />
+      <stop offset="0" stopColor="#0571bf" />
+      <stop offset="1" stopColor="#0268ba" />
     </linearGradient>
     <path
       fill="url(#NqAl5bicO~9wmXV3Tvu1Ra)"
@@ -28,8 +28,8 @@ const Icon = (props) => (
       y2="32.761"
       gradientUnits="userSpaceOnUse"
     >
-      <stop offset="0" stop-color="#1684da" />
-      <stop offset="1" stop-color="#107cd4" />
+      <stop offset="0" stopColor="#1684da" />
+      <stop offset="1" stopColor="#107cd4" />
     </linearGradient>
     <path
       fill="url(#NqAl5bicO~9wmXV3Tvu1Rb)"
@@ -43,8 +43,8 @@ const Icon = (props) => (
       y2="34.097"
       gradientUnits="userSpaceOnUse"
     >
-      <stop offset="0" stop-color="#138cdd" />
-      <stop offset="1" stop-color="#0c7dd4" />
+      <stop offset="0" stopColor="#138cdd" />
+      <stop offset="1" stopColor="#0c7dd4" />
     </linearGradient>
     <path
       fill="url(#NqAl5bicO~9wmXV3Tvu1Rc)"
@@ -58,8 +58,8 @@ const Icon = (props) => (
       y2="41.333"
       gradientUnits="userSpaceOnUse"
     >
-      <stop offset="0" stop-color="#27a7ea" />
-      <stop offset="1" stop-color="#1c94e3" />
+      <stop offset="0" stopColor="#27a7ea" />
+      <stop offset="1" stopColor="#1c94e3" />
     </linearGradient>
     <path
       fill="url(#NqAl5bicO~9wmXV3Tvu1Rd)"
