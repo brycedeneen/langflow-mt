@@ -118,7 +118,7 @@ class TransactionBase(SQLModel):
     outputs: dict | None = Field(default=None, sa_column=Column(JSON))
     status: str = Field(nullable=False)
     error: str | None = Field(default=None)
-    flow_id: UUID = Field()
+    flow_id: UUID = Field(index=True, foreign_key="flow.id")
 
     # Needed for Column(JSON)
     model_config = ConfigDict(arbitrary_types_allowed=True)

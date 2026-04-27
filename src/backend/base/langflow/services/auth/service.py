@@ -50,6 +50,12 @@ class AuthService(BaseAuthService):
 
     def __init__(self, settings_service: SettingsService):
         self.settings_service = settings_service
+        # Cached Fernet cipher keyed by the raw secret-key value so that a
+        # SECRET_KEY rotation/change naturally misses the cache and rebuilds.
+        # Building Fernet (and the b64-padded key) on every encrypt/decrypt is
+        # measurable on hot paths — a single flow build can drive dozens of
+        # api-key + secret-resolution calls through this method.
+        self._fernet_cache: tuple[str, Fernet] | None = None
         # Cache for the JWT verification key, keyed by the underlying secret/public-key value.
         # A settings change (which yields a different value) naturally invalidates the cache.
         self._jwt_verification_key_cache: tuple[str, str] | None = None
@@ -583,8 +589,24 @@ class AuthService(BaseAuthService):
 
     def _get_fernet(self) -> Fernet:
         secret_key: str = self.settings.auth_settings.SECRET_KEY.get_secret_value()
+        cached = self._fernet_cache
+        if cached is not None and cached[0] == secret_key:
+            return cached[1]
         valid_key = self._ensure_valid_key(secret_key)
-        return Fernet(valid_key)
+        fernet = Fernet(valid_key)
+        # Single tuple assignment → atomic under the GIL; readers either see the
+        # old value or the new one, never a torn pair. Keying by `secret_key`
+        # means a rotated/changed SECRET_KEY misses on the next call and rebuilds.
+        self._fernet_cache = (secret_key, fernet)
+        return fernet
+
+    def invalidate_fernet_cache(self) -> None:
+        """Drop the cached Fernet cipher.
+
+        Call this after explicitly rotating ``SECRET_KEY`` if you do not want to
+        wait for the next call to notice the change via the cache key.
+        """
+        self._fernet_cache = None
 
     def _get_jwt_verification_key(self) -> str:
         """Return the JWT verification key, cached at the service level.
