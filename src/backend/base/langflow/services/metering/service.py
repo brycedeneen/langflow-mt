@@ -59,6 +59,7 @@ async def upsert_org_usage_daily(
         runs=runs_delta,
         run_seconds=run_seconds_delta,
         tokens=tokens_delta,
+        cost_cents=cost_cents_delta,
         updated_at=now,
     )
     stmt = stmt.on_conflict_do_update(
@@ -67,6 +68,7 @@ async def upsert_org_usage_daily(
             "runs": OrgUsageDaily.runs + stmt.excluded.runs,
             "run_seconds": OrgUsageDaily.run_seconds + stmt.excluded.run_seconds,
             "tokens": OrgUsageDaily.tokens + stmt.excluded.tokens,
+            "cost_cents": OrgUsageDaily.cost_cents + stmt.excluded.cost_cents,
             "updated_at": stmt.excluded.updated_at,
         },
     )
