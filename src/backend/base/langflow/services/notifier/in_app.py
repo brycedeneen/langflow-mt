@@ -18,7 +18,11 @@ if TYPE_CHECKING:
 
 
 class InAppNotifier(UsageAlertNotifier):
-    """Persists UsageAlertEvent into the admin_notification table, audience=super_admin."""
+    """Persists UsageAlertEvent into the admin_notification table.
+
+    Audience and audience_user_id are taken from the event; callers that
+    omit those fields default to SUPER_ADMIN / None.
+    """
 
     def __init__(
         self,

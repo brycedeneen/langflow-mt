@@ -40,7 +40,6 @@ async def test_in_app_notifier_uses_event_audience(session_factory):
 
 @pytest.mark.asyncio
 async def test_in_app_notifier_defaults_audience_to_super_admin(session_factory):
-    """Unset audience falls back to legacy SUPER_ADMIN for compatibility."""
     notifier = InAppNotifier(session_factory)
     event = UsageAlertEvent(
         category="usage_threshold",
