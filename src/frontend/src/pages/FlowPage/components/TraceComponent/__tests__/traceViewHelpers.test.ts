@@ -183,6 +183,10 @@ describe("traceViewHelpers", () => {
       expect(getSpanStatusLabel("error")).toBe("error");
       expect(getSpanStatusLabel("unset")).toBe("running");
     });
+
+    it("maps partial_success to 'Completed with errors'", () => {
+      expect(getSpanStatusLabel("partial_success")).toBe("Completed with errors");
+    });
   });
 
   describe("formatTokens", () => {
@@ -332,6 +336,14 @@ describe("traceViewHelpers", () => {
         colorClass: "text-muted-foreground",
         iconName: "Loader2",
         shouldSpin: true,
+      });
+    });
+
+    it("maps partial_success to an amber warning triangle", () => {
+      expect(getStatusIconProps("partial_success")).toEqual({
+        colorClass: "text-amber-600",
+        iconName: "AlertTriangle",
+        shouldSpin: false,
       });
     });
   });

@@ -12,7 +12,7 @@ export type SpanType =
   | "agent"
   | "none";
 
-export type SpanStatus = "unset" | "ok" | "error";
+export type SpanStatus = "unset" | "ok" | "error" | "partial_success";
 
 export interface TokenUsage {
   promptTokens: number;
@@ -95,7 +95,7 @@ export interface TraceAccordionItemProps {
 
 export type StatusIconProps = {
   colorClass: string;
-  iconName: "Loader2" | "CircleCheck" | "CircleX";
+  iconName: "Loader2" | "CircleCheck" | "CircleX" | "AlertTriangle";
   shouldSpin: boolean;
 };
 
