@@ -19,7 +19,7 @@ class BackoffStrategy(str, Enum):
 
 @dataclass(frozen=True)
 class RetryConfig:
-    max_attempts: int = 3
+    max_attempts: int = 3  # retries after the initial call; 0 = no retry
     strategy: BackoffStrategy = BackoffStrategy.EXPONENTIAL_WITH_JITTER
     base_delay_seconds: float = 1.0
     max_delay_seconds: float = 60.0
@@ -34,7 +34,8 @@ def compute_delay_seconds(config: RetryConfig, attempt: int) -> float:
     base = config.base_delay_seconds * (2 ** (attempt - 1))
     capped = min(base, config.max_delay_seconds)
     if config.strategy is BackoffStrategy.EXPONENTIAL_WITH_JITTER:
-        return capped * random.uniform(0.5, 1.5)
+        jittered = capped * random.uniform(0.5, 1.5)
+        return min(jittered, config.max_delay_seconds)
     return capped
 
 
@@ -42,25 +43,22 @@ async def run_with_retries(
     op: Callable[[int], Awaitable[T]],
     config: RetryConfig,
 ) -> T:
-    """Execute `op(attempt)` up to `config.max_attempts` times.
+    """Execute `op(attempt)` up to `1 + config.max_attempts` times.
 
     `op` receives the 1-indexed attempt number. If `op` raises, sleep
     `compute_delay_seconds(config, attempt)` then retry. The final
     exception propagates after all attempts fail.
 
-    `max_attempts=0` is degenerate and treated as 1 (the initial call
-    must still happen — there is nothing to retry without it).
+    `max_attempts=0` means: only the original call, no retries.
     """
-    total_attempts = max(1, config.max_attempts)
-    last_exc: BaseException | None = None
+    total_attempts = 1 + max(0, config.max_attempts)
     for attempt in range(1, total_attempts + 1):
         try:
             return await op(attempt)
-        except Exception as exc:  # noqa: BLE001
-            last_exc = exc
+        except Exception:  # noqa: BLE001
             if attempt == total_attempts:
                 raise
             delay = compute_delay_seconds(config, attempt)
             if delay > 0:
                 await asyncio.sleep(delay)
-    raise last_exc  # type: ignore[misc]
+    # Unreachable: the loop either returns on success or raises on the final attempt.

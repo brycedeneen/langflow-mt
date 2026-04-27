@@ -84,7 +84,7 @@ async def test_run_with_retries_recovers_after_failures():
 
 @pytest.mark.asyncio
 async def test_run_with_retries_raises_after_exhaustion():
-    cfg = RetryConfig(max_attempts=2, strategy=BackoffStrategy.NONE)
+    cfg = RetryConfig(max_attempts=1, strategy=BackoffStrategy.NONE)
     calls = []
 
     async def op(attempt: int):
@@ -93,6 +93,7 @@ async def test_run_with_retries_raises_after_exhaustion():
 
     with pytest.raises(RuntimeError, match="always fails"):
         await run_with_retries(op, cfg)
+    # max_attempts=1 = 1 retry after initial = 2 total calls.
     assert calls == [1, 2]
 
 
@@ -109,6 +110,24 @@ async def test_run_with_retries_max_attempts_zero_means_no_retry():
         await run_with_retries(op, cfg)
     # max_attempts=0 means: only the original call; no retries.
     assert calls == [1]
+
+
+@pytest.mark.asyncio
+async def test_run_with_retries_total_call_count_matches_retries_plus_one():
+    """max_attempts=N means N retries after the initial call (N+1 total calls)."""
+    for retry_count in [0, 1, 2, 5]:
+        cfg = RetryConfig(max_attempts=retry_count, strategy=BackoffStrategy.NONE)
+        calls = []
+
+        async def op(attempt: int):
+            calls.append(attempt)
+            raise RuntimeError("always fails")
+
+        with pytest.raises(RuntimeError):
+            await run_with_retries(op, cfg)
+        assert len(calls) == retry_count + 1, (
+            f"max_attempts={retry_count} should yield {retry_count + 1} calls"
+        )
 
 
 @pytest.mark.asyncio
