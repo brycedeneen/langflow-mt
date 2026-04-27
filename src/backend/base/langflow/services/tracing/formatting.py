@@ -318,3 +318,54 @@ def compute_leaf_token_total(
                 token_val = attrs.get("total_tokens", 0)
             total += safe_int_tokens(token_val)
     return total
+
+
+def compute_trace_cost_micros(
+    rows: list[tuple[str, dict[str, Any]]],
+    pricing: Any,
+) -> int | None:
+    """Sum cost in micro-USD across LLM/embedding spans for a single trace.
+
+    Mirrors the bucketing in `services/cost/compute.py::compute_cost_for_run`
+    but returns micros instead of cents so the UI can render sub-cent values.
+
+    Args:
+        rows: Iterable of ``(span_type, attributes)`` tuples for the spans
+            in one trace. ``span_type`` is the string value (e.g. ``"llm"``).
+        pricing: Object with ``compute_cost_micros(model, *, input_tokens,
+            output_tokens) -> int | None`` — typically ``PricingService``.
+
+    Returns:
+        Total cost in micro-USD, or ``None`` when no priced LLM/embedding
+        span produced a number (zero spans, all unknown models, or no model
+        attribute present).
+    """
+    cost_span_types = {SpanType.LLM.value, SpanType.EMBEDDING.value}
+
+    per_model: dict[str, dict[str, int]] = {}
+    for span_type, attrs in rows:
+        if span_type not in cost_span_types:
+            continue
+        if not attrs:
+            continue
+        model = str(attrs.get("model_name") or attrs.get("model") or "").strip()
+        if not model:
+            continue
+        prompt = safe_int_tokens(attrs.get("prompt_tokens") or attrs.get("input_tokens"))
+        completion = safe_int_tokens(attrs.get("completion_tokens") or attrs.get("output_tokens"))
+        bucket = per_model.setdefault(model, {"input_tokens": 0, "output_tokens": 0})
+        bucket["input_tokens"] += prompt
+        bucket["output_tokens"] += completion
+
+    if not per_model:
+        return None
+
+    total: int | None = None
+    for model, bucket in per_model.items():
+        priced = pricing.compute_cost_micros(
+            model, input_tokens=bucket["input_tokens"], output_tokens=bucket["output_tokens"]
+        )
+        if priced is None:
+            continue
+        total = (total or 0) + priced
+    return total
