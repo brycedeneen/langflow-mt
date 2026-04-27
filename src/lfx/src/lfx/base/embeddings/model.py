@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from lfx.custom.custom_component.component import Component
 from lfx.field_typing import Embeddings
 from lfx.io import Output
@@ -5,6 +7,7 @@ from lfx.io import Output
 
 class LCEmbeddingsModel(Component):
     trace_type = "embedding"
+    error_output_enabled: ClassVar[bool] = True
 
     outputs = [
         Output(display_name="Embedding Model", name="embeddings", method="build_embeddings"),

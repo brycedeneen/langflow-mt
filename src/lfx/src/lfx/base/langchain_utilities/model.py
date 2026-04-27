@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from collections.abc import Sequence
+from typing import ClassVar
 
 from lfx.custom.custom_component.component import Component
 from lfx.field_typing import Tool
@@ -10,6 +11,7 @@ from lfx.schema.dataframe import DataFrame
 
 class LCToolComponent(Component):
     trace_type = "tool"
+    error_output_enabled: ClassVar[bool] = True
     outputs = [
         Output(name="api_run_model", display_name="JSON", method="run_model"),
         Output(name="api_build_tool", display_name="Tool", method="build_tool"),

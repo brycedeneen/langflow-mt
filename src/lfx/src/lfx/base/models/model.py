@@ -2,6 +2,7 @@ import importlib
 import json
 import warnings
 from abc import abstractmethod
+from typing import ClassVar
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.language_models.llms import LLM
@@ -29,6 +30,7 @@ class LCModelComponent(Component):
     display_name: str = "Model Name"
     description: str = "Model Description"
     trace_type = "llm"
+    error_output_enabled: ClassVar[bool] = True
     metadata = {
         "keywords": [
             "model",
