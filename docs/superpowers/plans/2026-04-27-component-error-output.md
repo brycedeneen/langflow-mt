@@ -1872,9 +1872,51 @@ async def _suppress_normal_successors(self, vertex_id: str) -> None:
 
 
 async def _invoke_error_handler(self, handler_vertex, payload) -> None:
-    """Inject the payload into the handler vertex and execute it."""
-    handler_vertex.custom_component.error_input = payload
+    """Inject the payload, dispatch the alert, then execute the handler vertex."""
+    from langflow.services.deps import get_notifier_service
+
+    component = handler_vertex.custom_component
+    component.error_input = payload
+
+    # Dispatch the alert (best-effort; component swallows internal errors).
+    flow_meta = await self._load_flow_metadata()  # returns (flow_owner_id, org_id, flow_name, org_name)
+    notifier = get_notifier_service()
+    await component.dispatch_alert(
+        payload=payload,
+        notifier=notifier,
+        flow_owner_id=flow_meta.flow_owner_id,
+        org_id=flow_meta.org_id,
+        flow_name=flow_meta.flow_name,
+        org_name=flow_meta.org_name,
+    )
+
+    # Now run the vertex so `gave_up` fires to downstream nodes.
     await handler_vertex._build()
+
+
+async def _load_flow_metadata(self):
+    """Fetch flow_owner_id / org_id / flow_name / org_name for alert templates."""
+    from dataclasses import dataclass
+    from langflow.services.deps import get_db_service
+    from langflow.services.database.models.flow import Flow
+    from langflow.services.database.models.organization import Organization
+
+    @dataclass
+    class _FlowMeta:
+        flow_owner_id: UUID
+        org_id: UUID
+        flow_name: str
+        org_name: str
+
+    async with get_db_service().with_session() as session:
+        flow = await session.get(Flow, self.flow_id)
+        org = await session.get(Organization, flow.organization_id) if flow else None
+        return _FlowMeta(
+            flow_owner_id=flow.user_id if flow else None,
+            org_id=flow.organization_id if flow else None,
+            flow_name=flow.name if flow else "",
+            org_name=org.name if org else "",
+        )
 
 
 async def _record_handled_error(self, payload) -> None:
@@ -2377,14 +2419,13 @@ async def test_bell_dispatch_org_admins(graph_build_helper, db_session_factory):
 uv run pytest src/backend/tests/integration/services/test_bell_dispatch.py -v
 ```
 
-Expected: 2 tests PASS. If the runtime doesn't pass `flow_owner_id` and `org_id` into the handler's `dispatch_alert`, plumb them through (the `_invoke_error_handler` helper from Task 9 must call `dispatch_alert` with the right context).
+Expected: 2 tests PASS. The `_invoke_error_handler` helper from Task 9 already calls `dispatch_alert` with the runtime context — no further plumbing should be needed. If the test fails because `get_notifier_service` doesn't exist, locate the actual notifier dependency injection (likely `langflow.services.deps.get_*_service` pattern; check the existing usage in `services/metering/` or wherever `UsageAlertNotifier` is consumed today).
 
 - [ ] **Step 14.3: Commit.**
 
 ```bash
-git add src/backend/tests/integration/services/test_bell_dispatch.py \
-        src/lfx/src/lfx/graph/graph/base.py
-git commit -m "feat(reliability): wire bell dispatch through runtime invocation"
+git add src/backend/tests/integration/services/test_bell_dispatch.py
+git commit -m "test(reliability): bell dispatch end-to-end coverage"
 ```
 
 ---
