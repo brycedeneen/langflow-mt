@@ -2537,6 +2537,15 @@ class Graph:
         from lfx.schema.error_payload import build_error_payload
 
         failing_vertex = self.get_vertex(vertex_id)
+
+        # ── Cycle guard (entry) ───────────────────────────────────────────────
+        # If the FAILING vertex is itself an ErrorHandler, do NOT attempt to
+        # route via an error edge.  Allowing that would create handler-handles-
+        # handler recursion.  The run must surface the failure as-is.
+        if isinstance(failing_vertex.custom_component, ErrorHandler):
+            return None  # fall through → caller re-raises the original exception
+        # ─────────────────────────────────────────────────────────────────────
+
         error_edge = self._find_error_edge(failing_vertex)
         if error_edge is None:
             return None  # no error port connected → fall through to raise
@@ -2602,8 +2611,25 @@ class Graph:
         # Suppress the failing vertex's normal-output successors.
         self._suppress_normal_successors(vertex_id)
 
-        # Invoke the ErrorHandler and collect its VertexBuildResult.
-        handler_vbr = await self._invoke_error_handler(handler_vertex, handler_component, payload)
+        # ── Cycle guard (invocation) ──────────────────────────────────────────
+        # If the ErrorHandler itself raises during invocation (e.g. its build
+        # raises beyond what _invoke_error_handler's inner try/except catches),
+        # we must NOT treat that as a successful "handled" event.  Catch the
+        # exception, log it, and return None so the caller re-raises the
+        # original component failure.
+        try:
+            handler_vbr = await self._invoke_error_handler(handler_vertex, handler_component, payload)
+        except Exception as handler_exc:  # noqa: BLE001
+            await logger.aexception(
+                "ErrorHandler %s raised during invocation; flow will fail. "
+                "Original error: %s; handler error: %s",
+                handler_vertex.id,
+                exc,
+                handler_exc,
+            )
+            return None  # caller will re-raise the original `exc`
+        # ─────────────────────────────────────────────────────────────────────
+
         await self._record_handled_error(payload)
         return [handler_vbr] if handler_vbr is not None else []
 
