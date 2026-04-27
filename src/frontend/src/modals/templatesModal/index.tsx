@@ -99,7 +99,7 @@ export default function TemplatesModal({
       });
       setOpen(false);
       if (withAssist) {
-        openFlowInFullscreenAssist(id, navigate);
+        openFlowInFullscreenAssist(id, navigate, folderId);
       } else {
         navigate(`/flow/${id}${folderId ? `/folder/${folderId}` : ""}`);
       }

@@ -91,18 +91,15 @@ async def test_save_then_resolve_round_trip(vault_store, org_id, flow_id):
     variable_service = AsyncMock()
     variable_service.has_user_managed_variable = AsyncMock(return_value=False)
 
-    with patch(
-        "langflow.services.variable.auto_secrets._get_org_id_for_flow",
-        new=AsyncMock(return_value=org_id),
-    ):
-        out = await promote_plaintext_secrets_to_variables(
-            flow_data=flow_data,
-            flow_id=flow_id,
-            user_id=user_id,
-            secret_store=vault_store,
-            variable_service=variable_service,
-            session=AsyncMock(),
-        )
+    out = await promote_plaintext_secrets_to_variables(
+        flow_data=flow_data,
+        flow_id=flow_id,
+        organization_id=org_id,
+        user_id=user_id,
+        secret_store=vault_store,
+        variable_service=variable_service,
+        session=AsyncMock(),
+    )
 
     field = out["nodes"][0]["data"]["node"]["template"]["client_secret"]
     marker = field["value"]
@@ -125,16 +122,13 @@ async def test_save_then_resolve_round_trip(vault_store, org_id, flow_id):
     assert resolved == plaintext
 
     # Cleanup
-    with patch(
-        "langflow.services.variable.auto_secrets._get_org_id_for_flow",
-        new=AsyncMock(return_value=org_id),
-    ):
-        await delete_autosecrets_for_flow(
-            flow_id=flow_id,
-            user_id=user_id,
-            secret_store=vault_store,
-            session=AsyncMock(),
-        )
+    await delete_autosecrets_for_flow(
+        flow_id=flow_id,
+        organization_id=org_id,
+        user_id=user_id,
+        secret_store=vault_store,
+        session=AsyncMock(),
+    )
 
 
 @pytest.mark.asyncio
@@ -147,34 +141,28 @@ async def test_empty_resave_preserves_secret(vault_store, org_id, flow_id):
     variable_service.has_user_managed_variable = AsyncMock(return_value=False)
 
     # First save
-    with patch(
-        "langflow.services.variable.auto_secrets._get_org_id_for_flow",
-        new=AsyncMock(return_value=org_id),
-    ):
-        first = await promote_plaintext_secrets_to_variables(
-            flow_data=_flow_data(plaintext),
-            flow_id=flow_id,
-            user_id=user_id,
-            secret_store=vault_store,
-            variable_service=variable_service,
-            session=AsyncMock(),
-        )
+    first = await promote_plaintext_secrets_to_variables(
+        flow_data=_flow_data(plaintext),
+        flow_id=flow_id,
+        organization_id=org_id,
+        user_id=user_id,
+        secret_store=vault_store,
+        variable_service=variable_service,
+        session=AsyncMock(),
+    )
     marker = first["nodes"][0]["data"]["node"]["template"]["client_secret"]["value"]
 
     # Second save with empty value (simulating frontend round-trip)
     second_data = _flow_data("")
-    with patch(
-        "langflow.services.variable.auto_secrets._get_org_id_for_flow",
-        new=AsyncMock(return_value=org_id),
-    ):
-        second = await promote_plaintext_secrets_to_variables(
-            flow_data=second_data,
-            flow_id=flow_id,
-            user_id=user_id,
-            secret_store=vault_store,
-            variable_service=variable_service,
-            session=AsyncMock(),
-        )
+    second = await promote_plaintext_secrets_to_variables(
+        flow_data=second_data,
+        flow_id=flow_id,
+        organization_id=org_id,
+        user_id=user_id,
+        secret_store=vault_store,
+        variable_service=variable_service,
+        session=AsyncMock(),
+    )
 
     field = second["nodes"][0]["data"]["node"]["template"]["client_secret"]
     assert field["value"] == marker, "Expected marker preserved across empty re-save"
@@ -187,13 +175,10 @@ async def test_empty_resave_preserves_secret(vault_store, org_id, flow_id):
     assert payload == {"value": plaintext}
 
     # Cleanup
-    with patch(
-        "langflow.services.variable.auto_secrets._get_org_id_for_flow",
-        new=AsyncMock(return_value=org_id),
-    ):
-        await delete_autosecrets_for_flow(
-            flow_id=flow_id,
-            user_id=user_id,
-            secret_store=vault_store,
-            session=AsyncMock(),
-        )
+    await delete_autosecrets_for_flow(
+        flow_id=flow_id,
+        organization_id=org_id,
+        user_id=user_id,
+        secret_store=vault_store,
+        session=AsyncMock(),
+    )

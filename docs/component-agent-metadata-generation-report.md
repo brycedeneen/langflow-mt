@@ -2,8 +2,9 @@
 
 | Component | Category | Completeness | Outcome | Summary Status | Usage Status |
 | --- | --- | --- | --- | --- | --- |
-| ChatInput | input_output | rich | processed | generated | generated |
-| ChatOutput | input_output | rich | processed | generated | generated |
-| TextInputComponent | input_output | rich | processed | generated | generated |
-| TextOutputComponent | input_output | rich | processed | generated | generated |
-| WebhookComponent | input_output | thin | processed | generated | generated |
+| BatchRunComponent | llm_operations | rich | processed | generated | generated |
+| GuardrailsComponent | llm_operations | rich | processed | generated | generated |
+| LLMSelectorComponent | llm_operations | rich | processed | generated | generated |
+| LambdaFilterComponent | llm_operations | rich | processed | generated | generated |
+| SmartRouterComponent | llm_operations | rich | processed | generated | generated |
+| StructuredOutputComponent | llm_operations | rich | processed | generated | generated |

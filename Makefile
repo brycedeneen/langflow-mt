@@ -347,6 +347,11 @@ backend: setup_env install_backend ## run the backend in development mode
 		--host 0.0.0.0 \
 		--port $(port) \
 		$(if $(filter-out 1,$(workers)),, --reload) \
+		$(if $(filter-out 1,$(workers)),, --reload-exclude 'tests/*') \
+		$(if $(filter-out 1,$(workers)),, --reload-exclude '*/tests/*') \
+		$(if $(filter-out 1,$(workers)),, --reload-exclude 'test_*.py') \
+		$(if $(filter-out 1,$(workers)),, --reload-exclude '*_test.py') \
+		$(if $(filter-out 1,$(workers)),, --reload-exclude 'conftest.py') \
 		--env-file $(env) \
 		--loop asyncio \
 		$(if $(workers),--workers $(workers),)

@@ -199,6 +199,14 @@ async def initialize_services(*, fix_migration: bool = False) -> None:
     # Register all service factories first
     register_all_service_factories()
 
+    # Wire the autosecret resolver into lfx's load_from_db pipeline so that
+    # component builds (which run through lfx.graph.vertex.base) route Vault
+    # markers to the Vault-backed resolver instead of treating them as
+    # user-managed Variable names.
+    from langflow.services.variable.resolver import register_autosecret_resolver
+
+    register_autosecret_resolver()
+
     cache_service = get_service(ServiceType.CACHE_SERVICE, default=CacheServiceFactory())
     # Test external cache connection
     if isinstance(cache_service, ExternalAsyncBaseCacheService) and not (await cache_service.is_connected()):

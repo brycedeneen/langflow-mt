@@ -2282,6 +2282,157 @@
           "tool_mode": false,
           "version": 0
         },
+        "ADPTools": {
+          "assist_enabled": true,
+          "base_classes": [
+            "Tool"
+          ],
+          "beta": false,
+          "changelog": [],
+          "conditional_paths": [],
+          "custom_fields": {},
+          "description": "Exposes ADP HR, payroll, time, and talent tools to a Langflow Agent. Pick which tile groups you want — each contributes 1-15 agent tools.",
+          "display_name": "ADP Tools",
+          "documentation": "https://docs.langflow.org/component-adp-tools",
+          "edited": false,
+          "field_order": [
+            "connection",
+            "tiles"
+          ],
+          "frozen": false,
+          "icon": "Users",
+          "legacy": false,
+          "metadata": {
+            "code_hash": "d42694c795d9",
+            "dependencies": {
+              "dependencies": [
+                {
+                  "name": "lfx",
+                  "version": null
+                }
+              ],
+              "total_dependencies": 1
+            },
+            "module": "lfx.components.adp.adp_tools.ADPToolsComponent"
+          },
+          "minimized": false,
+          "output_types": [],
+          "outputs": [
+            {
+              "allows_loop": false,
+              "cache": true,
+              "display_name": "Tools",
+              "group_outputs": false,
+              "method": "build_tools",
+              "name": "tools",
+              "selected": "Tool",
+              "tool_mode": true,
+              "types": [
+                "Tool"
+              ],
+              "value": "__UNDEFINED__"
+            }
+          ],
+          "pinned": false,
+          "template": {
+            "_type": "Component",
+            "code": {
+              "advanced": true,
+              "dynamic": true,
+              "fileTypes": [],
+              "file_path": "",
+              "info": "",
+              "list": false,
+              "load_from_db": false,
+              "multiline": true,
+              "name": "code",
+              "password": false,
+              "placeholder": "",
+              "required": true,
+              "show": true,
+              "title_case": false,
+              "type": "code",
+              "value": "\"\"\"ADPToolsComponent — single multi-select component exposing ADP tile groups as agent tools.\"\"\"\n\nfrom __future__ import annotations\n\nfrom collections.abc import Callable\nfrom typing import ClassVar\n\nfrom lfx.components.adp._shared import ADPConnection, RequestCache\nfrom lfx.components.adp.adp_applicant_onboarding_tools import build_applicant_onboarding_tools\nfrom lfx.components.adp.adp_benefits_tools import build_benefits_tools\nfrom lfx.components.adp.adp_data_collection_entries_tools import build_data_collection_entries_tools\nfrom lfx.components.adp.adp_deduction_configurations_tools import build_deduction_configurations_tools\nfrom lfx.components.adp.adp_job_applicants_tools import build_job_applicants_tools\nfrom lfx.components.adp.adp_job_requisitions_tools import build_job_requisitions_tools\nfrom lfx.components.adp.adp_pay_data_input_tools import build_pay_data_input_tools\nfrom lfx.components.adp.adp_pay_distributions_tools import build_pay_distributions_tools\nfrom lfx.components.adp.adp_pay_statements_tools import build_pay_statements_tools\nfrom lfx.components.adp.adp_talent_tools import build_talent_tools\nfrom lfx.components.adp.adp_team_time_cards_tools import build_team_time_cards_tools\nfrom lfx.components.adp.adp_time_cards_tools import build_time_cards_tools\nfrom lfx.components.adp.adp_time_off_tools import build_time_off_tools\nfrom lfx.components.adp.adp_us_tax_profiles_tools import build_us_tax_profiles_tools\nfrom lfx.components.adp.adp_work_schedules_tools import build_work_schedules_tools\nfrom lfx.components.adp.adp_worker_assignment_tools import build_worker_assignment_tools\nfrom lfx.components.adp.adp_worker_assignment_v3_tools import build_worker_assignment_v3_tools\nfrom lfx.components.adp.adp_worker_biological_tools import build_worker_biological_tools\nfrom lfx.components.adp.adp_worker_business_communication_tools import build_worker_business_communication_tools\nfrom lfx.components.adp.adp_worker_compensation_tools import build_worker_compensation_tools\nfrom lfx.components.adp.adp_worker_demographic_tools import build_worker_demographic_tools\nfrom lfx.components.adp.adp_worker_deployment_tools import build_worker_deployment_tools\nfrom lfx.components.adp.adp_worker_hr_profiles_tools import build_worker_hr_profiles_tools\nfrom lfx.components.adp.adp_worker_identification_tools import build_worker_identification_tools\nfrom lfx.components.adp.adp_worker_leaves_tools import build_worker_leaves_tools\nfrom lfx.components.adp.adp_worker_lifecycle_tools import build_worker_lifecycle_tools\nfrom lfx.components.adp.adp_worker_payroll_instructions_tools import build_worker_payroll_instructions_tools\nfrom lfx.components.adp.adp_worker_personal_communication_tools import build_worker_personal_communication_tools\nfrom lfx.components.adp.adp_worker_tools import build_worker_tools\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry\nfrom lfx.io import HandleInput, MultiselectInput, Output\n\n\nTILE_BUILDERS: dict[str, Callable[[ADPConnection, RequestCache], list[Tool]]] = {\n    \"Worker\": build_worker_tools,\n    \"Worker Assignment\": build_worker_assignment_tools,\n    \"Worker Assignment v3\": build_worker_assignment_v3_tools,\n    \"Worker HR Profiles\": build_worker_hr_profiles_tools,\n    \"Worker Lifecycle\": build_worker_lifecycle_tools,\n    \"Worker Identification\": build_worker_identification_tools,\n    \"Worker Biological\": build_worker_biological_tools,\n    \"Worker Deployment\": build_worker_deployment_tools,\n    \"Worker Leaves\": build_worker_leaves_tools,\n    \"Worker Payroll Instructions\": build_worker_payroll_instructions_tools,\n    \"Worker Personal Communication\": build_worker_personal_communication_tools,\n    \"Worker Business Communication\": build_worker_business_communication_tools,\n    \"Worker Compensation\": build_worker_compensation_tools,\n    \"Worker Demographic\": build_worker_demographic_tools,\n    \"Pay Data Input\": build_pay_data_input_tools,\n    \"Pay Distributions\": build_pay_distributions_tools,\n    \"Pay Statements\": build_pay_statements_tools,\n    \"US Tax Profiles\": build_us_tax_profiles_tools,\n    \"Deduction Configurations\": build_deduction_configurations_tools,\n    \"Time Cards\": build_time_cards_tools,\n    \"Team Time Cards\": build_team_time_cards_tools,\n    \"Time Off\": build_time_off_tools,\n    \"Work Schedules\": build_work_schedules_tools,\n    \"Talent\": build_talent_tools,\n    \"Job Applicants\": build_job_applicants_tools,\n    \"Job Requisitions\": build_job_requisitions_tools,\n    \"Applicant Onboarding\": build_applicant_onboarding_tools,\n    \"Benefits\": build_benefits_tools,\n    \"Data Collection Entries\": build_data_collection_entries_tools,\n}\n\n\nclass ADPToolsComponent(Component):\n    display_name = \"ADP Tools\"\n    name = \"ADPTools\"\n    description = (\n        \"Exposes ADP HR, payroll, time, and talent tools to a Langflow Agent. \"\n        \"Pick which tile groups you want — each contributes 1-15 agent tools.\"\n    )\n    icon = \"Users\"\n    version: int = 1\n    documentation: str = \"https://docs.langflow.org/component-adp-tools\"\n\n    inputs: ClassVar = [\n        HandleInput(\n            name=\"connection\",\n            display_name=\"ADP Connection\",\n            input_types=[\"ADPConnection\"],\n            info=\"Connection produced by an ADP Auth component.\",\n            required=True,\n        ),\n        MultiselectInput(\n            name=\"tiles\",\n            display_name=\"Tools\",\n            options=list(TILE_BUILDERS.keys()),\n            value=[],\n            info=(\n                \"Select which ADP tool groups to expose to the agent. Each group \"\n                \"adds 1-15 focused agent tools. Leaving this empty exposes nothing.\"\n            ),\n        ),\n    ]\n\n    outputs: ClassVar = [Output(display_name=\"Tools\", name=\"tools\", method=\"build_tools\")]\n\n    async def build_tools(self) -> list[Tool]:\n        selected = list(getattr(self, \"tiles\", []) or [])\n        if not selected:\n            self.status = \"No tile groups selected — agent will receive 0 ADP tools.\"\n            return []\n        cache = RequestCache(ttl_seconds=30, max_entries=128)\n        tools: list[Tool] = []\n        for label in selected:\n            builder = TILE_BUILDERS.get(label)\n            if builder is None:\n                continue  # defensive: stale label from a saved flow\n            tools.extend(builder(self.connection, cache))\n        self.status = f\"Exposing {len(tools)} tool(s) from {len(selected)} tile group(s).\"\n        return tools\n"
+            },
+            "connection": {
+              "_input_type": "HandleInput",
+              "advanced": false,
+              "display_name": "ADP Connection",
+              "dynamic": false,
+              "info": "Connection produced by an ADP Auth component.",
+              "input_types": [
+                "ADPConnection"
+              ],
+              "list": false,
+              "list_add_label": "Add More",
+              "name": "connection",
+              "override_skip": false,
+              "placeholder": "",
+              "required": true,
+              "show": true,
+              "title_case": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": false,
+              "type": "other",
+              "value": ""
+            },
+            "tiles": {
+              "_input_type": "MultiselectInput",
+              "advanced": false,
+              "combobox": false,
+              "display_name": "Tools",
+              "dynamic": false,
+              "info": "Select which ADP tool groups to expose to the agent. Each group adds 1-15 focused agent tools. Leaving this empty exposes nothing.",
+              "list": true,
+              "list_add_label": "Add More",
+              "name": "tiles",
+              "options": [
+                "Worker",
+                "Worker Assignment",
+                "Worker Assignment v3",
+                "Worker HR Profiles",
+                "Worker Lifecycle",
+                "Worker Identification",
+                "Worker Biological",
+                "Worker Deployment",
+                "Worker Leaves",
+                "Worker Payroll Instructions",
+                "Worker Personal Communication",
+                "Worker Business Communication",
+                "Worker Compensation",
+                "Worker Demographic",
+                "Pay Data Input",
+                "Pay Distributions",
+                "Pay Statements",
+                "US Tax Profiles",
+                "Deduction Configurations",
+                "Time Cards",
+                "Team Time Cards",
+                "Time Off",
+                "Work Schedules",
+                "Talent",
+                "Job Applicants",
+                "Job Requisitions",
+                "Applicant Onboarding",
+                "Benefits",
+                "Data Collection Entries"
+              ],
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "toggle": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": false,
+              "type": "str",
+              "value": []
+            }
+          },
+          "tool_mode": false,
+          "version": 1
+        },
         "ADPTrigger": {
           "assist_enabled": true,
           "base_classes": [
@@ -84046,11 +84197,11 @@
               "group_outputs": false,
               "method": "build_agent",
               "name": "agent",
-              "selected": "AgentExecutor",
+              "selected": "Runnable",
               "tool_mode": false,
               "types": [
-                "AgentExecutor",
-                "Runnable"
+                "Runnable",
+                "AgentExecutor"
               ],
               "value": "__UNDEFINED__"
             }
@@ -86765,11 +86916,11 @@
               "group_outputs": false,
               "method": "build_agent",
               "name": "agent",
-              "selected": "AgentExecutor",
+              "selected": "Runnable",
               "tool_mode": false,
               "types": [
-                "AgentExecutor",
-                "Runnable"
+                "Runnable",
+                "AgentExecutor"
               ],
               "value": "__UNDEFINED__"
             }
@@ -87533,11 +87684,11 @@
               "group_outputs": false,
               "method": "build_agent",
               "name": "agent",
-              "selected": "AgentExecutor",
+              "selected": "Runnable",
               "tool_mode": false,
               "types": [
-                "AgentExecutor",
-                "Runnable"
+                "Runnable",
+                "AgentExecutor"
               ],
               "value": "__UNDEFINED__"
             }
@@ -101056,11 +101207,11 @@
               "group_outputs": false,
               "method": "build_combined",
               "name": "combined",
-              "selected": "Table",
+              "selected": "JSON",
               "tool_mode": true,
               "types": [
-                "Table",
-                "JSON"
+                "JSON",
+                "Table"
               ],
               "value": "__UNDEFINED__"
             }
@@ -103585,11 +103736,11 @@
               "group_outputs": false,
               "method": "build_matched",
               "name": "matched",
-              "selected": "Table",
+              "selected": "JSON",
               "tool_mode": true,
               "types": [
-                "Table",
-                "JSON"
+                "JSON",
+                "Table"
               ],
               "value": "__UNDEFINED__"
             },
@@ -103600,11 +103751,11 @@
               "group_outputs": false,
               "method": "build_unmatched",
               "name": "unmatched",
-              "selected": "Table",
+              "selected": "JSON",
               "tool_mode": true,
               "types": [
-                "Table",
-                "JSON"
+                "JSON",
+                "Table"
               ],
               "value": "__UNDEFINED__"
             }
@@ -121188,9 +121339,9 @@
     ]
   ],
   "metadata": {
-    "num_components": 365,
+    "num_components": 366,
     "num_modules": 98
   },
-  "sha256": "ba909f330fb9b0bc37129caad5d1ed85d4232c39c250b1057384c699a0660794",
+  "sha256": "bb8f3c78cb0fec35e25bec83557976b9772e7eb945bf565f1188089897809022",
   "version": "26.424.1"
 }

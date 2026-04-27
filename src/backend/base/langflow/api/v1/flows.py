@@ -440,6 +440,7 @@ async def create_flow(
             flow.data = await promote_plaintext_secrets_to_variables(
                 flow_data=flow.data,
                 flow_id=flow_id,
+                organization_id=current_org.id,
                 user_id=current_user.id,
                 secret_store=get_secret_store(),
                 variable_service=get_variable_service(),
@@ -669,6 +670,7 @@ async def update_flow(
             update_data["data"] = await promote_plaintext_secrets_to_variables(
                 flow_data=update_data["data"],
                 flow_id=db_flow.id,
+                organization_id=db_flow.organization_id,
                 user_id=current_user.id,
                 secret_store=sec_store,
                 variable_service=var_svc,
@@ -677,6 +679,7 @@ async def update_flow(
             await cleanup_orphaned_autosecrets(
                 flow_data=update_data["data"],
                 flow_id=db_flow.id,
+                organization_id=db_flow.organization_id,
                 user_id=current_user.id,
                 secret_store=sec_store,
                 session=session,
@@ -1007,6 +1010,7 @@ async def delete_flow(
         )
     await delete_autosecrets_for_flow(
         flow_id=flow.id,
+        organization_id=flow.organization_id,
         user_id=current_user.id,
         secret_store=get_secret_store(),
         session=session,

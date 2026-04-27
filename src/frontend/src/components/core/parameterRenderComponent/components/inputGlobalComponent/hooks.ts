@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useGlobalVariablesStore } from "@/stores/globalVariablesStore/globalVariables";
+import { isAutosecretMarker } from "@/utils/autosecret";
 import type { GlobalVariable } from "./types";
 
 // Custom hook for managing global variable value existence
@@ -40,6 +41,7 @@ export const useUnavailableField = (
 export const useInitialLoad = (
   disabled: boolean,
   loadFromDb: boolean,
+  currentValue: string,
   globalVariables: GlobalVariable[],
   valueExists: boolean,
   unavailableField: string | null,
@@ -54,9 +56,17 @@ export const useInitialLoad = (
   // Keep the latest handleOnNewValue reference
   handleOnNewValueRef.current = handleOnNewValue;
 
-  // Handle database loading when value doesn't exist
+  // Reset the load_from_db flag when the saved reference no longer exists
+  // as a global variable. Autosecret markers are valid stored references
+  // even though they're not in the global-variable list, so leave them alone.
   useEffect(() => {
-    if (disabled || !loadFromDb || !globalVariables.length || valueExists) {
+    if (
+      disabled ||
+      !loadFromDb ||
+      !globalVariables.length ||
+      valueExists ||
+      isAutosecretMarker(currentValue)
+    ) {
       return;
     }
 
@@ -64,7 +74,7 @@ export const useInitialLoad = (
       { value: "", load_from_db: false },
       { skipSnapshot: true },
     );
-  }, [disabled, loadFromDb, globalVariables.length, valueExists]);
+  }, [disabled, loadFromDb, globalVariables.length, valueExists, currentValue]);
 
   // Handle unavailable field initialization
   useEffect(() => {

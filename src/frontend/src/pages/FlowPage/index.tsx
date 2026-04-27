@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useBlocker, useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useBlocker, useLocation, useParams } from "react-router-dom";
 import { FlowPageSlidingContainerContent } from "@/components/core/playgroundComponent/sliding-container/components/flow-page-sliding-container";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import {
@@ -21,6 +21,10 @@ import useAlertStore from "@/stores/alertStore";
 import useAssistantStore from "@/stores/assistantStore";
 import { usePlaygroundStore } from "@/stores/playgroundStore";
 import { useTypesStore } from "@/stores/typesStore";
+import {
+  ASSIST_FULLSCREEN_STATE_KEY,
+  type AssistEntryLocationState,
+} from "@/utils/assist-entry";
 import { customStringify } from "@/utils/reactflowUtils";
 import { cn } from "@/utils/utils";
 import useFlowStore from "../../stores/flowStore";
@@ -43,9 +47,12 @@ function FlowPageMainContent({
   const showTraces = ENABLE_NEW_SIDEBAR && activeSection === "traces";
 
   if (showTraces) {
+    // pl: the segmented-nav floats absolute z-50 inside the Sidebar; in trace
+    // mode the Sidebar's spacer often collapses to 0, letting the nav cover
+    // the leftmost 40px of this content. Reserve that space explicitly.
     return (
       <div
-        className="flex h-full w-full flex-col overflow-hidden"
+        className="flex h-full w-full flex-col overflow-hidden pl-[40px]"
         data-testid="flow-insights-embedded"
       >
         <FlowInsightsContent
@@ -87,7 +94,25 @@ export default function FlowPage({ view }: { view?: boolean }): JSX.Element {
   const setOnFlowPage = useFlowStore((state) => state.setOnFlowPage);
   const { id } = useParams();
   const navigate = useCustomNavigate();
+  const location = useLocation();
   const saveFlow = useSaveFlow();
+
+  // Honor router-state intent from openFlowInFullscreenAssist. The helper
+  // also pre-sets the store, but routing state is the durable source of
+  // truth in case anything (route unmount/remount) drops that pre-set
+  // value. We apply once per id via a ref so re-renders that don't change
+  // the navigated location don't keep re-opening fullscreen if the user
+  // has explicitly closed it.
+  const appliedAssistFor = useRef<string | null>(null);
+  useEffect(() => {
+    const state = (location.state ?? null) as AssistEntryLocationState | null;
+    if (!state?.[ASSIST_FULLSCREEN_STATE_KEY]) return;
+    if (!id || appliedAssistFor.current === id) return;
+    appliedAssistFor.current = id;
+    const store = useAssistantStore.getState();
+    store.setPanelOpen(true);
+    store.setLayoutMode("fullscreen");
+  }, [id, location.state]);
 
   const flows = useFlowsManagerStore((state) => state.flows);
   const currentFlowId = useFlowsManagerStore((state) => state.currentFlowId);

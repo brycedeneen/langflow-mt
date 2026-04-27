@@ -122,6 +122,7 @@ async def promote_plaintext_secrets_to_variables(
     *,
     flow_data: dict,
     flow_id: UUID,
+    organization_id: UUID,
     user_id: UUID,
     secret_store: SecretStore,
     variable_service: VariableService,
@@ -129,6 +130,11 @@ async def promote_plaintext_secrets_to_variables(
 ) -> dict:
     """Walk a flow's template, promote plaintext secrets into Vault, and
     rewrite the field to reference the value via a stable marker.
+
+    ``organization_id`` is passed in by the caller (already in scope at every
+    flow CRUD endpoint) rather than looked up from the Flow row, because POST
+    ``/flows/`` runs promotion *before* the row is inserted — a DB lookup
+    would return None and silently no-op the promotion.
 
     Branches:
       1. Empty value, no Vault secret existing → clean save (clear the field).
@@ -138,9 +144,7 @@ async def promote_plaintext_secrets_to_variables(
       4. User-picked user-managed Variable name → passthrough.
       5. Typed-in plaintext → write Vault, point field at marker.
     """
-    org_id = await _get_org_id_for_flow(flow_id, session=session)
-    if org_id is None:
-        return flow_data
+    org_id = organization_id
 
     for node_id, field_name, field in _iter_promotable_fields(flow_data):
         marker = autosecret_marker(flow_id, node_id, field_name)
@@ -187,16 +191,14 @@ async def cleanup_orphaned_autosecrets(
     *,
     flow_data: dict,
     flow_id: UUID,
+    organization_id: UUID,
     user_id: UUID,
     secret_store: SecretStore,
     session: AsyncSession,
 ) -> None:
     """Delete Vault autosecrets whose (node_id, field_name) is no longer
     present in the flow's current template."""
-    org_id = await _get_org_id_for_flow(flow_id, session=session)
-    if org_id is None:
-        return
-
+    org_id = organization_id
     base = f"{org_id}/flows/{flow_id}/autosecrets/"
     existing: set[tuple[str, str]] = set()
     for node_entry in await secret_store.list(base):
@@ -219,15 +221,13 @@ async def cleanup_orphaned_autosecrets(
 async def delete_autosecrets_for_flow(
     *,
     flow_id: UUID,
+    organization_id: UUID,
     user_id: UUID,
     secret_store: SecretStore,
     session: AsyncSession,
 ) -> None:
     """Delete every Vault autosecret owned by this flow. Call on flow delete."""
-    org_id = await _get_org_id_for_flow(flow_id, session=session)
-    if org_id is None:
-        return
-
+    org_id = organization_id
     base = f"{org_id}/flows/{flow_id}/autosecrets/"
     for node_entry in await secret_store.list(base):
         if not node_entry.endswith("/"):

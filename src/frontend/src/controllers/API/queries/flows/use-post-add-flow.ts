@@ -64,12 +64,22 @@ export const usePostAddFlow: useMutationFunctionType<
       ...options,
       onSettled: (response) => {
         if (response) {
-          queryClient.refetchQueries({
-            queryKey: [
-              "useGetRefreshFlowsQuery",
-              { get_all: true, header_flows: true },
-            ],
-          });
+          // Seed the cached flows list with the just-created flow before
+          // refetching. Without this, a sibling component that re-mounts
+          // mid-navigation (e.g. AppHeader → FlowMenu when the route swaps
+          // its dashboard wrapper) reads the still-stale cached array, fires
+          // its sync-to-flows-store effect, and overwrites the optimistic
+          // setFlows from useAddFlow.onSuccess — which then makes FlowPage
+          // think the flow doesn't exist and bounce to /all.
+          const queryKey = [
+            "useGetRefreshFlowsQuery",
+            { get_all: true, header_flows: true },
+          ];
+          queryClient.setQueryData<unknown[]>(queryKey, (old) =>
+            Array.isArray(old) ? [response, ...old] : old,
+          );
+
+          queryClient.refetchQueries({ queryKey });
 
           queryClient.refetchQueries({
             queryKey: [

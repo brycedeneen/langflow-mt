@@ -2,6 +2,7 @@ import { memo, useEffect } from "react";
 import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
 import { useGetGlobalVariables } from "@/controllers/API/queries/variables";
 import GeneralDeleteConfirmationModal from "@/shared/components/delete-confirmation-modal";
+import { isAutosecretMarker } from "@/utils/autosecret";
 import { looksLikeVariableName } from "../../../../../utils/reactflowUtils";
 import { cn } from "../../../../../utils/utils";
 import { Plus } from "lucide-react";
@@ -17,12 +18,7 @@ import {
 } from "./hooks";
 import type { GlobalVariable, GlobalVariableHandlers } from "./types";
 
-// Sentinel prefix the backend writes to a SecretStrInput's `value` after it
-// promotes a typed plaintext secret into a Vault-backed auto-Variable. The
-// underlying variable is filtered out of /api/v1/variables, so without
-// special-casing here the marker reads as an "orphaned global variable" and
-// triggers the cleanup path that blanks the field on reload.
-const AUTOSECRET_VALUE_PREFIX = "__autosecret|";
+const STORED_SECRET_PLACEHOLDER = "•••••• Stored — type to replace";
 
 function InputGlobalComponent({
   display_name,
@@ -52,26 +48,28 @@ function InputGlobalComponent({
     typedGlobalVariables,
   );
   const unavailableField = useUnavailableField(display_name, currentValue);
-
-  const isAutosecret =
-    typeof currentValue === "string" &&
-    currentValue.startsWith(AUTOSECRET_VALUE_PREFIX);
-  // Treat marker-backed values as "valid stored secret" so the cleanup paths
-  // below don't blank them.
-  const effectiveValueExists = valueExists || isAutosecret;
+  const isStoredAutosecret = loadFromDb && isAutosecretMarker(currentValue);
 
   useInitialLoad(
     isDisabled,
     loadFromDb,
+    currentValue,
     typedGlobalVariables,
-    effectiveValueExists,
+    valueExists || isStoredAutosecret,
     unavailableField,
     handleOnNewValue,
   );
 
-  // Clean up when selected variable no longer exists
+  // Clean up when selected variable no longer exists. Autosecret markers are
+  // valid stored references (not global variables), so leave them alone.
   useEffect(() => {
-    if (loadFromDb && currentValue && !effectiveValueExists && !isDisabled) {
+    if (
+      loadFromDb &&
+      currentValue &&
+      !valueExists &&
+      !isDisabled &&
+      !isAutosecretMarker(currentValue)
+    ) {
       handleOnNewValue(
         { value: "", load_from_db: false },
         { skipSnapshot: true },
@@ -80,7 +78,7 @@ function InputGlobalComponent({
   }, [
     loadFromDb,
     currentValue,
-    effectiveValueExists,
+    valueExists,
     isDisabled,
     handleOnNewValue,
   ]);
@@ -140,28 +138,25 @@ function InputGlobalComponent({
   const isEnvVarName =
     password && currentValue && looksLikeVariableName(currentValue);
   if (
-    !isAutosecret &&
-    ((loadFromDb &&
+    (loadFromDb &&
       currentValue &&
       !valueExists &&
-      !variableOptions.includes(currentValue)) ||
-      (isEnvVarName && !variableOptions.includes(currentValue)))
+      !variableOptions.includes(currentValue) &&
+      !isStoredAutosecret) ||
+    (isEnvVarName && !variableOptions.includes(currentValue))
   ) {
     variableOptions = [...variableOptions, currentValue];
   }
 
-  const selectedOption = isAutosecret
-    ? ""
-    : loadFromDb || isEnvVarName
-      ? currentValue
-      : "";
-
-  // Hide the raw marker from the rendered input — show a placeholder hinting
-  // the secret is already stored. The marker stays in flow state so a no-op
-  // save round-trips correctly through the backend's preserve-marker branch.
-  const displayedValue = isAutosecret ? "" : currentValue;
-  const displayedPlaceholder = isAutosecret
-    ? "Stored — type to replace"
+  // For autosecret markers: hide the marker text from the UI (no chip, no
+  // raw value in the input) but keep the marker in component state so the
+  // backend's branch-3 passthrough preserves it on save. The placeholder
+  // gives the user a visual indicator that a secret is stored.
+  const selectedOption =
+    !isStoredAutosecret && (loadFromDb || isEnvVarName) ? currentValue : "";
+  const displayValue = isStoredAutosecret ? "" : currentValue;
+  const displayPlaceholder = isStoredAutosecret
+    ? STORED_SECRET_PLACEHOLDER
     : getPlaceholder(disabled, placeholder);
 
   if (!showParameter) {
@@ -172,12 +167,12 @@ function InputGlobalComponent({
     <InputComponent
       nodeStyle
       popoverWidth="17.5rem"
-      placeholder={displayedPlaceholder}
+      placeholder={displayPlaceholder}
       id={id}
       editNode={editNode}
       disabled={disabled}
       password={password ?? false}
-      value={displayedValue}
+      value={displayValue}
       options={variableOptions}
       optionsPlaceholder="Global Variables"
       optionsIcon="Globe"

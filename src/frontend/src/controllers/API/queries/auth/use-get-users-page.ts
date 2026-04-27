@@ -1,11 +1,8 @@
 import type { UseMutationResult } from "@tanstack/react-query";
+import type { z } from "zod";
 import { validatedQueryFn } from "@/lib/validated-fetch";
 import { UsersResponse } from "@/schemas/api/_generated";
-import type {
-  ApiError,
-  Users,
-  useMutationFunctionType,
-} from "../../../../types/api";
+import type { ApiError, useMutationFunctionType } from "../../../../types/api";
 import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
@@ -15,6 +12,8 @@ interface getUsersQueryParams {
   limit: number;
 }
 
+type UsersResponseShape = z.infer<typeof UsersResponse>;
+
 export const useGetUsers: useMutationFunctionType<any, getUsersQueryParams> = (
   options?,
 ) => {
@@ -23,8 +22,8 @@ export const useGetUsers: useMutationFunctionType<any, getUsersQueryParams> = (
   async function getUsers({
     skip,
     limit,
-  }: getUsersQueryParams): Promise<Array<Users>> {
-    const res = await validatedQueryFn(
+  }: getUsersQueryParams): Promise<UsersResponseShape> {
+    return await validatedQueryFn(
       "api.users.read_all_users_api_v1_users__get",
       UsersResponse,
       async () => {
@@ -35,7 +34,6 @@ export const useGetUsers: useMutationFunctionType<any, getUsersQueryParams> = (
         return { total_count: 0, users: [] };
       },
     )();
-    return res.users as unknown as Users[];
   }
 
   const mutation: UseMutationResult<

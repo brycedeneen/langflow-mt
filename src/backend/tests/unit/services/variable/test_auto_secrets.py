@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 from uuid import UUID, uuid4
 
 import pytest
@@ -13,6 +13,9 @@ from langflow.services.variable.auto_secrets import (
     NEW_AUTOSECRET_PREFIX as AUTOSECRET_PREFIX,
     autosecret_marker,
     autosecret_vault_path,
+    blank_autosecrets_for_export,
+    cleanup_orphaned_autosecrets,
+    delete_autosecrets_for_flow,
     promote_plaintext_secrets_to_variables,
 )
 
@@ -42,17 +45,8 @@ def _flow_data(field_template: dict, *, field_name: str = "cert_pem") -> dict:
     }
 
 
-@pytest.fixture
-def patched_org_lookup():
-    with patch(
-        "langflow.services.variable.auto_secrets._get_org_id_for_flow",
-        return_value=ORG_ID,
-    ) as patched:
-        yield patched
-
-
 @pytest.mark.asyncio
-async def test_promote_writes_plaintext_to_vault(patched_org_lookup):
+async def test_promote_writes_plaintext_to_vault():
     flow_data = _flow_data(
         {
             "_input_type": "TextFileSecretInput",
@@ -68,6 +62,7 @@ async def test_promote_writes_plaintext_to_vault(patched_org_lookup):
     out = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
+        organization_id=ORG_ID,
         user_id=USER_ID,
         secret_store=secret_store,
         variable_service=variable_service,
@@ -83,7 +78,7 @@ async def test_promote_writes_plaintext_to_vault(patched_org_lookup):
 
 
 @pytest.mark.asyncio
-async def test_promote_empty_value_with_existing_secret_preserves_marker(patched_org_lookup):
+async def test_promote_empty_value_with_existing_secret_preserves_marker():
     """Issue 1 fix: empty value next to an existing Vault secret = 'untouched'."""
     secret_store = InMemorySecretStore()
     path = autosecret_vault_path(ORG_ID, FLOW_ID, NODE_ID, "cert_pem")
@@ -101,6 +96,7 @@ async def test_promote_empty_value_with_existing_secret_preserves_marker(patched
     out = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
+        organization_id=ORG_ID,
         user_id=USER_ID,
         secret_store=secret_store,
         variable_service=AsyncMock(),
@@ -114,7 +110,7 @@ async def test_promote_empty_value_with_existing_secret_preserves_marker(patched
 
 
 @pytest.mark.asyncio
-async def test_promote_empty_value_with_no_secret_clears_field(patched_org_lookup):
+async def test_promote_empty_value_with_no_secret_clears_field():
     flow_data = _flow_data(
         {
             "_input_type": "TextFileSecretInput",
@@ -126,6 +122,7 @@ async def test_promote_empty_value_with_no_secret_clears_field(patched_org_looku
     out = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
+        organization_id=ORG_ID,
         user_id=USER_ID,
         secret_store=InMemorySecretStore(),
         variable_service=AsyncMock(),
@@ -137,7 +134,7 @@ async def test_promote_empty_value_with_no_secret_clears_field(patched_org_looku
 
 
 @pytest.mark.asyncio
-async def test_promote_existing_marker_passes_through(patched_org_lookup):
+async def test_promote_existing_marker_passes_through():
     marker = autosecret_marker(FLOW_ID, NODE_ID, "cert_pem")
     flow_data = _flow_data(
         {
@@ -152,6 +149,7 @@ async def test_promote_existing_marker_passes_through(patched_org_lookup):
     out = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
+        organization_id=ORG_ID,
         user_id=USER_ID,
         secret_store=secret_store,
         variable_service=AsyncMock(),
@@ -164,7 +162,7 @@ async def test_promote_existing_marker_passes_through(patched_org_lookup):
 
 
 @pytest.mark.asyncio
-async def test_promote_legacy_marker_clears_field(patched_org_lookup):
+async def test_promote_legacy_marker_clears_field():
     """Dev-data hygiene: legacy underscore-delimited markers reset to empty."""
     legacy = LEGACY_AUTOSECRET_PREFIX + f"{FLOW_ID}_{NODE_ID}_cert_pem"
     flow_data = _flow_data(
@@ -178,6 +176,7 @@ async def test_promote_legacy_marker_clears_field(patched_org_lookup):
     out = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
+        organization_id=ORG_ID,
         user_id=USER_ID,
         secret_store=InMemorySecretStore(),
         variable_service=AsyncMock(),
@@ -189,7 +188,7 @@ async def test_promote_legacy_marker_clears_field(patched_org_lookup):
 
 
 @pytest.mark.asyncio
-async def test_promote_user_managed_variable_name_passes_through(patched_org_lookup):
+async def test_promote_user_managed_variable_name_passes_through():
     flow_data = _flow_data(
         {
             "_input_type": "SecretStrInput",
@@ -207,6 +206,7 @@ async def test_promote_user_managed_variable_name_passes_through(patched_org_loo
     out = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
+        organization_id=ORG_ID,
         user_id=USER_ID,
         secret_store=secret_store,
         variable_service=variable_service,
@@ -218,41 +218,7 @@ async def test_promote_user_managed_variable_name_passes_through(patched_org_loo
 
 
 @pytest.mark.asyncio
-async def test_promote_skips_when_org_missing():
-    """Defensive: missing flow row → no-op, don't crash the save."""
-    flow_data = _flow_data(
-        {
-            "_input_type": "SecretStrInput",
-            "auto_promote": True,
-            "value": "plaintext",
-            "load_from_db": False,
-        }
-    )
-    with patch(
-        "langflow.services.variable.auto_secrets._get_org_id_for_flow",
-        return_value=None,
-    ):
-        out = await promote_plaintext_secrets_to_variables(
-            flow_data=flow_data,
-            flow_id=FLOW_ID,
-            user_id=USER_ID,
-            secret_store=InMemorySecretStore(),
-            variable_service=AsyncMock(),
-            session=AsyncMock(),
-        )
-    field = out["nodes"][0]["data"]["node"]["template"]["cert_pem"]
-    assert field["value"] == "plaintext"
-
-
-from langflow.services.variable.auto_secrets import (
-    blank_autosecrets_for_export,
-    cleanup_orphaned_autosecrets,
-    delete_autosecrets_for_flow,
-)
-
-
-@pytest.mark.asyncio
-async def test_cleanup_removes_orphans_only(patched_org_lookup):
+async def test_cleanup_removes_orphans_only():
     secret_store = InMemorySecretStore()
     # Two existing entries — one is still in the template, one is orphaned.
     await secret_store.put(
@@ -275,6 +241,7 @@ async def test_cleanup_removes_orphans_only(patched_org_lookup):
     await cleanup_orphaned_autosecrets(
         flow_data=flow_data,
         flow_id=FLOW_ID,
+        organization_id=ORG_ID,
         user_id=USER_ID,
         secret_store=secret_store,
         session=AsyncMock(),
@@ -293,33 +260,7 @@ async def test_cleanup_removes_orphans_only(patched_org_lookup):
 
 
 @pytest.mark.asyncio
-async def test_cleanup_no_op_when_org_missing():
-    secret_store = InMemorySecretStore()
-    await secret_store.put(
-        autosecret_vault_path(ORG_ID, FLOW_ID, NODE_ID, "cert_pem"),
-        {"value": "x"},
-    )
-    with patch(
-        "langflow.services.variable.auto_secrets._get_org_id_for_flow",
-        return_value=None,
-    ):
-        await cleanup_orphaned_autosecrets(
-            flow_data=_flow_data({"_input_type": "TextFileSecretInput", "auto_promote": True, "value": ""}),
-            flow_id=FLOW_ID,
-            user_id=USER_ID,
-            secret_store=secret_store,
-            session=AsyncMock(),
-        )
-    # Nothing deleted.
-    assert (
-        await secret_store.get(
-            autosecret_vault_path(ORG_ID, FLOW_ID, NODE_ID, "cert_pem")
-        )
-    ) is not None
-
-
-@pytest.mark.asyncio
-async def test_delete_removes_all_under_flow(patched_org_lookup):
+async def test_delete_removes_all_under_flow():
     secret_store = InMemorySecretStore()
     await secret_store.put(
         autosecret_vault_path(ORG_ID, FLOW_ID, NODE_ID, "cert_pem"),
@@ -337,6 +278,7 @@ async def test_delete_removes_all_under_flow(patched_org_lookup):
 
     await delete_autosecrets_for_flow(
         flow_id=FLOW_ID,
+        organization_id=ORG_ID,
         user_id=USER_ID,
         secret_store=secret_store,
         session=AsyncMock(),

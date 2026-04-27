@@ -8,6 +8,12 @@ import {
 import { useEstimateFlowCost } from "@/controllers/API/queries/usage/use-estimate-flow-cost";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 
+const formatCents = (cents: number) => {
+  const dollars = cents / 100;
+  if (dollars > 0 && dollars < 0.01) return "<$0.01";
+  return `$${dollars.toFixed(2)}`;
+};
+
 export default function CostEstimateBadge() {
   const flowId = useFlowsManagerStore((s) => s.currentFlow?.id) || "";
   const { mutate, data, isPending } = useEstimateFlowCost();
@@ -19,12 +25,15 @@ export default function CostEstimateBadge() {
   };
 
   const estimate = data?.estimate;
+  const expectedDollars = estimate ? estimate.expected_cost_cents / 100 : 0;
   const label =
     !estimate
       ? isPending ? "…" : "Estimate"
       : estimate.confidence === "none"
       ? "?"
-      : `~$${(estimate.expected_cost_cents / 100).toFixed(2)}/run`;
+      : expectedDollars > 0 && expectedDollars < 0.01
+      ? "<$0.01/run"
+      : `~$${expectedDollars.toFixed(2)}/run`;
 
   const pillClass =
     !estimate
@@ -53,7 +62,7 @@ export default function CostEstimateBadge() {
             {data.per_component.map((c, i) => (
               <li key={i} className="flex justify-between">
                 <span>{c.kind} · {c.model || "?"}</span>
-                <span>{c.unknown ? "?" : `$${(c.cost_cents / 100).toFixed(3)}`}</span>
+                <span>{c.unknown ? "?" : formatCents(c.cost_cents)}</span>
               </li>
             ))}
           </ul>

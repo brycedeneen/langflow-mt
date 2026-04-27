@@ -138,6 +138,10 @@ export default function ProfessionalServicesPage() {
             value={webhookUrl}
             onChange={(e) => setWebhookUrl(e.target.value)}
             placeholder="https://example.com/hooks/pro-services"
+            autoComplete="off"
+            data-1p-ignore
+            data-lpignore="true"
+            data-form-type="other"
             data-testid="ps-settings-webhook-url"
           />
         </div>
@@ -150,6 +154,10 @@ export default function ProfessionalServicesPage() {
             value={webhookSecret}
             onChange={(e) => setWebhookSecret(e.target.value)}
             placeholder={data?.has_webhook_secret ? "••••••" : "(none set)"}
+            autoComplete="new-password"
+            data-1p-ignore
+            data-lpignore="true"
+            data-form-type="other"
             data-testid="ps-settings-webhook-secret"
           />
           <p className="text-xs text-muted-foreground">

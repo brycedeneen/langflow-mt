@@ -66,6 +66,10 @@ _CONSTANTS_NAMES = {
     "VectorStore",
 }
 
+# Heavy langchain_classic symbols — only TYPE_CHECKING-visible in constants.py.
+# Resolve via LANGCHAIN_BASE_TYPES which triggers the deferred import.
+_LAZY_LANGCHAIN_CLASSIC = frozenset({"AgentExecutor", "Chain", "BaseChatMemory", "BaseMemory"})
+
 
 def __getattr__(name: str) -> Any:
     """Lazy import for all field typing constants."""
@@ -81,6 +85,10 @@ def __getattr__(name: str) -> Any:
         from .range_spec import RangeSpec
 
         return RangeSpec
+    if name in _LAZY_LANGCHAIN_CLASSIC:
+        from . import constants
+
+        return constants.LANGCHAIN_BASE_TYPES[name]
     if name in _CONSTANTS_NAMES:
         from . import constants
 

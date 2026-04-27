@@ -14,7 +14,7 @@ type Provider = (typeof PROVIDER_OPTIONS)[number];
 
 const MODEL_MAP: Record<Provider, string[]> = {
   openai: ["gpt-4o", "gpt-4o-mini"],
-  anthropic: ["claude-sonnet-4-20250514", "claude-opus-4-20250514"],
+  anthropic: ["claude-sonnet-4-6", "claude-opus-4-7"],
 };
 
 export default function AssistantSettingsPage() {
@@ -138,6 +138,11 @@ export default function AssistantSettingsPage() {
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             placeholder="Enter API key (leave empty to keep existing)"
+            className="w-full"
+            autoComplete="new-password"
+            data-1p-ignore
+            data-lpignore="true"
+            data-form-type="other"
           />
           <p className="text-xs text-muted-foreground">
             The key is encrypted at rest and never displayed after saving.

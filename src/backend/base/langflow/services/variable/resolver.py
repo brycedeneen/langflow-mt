@@ -47,6 +47,26 @@ async def resolve_secret_reference(
     return await custom_component.get_variable(name=name, field=field, session=session)
 
 
+async def _autosecret_only_resolver(custom_component, name, field, session) -> str | None:
+    """Hook used by lfx loading: resolve autosecret markers via Vault, and
+    return None for everything else so the default get_variable path runs."""
+    if not isinstance(name, str) or not name.startswith(NEW_AUTOSECRET_PREFIX):
+        return None
+    from lfx.services.secret_store.factory import get_secret_store
+
+    return await _resolve_autosecret(name=name, session=session, secret_store=get_secret_store())
+
+
+def register_autosecret_resolver() -> None:
+    """Register the autosecret resolver with lfx's load_from_db pipeline so
+    that component builds running through ``lfx.graph.vertex.base`` resolve
+    autosecret markers via Vault instead of looking them up as user-managed
+    Variable names."""
+    from lfx.interface.initialize.loading import register_value_resolver
+
+    register_value_resolver(_autosecret_only_resolver)
+
+
 async def _resolve_autosecret(
     *, name: str, session: AsyncSession, secret_store: SecretStore,
 ) -> str:

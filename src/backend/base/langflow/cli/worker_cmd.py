@@ -67,10 +67,21 @@ def worker_cmd(
 
     # Build Taskiq worker args. Taskiq's CLI signature is:
     #   taskiq worker <broker_module:variable> [modules...] [flags...]
-    # We pass no extra task modules — every worker_app submodule is already
-    # imported above, so the decorators have already populated each broker's
-    # task registry.
-    cli_args: list[str] = [broker_spec]
+    # The parent-process imports above only register tasks in *this* process;
+    # taskiq's `--workers N` spawns child processes that re-import the broker
+    # spec but nothing else, so the @broker.task decorators never fire there
+    # and the receiver logs `task "..." is not found`. Pass every task module
+    # as a positional arg so each child re-imports them at startup.
+    task_modules = [
+        "langflow.worker_app.settings",
+        "langflow.worker_app.execute",
+        "langflow.worker_app.webhook",
+        "langflow.worker_app.reaper",
+        "langflow.worker_app.retention",
+        "langflow.worker_app.audit_cleanup",
+        "langflow.worker_app.pricing_refresh",
+    ]
+    cli_args: list[str] = [broker_spec, *task_modules]
     if concurrency is not None:
         cli_args += ["--workers", str(concurrency)]
     cli_args += ["--log-level", log_level.upper()]

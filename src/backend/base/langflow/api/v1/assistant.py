@@ -174,8 +174,23 @@ async def _upsert_variable(
         session.add(var)
 
 
+# Map deprecated model snapshots to their current successors. Saved settings
+# from earlier installs may still reference the May-2025 Claude 4 snapshots,
+# which Anthropic now logs DeprecationWarnings for; remap on read so old DB
+# rows keep working without a migration.
+_DEPRECATED_MODEL_ALIASES: dict[str, str] = {
+    "claude-sonnet-4-20250514": "claude-sonnet-4-6",
+    "claude-opus-4-20250514": "claude-opus-4-7",
+}
+
+
+def _resolve_model_name(model: str) -> str:
+    return _DEPRECATED_MODEL_ALIASES.get(model, model)
+
+
 def _create_provider_client(provider: str, model: str, api_key: str):
     """Instantiate the correct provider client."""
+    model = _resolve_model_name(model)
     if provider == "openai":
         return OpenAIProviderClient(api_key=api_key, model=model)
     elif provider == "anthropic":
@@ -383,7 +398,7 @@ async def send_message(
     # Capture IDs we'll need in the SSE generator (avoid referencing ORM objects)
     org_id = org.id
     user_id = current_user.id
-    model_name = settings["model"]
+    model_name = _resolve_model_name(settings["model"])
     user_content = body.content
     # Capture the externally-reachable base URL from the incoming request.
     # Used by inspection tools (e.g. get_webhook_credentials) to render the
@@ -640,7 +655,7 @@ async def greet_conversation(
         flow_id=flow.id,
         org_id=org.id,
         user_id=current_user.id,
-        model_name=settings["model"],
+        model_name=_resolve_model_name(settings["model"]),
         based_on_template_id=flow.based_on_template_id,
     )
 

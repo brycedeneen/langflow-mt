@@ -5,6 +5,7 @@ const mockApiPost = jest.fn();
 const mockQueryClient = {
   refetchQueries: jest.fn(),
   invalidateQueries: jest.fn(),
+  setQueryData: jest.fn(),
 };
 
 jest.mock("@/stores/foldersStore", () => ({

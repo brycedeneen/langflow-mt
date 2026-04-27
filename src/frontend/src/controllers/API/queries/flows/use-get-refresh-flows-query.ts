@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { z } from "zod";
 import buildQueryStringUrl from "@/controllers/utils/create-query-param-string";
 import { validatedQueryFn } from "@/lib/validated-fetch";
-import { FlowRead, Page_FlowRead_ } from "@/schemas/api/_generated";
+import { FlowHeader, FlowRead, Page_FlowRead_ } from "@/schemas/api/_generated";
 import useAlertStore from "@/stores/alertStore";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import { useTypesStore } from "@/stores/typesStore";
@@ -18,7 +18,11 @@ import { api } from "../../api";
 import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
 
-const FlowsResponseSchema = z.union([z.array(FlowRead), Page_FlowRead_]);
+const FlowsResponseSchema = z.union([
+  z.array(FlowRead),
+  Page_FlowRead_,
+  z.array(FlowHeader),
+]);
 
 interface GetFlowsParams {
   components_only?: boolean;

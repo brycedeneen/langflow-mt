@@ -5,6 +5,10 @@
 // components.schemas before passing to openapi-zod-client (which doesn't natively
 // support nested `$defs`). See
 // docs/superpowers/research/2026-04-24-phase-1-tooling-block.md.
+//
+// Post-process: scripts/zod4-postprocessor.mjs rewrites v3 idioms
+// (.passthrough(), single-arg z.record, z.nativeEnum) emitted by
+// openapi-zod-client into v4 syntax (z.looseObject, two-arg z.record, z.enum).
 /* eslint-disable */
 
 import { z } from "zod";
@@ -190,11 +194,13 @@ export const ChatOutputResponse = z.looseObject({
   files: z.array(lfx__utils__schemas__File).optional().default([]),
   type: z.string(),
 });
-export const Usage = z
+export const lfx__schema__properties__Usage = z
   .looseObject({
     input_tokens: z.union([z.number(), z.null()]),
     output_tokens: z.union([z.number(), z.null()]),
     total_tokens: z.union([z.number(), z.null()]),
+    model_name: z.union([z.string(), z.null()]),
+    cost_micros: z.union([z.number(), z.null()]),
   })
   .partial();
 export const ResultData = z
@@ -209,7 +215,7 @@ export const ResultData = z
     component_display_name: z.union([z.string(), z.null()]),
     component_id: z.union([z.string(), z.null()]),
     used_frozen_result: z.union([z.boolean(), z.null()]).default(false),
-    token_usage: z.union([Usage, z.null()]),
+    token_usage: z.union([lfx__schema__properties__Usage, z.null()]),
   })
   .partial();
 export const RunOutputs = z
@@ -269,7 +275,6 @@ export const FlowCreate = z.looseObject({
   built_with_assist: z.union([z.boolean(), z.null()]).optional().default(false),
   based_on_template_id: z.union([z.string(), z.null()]).optional(),
   endpoint_name: z.union([z.string(), z.null()]).optional(),
-  tags: z.union([z.array(z.string()), z.null()]).optional(),
   locked: z.union([z.boolean(), z.null()]).optional().default(false),
   mcp_enabled: z.union([z.boolean(), z.null()]).optional().default(false),
   action_name: z.union([z.string(), z.null()]).optional(),
@@ -284,6 +289,27 @@ export const FlowCreate = z.looseObject({
   folder_id: z.union([z.string(), z.null()]).optional(),
   fs_path: z.union([z.string(), z.null()]).optional(),
 });
+export const TagColor = z.enum([
+  "slate",
+  "red",
+  "orange",
+  "amber",
+  "green",
+  "teal",
+  "sky",
+  "blue",
+  "violet",
+  "pink",
+]);
+export const TagRead = z.looseObject({
+  id: z.string().uuid(),
+  name: z.string(),
+  color: TagColor,
+  description: z.union([z.string(), z.null()]),
+  created_by: z.union([z.string(), z.null()]),
+  created_at: z.string().datetime({ offset: true }),
+  updated_at: z.string().datetime({ offset: true }),
+});
 export const FlowRead = z.looseObject({
   name: z.string(),
   description: z.union([z.string(), z.null()]).optional(),
@@ -297,7 +323,6 @@ export const FlowRead = z.looseObject({
   built_with_assist: z.union([z.boolean(), z.null()]).optional().default(false),
   based_on_template_id: z.union([z.string(), z.null()]).optional(),
   endpoint_name: z.union([z.string(), z.null()]).optional(),
-  tags: z.union([z.array(z.string()), z.null()]).optional(),
   locked: z.union([z.boolean(), z.null()]).optional().default(false),
   mcp_enabled: z.union([z.boolean(), z.null()]).optional().default(false),
   action_name: z.union([z.string(), z.null()]).optional(),
@@ -312,7 +337,11 @@ export const FlowRead = z.looseObject({
   user_id: z.union([z.string(), z.null()]),
   organization_id: z.union([z.string(), z.null()]).optional(),
   folder_id: z.union([z.string(), z.null()]),
+  tags: z.array(TagRead).optional(),
 });
+export const tag_id = z
+  .union([z.array(z.string().uuid()), z.null()])
+  .optional();
 export const Page_FlowRead_ = z.looseObject({
   items: z.array(FlowRead),
   total: z.number().int().gte(0),
@@ -329,7 +358,7 @@ export const FlowHeader = z.looseObject({
   description: z.union([z.string(), z.null()]).optional(),
   data: z.union([z.looseObject({}).partial(), z.null()]).optional(),
   access_type: z.union([AccessTypeEnum, z.null()]).optional(),
-  tags: z.union([z.array(z.string()), z.null()]).optional(),
+  tags: z.array(TagRead).optional(),
   mcp_enabled: z.union([z.boolean(), z.null()]).optional(),
   action_name: z.union([z.string(), z.null()]).optional(),
   action_description: z.union([z.string(), z.null()]).optional(),
@@ -349,9 +378,54 @@ export const FlowUpdate = z
     fs_path: z.union([z.string(), z.null()]),
   })
   .partial();
+export const _FlowTagAssignBody = z.looseObject({
+  tag_ids: z.array(z.string().uuid()),
+});
+export const _FlowWithTagsRead = z.looseObject({
+  id: z.string().uuid(),
+  tags: z.array(TagRead),
+});
 export const FlowListCreate = z.looseObject({ flows: z.array(FlowCreate) });
 export const Body_upload_file_api_v1_flows_upload__post = z.looseObject({
   file: z.string(),
+});
+export const AuditAction = z.enum([
+  "create",
+  "update",
+  "delete",
+  "archive",
+  "unarchive",
+  "assign_role",
+]);
+export const action = z.union([AuditAction, z.null()]).optional();
+export const AuditTargetType = z.enum([
+  "flow",
+  "template",
+  "variable",
+  "organization",
+  "membership",
+  "api_key",
+  "role_assignment",
+]);
+export const AuditLogRead = z.looseObject({
+  id: z.string().uuid(),
+  occurred_at: z.string().datetime({ offset: true }),
+  actor_user_id: z.union([z.string(), z.null()]),
+  actor_email: z.string(),
+  actor_is_super: z.boolean(),
+  org_id: z.union([z.string(), z.null()]),
+  target_type: AuditTargetType,
+  target_id: z.string().uuid(),
+  action: AuditAction,
+  diff: z.looseObject({}).partial(),
+  diff_hash: z.string(),
+  request_metadata: z.looseObject({}).partial(),
+});
+export const AuditLogListResponse = z.looseObject({
+  items: z.array(AuditLogRead),
+  total: z.number().int(),
+  page: z.number().int(),
+  size: z.number().int(),
 });
 export const FlowVersionRead = z.looseObject({
   id: z.string().uuid(),
@@ -437,8 +511,8 @@ export const VertexBuildTable = z.looseObject({
   valid: z.boolean(),
   flow_id: z.string().uuid(),
   job_id: z.union([z.string(), z.null()]).optional(),
-  build_id: z.union([z.string(), z.null()]).optional(),
   organization_id: z.union([z.string(), z.null()]).optional(),
+  build_id: z.union([z.string(), z.null()]).optional(),
 });
 export const VertexBuildMapModel = z.looseObject({
   vertex_builds: z.record(z.string(), z.array(VertexBuildTable)),
@@ -454,7 +528,7 @@ export const Source = z
     source: z.union([z.string(), z.null()]),
   })
   .partial();
-export const Properties = z
+export const lfx__schema__properties__Properties = z
   .looseObject({
     text_color: z.union([z.string(), z.null()]),
     background_color: z.union([z.string(), z.null()]),
@@ -465,7 +539,7 @@ export const Properties = z
     positive_feedback: z.union([z.boolean(), z.null()]),
     state: z.enum(["partial", "complete"]).default("complete"),
     targets: z.array(z.unknown()).default([]),
-    usage: z.union([Usage, z.null()]),
+    usage: z.union([lfx__schema__properties__Usage, z.null()]),
     build_duration: z.union([z.number(), z.null()]),
   })
   .partial();
@@ -487,10 +561,34 @@ export const lfx__schema__message__MessageResponse = z.looseObject({
   files: z.array(z.string()).optional().default([]),
   edit: z.boolean(),
   duration: z.union([z.number(), z.null()]).optional(),
-  properties: z.union([Properties, z.null()]).optional(),
+  properties: z
+    .union([lfx__schema__properties__Properties, z.null()])
+    .optional(),
   category: z.union([z.string(), z.null()]).optional(),
   content_blocks: z.union([z.array(ContentBlock), z.null()]).optional(),
 });
+export const Usage_Input = z
+  .looseObject({
+    input_tokens: z.union([z.number(), z.null()]),
+    output_tokens: z.union([z.number(), z.null()]),
+    total_tokens: z.union([z.number(), z.null()]),
+  })
+  .partial();
+export const Properties_Input = z
+  .looseObject({
+    text_color: z.union([z.string(), z.null()]),
+    background_color: z.union([z.string(), z.null()]),
+    edited: z.boolean().default(false),
+    source: Source,
+    icon: z.union([z.string(), z.null()]),
+    allow_markdown: z.boolean().default(false),
+    positive_feedback: z.union([z.boolean(), z.null()]),
+    state: z.enum(["partial", "complete"]).default("complete"),
+    targets: z.array(z.unknown()).default([]),
+    usage: z.union([Usage_Input, z.null()]),
+    build_duration: z.union([z.number(), z.null()]),
+  })
+  .partial();
 export const MessageUpdate = z
   .looseObject({
     text: z.union([z.string(), z.null()]),
@@ -501,7 +599,29 @@ export const MessageUpdate = z
     files: z.union([z.array(z.string()), z.null()]),
     edit: z.union([z.boolean(), z.null()]),
     error: z.union([z.boolean(), z.null()]),
-    properties: z.union([Properties, z.null()]),
+    properties: z.union([Properties_Input, z.null()]),
+  })
+  .partial();
+export const langflow__schema__properties__Usage = z
+  .looseObject({
+    input_tokens: z.union([z.number(), z.null()]),
+    output_tokens: z.union([z.number(), z.null()]),
+    total_tokens: z.union([z.number(), z.null()]),
+  })
+  .partial();
+export const langflow__schema__properties__Properties_Output = z
+  .looseObject({
+    text_color: z.union([z.string(), z.null()]),
+    background_color: z.union([z.string(), z.null()]),
+    edited: z.boolean().default(false),
+    source: Source,
+    icon: z.union([z.string(), z.null()]),
+    allow_markdown: z.boolean().default(false),
+    positive_feedback: z.union([z.boolean(), z.null()]),
+    state: z.enum(["partial", "complete"]).default("complete"),
+    targets: z.array(z.unknown()).default([]),
+    usage: z.union([langflow__schema__properties__Usage, z.null()]),
+    build_duration: z.union([z.number(), z.null()]),
   })
   .partial();
 export const MessageRead = z.looseObject({
@@ -514,7 +634,7 @@ export const MessageRead = z.looseObject({
   files: z.array(z.string()).optional(),
   error: z.boolean().optional().default(false),
   edit: z.boolean().optional().default(false),
-  properties: Properties.optional(),
+  properties: langflow__schema__properties__Properties_Output.optional(),
   category: z.string().optional().default("message"),
   content_blocks: z.array(ContentBlock).optional(),
   id: z.string().uuid(),
@@ -693,25 +813,6 @@ export const UserRow = z.looseObject({
   memberships: z.array(UserOrgRow),
 });
 export const UserSearchResponse = z.looseObject({ items: z.array(UserRow) });
-export const TemplateMetadataRead = z.looseObject({
-  agent_usage_notes: z.union([z.string(), z.null()]),
-  agent_summary: z.union([z.string(), z.null()]),
-  updated_by: z.union([z.string(), z.null()]),
-  updated_at: z.string().datetime({ offset: true }),
-});
-export const TemplateMetadataRowRead = z.looseObject({
-  flow_id: z.string().uuid(),
-  flow_name: z.string(),
-  flow_description: z.union([z.string(), z.null()]),
-  is_starter: z.boolean(),
-  metadata: z.union([TemplateMetadataRead, z.null()]),
-});
-export const TemplateMetadataWrite = z
-  .looseObject({
-    agent_usage_notes: z.union([z.string(), z.null()]),
-    agent_summary: z.union([z.string(), z.null()]),
-  })
-  .partial();
 export const ComponentMetadataRead = z.looseObject({
   agent_usage_notes: z.union([z.string(), z.null()]),
   agent_summary: z.union([z.string(), z.null()]),
@@ -753,45 +854,7 @@ export const UserDetail = z.looseObject({
 export const PlatformAdminUpdate = z.looseObject({
   is_platform_admin: z.boolean(),
 });
-export const AuditTargetType = z.enum([
-  "flow",
-  "template",
-  "variable",
-  "organization",
-  "membership",
-  "api_key",
-  "role_assignment",
-]);
 export const target_type = z.union([AuditTargetType, z.null()]).optional();
-export const AuditAction = z.enum([
-  "create",
-  "update",
-  "delete",
-  "archive",
-  "unarchive",
-  "assign_role",
-]);
-export const action = z.union([AuditAction, z.null()]).optional();
-export const AuditLogRead = z.looseObject({
-  id: z.string().uuid(),
-  occurred_at: z.string().datetime({ offset: true }),
-  actor_user_id: z.union([z.string(), z.null()]),
-  actor_email: z.string(),
-  actor_is_super: z.boolean(),
-  org_id: z.union([z.string(), z.null()]),
-  target_type: AuditTargetType,
-  target_id: z.string().uuid(),
-  action: AuditAction,
-  diff: z.looseObject({}).partial(),
-  diff_hash: z.string(),
-  request_metadata: z.looseObject({}).partial(),
-});
-export const AuditLogListResponse = z.looseObject({
-  items: z.array(AuditLogRead),
-  total: z.number().int(),
-  page: z.number().int(),
-  size: z.number().int(),
-});
 export const NotificationCategory = z.enum([
   "usage_threshold",
   "alert_rule",
@@ -871,6 +934,11 @@ export const RulePatch = z
     cooldown_seconds: z.union([z.number(), z.null()]),
   })
   .partial();
+export const TagWrite = z.looseObject({
+  name: z.string().min(1).max(64),
+  color: TagColor,
+  description: z.union([z.string(), z.null()]).optional(),
+});
 export const ViewPort = z.looseObject({
   x: z.number(),
   y: z.number(),
@@ -939,8 +1007,11 @@ export const TemplateRead = z.looseObject({
   gradient: z.union([z.string(), z.null()]),
   archived_at: z.union([z.string(), z.null()]),
   categories: z.array(CategoryRead),
+  tags: z.array(TagRead).optional(),
   created_at: z.string().datetime({ offset: true }),
   updated_at: z.string().datetime({ offset: true }),
+  agent_summary: z.union([z.string(), z.null()]).optional(),
+  agent_usage_notes: z.union([z.string(), z.null()]).optional(),
 });
 export const BlankedField = z.looseObject({
   node_id: z.string(),
@@ -965,8 +1036,11 @@ export const TemplateReadDetail = z.looseObject({
   gradient: z.union([z.string(), z.null()]),
   archived_at: z.union([z.string(), z.null()]),
   categories: z.array(CategoryRead),
+  tags: z.array(TagRead).optional(),
   created_at: z.string().datetime({ offset: true }),
   updated_at: z.string().datetime({ offset: true }),
+  agent_summary: z.union([z.string(), z.null()]).optional(),
+  agent_usage_notes: z.union([z.string(), z.null()]).optional(),
   nodes: z.array(z.looseObject({}).partial()),
   edges: z.array(z.looseObject({}).partial()),
 });
@@ -986,8 +1060,17 @@ export const TemplatePatch = z
     icon: z.union([z.string(), z.null()]),
     gradient: z.union([z.string(), z.null()]),
     category_ids: z.union([z.array(z.string().uuid()), z.null()]),
+    agent_summary: z.union([z.string(), z.null()]),
+    agent_usage_notes: z.union([z.string(), z.null()]),
   })
   .partial();
+export const _TemplateTagAssignBody = z.looseObject({
+  tag_ids: z.array(z.string().uuid()),
+});
+export const _TemplateWithTagsRead = z.looseObject({
+  id: z.string().uuid(),
+  tags: z.array(TagRead),
+});
 export const MCPSettings = z.looseObject({
   id: z.string().uuid(),
   mcp_enabled: z.union([z.boolean(), z.null()]).optional(),

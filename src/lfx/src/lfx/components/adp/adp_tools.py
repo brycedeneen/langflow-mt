@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from collections.abc import Callable
+from typing import ClassVar
 
 from lfx.components.adp._shared import ADPConnection, RequestCache
 from lfx.components.adp.adp_applicant_onboarding_tools import build_applicant_onboarding_tools
@@ -37,9 +38,6 @@ from lfx.components.adp.adp_worker_tools import build_worker_tools
 from lfx.custom.custom_component.component import Component
 from lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry
 from lfx.io import HandleInput, MultiselectInput, Output
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 
 TILE_BUILDERS: dict[str, Callable[[ADPConnection, RequestCache], list[Tool]]] = {

@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 import os
 import warnings
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
 import orjson
 from pydantic import PydanticDeprecatedSince20
@@ -14,6 +14,20 @@ from lfx.schema.artifact import get_artifact_type, post_process_raw
 from lfx.schema.data import Data
 from lfx.services.deps import get_settings_service, session_scope
 from lfx.services.session import NoopSession
+
+# Optional hook the host app (e.g. langflow) can register to intercept
+# load_from_db field resolution. Used to route autosecret markers through
+# Vault while leaving plain user-managed Variable lookups untouched.
+# Returning None means "no opinion — fall through to the default
+# custom_component.get_variable path".
+ValueResolver = Callable[[Any, str, str, Any], Awaitable["str | None"]]
+_external_resolver: ValueResolver | None = None
+
+
+def register_value_resolver(fn: ValueResolver | None) -> None:
+    """Register (or clear, with None) the host-app value resolver."""
+    global _external_resolver
+    _external_resolver = fn
 
 if TYPE_CHECKING:
     from lfx.custom.custom_component.component import Component
@@ -269,7 +283,15 @@ async def update_params_with_load_from_db_fields(
                     continue
 
                 try:
-                    key = await custom_component.get_variable(name=params[field], field=field, session=session)
+                    key = None
+                    if _external_resolver is not None:
+                        key = await _external_resolver(
+                            custom_component, params[field], field, session
+                        )
+                    if key is None:
+                        key = await custom_component.get_variable(
+                            name=params[field], field=field, session=session
+                        )
                 except ValueError as e:
                     if "User id is not set" in str(e):
                         raise
