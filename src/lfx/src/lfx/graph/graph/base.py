@@ -1660,9 +1660,30 @@ class Graph:
                     await set_cache(key=vertex.id, data=vertex_dict)
 
         except Exception as exc:
-            if not isinstance(exc, ComponentBuildError):
-                await logger.aexception("Error building Component")
-            raise
+            # Attempt error-edge routing before re-raising. The /build/{flow_id}/...
+            # API endpoint calls graph.build_vertex directly, so the catches in
+            # astep / _execute_tasks never see this exception. Without the routing
+            # here, error edges defined on the vertex are silently bypassed in the
+            # production execution path.
+            handled_results = await self._try_handle_via_error_edge(vertex_id, exc)
+            if handled_results is None:
+                if not isinstance(exc, ComponentBuildError):
+                    await logger.aexception("Error building Component")
+                raise
+            # Error was routed (retry succeeded or handler invoked). Queue the
+            # next-runnable successors so the caller's run continues with the
+            # right downstream vertices (gave_up branch on exhaustion, normal
+            # branch on retry success).
+            for vbr in handled_results:
+                next_runnable_vertices = await self.get_next_runnable_vertices(
+                    self.lock, vertex=vbr.vertex, cache=False
+                )
+                if self.stop_vertex and self.stop_vertex in next_runnable_vertices:
+                    next_runnable_vertices = [self.stop_vertex]
+                self.extend_run_queue(next_runnable_vertices)
+            # Return the last VertexBuildResult — represents either the recovered
+            # failing vertex (retry success) or the handler vertex (exhaustion).
+            return handled_results[-1]
 
         if vertex.result is not None:
             params = f"{vertex.built_object_repr()}{params}"
