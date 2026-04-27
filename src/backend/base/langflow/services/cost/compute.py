@@ -46,13 +46,30 @@ async def compute_cost_for_run(
         if span_type not in {SpanType.LLM, SpanType.EMBEDDING}:
             continue
         attrs = span.attributes or {}
+        # Production spans (native tracer in services/tracing/native.py) use
+        # OTel GenAI keys; legacy litellm-style keys are kept as fallbacks for
+        # any external/3rd-party span source.
         model = str(
-            attrs.get("model_name") or attrs.get("model") or ""
+            attrs.get("gen_ai.response.model")
+            or attrs.get("gen_ai.request.model")
+            or attrs.get("model_name")
+            or attrs.get("model")
+            or ""
         ).strip()
         if not model:
             continue
-        prompt = int(attrs.get("prompt_tokens") or attrs.get("input_tokens") or 0)
-        completion = int(attrs.get("completion_tokens") or attrs.get("output_tokens") or 0)
+        prompt = int(
+            attrs.get("gen_ai.usage.input_tokens")
+            or attrs.get("prompt_tokens")
+            or attrs.get("input_tokens")
+            or 0
+        )
+        completion = int(
+            attrs.get("gen_ai.usage.output_tokens")
+            or attrs.get("completion_tokens")
+            or attrs.get("output_tokens")
+            or 0
+        )
         bucket = per_model.setdefault(
             model, {"input_tokens": 0, "output_tokens": 0, "cost_cents": 0}
         )

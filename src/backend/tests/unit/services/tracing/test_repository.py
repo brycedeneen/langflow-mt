@@ -285,6 +285,8 @@ class TestFetchTraceSummaryData:
         span_id = uuid4()
 
         # span_type column (index 8) is the string "llm" — the cost branch path.
+        # Attribute keys mirror what the native tracer actually persists in
+        # SpanTable.attributes (see services/tracing/native.py:472-484).
         rows = [
             (
                 trace_id,
@@ -294,7 +296,11 @@ class TestFetchTraceSummaryData:
                 None,
                 None,
                 None,
-                {"model_name": "gpt-4", "prompt_tokens": 10, "completion_tokens": 5},
+                {
+                    "gen_ai.response.model": "gpt-4",
+                    "gen_ai.usage.input_tokens": 10,
+                    "gen_ai.usage.output_tokens": 5,
+                },
                 "llm",
             ),
         ]
@@ -329,7 +335,11 @@ class TestFetchTraceSummaryData:
                 None,
                 None,
                 None,
-                {"model_name": "gpt-4", "prompt_tokens": 1, "completion_tokens": 1},
+                {
+                    "gen_ai.response.model": "gpt-4",
+                    "gen_ai.usage.input_tokens": 1,
+                    "gen_ai.usage.output_tokens": 1,
+                },
                 SpanType.LLM,  # enum instance, not string
             ),
         ]

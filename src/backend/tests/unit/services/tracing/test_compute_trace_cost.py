@@ -128,3 +128,42 @@ def test_handles_string_and_float_token_shapes():
     ]
     # (10 + 2*5) * 100 = 2000
     assert compute_trace_cost_micros(rows, FakePricing()) == 2000
+
+
+def test_reads_otel_genai_keys():
+    """Production span attributes use OTel GenAI keys, not legacy litellm keys.
+
+    The native tracer in services/tracing/native.py writes:
+      - gen_ai.response.model
+      - gen_ai.usage.input_tokens
+      - gen_ai.usage.output_tokens
+    These must be the primary lookups; legacy keys are fallbacks only.
+    """
+    rows = [
+        (
+            SpanType.LLM.value,
+            {
+                "gen_ai.response.model": "gpt-4",
+                "gen_ai.usage.input_tokens": 10,
+                "gen_ai.usage.output_tokens": 5,
+            },
+        ),
+    ]
+    # FakePricing: (10 + 2*5) * 100 = 2000
+    assert compute_trace_cost_micros(rows, FakePricing()) == 2000
+
+
+def test_falls_back_to_request_model_when_response_missing():
+    """gen_ai.request.model is the fallback used when the provider doesn't echo
+    a response.model (some routing-layer integrations)."""
+    rows = [
+        (
+            SpanType.LLM.value,
+            {
+                "gen_ai.request.model": "gpt-4",
+                "gen_ai.usage.input_tokens": 10,
+                "gen_ai.usage.output_tokens": 5,
+            },
+        ),
+    ]
+    assert compute_trace_cost_micros(rows, FakePricing()) == 2000
