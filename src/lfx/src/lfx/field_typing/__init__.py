@@ -21,6 +21,7 @@ __all__ = [
     "Data",
     "Document",
     "Embeddings",
+    "ErrorPayload",
     "Input",
     "LanguageModel",
     "NestedDict",
@@ -73,6 +74,10 @@ _LAZY_LANGCHAIN_CLASSIC = frozenset({"AgentExecutor", "Chain", "BaseChatMemory",
 
 def __getattr__(name: str) -> Any:
     """Lazy import for all field typing constants."""
+    if name == "ErrorPayload":
+        from lfx.schema.error_payload import ErrorPayload
+
+        return ErrorPayload
     if name == "Input":
         from lfx.template.field.base import Input
 
