@@ -629,7 +629,7 @@ export async function processBatchedEvents(
  * @param {(lock: boolean) => void} [callbacks.setLockChat] - Callback to lock/unlock chat.
  * @returns {Promise<boolean>} Promise that resolves to true if the event was handled successfully.
  */
-async function onEvent(
+export async function onEvent(
   type: string,
   data: any,
   buildResults: boolean[],
@@ -774,6 +774,36 @@ async function onEvent(
     case "build_end":
       useFlowStore.getState().updateBuildStatus([data.id], BuildStatus.BUILT);
       break;
+    case "vertex.retrying": {
+      const { vertex_id, retry_number, max_retries } = data ?? {};
+      if (vertex_id) {
+        useFlowStore
+          .getState()
+          .updateRetryStatus(vertex_id, BuildStatus.RETRYING, {
+            retry_number,
+            max_retries,
+          });
+      }
+      return true;
+    }
+    case "vertex.retry_succeeded": {
+      const { vertex_id } = data ?? {};
+      if (vertex_id) {
+        useFlowStore
+          .getState()
+          .updateRetryStatus(vertex_id, BuildStatus.BUILT);
+      }
+      return true;
+    }
+    case "vertex.retry_exhausted": {
+      const { vertex_id } = data ?? {};
+      if (vertex_id) {
+        useFlowStore
+          .getState()
+          .updateRetryStatus(vertex_id, BuildStatus.RETRY_EXHAUSTED);
+      }
+      return true;
+    }
     default:
       return true;
   }

@@ -119,6 +119,7 @@ jest.mock("@/stores/flowStore", () => {
     setFilterEdge: jest.fn(),
     setFilterComponent: jest.fn(),
     onConnect: jest.fn(),
+    flowBuildStatus: {},
   };
   const store = Object.assign(
     (selector: (s: typeof state) => any) => selector(state),

@@ -10,6 +10,10 @@ export const getSpecificClassFromBuildStatus = (
 
   if (BuildStatus.BUILDING === buildStatus) {
     return "border-foreground border-[1px] ring-[0.75px] ring-foreground";
+  } else if (BuildStatus.RETRYING === buildStatus) {
+    return "border-warning border-[1px] ring-[0.75px] ring-warning animate-pulse";
+  } else if (BuildStatus.RETRY_EXHAUSTED === buildStatus && !isBuilding) {
+    return "border-destructive border-[1px] ring-[0.75px] ring-destructive";
   } else if ((isInvalid || buildStatus === BuildStatus.ERROR) && !isBuilding) {
     return "border-destructive border-[1px] ring-[0.75px] ring-destructive";
   } else {

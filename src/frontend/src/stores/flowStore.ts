@@ -1059,6 +1059,15 @@ const useFlowStore = create<FlowStoreType>((set, get) => ({
     });
     set({ flowBuildStatus: newFlowBuildStatus });
   },
+  updateRetryStatus: (vertexId, status, retryMeta) => {
+    const newFlowBuildStatus = { ...get().flowBuildStatus };
+    newFlowBuildStatus[vertexId] = {
+      ...newFlowBuildStatus[vertexId],
+      status,
+      retryMeta: retryMeta ?? newFlowBuildStatus[vertexId]?.retryMeta,
+    };
+    set({ flowBuildStatus: newFlowBuildStatus });
+  },
   revertBuiltStatusFromBuilding: () => {
     const newFlowBuildStatus = { ...get().flowBuildStatus };
     Object.keys(newFlowBuildStatus).forEach((id) => {

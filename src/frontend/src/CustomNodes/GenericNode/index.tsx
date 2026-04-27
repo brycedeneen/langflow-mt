@@ -32,6 +32,7 @@ import NodeUpdateComponent from "./components/NodeUpdateComponent";
 import RenderInputParameters from "./components/RenderInputParameters";
 import { NodeIcon } from "./components/nodeIcon";
 import { useBuildStatus } from "./hooks/use-get-build-status";
+import { useRetryState } from "./hooks/use-retry-state";
 
 const MemoizedRenderInputParameters = memo(RenderInputParameters);
 const MemoizedNodeIcon = memo(NodeIcon);
@@ -88,6 +89,7 @@ function GenericNode({
   const setEdges = useFlowStore((state) => state.setEdges);
   const shortcuts = useShortcutsStore((state) => state.shortcuts);
   const buildStatus = useBuildStatus(data, data.id);
+  const retryState = useRetryState(data.id);
   const dismissedNodes = useFlowStore((state) => state.dismissedNodes);
   const addDismissedNodes = useFlowStore((state) => state.addDismissedNodes);
   const removeDismissedNodes = useFlowStore(
@@ -511,6 +513,17 @@ function GenericNode({
           !hasOutputs && "pb-4",
         )}
       >
+        {retryState?.status === "retrying" && (
+          <div
+            data-testid="retry-overlay"
+            className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center rounded-b-xl bg-warning/10 py-1"
+          >
+            <span className="text-[10px] font-medium text-warning-foreground">
+              Retrying attempt {retryState.retry_number} of{" "}
+              {retryState.max_retries}…
+            </span>
+          </div>
+        )}
         {openUpdateModal && (
           <UpdateComponentModal
             open={openUpdateModal}
