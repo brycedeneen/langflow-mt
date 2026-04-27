@@ -1,12 +1,16 @@
-import { memo } from "react";
+import { lazy, memo, Suspense, useState } from "react";
 import { areInputPropsEqual } from "@/components/core/parameterRenderComponent/areInputPropsEqual";
-import CodeAreaModal from "@/modals/codeAreaModal";
 import { useCustomComponentsAllowed } from "@/utils/customComponentGuards";
 import { cn } from "../../../../../utils/utils";
 import IconComponent from "../../../../common/genericIconComponent";
 import { Button } from "../../../../ui/button";
 import { getPlaceholder } from "../../helpers/get-placeholder-disabled";
 import type { InputProps } from "../../types";
+
+// Lazy-load CodeAreaModal — pulls in react-ace + ace-builds (~85KB minified).
+// The modal is only mounted once the user clicks the trigger button, so the
+// chunk stays out of the initial bundle.
+const CodeAreaModal = lazy(() => import("@/modals/codeAreaModal"));
 
 const codeContentClasses = {
   base: "overflow-hidden text-clip whitespace-nowrap",
@@ -46,6 +50,7 @@ function CodeAreaComponent({
 }: InputProps<string>): JSX.Element | null {
   // Force read-only editing for gated tenants (Task 10).
   const customAllowed = useCustomComponentsAllowed();
+  const [open, setOpen] = useState(false);
 
   const renderCodeText = () => (
     <span
@@ -92,21 +97,28 @@ function CodeAreaComponent({
 
   return (
     <div className={cn("w-full", disabled && "pointer-events-none")}>
-      <CodeAreaModal
-        dynamic={false}
-        value={value}
-        nodeClass={nodeClass}
-        setNodeClass={handleNodeClass!}
-        setValue={(newValue) => handleOnNewValue({ value: newValue })}
-        readonly={!customAllowed}
-      >
-        <Button unstyled className="w-full">
-          <div className="relative w-full">
-            {renderCodeText()}
-            {renderExternalLinkIcon()}
-          </div>
-        </Button>
-      </CodeAreaModal>
+      <Button unstyled className="w-full" onClick={() => setOpen(true)}>
+        <div className="relative w-full">
+          {renderCodeText()}
+          {renderExternalLinkIcon()}
+        </div>
+      </Button>
+      {open && (
+        <Suspense fallback={null}>
+          <CodeAreaModal
+            dynamic={false}
+            value={value}
+            nodeClass={nodeClass}
+            setNodeClass={handleNodeClass!}
+            setValue={(newValue) => handleOnNewValue({ value: newValue })}
+            readonly={!customAllowed}
+            open={open}
+            setOpen={setOpen}
+          >
+            <></>
+          </CodeAreaModal>
+        </Suspense>
+      )}
     </div>
   );
 }

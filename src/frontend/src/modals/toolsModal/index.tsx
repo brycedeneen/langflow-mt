@@ -4,6 +4,7 @@ import { type ForwardedRef, forwardRef, useEffect, useState } from "react";
 import type { handleOnNewValueType } from "@/CustomNodes/hooks/use-handle-new-value";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { ensureAgGridRegistered } from "@/utils/ag-grid-init";
 import BaseModal from "../baseModal";
 import ToolsTable from "./components/toolsTable";
 
@@ -46,6 +47,10 @@ const ToolsModal = forwardRef<AgGridReact, ToolsModalProps>(
     };
 
     const [data, setData] = useState<any[]>(cloneDeep(rows));
+
+    useEffect(() => {
+      if (open) ensureAgGridRegistered();
+    }, [open]);
 
     useEffect(() => {
       // Backend sets an error placeholder (Timeout/Error …) only when a load

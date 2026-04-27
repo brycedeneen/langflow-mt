@@ -1,8 +1,12 @@
-import { memo } from "react";
-import CodeAreaModal from "@/modals/codeAreaModal";
+import { lazy, memo, Suspense } from "react";
 import ConfirmationModal from "@/modals/confirmationModal";
 import EditNodeModal from "@/modals/editNodeModal";
 import ShareModal from "@/modals/shareModal";
+
+// Lazy-load CodeAreaModal — pulls in react-ace + ace-builds (~85KB minified).
+// The modal only renders once the user opens it, so the chunk is deferred until
+// then.
+const CodeAreaModal = lazy(() => import("@/modals/codeAreaModal"));
 import type { APIClassType } from "@/types/api";
 import type { FlowType } from "@/types/flow";
 import { useCustomComponentsAllowed } from "@/utils/customComponentGuards";
@@ -119,9 +123,9 @@ const ToolbarModals = memo(
           </ConfirmationModal>
         )}
 
-        {hasCode && (
+        {hasCode && openModal && (
           <div className="hidden">
-            {openModal && (
+            <Suspense fallback={null}>
               <CodeAreaModal
                 setValue={handleOnNewValue}
                 open={openModal}
@@ -138,7 +142,7 @@ const ToolbarModals = memo(
               >
                 <></>
               </CodeAreaModal>
-            )}
+            </Suspense>
           </div>
         )}
       </>

@@ -1,5 +1,5 @@
 import { cloneDeep } from "lodash";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import useHandleNewValue from "@/CustomNodes/hooks/use-handle-new-value";
 import CustomIOFileInput from "@/customization/components/custom-file-input";
 import type { AllNodeType } from "@/types/flow";
@@ -7,8 +7,14 @@ import ImageViewer from "../../../../components/common/ImageViewer";
 import CsvOutputComponent from "../../../../components/core/csvOutputComponent";
 import DataOutputComponent from "../../../../components/core/dataOutputComponent";
 import InputListComponent from "../../../../components/core/parameterRenderComponent/components/inputListComponent";
-import PdfViewer from "../../../../components/core/pdfViewer";
 import { Textarea } from "../../../../components/ui/textarea";
+import Loading from "../../../../components/ui/loading";
+
+// Lazy-load the PdfViewer so react-pdf / pdfjs (~120KB) is only fetched
+// when a flow actually renders a PDF output.
+const PdfViewer = lazy(
+  () => import("../../../../components/core/pdfViewer"),
+);
 import { PDFViewConstant } from "../../../../constants/constants";
 import {
   InputOutput,
@@ -179,7 +185,15 @@ export default function IOFieldView({
             return left ? (
               <div>{PDFViewConstant}</div>
             ) : (
-              <PdfViewer pdf={flowPoolNode?.params ?? ""} />
+              <Suspense
+                fallback={
+                  <div className="flex h-full w-full items-center justify-center align-middle">
+                    <Loading />
+                  </div>
+                }
+              >
+                <PdfViewer pdf={flowPoolNode?.params ?? ""} />
+              </Suspense>
             );
           case IOOutputTypes.CSV:
             return left ? (

@@ -1,10 +1,11 @@
 import type { AgGridReact } from "ag-grid-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Columns } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TableModal from "@/modals/tableModal";
 import type { ColumnField } from "@/types/utils/functions";
 import { FormatterType } from "@/types/utils/functions";
+import { ensureAgGridRegistered } from "@/utils/ag-grid-init";
 import { FormatColumns } from "@/utils/utils";
 import type { ColumnConfigRow } from "../../types";
 
@@ -61,6 +62,10 @@ export function ColumnConfig({
   const [tempColumnConfig, setTempColumnConfig] = useState(() =>
     columnConfig.map((row) => withRowId(row)),
   );
+
+  useEffect(() => {
+    if (isTableModalOpen) ensureAgGridRegistered();
+  }, [isTableModalOpen]);
 
   function getGridRows() {
     const rows: Array<ColumnConfigRow & { _rowId: string }> = [];

@@ -1,5 +1,5 @@
-import { FaDiscord, FaGithub } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
+import { FaDiscord, FaGithub } from "@/icons/fontAwesomeIcons";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { DISCORD_URL, GITHUB_URL } from "@/constants/constants";
 import { Case } from "@/shared/components/caseComponent";

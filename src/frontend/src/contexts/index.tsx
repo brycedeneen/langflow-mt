@@ -8,7 +8,14 @@ import { ApiInterceptor } from "../controllers/API/api";
 import { AuthProvider } from "./authContext";
 
 // Export queryClient for use in utility functions (e.g., messageUtils, buildUtils)
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 export default function ContextWrapper({ children }: { children: ReactNode }) {
   //element to wrap all context
