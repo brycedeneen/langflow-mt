@@ -4,7 +4,6 @@ import SimplifiedCodeTabComponent from "@/components/core/codeTabsComponent";
 import { Badge } from "@/components/ui/badge";
 import { formatUsdFromMicros } from "@/utils/format-currency";
 import {
-  formatCost,
   formatJsonData,
   formatTotalLatency,
   getSpanStatusLabel,
@@ -139,16 +138,6 @@ export function SpanDetail({ span }: SpanDetailProps) {
             />
           )}
         </div>
-
-        {/* Cost (if applicable) */}
-        {hasTokenUsage && span.tokenUsage!.cost > 0 && (
-          <div className="mb-4 flex items-center justify-between rounded-md bg-muted p-3">
-            <span className="text-sm font-medium">Estimated Cost</span>
-            <span className="text-sm font-semibold">
-              {formatCost(span.tokenUsage!.cost)}
-            </span>
-          </div>
-        )}
 
         {/* Inputs section */}
         {hasInputs && (

@@ -270,3 +270,69 @@ class TestFetchTraceSummaryData:
         rows = [(trace_id, span_id, "root", None, None, None, {"result": "nope"}, {}, None)]
         result = await fetch_trace_summary_data(_make_session(rows), [trace_id])
         assert result[str(trace_id)].output is None
+
+    @pytest.mark.asyncio
+    async def test_should_compute_total_cost_micros_from_llm_span(self, monkeypatch):
+        """fetch_trace_summary_data must invoke the pricing service for LLM spans
+        and surface the result on TraceSummaryData.total_cost_micros."""
+        from langflow.services.tracing import repository
+
+        fake_pricing = MagicMock()
+        fake_pricing.compute_cost_micros.return_value = 5000
+        monkeypatch.setattr(repository, "get_pricing_service", lambda: fake_pricing)
+
+        trace_id = uuid4()
+        span_id = uuid4()
+
+        # span_type column (index 8) is the string "llm" — the cost branch path.
+        rows = [
+            (
+                trace_id,
+                span_id,
+                "llm_span",
+                None,
+                None,
+                None,
+                None,
+                {"model_name": "gpt-4", "prompt_tokens": 10, "completion_tokens": 5},
+                "llm",
+            ),
+        ]
+        result = await repository.fetch_trace_summary_data(_make_session(rows), [trace_id])
+
+        assert result[str(trace_id)].total_cost_micros == 5000
+        fake_pricing.compute_cost_micros.assert_called_once_with(
+            "gpt-4", input_tokens=10, output_tokens=5
+        )
+
+    @pytest.mark.asyncio
+    async def test_should_unwrap_enum_span_type_for_cost_path(self, monkeypatch):
+        """SQLAlchemy may return a ``SpanType`` enum instance instead of a plain
+        string for span_type. _span_type_value must unwrap it so the cost branch
+        still recognises LLM spans."""
+        from langflow.services.database.models.traces.model import SpanType
+        from langflow.services.tracing import repository
+
+        fake_pricing = MagicMock()
+        fake_pricing.compute_cost_micros.return_value = 1234
+        monkeypatch.setattr(repository, "get_pricing_service", lambda: fake_pricing)
+
+        trace_id = uuid4()
+        span_id = uuid4()
+
+        rows = [
+            (
+                trace_id,
+                span_id,
+                "llm_span",
+                None,
+                None,
+                None,
+                None,
+                {"model_name": "gpt-4", "prompt_tokens": 1, "completion_tokens": 1},
+                SpanType.LLM,  # enum instance, not string
+            ),
+        ]
+        result = await repository.fetch_trace_summary_data(_make_session(rows), [trace_id])
+
+        assert result[str(trace_id)].total_cost_micros == 1234
