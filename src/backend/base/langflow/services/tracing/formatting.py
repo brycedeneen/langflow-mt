@@ -43,11 +43,14 @@ class TraceSummaryData:
         total_tokens: Sum of tokens from leaf spans only (avoids double-counting).
         input: Simplified input payload derived from the "Chat Input" span.
         output: Simplified output payload derived from the last root span.
+        total_cost_micros: Total cost in micro-USD across LLM/embedding spans,
+            or None when no priced span produced a number.
     """
 
     total_tokens: int = 0
     input: dict[str, Any] | None = field(default=None)
     output: dict[str, Any] | None = field(default=None)
+    total_cost_micros: int | None = None
 
 
 def safe_int_tokens(value: Any) -> int:

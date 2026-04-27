@@ -157,6 +157,7 @@ class TraceRead(BaseModel):
     end_time: datetime | None
     total_latency_ms: int
     total_tokens: int
+    total_cost_micros: int | None = None
     flow_id: UUID
     session_id: str
     input: dict[str, Any] | None = None
@@ -182,6 +183,7 @@ class TraceSummaryRead(BaseModel):
     start_time: datetime | None
     total_latency_ms: int
     total_tokens: int
+    total_cost_micros: int | None = None
     flow_id: UUID
     session_id: str
     input: dict[str, Any] | None = None

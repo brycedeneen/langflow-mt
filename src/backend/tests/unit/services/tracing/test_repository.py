@@ -62,6 +62,14 @@ class TestTraceSummaryData:
         a.input["extra"] = "mutated"
         assert "extra" not in b.input
 
+    def test_should_have_none_total_cost_micros_by_default(self):
+        data = TraceSummaryData()
+        assert data.total_cost_micros is None
+
+    def test_should_accept_explicit_total_cost_micros(self):
+        data = TraceSummaryData(total_cost_micros=2500)
+        assert data.total_cost_micros == 2500
+
 
 # ---------------------------------------------------------------------------
 # Pagination boundary math
