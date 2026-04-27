@@ -215,6 +215,10 @@ export function cleanEdges(nodes: AllNodeType[], edges: EdgeType[]) {
 
       if (sourceNode.type == "genericNode") {
         const output =
+          // PRIMARY: match the edge's actual source-handle name. Without this,
+          // edges from non-selected outputs (e.g., the error port) get reconstructed
+          // against `selected_output` and stripped on flow reload.
+          sourceNode.data.node!.outputs?.find((o) => o.name === name) ??
           sourceNode.data.node!.outputs?.find(
             (output) => output.name === sourceNode.data.selected_output,
           ) ??
