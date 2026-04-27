@@ -2553,9 +2553,19 @@ class Graph:
         - On exhaustion: [VertexBuildResult(of the handler vertex)] — so its successors
           (e.g. gave_up sinks) get queued for execution.
         """
-        from lfx.components.reliability.error_handler import ErrorHandler
         from lfx.graph.retry import BackoffStrategy, RetryConfig, compute_delay_seconds
         from lfx.schema.error_payload import build_error_payload
+
+        # NOTE: do NOT use `isinstance(component, ErrorHandler)`. The Langflow
+        # component loader can instantiate components under a *different* class
+        # object than `from lfx.components.reliability.error_handler import
+        # ErrorHandler` resolves to (two-load-path gotcha). Match by class
+        # __name__ instead.
+        def _is_error_handler(component: Any) -> bool:
+            if component is None:
+                return False
+            cls = type(component)
+            return cls.__name__ == "ErrorHandler" and hasattr(component, "dispatch_alert")
 
         failing_vertex = self.get_vertex(vertex_id)
 
@@ -2563,7 +2573,7 @@ class Graph:
         # If the FAILING vertex is itself an ErrorHandler, do NOT attempt to
         # route via an error edge.  Allowing that would create handler-handles-
         # handler recursion.  The run must surface the failure as-is.
-        if isinstance(failing_vertex.custom_component, ErrorHandler):
+        if _is_error_handler(failing_vertex.custom_component):
             return None  # fall through → caller re-raises the original exception
         # ─────────────────────────────────────────────────────────────────────
 
@@ -2573,7 +2583,7 @@ class Graph:
 
         handler_vertex = self.get_vertex(error_edge.target_id)
         handler_component = handler_vertex.custom_component
-        if not isinstance(handler_component, ErrorHandler):
+        if not _is_error_handler(handler_component):
             # Connected to something that's not an ErrorHandler → fall through
             return None
 
@@ -2629,30 +2639,70 @@ class Graph:
             attempt_number=attempt_number,
         )
 
-        # Suppress the failing vertex's normal-output successors.
+        # ── Synthesize a "successful" state on the failing vertex ────────────
+        # Approach: instead of trying to invoke the ErrorHandler ourselves
+        # (which fights the build pipeline's edge resolution), we put the
+        # failing vertex into a state that LOOKS built — its `error` output
+        # carries a Message constructed from the payload. The standard build
+        # pipeline then resolves the ErrorHandler's `error_input` from this
+        # vertex's `results["error"]` naturally, the handler's gave_up output
+        # emits the message, and downstream nodes (Chat Output, Agent, etc.)
+        # build through normal graph traversal.
+        from lfx.graph.schema import ResultData
+        from lfx.schema.message import Message
+
+        snippet = payload.stack_trace[:1000]
+        if len(payload.stack_trace) > 1000:
+            snippet += "\n...[truncated]"
+        rendered_body = (
+            f"**Error in {payload.component_display_name}**\n\n"
+            f"- Type: `{payload.error_type}`\n"
+            f"- Message: {payload.error_message}\n"
+            f"- Attempts: {payload.attempt_number}\n\n"
+            "```\n" + snippet + "\n```"
+        )
+        give_up_message = Message(text=rendered_body, sender="ErrorHandler")
+
+        # Suppress the failing vertex's non-error successors (data branch etc.)
+        # so only the error edge fires downstream.
         self._suppress_normal_successors(vertex_id)
 
-        # ── Cycle guard (invocation) ──────────────────────────────────────────
-        # If the ErrorHandler itself raises during invocation (e.g. its build
-        # raises beyond what _invoke_error_handler's inner try/except catches),
-        # we must NOT treat that as a successful "handled" event.  Catch the
-        # exception, log it, and return None so the caller re-raises the
-        # original component failure.
-        try:
-            handler_vbr = await self._invoke_error_handler(handler_vertex, handler_component, payload)
-        except Exception as handler_exc:  # noqa: BLE001
-            await logger.aexception(
-                "ErrorHandler %s raised during invocation; flow will fail. "
-                "Original error: %s; handler error: %s",
-                handler_vertex.id,
-                exc,
-                handler_exc,
-            )
-            return None  # caller will re-raise the original `exc`
-        # ─────────────────────────────────────────────────────────────────────
+        # Make the failing vertex appear built with its `error` output set.
+        # `_get_result()` checks `built` and `results[output_name]`.
+        failing_vertex.built = True
+        failing_vertex.built_object = give_up_message
+        failing_vertex.results["error"] = give_up_message
 
+        # Best-effort alert dispatch (component swallows internal failures).
+        try:
+            await self._dispatch_handler_alert(handler_component, payload)
+        except Exception:  # noqa: BLE001
+            await logger.aexception("Alert dispatch failed (suppressed)")
+
+        # Persist the handled error to FlowRun.error.handled_errors[].
         await self._record_handled_error(payload)
-        return [handler_vbr] if handler_vbr is not None else []
+
+        # Synthesize a VBR for the failing vertex itself with valid=True so
+        # the caller's pipeline continues to compute next-runnable from the
+        # failing vertex's successors → [ErrorHandler] (data branch suppressed).
+        synth_result = ResultData(
+            results={"error": give_up_message},
+            artifacts={},
+            outputs={},
+            logs={},
+            messages=[],
+            component_display_name=failing_vertex.display_name,
+            component_id=failing_vertex.id,
+        )
+        failing_vertex.set_result(synth_result)
+        synth_vbr = VertexBuildResult(
+            result_dict=synth_result,
+            params="",
+            valid=True,
+            artifacts={},
+            vertex=failing_vertex,
+        )
+        return [synth_vbr]
 
     def _find_error_edge(self, vertex: Vertex) -> CycleEdge | None:
         """Return the edge whose source_handle.name is 'error' for the given vertex."""
@@ -2697,58 +2747,6 @@ class Graph:
             if name and name != "error":
                 self.exclude_branch_conditionally(vertex_id, output_name=name)
 
-    async def _invoke_error_handler(
-        self,
-        handler_vertex: Vertex,
-        handler_component: Any,
-        payload: Any,
-    ) -> VertexBuildResult | None:
-        """Inject the ErrorPayload, dispatch the alert, then build the handler vertex.
-
-        Returns a VertexBuildResult for the handler vertex (so its successors get
-        queued), or None if the build fails (best-effort; alert has already fired).
-        """
-        # Inject the payload directly into the vertex params so that
-        # `_build_each_vertex_in_params_dict` uses the actual payload rather than
-        # trying to resolve the edge from the (failed) flaky vertex.
-        # We update both params and raw_params so the vertex's build path sees
-        # the real value instead of a vertex reference.
-        handler_vertex._reset()
-        handler_vertex.params["error_input"] = payload
-        handler_vertex.raw_params["error_input"] = payload
-        handler_vertex.updated_raw_params = True  # prevent build_params() from overwriting
-
-        # Dispatch the alert (best-effort — component-level errors are swallowed).
-        await self._dispatch_handler_alert(handler_component, payload)
-
-        # Temporarily wire `on_error_exhausted` to return the payload so that
-        # the `gave_up` output fires correctly when the vertex is built.
-        async def _give_up_impl() -> Any:
-            return payload
-
-        handler_component.on_error_exhausted = _give_up_impl
-
-        try:
-            await handler_vertex.build(user_id=self.user_id, fallback_to_env_vars=False)
-            params = handler_vertex.built_object_repr()
-            return VertexBuildResult(
-                result_dict=handler_vertex.result,
-                params=params,
-                valid=True,
-                artifacts=handler_vertex.artifacts,
-                vertex=handler_vertex,
-            )
-        except Exception:  # noqa: BLE001
-            await logger.aexception(
-                "ErrorHandler vertex build failed; gave_up output may not fire downstream."
-            )
-            return None
-        finally:
-            try:
-                del handler_component.on_error_exhausted
-            except AttributeError:
-                # Method was a class attribute; instance dict didn't actually hold it.
-                pass
 
     async def _load_flow_metadata_cached(self) -> Any:
         """Cached wrapper around _load_flow_metadata; one DB read per Graph instance."""

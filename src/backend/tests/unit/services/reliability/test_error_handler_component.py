@@ -37,7 +37,7 @@ def test_error_handler_has_gave_up_output():
     output_names = {o.name for o in component.outputs}
     assert "gave_up" in output_names
     gave_up = next(o for o in component.outputs if o.name == "gave_up")
-    assert gave_up.types == ["ErrorPayload"]
+    assert gave_up.types == ["Message"]
 
 
 def test_error_handler_does_not_inject_error_output():

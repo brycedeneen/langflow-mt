@@ -10,6 +10,7 @@ from langflow.services.notifier.protocol import UsageAlertEvent, UsageAlertNotif
 
 from lfx.custom.custom_component.component import Component
 from lfx.field_typing import ErrorPayload  # noqa: F401  (registered for type validator)
+from lfx.schema.message import Message
 from lfx.field_typing.range_spec import RangeSpec
 from lfx.io import (
     DropdownInput,
@@ -164,19 +165,27 @@ class ErrorHandler(Component):
         Output(
             display_name="Gave up",
             name="gave_up",
-            types=["ErrorPayload"],
+            types=["Message"],
             method="on_error_exhausted",
         ),
     ]
 
-    async def on_error_exhausted(self) -> ErrorPayload:
-        """Fired by the runtime after retries exhaust + alert dispatched.
+    async def on_error_exhausted(self) -> Message:
+        """Emit the failure message on the `gave_up` output.
 
-        The runtime constructs and passes the ErrorPayload directly via the
-        runtime extension; this method is the public output endpoint.
+        The runtime sets the failing vertex's `error` output to a
+        Message-shaped representation of the ErrorPayload before the build
+        pipeline resolves this component's `error_input`. By the time this
+        method runs, `self.error_input` is that Message — we forward it.
         """
-        msg = "ErrorHandler.on_error_exhausted is wired by the runtime; do not invoke directly"
-        raise NotImplementedError(msg)
+        if isinstance(self.error_input, Message):
+            return self.error_input
+        # Defensive: if for any reason error_input is not a Message (e.g.,
+        # legacy ErrorPayload), wrap it.
+        return Message(
+            text=str(self.error_input) if self.error_input else "Unknown error",
+            sender="ErrorHandler",
+        )
 
     async def dispatch_alert(
         self,

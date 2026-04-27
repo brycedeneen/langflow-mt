@@ -68340,6 +68340,414 @@
           "tool_mode": false,
           "version": 0
         },
+        "DoclingInline": {
+          "assist_enabled": true,
+          "base_classes": [
+            "ErrorPayload",
+            "Table"
+          ],
+          "beta": false,
+          "changelog": [],
+          "conditional_paths": [],
+          "custom_fields": {},
+          "description": "Uses Docling to process input documents running the Docling models locally.",
+          "display_name": "Docling",
+          "documentation": "https://docling-project.github.io/docling/",
+          "edited": false,
+          "field_order": [
+            "path",
+            "file_path",
+            "separator",
+            "silent_errors",
+            "delete_server_file_after_processing",
+            "ignore_unsupported_extensions",
+            "ignore_unspecified_files",
+            "pipeline",
+            "ocr_engine",
+            "do_picture_classification",
+            "pic_desc_llm",
+            "pic_desc_prompt"
+          ],
+          "frozen": false,
+          "icon": "Docling",
+          "legacy": false,
+          "metadata": {
+            "code_hash": "519d12bd6451",
+            "dependencies": {
+              "dependencies": [
+                {
+                  "name": "lfx",
+                  "version": null
+                },
+                {
+                  "name": "docling",
+                  "version": "2.91.0"
+                }
+              ],
+              "total_dependencies": 2
+            },
+            "module": "lfx.components.docling.docling_inline.DoclingInlineComponent"
+          },
+          "minimized": false,
+          "output_types": [],
+          "outputs": [
+            {
+              "allows_loop": false,
+              "cache": true,
+              "display_name": "Files",
+              "group_outputs": false,
+              "method": "load_files",
+              "name": "dataframe",
+              "selected": "Table",
+              "tool_mode": true,
+              "types": [
+                "Table"
+              ],
+              "value": "__UNDEFINED__"
+            },
+            {
+              "allows_loop": false,
+              "cache": true,
+              "display_name": "Error",
+              "group_outputs": false,
+              "method": "_emit_error_output",
+              "name": "error",
+              "selected": "ErrorPayload",
+              "tool_mode": true,
+              "types": [
+                "ErrorPayload"
+              ],
+              "value": "__UNDEFINED__"
+            }
+          ],
+          "pinned": false,
+          "template": {
+            "_type": "Component",
+            "code": {
+              "advanced": true,
+              "dynamic": true,
+              "fileTypes": [],
+              "file_path": "",
+              "info": "",
+              "list": false,
+              "load_from_db": false,
+              "multiline": true,
+              "name": "code",
+              "password": false,
+              "placeholder": "",
+              "required": true,
+              "show": true,
+              "title_case": false,
+              "type": "code",
+              "value": "import queue\nimport threading\nimport time\n\nfrom lfx.base.data import BaseFileComponent\nfrom lfx.base.data.docling_utils import _serialize_pydantic_model, docling_worker\nfrom lfx.inputs import BoolInput, DropdownInput, HandleInput, StrInput\nfrom lfx.schema import Data\n\n\nclass DoclingInlineComponent(BaseFileComponent):\n    display_name = \"Docling\"\n    description = \"Uses Docling to process input documents running the Docling models locally.\"\n    documentation = \"https://docling-project.github.io/docling/\"\n    trace_type = \"tool\"\n    icon = \"Docling\"\n    name = \"DoclingInline\"\n\n    # https://docling-project.github.io/docling/usage/supported_formats/\n    VALID_EXTENSIONS = [\n        \"adoc\",\n        \"asciidoc\",\n        \"asc\",\n        \"bmp\",\n        \"csv\",\n        \"dotx\",\n        \"dotm\",\n        \"docm\",\n        \"docx\",\n        \"htm\",\n        \"html\",\n        \"jpeg\",\n        \"json\",\n        \"md\",\n        \"pdf\",\n        \"png\",\n        \"potx\",\n        \"ppsx\",\n        \"pptm\",\n        \"potm\",\n        \"ppsm\",\n        \"pptx\",\n        \"tiff\",\n        \"txt\",\n        \"xls\",\n        \"xlsx\",\n        \"xhtml\",\n        \"xml\",\n        \"webp\",\n    ]\n\n    inputs = [\n        *BaseFileComponent.get_base_inputs(),\n        DropdownInput(\n            name=\"pipeline\",\n            display_name=\"Pipeline\",\n            info=\"Docling pipeline to use\",\n            options=[\"standard\", \"vlm\"],\n            value=\"standard\",\n        ),\n        DropdownInput(\n            name=\"ocr_engine\",\n            display_name=\"OCR Engine\",\n            info=\"OCR engine to use. None will disable OCR.\",\n            options=[\"None\", \"easyocr\", \"tesserocr\", \"rapidocr\", \"ocrmac\"],\n            value=\"None\",\n        ),\n        BoolInput(\n            name=\"do_picture_classification\",\n            display_name=\"Picture classification\",\n            info=\"If enabled, the Docling pipeline will classify the pictures type.\",\n            value=False,\n        ),\n        HandleInput(\n            name=\"pic_desc_llm\",\n            display_name=\"Picture description LLM\",\n            info=\"If connected, the model to use for running the picture description task.\",\n            input_types=[\"LanguageModel\"],\n            required=False,\n        ),\n        StrInput(\n            name=\"pic_desc_prompt\",\n            display_name=\"Picture description prompt\",\n            value=\"Describe the image in three sentences. Be concise and accurate.\",\n            info=\"The user prompt to use when invoking the model.\",\n            advanced=True,\n        ),\n        # TODO: expose more Docling options\n    ]\n\n    outputs = [\n        *BaseFileComponent.get_base_outputs(),\n    ]\n\n    def _wait_for_result_with_thread_monitoring(\n        self, result_queue: queue.Queue, thread: threading.Thread, timeout: int = 300\n    ):\n        \"\"\"Wait for result from queue while monitoring thread health.\n\n        Handles cases where thread crashes without sending result.\n        \"\"\"\n        start_time = time.time()\n\n        while time.time() - start_time < timeout:\n            # Check if thread is still alive\n            if not thread.is_alive():\n                # Thread finished, try to get any result it might have sent\n                try:\n                    result = result_queue.get_nowait()\n                except queue.Empty:\n                    # Thread finished without sending result\n                    msg = \"Worker thread crashed unexpectedly without producing result.\"\n                    raise RuntimeError(msg) from None\n                else:\n                    self.log(\"Thread completed and result retrieved\")\n                    return result\n\n            # Poll the queue instead of blocking\n            try:\n                result = result_queue.get(timeout=1)\n            except queue.Empty:\n                # No result yet, continue monitoring\n                continue\n            else:\n                self.log(\"Result received from worker thread\")\n                return result\n\n        # Overall timeout reached\n        msg = f\"Thread timed out after {timeout} seconds\"\n        raise TimeoutError(msg)\n\n    def _stop_thread_gracefully(self, thread: threading.Thread, timeout: int = 10):\n        \"\"\"Wait for thread to complete gracefully.\n\n        Note: Python threads cannot be forcefully killed, so we just wait.\n        The thread should respond to shutdown signals via the queue.\n        \"\"\"\n        if not thread.is_alive():\n            return\n\n        self.log(\"Waiting for thread to complete gracefully\")\n        thread.join(timeout=timeout)\n\n        if thread.is_alive():\n            self.log(\"Warning: Thread still alive after timeout\")\n\n    def process_files(self, file_list: list[BaseFileComponent.BaseFile]) -> list[BaseFileComponent.BaseFile]:\n        try:\n            from docling.document_converter import DocumentConverter  # noqa: F401\n        except ImportError as e:\n            msg = (\n                \"Docling is an optional dependency. Install with `uv pip install 'langflow[docling]'` or refer to the \"\n                \"documentation on how to install optional dependencies.\"\n            )\n            raise ImportError(msg) from e\n\n        file_paths = [file.path for file in file_list if file.path]\n\n        if not file_paths:\n            self.log(\"No files to process.\")\n            return file_list\n\n        pic_desc_config: dict | None = None\n        if self.pic_desc_llm is not None:\n            pic_desc_config = _serialize_pydantic_model(self.pic_desc_llm)\n\n        # Use threading instead of multiprocessing for memory sharing\n        # This enables the global DocumentConverter cache to work across runs\n        result_queue: queue.Queue = queue.Queue()\n        thread = threading.Thread(\n            target=docling_worker,\n            kwargs={\n                \"file_paths\": file_paths,\n                \"queue\": result_queue,\n                \"pipeline\": self.pipeline,\n                \"ocr_engine\": self.ocr_engine,\n                \"do_picture_classification\": self.do_picture_classification,\n                \"pic_desc_config\": pic_desc_config,\n                \"pic_desc_prompt\": self.pic_desc_prompt,\n            },\n            daemon=False,  # Allow thread to complete even if main thread exits\n        )\n\n        result = None\n        thread.start()\n\n        try:\n            result = self._wait_for_result_with_thread_monitoring(result_queue, thread, timeout=300)\n        except KeyboardInterrupt:\n            self.log(\"Docling thread cancelled by user\")\n            result = []\n        except Exception as e:\n            self.log(f\"Error during processing: {e}\")\n            raise\n        finally:\n            # Wait for thread to complete gracefully\n            self._stop_thread_gracefully(thread)\n\n        # Enhanced error checking with dependency-specific handling\n        if isinstance(result, dict) and \"error\" in result:\n            error_msg = result[\"error\"]\n\n            # Handle dependency errors specifically\n            if result.get(\"error_type\") == \"dependency_error\":\n                dependency_name = result.get(\"dependency_name\", \"Unknown dependency\")\n                install_command = result.get(\"install_command\", \"Please check documentation\")\n\n                # Create a user-friendly error message\n                user_message = (\n                    f\"Missing OCR dependency: {dependency_name}. \"\n                    f\"{install_command} \"\n                    f\"Alternatively, you can set OCR Engine to 'None' to disable OCR processing.\"\n                )\n                raise ImportError(user_message)\n\n            # Handle other specific errors\n            if error_msg.startswith(\"Docling is not installed\"):\n                raise ImportError(error_msg)\n\n            # Handle graceful shutdown\n            if \"Worker interrupted by SIGINT\" in error_msg or \"shutdown\" in result:\n                self.log(\"Docling process cancelled by user\")\n                result = []\n            else:\n                raise RuntimeError(error_msg)\n\n        processed_data = [Data(data={\"doc\": r[\"document\"], \"file_path\": r[\"file_path\"]}) if r else None for r in result]\n        return self.rollup_data(file_list, processed_data)\n"
+            },
+            "delete_server_file_after_processing": {
+              "_input_type": "BoolInput",
+              "advanced": true,
+              "display_name": "Delete Server File After Processing",
+              "dynamic": false,
+              "info": "If true, the Server File Path will be deleted after processing.",
+              "list": false,
+              "list_add_label": "Add More",
+              "name": "delete_server_file_after_processing",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": true,
+              "type": "bool",
+              "value": true
+            },
+            "do_picture_classification": {
+              "_input_type": "BoolInput",
+              "advanced": false,
+              "display_name": "Picture classification",
+              "dynamic": false,
+              "info": "If enabled, the Docling pipeline will classify the pictures type.",
+              "list": false,
+              "list_add_label": "Add More",
+              "name": "do_picture_classification",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": true,
+              "type": "bool",
+              "value": false
+            },
+            "file_path": {
+              "_input_type": "HandleInput",
+              "advanced": true,
+              "display_name": "Server File Path",
+              "dynamic": false,
+              "info": "Data object with a 'file_path' property pointing to server file or a Message object with a path to the file. Supercedes 'Path' but supports same file types.",
+              "input_types": [
+                "Data",
+                "JSON",
+                "Message"
+              ],
+              "list": true,
+              "list_add_label": "Add More",
+              "name": "file_path",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": false,
+              "type": "other",
+              "value": ""
+            },
+            "ignore_unspecified_files": {
+              "_input_type": "BoolInput",
+              "advanced": true,
+              "display_name": "Ignore Unspecified Files",
+              "dynamic": false,
+              "info": "If true, Data with no 'file_path' property will be ignored.",
+              "list": false,
+              "list_add_label": "Add More",
+              "name": "ignore_unspecified_files",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": true,
+              "type": "bool",
+              "value": false
+            },
+            "ignore_unsupported_extensions": {
+              "_input_type": "BoolInput",
+              "advanced": true,
+              "display_name": "Ignore Unsupported Extensions",
+              "dynamic": false,
+              "info": "If true, files with unsupported extensions will not be processed.",
+              "list": false,
+              "list_add_label": "Add More",
+              "name": "ignore_unsupported_extensions",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": true,
+              "type": "bool",
+              "value": true
+            },
+            "ocr_engine": {
+              "_input_type": "DropdownInput",
+              "advanced": false,
+              "combobox": false,
+              "dialog_inputs": {},
+              "display_name": "OCR Engine",
+              "dynamic": false,
+              "external_options": {},
+              "info": "OCR engine to use. None will disable OCR.",
+              "name": "ocr_engine",
+              "options": [
+                "None",
+                "easyocr",
+                "tesserocr",
+                "rapidocr",
+                "ocrmac"
+              ],
+              "options_metadata": [],
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "toggle": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": true,
+              "type": "str",
+              "value": "None"
+            },
+            "path": {
+              "_input_type": "FileInput",
+              "advanced": false,
+              "display_name": "Files",
+              "dynamic": false,
+              "fileTypes": [
+                "adoc",
+                "asciidoc",
+                "asc",
+                "bmp",
+                "csv",
+                "dotx",
+                "dotm",
+                "docm",
+                "docx",
+                "htm",
+                "html",
+                "jpeg",
+                "json",
+                "md",
+                "pdf",
+                "png",
+                "potx",
+                "ppsx",
+                "pptm",
+                "potm",
+                "ppsm",
+                "pptx",
+                "tiff",
+                "txt",
+                "xls",
+                "xlsx",
+                "xhtml",
+                "xml",
+                "webp",
+                "zip",
+                "tar",
+                "tgz",
+                "bz2",
+                "gz"
+              ],
+              "file_path": "",
+              "info": "Supported file extensions: adoc, asciidoc, asc, bmp, csv, dotx, dotm, docm, docx, htm, html, jpeg, json, md, pdf, png, potx, ppsx, pptm, potm, ppsm, pptx, tiff, txt, xls, xlsx, xhtml, xml, webp; optionally bundled in file extensions: zip, tar, tgz, bz2, gz",
+              "list": true,
+              "list_add_label": "Add More",
+              "name": "path",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "temp_file": false,
+              "title_case": false,
+              "tool_mode": true,
+              "trace_as_metadata": true,
+              "track_in_telemetry": false,
+              "type": "file",
+              "value": []
+            },
+            "pic_desc_llm": {
+              "_input_type": "HandleInput",
+              "advanced": false,
+              "display_name": "Picture description LLM",
+              "dynamic": false,
+              "info": "If connected, the model to use for running the picture description task.",
+              "input_types": [
+                "LanguageModel"
+              ],
+              "list": false,
+              "list_add_label": "Add More",
+              "name": "pic_desc_llm",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": false,
+              "type": "other",
+              "value": ""
+            },
+            "pic_desc_prompt": {
+              "_input_type": "StrInput",
+              "advanced": true,
+              "display_name": "Picture description prompt",
+              "dynamic": false,
+              "info": "The user prompt to use when invoking the model.",
+              "list": false,
+              "list_add_label": "Add More",
+              "load_from_db": false,
+              "name": "pic_desc_prompt",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": false,
+              "type": "str",
+              "value": "Describe the image in three sentences. Be concise and accurate."
+            },
+            "pipeline": {
+              "_input_type": "DropdownInput",
+              "advanced": false,
+              "combobox": false,
+              "dialog_inputs": {},
+              "display_name": "Pipeline",
+              "dynamic": false,
+              "external_options": {},
+              "info": "Docling pipeline to use",
+              "name": "pipeline",
+              "options": [
+                "standard",
+                "vlm"
+              ],
+              "options_metadata": [],
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "toggle": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": true,
+              "type": "str",
+              "value": "standard"
+            },
+            "separator": {
+              "_input_type": "StrInput",
+              "advanced": true,
+              "display_name": "Separator",
+              "dynamic": false,
+              "info": "Specify the separator to use between multiple outputs in Message format.",
+              "list": false,
+              "list_add_label": "Add More",
+              "load_from_db": false,
+              "name": "separator",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": false,
+              "type": "str",
+              "value": "\n\n"
+            },
+            "silent_errors": {
+              "_input_type": "BoolInput",
+              "advanced": true,
+              "display_name": "Silent Errors",
+              "dynamic": false,
+              "info": "If true, errors will not raise an exception.",
+              "list": false,
+              "list_add_label": "Add More",
+              "name": "silent_errors",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": true,
+              "type": "bool",
+              "value": false
+            }
+          },
+          "tool_mode": false,
+          "version": 0
+        },
         "DoclingRemote": {
           "assist_enabled": true,
           "base_classes": [
@@ -84748,11 +85156,11 @@
               "group_outputs": false,
               "method": "build_agent",
               "name": "agent",
-              "selected": "AgentExecutor",
+              "selected": "Runnable",
               "tool_mode": false,
               "types": [
-                "AgentExecutor",
-                "Runnable"
+                "Runnable",
+                "AgentExecutor"
               ],
               "value": "__UNDEFINED__"
             },
@@ -87512,11 +87920,11 @@
               "group_outputs": false,
               "method": "build_agent",
               "name": "agent",
-              "selected": "AgentExecutor",
+              "selected": "Runnable",
               "tool_mode": false,
               "types": [
-                "AgentExecutor",
-                "Runnable"
+                "Runnable",
+                "AgentExecutor"
               ],
               "value": "__UNDEFINED__"
             },
@@ -88310,11 +88718,11 @@
               "group_outputs": false,
               "method": "build_agent",
               "name": "agent",
-              "selected": "AgentExecutor",
+              "selected": "Runnable",
               "tool_mode": false,
               "types": [
-                "AgentExecutor",
-                "Runnable"
+                "Runnable",
+                "AgentExecutor"
               ],
               "value": "__UNDEFINED__"
             },
@@ -102196,11 +102604,11 @@
               "group_outputs": false,
               "method": "build_combined",
               "name": "combined",
-              "selected": "JSON",
+              "selected": "Table",
               "tool_mode": true,
               "types": [
-                "JSON",
-                "Table"
+                "Table",
+                "JSON"
               ],
               "value": "__UNDEFINED__"
             }
@@ -104725,11 +105133,11 @@
               "group_outputs": false,
               "method": "build_matched",
               "name": "matched",
-              "selected": "JSON",
+              "selected": "Table",
               "tool_mode": true,
               "types": [
-                "JSON",
-                "Table"
+                "Table",
+                "JSON"
               ],
               "value": "__UNDEFINED__"
             },
@@ -104740,11 +105148,11 @@
               "group_outputs": false,
               "method": "build_unmatched",
               "name": "unmatched",
-              "selected": "JSON",
+              "selected": "Table",
               "tool_mode": true,
               "types": [
-                "JSON",
-                "Table"
+                "Table",
+                "JSON"
               ],
               "value": "__UNDEFINED__"
             }
@@ -108949,7 +109357,7 @@
         "ErrorHandler": {
           "assist_enabled": true,
           "base_classes": [
-            "ErrorPayload"
+            "Message"
           ],
           "beta": false,
           "changelog": [],
@@ -108975,7 +109383,7 @@
           "icon": "shield-alert",
           "legacy": false,
           "metadata": {
-            "code_hash": "e8fb91f340ef",
+            "code_hash": "0e21754b52f1",
             "dependencies": {
               "dependencies": [
                 {
@@ -109001,10 +109409,10 @@
               "group_outputs": false,
               "method": "on_error_exhausted",
               "name": "gave_up",
-              "selected": "ErrorPayload",
+              "selected": "Message",
               "tool_mode": true,
               "types": [
-                "ErrorPayload"
+                "Message"
               ],
               "value": "__UNDEFINED__"
             }
@@ -109204,7 +109612,7 @@
               "show": true,
               "title_case": false,
               "type": "code",
-              "value": "from __future__ import annotations\n\nimport logging\nimport warnings\nfrom typing import ClassVar\nfrom uuid import UUID\n\nfrom langflow.services.database.models.admin_notification import NotificationAudience\nfrom langflow.services.notifier.protocol import UsageAlertEvent, UsageAlertNotifier\n\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.field_typing import ErrorPayload  # noqa: F401  (registered for type validator)\nfrom lfx.field_typing.range_spec import RangeSpec\nfrom lfx.io import (\n    DropdownInput,\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\n\n\n_DEFAULT_TITLE_TEMPLATE = \"Flow '{flow_name}' failed at {component_name}\"\n_DEFAULT_BODY_TEMPLATE = (\n    \"**Error:** {error_message}\\n\\n\"\n    \"**Component:** {component_name}\\n\"\n    \"**Type:** {error_type}\\n\"\n    \"**Attempt:** {attempt_number}\\n\\n\"\n    \"```\\n{stack_trace}\\n```\"\n)\n\nlogger = logging.getLogger(__name__)\n\n\ndef _resolve_audience(\n    bell_audience: str,\n    flow_owner_id: UUID,\n    specific_user_id: UUID | None,\n) -> tuple[NotificationAudience, UUID | None]:\n    if bell_audience == \"Flow owner\":\n        return NotificationAudience.PLATFORM_ADMIN, flow_owner_id\n    if bell_audience == \"Org admins\":\n        return NotificationAudience.PLATFORM_ADMIN, None\n    if bell_audience == \"Specific user\":\n        return NotificationAudience.PLATFORM_ADMIN, specific_user_id\n    msg = f\"Unknown bell_audience: {bell_audience!r}\"\n    raise ValueError(msg)\n\n\ndef _render_template(\n    template: str,\n    payload: ErrorPayload,\n    *,\n    flow_name: str,\n    org_name: str,\n) -> str:\n    try:\n        return template.format(\n            flow_name=flow_name,\n            org_name=org_name,\n            component_name=payload.component_display_name,\n            error_type=payload.error_type,\n            error_message=payload.error_message,\n            attempt_number=payload.attempt_number,\n            stack_trace=payload.stack_trace,\n        )\n    except KeyError as exc:\n        # User template references an unknown variable. Don't drop the alert —\n        # surface the misconfiguration in the body and keep the error message visible.\n        logger.warning(\"ErrorHandler template references unknown variable %s\", exc)\n        return f\"[Template error: unknown variable {exc}] {payload.error_message}\"\n\n\nclass ErrorHandler(Component):\n    \"\"\"Catches errors emitted by upstream components' error ports.\n\n    Configures retry attempts + backoff, dispatches a single alert per\n    handled error, and emits `gave_up` with the original ErrorPayload after\n    retries are exhausted.\n\n    Does NOT itself expose an `error` output — exceptions raised inside\n    ErrorHandler bypass the runtime extension and fail the flow run.\n    \"\"\"\n\n    display_name = \"Error Handler\"\n    description = (\n        \"Retry a failing component with backoff and dispatch an alert when \"\n        \"retries are exhausted.\"\n    )\n    icon = \"shield-alert\"\n    name = \"ErrorHandler\"\n    error_output_enabled: ClassVar[bool] = False  # explicit: no nested recovery\n\n    inputs = [\n        HandleInput(\n            name=\"error_input\",\n            display_name=\"Error\",\n            input_types=[\"ErrorPayload\"],\n            info=\"Connect a component's Error output here.\",\n        ),\n        IntInput(\n            name=\"max_attempts\",\n            display_name=\"Max retry attempts\",\n            value=3,\n            range_spec=RangeSpec(min=0, max=10),\n            info=\"0 = no retry, fire alert immediately. Max 10.\",\n        ),\n        DropdownInput(\n            name=\"alert_mode\",\n            display_name=\"Alert mode\",\n            options=[\"Bell\", \"Email (Not Implemented)\", \"Ignore\"],\n            value=\"Bell\",\n        ),\n        DropdownInput(\n            name=\"bell_audience\",\n            display_name=\"Bell audience\",\n            options=[\"Flow owner\", \"Org admins\", \"Specific user\"],\n            value=\"Flow owner\",\n            show=True,\n        ),\n        StrInput(\n            name=\"bell_specific_user_id\",\n            display_name=\"Specific user\",\n            info=\"User ID (UUID format) to notify when bell audience = Specific user.\",\n            advanced=True,\n        ),\n        StrInput(\n            name=\"alert_title_template\",\n            display_name=\"Alert title\",\n            value=_DEFAULT_TITLE_TEMPLATE,\n            info=\"Available variables: {flow_name}, {component_name}, {error_type}, {error_message}, {attempt_number}, {org_name}\",\n        ),\n        DropdownInput(\n            name=\"backoff_strategy\",\n            display_name=\"Backoff strategy\",\n            options=[\"None\", \"Fixed delay\", \"Exponential\", \"Exponential with jitter\"],\n            value=\"Exponential with jitter\",\n            advanced=True,\n        ),\n        FloatInput(\n            name=\"base_delay_seconds\",\n            display_name=\"Base delay (s)\",\n            value=1.0,\n            advanced=True,\n        ),\n        FloatInput(\n            name=\"max_delay_seconds\",\n            display_name=\"Max delay (s)\",\n            value=60.0,\n            advanced=True,\n        ),\n        MultilineInput(\n            name=\"alert_body_template\",\n            display_name=\"Alert body (markdown)\",\n            value=_DEFAULT_BODY_TEMPLATE,\n            advanced=True,\n            info=\"Markdown. Available variables: {flow_name}, {component_name}, {error_type}, {error_message}, {attempt_number}, {stack_trace}, {org_name}\",\n        ),\n    ]\n\n    outputs = [\n        Output(\n            display_name=\"Gave up\",\n            name=\"gave_up\",\n            types=[\"ErrorPayload\"],\n            method=\"on_error_exhausted\",\n        ),\n    ]\n\n    async def on_error_exhausted(self) -> ErrorPayload:\n        \"\"\"Fired by the runtime after retries exhaust + alert dispatched.\n\n        The runtime constructs and passes the ErrorPayload directly via the\n        runtime extension; this method is the public output endpoint.\n        \"\"\"\n        msg = \"ErrorHandler.on_error_exhausted is wired by the runtime; do not invoke directly\"\n        raise NotImplementedError(msg)\n\n    async def dispatch_alert(\n        self,\n        *,\n        payload: ErrorPayload,\n        notifier: UsageAlertNotifier,\n        flow_owner_id: UUID,\n        org_id: UUID,\n        flow_name: str,\n        org_name: str,\n    ) -> None:\n        \"\"\"Dispatch the configured alert. Best-effort — exceptions are logged and swallowed.\"\"\"\n        if self.alert_mode == \"Ignore\":\n            return\n\n        # Email (Not Implemented) falls through to Bell in v1.\n        if self.alert_mode == \"Email (Not Implemented)\":\n            warnings.warn(\n                \"ErrorHandler email mode is not implemented; falling through to Bell.\",\n                UserWarning,\n                stacklevel=2,\n            )\n\n        specific_id: UUID | None = None\n        if self.bell_audience == \"Specific user\":\n            if not self.bell_specific_user_id:\n                logger.warning(\n                    \"ErrorHandler bell_audience='Specific user' but no user_id provided; alert suppressed.\"\n                )\n                return\n            try:\n                specific_id = UUID(self.bell_specific_user_id)\n            except (ValueError, AttributeError):\n                logger.warning(\n                    \"ErrorHandler bell_specific_user_id %r is not a valid UUID; alert suppressed.\",\n                    self.bell_specific_user_id,\n                )\n                return\n\n        try:\n            audience, audience_user_id = _resolve_audience(\n                self.bell_audience, flow_owner_id, specific_id\n            )\n            title = _render_template(\n                self.alert_title_template, payload,\n                flow_name=flow_name, org_name=org_name,\n            )\n            body = _render_template(\n                self.alert_body_template, payload,\n                flow_name=flow_name, org_name=org_name,\n            )\n            event = UsageAlertEvent(\n                category=\"flow_error\",\n                severity=\"error\",\n                org_id=org_id,\n                title=title,\n                body_md=body,\n                metadata={\n                    \"vertex_id\": payload.component_id,\n                    \"attempt_number\": payload.attempt_number,\n                    \"error_type\": payload.error_type,\n                },\n                audience=audience,\n                audience_user_id=audience_user_id,\n            )\n            await notifier.notify(event)\n        except Exception as exc:  # noqa: BLE001\n            logger.exception(\"ErrorHandler alert dispatch failed: %s\", exc)\n"
+              "value": "from __future__ import annotations\n\nimport logging\nimport warnings\nfrom typing import ClassVar\nfrom uuid import UUID\n\nfrom langflow.services.database.models.admin_notification import NotificationAudience\nfrom langflow.services.notifier.protocol import UsageAlertEvent, UsageAlertNotifier\n\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.field_typing import ErrorPayload  # noqa: F401  (registered for type validator)\nfrom lfx.schema.message import Message\nfrom lfx.field_typing.range_spec import RangeSpec\nfrom lfx.io import (\n    DropdownInput,\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\n\n\n_DEFAULT_TITLE_TEMPLATE = \"Flow '{flow_name}' failed at {component_name}\"\n_DEFAULT_BODY_TEMPLATE = (\n    \"**Error:** {error_message}\\n\\n\"\n    \"**Component:** {component_name}\\n\"\n    \"**Type:** {error_type}\\n\"\n    \"**Attempt:** {attempt_number}\\n\\n\"\n    \"```\\n{stack_trace}\\n```\"\n)\n\nlogger = logging.getLogger(__name__)\n\n\ndef _resolve_audience(\n    bell_audience: str,\n    flow_owner_id: UUID,\n    specific_user_id: UUID | None,\n) -> tuple[NotificationAudience, UUID | None]:\n    if bell_audience == \"Flow owner\":\n        return NotificationAudience.PLATFORM_ADMIN, flow_owner_id\n    if bell_audience == \"Org admins\":\n        return NotificationAudience.PLATFORM_ADMIN, None\n    if bell_audience == \"Specific user\":\n        return NotificationAudience.PLATFORM_ADMIN, specific_user_id\n    msg = f\"Unknown bell_audience: {bell_audience!r}\"\n    raise ValueError(msg)\n\n\ndef _render_template(\n    template: str,\n    payload: ErrorPayload,\n    *,\n    flow_name: str,\n    org_name: str,\n) -> str:\n    try:\n        return template.format(\n            flow_name=flow_name,\n            org_name=org_name,\n            component_name=payload.component_display_name,\n            error_type=payload.error_type,\n            error_message=payload.error_message,\n            attempt_number=payload.attempt_number,\n            stack_trace=payload.stack_trace,\n        )\n    except KeyError as exc:\n        # User template references an unknown variable. Don't drop the alert —\n        # surface the misconfiguration in the body and keep the error message visible.\n        logger.warning(\"ErrorHandler template references unknown variable %s\", exc)\n        return f\"[Template error: unknown variable {exc}] {payload.error_message}\"\n\n\nclass ErrorHandler(Component):\n    \"\"\"Catches errors emitted by upstream components' error ports.\n\n    Configures retry attempts + backoff, dispatches a single alert per\n    handled error, and emits `gave_up` with the original ErrorPayload after\n    retries are exhausted.\n\n    Does NOT itself expose an `error` output — exceptions raised inside\n    ErrorHandler bypass the runtime extension and fail the flow run.\n    \"\"\"\n\n    display_name = \"Error Handler\"\n    description = (\n        \"Retry a failing component with backoff and dispatch an alert when \"\n        \"retries are exhausted.\"\n    )\n    icon = \"shield-alert\"\n    name = \"ErrorHandler\"\n    error_output_enabled: ClassVar[bool] = False  # explicit: no nested recovery\n\n    inputs = [\n        HandleInput(\n            name=\"error_input\",\n            display_name=\"Error\",\n            input_types=[\"ErrorPayload\"],\n            info=\"Connect a component's Error output here.\",\n        ),\n        IntInput(\n            name=\"max_attempts\",\n            display_name=\"Max retry attempts\",\n            value=3,\n            range_spec=RangeSpec(min=0, max=10),\n            info=\"0 = no retry, fire alert immediately. Max 10.\",\n        ),\n        DropdownInput(\n            name=\"alert_mode\",\n            display_name=\"Alert mode\",\n            options=[\"Bell\", \"Email (Not Implemented)\", \"Ignore\"],\n            value=\"Bell\",\n        ),\n        DropdownInput(\n            name=\"bell_audience\",\n            display_name=\"Bell audience\",\n            options=[\"Flow owner\", \"Org admins\", \"Specific user\"],\n            value=\"Flow owner\",\n            show=True,\n        ),\n        StrInput(\n            name=\"bell_specific_user_id\",\n            display_name=\"Specific user\",\n            info=\"User ID (UUID format) to notify when bell audience = Specific user.\",\n            advanced=True,\n        ),\n        StrInput(\n            name=\"alert_title_template\",\n            display_name=\"Alert title\",\n            value=_DEFAULT_TITLE_TEMPLATE,\n            info=\"Available variables: {flow_name}, {component_name}, {error_type}, {error_message}, {attempt_number}, {org_name}\",\n        ),\n        DropdownInput(\n            name=\"backoff_strategy\",\n            display_name=\"Backoff strategy\",\n            options=[\"None\", \"Fixed delay\", \"Exponential\", \"Exponential with jitter\"],\n            value=\"Exponential with jitter\",\n            advanced=True,\n        ),\n        FloatInput(\n            name=\"base_delay_seconds\",\n            display_name=\"Base delay (s)\",\n            value=1.0,\n            advanced=True,\n        ),\n        FloatInput(\n            name=\"max_delay_seconds\",\n            display_name=\"Max delay (s)\",\n            value=60.0,\n            advanced=True,\n        ),\n        MultilineInput(\n            name=\"alert_body_template\",\n            display_name=\"Alert body (markdown)\",\n            value=_DEFAULT_BODY_TEMPLATE,\n            advanced=True,\n            info=\"Markdown. Available variables: {flow_name}, {component_name}, {error_type}, {error_message}, {attempt_number}, {stack_trace}, {org_name}\",\n        ),\n    ]\n\n    outputs = [\n        Output(\n            display_name=\"Gave up\",\n            name=\"gave_up\",\n            types=[\"Message\"],\n            method=\"on_error_exhausted\",\n        ),\n    ]\n\n    async def on_error_exhausted(self) -> Message:\n        \"\"\"Fired by the runtime after retries exhaust + alert dispatched.\n\n        The runtime constructs and passes the ErrorPayload directly via the\n        runtime extension; this method is the public output endpoint.\n        \"\"\"\n        msg = \"ErrorHandler.on_error_exhausted is wired by the runtime; do not invoke directly\"\n        raise NotImplementedError(msg)\n\n    async def dispatch_alert(\n        self,\n        *,\n        payload: ErrorPayload,\n        notifier: UsageAlertNotifier,\n        flow_owner_id: UUID,\n        org_id: UUID,\n        flow_name: str,\n        org_name: str,\n    ) -> None:\n        \"\"\"Dispatch the configured alert. Best-effort — exceptions are logged and swallowed.\"\"\"\n        if self.alert_mode == \"Ignore\":\n            return\n\n        # Email (Not Implemented) falls through to Bell in v1.\n        if self.alert_mode == \"Email (Not Implemented)\":\n            warnings.warn(\n                \"ErrorHandler email mode is not implemented; falling through to Bell.\",\n                UserWarning,\n                stacklevel=2,\n            )\n\n        specific_id: UUID | None = None\n        if self.bell_audience == \"Specific user\":\n            if not self.bell_specific_user_id:\n                logger.warning(\n                    \"ErrorHandler bell_audience='Specific user' but no user_id provided; alert suppressed.\"\n                )\n                return\n            try:\n                specific_id = UUID(self.bell_specific_user_id)\n            except (ValueError, AttributeError):\n                logger.warning(\n                    \"ErrorHandler bell_specific_user_id %r is not a valid UUID; alert suppressed.\",\n                    self.bell_specific_user_id,\n                )\n                return\n\n        try:\n            audience, audience_user_id = _resolve_audience(\n                self.bell_audience, flow_owner_id, specific_id\n            )\n            title = _render_template(\n                self.alert_title_template, payload,\n                flow_name=flow_name, org_name=org_name,\n            )\n            body = _render_template(\n                self.alert_body_template, payload,\n                flow_name=flow_name, org_name=org_name,\n            )\n            event = UsageAlertEvent(\n                category=\"flow_error\",\n                severity=\"error\",\n                org_id=org_id,\n                title=title,\n                body_md=body,\n                metadata={\n                    \"vertex_id\": payload.component_id,\n                    \"attempt_number\": payload.attempt_number,\n                    \"error_type\": payload.error_type,\n                },\n                audience=audience,\n                audience_user_id=audience_user_id,\n            )\n            await notifier.notify(event)\n        except Exception as exc:  # noqa: BLE001\n            logger.exception(\"ErrorHandler alert dispatch failed: %s\", exc)\n"
             },
             "error_input": {
               "_input_type": "HandleInput",
@@ -123107,9 +123515,9 @@
     ]
   ],
   "metadata": {
-    "num_components": 366,
+    "num_components": 367,
     "num_modules": 99
   },
-  "sha256": "5cc44cfa64f4180516f1a4dc48206ecf49fd64a2c6732472b03fa6e72c947ca5",
+  "sha256": "3740d0c040661c86d2e646f7d0fb7aca14d26560119d94598376e400ad4cca13",
   "version": "26.424.1"
 }
