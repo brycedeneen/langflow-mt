@@ -50,6 +50,9 @@ class AuthService(BaseAuthService):
 
     def __init__(self, settings_service: SettingsService):
         self.settings_service = settings_service
+        # Cache for the JWT verification key, keyed by the underlying secret/public-key value.
+        # A settings change (which yields a different value) naturally invalidates the cache.
+        self._jwt_verification_key_cache: tuple[str, str] | None = None
         self.set_ready()
 
     @property
@@ -131,11 +134,11 @@ class AuthService(BaseAuthService):
 
     async def _authenticate_with_token(self, token: str, db: AsyncSession) -> User:
         """Internal method to authenticate with token (raises generic exceptions)."""
-        from langflow.services.auth.utils import ACCESS_TOKEN_TYPE, get_jwt_verification_key
+        from langflow.services.auth.utils import ACCESS_TOKEN_TYPE
 
         settings_service = self.settings
         algorithm = settings_service.auth_settings.ALGORITHM
-        verification_key = get_jwt_verification_key(settings_service)
+        verification_key = self._get_jwt_verification_key()
 
         try:
             with warnings.catch_warnings():
@@ -516,12 +519,10 @@ class AuthService(BaseAuthService):
         }
 
     async def create_refresh_token(self, refresh_token: str, db: AsyncSession):
-        from langflow.services.auth.utils import get_jwt_verification_key
-
         settings_service = self.settings
 
         algorithm = settings_service.auth_settings.ALGORITHM
-        verification_key = get_jwt_verification_key(settings_service)
+        verification_key = self._get_jwt_verification_key()
 
         try:
             with warnings.catch_warnings():
@@ -584,6 +585,45 @@ class AuthService(BaseAuthService):
         secret_key: str = self.settings.auth_settings.SECRET_KEY.get_secret_value()
         valid_key = self._ensure_valid_key(secret_key)
         return Fernet(valid_key)
+
+    def _get_jwt_verification_key(self) -> str:
+        """Return the JWT verification key, cached at the service level.
+
+        The cache is keyed by the underlying secret/public-key value, so any settings
+        change that yields a different value naturally invalidates the cache without
+        needing to clear it explicitly. This avoids the per-decode lazy import +
+        function-call overhead on every authenticated request.
+        """
+        from langflow.services.auth.utils import get_jwt_verification_key
+
+        settings_service = self.settings
+        algorithm = settings_service.auth_settings.ALGORITHM
+
+        # Read the raw underlying value cheaply to compare against the cache key.
+        if algorithm.is_asymmetric():
+            current_value = settings_service.auth_settings.PUBLIC_KEY
+        else:
+            secret_key = settings_service.auth_settings.SECRET_KEY
+            current_value = secret_key.get_secret_value() if secret_key is not None else None
+
+        cached = self._jwt_verification_key_cache
+        if cached is not None and current_value is not None and cached[0] == current_value:
+            return cached[1]
+
+        # Cache miss (or unset/empty value) -- delegate to the canonical resolver,
+        # which also performs the JWTKeyError validation for unset keys.
+        verification_key = get_jwt_verification_key(settings_service)
+        if current_value is not None:
+            self._jwt_verification_key_cache = (current_value, verification_key)
+        return verification_key
+
+    def invalidate_jwt_key_cache(self) -> None:
+        """Clear the cached JWT verification key.
+
+        Call this after rotating SECRET_KEY/PUBLIC_KEY in settings if you need an
+        immediate refresh; otherwise the cache self-invalidates on value change.
+        """
+        self._jwt_verification_key_cache = None
 
     def encrypt_api_key(self, api_key: str) -> str:
         fernet = self._get_fernet()

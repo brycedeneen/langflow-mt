@@ -13,6 +13,7 @@ from typing import Annotated, Any, cast
 from uuid import UUID
 
 import anyio
+from aiofile import async_open
 from anyio import BrokenResourceError
 from anyio.abc import TaskGroup, TaskStatus
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -829,8 +830,9 @@ async def install_mcp_config(
         existing_config = {}
         if config_path.exists():
             try:
-                with config_path.open("r") as f:
-                    existing_config = json.load(f)
+                async with async_open(str(config_path), "r") as f:
+                    contents = await f.read()
+                existing_config = json.loads(contents)
             except json.JSONDecodeError:
                 # If file exists but is invalid JSON, start fresh
                 existing_config = {"mcpServers": {}}
@@ -849,8 +851,8 @@ async def install_mcp_config(
         existing_config["mcpServers"].update(mcp_config["mcpServers"])
 
         # Write the updated config
-        with config_path.open("w") as f:
-            json.dump(existing_config, f, indent=2)
+        async with async_open(str(config_path), "w") as f:
+            await f.write(json.dumps(existing_config, indent=2))
 
     except HTTPException:
         raise
