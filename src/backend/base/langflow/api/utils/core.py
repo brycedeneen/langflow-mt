@@ -20,6 +20,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from langflow.services.auth.utils import get_current_active_user, get_current_active_user_mcp
 from langflow.services.database.models.flow.model import Flow
+from langflow.services.database.models.flow_run.model import FlowRun
 from langflow.services.database.models.flow_version.model import FlowVersion
 from langflow.services.database.models.message.model import MessageTable
 from langflow.services.database.models.traces.model import SpanTable, TraceTable
@@ -472,6 +473,8 @@ async def _cascade_delete_flow_chunk(session: AsyncSession, flow_ids: list[uuid.
         await session.exec(delete(MessageTable).where(col(MessageTable.flow_id).in_(flow_ids)))
         await session.exec(delete(TransactionTable).where(col(TransactionTable.flow_id).in_(flow_ids)))
         await session.exec(delete(VertexBuildTable).where(col(VertexBuildTable.flow_id).in_(flow_ids)))
+        # flow_run.flow_id FK is ON DELETE NO ACTION, so it must be cleared explicitly.
+        await session.exec(delete(FlowRun).where(col(FlowRun.flow_id).in_(flow_ids)))
         # Explicit delete despite FK CASCADE — SQLite doesn't enforce FK cascades
         # by default (requires PRAGMA foreign_keys = ON), and this function follows
         # the existing pattern of explicitly deleting all child records.
