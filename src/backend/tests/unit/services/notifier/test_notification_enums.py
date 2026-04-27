@@ -26,3 +26,23 @@ def test_usage_alert_event_accepts_flow_error_and_error():
     )
     assert event.category == "flow_error"
     assert event.severity == "error"
+
+
+def test_notification_category_literal_matches_enum():
+    """Drift guard: protocol Literal must mirror the model enum exactly."""
+    from typing import get_args
+
+    from langflow.services.database.models.admin_notification import NotificationCategory
+    from langflow.services.notifier.protocol import NotificationCategoryValue
+
+    assert set(get_args(NotificationCategoryValue)) == {m.value for m in NotificationCategory}
+
+
+def test_notification_severity_literal_matches_enum():
+    """Drift guard: protocol Literal must mirror the model enum exactly."""
+    from typing import get_args
+
+    from langflow.services.database.models.admin_notification import NotificationSeverity
+    from langflow.services.notifier.protocol import NotificationSeverityValue
+
+    assert set(get_args(NotificationSeverityValue)) == {m.value for m in NotificationSeverity}
