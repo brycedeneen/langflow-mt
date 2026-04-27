@@ -6,6 +6,7 @@ __all__ = [
     "ComponentOutput",
     "Data",
     "DataFrame",
+    "ErrorPayload",
     "ErrorDetail",
     "InputValue",
     "JobStatus",
@@ -38,6 +39,10 @@ def __getattr__(name: str):
         from .dataframe import DataFrame
 
         return DataFrame
+    if name == "ErrorPayload":
+        from .error_payload import ErrorPayload
+
+        return ErrorPayload
     if name == "dotdict":
         from .dotdict import dotdict
 

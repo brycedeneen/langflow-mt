@@ -4,9 +4,17 @@ from dataclasses import dataclass
 from typing import Any, Literal, Protocol
 from uuid import UUID
 
+from langflow.services.database.models.admin_notification import NotificationAudience
 
-NotificationCategoryValue = Literal["usage_threshold", "alert_rule"]
-NotificationSeverityValue = Literal["info", "warning", "critical"]
+
+NotificationCategoryValue = Literal[
+    "usage_threshold",
+    "alert_rule",
+    "system",
+    "professional_services_request",
+    "flow_error",
+]
+NotificationSeverityValue = Literal["info", "warning", "critical", "error"]
 
 
 @dataclass(frozen=True)
@@ -17,6 +25,8 @@ class UsageAlertEvent:
     title: str
     body_md: str
     metadata: dict[str, Any]
+    audience: NotificationAudience = NotificationAudience.SUPER_ADMIN
+    audience_user_id: UUID | None = None
 
 
 class UsageAlertNotifier(Protocol):
