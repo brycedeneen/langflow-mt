@@ -157,12 +157,12 @@ class TestFetchTraceSummaryData:
         parent_span_id = uuid4()
         child_span_id = uuid4()
 
-        # Row layout: (trace_id, span_id, name, parent_span_id, end_time, inputs, outputs, attributes)
+        # Row layout: (trace_id, span_id, name, parent_span_id, end_time, inputs, outputs, attributes, span_type)
         rows = [
             # Parent span — has tokens but should be excluded (it IS a parent).
-            (trace_id, parent_span_id, "parent", None, None, None, None, {"total_tokens": 100}),
+            (trace_id, parent_span_id, "parent", None, None, None, None, {"total_tokens": 100}, None),
             # Child span — leaf, should be counted.
-            (trace_id, child_span_id, "child", parent_span_id, None, None, None, {"total_tokens": 30}),
+            (trace_id, child_span_id, "child", parent_span_id, None, None, None, {"total_tokens": 30}, None),
         ]
         result = await fetch_trace_summary_data(_make_session(rows), [trace_id])
 
@@ -179,8 +179,8 @@ class TestFetchTraceSummaryData:
         leaf2_id = uuid4()
 
         rows = [
-            (trace_id, leaf1_id, "leaf1", None, None, None, None, {"total_tokens": 10}),
-            (trace_id, leaf2_id, "leaf2", None, None, None, None, {"total_tokens": 20}),
+            (trace_id, leaf1_id, "leaf1", None, None, None, None, {"total_tokens": 10}, None),
+            (trace_id, leaf2_id, "leaf2", None, None, None, None, {"total_tokens": 20}, None),
         ]
         result = await fetch_trace_summary_data(_make_session(rows), [trace_id])
         assert result[str(trace_id)].total_tokens == 30
@@ -192,7 +192,7 @@ class TestFetchTraceSummaryData:
         trace_id = uuid4()
         span_id = uuid4()
 
-        rows = [(trace_id, span_id, "span", None, None, None, None, {})]
+        rows = [(trace_id, span_id, "span", None, None, None, None, {}, None)]
         result = await fetch_trace_summary_data(_make_session(rows), [trace_id])
         assert result[str(trace_id)].total_tokens == 0
 
@@ -203,7 +203,7 @@ class TestFetchTraceSummaryData:
         trace_id = uuid4()
         span_id = uuid4()
 
-        rows = [(trace_id, span_id, "span", None, None, None, None, None)]
+        rows = [(trace_id, span_id, "span", None, None, None, None, None, None)]
         result = await fetch_trace_summary_data(_make_session(rows), [trace_id])
         assert result[str(trace_id)].total_tokens == 0
 
@@ -217,8 +217,8 @@ class TestFetchTraceSummaryData:
         span_b = uuid4()
 
         rows = [
-            (trace_a, span_a, "span_a", None, None, None, None, {"total_tokens": 5}),
-            (trace_b, span_b, "span_b", None, None, None, None, {"total_tokens": 15}),
+            (trace_a, span_a, "span_a", None, None, None, None, {"total_tokens": 5}, None),
+            (trace_b, span_b, "span_b", None, None, None, None, {"total_tokens": 15}, None),
         ]
         result = await fetch_trace_summary_data(_make_session(rows), [trace_a, trace_b])
         assert result[str(trace_a)].total_tokens == 5
@@ -242,6 +242,7 @@ class TestFetchTraceSummaryData:
                 None,
                 None,
                 {"gen_ai.usage.input_tokens": 30, "gen_ai.usage.output_tokens": 20, "total_tokens": 10},
+                None,
             ),
         ]
         result = await fetch_trace_summary_data(_make_session(rows), [trace_id])
@@ -254,7 +255,7 @@ class TestFetchTraceSummaryData:
         trace_id = uuid4()
         span_id = uuid4()
 
-        rows = [(trace_id, span_id, "SomeSpan", None, None, {"input_value": "ignored"}, None, {})]
+        rows = [(trace_id, span_id, "SomeSpan", None, None, {"input_value": "ignored"}, None, {}, None)]
         result = await fetch_trace_summary_data(_make_session(rows), [trace_id])
         assert result[str(trace_id)].input is None
 
@@ -266,6 +267,6 @@ class TestFetchTraceSummaryData:
         span_id = uuid4()
 
         # end_time (index 4) is None → unfinished, should not be used as output.
-        rows = [(trace_id, span_id, "root", None, None, None, {"result": "nope"}, {})]
+        rows = [(trace_id, span_id, "root", None, None, None, {"result": "nope"}, {}, None)]
         result = await fetch_trace_summary_data(_make_session(rows), [trace_id])
         assert result[str(trace_id)].output is None

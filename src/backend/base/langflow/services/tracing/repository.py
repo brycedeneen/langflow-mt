@@ -28,11 +28,12 @@ from langflow.services.database.models.traces.model import (
     TraceSummaryRead,
     TraceTable,
 )
-from langflow.services.deps import session_scope
+from langflow.services.deps import get_pricing_service, session_scope
 from langflow.services.tracing.formatting import (
     TraceSummaryData,
     build_span_tree,
     compute_leaf_token_total,
+    compute_trace_cost_micros,
     extract_trace_io_from_rows,
     extract_trace_io_from_spans,
 )
@@ -69,11 +70,17 @@ def _trace_to_base_fields(
         "start_time": trace.start_time,
         "total_latency_ms": trace.total_latency_ms,
         "total_tokens": total_tokens,
+        "total_cost_micros": summary.total_cost_micros if summary else None,
         "flow_id": trace.flow_id,
         "session_id": trace.session_id or str(trace.id),
         "input": summary.input if summary else None,
         "output": summary.output if summary else None,
     }
+
+
+def _span_type_value(span_type: Any) -> str:
+    """SQLAlchemy may return either an Enum instance or a raw string for span_type."""
+    return span_type.value if hasattr(span_type, "value") else str(span_type or "")
 
 
 async def fetch_trace_summary_data(session: AsyncSession, trace_ids: list[UUID]) -> dict[str, TraceSummaryData]:
@@ -105,6 +112,7 @@ async def fetch_trace_summary_data(session: AsyncSession, trace_ids: list[UUID])
         col(SpanTable.inputs),
         col(SpanTable.outputs),
         col(SpanTable.attributes),
+        col(SpanTable.span_type),
     ).where(col(SpanTable.trace_id).in_(trace_ids))
     rows = (await session.exec(all_spans_stmt)).all()
 
@@ -114,6 +122,8 @@ async def fetch_trace_summary_data(session: AsyncSession, trace_ids: list[UUID])
     for row in rows:
         rows_by_trace.setdefault(str(row[0]), []).append(row)
 
+    pricing = get_pricing_service()
+
     for trace_id_str, trace_rows in rows_by_trace.items():
         span_ids = [row[1] for row in trace_rows]
         attributes_by_id = {row[1]: (row[7] or {}) for row in trace_rows}
@@ -122,10 +132,14 @@ async def fetch_trace_summary_data(session: AsyncSession, trace_ids: list[UUID])
         io_rows = [(r[0], r[2], r[3], r[4], r[5], r[6]) for r in trace_rows]
         io_data = extract_trace_io_from_rows(io_rows)
 
+        cost_rows = [(_span_type_value(r[8]), r[7] or {}) for r in trace_rows]
+        total_cost_micros = compute_trace_cost_micros(cost_rows, pricing)
+
         summary_map[trace_id_str] = TraceSummaryData(
             total_tokens=total_tokens,
             input=io_data.get("input"),
             output=io_data.get("output"),
+            total_cost_micros=total_cost_micros,
         )
 
     return summary_map
@@ -243,11 +257,19 @@ async def fetch_single_trace(organization_id: UUID, trace_id: UUID) -> TraceRead
 
         effective_tokens = computed_tokens or trace.total_tokens
 
+        pricing = get_pricing_service()
+        cost_rows = [
+            (_span_type_value(s.span_type), s.attributes or {})
+            for s in spans
+        ]
+        total_cost_micros = compute_trace_cost_micros(cost_rows, pricing)
+
         # Build a lightweight summary so _trace_to_base_fields can supply io_data.
         io_summary = TraceSummaryData(
             total_tokens=effective_tokens,
             input=io_data.get("input"),
             output=io_data.get("output"),
+            total_cost_micros=total_cost_micros,
         )
 
         return TraceRead(
