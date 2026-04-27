@@ -1,6 +1,7 @@
 import type { ColDef } from "ag-grid-community";
 import IconComponent from "@/components/common/genericIconComponent";
 import { formatSmartTimestamp } from "@/utils/dateTime";
+import { formatUsdFromMicros } from "@/utils/format-currency";
 import { formatTotalLatency, getStatusIconProps } from "../traceViewHelpers";
 import {
   formatObjectValue,
@@ -80,6 +81,22 @@ export function createFlowTracesColumns({
           params.data?.total_tokens,
         );
         return tokens === null ? "" : String(tokens);
+      },
+    },
+    {
+      headerName: "Cost",
+      field: "totalCostMicros",
+      flex: 0.5,
+      minWidth: 80,
+      filter: false,
+      sortable: false,
+      editable: false,
+      valueGetter: (params) => {
+        const micros = pickFirstNumber(
+          params.data?.totalCostMicros,
+          params.data?.total_cost_micros,
+        );
+        return formatUsdFromMicros(micros) ?? "—";
       },
     },
     {
