@@ -311,6 +311,9 @@ export const FlowRead = z.looseObject({
     organization_id: z.union([z.string(), z.null()]).optional(),
     folder_id: z.union([z.string(), z.null()]),
     tags: z.array(TagRead).optional(),
+    refused_secret_fields: z
+      .array(z.looseObject({}).partial())
+      .optional(),
   });
 export const tag_id = z.union([z.array(z.string().uuid()), z.null()]).optional();
 export const Page_FlowRead_ = z.looseObject({
@@ -501,7 +504,7 @@ export const ContentBlock = z.looseObject({
 export const lfx__schema__message__MessageResponse = z.looseObject({
     id: z.union([z.string(), z.string(), z.null()]).optional(),
     flow_id: z.union([z.string(), z.null()]).optional(),
-    timestamp: z.string().datetime({ offset: true }).optional(),
+    timestamp: z.string().optional(),
     sender: z.string(),
     sender_name: z.string(),
     session_id: z.string(),
@@ -732,6 +735,7 @@ export const OrgDetail = z.looseObject({
     updated_at: z.string(),
     members: z.array(MemberRow),
   });
+export const OrgUpdate = z.looseObject({ name: z.string().min(1).max(200) });
 export const OrgDeleteBody = z.looseObject({ confirm_name: z.string() });
 export const OrgDeleteResult = z.looseObject({ deleted: z.record(z.string(), z.number().int()) });
 export const MembersResponse = z.looseObject({ items: z.array(MemberRow) });
