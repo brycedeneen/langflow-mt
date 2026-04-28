@@ -6,7 +6,8 @@ import { useGetUnreadNotificationsCount } from "@/controllers/API/queries/admin/
 export default function AdminNotificationBell() {
   const navigate = useNavigate();
   const { data } = useGetUnreadNotificationsCount({} as never, {
-    refetchInterval: 30000,  // 30s poll
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
   });
   const unread = data?.unread ?? 0;
 

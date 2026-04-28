@@ -56,17 +56,20 @@ export const useGetRefreshFlowsQuery: useQueryFunctionType<
   ): Promise<FlowType[] | PaginatedFlowsType> => {
     try {
       const url = addQueryParams(`${getURL("FLOWS")}/`, params);
-      const dbDataFlows = await validatedQueryFn(
+      const flowsPromise = validatedQueryFn(
         "api.flows.read_flows_api_v1_flows__get",
         FlowsResponseSchema,
         async () => (await api.get<unknown>(url)).data,
       )();
 
       if (params.components_only) {
-        return dbDataFlows as FlowType[];
+        return (await flowsPromise) as FlowType[];
       }
 
-      const dbDataComponents = await validatedQueryFn(
+      // Issue both fetches in parallel — the saved-components catalog and the
+      // requested flows are independent reads against the same endpoint, so
+      // there is no reason to wait for one before starting the other.
+      const componentsPromise = validatedQueryFn(
         "api.flows.read_flows_api_v1_flows__get",
         FlowsResponseSchema,
         async () =>
@@ -79,6 +82,11 @@ export const useGetRefreshFlowsQuery: useQueryFunctionType<
             )
           ).data,
       )();
+
+      const [dbDataFlows, dbDataComponents] = await Promise.all([
+        flowsPromise,
+        componentsPromise,
+      ]);
 
       if (dbDataComponents) {
         const componentsArray = Array.isArray(dbDataComponents)

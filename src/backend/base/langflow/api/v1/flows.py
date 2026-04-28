@@ -512,10 +512,16 @@ async def read_flows(
         A list of flows or a paginated response containing the list of flows or a list of flow headers.
     """
     try:
-        default_folder = (await session.exec(select(Folder).where(Folder.name == DEFAULT_FOLDER_NAME))).first()
+        # Fetch both well-known folders in a single round-trip rather than two
+        # separate selects on every read_flows call.
+        folder_rows = (
+            await session.exec(
+                select(Folder).where(col(Folder.name).in_([DEFAULT_FOLDER_NAME, STARTER_FOLDER_NAME]))
+            )
+        ).all()
+        default_folder = next((f for f in folder_rows if f.name == DEFAULT_FOLDER_NAME), None)
+        starter_folder = next((f for f in folder_rows if f.name == STARTER_FOLDER_NAME), None)
         default_folder_id = default_folder.id if default_folder else None
-
-        starter_folder = (await session.exec(select(Folder).where(Folder.name == STARTER_FOLDER_NAME))).first()
         starter_folder_id = starter_folder.id if starter_folder else None
 
         if not starter_folder and not default_folder:
@@ -564,10 +570,6 @@ async def read_flows(
         if get_all:
             flows = (await session.exec(stmt)).all()
             flows = validate_is_component(flows)
-            if components_only:
-                flows = [flow for flow in flows if flow.is_component]
-            if remove_example_flows and starter_folder_id:
-                flows = [flow for flow in flows if flow.folder_id != starter_folder_id]
             if header_flows:
                 # Convert to FlowHeader objects and compress the response
                 flow_headers = [FlowHeader.model_validate(flow, from_attributes=True) for flow in flows]

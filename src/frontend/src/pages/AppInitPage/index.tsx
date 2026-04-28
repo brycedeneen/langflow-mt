@@ -9,18 +9,14 @@ import { useGetTagsQuery } from "@/controllers/API/queries/store";
 import { useGetGlobalVariables } from "@/controllers/API/queries/variables";
 import { useGetVersionQuery } from "@/controllers/API/queries/version";
 import { CustomLoadingPage } from "@/customization/components/custom-loading-page";
+import { ENABLE_LANGFLOW_STORE } from "@/customization/feature-flags";
 import { useCustomPrimaryLoading } from "@/customization/hooks/use-custom-primary-loading";
 import useAuthStore from "@/stores/authStore";
-import { useDarkStore } from "@/stores/darkStore";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import type { Users } from "@/types/api";
 import { LoadingPage } from "../LoadingPage";
 
 export function AppInitPage() {
-  const refreshStars = useDarkStore((state) => state.refreshStars);
-  const refreshDiscordCount = useDarkStore(
-    (state) => state.refreshDiscordCount,
-  );
   const isLoading = useFlowsManagerStore((state) => state.isLoading);
   const { setUserData, storeApiKey } = useContext(AuthContext);
   const setIsAuthenticated = useAuthStore((state) => state.setIsAuthenticated);
@@ -39,14 +35,13 @@ export function AppInitPage() {
   const isAuthReady = isAuthenticated;
 
   useGetVersionQuery({ enabled: isSessionFetched });
-  const { isFetched: isConfigFetched } = useGetConfig({
-    enabled: isSessionFetched && isAuthReady,
-  });
+  useGetConfig({ enabled: isSessionFetched && isAuthReady });
   useGetGlobalVariables({ enabled: isSessionFetched && isAuthReady });
-  useGetTagsQuery({ enabled: isSessionFetched && isAuthReady });
+  useGetTagsQuery({
+    enabled: ENABLE_LANGFLOW_STORE && isSessionFetched && isAuthReady,
+  });
   useGetFoldersQuery({ enabled: isSessionFetched && isAuthReady });
-  const { isFetched: isExamplesFetched, refetch: refetchExamples } =
-    useGetBasicExamplesQuery();
+  const { isFetched: isExamplesFetched } = useGetBasicExamplesQuery();
 
   // Update auth state when session data is available
   useEffect(() => {
@@ -65,17 +60,6 @@ export function AppInitPage() {
       setIsAuthenticated(false);
     }
   }, [sessionData]);
-
-  useEffect(() => {
-    if (isSessionFetched) {
-      refreshStars();
-      refreshDiscordCount();
-    }
-
-    if (isConfigFetched) {
-      refetchExamples();
-    }
-  }, [isSessionFetched, isConfigFetched]);
 
   const isSessionReady = useMemo(
     () => isAuthenticated || isSessionFetched,
