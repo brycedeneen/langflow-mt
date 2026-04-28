@@ -564,13 +564,28 @@ class Component(CustomComponent):
             return
         if any(o.name == "error" for o in self.outputs):
             return
-        # Avoid mutating a shared class-level list.
+        # Avoid mutating a shared class-level list. `tool_mode=False` is critical:
+        # `Output.tool_mode` defaults to True, and `ComponentToolkit._should_skip_output`
+        # only skips an output from tool conversion when `tool_mode` is False (or the
+        # output's name/types match a tool sentinel). Without this flag, the error
+        # output gets converted into a tool whenever the component is exposed as a
+        # tool — e.g. an Agent built as a terminal vertex runs `_handle_tool_mode`
+        # → adds the `component_as_tool` output → `to_toolkit()` calls
+        # `ComponentToolkit.get_tools(component=self, tool_name="Call_Agent", ...)`,
+        # which iterates `self.outputs` and finds 2 tool-eligible outputs (the
+        # component's normal output + the auto-injected `error` output). The
+        # toolkit's `len == 1` invariant breaks and it raises
+        # "When passing a tool name or description, there must be only one tool,
+        # but 2 tools were found." The error port is purely for runtime error
+        # routing (`_emit_error_output` is a no-op stub), so it must never appear
+        # as a tool.
         error_output = Output(
             display_name="Error",
             name="error",
             types=["ErrorPayload"],
             selected="ErrorPayload",
             method="_emit_error_output",
+            tool_mode=False,
         )
         self.outputs = [*self.outputs, error_output]
         self._outputs_map["error"] = deepcopy(error_output)

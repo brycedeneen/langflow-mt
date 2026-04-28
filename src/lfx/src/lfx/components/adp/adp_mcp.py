@@ -19,7 +19,8 @@ class ADPMCPComponent(Component):
     description = "Connect to ADP's MCP server and expose its tools to an Agent component."
     icon = "Plug"
     name = "ADPMCP"
-    version: int = 1
+    error_output_enabled: ClassVar[bool] = True
+    version: int = 2
     changelog: ClassVar[list[ChangelogEntry]] = [
         ChangelogEntry(
             version=1,
@@ -34,6 +35,20 @@ class ADPMCPComponent(Component):
                 "**Placeholder**: ADP's public MCP server is not yet generally "
                 "available, so this component currently has no live endpoint to "
                 "exercise. Wiring is in place for when ADP ships its MCP URL."
+            ),
+        ),
+        ChangelogEntry(
+            version=2,
+            changes=(
+                "- Added **Error** output port for retry / alert wiring through "
+                "an Error Handler component. MCP connection failures, 401 retry "
+                "exhaustion, and SSRF validation errors raise naturally and "
+                "route through the error port when wired."
+            ),
+            notes=(
+                "Existing flows are unaffected — the error port is unwired by "
+                "default. Connect it to an Error Handler to retry the MCP "
+                "connection with backoff and dispatch alerts on exhaustion."
             ),
         ),
     ]

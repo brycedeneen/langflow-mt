@@ -87,7 +87,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -391,7 +391,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -579,7 +579,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -739,7 +739,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -927,7 +927,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -1087,7 +1087,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -1276,7 +1276,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -1466,7 +1466,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -1678,7 +1678,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -1817,7 +1817,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -2112,7 +2112,8 @@
         "ADPAuth": {
           "assist_enabled": true,
           "base_classes": [
-            "ADPConnection"
+            "ADPConnection",
+            "ErrorPayload"
           ],
           "beta": false,
           "changelog": [
@@ -2120,6 +2121,11 @@
               "changes": "- Replaced the `cert_source` File Path / PEM toggle with **paste-or-upload** TextFileSecretInput fields for cert_pem and key_pem.\n- `cert_path` and `key_path` inputs removed.\n- client_id, client_secret, cert_pem, and key_pem are now Fernet-encrypted at rest via hidden auto-Variables (not stored plaintext in the flow JSON).",
               "notes": "Saved flows with cert_source='File Path' drop the cert_path and key_path values on load. Paste the certificate and key PEMs (or upload the .pem/.crt/.key files) into the new fields to restore the connection. client_id and client_secret typed inline are now silently encrypted on save; exported flow JSON will show empty values where it previously showed plaintext — re-enter credentials on import.",
               "version": 2
+            },
+            {
+              "changes": "- Added **Error** output port for retry / alert wiring through an Error Handler component. Token-fetch failures (non-2xx responses, missing access_token) and validation errors raise naturally and route through the error port when wired.",
+              "notes": "Existing flows are unaffected — the error port is unwired by default. Connect it to an Error Handler to retry the OAuth token fetch with backoff and dispatch alerts on exhaustion.",
+              "version": 3
             }
           ],
           "conditional_paths": [],
@@ -2139,7 +2145,7 @@
           "icon": "Key",
           "legacy": false,
           "metadata": {
-            "code_hash": "a2e831102628",
+            "code_hash": "3a52136fe5c0",
             "dependencies": {
               "dependencies": [
                 {
@@ -2165,6 +2171,20 @@
               "tool_mode": true,
               "types": [
                 "ADPConnection"
+              ],
+              "value": "__UNDEFINED__"
+            },
+            {
+              "allows_loop": false,
+              "cache": true,
+              "display_name": "Error",
+              "group_outputs": false,
+              "method": "_emit_error_output",
+              "name": "error",
+              "selected": "ErrorPayload",
+              "tool_mode": false,
+              "types": [
+                "ErrorPayload"
               ],
               "value": "__UNDEFINED__"
             }
@@ -2252,7 +2272,7 @@
               "show": true,
               "title_case": false,
               "type": "code",
-              "value": "\"\"\"ADPAuthComponent — produces an ADPConnection via OAuth client_credentials + mTLS.\"\"\"\n\nfrom __future__ import annotations\n\nfrom typing import ClassVar\n\nfrom lfx.components.adp._shared import DEFAULT_TOKEN_URL, ADPConnection, fetch_token, validate_adp_url\nfrom lfx.custom.custom_component.changelog import ChangelogEntry\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.inputs.inputs import TextFileSecretInput\nfrom lfx.io import MessageTextInput, Output, SecretStrInput\n\n\nclass ADPAuthComponent(Component):\n    display_name = \"ADP Auth\"\n    description = \"Authenticate to ADP via OAuth 2.0 client_credentials over mTLS.\"\n    icon = \"Key\"\n    name = \"ADPAuth\"\n    version: int = 2\n    changelog: ClassVar[list[ChangelogEntry]] = [\n        ChangelogEntry(\n            version=2,\n            changes=(\n                \"- Replaced the `cert_source` File Path / PEM toggle with \"\n                \"**paste-or-upload** TextFileSecretInput fields for cert_pem \"\n                \"and key_pem.\\n\"\n                \"- `cert_path` and `key_path` inputs removed.\\n\"\n                \"- client_id, client_secret, cert_pem, and key_pem are now \"\n                \"Fernet-encrypted at rest via hidden auto-Variables (not \"\n                \"stored plaintext in the flow JSON).\"\n            ),\n            notes=(\n                \"Saved flows with cert_source='File Path' drop the cert_path \"\n                \"and key_path values on load. Paste the certificate and key \"\n                \"PEMs (or upload the .pem/.crt/.key files) into the new \"\n                \"fields to restore the connection. client_id and \"\n                \"client_secret typed inline are now silently encrypted on \"\n                \"save; exported flow JSON will show empty values where it \"\n                \"previously showed plaintext — re-enter credentials on import.\"\n            ),\n        ),\n    ]\n\n    inputs = [\n        SecretStrInput(\n            name=\"client_id\",\n            display_name=\"Client ID\",\n            info=\"ADP developer client ID.\",\n            required=True,\n        ),\n        SecretStrInput(\n            name=\"client_secret\",\n            display_name=\"Client Secret\",\n            info=\"ADP developer client secret.\",\n            required=True,\n        ),\n        TextFileSecretInput(\n            name=\"cert_pem\",\n            display_name=\"Client Certificate (PEM)\",\n            info=(\n                \"Client certificate for mTLS. Paste the PEM contents or upload a \"\n                \".pem/.crt file. Stored Fernet-encrypted at rest.\"\n            ),\n            file_types=[\"pem\", \"crt\"],\n            required=True,\n        ),\n        TextFileSecretInput(\n            name=\"key_pem\",\n            display_name=\"Client Key (PEM)\",\n            info=(\n                \"Client private key for mTLS. Paste the PEM contents or upload a \"\n                \".pem/.key file. Stored Fernet-encrypted at rest.\"\n            ),\n            file_types=[\"pem\", \"key\"],\n            required=True,\n        ),\n        MessageTextInput(\n            name=\"token_url\",\n            display_name=\"Token URL\",\n            info=\"OAuth token endpoint. Override only for staging/testing.\",\n            value=DEFAULT_TOKEN_URL,\n            advanced=True,\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Connection\", name=\"connection\", method=\"build_connection\"),\n    ]\n\n    async def build_connection(self) -> ADPConnection:\n        client_id = (self.client_id or \"\").strip()\n        client_secret = (self.client_secret or \"\").strip()\n        if not client_id:\n            msg = \"client_id is required\"\n            raise ValueError(msg)\n        if not client_secret:\n            msg = \"client_secret is required\"\n            raise ValueError(msg)\n\n        cert_pem = (self.cert_pem or \"\").strip()\n        key_pem = (self.key_pem or \"\").strip()\n        if not cert_pem:\n            msg = \"cert_pem is required\"\n            raise ValueError(msg)\n        if not key_pem:\n            msg = \"key_pem is required\"\n            raise ValueError(msg)\n\n        token_url = (self.token_url or DEFAULT_TOKEN_URL).strip()\n        validate_adp_url(token_url, field_name=\"token_url\")\n\n        conn = ADPConnection(\n            client_id=client_id,\n            client_secret=client_secret,\n            cert_pem=cert_pem,\n            key_pem=key_pem,\n            token_url=token_url,\n        )\n        await fetch_token(conn)\n        return conn\n"
+              "value": "\"\"\"ADPAuthComponent — produces an ADPConnection via OAuth client_credentials + mTLS.\"\"\"\n\nfrom __future__ import annotations\n\nfrom typing import ClassVar\n\nfrom lfx.components.adp._shared import DEFAULT_TOKEN_URL, ADPConnection, fetch_token, validate_adp_url\nfrom lfx.custom.custom_component.changelog import ChangelogEntry\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.inputs.inputs import TextFileSecretInput\nfrom lfx.io import MessageTextInput, Output, SecretStrInput\n\n\nclass ADPAuthComponent(Component):\n    display_name = \"ADP Auth\"\n    description = \"Authenticate to ADP via OAuth 2.0 client_credentials over mTLS.\"\n    icon = \"Key\"\n    name = \"ADPAuth\"\n    error_output_enabled: ClassVar[bool] = True\n    version: int = 3\n    changelog: ClassVar[list[ChangelogEntry]] = [\n        ChangelogEntry(\n            version=2,\n            changes=(\n                \"- Replaced the `cert_source` File Path / PEM toggle with \"\n                \"**paste-or-upload** TextFileSecretInput fields for cert_pem \"\n                \"and key_pem.\\n\"\n                \"- `cert_path` and `key_path` inputs removed.\\n\"\n                \"- client_id, client_secret, cert_pem, and key_pem are now \"\n                \"Fernet-encrypted at rest via hidden auto-Variables (not \"\n                \"stored plaintext in the flow JSON).\"\n            ),\n            notes=(\n                \"Saved flows with cert_source='File Path' drop the cert_path \"\n                \"and key_path values on load. Paste the certificate and key \"\n                \"PEMs (or upload the .pem/.crt/.key files) into the new \"\n                \"fields to restore the connection. client_id and \"\n                \"client_secret typed inline are now silently encrypted on \"\n                \"save; exported flow JSON will show empty values where it \"\n                \"previously showed plaintext — re-enter credentials on import.\"\n            ),\n        ),\n        ChangelogEntry(\n            version=3,\n            changes=(\n                \"- Added **Error** output port for retry / alert wiring through \"\n                \"an Error Handler component. Token-fetch failures (non-2xx \"\n                \"responses, missing access_token) and validation errors raise \"\n                \"naturally and route through the error port when wired.\"\n            ),\n            notes=(\n                \"Existing flows are unaffected — the error port is unwired by \"\n                \"default. Connect it to an Error Handler to retry the OAuth \"\n                \"token fetch with backoff and dispatch alerts on exhaustion.\"\n            ),\n        ),\n    ]\n\n    inputs = [\n        SecretStrInput(\n            name=\"client_id\",\n            display_name=\"Client ID\",\n            info=\"ADP developer client ID.\",\n            required=True,\n        ),\n        SecretStrInput(\n            name=\"client_secret\",\n            display_name=\"Client Secret\",\n            info=\"ADP developer client secret.\",\n            required=True,\n        ),\n        TextFileSecretInput(\n            name=\"cert_pem\",\n            display_name=\"Client Certificate (PEM)\",\n            info=(\n                \"Client certificate for mTLS. Paste the PEM contents or upload a \"\n                \".pem/.crt file. Stored Fernet-encrypted at rest.\"\n            ),\n            file_types=[\"pem\", \"crt\"],\n            required=True,\n        ),\n        TextFileSecretInput(\n            name=\"key_pem\",\n            display_name=\"Client Key (PEM)\",\n            info=(\n                \"Client private key for mTLS. Paste the PEM contents or upload a \"\n                \".pem/.key file. Stored Fernet-encrypted at rest.\"\n            ),\n            file_types=[\"pem\", \"key\"],\n            required=True,\n        ),\n        MessageTextInput(\n            name=\"token_url\",\n            display_name=\"Token URL\",\n            info=\"OAuth token endpoint. Override only for staging/testing.\",\n            value=DEFAULT_TOKEN_URL,\n            advanced=True,\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Connection\", name=\"connection\", method=\"build_connection\"),\n    ]\n\n    async def build_connection(self) -> ADPConnection:\n        client_id = (self.client_id or \"\").strip()\n        client_secret = (self.client_secret or \"\").strip()\n        if not client_id:\n            msg = \"client_id is required\"\n            raise ValueError(msg)\n        if not client_secret:\n            msg = \"client_secret is required\"\n            raise ValueError(msg)\n\n        cert_pem = (self.cert_pem or \"\").strip()\n        key_pem = (self.key_pem or \"\").strip()\n        if not cert_pem:\n            msg = \"cert_pem is required\"\n            raise ValueError(msg)\n        if not key_pem:\n            msg = \"key_pem is required\"\n            raise ValueError(msg)\n\n        token_url = (self.token_url or DEFAULT_TOKEN_URL).strip()\n        validate_adp_url(token_url, field_name=\"token_url\")\n\n        conn = ADPConnection(\n            client_id=client_id,\n            client_secret=client_secret,\n            cert_pem=cert_pem,\n            key_pem=key_pem,\n            token_url=token_url,\n        )\n        await fetch_token(conn)\n        return conn\n"
             },
             "key_pem": {
               "_input_type": "TextFileSecretInput",
@@ -2305,11 +2325,12 @@
             }
           },
           "tool_mode": false,
-          "version": 2
+          "version": 3
         },
         "ADPMCP": {
           "assist_enabled": true,
           "base_classes": [
+            "ErrorPayload",
             "Tool"
           ],
           "beta": false,
@@ -2318,6 +2339,11 @@
               "changes": "Initial release. Connects to an ADP MCP server using an ADPConnection and exposes its tools to a Langflow Agent:\n- Bearer-token auth with automatic 401 token refresh.\n- Optional `mcp_url` override and comma-separated `tool_filter`.\n- Tools converted to `StructuredTool` instances with schemas derived from each MCP tool's `inputSchema`.\n- SSRF allowlist via shared `validate_adp_url`.\n**Placeholder**: ADP's public MCP server is not yet generally available, so this component currently has no live endpoint to exercise. Wiring is in place for when ADP ships its MCP URL.",
               "notes": null,
               "version": 1
+            },
+            {
+              "changes": "- Added **Error** output port for retry / alert wiring through an Error Handler component. MCP connection failures, 401 retry exhaustion, and SSRF validation errors raise naturally and route through the error port when wired.",
+              "notes": "Existing flows are unaffected — the error port is unwired by default. Connect it to an Error Handler to retry the MCP connection with backoff and dispatch alerts on exhaustion.",
+              "version": 2
             }
           ],
           "conditional_paths": [],
@@ -2335,7 +2361,7 @@
           "icon": "Plug",
           "legacy": false,
           "metadata": {
-            "code_hash": "e9b82b959dae",
+            "code_hash": "977b42695fcb",
             "dependencies": {
               "dependencies": [
                 {
@@ -2371,6 +2397,20 @@
                 "Tool"
               ],
               "value": "__UNDEFINED__"
+            },
+            {
+              "allows_loop": false,
+              "cache": true,
+              "display_name": "Error",
+              "group_outputs": false,
+              "method": "_emit_error_output",
+              "name": "error",
+              "selected": "ErrorPayload",
+              "tool_mode": false,
+              "types": [
+                "ErrorPayload"
+              ],
+              "value": "__UNDEFINED__"
             }
           ],
           "pinned": false,
@@ -2392,7 +2432,7 @@
               "show": true,
               "title_case": false,
               "type": "code",
-              "value": "\"\"\"ADPMCPComponent — exposes ADP MCP server tools to a Langflow Agent.\"\"\"\n\nfrom __future__ import annotations\n\nfrom typing import Any, ClassVar\n\nimport httpx\nfrom langchain_core.tools import StructuredTool\n\nfrom lfx.components.adp._shared import ADPConnection, fetch_token, validate_adp_url\nfrom lfx.custom.custom_component.changelog import ChangelogEntry\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.field_typing import Tool\nfrom lfx.io import HandleInput, MessageTextInput, Output\n\n\nclass ADPMCPComponent(Component):\n    display_name = \"ADP MCP\"\n    description = \"Connect to ADP's MCP server and expose its tools to an Agent component.\"\n    icon = \"Plug\"\n    name = \"ADPMCP\"\n    version: int = 1\n    changelog: ClassVar[list[ChangelogEntry]] = [\n        ChangelogEntry(\n            version=1,\n            changes=(\n                \"Initial release. Connects to an ADP MCP server using an \"\n                \"ADPConnection and exposes its tools to a Langflow Agent:\\n\"\n                \"- Bearer-token auth with automatic 401 token refresh.\\n\"\n                \"- Optional `mcp_url` override and comma-separated `tool_filter`.\\n\"\n                \"- Tools converted to `StructuredTool` instances with schemas derived \"\n                \"from each MCP tool's `inputSchema`.\\n\"\n                \"- SSRF allowlist via shared `validate_adp_url`.\\n\"\n                \"**Placeholder**: ADP's public MCP server is not yet generally \"\n                \"available, so this component currently has no live endpoint to \"\n                \"exercise. Wiring is in place for when ADP ships its MCP URL.\"\n            ),\n        ),\n    ]\n\n    inputs = [\n        HandleInput(\n            name=\"connection\",\n            display_name=\"ADP Connection\",\n            input_types=[\"ADPConnection\"],\n            required=True,\n        ),\n        MessageTextInput(\n            name=\"mcp_url\",\n            display_name=\"MCP URL\",\n            info=\"Override the default ADP MCP URL on the connection.\",\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"tool_filter\",\n            display_name=\"Tool Filter\",\n            info=\"Comma-separated list of tool names to expose (leave blank for all).\",\n            advanced=True,\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Tools\", name=\"tools\", method=\"build_tools\"),\n    ]\n\n    async def build_tools(self) -> list[Tool]:\n        \"\"\"Fetch tools from the ADP MCP server, applying auth and optional filtering.\"\"\"\n        conn: ADPConnection = self.connection\n        url = (self.mcp_url or \"\").strip() or conn.mcp_base_url\n        validate_adp_url(url, field_name=\"mcp_url\")\n        headers = {\"Authorization\": f\"Bearer {conn.access_token}\"}\n\n        _http_unauthorized = 401\n        try:\n            raw_tools, client = await self._list_tools(url, headers)\n        except httpx.HTTPStatusError as e:\n            if e.response.status_code != _http_unauthorized:\n                raise\n            await fetch_token(conn, force=True)\n            headers[\"Authorization\"] = f\"Bearer {conn.access_token}\"\n            raw_tools, client = await self._list_tools(url, headers)\n\n        filter_value = (self.tool_filter or \"\").strip()\n        if filter_value:\n            wanted = {t.strip() for t in filter_value.split(\",\") if t.strip()}\n            raw_tools = [t for t in raw_tools if self._tool_name(t) in wanted]\n\n        return self._convert_to_structured_tools(raw_tools, client)\n\n    @staticmethod\n    def _tool_name(tool: Any) -> str:\n        \"\"\"Extract the tool name from a dict or object.\"\"\"\n        if isinstance(tool, dict):\n            return tool.get(\"name\", \"\")\n        return getattr(tool, \"name\", \"\")\n\n    @staticmethod\n    def _convert_to_structured_tools(raw_tools: list[Any], client: Any) -> list[StructuredTool]:\n        \"\"\"Convert raw MCP tool objects to langchain StructuredTool instances.\n\n        Builds schema + coroutine inline to avoid importing lfx.base.mcp.util\n        at the module level (which pulls in the ``mcp`` SDK).\n        \"\"\"\n        from lfx.schema.json_schema import create_input_schema_from_json_schema\n\n        tools: list[StructuredTool] = []\n        for tool in raw_tools:\n            if not tool or not hasattr(tool, \"name\"):\n                continue\n            args_schema = create_input_schema_from_json_schema(tool.inputSchema)\n            if not args_schema:\n                continue\n\n            tool_name = tool.name\n\n            def _make_coroutine(name, schema, c):\n                async def _coroutine(**kwargs):\n                    validated = schema.model_validate(kwargs)\n                    return await c.run_tool(name, arguments=validated.model_dump())\n                return _coroutine\n\n            tools.append(\n                StructuredTool.from_function(\n                    name=tool_name,\n                    description=tool.description or \"\",\n                    args_schema=args_schema,\n                    coroutine=_make_coroutine(tool_name, args_schema, client),\n                )\n            )\n        return tools\n\n    async def _list_tools(self, url: str, headers: dict[str, str]) -> tuple[list[Any], Any]:\n        \"\"\"Connect to the ADP MCP server and return (raw_tools, client).\n\n        Returns the client alongside the tools so callers can pass it to\n        ``_convert_to_structured_tools`` for building tool executors.\n        \"\"\"\n        from lfx.base.mcp.util import MCPStreamableHttpClient\n\n        client = MCPStreamableHttpClient()\n        raw_tools = await client._connect_to_server(url=url, headers=headers)  # noqa: SLF001\n        return raw_tools, client\n"
+              "value": "\"\"\"ADPMCPComponent — exposes ADP MCP server tools to a Langflow Agent.\"\"\"\n\nfrom __future__ import annotations\n\nfrom typing import Any, ClassVar\n\nimport httpx\nfrom langchain_core.tools import StructuredTool\n\nfrom lfx.components.adp._shared import ADPConnection, fetch_token, validate_adp_url\nfrom lfx.custom.custom_component.changelog import ChangelogEntry\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.field_typing import Tool\nfrom lfx.io import HandleInput, MessageTextInput, Output\n\n\nclass ADPMCPComponent(Component):\n    display_name = \"ADP MCP\"\n    description = \"Connect to ADP's MCP server and expose its tools to an Agent component.\"\n    icon = \"Plug\"\n    name = \"ADPMCP\"\n    error_output_enabled: ClassVar[bool] = True\n    version: int = 2\n    changelog: ClassVar[list[ChangelogEntry]] = [\n        ChangelogEntry(\n            version=1,\n            changes=(\n                \"Initial release. Connects to an ADP MCP server using an \"\n                \"ADPConnection and exposes its tools to a Langflow Agent:\\n\"\n                \"- Bearer-token auth with automatic 401 token refresh.\\n\"\n                \"- Optional `mcp_url` override and comma-separated `tool_filter`.\\n\"\n                \"- Tools converted to `StructuredTool` instances with schemas derived \"\n                \"from each MCP tool's `inputSchema`.\\n\"\n                \"- SSRF allowlist via shared `validate_adp_url`.\\n\"\n                \"**Placeholder**: ADP's public MCP server is not yet generally \"\n                \"available, so this component currently has no live endpoint to \"\n                \"exercise. Wiring is in place for when ADP ships its MCP URL.\"\n            ),\n        ),\n        ChangelogEntry(\n            version=2,\n            changes=(\n                \"- Added **Error** output port for retry / alert wiring through \"\n                \"an Error Handler component. MCP connection failures, 401 retry \"\n                \"exhaustion, and SSRF validation errors raise naturally and \"\n                \"route through the error port when wired.\"\n            ),\n            notes=(\n                \"Existing flows are unaffected — the error port is unwired by \"\n                \"default. Connect it to an Error Handler to retry the MCP \"\n                \"connection with backoff and dispatch alerts on exhaustion.\"\n            ),\n        ),\n    ]\n\n    inputs = [\n        HandleInput(\n            name=\"connection\",\n            display_name=\"ADP Connection\",\n            input_types=[\"ADPConnection\"],\n            required=True,\n        ),\n        MessageTextInput(\n            name=\"mcp_url\",\n            display_name=\"MCP URL\",\n            info=\"Override the default ADP MCP URL on the connection.\",\n            advanced=True,\n        ),\n        MessageTextInput(\n            name=\"tool_filter\",\n            display_name=\"Tool Filter\",\n            info=\"Comma-separated list of tool names to expose (leave blank for all).\",\n            advanced=True,\n        ),\n    ]\n\n    outputs = [\n        Output(display_name=\"Tools\", name=\"tools\", method=\"build_tools\"),\n    ]\n\n    async def build_tools(self) -> list[Tool]:\n        \"\"\"Fetch tools from the ADP MCP server, applying auth and optional filtering.\"\"\"\n        conn: ADPConnection = self.connection\n        url = (self.mcp_url or \"\").strip() or conn.mcp_base_url\n        validate_adp_url(url, field_name=\"mcp_url\")\n        headers = {\"Authorization\": f\"Bearer {conn.access_token}\"}\n\n        _http_unauthorized = 401\n        try:\n            raw_tools, client = await self._list_tools(url, headers)\n        except httpx.HTTPStatusError as e:\n            if e.response.status_code != _http_unauthorized:\n                raise\n            await fetch_token(conn, force=True)\n            headers[\"Authorization\"] = f\"Bearer {conn.access_token}\"\n            raw_tools, client = await self._list_tools(url, headers)\n\n        filter_value = (self.tool_filter or \"\").strip()\n        if filter_value:\n            wanted = {t.strip() for t in filter_value.split(\",\") if t.strip()}\n            raw_tools = [t for t in raw_tools if self._tool_name(t) in wanted]\n\n        return self._convert_to_structured_tools(raw_tools, client)\n\n    @staticmethod\n    def _tool_name(tool: Any) -> str:\n        \"\"\"Extract the tool name from a dict or object.\"\"\"\n        if isinstance(tool, dict):\n            return tool.get(\"name\", \"\")\n        return getattr(tool, \"name\", \"\")\n\n    @staticmethod\n    def _convert_to_structured_tools(raw_tools: list[Any], client: Any) -> list[StructuredTool]:\n        \"\"\"Convert raw MCP tool objects to langchain StructuredTool instances.\n\n        Builds schema + coroutine inline to avoid importing lfx.base.mcp.util\n        at the module level (which pulls in the ``mcp`` SDK).\n        \"\"\"\n        from lfx.schema.json_schema import create_input_schema_from_json_schema\n\n        tools: list[StructuredTool] = []\n        for tool in raw_tools:\n            if not tool or not hasattr(tool, \"name\"):\n                continue\n            args_schema = create_input_schema_from_json_schema(tool.inputSchema)\n            if not args_schema:\n                continue\n\n            tool_name = tool.name\n\n            def _make_coroutine(name, schema, c):\n                async def _coroutine(**kwargs):\n                    validated = schema.model_validate(kwargs)\n                    return await c.run_tool(name, arguments=validated.model_dump())\n                return _coroutine\n\n            tools.append(\n                StructuredTool.from_function(\n                    name=tool_name,\n                    description=tool.description or \"\",\n                    args_schema=args_schema,\n                    coroutine=_make_coroutine(tool_name, args_schema, client),\n                )\n            )\n        return tools\n\n    async def _list_tools(self, url: str, headers: dict[str, str]) -> tuple[list[Any], Any]:\n        \"\"\"Connect to the ADP MCP server and return (raw_tools, client).\n\n        Returns the client alongside the tools so callers can pass it to\n        ``_convert_to_structured_tools`` for building tool executors.\n        \"\"\"\n        from lfx.base.mcp.util import MCPStreamableHttpClient\n\n        client = MCPStreamableHttpClient()\n        raw_tools = await client._connect_to_server(url=url, headers=headers)  # noqa: SLF001\n        return raw_tools, client\n"
             },
             "connection": {
               "_input_type": "HandleInput",
@@ -2468,11 +2508,12 @@
             }
           },
           "tool_mode": false,
-          "version": 1
+          "version": 2
         },
         "ADPTools": {
           "assist_enabled": true,
           "base_classes": [
+            "ErrorPayload",
             "Tool"
           ],
           "beta": false,
@@ -2481,6 +2522,11 @@
               "changes": "- Added **Raise on HTTP error (4xx/5xx)** toggle. When enabled, tools built by this component raise an exception on non-2xx responses from ADP instead of returning the error body as data.",
               "notes": "Off by default — existing flows keep current behavior. Turn on so an upstream Agent (or other consumer) can react to ADP API errors as exceptions rather than silently returning error bodies.",
               "version": 2
+            },
+            {
+              "changes": "- Added **Error** output port for retry / alert wiring through an Error Handler component. Fires on `build_tools` failures (missing connection, malformed tile config). Pair with the **Raise on HTTP error** toggle so runtime ADP API errors raised from agent-invoked tools surface to the Agent's own error port.",
+              "notes": "Existing flows are unaffected — the error port is unwired by default. Connect it to an Error Handler to alert on ADP Tools build failures (connection / config issues). Note: this port fires only during ADP Tools' build, not during the Agent's tool invocations — those flow through the Agent's error port.",
+              "version": 3
             }
           ],
           "conditional_paths": [],
@@ -2498,7 +2544,7 @@
           "icon": "Users",
           "legacy": false,
           "metadata": {
-            "code_hash": "53bcb07c51f8",
+            "code_hash": "74b0a8708ad0",
             "dependencies": {
               "dependencies": [
                 {
@@ -2526,6 +2572,20 @@
                 "Tool"
               ],
               "value": "__UNDEFINED__"
+            },
+            {
+              "allows_loop": false,
+              "cache": true,
+              "display_name": "Error",
+              "group_outputs": false,
+              "method": "_emit_error_output",
+              "name": "error",
+              "selected": "ErrorPayload",
+              "tool_mode": false,
+              "types": [
+                "ErrorPayload"
+              ],
+              "value": "__UNDEFINED__"
             }
           ],
           "pinned": false,
@@ -2547,7 +2607,7 @@
               "show": true,
               "title_case": false,
               "type": "code",
-              "value": "\"\"\"ADPToolsComponent — single multi-select component exposing ADP tile groups as agent tools.\"\"\"\n\nfrom __future__ import annotations\n\nfrom collections.abc import Callable\nfrom typing import ClassVar\n\nfrom lfx.components.adp._shared import ADPConnection, RequestCache\nfrom lfx.components.adp.adp_applicant_onboarding_tools import build_applicant_onboarding_tools\nfrom lfx.components.adp.adp_benefits_tools import build_benefits_tools\nfrom lfx.components.adp.adp_data_collection_entries_tools import build_data_collection_entries_tools\nfrom lfx.components.adp.adp_deduction_configurations_tools import build_deduction_configurations_tools\nfrom lfx.components.adp.adp_job_applicants_tools import build_job_applicants_tools\nfrom lfx.components.adp.adp_job_requisitions_tools import build_job_requisitions_tools\nfrom lfx.components.adp.adp_pay_data_input_tools import build_pay_data_input_tools\nfrom lfx.components.adp.adp_pay_distributions_tools import build_pay_distributions_tools\nfrom lfx.components.adp.adp_pay_statements_tools import build_pay_statements_tools\nfrom lfx.components.adp.adp_talent_tools import build_talent_tools\nfrom lfx.components.adp.adp_team_time_cards_tools import build_team_time_cards_tools\nfrom lfx.components.adp.adp_time_cards_tools import build_time_cards_tools\nfrom lfx.components.adp.adp_time_off_tools import build_time_off_tools\nfrom lfx.components.adp.adp_us_tax_profiles_tools import build_us_tax_profiles_tools\nfrom lfx.components.adp.adp_work_schedules_tools import build_work_schedules_tools\nfrom lfx.components.adp.adp_worker_assignment_tools import build_worker_assignment_tools\nfrom lfx.components.adp.adp_worker_assignment_v3_tools import build_worker_assignment_v3_tools\nfrom lfx.components.adp.adp_worker_biological_tools import build_worker_biological_tools\nfrom lfx.components.adp.adp_worker_business_communication_tools import build_worker_business_communication_tools\nfrom lfx.components.adp.adp_worker_compensation_tools import build_worker_compensation_tools\nfrom lfx.components.adp.adp_worker_demographic_tools import build_worker_demographic_tools\nfrom lfx.components.adp.adp_worker_deployment_tools import build_worker_deployment_tools\nfrom lfx.components.adp.adp_worker_hr_profiles_tools import build_worker_hr_profiles_tools\nfrom lfx.components.adp.adp_worker_identification_tools import build_worker_identification_tools\nfrom lfx.components.adp.adp_worker_leaves_tools import build_worker_leaves_tools\nfrom lfx.components.adp.adp_worker_lifecycle_tools import build_worker_lifecycle_tools\nfrom lfx.components.adp.adp_worker_payroll_instructions_tools import build_worker_payroll_instructions_tools\nfrom lfx.components.adp.adp_worker_personal_communication_tools import build_worker_personal_communication_tools\nfrom lfx.components.adp.adp_worker_tools import build_worker_tools\nfrom lfx.custom.custom_component.changelog import ChangelogEntry\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry\nfrom lfx.io import BoolInput, HandleInput, MultiselectInput, Output\n\n\nTILE_BUILDERS: dict[str, Callable[[ADPConnection, RequestCache], list[Tool]]] = {\n    \"Worker\": build_worker_tools,\n    \"Worker Assignment\": build_worker_assignment_tools,\n    \"Worker Assignment v3\": build_worker_assignment_v3_tools,\n    \"Worker HR Profiles\": build_worker_hr_profiles_tools,\n    \"Worker Lifecycle\": build_worker_lifecycle_tools,\n    \"Worker Identification\": build_worker_identification_tools,\n    \"Worker Biological\": build_worker_biological_tools,\n    \"Worker Deployment\": build_worker_deployment_tools,\n    \"Worker Leaves\": build_worker_leaves_tools,\n    \"Worker Payroll Instructions\": build_worker_payroll_instructions_tools,\n    \"Worker Personal Communication\": build_worker_personal_communication_tools,\n    \"Worker Business Communication\": build_worker_business_communication_tools,\n    \"Worker Compensation\": build_worker_compensation_tools,\n    \"Worker Demographic\": build_worker_demographic_tools,\n    \"Pay Data Input\": build_pay_data_input_tools,\n    \"Pay Distributions\": build_pay_distributions_tools,\n    \"Pay Statements\": build_pay_statements_tools,\n    \"US Tax Profiles\": build_us_tax_profiles_tools,\n    \"Deduction Configurations\": build_deduction_configurations_tools,\n    \"Time Cards\": build_time_cards_tools,\n    \"Team Time Cards\": build_team_time_cards_tools,\n    \"Time Off\": build_time_off_tools,\n    \"Work Schedules\": build_work_schedules_tools,\n    \"Talent\": build_talent_tools,\n    \"Job Applicants\": build_job_applicants_tools,\n    \"Job Requisitions\": build_job_requisitions_tools,\n    \"Applicant Onboarding\": build_applicant_onboarding_tools,\n    \"Benefits\": build_benefits_tools,\n    \"Data Collection Entries\": build_data_collection_entries_tools,\n}\n\n\nclass ADPToolsComponent(Component):\n    display_name = \"ADP Tools\"\n    name = \"ADPTools\"\n    description = (\n        \"Exposes ADP HR, payroll, time, and talent tools to a Langflow Agent. \"\n        \"Pick which tile groups you want — each contributes 1-15 agent tools.\"\n    )\n    icon = \"Users\"\n    version: int = 2\n    documentation: str = \"https://docs.langflow.org/component-adp-tools\"\n    changelog: ClassVar[list[ChangelogEntry]] = [\n        ChangelogEntry(\n            version=2,\n            changes=(\n                \"- Added **Raise on HTTP error (4xx/5xx)** toggle. When enabled, \"\n                \"tools built by this component raise an exception on non-2xx \"\n                \"responses from ADP instead of returning the error body as data.\"\n            ),\n            notes=(\n                \"Off by default — existing flows keep current behavior. Turn on \"\n                \"so an upstream Agent (or other consumer) can react to ADP API \"\n                \"errors as exceptions rather than silently returning error bodies.\"\n            ),\n        ),\n    ]\n\n    inputs: ClassVar = [\n        HandleInput(\n            name=\"connection\",\n            display_name=\"ADP Connection\",\n            input_types=[\"ADPConnection\"],\n            info=\"Connection produced by an ADP Auth component.\",\n            required=True,\n        ),\n        MultiselectInput(\n            name=\"tiles\",\n            display_name=\"Tools\",\n            options=list(TILE_BUILDERS.keys()),\n            value=[],\n            info=(\n                \"Select which ADP tool groups to expose to the agent. Each group \"\n                \"adds 1-15 focused agent tools. Leaving this empty exposes nothing.\"\n            ),\n        ),\n        BoolInput(\n            name=\"raise_on_status\",\n            display_name=\"Raise on HTTP error (4xx/5xx)\",\n            value=False,\n            info=(\n                \"When enabled, tools built by this component raise an exception \"\n                \"on non-2xx HTTP responses from ADP instead of returning the \"\n                \"error body as data.\"\n            ),\n        ),\n    ]\n\n    outputs: ClassVar = [Output(display_name=\"Tools\", name=\"tools\", method=\"build_tools\")]\n\n    async def build_tools(self) -> list[Tool]:\n        selected = list(getattr(self, \"tiles\", []) or [])\n        if not selected:\n            self.status = \"No tile groups selected — agent will receive 0 ADP tools.\"\n            return []\n        cache = RequestCache(\n            ttl_seconds=30,\n            max_entries=128,\n            raise_on_status=bool(getattr(self, \"raise_on_status\", False)),\n        )\n        tools: list[Tool] = []\n        for label in selected:\n            builder = TILE_BUILDERS.get(label)\n            if builder is None:\n                continue  # defensive: stale label from a saved flow\n            tools.extend(builder(self.connection, cache))\n        self.status = f\"Exposing {len(tools)} tool(s) from {len(selected)} tile group(s).\"\n        return tools\n"
+              "value": "\"\"\"ADPToolsComponent — single multi-select component exposing ADP tile groups as agent tools.\"\"\"\n\nfrom __future__ import annotations\n\nfrom collections.abc import Callable\nfrom typing import ClassVar\n\nfrom lfx.components.adp._shared import ADPConnection, RequestCache\nfrom lfx.components.adp.adp_applicant_onboarding_tools import build_applicant_onboarding_tools\nfrom lfx.components.adp.adp_benefits_tools import build_benefits_tools\nfrom lfx.components.adp.adp_data_collection_entries_tools import build_data_collection_entries_tools\nfrom lfx.components.adp.adp_deduction_configurations_tools import build_deduction_configurations_tools\nfrom lfx.components.adp.adp_job_applicants_tools import build_job_applicants_tools\nfrom lfx.components.adp.adp_job_requisitions_tools import build_job_requisitions_tools\nfrom lfx.components.adp.adp_pay_data_input_tools import build_pay_data_input_tools\nfrom lfx.components.adp.adp_pay_distributions_tools import build_pay_distributions_tools\nfrom lfx.components.adp.adp_pay_statements_tools import build_pay_statements_tools\nfrom lfx.components.adp.adp_talent_tools import build_talent_tools\nfrom lfx.components.adp.adp_team_time_cards_tools import build_team_time_cards_tools\nfrom lfx.components.adp.adp_time_cards_tools import build_time_cards_tools\nfrom lfx.components.adp.adp_time_off_tools import build_time_off_tools\nfrom lfx.components.adp.adp_us_tax_profiles_tools import build_us_tax_profiles_tools\nfrom lfx.components.adp.adp_work_schedules_tools import build_work_schedules_tools\nfrom lfx.components.adp.adp_worker_assignment_tools import build_worker_assignment_tools\nfrom lfx.components.adp.adp_worker_assignment_v3_tools import build_worker_assignment_v3_tools\nfrom lfx.components.adp.adp_worker_biological_tools import build_worker_biological_tools\nfrom lfx.components.adp.adp_worker_business_communication_tools import build_worker_business_communication_tools\nfrom lfx.components.adp.adp_worker_compensation_tools import build_worker_compensation_tools\nfrom lfx.components.adp.adp_worker_demographic_tools import build_worker_demographic_tools\nfrom lfx.components.adp.adp_worker_deployment_tools import build_worker_deployment_tools\nfrom lfx.components.adp.adp_worker_hr_profiles_tools import build_worker_hr_profiles_tools\nfrom lfx.components.adp.adp_worker_identification_tools import build_worker_identification_tools\nfrom lfx.components.adp.adp_worker_leaves_tools import build_worker_leaves_tools\nfrom lfx.components.adp.adp_worker_lifecycle_tools import build_worker_lifecycle_tools\nfrom lfx.components.adp.adp_worker_payroll_instructions_tools import build_worker_payroll_instructions_tools\nfrom lfx.components.adp.adp_worker_personal_communication_tools import build_worker_personal_communication_tools\nfrom lfx.components.adp.adp_worker_tools import build_worker_tools\nfrom lfx.custom.custom_component.changelog import ChangelogEntry\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.field_typing import Tool  # noqa: TC001 — runtime return annotation used by LangFlow registry\nfrom lfx.io import BoolInput, HandleInput, MultiselectInput, Output\n\n\nTILE_BUILDERS: dict[str, Callable[[ADPConnection, RequestCache], list[Tool]]] = {\n    \"Worker\": build_worker_tools,\n    \"Worker Assignment\": build_worker_assignment_tools,\n    \"Worker Assignment v3\": build_worker_assignment_v3_tools,\n    \"Worker HR Profiles\": build_worker_hr_profiles_tools,\n    \"Worker Lifecycle\": build_worker_lifecycle_tools,\n    \"Worker Identification\": build_worker_identification_tools,\n    \"Worker Biological\": build_worker_biological_tools,\n    \"Worker Deployment\": build_worker_deployment_tools,\n    \"Worker Leaves\": build_worker_leaves_tools,\n    \"Worker Payroll Instructions\": build_worker_payroll_instructions_tools,\n    \"Worker Personal Communication\": build_worker_personal_communication_tools,\n    \"Worker Business Communication\": build_worker_business_communication_tools,\n    \"Worker Compensation\": build_worker_compensation_tools,\n    \"Worker Demographic\": build_worker_demographic_tools,\n    \"Pay Data Input\": build_pay_data_input_tools,\n    \"Pay Distributions\": build_pay_distributions_tools,\n    \"Pay Statements\": build_pay_statements_tools,\n    \"US Tax Profiles\": build_us_tax_profiles_tools,\n    \"Deduction Configurations\": build_deduction_configurations_tools,\n    \"Time Cards\": build_time_cards_tools,\n    \"Team Time Cards\": build_team_time_cards_tools,\n    \"Time Off\": build_time_off_tools,\n    \"Work Schedules\": build_work_schedules_tools,\n    \"Talent\": build_talent_tools,\n    \"Job Applicants\": build_job_applicants_tools,\n    \"Job Requisitions\": build_job_requisitions_tools,\n    \"Applicant Onboarding\": build_applicant_onboarding_tools,\n    \"Benefits\": build_benefits_tools,\n    \"Data Collection Entries\": build_data_collection_entries_tools,\n}\n\n\nclass ADPToolsComponent(Component):\n    display_name = \"ADP Tools\"\n    name = \"ADPTools\"\n    description = (\n        \"Exposes ADP HR, payroll, time, and talent tools to a Langflow Agent. \"\n        \"Pick which tile groups you want — each contributes 1-15 agent tools.\"\n    )\n    icon = \"Users\"\n    error_output_enabled: ClassVar[bool] = True\n    version: int = 3\n    documentation: str = \"https://docs.langflow.org/component-adp-tools\"\n    changelog: ClassVar[list[ChangelogEntry]] = [\n        ChangelogEntry(\n            version=2,\n            changes=(\n                \"- Added **Raise on HTTP error (4xx/5xx)** toggle. When enabled, \"\n                \"tools built by this component raise an exception on non-2xx \"\n                \"responses from ADP instead of returning the error body as data.\"\n            ),\n            notes=(\n                \"Off by default — existing flows keep current behavior. Turn on \"\n                \"so an upstream Agent (or other consumer) can react to ADP API \"\n                \"errors as exceptions rather than silently returning error bodies.\"\n            ),\n        ),\n        ChangelogEntry(\n            version=3,\n            changes=(\n                \"- Added **Error** output port for retry / alert wiring through \"\n                \"an Error Handler component. Fires on `build_tools` failures \"\n                \"(missing connection, malformed tile config). Pair with the \"\n                \"**Raise on HTTP error** toggle so runtime ADP API errors raised \"\n                \"from agent-invoked tools surface to the Agent's own error port.\"\n            ),\n            notes=(\n                \"Existing flows are unaffected — the error port is unwired by \"\n                \"default. Connect it to an Error Handler to alert on ADP Tools \"\n                \"build failures (connection / config issues). Note: this port \"\n                \"fires only during ADP Tools' build, not during the Agent's \"\n                \"tool invocations — those flow through the Agent's error port.\"\n            ),\n        ),\n    ]\n\n    inputs: ClassVar = [\n        HandleInput(\n            name=\"connection\",\n            display_name=\"ADP Connection\",\n            input_types=[\"ADPConnection\"],\n            info=\"Connection produced by an ADP Auth component.\",\n            required=True,\n        ),\n        MultiselectInput(\n            name=\"tiles\",\n            display_name=\"Tools\",\n            options=list(TILE_BUILDERS.keys()),\n            value=[],\n            info=(\n                \"Select which ADP tool groups to expose to the agent. Each group \"\n                \"adds 1-15 focused agent tools. Leaving this empty exposes nothing.\"\n            ),\n        ),\n        BoolInput(\n            name=\"raise_on_status\",\n            display_name=\"Raise on HTTP error (4xx/5xx)\",\n            value=False,\n            info=(\n                \"When enabled, tools built by this component raise an exception \"\n                \"on non-2xx HTTP responses from ADP instead of returning the \"\n                \"error body as data.\"\n            ),\n        ),\n    ]\n\n    outputs: ClassVar = [Output(display_name=\"Tools\", name=\"tools\", method=\"build_tools\")]\n\n    async def build_tools(self) -> list[Tool]:\n        selected = list(getattr(self, \"tiles\", []) or [])\n        if not selected:\n            self.status = \"No tile groups selected — agent will receive 0 ADP tools.\"\n            return []\n        cache = RequestCache(\n            ttl_seconds=30,\n            max_entries=128,\n            raise_on_status=bool(getattr(self, \"raise_on_status\", False)),\n        )\n        tools: list[Tool] = []\n        for label in selected:\n            builder = TILE_BUILDERS.get(label)\n            if builder is None:\n                continue  # defensive: stale label from a saved flow\n            tools.extend(builder(self.connection, cache))\n        self.status = f\"Exposing {len(tools)} tool(s) from {len(selected)} tile group(s).\"\n        return tools\n"
             },
             "connection": {
               "_input_type": "HandleInput",
@@ -2646,7 +2706,7 @@
             }
           },
           "tool_mode": false,
-          "version": 2
+          "version": 3
         },
         "ADPTrigger": {
           "assist_enabled": true,
@@ -4275,7 +4335,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -4458,7 +4518,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -4791,7 +4851,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -5438,7 +5498,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -5968,7 +6028,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -6290,7 +6350,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -6988,7 +7048,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -8917,7 +8977,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -9189,7 +9249,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -9549,7 +9609,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -9915,7 +9975,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -10145,7 +10205,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -10958,7 +11018,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -11465,7 +11525,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -12849,7 +12909,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -13332,7 +13392,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -13601,7 +13661,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -13865,7 +13925,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -14337,7 +14397,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -14700,7 +14760,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -56524,7 +56584,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -58567,7 +58627,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -59415,7 +59475,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -62802,7 +62862,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -63665,7 +63725,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -64884,7 +64944,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -65569,7 +65629,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -66784,7 +66844,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -67064,7 +67124,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -67740,7 +67800,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -68413,7 +68473,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -68829,7 +68889,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -69662,7 +69722,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -70109,7 +70169,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -70794,7 +70854,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -72230,7 +72290,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -74998,7 +75058,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -76353,7 +76413,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -77461,7 +77521,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -78317,7 +78377,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -78682,7 +78742,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -78884,7 +78944,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -79059,7 +79119,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -79263,7 +79323,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -83112,7 +83172,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -83982,7 +84042,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -84627,7 +84687,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -85172,7 +85232,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -85574,7 +85634,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -86518,7 +86578,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -87936,7 +87996,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -88451,7 +88511,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -88734,7 +88794,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -89408,7 +89468,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -91469,7 +91529,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -91692,7 +91752,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -92044,7 +92104,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -92632,7 +92692,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -93131,7 +93191,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -93394,7 +93454,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -93817,7 +93877,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -94330,7 +94390,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -94651,7 +94711,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -95736,7 +95796,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -96708,7 +96768,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -97101,7 +97161,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -97319,7 +97379,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -97818,7 +97878,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -99028,7 +99088,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -99272,7 +99332,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -100073,7 +100133,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -100676,7 +100736,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -101126,7 +101186,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -101470,7 +101530,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -101806,7 +101866,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -102088,7 +102148,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -102604,11 +102664,11 @@
               "group_outputs": false,
               "method": "build_combined",
               "name": "combined",
-              "selected": "Table",
+              "selected": "JSON",
               "tool_mode": true,
               "types": [
-                "Table",
-                "JSON"
+                "JSON",
+                "Table"
               ],
               "value": "__UNDEFINED__"
             }
@@ -105133,11 +105193,11 @@
               "group_outputs": false,
               "method": "build_matched",
               "name": "matched",
-              "selected": "Table",
+              "selected": "JSON",
               "tool_mode": true,
               "types": [
-                "Table",
-                "JSON"
+                "JSON",
+                "Table"
               ],
               "value": "__UNDEFINED__"
             },
@@ -105148,11 +105208,11 @@
               "group_outputs": false,
               "method": "build_unmatched",
               "name": "unmatched",
-              "selected": "Table",
+              "selected": "JSON",
               "tool_mode": true,
               "types": [
-                "Table",
-                "JSON"
+                "JSON",
+                "Table"
               ],
               "value": "__UNDEFINED__"
             }
@@ -108416,7 +108476,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -108907,7 +108967,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -109352,343 +109412,6 @@
       }
     ],
     [
-      "reliability",
-      {
-        "ErrorHandler": {
-          "assist_enabled": true,
-          "base_classes": [
-            "Message"
-          ],
-          "beta": false,
-          "changelog": [],
-          "conditional_paths": [],
-          "custom_fields": {},
-          "description": "Retry a failing component with backoff and dispatch an alert when retries are exhausted.",
-          "display_name": "Error Handler",
-          "documentation": "",
-          "edited": false,
-          "field_order": [
-            "error_input",
-            "max_attempts",
-            "alert_mode",
-            "bell_audience",
-            "bell_specific_user_id",
-            "alert_title_template",
-            "backoff_strategy",
-            "base_delay_seconds",
-            "max_delay_seconds",
-            "alert_body_template"
-          ],
-          "frozen": false,
-          "icon": "shield-alert",
-          "legacy": false,
-          "metadata": {
-            "code_hash": "0e21754b52f1",
-            "dependencies": {
-              "dependencies": [
-                {
-                  "name": "langflow",
-                  "version": null
-                },
-                {
-                  "name": "lfx",
-                  "version": null
-                }
-              ],
-              "total_dependencies": 2
-            },
-            "module": "lfx.components.reliability.error_handler.ErrorHandler"
-          },
-          "minimized": false,
-          "output_types": [],
-          "outputs": [
-            {
-              "allows_loop": false,
-              "cache": true,
-              "display_name": "Gave up",
-              "group_outputs": false,
-              "method": "on_error_exhausted",
-              "name": "gave_up",
-              "selected": "Message",
-              "tool_mode": true,
-              "types": [
-                "Message"
-              ],
-              "value": "__UNDEFINED__"
-            }
-          ],
-          "pinned": false,
-          "template": {
-            "_type": "Component",
-            "alert_body_template": {
-              "_input_type": "MultilineInput",
-              "advanced": true,
-              "ai_enabled": false,
-              "copy_field": false,
-              "display_name": "Alert body (markdown)",
-              "dynamic": false,
-              "info": "Markdown. Available variables: {flow_name}, {component_name}, {error_type}, {error_message}, {attempt_number}, {stack_trace}, {org_name}",
-              "input_types": [
-                "Message"
-              ],
-              "list": false,
-              "list_add_label": "Add More",
-              "load_from_db": false,
-              "multiline": true,
-              "name": "alert_body_template",
-              "override_skip": false,
-              "password": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_input": true,
-              "trace_as_metadata": true,
-              "track_in_telemetry": false,
-              "type": "str",
-              "value": "**Error:** {error_message}\n\n**Component:** {component_name}\n**Type:** {error_type}\n**Attempt:** {attempt_number}\n\n```\n{stack_trace}\n```"
-            },
-            "alert_mode": {
-              "_input_type": "DropdownInput",
-              "advanced": false,
-              "combobox": false,
-              "dialog_inputs": {},
-              "display_name": "Alert mode",
-              "dynamic": false,
-              "external_options": {},
-              "info": "",
-              "name": "alert_mode",
-              "options": [
-                "Bell",
-                "Email (Not Implemented)",
-                "Ignore"
-              ],
-              "options_metadata": [],
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "toggle": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "str",
-              "value": "Bell"
-            },
-            "alert_title_template": {
-              "_input_type": "StrInput",
-              "advanced": false,
-              "display_name": "Alert title",
-              "dynamic": false,
-              "info": "Available variables: {flow_name}, {component_name}, {error_type}, {error_message}, {attempt_number}, {org_name}",
-              "list": false,
-              "list_add_label": "Add More",
-              "load_from_db": false,
-              "name": "alert_title_template",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": false,
-              "type": "str",
-              "value": "Flow '{flow_name}' failed at {component_name}"
-            },
-            "backoff_strategy": {
-              "_input_type": "DropdownInput",
-              "advanced": true,
-              "combobox": false,
-              "dialog_inputs": {},
-              "display_name": "Backoff strategy",
-              "dynamic": false,
-              "external_options": {},
-              "info": "",
-              "name": "backoff_strategy",
-              "options": [
-                "None",
-                "Fixed delay",
-                "Exponential",
-                "Exponential with jitter"
-              ],
-              "options_metadata": [],
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "toggle": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "str",
-              "value": "Exponential with jitter"
-            },
-            "base_delay_seconds": {
-              "_input_type": "FloatInput",
-              "advanced": true,
-              "display_name": "Base delay (s)",
-              "dynamic": false,
-              "info": "",
-              "list": false,
-              "list_add_label": "Add More",
-              "name": "base_delay_seconds",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "float",
-              "value": 1.0
-            },
-            "bell_audience": {
-              "_input_type": "DropdownInput",
-              "advanced": false,
-              "combobox": false,
-              "dialog_inputs": {},
-              "display_name": "Bell audience",
-              "dynamic": false,
-              "external_options": {},
-              "info": "",
-              "name": "bell_audience",
-              "options": [
-                "Flow owner",
-                "Org admins",
-                "Specific user"
-              ],
-              "options_metadata": [],
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "toggle": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "str",
-              "value": "Flow owner"
-            },
-            "bell_specific_user_id": {
-              "_input_type": "StrInput",
-              "advanced": true,
-              "display_name": "Specific user",
-              "dynamic": false,
-              "info": "User ID (UUID format) to notify when bell audience = Specific user.",
-              "list": false,
-              "list_add_label": "Add More",
-              "load_from_db": false,
-              "name": "bell_specific_user_id",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": false,
-              "type": "str",
-              "value": ""
-            },
-            "code": {
-              "advanced": true,
-              "dynamic": true,
-              "fileTypes": [],
-              "file_path": "",
-              "info": "",
-              "list": false,
-              "load_from_db": false,
-              "multiline": true,
-              "name": "code",
-              "password": false,
-              "placeholder": "",
-              "required": true,
-              "show": true,
-              "title_case": false,
-              "type": "code",
-              "value": "from __future__ import annotations\n\nimport logging\nimport warnings\nfrom typing import ClassVar\nfrom uuid import UUID\n\nfrom langflow.services.database.models.admin_notification import NotificationAudience\nfrom langflow.services.notifier.protocol import UsageAlertEvent, UsageAlertNotifier\n\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.field_typing import ErrorPayload  # noqa: F401  (registered for type validator)\nfrom lfx.schema.message import Message\nfrom lfx.field_typing.range_spec import RangeSpec\nfrom lfx.io import (\n    DropdownInput,\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\n\n\n_DEFAULT_TITLE_TEMPLATE = \"Flow '{flow_name}' failed at {component_name}\"\n_DEFAULT_BODY_TEMPLATE = (\n    \"**Error:** {error_message}\\n\\n\"\n    \"**Component:** {component_name}\\n\"\n    \"**Type:** {error_type}\\n\"\n    \"**Attempt:** {attempt_number}\\n\\n\"\n    \"```\\n{stack_trace}\\n```\"\n)\n\nlogger = logging.getLogger(__name__)\n\n\ndef _resolve_audience(\n    bell_audience: str,\n    flow_owner_id: UUID,\n    specific_user_id: UUID | None,\n) -> tuple[NotificationAudience, UUID | None]:\n    if bell_audience == \"Flow owner\":\n        return NotificationAudience.PLATFORM_ADMIN, flow_owner_id\n    if bell_audience == \"Org admins\":\n        return NotificationAudience.PLATFORM_ADMIN, None\n    if bell_audience == \"Specific user\":\n        return NotificationAudience.PLATFORM_ADMIN, specific_user_id\n    msg = f\"Unknown bell_audience: {bell_audience!r}\"\n    raise ValueError(msg)\n\n\ndef _render_template(\n    template: str,\n    payload: ErrorPayload,\n    *,\n    flow_name: str,\n    org_name: str,\n) -> str:\n    try:\n        return template.format(\n            flow_name=flow_name,\n            org_name=org_name,\n            component_name=payload.component_display_name,\n            error_type=payload.error_type,\n            error_message=payload.error_message,\n            attempt_number=payload.attempt_number,\n            stack_trace=payload.stack_trace,\n        )\n    except KeyError as exc:\n        # User template references an unknown variable. Don't drop the alert —\n        # surface the misconfiguration in the body and keep the error message visible.\n        logger.warning(\"ErrorHandler template references unknown variable %s\", exc)\n        return f\"[Template error: unknown variable {exc}] {payload.error_message}\"\n\n\nclass ErrorHandler(Component):\n    \"\"\"Catches errors emitted by upstream components' error ports.\n\n    Configures retry attempts + backoff, dispatches a single alert per\n    handled error, and emits `gave_up` with the original ErrorPayload after\n    retries are exhausted.\n\n    Does NOT itself expose an `error` output — exceptions raised inside\n    ErrorHandler bypass the runtime extension and fail the flow run.\n    \"\"\"\n\n    display_name = \"Error Handler\"\n    description = (\n        \"Retry a failing component with backoff and dispatch an alert when \"\n        \"retries are exhausted.\"\n    )\n    icon = \"shield-alert\"\n    name = \"ErrorHandler\"\n    error_output_enabled: ClassVar[bool] = False  # explicit: no nested recovery\n\n    inputs = [\n        HandleInput(\n            name=\"error_input\",\n            display_name=\"Error\",\n            input_types=[\"ErrorPayload\"],\n            info=\"Connect a component's Error output here.\",\n        ),\n        IntInput(\n            name=\"max_attempts\",\n            display_name=\"Max retry attempts\",\n            value=3,\n            range_spec=RangeSpec(min=0, max=10),\n            info=\"0 = no retry, fire alert immediately. Max 10.\",\n        ),\n        DropdownInput(\n            name=\"alert_mode\",\n            display_name=\"Alert mode\",\n            options=[\"Bell\", \"Email (Not Implemented)\", \"Ignore\"],\n            value=\"Bell\",\n        ),\n        DropdownInput(\n            name=\"bell_audience\",\n            display_name=\"Bell audience\",\n            options=[\"Flow owner\", \"Org admins\", \"Specific user\"],\n            value=\"Flow owner\",\n            show=True,\n        ),\n        StrInput(\n            name=\"bell_specific_user_id\",\n            display_name=\"Specific user\",\n            info=\"User ID (UUID format) to notify when bell audience = Specific user.\",\n            advanced=True,\n        ),\n        StrInput(\n            name=\"alert_title_template\",\n            display_name=\"Alert title\",\n            value=_DEFAULT_TITLE_TEMPLATE,\n            info=\"Available variables: {flow_name}, {component_name}, {error_type}, {error_message}, {attempt_number}, {org_name}\",\n        ),\n        DropdownInput(\n            name=\"backoff_strategy\",\n            display_name=\"Backoff strategy\",\n            options=[\"None\", \"Fixed delay\", \"Exponential\", \"Exponential with jitter\"],\n            value=\"Exponential with jitter\",\n            advanced=True,\n        ),\n        FloatInput(\n            name=\"base_delay_seconds\",\n            display_name=\"Base delay (s)\",\n            value=1.0,\n            advanced=True,\n        ),\n        FloatInput(\n            name=\"max_delay_seconds\",\n            display_name=\"Max delay (s)\",\n            value=60.0,\n            advanced=True,\n        ),\n        MultilineInput(\n            name=\"alert_body_template\",\n            display_name=\"Alert body (markdown)\",\n            value=_DEFAULT_BODY_TEMPLATE,\n            advanced=True,\n            info=\"Markdown. Available variables: {flow_name}, {component_name}, {error_type}, {error_message}, {attempt_number}, {stack_trace}, {org_name}\",\n        ),\n    ]\n\n    outputs = [\n        Output(\n            display_name=\"Gave up\",\n            name=\"gave_up\",\n            types=[\"Message\"],\n            method=\"on_error_exhausted\",\n        ),\n    ]\n\n    async def on_error_exhausted(self) -> Message:\n        \"\"\"Fired by the runtime after retries exhaust + alert dispatched.\n\n        The runtime constructs and passes the ErrorPayload directly via the\n        runtime extension; this method is the public output endpoint.\n        \"\"\"\n        msg = \"ErrorHandler.on_error_exhausted is wired by the runtime; do not invoke directly\"\n        raise NotImplementedError(msg)\n\n    async def dispatch_alert(\n        self,\n        *,\n        payload: ErrorPayload,\n        notifier: UsageAlertNotifier,\n        flow_owner_id: UUID,\n        org_id: UUID,\n        flow_name: str,\n        org_name: str,\n    ) -> None:\n        \"\"\"Dispatch the configured alert. Best-effort — exceptions are logged and swallowed.\"\"\"\n        if self.alert_mode == \"Ignore\":\n            return\n\n        # Email (Not Implemented) falls through to Bell in v1.\n        if self.alert_mode == \"Email (Not Implemented)\":\n            warnings.warn(\n                \"ErrorHandler email mode is not implemented; falling through to Bell.\",\n                UserWarning,\n                stacklevel=2,\n            )\n\n        specific_id: UUID | None = None\n        if self.bell_audience == \"Specific user\":\n            if not self.bell_specific_user_id:\n                logger.warning(\n                    \"ErrorHandler bell_audience='Specific user' but no user_id provided; alert suppressed.\"\n                )\n                return\n            try:\n                specific_id = UUID(self.bell_specific_user_id)\n            except (ValueError, AttributeError):\n                logger.warning(\n                    \"ErrorHandler bell_specific_user_id %r is not a valid UUID; alert suppressed.\",\n                    self.bell_specific_user_id,\n                )\n                return\n\n        try:\n            audience, audience_user_id = _resolve_audience(\n                self.bell_audience, flow_owner_id, specific_id\n            )\n            title = _render_template(\n                self.alert_title_template, payload,\n                flow_name=flow_name, org_name=org_name,\n            )\n            body = _render_template(\n                self.alert_body_template, payload,\n                flow_name=flow_name, org_name=org_name,\n            )\n            event = UsageAlertEvent(\n                category=\"flow_error\",\n                severity=\"error\",\n                org_id=org_id,\n                title=title,\n                body_md=body,\n                metadata={\n                    \"vertex_id\": payload.component_id,\n                    \"attempt_number\": payload.attempt_number,\n                    \"error_type\": payload.error_type,\n                },\n                audience=audience,\n                audience_user_id=audience_user_id,\n            )\n            await notifier.notify(event)\n        except Exception as exc:  # noqa: BLE001\n            logger.exception(\"ErrorHandler alert dispatch failed: %s\", exc)\n"
-            },
-            "error_input": {
-              "_input_type": "HandleInput",
-              "advanced": false,
-              "display_name": "Error",
-              "dynamic": false,
-              "info": "Connect a component's Error output here.",
-              "input_types": [
-                "ErrorPayload"
-              ],
-              "list": false,
-              "list_add_label": "Add More",
-              "name": "error_input",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": false,
-              "type": "other",
-              "value": ""
-            },
-            "max_attempts": {
-              "_input_type": "IntInput",
-              "advanced": false,
-              "display_name": "Max retry attempts",
-              "dynamic": false,
-              "info": "0 = no retry, fire alert immediately. Max 10.",
-              "list": false,
-              "list_add_label": "Add More",
-              "name": "max_attempts",
-              "override_skip": false,
-              "placeholder": "",
-              "range_spec": {
-                "max": 10.0,
-                "min": 0.0,
-                "step": 0.1,
-                "step_type": "float"
-              },
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "int",
-              "value": 3
-            },
-            "max_delay_seconds": {
-              "_input_type": "FloatInput",
-              "advanced": true,
-              "display_name": "Max delay (s)",
-              "dynamic": false,
-              "info": "",
-              "list": false,
-              "list_add_label": "Add More",
-              "name": "max_delay_seconds",
-              "override_skip": false,
-              "placeholder": "",
-              "required": false,
-              "show": true,
-              "title_case": false,
-              "tool_mode": false,
-              "trace_as_metadata": true,
-              "track_in_telemetry": true,
-              "type": "float",
-              "value": 60.0
-            }
-          },
-          "tool_mode": false,
-          "version": 0
-        }
-      }
-    ],
-    [
       "sambanova",
       {
         "SambaNovaModel": {
@@ -109786,7 +109509,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -111518,7 +111241,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -112400,7 +112123,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -112544,7 +112267,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -112754,7 +112477,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -112978,7 +112701,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -113301,7 +113024,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -113475,7 +113198,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -113690,7 +113413,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -113948,7 +113671,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -114189,7 +113912,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -114606,7 +114329,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -114751,7 +114474,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -114987,7 +114710,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -115977,7 +115700,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -116159,7 +115882,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -116315,7 +116038,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -116475,7 +116198,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -116876,7 +116599,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -117335,6 +117058,338 @@
           "tool_mode": false,
           "version": 0
         },
+        "ErrorHandler": {
+          "assist_enabled": true,
+          "base_classes": [
+            "Message"
+          ],
+          "beta": false,
+          "changelog": [],
+          "conditional_paths": [],
+          "custom_fields": {},
+          "description": "Retry a failing component with backoff and dispatch an alert when retries are exhausted.",
+          "display_name": "Error Handler",
+          "documentation": "",
+          "edited": false,
+          "field_order": [
+            "error_input",
+            "max_attempts",
+            "alert_mode",
+            "bell_audience",
+            "bell_specific_user_id",
+            "alert_title_template",
+            "backoff_strategy",
+            "base_delay_seconds",
+            "max_delay_seconds",
+            "alert_body_template"
+          ],
+          "frozen": false,
+          "icon": "shield-alert",
+          "legacy": false,
+          "metadata": {
+            "code_hash": "77a8697b1728",
+            "dependencies": {
+              "dependencies": [
+                {
+                  "name": "langflow",
+                  "version": null
+                },
+                {
+                  "name": "lfx",
+                  "version": null
+                }
+              ],
+              "total_dependencies": 2
+            },
+            "module": "lfx.components.utilities.error_handler.ErrorHandler"
+          },
+          "minimized": false,
+          "output_types": [],
+          "outputs": [
+            {
+              "allows_loop": false,
+              "cache": true,
+              "display_name": "Gave up",
+              "group_outputs": false,
+              "method": "on_error_exhausted",
+              "name": "gave_up",
+              "selected": "Message",
+              "tool_mode": true,
+              "types": [
+                "Message"
+              ],
+              "value": "__UNDEFINED__"
+            }
+          ],
+          "pinned": false,
+          "template": {
+            "_type": "Component",
+            "alert_body_template": {
+              "_input_type": "MultilineInput",
+              "advanced": true,
+              "ai_enabled": false,
+              "copy_field": false,
+              "display_name": "Alert body (markdown)",
+              "dynamic": false,
+              "info": "Markdown. Available variables: {flow_name}, {component_name}, {error_type}, {error_message}, {attempt_number}, {stack_trace}, {org_name}",
+              "input_types": [
+                "Message"
+              ],
+              "list": false,
+              "list_add_label": "Add More",
+              "load_from_db": false,
+              "multiline": true,
+              "name": "alert_body_template",
+              "override_skip": false,
+              "password": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "tool_mode": false,
+              "trace_as_input": true,
+              "trace_as_metadata": true,
+              "track_in_telemetry": false,
+              "type": "str",
+              "value": "**Error:** {error_message}\n\n**Component:** {component_name}\n**Type:** {error_type}\n**Attempt:** {attempt_number}\n\n```\n{stack_trace}\n```"
+            },
+            "alert_mode": {
+              "_input_type": "DropdownInput",
+              "advanced": false,
+              "combobox": false,
+              "dialog_inputs": {},
+              "display_name": "Alert mode",
+              "dynamic": false,
+              "external_options": {},
+              "info": "",
+              "name": "alert_mode",
+              "options": [
+                "Bell",
+                "Email (Not Implemented)",
+                "Ignore"
+              ],
+              "options_metadata": [],
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "toggle": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": true,
+              "type": "str",
+              "value": "Bell"
+            },
+            "alert_title_template": {
+              "_input_type": "StrInput",
+              "advanced": false,
+              "display_name": "Alert title",
+              "dynamic": false,
+              "info": "Available variables: {flow_name}, {component_name}, {error_type}, {error_message}, {attempt_number}, {org_name}",
+              "list": false,
+              "list_add_label": "Add More",
+              "load_from_db": false,
+              "name": "alert_title_template",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": false,
+              "type": "str",
+              "value": "Flow '{flow_name}' failed at {component_name}"
+            },
+            "backoff_strategy": {
+              "_input_type": "DropdownInput",
+              "advanced": true,
+              "combobox": false,
+              "dialog_inputs": {},
+              "display_name": "Backoff strategy",
+              "dynamic": false,
+              "external_options": {},
+              "info": "",
+              "name": "backoff_strategy",
+              "options": [
+                "None",
+                "Fixed delay",
+                "Exponential",
+                "Exponential with jitter"
+              ],
+              "options_metadata": [],
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "toggle": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": true,
+              "type": "str",
+              "value": "Exponential with jitter"
+            },
+            "base_delay_seconds": {
+              "_input_type": "FloatInput",
+              "advanced": true,
+              "display_name": "Base delay (s)",
+              "dynamic": false,
+              "info": "",
+              "list": false,
+              "list_add_label": "Add More",
+              "name": "base_delay_seconds",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": true,
+              "type": "float",
+              "value": 1.0
+            },
+            "bell_audience": {
+              "_input_type": "DropdownInput",
+              "advanced": false,
+              "combobox": false,
+              "dialog_inputs": {},
+              "display_name": "Bell audience",
+              "dynamic": false,
+              "external_options": {},
+              "info": "",
+              "name": "bell_audience",
+              "options": [
+                "Flow owner",
+                "Org admins",
+                "Specific user"
+              ],
+              "options_metadata": [],
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "toggle": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": true,
+              "type": "str",
+              "value": "Flow owner"
+            },
+            "bell_specific_user_id": {
+              "_input_type": "StrInput",
+              "advanced": true,
+              "display_name": "Specific user",
+              "dynamic": false,
+              "info": "User ID (UUID format) to notify when bell audience = Specific user.",
+              "list": false,
+              "list_add_label": "Add More",
+              "load_from_db": false,
+              "name": "bell_specific_user_id",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": false,
+              "type": "str",
+              "value": ""
+            },
+            "code": {
+              "advanced": true,
+              "dynamic": true,
+              "fileTypes": [],
+              "file_path": "",
+              "info": "",
+              "list": false,
+              "load_from_db": false,
+              "multiline": true,
+              "name": "code",
+              "password": false,
+              "placeholder": "",
+              "required": true,
+              "show": true,
+              "title_case": false,
+              "type": "code",
+              "value": "from __future__ import annotations\n\nimport logging\nimport warnings\nfrom typing import ClassVar\nfrom uuid import UUID\n\nfrom langflow.services.database.models.admin_notification import NotificationAudience\nfrom langflow.services.notifier.protocol import UsageAlertEvent, UsageAlertNotifier\n\nfrom lfx.custom.custom_component.component import Component\nfrom lfx.field_typing import ErrorPayload  # noqa: F401  (registered for type validator)\nfrom lfx.schema.message import Message\nfrom lfx.field_typing.range_spec import RangeSpec\nfrom lfx.io import (\n    DropdownInput,\n    FloatInput,\n    HandleInput,\n    IntInput,\n    MultilineInput,\n    Output,\n    StrInput,\n)\n\n\n_DEFAULT_TITLE_TEMPLATE = \"Flow '{flow_name}' failed at {component_name}\"\n_DEFAULT_BODY_TEMPLATE = (\n    \"**Error:** {error_message}\\n\\n\"\n    \"**Component:** {component_name}\\n\"\n    \"**Type:** {error_type}\\n\"\n    \"**Attempt:** {attempt_number}\\n\\n\"\n    \"```\\n{stack_trace}\\n```\"\n)\n\nlogger = logging.getLogger(__name__)\n\n\ndef _resolve_audience(\n    bell_audience: str,\n    flow_owner_id: UUID,\n    specific_user_id: UUID | None,\n) -> tuple[NotificationAudience, UUID | None]:\n    if bell_audience == \"Flow owner\":\n        return NotificationAudience.PLATFORM_ADMIN, flow_owner_id\n    if bell_audience == \"Org admins\":\n        return NotificationAudience.PLATFORM_ADMIN, None\n    if bell_audience == \"Specific user\":\n        return NotificationAudience.PLATFORM_ADMIN, specific_user_id\n    msg = f\"Unknown bell_audience: {bell_audience!r}\"\n    raise ValueError(msg)\n\n\ndef _render_template(\n    template: str,\n    payload: ErrorPayload,\n    *,\n    flow_name: str,\n    org_name: str,\n) -> str:\n    try:\n        return template.format(\n            flow_name=flow_name,\n            org_name=org_name,\n            component_name=payload.component_display_name,\n            error_type=payload.error_type,\n            error_message=payload.error_message,\n            attempt_number=payload.attempt_number,\n            stack_trace=payload.stack_trace,\n        )\n    except KeyError as exc:\n        # User template references an unknown variable. Don't drop the alert —\n        # surface the misconfiguration in the body and keep the error message visible.\n        logger.warning(\"ErrorHandler template references unknown variable %s\", exc)\n        return f\"[Template error: unknown variable {exc}] {payload.error_message}\"\n\n\nclass ErrorHandler(Component):\n    \"\"\"Catches errors emitted by upstream components' error ports.\n\n    Configures retry attempts + backoff, dispatches a single alert per\n    handled error, and emits `gave_up` with the original ErrorPayload after\n    retries are exhausted.\n\n    Does NOT itself expose an `error` output — exceptions raised inside\n    ErrorHandler bypass the runtime extension and fail the flow run.\n    \"\"\"\n\n    display_name = \"Error Handler\"\n    description = (\n        \"Retry a failing component with backoff and dispatch an alert when \"\n        \"retries are exhausted.\"\n    )\n    icon = \"shield-alert\"\n    name = \"ErrorHandler\"\n    error_output_enabled: ClassVar[bool] = False  # explicit: no nested recovery\n\n    inputs = [\n        HandleInput(\n            name=\"error_input\",\n            display_name=\"Error\",\n            input_types=[\"ErrorPayload\"],\n            info=\"Connect a component's Error output here.\",\n        ),\n        IntInput(\n            name=\"max_attempts\",\n            display_name=\"Max retry attempts\",\n            value=3,\n            range_spec=RangeSpec(min=0, max=10),\n            info=\"0 = no retry, fire alert immediately. Max 10.\",\n        ),\n        DropdownInput(\n            name=\"alert_mode\",\n            display_name=\"Alert mode\",\n            options=[\"Bell\", \"Email (Not Implemented)\", \"Ignore\"],\n            value=\"Bell\",\n        ),\n        DropdownInput(\n            name=\"bell_audience\",\n            display_name=\"Bell audience\",\n            options=[\"Flow owner\", \"Org admins\", \"Specific user\"],\n            value=\"Flow owner\",\n            show=True,\n        ),\n        StrInput(\n            name=\"bell_specific_user_id\",\n            display_name=\"Specific user\",\n            info=\"User ID (UUID format) to notify when bell audience = Specific user.\",\n            advanced=True,\n        ),\n        StrInput(\n            name=\"alert_title_template\",\n            display_name=\"Alert title\",\n            value=_DEFAULT_TITLE_TEMPLATE,\n            info=\"Available variables: {flow_name}, {component_name}, {error_type}, {error_message}, {attempt_number}, {org_name}\",\n        ),\n        DropdownInput(\n            name=\"backoff_strategy\",\n            display_name=\"Backoff strategy\",\n            options=[\"None\", \"Fixed delay\", \"Exponential\", \"Exponential with jitter\"],\n            value=\"Exponential with jitter\",\n            advanced=True,\n        ),\n        FloatInput(\n            name=\"base_delay_seconds\",\n            display_name=\"Base delay (s)\",\n            value=1.0,\n            advanced=True,\n        ),\n        FloatInput(\n            name=\"max_delay_seconds\",\n            display_name=\"Max delay (s)\",\n            value=60.0,\n            advanced=True,\n        ),\n        MultilineInput(\n            name=\"alert_body_template\",\n            display_name=\"Alert body (markdown)\",\n            value=_DEFAULT_BODY_TEMPLATE,\n            advanced=True,\n            info=\"Markdown. Available variables: {flow_name}, {component_name}, {error_type}, {error_message}, {attempt_number}, {stack_trace}, {org_name}\",\n        ),\n    ]\n\n    outputs = [\n        Output(\n            display_name=\"Gave up\",\n            name=\"gave_up\",\n            types=[\"Message\"],\n            method=\"on_error_exhausted\",\n        ),\n    ]\n\n    async def on_error_exhausted(self) -> Message:\n        \"\"\"Emit the failure message on the `gave_up` output.\n\n        The runtime sets the failing vertex's `error` output to a\n        Message-shaped representation of the ErrorPayload before the build\n        pipeline resolves this component's `error_input`. By the time this\n        method runs, `self.error_input` is that Message — we forward it.\n        \"\"\"\n        if isinstance(self.error_input, Message):\n            return self.error_input\n        # Defensive: if for any reason error_input is not a Message (e.g.,\n        # legacy ErrorPayload), wrap it.\n        return Message(\n            text=str(self.error_input) if self.error_input else \"Unknown error\",\n            sender=\"ErrorHandler\",\n        )\n\n    async def dispatch_alert(\n        self,\n        *,\n        payload: ErrorPayload,\n        notifier: UsageAlertNotifier,\n        flow_owner_id: UUID,\n        org_id: UUID,\n        flow_name: str,\n        org_name: str,\n    ) -> None:\n        \"\"\"Dispatch the configured alert. Best-effort — exceptions are logged and swallowed.\"\"\"\n        if self.alert_mode == \"Ignore\":\n            return\n\n        # Email (Not Implemented) falls through to Bell in v1.\n        if self.alert_mode == \"Email (Not Implemented)\":\n            warnings.warn(\n                \"ErrorHandler email mode is not implemented; falling through to Bell.\",\n                UserWarning,\n                stacklevel=2,\n            )\n\n        specific_id: UUID | None = None\n        if self.bell_audience == \"Specific user\":\n            if not self.bell_specific_user_id:\n                logger.warning(\n                    \"ErrorHandler bell_audience='Specific user' but no user_id provided; alert suppressed.\"\n                )\n                return\n            try:\n                specific_id = UUID(self.bell_specific_user_id)\n            except (ValueError, AttributeError):\n                logger.warning(\n                    \"ErrorHandler bell_specific_user_id %r is not a valid UUID; alert suppressed.\",\n                    self.bell_specific_user_id,\n                )\n                return\n\n        try:\n            audience, audience_user_id = _resolve_audience(\n                self.bell_audience, flow_owner_id, specific_id\n            )\n            title = _render_template(\n                self.alert_title_template, payload,\n                flow_name=flow_name, org_name=org_name,\n            )\n            body = _render_template(\n                self.alert_body_template, payload,\n                flow_name=flow_name, org_name=org_name,\n            )\n            event = UsageAlertEvent(\n                category=\"flow_error\",\n                severity=\"error\",\n                org_id=org_id,\n                title=title,\n                body_md=body,\n                metadata={\n                    \"vertex_id\": payload.component_id,\n                    \"attempt_number\": payload.attempt_number,\n                    \"error_type\": payload.error_type,\n                },\n                audience=audience,\n                audience_user_id=audience_user_id,\n            )\n            await notifier.notify(event)\n        except Exception as exc:  # noqa: BLE001\n            logger.exception(\"ErrorHandler alert dispatch failed: %s\", exc)\n"
+            },
+            "error_input": {
+              "_input_type": "HandleInput",
+              "advanced": false,
+              "display_name": "Error",
+              "dynamic": false,
+              "info": "Connect a component's Error output here.",
+              "input_types": [
+                "ErrorPayload"
+              ],
+              "list": false,
+              "list_add_label": "Add More",
+              "name": "error_input",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": false,
+              "type": "other",
+              "value": ""
+            },
+            "max_attempts": {
+              "_input_type": "IntInput",
+              "advanced": false,
+              "display_name": "Max retry attempts",
+              "dynamic": false,
+              "info": "0 = no retry, fire alert immediately. Max 10.",
+              "list": false,
+              "list_add_label": "Add More",
+              "name": "max_attempts",
+              "override_skip": false,
+              "placeholder": "",
+              "range_spec": {
+                "max": 10.0,
+                "min": 0.0,
+                "step": 0.1,
+                "step_type": "float"
+              },
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": true,
+              "type": "int",
+              "value": 3
+            },
+            "max_delay_seconds": {
+              "_input_type": "FloatInput",
+              "advanced": true,
+              "display_name": "Max delay (s)",
+              "dynamic": false,
+              "info": "",
+              "list": false,
+              "list_add_label": "Add More",
+              "name": "max_delay_seconds",
+              "override_skip": false,
+              "placeholder": "",
+              "required": false,
+              "show": true,
+              "title_case": false,
+              "tool_mode": false,
+              "trace_as_metadata": true,
+              "track_in_telemetry": true,
+              "type": "float",
+              "value": 60.0
+            }
+          },
+          "tool_mode": false,
+          "version": 0
+        },
         "IDGenerator": {
           "assist_enabled": true,
           "base_classes": [
@@ -117659,7 +117714,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -118362,7 +118417,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -118743,7 +118798,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -119159,7 +119214,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -119555,7 +119610,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -119940,7 +119995,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -120609,7 +120664,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -121236,7 +121291,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -121431,7 +121486,7 @@
               "method": "_emit_error_output",
               "name": "error",
               "selected": "ErrorPayload",
-              "tool_mode": true,
+              "tool_mode": false,
               "types": [
                 "ErrorPayload"
               ],
@@ -123516,8 +123571,8 @@
   ],
   "metadata": {
     "num_components": 367,
-    "num_modules": 99
+    "num_modules": 98
   },
-  "sha256": "3740d0c040661c86d2e646f7d0fb7aca14d26560119d94598376e400ad4cca13",
+  "sha256": "457b063689e0afc075b9a040a887c475e97dc8189cffa37d5d9602a7847307ed",
   "version": "26.424.1"
 }

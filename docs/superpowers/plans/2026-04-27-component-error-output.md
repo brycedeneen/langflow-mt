@@ -2854,3 +2854,38 @@ Expected: ~14-20 commits, each with a clean scope.
 - [ ] Type names are consistent: `ErrorPayload`, `RunStatus.PARTIAL_SUCCESS`, `ErrorHandler`, `RetryConfig`, `BackoffStrategy`.
 - [ ] Method names consistent: `dispatch_alert`, `_try_handle_via_error_edge`, `_record_handled_error`, `_emit_sse_event`, `_suppress_normal_successors`, `_invoke_error_handler`, `compute_delay_seconds`, `run_with_retries`.
 - [ ] Every commit step uses explicit paths (no `git add -A`).
+
+## Implementation outcome (2026-04-27)
+
+What shipped vs. what the plan called for. Read this before extending the feature so you don't repeat the dead-ends.
+
+### Diverged from plan — runtime extension
+
+- **Catch site moved upstream of `_execute_tasks`.** Plan put the catch in `_execute_tasks` (`src/lfx/src/lfx/graph/graph/base.py:1848-1856`). That only covers `Graph.process()` / `astep`; the streaming `/build/{flow_id}/flow` endpoint calls `Graph.build_vertex` directly and never reaches `_execute_tasks`, so error edges were silently bypassed in production. Resolution: catch lives inside `Graph.build_vertex`'s own `except Exception` block. All execution paths funnel through `Graph.build_vertex`, so a single catch site handles them.
+- **`gave_up` emits `Message`, not `ErrorPayload`.** Plan typed the `gave_up` output `["ErrorPayload"]`. Practical issue: every downstream consumer (Chat Output, Text Output, Agent input, prompt template) speaks `Message`. Wiring `gave_up` into them via `ErrorPayload` would require lossy adapters at every fan-out target. Resolution: `gave_up` is `["Message"]`. The runtime renders the `ErrorPayload` into a markdown `Message` (type, error message, attempt count, truncated stack trace) and writes it to the failing vertex's `error` output. `ErrorHandler.on_error_exhausted` forwards `self.error_input` as the `gave_up` value.
+- **Synthesize-failing-vertex state instead of invoking the handler manually.** Plan implied `_try_handle_via_error_edge` would invoke the `ErrorHandler` vertex itself and return a VBR for it. That fought the build pipeline's edge resolver — `error_input` is wired to the failing vertex's `error` output, so the handler's normal `_build_each_vertex_in_params_dict` tried to resolve it from the (failed) failing vertex, which forced `raw_params` / `build_params` hacks and monkey-patched `on_error_exhausted`. Resolution: `_try_handle_via_error_edge` synthesizes a "successful" state on the **failing vertex** (`built=True`, `results["error"]=Message`, `set_result(...)`) and returns a VBR for the failing vertex. The standard build pipeline takes over from there, queues `ErrorHandler` as the next runnable, builds it normally, and propagates `gave_up` through normal recursion.
+- **`_invoke_error_handler` removed.** Consequence of the previous change. The `_invoke_error_handler` helper was deleted along with the monkey-patching of `on_error_exhausted`. The on-error-exhausted method now lives entirely on the component class.
+- **`isinstance(component, ErrorHandler)` replaced with `__name__` + duck-type check.** Per the `langflow-component-loader` skill, the loader can instantiate components under a different class object than `from lfx.components.reliability.error_handler import ErrorHandler` resolves to. `isinstance` returned `False` for legitimately-loaded handlers. Resolution: `_is_error_handler` matches by `type(component).__name__ == "ErrorHandler"` plus `hasattr(component, "dispatch_alert")`.
+- **Inner `get_next_runnable_vertices` + `extend_run_queue` block removed from `Graph.build_vertex` error path.** This was the last bug. The plan-implied code computed next-runnable for each handled VBR inside `Graph.build_vertex` and stuffed the result into `_run_queue`. Two problems: (1) `_run_queue` is consumed only by `astep`, so the queue extension was dead code in the streaming API path; (2) the inner call added the next vertex (e.g. `ErrorHandler`) to `vertices_being_run`, then the outer caller (`api._build_vertex` line 380, `_execute_tasks` line 1964, `astep` line 1520) called `get_next_runnable_vertices` *again* on the same failing vertex — and `is_vertex_runnable(ErrorHandler)` now returned `False` (already in `vertices_being_run`), the recursive predecessor walk found nothing else, and the outer call returned `[]`. The recursion stalled at the failing vertex; `ErrorHandler` (and anything past it) never queued. Resolution: the inner block is removed. Each outer caller already runs `get_next_runnable_vertices` on the returned VBR's vertex, so the chain `failing_vertex → ErrorHandler → … → terminal` traverses through normal build-pipeline recursion.
+- **Auto-injected error output set to `tool_mode=False`.** Latent bug, surfaced by the multi-hop fix above. `Output.tool_mode` defaults to `True`; `_maybe_inject_error_output` originally constructed the error `Output` without specifying `tool_mode`. `LCAgentComponent` (`error_output_enabled=True`) plus its `input_value` input (`tool_mode=True`) means a terminal Agent runs `_handle_tool_mode` → adds `component_as_tool` to `_outputs_map` → that output's method is `to_toolkit` → calls `Agent._get_tools(tool_name="Call_Agent", ...)` → `ComponentToolkit.get_tools` iterates `self.outputs` and finds two non-skipped outputs (the response output + the auto-injected error output), violating the toolkit's `len == 1` invariant and raising *"When passing a tool name or description, there must be only one tool, but 2 tools were found."* Pre-multi-hop, the chain stopped at `ErrorHandler` so the terminal Agent never built and the bug never surfaced. Resolution: set `tool_mode=False` on the auto-injected error `Output` so `ComponentToolkit._should_skip_output` excludes it from tool conversion. Inline comment at the injection site documents the rationale.
+
+### Manually verified end-to-end
+
+Flow: `API Request.error → ErrorHandler.error_input → TextOutput`. With `Raise on HTTP error (4xx/5xx)` enabled and a 4xx-returning URL:
+
+```
+APIRequest-...   (fails 1+3 retries → synth state) → recurse → [ErrorHandler-...]
+ErrorHandler-... (built, gave_up=Message)         → recurse → [TextOutput-...]
+TextOutput-...   (built)                           → terminal
+```
+
+Wall-clock confirms 4 HTTP requests per run (1 original + 3 retries on default `max_attempts=3`) with exponential+jitter gaps roughly matching `base 1s * 2^(attempt-1) * U(0.5, 1.5)`.
+
+### Deferred
+
+- **Email alert mode.** Plan had it as `Email (Not Implemented)` falling through to bell. Still falls through to bell. Email infrastructure is a separate spec.
+- **Stack-trace redaction.** Plan called this out as a non-goal pending legal review. Still raw in `FlowRun.error` JSON.
+- **Per-exception filters** (`retry_on` / `give_up_on` allowlists). Out of scope for v1.
+- **Frontend retry visuals.** Pulsing border / overlay on the canvas during retries (Task 17) — not yet wired.
+- **Frontend `PARTIAL_SUCCESS` runs view badge** (Task 18) — not yet wired.
+- **Direct `Component` subclasses that do I/O.** All six I/O base classes (`LCToolComponent`, `LCModelComponent`, `LCAgentComponent`, `LCVectorStoreComponent`, `LCEmbeddingsModel`, `BaseFileComponent`) are flipped to `error_output_enabled = True`. Direct `Component` subclasses still need per-component opt-in. So far: `APIRequestComponent` (v3+), `ADPAPIRequestComponent` (v2+), `ADPToolsComponent` (v2+). Future direct-`Component` I/O components opt in via the `langflow-component-error-port` skill.

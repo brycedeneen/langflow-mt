@@ -82,7 +82,8 @@ class ADPToolsComponent(Component):
         "Pick which tile groups you want — each contributes 1-15 agent tools."
     )
     icon = "Users"
-    version: int = 2
+    error_output_enabled: ClassVar[bool] = True
+    version: int = 3
     documentation: str = "https://docs.langflow.org/component-adp-tools"
     changelog: ClassVar[list[ChangelogEntry]] = [
         ChangelogEntry(
@@ -96,6 +97,23 @@ class ADPToolsComponent(Component):
                 "Off by default — existing flows keep current behavior. Turn on "
                 "so an upstream Agent (or other consumer) can react to ADP API "
                 "errors as exceptions rather than silently returning error bodies."
+            ),
+        ),
+        ChangelogEntry(
+            version=3,
+            changes=(
+                "- Added **Error** output port for retry / alert wiring through "
+                "an Error Handler component. Fires on `build_tools` failures "
+                "(missing connection, malformed tile config). Pair with the "
+                "**Raise on HTTP error** toggle so runtime ADP API errors raised "
+                "from agent-invoked tools surface to the Agent's own error port."
+            ),
+            notes=(
+                "Existing flows are unaffected — the error port is unwired by "
+                "default. Connect it to an Error Handler to alert on ADP Tools "
+                "build failures (connection / config issues). Note: this port "
+                "fires only during ADP Tools' build, not during the Agent's "
+                "tool invocations — those flow through the Agent's error port."
             ),
         ),
     ]

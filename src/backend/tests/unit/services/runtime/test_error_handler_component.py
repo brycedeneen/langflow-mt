@@ -11,7 +11,7 @@ from lfx.template.field.base import Output
 
 
 def test_error_handler_declares_expected_inputs():
-    from lfx.components.reliability.error_handler import ErrorHandler
+    from lfx.components.utilities.error_handler import ErrorHandler
 
     component = ErrorHandler()
     input_names = {i.name for i in component.inputs}
@@ -31,7 +31,7 @@ def test_error_handler_declares_expected_inputs():
 
 
 def test_error_handler_has_gave_up_output():
-    from lfx.components.reliability.error_handler import ErrorHandler
+    from lfx.components.utilities.error_handler import ErrorHandler
 
     component = ErrorHandler()
     output_names = {o.name for o in component.outputs}
@@ -42,7 +42,7 @@ def test_error_handler_has_gave_up_output():
 
 def test_error_handler_does_not_inject_error_output():
     """ErrorHandler must NOT have an error output (no nested error recovery)."""
-    from lfx.components.reliability.error_handler import ErrorHandler
+    from lfx.components.utilities.error_handler import ErrorHandler
 
     component = ErrorHandler()
     output_names = {o.name for o in component.outputs}
@@ -51,7 +51,7 @@ def test_error_handler_does_not_inject_error_output():
 
 @pytest.mark.asyncio
 async def test_dispatch_alert_bell_flow_owner():
-    from lfx.components.reliability.error_handler import ErrorHandler
+    from lfx.components.utilities.error_handler import ErrorHandler
     from langflow.services.database.models.admin_notification import (
         NotificationAudience,
     )
@@ -101,7 +101,7 @@ async def test_dispatch_alert_bell_flow_owner():
 
 @pytest.mark.asyncio
 async def test_dispatch_alert_ignore_does_not_call_notifier():
-    from lfx.components.reliability.error_handler import ErrorHandler
+    from lfx.components.utilities.error_handler import ErrorHandler
 
     notifier = MagicMock()
     notifier.notify = AsyncMock()
@@ -133,7 +133,7 @@ async def test_dispatch_alert_ignore_does_not_call_notifier():
 
 @pytest.mark.asyncio
 async def test_dispatch_alert_email_falls_through_to_bell():
-    from lfx.components.reliability.error_handler import ErrorHandler
+    from lfx.components.utilities.error_handler import ErrorHandler
 
     notifier = MagicMock()
     notifier.notify = AsyncMock()
@@ -173,7 +173,7 @@ async def test_dispatch_alert_email_falls_through_to_bell():
 
 @pytest.mark.asyncio
 async def test_dispatch_alert_swallows_notifier_exceptions():
-    from lfx.components.reliability.error_handler import ErrorHandler
+    from lfx.components.utilities.error_handler import ErrorHandler
 
     notifier = MagicMock()
     notifier.notify = AsyncMock(side_effect=RuntimeError("DB down"))
@@ -207,7 +207,7 @@ async def test_dispatch_alert_swallows_notifier_exceptions():
 
 @pytest.mark.asyncio
 async def test_dispatch_alert_template_error_falls_back_to_inline_message():
-    from lfx.components.reliability.error_handler import ErrorHandler
+    from lfx.components.utilities.error_handler import ErrorHandler
 
     notifier = MagicMock()
     notifier.notify = AsyncMock()
@@ -248,7 +248,7 @@ async def test_dispatch_alert_template_error_falls_back_to_inline_message():
 
 @pytest.mark.asyncio
 async def test_dispatch_alert_bell_specific_user():
-    from lfx.components.reliability.error_handler import ErrorHandler
+    from lfx.components.utilities.error_handler import ErrorHandler
     from langflow.services.database.models.admin_notification import (
         NotificationAudience,
     )
@@ -292,7 +292,7 @@ async def test_dispatch_alert_bell_specific_user():
 
 @pytest.mark.asyncio
 async def test_dispatch_alert_specific_user_invalid_uuid_suppresses():
-    from lfx.components.reliability.error_handler import ErrorHandler
+    from lfx.components.utilities.error_handler import ErrorHandler
 
     notifier = MagicMock()
     notifier.notify = AsyncMock()
@@ -330,7 +330,7 @@ async def test_dispatch_alert_specific_user_invalid_uuid_suppresses():
 
 @pytest.mark.asyncio
 async def test_dispatch_alert_specific_user_missing_id_suppresses():
-    from lfx.components.reliability.error_handler import ErrorHandler
+    from lfx.components.utilities.error_handler import ErrorHandler
 
     notifier = MagicMock()
     notifier.notify = AsyncMock()

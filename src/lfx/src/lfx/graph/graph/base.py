@@ -1670,19 +1670,13 @@ class Graph:
                 if not isinstance(exc, ComponentBuildError):
                     await logger.aexception("Error building Component")
                 raise
-            # Error was routed (retry succeeded or handler invoked). Queue the
-            # next-runnable successors so the caller's run continues with the
-            # right downstream vertices (gave_up branch on exhaustion, normal
-            # branch on retry success).
-            for vbr in handled_results:
-                next_runnable_vertices = await self.get_next_runnable_vertices(
-                    self.lock, vertex=vbr.vertex, cache=False
-                )
-                if self.stop_vertex and self.stop_vertex in next_runnable_vertices:
-                    next_runnable_vertices = [self.stop_vertex]
-                self.extend_run_queue(next_runnable_vertices)
-            # Return the last VertexBuildResult — represents either the recovered
-            # failing vertex (retry success) or the handler vertex (exhaustion).
+            # Error was routed (retry succeeded or synthesized state on exhaustion).
+            # Do NOT compute next-runnable here — each caller (`api._build_vertex` /
+            # `Graph._execute_tasks` / `Graph.astep`) runs `get_next_runnable_vertices`
+            # on the returned VBR's vertex itself. Doing it twice marks the next
+            # vertex as `vertices_being_run` on the inner call, the outer call sees
+            # it there and returns [], and the recursion stalls at the failing
+            # vertex — ErrorHandler and anything past it never queue.
             return handled_results[-1]
 
         if vertex.result is not None:
@@ -2558,7 +2552,7 @@ class Graph:
 
         # NOTE: do NOT use `isinstance(component, ErrorHandler)`. The Langflow
         # component loader can instantiate components under a *different* class
-        # object than `from lfx.components.reliability.error_handler import
+        # object than `from lfx.components.utilities.error_handler import
         # ErrorHandler` resolves to (two-load-path gotcha). Match by class
         # __name__ instead.
         def _is_error_handler(component: Any) -> bool:

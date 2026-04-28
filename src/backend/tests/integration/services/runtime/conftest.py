@@ -266,7 +266,7 @@ class _GraphBuildHelper:
         name: str = "handler",
         _spy_dispatch: bool = True,
     ) -> "ErrorHandlerWrapper":
-        from lfx.components.reliability.error_handler import ErrorHandler
+        from lfx.components.utilities.error_handler import ErrorHandler
 
         handler = ErrorHandler(
             _id=f"handler_{name}",

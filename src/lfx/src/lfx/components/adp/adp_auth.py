@@ -16,7 +16,8 @@ class ADPAuthComponent(Component):
     description = "Authenticate to ADP via OAuth 2.0 client_credentials over mTLS."
     icon = "Key"
     name = "ADPAuth"
-    version: int = 2
+    error_output_enabled: ClassVar[bool] = True
+    version: int = 3
     changelog: ClassVar[list[ChangelogEntry]] = [
         ChangelogEntry(
             version=2,
@@ -37,6 +38,20 @@ class ADPAuthComponent(Component):
                 "client_secret typed inline are now silently encrypted on "
                 "save; exported flow JSON will show empty values where it "
                 "previously showed plaintext — re-enter credentials on import."
+            ),
+        ),
+        ChangelogEntry(
+            version=3,
+            changes=(
+                "- Added **Error** output port for retry / alert wiring through "
+                "an Error Handler component. Token-fetch failures (non-2xx "
+                "responses, missing access_token) and validation errors raise "
+                "naturally and route through the error port when wired."
+            ),
+            notes=(
+                "Existing flows are unaffected — the error port is unwired by "
+                "default. Connect it to an Error Handler to retry the OAuth "
+                "token fetch with backoff and dispatch alerts on exhaustion."
             ),
         ),
     ]

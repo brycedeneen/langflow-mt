@@ -239,3 +239,85 @@ This spec delivers what the parked iPaaS T1-A slice (retry / try-catch / fallbac
 - Fallback → covered (`gave_up` is the fallback edge).
 
 The remaining T1 slices (circuit breaker, dead-letter service, idempotency helper, rate limiter) become independent specs that compose with this one.
+
+## Final implementation (as shipped)
+
+A handful of decisions diverged from the original design as the implementation hit reality. Recording them here so the spec matches what runs.
+
+### Catch site moved upstream of `_execute_tasks`
+
+The spec called out `_execute_tasks` (`src/lfx/src/lfx/graph/graph/base.py:1848-1856`) as the exception-catch site. That catch only fires for the `Graph.process()` / `astep` path. The streaming `/build/{flow_id}/flow` endpoint (`src/backend/base/langflow/api/build.py`) calls `graph.build_vertex` directly and never reaches `_execute_tasks`, so error edges defined on a vertex would have been silently bypassed in production.
+
+Resolution: `_try_handle_via_error_edge` is now invoked inside `Graph.build_vertex`'s own `except Exception` block. All three execution paths — `astep`, `_execute_tasks`, and the streaming API endpoint — go through `Graph.build_vertex`, so a single catch site handles them all. The pre-existing catches in `_execute_tasks` and `astep` remain in place but are effectively no-ops for the handled-error case (the inner catch returns a synth VBR before they see the exception).
+
+### `gave_up` emits `Message`, not `ErrorPayload`
+
+The spec typed `gave_up` as `["ErrorPayload"]`. Two practical problems:
+
+1. `ErrorPayload` is a structured Python dataclass; downstream UI components (Chat Output, Text Output, Agent input) all consume `Message`. Typing `gave_up` as `ErrorPayload` would have required either lossy adapters at every fan-out target or rejection at the edge-type validator.
+2. The user-facing rendering of an error is text — markdown body with the error type, message, attempt count, and a truncated stack trace.
+
+Resolution: `gave_up` is typed `["Message"]`. The runtime renders the `ErrorPayload` into a markdown `Message` and writes it to the failing vertex's `error` output (see next item). `ErrorHandler.on_error_exhausted` forwards `self.error_input` as the `gave_up` value. Chat Output, Text Output, and Agent all receive a `Message` they already know how to render or consume.
+
+### Synthesize-failing-vertex state instead of invoking the handler manually
+
+The spec implied `_try_handle_via_error_edge` would invoke the `ErrorHandler` vertex itself (computing inputs, calling `vertex.build()`, returning a VBR for the handler) on retry exhaustion. That fought the build pipeline's edge resolver — `error_input` is wired to the failing vertex's `error` output, so the handler's normal `_build_each_vertex_in_params_dict` path tried to resolve it from the (failed) failing vertex and we ended up patching `raw_params`/`build_params` and monkey-patching `on_error_exhausted` to fight back.
+
+Resolution: rather than invoke the handler manually, the runtime extension synthesizes a "successful" state on the **failing vertex**:
+
+- Sets `failing_vertex.built = True`.
+- Sets `failing_vertex.results["error"] = <Message rendered from the ErrorPayload>`.
+- Calls `failing_vertex.set_result(ResultData(results={"error": message}, ...))`.
+- Suppresses the failing vertex's non-error successors via `graph.exclude_branch_conditionally`.
+- Dispatches the alert and records the handled error.
+- Returns a VBR for the **failing vertex** (with `valid=True`).
+
+The standard build pipeline then takes the synth VBR, computes next-runnable from the failing vertex's successors (which is the `ErrorHandler` vertex), builds it via the normal pipeline, resolves `error_input` from the failing vertex's `results["error"]`, and `on_error_exhausted` returns that `Message` as `gave_up`. From the build pipeline's perspective, nothing extraordinary happened — the failing vertex just produced an `error` output.
+
+### Fix: drop the inner `get_next_runnable_vertices` call
+
+The original error-handling block in `Graph.build_vertex` computed `get_next_runnable_vertices` for each handled VBR and stuffed the result into `_run_queue`. Two problems:
+
+1. `_run_queue` is consumed only by `astep`; the streaming API path uses `vertex_build_response.next_vertices_ids` (computed by the outer caller) for recursion, so the queue extension was dead code in production.
+2. The inner `get_next_runnable_vertices` call adds the next runnable vertex (e.g. `ErrorHandler`) to `vertices_being_run`. Then the outer caller (`api._build_vertex` line 380, `_execute_tasks` line 1964, `astep` line 1520) calls `get_next_runnable_vertices` *again* on the same failing vertex — but `is_vertex_runnable(ErrorHandler)` now returns `False` because it's in `vertices_being_run`, the recursive predecessor walk finds nothing else, and the outer call returns `[]`. The recursion stalls at the failing vertex and `ErrorHandler` (and anything past it) never queues.
+
+Resolution: the error-handling block in `Graph.build_vertex` no longer computes next-runnable. It just returns the synth VBR and lets each outer caller compute next-runnable from `synth_vbr.vertex` itself, which then traverses the full `failing_vertex → ErrorHandler → … → terminal` chain through normal build-pipeline recursion.
+
+### Auto-injected error output must set `tool_mode=False`
+
+`Output.tool_mode` defaults to `True`. The auto-injection in `Component._maybe_inject_error_output` originally constructed the error `Output` without specifying `tool_mode`, so it inherited the default. That collided with the agent-as-tool path:
+
+`LCAgentComponent` has `error_output_enabled=True` (so it has the auto-injected error output) **and** its `input_value` input has `tool_mode=True`. When an Agent is a *terminal* vertex (no outgoing edges), `_should_process_output` returns True for *every* output in `_outputs_map`. `_handle_tool_mode` adds the `component_as_tool` output (method=`to_toolkit`), which gets processed and calls `Agent._get_tools(tool_name="Call_Agent", ...)`. `ComponentToolkit.get_tools` then iterates `self.outputs`, finds 2 non-skipped outputs (the component's normal output + the `error` output), and raises *"When passing a tool name or description, there must be only one tool, but 2 tools were found."*
+
+This was latent until the multi-hop traversal fix landed — beforehand, the error chain stopped at `ErrorHandler` and the terminal Agent never built. After the fix, the Agent built and the bug surfaced.
+
+Resolution: set `tool_mode=False` on the auto-injected error `Output`. `ComponentToolkit._should_skip_output` excludes it from tool conversion via the `not output.tool_mode` branch. Inline comment at the injection site documents the rationale so a future cleanup pass doesn't strip the flag.
+
+### Component-loader two-load-path gotcha (`isinstance` failure)
+
+`isinstance(component, ErrorHandler)` returned `False` for components instantiated by Langflow's component loader, even when the component class was named `ErrorHandler`. Per the `langflow-component-loader` skill, the loader can instantiate components under a *different* class object than `from lfx.components.reliability.error_handler import ErrorHandler` resolves to in the runtime extension's import.
+
+Resolution: `_try_handle_via_error_edge` matches by class `__name__` plus a duck-type check (`hasattr(component, "dispatch_alert")`) instead of `isinstance`. Both the cycle guard and the handler-target check use the same helper.
+
+### What ships
+
+- `Component.error_output_enabled: ClassVar[bool]` opt-in (default `False` on root, `True` on a curated set of bases per the spec).
+- `ErrorPayload` schema in `src/lfx/src/lfx/schema/error_payload.py` and registered in `lfx.field_typing`.
+- `ErrorHandler` component at `src/lfx/src/lfx/components/reliability/error_handler.py` with retry config, alert dispatch, `gave_up: Message` output.
+- Runtime extension in `Graph.build_vertex` + `_try_handle_via_error_edge` + `_suppress_normal_successors` + `_dispatch_handler_alert` + `_record_handled_error`.
+- `RunStatus.PARTIAL_SUCCESS` enum value, `_FAILURE_STATES` exclusion, webhook mapping.
+- Frontend cleanEdges regression fix preserving `ErrorPayload`-typed edges (commit `154c025a5a`).
+- API Request, ADP API Request, ADP Tools `raise_on_status` toggle (commit `7e607f9dbd`) so 4xx/5xx HTTP responses raise instead of silently returning, which is what makes the error edge fire.
+- Skill update at `.claude/skills/langflow-component-error-port/SKILL.md` covering the per-component opt-in mechanics.
+
+### Manually verified end-to-end
+
+Flow: `API Request.error → ErrorHandler.error_input → TextOutput`. With `Raise on HTTP error (4xx/5xx)` enabled and a 4xx-returning URL, the build pipeline now traverses:
+
+```
+APIRequest-...   (fails → synth state)  → recurse → [ErrorHandler-...]
+ErrorHandler-... (built, gave_up=Message) → recurse → [TextOutput-...]
+TextOutput-...   (built)                  → terminal
+```
+
+The bell fires once, the magnifier on `gave_up` shows the rendered error markdown, and downstream components (Chat Output / Text Output / Agent input) receive the `Message` through the normal build pipeline.

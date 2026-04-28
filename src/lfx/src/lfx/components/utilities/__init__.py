@@ -7,12 +7,14 @@ from lfx.components._importing import import_mod
 if TYPE_CHECKING:
     from lfx.components.utilities.calculator_core import CalculatorComponent
     from lfx.components.utilities.current_date import CurrentDateComponent
+    from lfx.components.utilities.error_handler import ErrorHandler
     from lfx.components.utilities.id_generator import IDGeneratorComponent
     from lfx.components.utilities.python_repl_core import PythonREPLComponent
 
 _dynamic_imports = {
     "CalculatorComponent": "calculator_core",
     "CurrentDateComponent": "current_date",
+    "ErrorHandler": "error_handler",
     "IDGeneratorComponent": "id_generator",
     "PythonREPLComponent": "python_repl_core",
 }
@@ -20,6 +22,7 @@ _dynamic_imports = {
 __all__ = [
     "CalculatorComponent",
     "CurrentDateComponent",
+    "ErrorHandler",
     "IDGeneratorComponent",
     "PythonREPLComponent",
 ]
