@@ -4,6 +4,7 @@ export * from "./use-get-organization";
 export * from "./use-get-user";
 export * from "./use-create-organization";
 export * from "./use-delete-organization";
+export * from "./use-update-organization";
 export * from "./use-add-member";
 export * from "./use-remove-member";
 export * from "./use-search-users";

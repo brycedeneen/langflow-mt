@@ -79,3 +79,7 @@ export interface UserDetail {
   last_login_at: string | null;
   memberships: UserMembership[];
 }
+
+export interface OrgUpdate {
+  name: string;
+}
