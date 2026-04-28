@@ -5,8 +5,7 @@ import "./style/classes.css";
 // @ts-ignore
 import "./style/index.css";
 // @ts-ignore
-import "./App.css";
-import "./style/applies.css";
+import "./style/custom-ace-overrides.css";
 
 // @ts-ignore
 import App from "./customization/custom-App";

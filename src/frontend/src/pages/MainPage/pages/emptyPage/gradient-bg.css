@@ -1,6 +1,31 @@
 @reference "../../../../style/index.css";
 
-/* Empty-page decorative animated background. Relocated from applies.css 2026-04-26. */
+:root {
+  --color-bg1: rgb(255, 255, 255);
+  --color1: 255, 50, 118;
+  --color2: 244, 128, 255;
+  --color3: 117, 40, 252;
+  --color-interactive: 140, 100, 255;
+  --circle-size: 50%;
+  --blending: hard-light;
+}
+
+.dark {
+  --color-bg1: rgb(0, 0, 0);
+  --circle-size: 60%;
+}
+
+@keyframes moveInCircle {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 
 .gradient-bg {
 width: 100%;

@@ -1,7 +1,5 @@
 @reference "../../../style/index.css";
 
-/* Horizontal scroll fade effect. Relocated from applies.css 2026-04-26. */
-
 .fade-container {
     @apply relative overflow-hidden;
 }

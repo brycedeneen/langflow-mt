@@ -4,8 +4,7 @@ import { useEffect } from "react";
 // Import all CSS files to match the app's styling
 import "../src/style/classes.css";
 import "../src/style/index.css";
-import "../src/App.css";
-import "../src/style/applies.css";
+import "../src/style/custom-ace-overrides.css";
 import { TooltipProvider } from "../src/components/ui/tooltip";
 import { useDarkStore } from "../src/stores/darkStore";
 

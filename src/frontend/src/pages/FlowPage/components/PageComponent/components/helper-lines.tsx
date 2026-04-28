@@ -14,7 +14,7 @@ export default function HelperLines({ helperLines }: HelperLinesProps) {
   }
 
   return (
-    <svg className="helper-lines">
+    <svg className="pointer-events-none absolute left-0 top-0 z-10 h-full w-full">
       {helperLines.horizontal && (
         <line
           x1={0}
