@@ -129,6 +129,25 @@ def test_flow_folder_user_id_fk_is_set_null():
         Path(db_path).unlink(missing_ok=True)
 
 
+def test_flow_usage_daily_flow_id_has_no_fk():
+    """`flow_usage_daily.flow_id` must have no FK in the model metadata.
+
+    Guards migration 3ce76c394183 (drop FK so usage rows are retained for
+    billing/audit on flow delete). On SQLite the physical FK survives the
+    no-op migration (FK enforcement is off and DROP CONSTRAINT isn't
+    supported), so we assert against the model metadata directly — that's
+    what Alembic emits to Postgres on a fresh deploy.
+    """
+    table = SQLModel.metadata.tables["flow_usage_daily"]
+    flow_id_col = table.c["flow_id"]
+    assert flow_id_col.primary_key, "flow_id must remain part of the PK"
+    assert not flow_id_col.nullable, "flow_id must remain NOT NULL"
+    assert not flow_id_col.foreign_keys, (
+        f"flow_usage_daily.flow_id must have no FK (retain rows on flow delete), "
+        f"got {flow_id_col.foreign_keys!r}"
+    )
+
+
 def test_no_phantom_migrations():
     """Verify that models and migrations are in sync.
 
