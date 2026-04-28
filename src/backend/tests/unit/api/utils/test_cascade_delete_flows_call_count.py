@@ -7,11 +7,13 @@ CLI. Instead, we count ``session.exec`` invocations for the legacy
 per-flow loop pattern versus the new batched helper across a handful of N's
 and assert the round-trip count drops from ``O(N)`` to ``O(chunks)``.
 
-The recording fake returns *no rows* on the trace SELECT (see
-``_RecordingSession`` below) — that mirrors the typical production case
-where most flows are never traced, so the conditional span DELETE inside
-``_cascade_delete_flow_chunk`` is skipped. Result: a constant 8 statements
-per chunk (5 child DELETEs + trace SELECT + trace DELETE + flow DELETE).
+The recording fake returns *no rows* on the trace SELECT and the flow_run
+``run_ids`` SELECT (see ``_RecordingSession`` below) — that mirrors the
+typical production case where most flows are never traced and have no
+queued runs, so both conditional DELETEs (span and flow_run_log) inside
+``_cascade_delete_flow_chunk`` are skipped. Result: a constant 11
+statements per chunk (7 child DELETEs + run-id SELECT + trace-id SELECT
++ trace DELETE + flow DELETE).
 
 The helper imports here are the same surface ``cascade_delete_flow`` /
 ``cascade_delete_flows`` covered by the behavioral suite next door
@@ -37,9 +39,9 @@ if TYPE_CHECKING:
 # --------------------------------------------------------------------------- #
 #
 # Mirrors the helper inside test_cascade_delete_flows.py::
-# test_chunking_at_batch_boundary. The trace SELECT returns no rows so the
-# helper's optional span DELETE is skipped — giving the documented 7-call
-# count per chunk.
+# test_chunking_at_batch_boundary. The trace and run-id SELECTs return no
+# rows so the helper's optional span and flow_run_log DELETEs are skipped
+# — giving the documented per-chunk call count.
 
 
 class _FakeResult:
@@ -57,8 +59,9 @@ class _RecordingSession:
     """AsyncSession-shaped fake that records every ``exec`` invocation.
 
     Returns an empty ``_FakeResult`` for every statement, including the
-    helper's trace-id SELECT — so the conditional span DELETE inside
-    ``_cascade_delete_flow_chunk`` does not fire.
+    helper's trace-id SELECT and the flow_run run-id SELECT — so both
+    conditional DELETEs (span and flow_run_log) inside
+    ``_cascade_delete_flow_chunk`` are skipped.
     """
 
     def __init__(self) -> None:
@@ -84,17 +87,20 @@ class _RecordingSession:
 # --------------------------------------------------------------------------- #
 
 
-# Per chunk (<= _CASCADE_DELETE_BATCH_SIZE=500 ids) with no traces:
-#   1. DELETE FROM message      WHERE flow_id IN (...)
-#   2. DELETE FROM transaction  WHERE flow_id IN (...)
-#   3. DELETE FROM vertex_build WHERE flow_id IN (...)
-#   4. DELETE FROM flow_run     WHERE flow_id IN (...)   ← added when FlowRun landed (Task 4)
-#   5. DELETE FROM flow_version WHERE flow_id IN (...)
-#   6. SELECT trace.id FROM trace WHERE flow_id IN (...)   (returns empty)
-#   7. DELETE FROM trace        WHERE flow_id IN (...)
-#   8. DELETE FROM flow         WHERE id      IN (...)
-# = 8 statements per chunk.
-_CALLS_PER_CHUNK_NO_TRACES = 8
+# Per chunk (<= _CASCADE_DELETE_BATCH_SIZE=500 ids) with no traces and no runs:
+#   1. DELETE FROM message       WHERE flow_id IN (...)
+#   2. DELETE FROM transaction   WHERE flow_id IN (...)
+#   3. DELETE FROM vertex_build  WHERE flow_id IN (...)
+#   4. DELETE FROM flow_tag      WHERE flow_id IN (...)
+#   5. DELETE FROM job           WHERE flow_id IN (...)
+#   6. SELECT flow_run.id        WHERE flow_id IN (...)   (returns empty)
+#   7. DELETE FROM flow_run      WHERE flow_id IN (...)
+#   8. DELETE FROM flow_version  WHERE flow_id IN (...)
+#   9. SELECT trace.id           WHERE flow_id IN (...)   (returns empty)
+#  10. DELETE FROM trace         WHERE flow_id IN (...)
+#  11. DELETE FROM flow          WHERE id      IN (...)
+# = 11 statements per chunk.
+_CALLS_PER_CHUNK_NO_TRACES = 11
 
 
 @pytest.mark.parametrize("n_flows", [1, 10, 50, 100])
@@ -103,7 +109,8 @@ async def test_call_count_loop_vs_batched(n_flows: int) -> None:
 
     Counts ``session.exec`` invocations for both the legacy per-flow loop
     pattern and the new batched ``cascade_delete_flows``. The batched call
-    should issue a constant 7 statements per <=500-id chunk, regardless of N.
+    should issue a constant ``_CALLS_PER_CHUNK_NO_TRACES`` statements per
+    <=500-id chunk, regardless of N.
     """
     flow_ids = [uuid.uuid4() for _ in range(n_flows)]
 

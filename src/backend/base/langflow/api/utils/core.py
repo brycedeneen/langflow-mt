@@ -21,8 +21,11 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from langflow.services.auth.utils import get_current_active_user, get_current_active_user_mcp
 from langflow.services.database.models.flow.model import Flow
 from langflow.services.database.models.flow_run.model import FlowRun
+from langflow.services.database.models.flow_run_log.model import FlowRunLog
 from langflow.services.database.models.flow_version.model import FlowVersion
+from langflow.services.database.models.jobs.model import Job
 from langflow.services.database.models.message.model import MessageTable
+from langflow.services.database.models.tag.model import FlowTag
 from langflow.services.database.models.traces.model import SpanTable, TraceTable
 from langflow.services.database.models.transactions.model import TransactionTable
 from langflow.services.database.models.user.model import User
@@ -473,6 +476,22 @@ async def _cascade_delete_flow_chunk(session: AsyncSession, flow_ids: list[uuid.
         await session.exec(delete(MessageTable).where(col(MessageTable.flow_id).in_(flow_ids)))
         await session.exec(delete(TransactionTable).where(col(TransactionTable.flow_id).in_(flow_ids)))
         await session.exec(delete(VertexBuildTable).where(col(VertexBuildTable.flow_id).in_(flow_ids)))
+        # flow_tag is a join table; FK to flow.id has ON DELETE CASCADE in the
+        # migration, but SQLite doesn't enforce FK cascades by default — match
+        # the existing pattern of explicitly deleting child rows.
+        await session.exec(delete(FlowTag).where(col(FlowTag.flow_id).in_(flow_ids)))
+        # job has a flow_id column without a declared FK, so deletion is
+        # entirely Python-side regardless of backend. No grandchildren.
+        await session.exec(delete(Job).where(col(Job.flow_id).in_(flow_ids)))
+        # flow_run has child rows in flow_run_log keyed by run_id with an
+        # ON DELETE CASCADE FK. Same SQLite caveat — delete the grandchildren
+        # first, then flow_run itself. Limit the run-id lookup to this chunk's
+        # flows so the IN clause stays bounded by _CASCADE_DELETE_BATCH_SIZE.
+        run_ids = (
+            await session.exec(select(FlowRun.id).where(col(FlowRun.flow_id).in_(flow_ids)))
+        ).all()
+        if run_ids:
+            await session.exec(delete(FlowRunLog).where(col(FlowRunLog.run_id).in_(run_ids)))
         # flow_run.flow_id FK is ON DELETE NO ACTION, so it must be cleared explicitly.
         await session.exec(delete(FlowRun).where(col(FlowRun.flow_id).in_(flow_ids)))
         # Explicit delete despite FK CASCADE — SQLite doesn't enforce FK cascades
