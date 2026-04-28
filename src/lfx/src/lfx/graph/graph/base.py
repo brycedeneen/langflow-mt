@@ -57,6 +57,42 @@ if TYPE_CHECKING:
     from lfx.services.tracing.service import TracingService
 
 
+def _copy_run_manager_dict(rm_dict: dict) -> dict:
+    """Structural copy of a ``RunnableVerticesManager.to_dict()`` result.
+
+    The returned dict has the same shape as the input, but its container
+    values (lists / sets / inner dicts) are independent -- mutating them will
+    not affect the original. Terminal string values are shared, which is safe
+    because Python strings are immutable.
+
+    This replaces a previous ``copy.deepcopy(rm.to_dict())`` on the snapshot
+    hot path. Deepcopy was strictly wasteful since every nested value is
+    either a string, a list of strings, or a set of strings (verified against
+    ``RunnableVerticesManager.to_dict``: ``run_map`` and ``run_predecessors``
+    are ``defaultdict(list)``; ``vertices_to_run``, ``vertices_being_run``,
+    and ``ran_at_least_once`` are ``set``).
+    """
+    out: dict = {}
+    for key, value in rm_dict.items():
+        if isinstance(value, dict):
+            # run_map / run_predecessors: dict[str, list[str]]. Copy each
+            # inner list once; preserving plain dict semantics is fine because
+            # snapshot consumers never feed the result back into
+            # RunnableVerticesManager.from_dict (verified, only the pickle
+            # path uses from_dict).
+            out[key] = {
+                inner_key: list(inner_val) if isinstance(inner_val, list) else inner_val
+                for inner_key, inner_val in value.items()
+            }
+        elif isinstance(value, set):
+            out[key] = set(value)
+        elif isinstance(value, list):
+            out[key] = list(value)
+        else:
+            out[key] = value
+    return out
+
+
 class Graph:
     """A class representing a graph of vertices and edges."""
 
@@ -403,12 +439,17 @@ class Graph:
         raise ValueError(msg)
 
     def _snapshot(self):
+        # NOTE(perf): vertices_layers is list[list[str]] and vertices_to_run is
+        # set[str] -- terminal values are immutable strings, so a structural
+        # shallow-of-shallows produces the same observable independence as
+        # deepcopy at a fraction of the cost (no recursion, no memo dict).
+        # See test_snapshot_immutability.py for the contract.
         return {
             "_run_queue": self._run_queue.copy(),
             "_first_layer": self._first_layer.copy(),
-            "vertices_layers": copy.deepcopy(self.vertices_layers),
-            "vertices_to_run": copy.deepcopy(self.vertices_to_run),
-            "run_manager": copy.deepcopy(self.run_manager.to_dict()),
+            "vertices_layers": [layer.copy() for layer in self.vertices_layers],
+            "vertices_to_run": set(self.vertices_to_run),
+            "run_manager": _copy_run_manager_dict(self.run_manager.to_dict()),
         }
 
     def __apply_config(self, config: StartConfigDict) -> None:
@@ -1532,16 +1573,20 @@ class Graph:
         return vertex_build_result
 
     def get_snapshot(self):
-        return copy.deepcopy(
-            {
-                "run_manager": self.run_manager.to_dict(),
-                "run_queue": self._run_queue,
-                "vertices_layers": self.vertices_layers,
-                "first_layer": self.first_layer,
-                "inactive_vertices": self.inactive_vertices,
-                "activated_vertices": self.activated_vertices,
-            }
-        )
+        # NOTE(perf): see _snapshot for the rationale. All terminal values in
+        # the snapshotted state are vertex-id strings (immutable), so a
+        # structural copy of each container is sufficient. Field types
+        # (verified at __init__): vertices_layers=list[list[str]],
+        # inactive_vertices=set[str], activated_vertices=list[str],
+        # _run_queue=deque[str], _first_layer=list[str].
+        return {
+            "run_manager": _copy_run_manager_dict(self.run_manager.to_dict()),
+            "run_queue": self._run_queue.copy(),
+            "vertices_layers": [layer.copy() for layer in self.vertices_layers],
+            "first_layer": list(self.first_layer),
+            "inactive_vertices": set(self.inactive_vertices),
+            "activated_vertices": list(self.activated_vertices),
+        }
 
     def _record_snapshot(self, vertex_id: str | None = None) -> None:
         self._snapshots.append(self.get_snapshot())
