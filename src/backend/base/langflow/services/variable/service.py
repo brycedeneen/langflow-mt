@@ -10,6 +10,7 @@ from sqlmodel import select
 
 from langflow.services.auth import utils as auth_utils
 from langflow.services.base import Service
+from langflow.services.database.models.user.helpers import resolve_user_organization_id
 from langflow.services.database.models.variable.model import Variable, VariableCreate, VariableRead, VariableUpdate
 from langflow.services.variable.base import VariableService
 from langflow.services.variable.constants import CREDENTIAL_TYPE, GENERIC_TYPE
@@ -47,6 +48,9 @@ class DatabaseVariableService(VariableService, Service):
         except Exception:  # noqa: BLE001
             var_to_provider = {}
             var_to_info = {}
+
+        # user_id and session are loop-invariant; resolve org once instead of per-iteration.
+        org_id = await resolve_user_organization_id(session, user_id)
 
         for var_name in self.settings_service.settings.variables_to_get_from_environment:
             # Check if session is still usable before processing each variable
@@ -158,9 +162,6 @@ class DatabaseVariableService(VariableService, Service):
                         else:
                             await self.update_variable(user_id, var_name, value, session=session)
                     else:
-                        from langflow.services.database.models.user.helpers import resolve_user_organization_id
-
-                        org_id = await resolve_user_organization_id(session, user_id)
                         await self.create_variable(
                             user_id=user_id,
                             name=var_name,

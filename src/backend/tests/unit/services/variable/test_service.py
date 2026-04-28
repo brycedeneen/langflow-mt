@@ -1,5 +1,5 @@
 from datetime import datetime
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
 import pytest
@@ -48,6 +48,31 @@ async def test_initialize_user_variables__create_and_update(service, session: As
 
     assert all(i in variables for i in good_vars)
     assert all(i not in variables for i in bad_vars)
+
+
+async def test_initialize_user_variables__resolves_org_once_per_call(service, session: AsyncSession):
+    """resolve_user_organization_id is loop-invariant; it must be called once per
+    initialize_user_variables call, regardless of how many env vars hit the create branch.
+    """
+    user_id = uuid4()
+    env_vars = {k: f"value{i}" for i, k in enumerate(VARIABLES_TO_GET_FROM_ENVIRONMENT)}
+
+    org_uuid = uuid4()
+    with (
+        patch(
+            "langflow.services.variable.service.resolve_user_organization_id",
+            new=AsyncMock(return_value=org_uuid),
+        ) as resolver,
+        patch.object(service, "create_variable", new=AsyncMock()) as creator,
+        patch.dict("os.environ", env_vars, clear=True),
+    ):
+        await service.initialize_user_variables(user_id=user_id, session=session)
+
+    assert resolver.await_count == 1
+    # Sanity: every env var routed through the create branch and was passed the resolved org_id.
+    assert creator.await_count == len(env_vars)
+    for call in creator.await_args_list:
+        assert call.kwargs["organization_id"] == org_uuid
 
 
 async def test_initialize_user_variables__not_found_variable(service, session: AsyncSession):
