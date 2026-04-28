@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from uuid import UUID
 
+from lfx.log.logger import logger
 from sqlmodel import select
 
 from langflow.services.variable.constants import CREDENTIAL_TYPE
@@ -143,6 +144,8 @@ async def promote_plaintext_secrets_to_variables(
       3b. Legacy underscore-delimited marker → clear (dev-data hygiene).
       4. User-picked user-managed Variable name → passthrough.
       5. Typed-in plaintext → write Vault, point field at marker.
+         Refuses overwrite of an existing autosecret to block password-manager
+         autofill clobber; pairs with the frontend autoComplete + ignore attrs.
     """
     org_id = organization_id
 
@@ -179,7 +182,25 @@ async def promote_plaintext_secrets_to_variables(
         ):
             continue
 
-        # Branch 5: typed-in plaintext
+        # Branch 5: typed-in plaintext. Refuse overwrite of an existing
+        # autosecret with a non-matching value — protects against
+        # password-manager autofill clobber on flow open.
+        existing = await secret_store.get(path)
+        if existing and existing.get("value"):
+            if existing.get("value") == value:
+                field["value"] = marker
+                field["load_from_db"] = True
+                continue
+            logger.warning(
+                "auto_secrets: refusing to overwrite existing autosecret at "
+                f"{path} from flow save (likely password-manager autofill). "
+                "Vault payload preserved; field rewritten to marker. If this "
+                "was an intentional rotation, clear the field first and re-save."
+            )
+            field["value"] = marker
+            field["load_from_db"] = True
+            continue
+
         await secret_store.put(path, {"value": value})
         field["value"] = marker
         field["load_from_db"] = True

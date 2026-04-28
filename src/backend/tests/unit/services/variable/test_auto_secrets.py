@@ -188,6 +188,143 @@ async def test_promote_legacy_marker_clears_field():
 
 
 @pytest.mark.asyncio
+async def test_promote_branch5_refuses_to_overwrite_existing_autosecret_with_different_value():
+    """Autofill-clobber defense.
+
+    When a Vault autosecret already exists for (flow, node, field), Branch 5
+    must NOT silently replace it with a new plaintext value coming through
+    flow save. This is the back-end defense-in-depth against password-manager
+    autofill that writes garbage (e.g. ``P@ssword1!``) into a SecretStrInput
+    field on flow open.
+
+    Acceptance:
+      - Vault payload remains the original value.
+      - Field gets rewritten to the marker (so the saved flow continues to
+        resolve to the real secret on the next build).
+      - load_from_db is True.
+    """
+    secret_store = InMemorySecretStore()
+    path = autosecret_vault_path(ORG_ID, FLOW_ID, NODE_ID, "client_id")
+    real_value = "12345678-aaaa-bbbb-cccc-1234567890ab"
+    await secret_store.put(path, {"value": real_value})
+
+    flow_data = _flow_data(
+        {
+            "_input_type": "SecretStrInput",
+            "auto_promote": True,
+            # The clobbering value the password manager dumped into the field.
+            "value": "P@ssword1!",
+            "load_from_db": False,
+        },
+        field_name="client_id",
+    )
+
+    variable_service = AsyncMock()
+    variable_service.has_user_managed_variable = AsyncMock(return_value=False)
+
+    out = await promote_plaintext_secrets_to_variables(
+        flow_data=flow_data,
+        flow_id=FLOW_ID,
+        organization_id=ORG_ID,
+        user_id=USER_ID,
+        secret_store=secret_store,
+        variable_service=variable_service,
+        session=AsyncMock(),
+    )
+
+    field = out["nodes"][0]["data"]["node"]["template"]["client_id"]
+    # Flow data is rewritten to the marker so the next build still resolves
+    # the *real* secret from Vault.
+    assert field["value"] == autosecret_marker(FLOW_ID, NODE_ID, "client_id")
+    assert field["load_from_db"] is True
+
+    # Vault payload is untouched — the real secret survives autofill.
+    stored = await secret_store.get(path)
+    assert stored == {"value": real_value}
+
+
+@pytest.mark.asyncio
+async def test_promote_branch5_idempotent_when_value_matches_existing_autosecret():
+    """Sanity check for the equality short-circuit.
+
+    When the user's flow happens to carry a plaintext value identical to
+    what's already in Vault, Branch 5 is a no-op write and the field is
+    rewritten to the marker. Vault payload is unchanged but the field is
+    canonicalized.
+    """
+    secret_store = InMemorySecretStore()
+    path = autosecret_vault_path(ORG_ID, FLOW_ID, NODE_ID, "client_id")
+    real_value = "12345678-aaaa-bbbb-cccc-1234567890ab"
+    await secret_store.put(path, {"value": real_value})
+
+    flow_data = _flow_data(
+        {
+            "_input_type": "SecretStrInput",
+            "auto_promote": True,
+            "value": real_value,
+            "load_from_db": False,
+        },
+        field_name="client_id",
+    )
+
+    variable_service = AsyncMock()
+    variable_service.has_user_managed_variable = AsyncMock(return_value=False)
+
+    out = await promote_plaintext_secrets_to_variables(
+        flow_data=flow_data,
+        flow_id=FLOW_ID,
+        organization_id=ORG_ID,
+        user_id=USER_ID,
+        secret_store=secret_store,
+        variable_service=variable_service,
+        session=AsyncMock(),
+    )
+
+    field = out["nodes"][0]["data"]["node"]["template"]["client_id"]
+    assert field["value"] == autosecret_marker(FLOW_ID, NODE_ID, "client_id")
+    assert field["load_from_db"] is True
+    assert (await secret_store.get(path)) == {"value": real_value}
+
+
+@pytest.mark.asyncio
+async def test_promote_branch5_writes_when_no_existing_autosecret():
+    """First-time write must still flow through.
+
+    No existing Vault entry => Branch 5 writes the plaintext as before.
+    """
+    secret_store = InMemorySecretStore()
+    path = autosecret_vault_path(ORG_ID, FLOW_ID, NODE_ID, "client_id")
+    new_value = "user-typed-real-secret"
+
+    flow_data = _flow_data(
+        {
+            "_input_type": "SecretStrInput",
+            "auto_promote": True,
+            "value": new_value,
+            "load_from_db": False,
+        },
+        field_name="client_id",
+    )
+
+    variable_service = AsyncMock()
+    variable_service.has_user_managed_variable = AsyncMock(return_value=False)
+
+    out = await promote_plaintext_secrets_to_variables(
+        flow_data=flow_data,
+        flow_id=FLOW_ID,
+        organization_id=ORG_ID,
+        user_id=USER_ID,
+        secret_store=secret_store,
+        variable_service=variable_service,
+        session=AsyncMock(),
+    )
+
+    field = out["nodes"][0]["data"]["node"]["template"]["client_id"]
+    assert field["value"] == autosecret_marker(FLOW_ID, NODE_ID, "client_id")
+    assert (await secret_store.get(path)) == {"value": new_value}
+
+
+@pytest.mark.asyncio
 async def test_promote_user_managed_variable_name_passes_through():
     flow_data = _flow_data(
         {
