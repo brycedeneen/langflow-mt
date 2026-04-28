@@ -207,6 +207,128 @@ async def test_delete_personal_org_forbidden(client: AsyncClient, admin_headers)
 
 
 # ---------------------------------------------------------------------------
+# Org rename (PATCH) tests
+# ---------------------------------------------------------------------------
+
+
+async def test_rename_org_happy(client: AsyncClient, admin_headers):
+    """Platform admin can rename a non-personal org; GET returns the new name; updated_at advances."""
+    slug = f"rename-org-{uuid4().hex[:8]}"
+    create_resp = await client.post(
+        "api/v1/admin/organizations",
+        json={"name": "Old Name", "slug": slug},
+        headers=admin_headers,
+    )
+    assert create_resp.status_code == status.HTTP_201_CREATED
+    created = create_resp.json()
+    org_id = created["id"]
+
+    patch_resp = await client.patch(
+        f"api/v1/admin/organizations/{org_id}",
+        json={"name": "New Name"},
+        headers=admin_headers,
+    )
+    assert patch_resp.status_code == status.HTTP_200_OK
+    data = patch_resp.json()
+    assert data["id"] == org_id
+    assert data["name"] == "New Name"
+    assert data["slug"] == slug  # slug unchanged
+    # updated_at and created_at are equal at creation time (same default_factory).
+    # Asserting they differ post-patch verifies the endpoint actually bumped updated_at —
+    # the model has no onupdate hook, so a missing manual bump would be silent.
+    assert data["updated_at"] != data["created_at"]
+
+    get_resp = await client.get(
+        f"api/v1/admin/organizations/{org_id}", headers=admin_headers
+    )
+    assert get_resp.status_code == status.HTTP_200_OK
+    assert get_resp.json()["name"] == "New Name"
+
+
+async def test_rename_org_not_found(client: AsyncClient, admin_headers):
+    """PATCH a non-existent org → 404."""
+    missing_id = str(uuid4())
+    resp = await client.patch(
+        f"api/v1/admin/organizations/{missing_id}",
+        json={"name": "Whatever"},
+        headers=admin_headers,
+    )
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_rename_personal_org_forbidden(client: AsyncClient, admin_headers):
+    """PATCH a personal org → 403."""
+    personal_id = None
+    async with session_scope() as session:
+        personal = Organization(
+            name="Personal",
+            slug=f"user-rename-{uuid4()}",
+            is_personal=True,
+        )
+        session.add(personal)
+        await session.flush()
+        await session.refresh(personal)
+        personal_id = str(personal.id)
+
+    try:
+        resp = await client.patch(
+            f"api/v1/admin/organizations/{personal_id}",
+            json={"name": "Renamed Personal"},
+            headers=admin_headers,
+        )
+        assert resp.status_code == status.HTTP_403_FORBIDDEN
+    finally:
+        from uuid import UUID as _UUID
+        async with session_scope() as session:
+            org = await session.get(Organization, _UUID(personal_id))
+            if org:
+                await session.delete(org)
+
+
+async def test_rename_org_validates_name(client: AsyncClient, admin_headers):
+    """Empty name and >200 chars → 422."""
+    slug = f"rename-bad-{uuid4().hex[:8]}"
+    create_resp = await client.post(
+        "api/v1/admin/organizations",
+        json={"name": "Renamable", "slug": slug},
+        headers=admin_headers,
+    )
+    assert create_resp.status_code == status.HTTP_201_CREATED
+    org_id = create_resp.json()["id"]
+
+    for bad_name in ["", "a" * 201]:
+        resp = await client.patch(
+            f"api/v1/admin/organizations/{org_id}",
+            json={"name": bad_name},
+            headers=admin_headers,
+        )
+        assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY, (
+            f"Expected 422 for name {bad_name!r}, got {resp.status_code}"
+        )
+
+
+async def test_rename_org_requires_platform_admin(
+    client: AsyncClient, admin_headers, logged_in_headers
+):
+    """Non-admin user → 403."""
+    slug = f"rename-auth-{uuid4().hex[:8]}"
+    create_resp = await client.post(
+        "api/v1/admin/organizations",
+        json={"name": "Auth Test", "slug": slug},
+        headers=admin_headers,
+    )
+    assert create_resp.status_code == status.HTTP_201_CREATED
+    org_id = create_resp.json()["id"]
+
+    resp = await client.patch(
+        f"api/v1/admin/organizations/{org_id}",
+        json={"name": "Should Fail"},
+        headers=logged_in_headers,
+    )
+    assert resp.status_code == status.HTTP_403_FORBIDDEN
+
+
+# ---------------------------------------------------------------------------
 # Membership tests
 # ---------------------------------------------------------------------------
 

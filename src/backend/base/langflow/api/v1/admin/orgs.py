@@ -6,6 +6,7 @@ org's membership scope.
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Annotated
 from uuid import UUID
 
@@ -148,6 +149,45 @@ async def create_organization(
         slug=org.slug,
         is_personal=org.is_personal,
         member_count=0,
+        created_at=org.created_at.isoformat(),
+        updated_at=org.updated_at.isoformat(),
+    )
+
+
+class OrgUpdate(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+
+
+@router.patch("/organizations/{org_id}", response_model=OrgSummary)
+async def update_organization(
+    org_id: UUID,
+    body: OrgUpdate,
+    _admin: PlatformAdmin,
+    session: DbSession,
+) -> OrgSummary:
+    org = await session.get(Organization, org_id)
+    if org is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Organization not found")
+    if org.is_personal:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN, "Cannot rename a personal organization"
+        )
+    org.name = body.name
+    org.updated_at = datetime.now(timezone.utc)
+    await session.flush()
+    mc = (
+        await session.exec(
+            select(func.count())
+            .select_from(Membership)
+            .where(Membership.organization_id == org.id)
+        )
+    ).one()
+    return OrgSummary(
+        id=org.id,
+        name=org.name,
+        slug=org.slug,
+        is_personal=org.is_personal,
+        member_count=int(mc),
         created_at=org.created_at.isoformat(),
         updated_at=org.updated_at.isoformat(),
     )
