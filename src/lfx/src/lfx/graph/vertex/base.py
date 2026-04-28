@@ -583,29 +583,150 @@ class Vertex:
         self.set_result(result_dict)
 
     async def _build_each_vertex_in_params_dict(self) -> None:
-        """Iterates over each vertex in the params dictionary and builds it."""
+        """Iterates over each vertex in the params dictionary and builds it.
+
+        Three-phase implementation:
+
+        1. **Bin (sync):** walk `raw_params` once, classify each entry as
+           ``"vertex"`` / ``"list"`` / ``"dict"`` (each requires awaiting an
+           upstream `get_result`) or as a plain-value passthrough that we
+           handle inline. Self-references are deleted in this pass too.
+        2. **Gather (async):** issue one coroutine per binned entry —
+           `_collect_param_value` is the only awaiting site and it does NOT
+           touch `self.params`. `asyncio.gather` runs every binned entry's
+           upstream resolution concurrently.
+        3. **Merge (sync):** zip resolved values back to keys in
+           `raw_params` insertion order and apply all post-await mutation
+           (`_handle_func`, list-extend, dict-slot assignment) sequentially
+           via `_merge_resolved_param`.
+
+        Why each bin is safe to gather:
+
+        - Each gathered coroutine reads only its own upstream vertex (and
+          that upstream's per-instance `asyncio.Lock`); it never writes to
+          `self.params`. There are zero shared writes across coroutines.
+        - `Vertex.get_result` is read-only once the upstream is built (it
+          raises if the upstream isn't built yet — see `_get_result`),
+          so concurrent readers of the same upstream serialize on its lock
+          without racing on its state.
+        - Post-merge runs synchronously after `gather` completes, in
+          deterministic key order, so `_handle_func` writing `coroutine`
+          and `_extend_params_list_with_result` doing read/modify/write on
+          `self.params[key]` are race-free by construction.
+        - `asyncio.gather` preserves contextvars (request_id, flow_id, etc.)
+          and preserves input order in its result list, which we exploit to
+          keep `self.params` deterministic.
+
+        Fail-fast: matches the prior serial loop. The first upstream
+        exception aborts the whole build; sibling tasks may be cancelled
+        mid-await, which only affects log ordering — no user-visible
+        behaviour change.
+        """
+        # Phase 1 (sync): bin keys; handle plain-value passthrough and the
+        # self-reference branch inline.
+        pending: list[tuple[str, str, Any]] = []  # (key, kind, payload)
         for key, value in self.raw_params.items():
             if self._is_vertex(value):
                 if value == self:
                     del self.params[key]
                     continue
-                await self._build_vertex_and_update_params(
-                    key,
-                    value,
-                )
+                pending.append((key, "vertex", value))
             elif isinstance(value, list) and self._is_list_of_vertices(value):
-                await self._build_list_of_vertices_and_update_params(key, value)
+                pending.append((key, "list", value))
             elif isinstance(value, dict):
-                await self._build_dict_and_update_params(
-                    key,
-                    value,
-                )
+                pending.append((key, "dict", value))
             elif key not in self.params or self.updated_raw_params:
                 self.params[key] = value
+
+        # Phase 2 (gather): launch all upstream get_result calls concurrently.
+        # Each coroutine returns its raw result and never touches self.params.
+        if pending:
+            coros = [self._collect_param_value(kind, payload, key) for key, kind, payload in pending]
+            resolved = await asyncio.gather(*coros)
+
+            # Phase 3 (sync): merge results back, preserving raw_params order.
+            for (key, kind, _payload), value in zip(pending, resolved, strict=True):
+                self._merge_resolved_param(key, kind, value)
 
         # Reset the flag after processing raw_params
         if self.updated_raw_params:
             self.updated_raw_params = False
+
+    async def _collect_param_value(self, kind: str, payload: Any, key: str) -> Any:
+        """Resolve one binned param entry. Only awaiting site; no self.params writes.
+
+        Returns kind-specific data:
+
+        - ``"vertex"``: the single upstream `get_result` value.
+        - ``"list"``: list of upstream `get_result` values, intra-list order
+          preserved (kept serial here; an inner gather is a separate, gated
+          optimization — see Task 4 in the plan).
+        - ``"dict"``: dict of `{sub_key: resolved_value_or_passthrough}`,
+          sub-key order preserved.
+        """
+        if kind == "vertex":
+            return await payload.get_result(self, target_handle_name=key)
+        if kind == "list":
+            # Inner serial loop preserves intra-list order. Inner gather is a
+            # follow-up optimization gated on measured wins.
+            return [await vertex.get_result(self, target_handle_name=key) for vertex in payload]
+        if kind == "dict":
+            resolved: dict[str, Any] = {}
+            for sub_key, value in payload.items():
+                if self._is_vertex(value):
+                    resolved[sub_key] = await value.get_result(self, target_handle_name=key)
+                else:
+                    resolved[sub_key] = value
+            return resolved
+        msg = f"Unknown param-build kind: {kind!r}"
+        raise ValueError(msg)
+
+    def _merge_resolved_param(self, key: str, kind: str, value: Any) -> None:
+        """Apply post-await mutation logic. Sync; runs after gather completes.
+
+        Reproduces the legacy `_build_*_and_update_params` post-await steps
+        verbatim so the serial-vs-parallel result is bit-identical:
+
+        - ``"vertex"``: `_handle_func` side-effect, optional list-extend,
+          assignment.
+        - ``"list"``: reset slot to `[]`, then for each upstream result
+          either extend (if list) or append (if scalar and not equal).
+        - ``"dict"``: assign each sub-key into `self.params[key]`.
+        """
+        if kind == "vertex":
+            self._handle_func(key, value)
+            if isinstance(value, list):
+                self._extend_params_list_with_result(key, value)
+            self.params[key] = value
+            return
+        if kind == "list":
+            self.params[key] = []
+            for result in value:
+                # Mirror legacy guard: a prior write may have left a
+                # non-list (Data) here. Promote to a list to keep extend/
+                # append safe.
+                if not isinstance(self.params[key], list):
+                    self.params[key] = [self.params[key]]
+                if isinstance(result, list):
+                    self.params[key].extend(result)
+                else:
+                    try:
+                        if self.params[key] == result:
+                            continue
+                        self.params[key].append(result)
+                    except AttributeError as exc:
+                        msg = (
+                            f"Params {key} ({self.params[key]}) is not a list and cannot be extended with {result}"
+                            f"Error building Component {self.display_name}: \n\n{exc}"
+                        )
+                        raise ValueError(msg) from exc
+            return
+        if kind == "dict":
+            for sub_key, sub_value in value.items():
+                self.params[key][sub_key] = sub_value
+            return
+        msg = f"Unknown param-build kind: {kind!r}"
+        raise ValueError(msg)
 
     async def _build_dict_and_update_params(
         self,
