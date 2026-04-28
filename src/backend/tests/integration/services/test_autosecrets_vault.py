@@ -91,7 +91,7 @@ async def test_save_then_resolve_round_trip(vault_store, org_id, flow_id):
     variable_service = AsyncMock()
     variable_service.has_user_managed_variable = AsyncMock(return_value=False)
 
-    out = await promote_plaintext_secrets_to_variables(
+    out, _refused = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=flow_id,
         organization_id=org_id,
@@ -141,7 +141,7 @@ async def test_empty_resave_preserves_secret(vault_store, org_id, flow_id):
     variable_service.has_user_managed_variable = AsyncMock(return_value=False)
 
     # First save
-    first = await promote_plaintext_secrets_to_variables(
+    first, _refused1 = await promote_plaintext_secrets_to_variables(
         flow_data=_flow_data(plaintext),
         flow_id=flow_id,
         organization_id=org_id,
@@ -154,7 +154,7 @@ async def test_empty_resave_preserves_secret(vault_store, org_id, flow_id):
 
     # Second save with empty value (simulating frontend round-trip)
     second_data = _flow_data("")
-    second = await promote_plaintext_secrets_to_variables(
+    second, _refused2 = await promote_plaintext_secrets_to_variables(
         flow_data=second_data,
         flow_id=flow_id,
         organization_id=org_id,

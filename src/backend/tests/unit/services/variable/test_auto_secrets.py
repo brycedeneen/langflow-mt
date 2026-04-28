@@ -59,7 +59,7 @@ async def test_promote_writes_plaintext_to_vault():
     variable_service = AsyncMock()
     variable_service.has_user_managed_variable = AsyncMock(return_value=False)
 
-    out = await promote_plaintext_secrets_to_variables(
+    out, _refused = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
         organization_id=ORG_ID,
@@ -93,7 +93,7 @@ async def test_promote_empty_value_with_existing_secret_preserves_marker():
         }
     )
 
-    out = await promote_plaintext_secrets_to_variables(
+    out, _refused = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
         organization_id=ORG_ID,
@@ -119,7 +119,7 @@ async def test_promote_empty_value_with_no_secret_clears_field():
             "load_from_db": True,
         }
     )
-    out = await promote_plaintext_secrets_to_variables(
+    out, _refused = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
         organization_id=ORG_ID,
@@ -146,7 +146,7 @@ async def test_promote_existing_marker_passes_through():
     )
 
     secret_store = InMemorySecretStore()
-    out = await promote_plaintext_secrets_to_variables(
+    out, _refused = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
         organization_id=ORG_ID,
@@ -173,7 +173,7 @@ async def test_promote_legacy_marker_clears_field():
             "load_from_db": True,
         }
     )
-    out = await promote_plaintext_secrets_to_variables(
+    out, _refused = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
         organization_id=ORG_ID,
@@ -185,6 +185,102 @@ async def test_promote_legacy_marker_clears_field():
     field = out["nodes"][0]["data"]["node"]["template"]["cert_pem"]
     assert field["value"] == ""
     assert field["load_from_db"] is False
+
+
+@pytest.mark.asyncio
+async def test_promote_returns_refused_list_on_branch5_overwrite_refusal():
+    """The refusal must surface in the returned refused list so the API layer
+    can echo it back to the frontend toast.
+
+    Two fields share one node:
+      - ``client_id``: existing autosecret + different incoming plaintext → refused
+      - ``api_key``: no existing autosecret + plaintext → normal Branch-5 write
+    """
+    secret_store = InMemorySecretStore()
+    refused_path = autosecret_vault_path(ORG_ID, FLOW_ID, NODE_ID, "client_id")
+    await secret_store.put(refused_path, {"value": "real-secret"})
+
+    flow_data = {
+        "nodes": [
+            {
+                "id": NODE_ID,
+                "data": {
+                    "node": {
+                        "template": {
+                            "client_id": {
+                                "_input_type": "SecretStrInput",
+                                "auto_promote": True,
+                                "display_name": "Client ID",
+                                "value": "P@ssword1!",
+                                "load_from_db": False,
+                            },
+                            "api_key": {
+                                "_input_type": "SecretStrInput",
+                                "auto_promote": True,
+                                "display_name": "API Key",
+                                "value": "first-time-write",
+                                "load_from_db": False,
+                            },
+                        }
+                    }
+                },
+            }
+        ],
+        "edges": [],
+    }
+
+    variable_service = AsyncMock()
+    variable_service.has_user_managed_variable = AsyncMock(return_value=False)
+
+    _out, refused = await promote_plaintext_secrets_to_variables(
+        flow_data=flow_data,
+        flow_id=FLOW_ID,
+        organization_id=ORG_ID,
+        user_id=USER_ID,
+        secret_store=secret_store,
+        variable_service=variable_service,
+        session=AsyncMock(),
+    )
+
+    assert len(refused) == 1
+    entry = refused[0]
+    assert entry.node_id == NODE_ID
+    assert entry.field_name == "client_id"
+    assert entry.display_name == "Client ID"
+    # Vault was untouched for the refused field.
+    assert (await secret_store.get(refused_path)) == {"value": "real-secret"}
+    # And the non-refused field went through.
+    assert (
+        await secret_store.get(autosecret_vault_path(ORG_ID, FLOW_ID, NODE_ID, "api_key"))
+    ) == {"value": "first-time-write"}
+
+
+@pytest.mark.asyncio
+async def test_promote_returns_empty_refused_on_normal_save():
+    """No Branch-5 conflict => refused is []. Guards against false positives."""
+    flow_data = _flow_data(
+        {
+            "_input_type": "SecretStrInput",
+            "auto_promote": True,
+            "value": "fresh-secret",
+            "load_from_db": False,
+        },
+        field_name="api_key",
+    )
+    variable_service = AsyncMock()
+    variable_service.has_user_managed_variable = AsyncMock(return_value=False)
+
+    _out, refused = await promote_plaintext_secrets_to_variables(
+        flow_data=flow_data,
+        flow_id=FLOW_ID,
+        organization_id=ORG_ID,
+        user_id=USER_ID,
+        secret_store=InMemorySecretStore(),
+        variable_service=variable_service,
+        session=AsyncMock(),
+    )
+
+    assert refused == []
 
 
 @pytest.mark.asyncio
@@ -222,7 +318,7 @@ async def test_promote_branch5_refuses_to_overwrite_existing_autosecret_with_dif
     variable_service = AsyncMock()
     variable_service.has_user_managed_variable = AsyncMock(return_value=False)
 
-    out = await promote_plaintext_secrets_to_variables(
+    out, _refused = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
         organization_id=ORG_ID,
@@ -270,7 +366,7 @@ async def test_promote_branch5_idempotent_when_value_matches_existing_autosecret
     variable_service = AsyncMock()
     variable_service.has_user_managed_variable = AsyncMock(return_value=False)
 
-    out = await promote_plaintext_secrets_to_variables(
+    out, _refused = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
         organization_id=ORG_ID,
@@ -309,7 +405,7 @@ async def test_promote_branch5_writes_when_no_existing_autosecret():
     variable_service = AsyncMock()
     variable_service.has_user_managed_variable = AsyncMock(return_value=False)
 
-    out = await promote_plaintext_secrets_to_variables(
+    out, _refused = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
         organization_id=ORG_ID,
@@ -340,7 +436,7 @@ async def test_promote_user_managed_variable_name_passes_through():
     variable_service.has_user_managed_variable = AsyncMock(return_value=True)
 
     secret_store = InMemorySecretStore()
-    out = await promote_plaintext_secrets_to_variables(
+    out, _refused = await promote_plaintext_secrets_to_variables(
         flow_data=flow_data,
         flow_id=FLOW_ID,
         organization_id=ORG_ID,

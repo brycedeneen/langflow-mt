@@ -264,6 +264,17 @@ class FlowRead(FlowBase):
         default_factory=list,
         description="Tags assigned to this flow via flow_tag",
     )
+    # Populated only on save responses when promote_plaintext_secrets_to_variables
+    # refuses a Branch-5 overwrite (an existing autosecret with a different value).
+    # Drives the frontend rotation-refused toast. Always [] on read paths.
+    refused_secret_fields: list[dict] = Field(
+        default_factory=list,
+        description=(
+            "Per-field flags from autosecret save: each entry is "
+            "{node_id, field_name, display_name?} for a SecretStr field whose "
+            "rewrite was refused to protect an existing Vault secret."
+        ),
+    )
 
 
 class FlowHeader(BaseModel):

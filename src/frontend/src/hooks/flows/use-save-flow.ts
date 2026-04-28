@@ -7,9 +7,20 @@ import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import type { AllNodeType, EdgeType, FlowType } from "@/types/flow";
 import { customStringify } from "@/utils/reactflowUtils";
 
+// Mirror of langflow.services.variable.auto_secrets.RefusedSecretField. Server
+// echoes one entry per Branch-5 overwrite refusal so we can warn the user that
+// their rotation didn't land in Vault (most often: password-manager autofill,
+// occasionally: a real rotation that bypassed the "clear field first" path).
+type RefusedSecretField = {
+  node_id: string;
+  field_name: string;
+  display_name?: string | null;
+};
+
 const useSaveFlow = () => {
   const setFlows = useFlowsManagerStore((state) => state.setFlows);
   const setErrorData = useAlertStore((state) => state.setErrorData);
+  const setNoticeData = useAlertStore((state) => state.setNoticeData);
   const setSaveLoading = useFlowsManagerStore((state) => state.setSaveLoading);
   const setCurrentFlow = useFlowStore((state) => state.setCurrentFlow);
 
@@ -84,6 +95,22 @@ const useSaveFlow = () => {
               onSuccess: (updatedFlow) => {
                 const flows = useFlowsManagerStore.getState().flows;
                 setSaveLoading(false);
+
+                // Surface autosecret rotation refusals as warning toasts.
+                // Severity is "notice" rather than "error": the save itself
+                // succeeded — only the secret rotation didn't reach Vault.
+                const refused: RefusedSecretField[] =
+                  (updatedFlow as { refused_secret_fields?: RefusedSecretField[] })
+                    ?.refused_secret_fields ?? [];
+                for (const r of refused) {
+                  const label = r.display_name || r.field_name;
+                  setNoticeData({
+                    title:
+                      `"${label}" was reset to protect saved credentials. ` +
+                      `To update the saved secret, clear the field and save again.`,
+                  });
+                }
+
                 if (flows) {
                   // updates flow in state
                   setFlows(

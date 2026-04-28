@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from lfx.log.logger import logger
+from pydantic import BaseModel
 from sqlmodel import select
 
 from langflow.services.variable.constants import CREDENTIAL_TYPE
@@ -25,6 +26,20 @@ if TYPE_CHECKING:
 
 
 AUTOSECRET_PREFIX = "__autosecret|"
+
+
+class RefusedSecretField(BaseModel):
+    """A (node_id, field_name) pair whose Branch-5 plaintext write was refused
+    because a different autosecret already exists in Vault.
+
+    Surfaced on the flow save response so the UI can warn the user that an
+    intentional rotation didn't take effect (the most likely culprit is
+    password-manager autofill clobber, but a real rotation also lands here).
+    """
+
+    node_id: str
+    field_name: str
+    display_name: str | None = None
 
 
 def autosecret_flow_prefix(flow_id: UUID) -> str:
@@ -128,7 +143,7 @@ async def promote_plaintext_secrets_to_variables(
     secret_store: SecretStore,
     variable_service: VariableService,
     session: AsyncSession,
-) -> dict:
+) -> tuple[dict, list[RefusedSecretField]]:
     """Walk a flow's template, promote plaintext secrets into Vault, and
     rewrite the field to reference the value via a stable marker.
 
@@ -136,6 +151,11 @@ async def promote_plaintext_secrets_to_variables(
     flow CRUD endpoint) rather than looked up from the Flow row, because POST
     ``/flows/`` runs promotion *before* the row is inserted — a DB lookup
     would return None and silently no-op the promotion.
+
+    Returns ``(flow_data, refused)`` where ``refused`` lists every Branch-5
+    overwrite that was refused (existing autosecret with a different value).
+    Callers surface this list to the UI so a legitimate credential rotation
+    that bypassed the "clear field first" path doesn't silently fail.
 
     Branches:
       1. Empty value, no Vault secret existing → clean save (clear the field).
@@ -148,6 +168,7 @@ async def promote_plaintext_secrets_to_variables(
          autofill clobber; pairs with the frontend autoComplete + ignore attrs.
     """
     org_id = organization_id
+    refused: list[RefusedSecretField] = []
 
     for node_id, field_name, field in _iter_promotable_fields(flow_data):
         marker = autosecret_marker(flow_id, node_id, field_name)
@@ -199,13 +220,21 @@ async def promote_plaintext_secrets_to_variables(
             )
             field["value"] = marker
             field["load_from_db"] = True
+            display_name = field.get("display_name")
+            refused.append(
+                RefusedSecretField(
+                    node_id=node_id,
+                    field_name=field_name,
+                    display_name=display_name if isinstance(display_name, str) else None,
+                )
+            )
             continue
 
         await secret_store.put(path, {"value": value})
         field["value"] = marker
         field["load_from_db"] = True
 
-    return flow_data
+    return flow_data, refused
 
 
 async def cleanup_orphaned_autosecrets(

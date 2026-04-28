@@ -435,9 +435,10 @@ async def create_flow(
 
     try:
         flow_id = uuid4()
+        refused_secret_fields: list = []
 
         if flow.data is not None:
-            flow.data = await promote_plaintext_secrets_to_variables(
+            flow.data, refused = await promote_plaintext_secrets_to_variables(
                 flow_data=flow.data,
                 flow_id=flow_id,
                 organization_id=current_org.id,
@@ -446,8 +447,9 @@ async def create_flow(
                 variable_service=get_variable_service(),
                 session=session,
             )
+            refused_secret_fields = [r.model_dump() for r in refused]
 
-        return await _new_flow(
+        flow_read = await _new_flow(
             session=session,
             flow=flow,
             user_id=current_user.id,
@@ -455,6 +457,8 @@ async def create_flow(
             storage_service=storage_service,
             flow_id=flow_id,
         )
+        flow_read.refused_secret_fields = refused_secret_fields
+        return flow_read
     except Exception as e:
         if "UNIQUE constraint failed" in str(e):
             # Get the name of the column that failed
@@ -664,10 +668,11 @@ async def update_flow(
         if settings_service.settings.remove_api_keys:
             update_data = remove_api_keys(update_data)
 
+        refused_secret_fields: list = []
         if "data" in update_data and update_data["data"] is not None:
             var_svc = get_variable_service()
             sec_store = get_secret_store()
-            update_data["data"] = await promote_plaintext_secrets_to_variables(
+            update_data["data"], refused = await promote_plaintext_secrets_to_variables(
                 flow_data=update_data["data"],
                 flow_id=db_flow.id,
                 organization_id=db_flow.organization_id,
@@ -676,6 +681,7 @@ async def update_flow(
                 variable_service=var_svc,
                 session=session,
             )
+            refused_secret_fields = [r.model_dump() for r in refused]
             await cleanup_orphaned_autosecrets(
                 flow_data=update_data["data"],
                 flow_id=db_flow.id,
@@ -727,6 +733,7 @@ async def update_flow(
 
         # Convert to FlowRead while session is still active to avoid detached instance errors
         flow_read = FlowRead.model_validate(db_flow, from_attributes=True)
+        flow_read.refused_secret_fields = refused_secret_fields
 
     except Exception as e:
         if "UNIQUE constraint failed" in str(e):
