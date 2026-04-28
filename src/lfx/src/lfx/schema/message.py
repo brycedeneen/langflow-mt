@@ -463,13 +463,6 @@ class MessageResponse(DefaultModel):
             v = v.replace(tzinfo=timezone.utc)
         return v.isoformat()
 
-    @field_serializer("files")
-    @classmethod
-    def serialize_files(cls, v):
-        if isinstance(v, list):
-            return json.dumps(v)
-        return v
-
     @classmethod
     def from_message(cls, message: Message, flow_id: str | None = None):
         # first check if the record has all the required fields

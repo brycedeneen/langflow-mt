@@ -1,4 +1,5 @@
 import base64
+import json
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
@@ -6,7 +7,7 @@ from pathlib import Path
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage
 from lfx.log.logger import logger
-from lfx.schema.message import Message
+from lfx.schema.message import Message, MessageResponse
 from lfx.utils.constants import MESSAGE_SENDER_AI, MESSAGE_SENDER_USER
 from platformdirs import user_cache_dir
 
@@ -303,6 +304,50 @@ def test_get_file_content_dicts_with_string_paths():
         assert content_dicts[0]["image_url"]["url"].startswith("data:image/")
     finally:
         Path(tmp_path).unlink(missing_ok=True)
+
+
+def _make_response(**overrides):
+    base = {
+        "sender": MESSAGE_SENDER_USER,
+        "sender_name": "User",
+        "session_id": "session-1",
+        "text": "hi",
+        "edit": False,
+    }
+    base.update(overrides)
+    return MessageResponse(**base)
+
+
+def test_message_response_files_dump_is_list():
+    response = _make_response(files=["a.png", "b.txt"])
+    dumped = response.model_dump()
+    assert isinstance(dumped["files"], list), (
+        f"files must be a list on the wire, got {type(dumped['files']).__name__}: {dumped['files']!r}"
+    )
+    assert dumped["files"] == ["a.png", "b.txt"]
+
+
+def test_message_response_files_json_is_array():
+    response = _make_response(files=["a.png", "b.txt"])
+    parsed = json.loads(response.model_dump_json())
+    assert isinstance(parsed["files"], list), (
+        f"files must be a JSON array on the wire, got {type(parsed['files']).__name__}: {parsed['files']!r}"
+    )
+    assert parsed["files"] == ["a.png", "b.txt"]
+
+
+def test_message_response_files_empty_serializes_as_array():
+    response = _make_response()
+    parsed = json.loads(response.model_dump_json())
+    assert parsed["files"] == []
+    assert isinstance(parsed["files"], list)
+
+
+def test_message_response_files_string_input_round_trips_to_array():
+    response = _make_response(files='["a.png", "b.txt"]')
+    assert response.files == ["a.png", "b.txt"]
+    parsed = json.loads(response.model_dump_json())
+    assert parsed["files"] == ["a.png", "b.txt"]
 
 
 # Clean up the cache directory after all tests
