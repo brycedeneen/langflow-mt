@@ -86,7 +86,7 @@ function StaticEditor({
         onChange={(e) => handleChange(e.target.value)}
       />
       {jsonError && (
-        <span style={{ color: "red", fontSize: "0.75em" }}>Invalid JSON</span>
+        <span className="text-destructive text-[0.75em]">Invalid JSON</span>
       )}
     </div>
   );

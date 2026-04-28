@@ -100,7 +100,7 @@ function DefaultEditor({ value, onChange }: { value: unknown; onChange(v: unknow
       value={text}
       onChange={(e) => handleChange(e.target.value)}
       placeholder="null"
-      style={{ width: 90, fontSize: "0.8em", border: bad ? "1px solid red" : undefined }}
+      className={`w-[90px] text-[0.8em]${bad ? " border border-destructive" : ""}`}
     />
   );
 }
@@ -128,34 +128,32 @@ function AddFieldForm({ onAdd, onCancel }: { onAdd(f: DestFieldDef): void; onCan
   return (
     <form
       onSubmit={handleSubmit}
-      style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", gap: "0.5rem",
-        marginTop: "0.5rem", padding: "0.5rem", background: "#f8f8f8",
-        borderRadius: 4, border: "1px solid #e0e0e0" }}
+      className="flex flex-wrap items-end gap-2 mt-2 p-2 bg-muted rounded border border-border"
     >
       <div>
-        <label style={{ fontSize: "0.75em", display: "block" }}>Name *</label>
+        <label className="block text-[0.75em]">Name *</label>
         <input autoFocus type="text" value={name} placeholder="field_name"
           data-testid="data-mapper-field-name-input"
-          style={{ width: 140, border: nameErr ? "1px solid red" : undefined }}
+          className={`w-[140px]${nameErr ? " border border-destructive" : ""}`}
           onChange={(e) => { setName(e.target.value); setNameErr(false); }} />
       </div>
       <div>
-        <label style={{ fontSize: "0.75em", display: "block" }}>Type</label>
+        <label className="block text-[0.75em]">Type</label>
         <select value={type} data-testid="data-mapper-field-type-select" onChange={(e) => setType(e.target.value as FieldType)}>
           {FIELD_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
       </div>
       <div>
-        <label style={{ fontSize: "0.75em", display: "block" }}>Default (JSON)</label>
-        <input type="text" value={defaultVal} placeholder="null" style={{ width: 100 }}
+        <label className="block text-[0.75em]">Default (JSON)</label>
+        <input type="text" value={defaultVal} placeholder="null" className="w-[100px]"
           onChange={(e) => setDefaultVal(e.target.value)} />
       </div>
-      <label style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85em" }}>
+      <label className="flex items-center gap-1 text-[0.85em]">
         <input type="checkbox" checked={required} data-testid="data-mapper-field-required-checkbox" onChange={(e) => setRequired(e.target.checked)} />
         Required
       </label>
-      <button type="submit" data-testid="data-mapper-field-add-submit" style={{ padding: "0.25rem 0.75rem" }}>Add</button>
-      <button type="button" onClick={onCancel} style={{ padding: "0.25rem 0.75rem" }}>Cancel</button>
+      <button type="submit" data-testid="data-mapper-field-add-submit" className="px-3 py-1">Add</button>
+      <button type="button" onClick={onCancel} className="px-3 py-1">Cancel</button>
     </form>
   );
 }
@@ -197,18 +195,18 @@ export function DestinationTable(props: DestinationTableProps) {
   const [showAddForm, setShowAddForm] = useState(false);
 
   return (
-    <div className="destination-table" style={{ overflowX: "auto" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9em" }}>
+    <div className="destination-table overflow-x-auto">
+      <table className="w-full border-collapse text-[0.9em]">
         <thead>
-          <tr style={{ borderBottom: "2px solid #e0e0e0", textAlign: "left" }}>
+          <tr className="border-b-2 border-border text-left">
             {["Destination field", "Type", "Required", "Transform", "Source / Config", "Default", "Actions"]
-              .map((h) => <th key={h} style={{ padding: "0.4rem 0.5rem" }}>{h}</th>)}
+              .map((h) => <th key={h} className="px-2 py-1.5">{h}</th>)}
           </tr>
         </thead>
         <tbody>
           {config.destination_schema.length === 0 && (
             <tr>
-              <td colSpan={7} style={{ padding: "1rem", textAlign: "center", color: "#888", fontStyle: "italic" }}>
+              <td colSpan={7} className="p-4 text-center text-muted-foreground italic">
                 No destination fields yet — add one below.
               </td>
             </tr>
@@ -222,42 +220,35 @@ export function DestinationTable(props: DestinationTableProps) {
                 ? pendingSuggestions.find((p) => p.destination === dest.name)
                 : undefined;
 
+            const rowClass = pendingEntry
+              ? "border-l-[3px] border-l-primary bg-primary/10"
+              : rowError
+                ? "border-l-[3px] border-l-destructive bg-destructive/5"
+                : "";
+
             return (
               <tr
                 key={dest.name}
-                style={{
-                  borderLeft: pendingEntry
-                    ? "3px solid #3b82f6"
-                    : rowError
-                      ? "3px solid red"
-                      : undefined,
-                  borderBottom: "1px solid #f0f0f0",
-                  background: pendingEntry
-                    ? "#3b82f615"
-                    : rowError
-                      ? "#fff5f5"
-                      : undefined,
-                }}
+                className={`border-b border-border ${rowClass}`}
               >
                 {/* Destination field: name input + type pill + inline error */}
-                <td style={{ padding: "0.4rem 0.5rem" }}>
+                <td className="px-2 py-1.5">
                   <input
                     type="text"
                     value={dest.name}
-                    style={{ width: 130, fontWeight: 500, display: "block" }}
+                    className="block w-[130px] font-medium"
                     onChange={(e) => onConfigChange(updateDestAt(config, idx, { name: e.target.value }))}
                   />
-                  <span style={{ fontSize: "0.7em", background: "#e8e8f4", borderRadius: 3,
-                    padding: "1px 5px", color: "#444" }}>{dest.type}</span>
+                  <span className="text-[0.7em] bg-accent text-accent-foreground rounded-sm px-[5px] py-px">{dest.type}</span>
                   {rowError && (
-                    <span style={{ display: "block", color: "red", fontSize: "0.75em", marginTop: 2 }}>
+                    <span className="block text-destructive text-[0.75em] mt-0.5">
                       {rowError.message}
                     </span>
                   )}
                 </td>
 
                 {/* Type */}
-                <td style={{ padding: "0.4rem 0.5rem" }}>
+                <td className="px-2 py-1.5">
                   <select value={dest.type}
                     onChange={(e) => onConfigChange(updateDestAt(config, idx, { type: e.target.value as FieldType }))}>
                     {FIELD_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -265,15 +256,15 @@ export function DestinationTable(props: DestinationTableProps) {
                 </td>
 
                 {/* Required */}
-                <td style={{ padding: "0.4rem 0.5rem", textAlign: "center" }}>
+                <td className="px-2 py-1.5 text-center">
                   <input type="checkbox" checked={dest.required}
                     onChange={(e) => onConfigChange(updateDestAt(config, idx, { required: e.target.checked }))} />
                 </td>
 
                 {/* Transform */}
-                <td style={{ padding: "0.4rem 0.5rem" }}>
+                <td className="px-2 py-1.5">
                   {pendingEntry
-                    ? <span style={{ color: "#a5a5a5" }}>{pendingEntry.transform}</span>
+                    ? <span className="text-muted-foreground">{pendingEntry.transform}</span>
                     : <select value={mapping?.transform ?? "direct"}
                         data-testid={`data-mapper-transform-select-${dest.name}`}
                         onChange={(e) =>
@@ -283,32 +274,32 @@ export function DestinationTable(props: DestinationTableProps) {
                 </td>
 
                 {/* Source / Config */}
-                <td style={{ padding: "0.4rem 0.5rem" }}>
+                <td className="px-2 py-1.5">
                   {pendingEntry
-                    ? <span style={{ color: "#a5a5a5" }}>{summarizePendingEntry(pendingEntry)}</span>
+                    ? <span className="text-muted-foreground">{summarizePendingEntry(pendingEntry)}</span>
                     : mapping
                       ? <TransformCell mapping={mapping} inputs={config.inputs}
                           onMappingChange={(entry) => onConfigChange(updateMappingEntry(config, entry))} />
-                      : <span style={{ color: "#aaa" }}>—</span>}
+                      : <span className="text-muted-foreground">—</span>}
                 </td>
 
                 {/* Default */}
-                <td style={{ padding: "0.4rem 0.5rem" }}>
+                <td className="px-2 py-1.5">
                   <DefaultEditor value={dest.default}
                     onChange={(v) => onConfigChange(updateDestAt(config, idx, { default: v }))} />
                 </td>
 
                 {/* Actions */}
-                <td style={{ padding: "0.4rem 0.5rem" }}>
+                <td className="px-2 py-1.5">
                   <button type="button" aria-label={`Remove ${dest.name}`}
-                    style={{ color: "red", cursor: "pointer", padding: "0.1rem 0.5rem" }}
+                    className="text-destructive cursor-pointer px-2 py-0.5"
                     onClick={() => onConfigChange(removeDestinationField(config, dest.name))}>
                     −
                   </button>
                 </td>
 
                 {pendingEntry && (
-                  <td style={{ padding: "0.4rem 0.5rem", whiteSpace: "nowrap" }}>
+                  <td className="px-2 py-1.5 whitespace-nowrap">
                     <button
                       type="button"
                       aria-label={`Accept suggestion for ${dest.name}`}
@@ -318,7 +309,7 @@ export function DestinationTable(props: DestinationTableProps) {
                       type="button"
                       aria-label={`Reject suggestion for ${dest.name}`}
                       onClick={() => props.onRejectSuggestion?.(dest.name)}
-                      style={{ marginLeft: 4 }}
+                      className="ml-1"
                     >✗</button>
                   </td>
                 )}
@@ -334,7 +325,7 @@ export function DestinationTable(props: DestinationTableProps) {
             onCancel={() => setShowAddForm(false)} />
         : <button type="button" onClick={() => setShowAddForm(true)}
             data-testid="data-mapper-add-field-btn"
-            style={{ marginTop: "0.5rem", padding: "0.25rem 0.75rem" }}>
+            className="mt-2 px-3 py-1">
             + Add destination field
           </button>}
     </div>

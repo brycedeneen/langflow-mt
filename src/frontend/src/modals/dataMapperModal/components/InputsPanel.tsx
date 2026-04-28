@@ -34,19 +34,18 @@ export function InputsPanel({
   const driverFields = driverInput?.schema.fields ?? [];
 
   return (
-    <div className="inputs-panel" style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+    <div className="inputs-panel flex flex-wrap gap-4">
       {config.inputs.map((input, idx) => {
         const isDriver = idx === config.driver_index;
 
         return (
           <div
             key={input.alias}
-            className="input-card"
-            style={{ border: "1px solid #ccc", borderRadius: 4, padding: "0.75rem", minWidth: 260 }}
+            className="input-card border border-border rounded p-3 min-w-[260px]"
           >
             {/* Driver toggle + Alias */}
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-              <label style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+            <div className="flex items-center gap-2 mb-2">
+              <label className="flex items-center gap-1">
                 <input
                   type="radio"
                   name="driver"
@@ -55,7 +54,7 @@ export function InputsPanel({
                 />
                 Driver
               </label>
-              <label style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+              <label className="flex items-center gap-1">
                 Alias:
                 <input
                   type="text"
@@ -65,7 +64,7 @@ export function InputsPanel({
                       updateInputAt(config, idx, { alias: e.target.value }),
                     )
                   }
-                  style={{ marginLeft: "0.25rem" }}
+                  className="ml-1"
                 />
               </label>
             </div>

@@ -22,14 +22,14 @@ type Props = {
 export function PSSuggestionCard({ reason, onRequest, onDismiss }: Props) {
   return (
     <div
-      className="my-2 rounded-lg border border-[#ED1C2E]/30 bg-[#ED1C2E]/5 p-4"
+      className="my-2 rounded-lg border border-adp-red/30 bg-adp-red/5 p-4"
       data-testid="ps-suggestion-card"
       role="region"
       aria-label="Professional Services suggestion"
     >
       <div className="flex items-start gap-3">
         <HandCoins
-          className="mt-0.5 h-5 w-5 text-[#ED1C2E]"
+          className="mt-0.5 h-5 w-5 text-adp-red"
         />
         <div className="flex-1">
           <div className="font-medium">Need a hand?</div>

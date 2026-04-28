@@ -20,7 +20,7 @@ export function MappingSuggestions({
 
   if (state === "fetching") {
     return (
-      <div className="mapping-suggestions mapping-suggestions--fetching" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div className="mapping-suggestions mapping-suggestions--fetching flex items-center gap-2.5">
         <span className="spinner" aria-hidden />
         <span>Analyzing schemas…</span>
         <button type="button" onClick={onCancel}>Cancel</button>
@@ -30,10 +30,10 @@ export function MappingSuggestions({
 
   if (state === "pending") {
     return (
-      <div className="mapping-suggestions mapping-suggestions--pending" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div className="mapping-suggestions mapping-suggestions--pending flex items-center justify-between">
         <div>
           <button type="button" aria-pressed={!showPending} onClick={() => onTogglePending(false)}>Current</button>
-          <button type="button" aria-pressed={showPending}  onClick={() => onTogglePending(true)} style={{ marginLeft: 4 }}>
+          <button type="button" aria-pressed={showPending}  onClick={() => onTogglePending(true)} className="ml-1">
             Suggested ({pendingCount})
           </button>
         </div>
@@ -44,7 +44,7 @@ export function MappingSuggestions({
 
   if (state === "error") {
     return (
-      <div className="mapping-suggestions mapping-suggestions--error" role="alert" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div className="mapping-suggestions mapping-suggestions--error flex items-center gap-2.5" role="alert">
         <span>{error ?? "Something went wrong."}</span>
         <button type="button" onClick={onRetry}>Retry</button>
       </div>
